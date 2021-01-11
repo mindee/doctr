@@ -8,7 +8,32 @@ ALLOWED_PDF = ["application/pdf"]
 DEFAULT_RES_MIN = 0.8e6
 DEFAULT_RES_MAX = 3e6
 
- 
+
+def documents_to_strings(documents_imgs):
+    """
+    :param documents_imgs: list of documents as np imgs, a document is either a np array or a list of np arrays (multiple pages)
+    :returns: - list of int : heights
+              - list of int : widths
+              - list of binary string images
+    All 3 lists have the same nested structure for documents : list of list for pages of the same doc
+    """
+
+    heights = []
+    widths = []
+    raw_images = []
+
+    for document in documents_imgs:
+        if not isinstance(document, list):
+            document = [document]
+
+        heights.append([page.shape[0] for page in document])
+        widths.append([page.shape[1] for page in document])
+        raw_images.append([page.flatten().tostring() for page in document])
+    
+    return heights, widths, raw_images
+
+
+
 def prepare_pdf_documents(
     filepaths=None, pdf_resolution=None, with_sizes=False
 ):
@@ -71,7 +96,6 @@ def prepare_pdf_from_filepath(
             pdf = fitz.open(filepath)
 
         except:
-            logger.exception(f"Invalid PDF: {filename}")
             return None
 
         imgs, names = convert_pdf_pages_to_imgs(pdf, filename, resolution=pdf_resolution)
@@ -180,4 +204,10 @@ images, names, sizes = prepare_pdf_documents(
 
 print(images)
 print(names)
-print(sizes)"""
+print(sizes)
+
+heights, widths, stri =  documents_to_strings(images)
+
+print(heights)
+print(widths)
+"""
