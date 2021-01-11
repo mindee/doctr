@@ -43,7 +43,7 @@ Use Github [issues](https://github.com/teamMindee/doctr/issues) for feature requ
 In order to run the same unit tests as the CI workflows, you can run unittests locally:
 
 ```shell
-coverage run -m unittest discover test/
+coverage run -m pytest test/
 ```
 
 #### Lint verification
