@@ -1,4 +1,1 @@
-try:
-    from .version import __version__  # noqa: F401
-except ImportError:
-    pass
+from .version import __version__  # noqa: F401
