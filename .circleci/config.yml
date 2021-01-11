@@ -55,6 +55,7 @@ jobs:
       - run:
           name: Upload coverage
           command: |
+            . venv/bin/activate
             coverage xml
             bash <(curl -s https://codecov.io/bash)
   flake8-py3:
