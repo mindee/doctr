@@ -52,6 +52,9 @@ jobs:
           command: |
             . venv/bin/activate
             coverage run -m pytest test/
+      - run:
+          name: Upload coverage
+          command: bash <(curl -s https://codecov.io/bash)
   flake8-py3:
     docker:
       - image: circleci/python:3.7.3
