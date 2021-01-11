@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 120
+ignore = F401, E402, E265, F403, W503, W504, F821, W605
+exclude = .github, .git, venv*, docs, build
