@@ -51,7 +51,7 @@ jobs:
           name: Package unit tests
           command: |
             . venv/bin/activate
-            coverage run -m pytest discover test/
+            coverage run -m pytest test/
   flake8-py3:
     docker:
       - image: circleci/python:3.7.3
@@ -61,6 +61,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            python3 -m venv venv
+            . venv/bin/activate
             python -m pip install --upgrade pip
             pip install flake8
       - run:
@@ -81,6 +83,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            python3 -m venv venv
+            . venv/bin/activate
             python -m pip install --upgrade pip
             pip install -e . --upgrade
             pip install mypy
