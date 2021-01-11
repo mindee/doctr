@@ -1,0 +1,12 @@
+pipeline {
+    agent { docker { image 'python:3.7.1' } }
+    stages {
+        stage('Install package') {
+            steps {
+                sh 'python --version'
+                sh 'python -m pip install --upgrade pip'
+                sh 'pip install -e . --upgrade'
+            }
+        }
+    }
+}
