@@ -44,12 +44,12 @@ def convert_to_fp16(tf_model: tf.keras.Model) -> bytes:
     return converter.convert()
 
 
-def quantize_model(tf_model: tf.keras.Model, tensor_shape: Tuple[int, int, int]) -> bytes:
+def quantize_model(tf_model: tf.keras.Model, input_shape: Tuple[int, int, int]) -> bytes:
     """Quantize a Tensorflow model
 
     Args:
         tf_model: a keras model
-        tensor_shape: shape of the expected input tensor (excluding batch dimension) with channel last order
+        input_shape: shape of the expected input tensor (excluding batch dimension) with channel last order
 
     Returns:
         bytes: the serialized quantized model
@@ -61,7 +61,7 @@ def quantize_model(tf_model: tf.keras.Model, tensor_shape: Tuple[int, int, int])
     # Float fallback for operators that do not have an integer implementation
     def representative_dataset():
         for _ in range(100):
-            data = np.random.rand(1, *tensor_shape)
+            data = np.random.rand(1, *input_shape)
             yield [data.astype(np.float32)]
 
     converter.representative_dataset = representative_dataset
