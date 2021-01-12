@@ -103,8 +103,8 @@ jobs:
             . venv/bin/activate
             mypy --version
             mypy --config-file mypy.ini
-    docs-build:
-      docker:
+  docs-build:
+    docker:
       - image: circleci/python:3.7.3
     working_directory: ~/repo
     steps:
