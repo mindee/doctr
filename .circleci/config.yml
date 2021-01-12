@@ -140,6 +140,6 @@ workflows:
       - mypy-py3:
           requires:
             - pkg-install
-      - pkg-install:
+      - docs-build:
           requires:
             - pkg-install
