@@ -101,7 +101,7 @@ def prepare_pdf_from_filepath(filepath, pdf_resolution=None):
             pdf = fitz.open(filepath)
 
         except Exception as e:
-            warnings.warn('file is not a valid pdf')
+            warnings.warn(e)
             return None
 
         imgs, names = convert_pdf_pages_to_imgs(pdf, filename, resolution=pdf_resolution)
