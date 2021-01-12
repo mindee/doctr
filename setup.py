@@ -37,6 +37,8 @@ with open('README.md', 'r') as f:
     readme = f.read()
 
 requirements = [
+    'numpy>=1.16.0',
+    'tensorflow>=2.3.0',
 ]
 
 setup(
