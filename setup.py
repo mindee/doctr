@@ -36,13 +36,12 @@ with open(cwd.joinpath(package_name, 'version.py'), 'w') as f:
 with open('README.md', 'r') as f:
     readme = f.read()
 
-requirements = ["opencv-python>=4.2",
+requirements = [
+    "opencv-python>=4.2",
     "numpy>=1.16.0",
     "PyMuPDF>=1.16.0",
     "python-magic>=0.4.10",
-    "pathlib>=1.0"
-
-
+    "pathlib>=1.0",
 ]
 
 setup(

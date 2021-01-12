@@ -17,15 +17,15 @@ DEFAULT_RES_MAX = 3e6
 
 
 def document_reader(
-    filepaths: Union[List[str], str], 
-    pdf_resolution: Optional[Union[int, Tuple[int, int], float, Tuple[float, float]]]=None
-    ) -> Tuple[List[List[List[int]]], List[List[bytes]], List[List[str]]]:
+    filepaths: List[str],
+    num_pixels: Optional[int] = None
+) -> Tuple[List[List[List[int]]], List[List[bytes]], List[List[str]]]:
     """
     :param filepaths: list of filepaths or filepaths
-    :param pdf_resolution: resolution for the outputs images
+    :param num_pixels: num_pixels for the outputs images
     """
     documents_imgs, documents_names = prepare_pdf_documents(
-        filepaths=filepaths, pdf_resolution=pdf_resolution)
+        filepaths=filepaths, num_pixels=num_pixels)
     shapes = [[page.shape[:2] for page in doc] for doc in documents_imgs]
     raw_images = [[page.flatten().tostring() for page in doc] for doc in documents_imgs]
 
@@ -33,16 +33,16 @@ def document_reader(
 
 
 def prepare_pdf_documents(
-    filepaths: Union[List[str], str]=None, 
-    pdf_resolution: Optional[Union[int, Tuple[int, int], float, Tuple[float, float]]]=None
-    ) -> Tuple[List[List[np.ndarray]], List[List[str]]]:
+    filepaths: List[str] = None,
+    num_pixels: Optional[int] = None
+) -> Tuple[List[List[np.ndarray]], List[List[str]]]:
     """
     Always return tuple of:
         - list of documents, each doc is a numpy image pages list (valid RGB image with 3 channels)
         - list of document names, each page inside a doc has a different name
     optional : list of sizes
     :param filepaths: list of pdf filepaths to prepare, or a filepath (str)
-    :param pdf_resolution: output resolution of images
+    :param num_pixels: output num_pixels of images
     :param with_sizes: to return the list of sizes
     """
 
@@ -52,30 +52,26 @@ def prepare_pdf_documents(
     documents_imgs = []
     documents_names = []
 
-    # make document dimension if not existing:
-    if isinstance(filepaths, str):
-        filepaths = [filepaths]
-
     for f_document in filepaths:
 
-        size = os.path.getsize(f_document)
         pages_imgs, pages_names = prepare_pdf_from_filepath(
-            f_document, pdf_resolution=pdf_resolution
+            f_document, num_pixels=num_pixels
         )
 
         documents_imgs.append(pages_imgs)
         documents_names.append(pages_names)
-    
+
     return documents_imgs, documents_names
 
 
-def prepare_pdf_from_filepath(filepath: str, 
-    pdf_resolution: Optional[Union[int, Tuple[int, int], float, Tuple[float, float]]]=None
-    ) -> Tuple[List[np.ndarray], List[str]]:
+def prepare_pdf_from_filepath(
+    filepath: str,
+    num_pixels: Optional[int] = None
+) -> Tuple[List[np.ndarray], List[str]]:
     """
     Read a pdf from a filepath with fitz
     :param filepath: filepath of the .pdf file
-    :param pdf_resolution: output resolution
+    :param num_pixels: output num_pixels
     """
 
     if not os.path.isfile(filepath):
@@ -88,7 +84,7 @@ def prepare_pdf_from_filepath(filepath: str,
     if mimetype in ALLOWED_PDF:
         pdf = fitz.open(filepath)
         imgs, names = convert_pdf_pages_to_imgs(
-            pdf=pdf, filename=filename, page_idxs=None, resolution=pdf_resolution)
+            pdf=pdf, filename=filename, page_idxs=None, num_pixels=num_pixels)
         return imgs, names
 
     else:
@@ -97,19 +93,19 @@ def prepare_pdf_from_filepath(filepath: str,
 
 def convert_pdf_pages_to_imgs(
     pdf: fitz.fitz.Document,
-    filename:str,
-    page_idxs: Optional[Union[List[int], int]],
-    resolution: Optional[Union[int, Tuple[int, int], float, Tuple[float, float]]]=None,
-    img_type: str="np"
-    ) -> Tuple[List[np.ndarray], List[str]]:
+    filename: str,
+    page_idxs: Optional[List[int]],
+    num_pixels: Optional[int] = None,
+    img_type: str = "np"
+) -> Tuple[List[np.ndarray], List[str]]:
     """
     Convert pdf pages to numpy arrays.
     :param pdf: pdf doc opened with fitz
     :param filename: pdf name to rename pages
     :param img_type: The format of the output pages, can be "np" or "png"
     :param page_idxs: Int or list of int to specify which pages to take. If None, takes all pages.
-    :param resolution: Output resolution in pixels. If None, use the default page size (DPI@96).
-    Can be used as a tuple to force a minimum/maximum resolution dynamically.
+    :param num_pixels: Output num_pixels in pixels. If None, use the default page size (DPI@96).
+    Can be used as a tuple to force a minimum/maximum num_pixels dynamically.
     :param with_names: Output list of names in return statement.
     :return: List of numpy arrays of dtype uint8.
     """
@@ -117,22 +113,14 @@ def convert_pdf_pages_to_imgs(
     imgs = []
     names = []
 
-    # Decode pages parameter
-    if isinstance(page_idxs, int):
-        page_idxs = [page_idxs]
     page_idxs = page_idxs or [x + 1 for x in range(len(pdf))]
 
     # Iterate over pages
     for i in page_idxs:
 
-        page = pdf[i-1]
+        page = pdf[i - 1]
 
-        # set resolution
-        if isinstance(resolution, tuple):
-            out_res = int(resolution[0] * resolution[1])
-        else:
-            out_res = max(min(int(resolution), DEFAULT_RES_MAX), 
-            DEFAULT_RES_MIN) if isinstance(resolution, Union[int, float].__args__) else None
+        out_res = max(min(num_pixels, DEFAULT_RES_MAX), DEFAULT_RES_MIN) if isinstance(num_pixels, int) else None
 
         # Make numpy array
         pixmap = page_to_pixmap(page, out_res)
@@ -150,14 +138,14 @@ def convert_pdf_pages_to_imgs(
 
 
 def page_to_pixmap(
-    page: fitz.fitz.Page, 
-    resolution: Optional[Union[int, Tuple[int, int], float, Tuple[float, float]]]=None
-    ) -> fitz.fitz.Pixmap:
+    page: fitz.fitz.Page,
+    num_pixels: Optional[int] = None
+) -> fitz.fitz.Pixmap:
     """
     Convert a fitz page to a fitz bitmap
     """
-    out_res = resolution
-    scale = 1   
+    out_res = num_pixels
+    scale = 1
     if out_res:
         box = page.MediaBox
         in_res = int(box[2]) * int(box[3])
@@ -167,8 +155,8 @@ def page_to_pixmap(
 
 def pixmap_to_numpy(
     pixmap: fitz.fitz.Pixmap,
-    channel_order: str="RGB"
-    ) -> np.ndarray:
+    channel_order: str = "RGB"
+) -> np.ndarray:
     """
     convert a fitz pixmap to a numpy image
     """
@@ -181,5 +169,3 @@ def pixmap_to_numpy(
         return img
     else:
         raise Exception("Invalid channel parameter! Must be RGB or BGR")
-
-
