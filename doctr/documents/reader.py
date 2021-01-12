@@ -1,5 +1,5 @@
 import os
-import fitz 
+import fitz
 import magic
 import numpy as np
 import cv2
@@ -11,20 +11,22 @@ DEFAULT_RES_MAX = 3e6
 
 
 def documentreader(filepaths, pdf_resolution=None):
-    documents_imgs, documents_names = prepare_pdf_documents(filepaths=filepaths, pdf_resolution=pdf_resolution, with_sizes=False)
+    documents_imgs, documents_names = prepare_pdf_documents(
+        filepaths=filepaths, pdf_resolution=pdf_resolution, with_sizes=False)
     heights, widths, raw_images = documents_to_strings(documents_imgs)
 
     return heigths, widths, raw_images, documents_names
 
 
-
 def documents_to_strings(documents_imgs):
     """
-    :param documents_imgs: list of documents as np imgs, a document is either a np array or a list of np arrays (multiple pages)
+    :param documents_imgs: list of documents as np imgs, a document is either
+    a np array or a list of np arrays (multiple pages)
     :returns: - list of int : heights
               - list of int : widths
               - list of binary string images
-    All 3 lists have the same nested structure for documents : list of list for pages of the same doc
+    All 3 lists have the same nested structure for documents : list of list
+    for pages of the same doc
     """
 
     heights = []
@@ -38,9 +40,8 @@ def documents_to_strings(documents_imgs):
         heights.append([page.shape[0] for page in document])
         widths.append([page.shape[1] for page in document])
         raw_images.append([page.flatten().tostring() for page in document])
-    
-    return heights, widths, raw_images
 
+    return heights, widths, raw_images
 
 
 def prepare_pdf_documents(filepaths=None, pdf_resolution=None, with_sizes=False):
@@ -81,7 +82,6 @@ def prepare_pdf_documents(filepaths=None, pdf_resolution=None, with_sizes=False)
 
     return documents_imgs, documents_names
 
- 
 
 def prepare_pdf_from_filepath(filepath, pdf_resolution=None):
     """
@@ -92,7 +92,7 @@ def prepare_pdf_from_filepath(filepath, pdf_resolution=None):
 
     if not os.path.isfile(filepath):
         raise FileNotFoundError
-    
+
     filename = os.path.splitext(os.path.split(filepath)[-1])[0]
     mimetype = magic.from_file(filepath, True)
 
@@ -100,22 +100,22 @@ def prepare_pdf_from_filepath(filepath, pdf_resolution=None):
         try:
             pdf = fitz.open(filepath)
 
-        except:
+        except Exception as e:
             warnings.warn('file is not a valid pdf')
             return None
 
         imgs, names = convert_pdf_pages_to_imgs(pdf, filename, resolution=pdf_resolution)
         return imgs, names
-    
+
     else:
         raise NameError('not a pdf')
- 
+
 
 def convert_pdf_pages_to_imgs(pdf, filename, pages=None, resolution=None, img_type="np"):
     """
     Convert pdf pages to numpy arrays.
     :param pdf: pdf doc opened with fitz
-    :param filename: pdf name to rename pages 
+    :param filename: pdf name to rename pages
     :param img_type: The format of the output pages, can be "np" or "png"
     :param pages: Int or list of int to specify which pages to take. If None, takes all pages.
     :param resolution: Output resolution in pixels. If None, use the default page size (DPI@96).
@@ -136,7 +136,7 @@ def convert_pdf_pages_to_imgs(pdf, filename, pages=None, resolution=None, img_ty
     for i, page in enumerate(pdf):
         if i + 1 not in pages:
             continue
-        
+
         #set resolution
         out_res = set_resolution(resolution, res_min=DEFAULT_RES_MIN, res_max=DEFAULT_RES_MAX)
 
@@ -166,8 +166,8 @@ def set_resolution(resolution, res_min, res_max):
     if isinstance(resolution, tuple):
         assert len(resolution) == 2
         out_res = resolution[0] * resolution[1]
- 
-    #bound resolution     
+
+    #bound resolution
     if out_res < res_min:
         return res_min
     elif out_res > res_max:
@@ -182,13 +182,14 @@ def page_to_pixmap(page, resolution=None):
     if out_res:
         box = page.MediaBox
         in_res = int(box[2]) * int(box[3])
-        scale = min(20, out_res / in_res) #to prevent error if in_res is very low
+        scale = min(20, out_res / in_res)  # to prevent error if in_res is very low
     return page.getPixmap(matrix=fitz.Matrix(scale, scale))
+
 
 def pixmap_to_numpy(pixmap, channel="RGB"):
     stream = pixmap.getImageData()
     stream = np.frombuffer(stream, dtype=np.uint8)
-    img = cv2.imdecode(stream, cv2.IMREAD_UNCHANGED)  
+    img = cv2.imdecode(stream, cv2.IMREAD_UNCHANGED)
     if channel == "RGB":
         return img[:, :, ::-1]
     elif channel == "BGR":
