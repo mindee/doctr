@@ -3,10 +3,19 @@ import fitz
 import magic
 import numpy as np
 import cv2
+import warnings
 
 ALLOWED_PDF = ["application/pdf"]
 DEFAULT_RES_MIN = 0.8e6
 DEFAULT_RES_MAX = 3e6
+
+
+def documentreader(filepaths, pdf_resolution=None):
+    documents_imgs, documents_names = prepare_pdf_documents(filepaths=filepaths, pdf_resolution=pdf_resolution, with_sizes=False)
+    heights, widths, raw_images = documents_to_strings(documents_imgs)
+
+    return heigths, widths, raw_images, documents_names
+
 
 
 def documents_to_strings(documents_imgs):
@@ -34,9 +43,7 @@ def documents_to_strings(documents_imgs):
 
 
 
-def prepare_pdf_documents(
-    filepaths=None, pdf_resolution=None, with_sizes=False
-):
+def prepare_pdf_documents(filepaths=None, pdf_resolution=None, with_sizes=False):
     """
     Always return tuple of:
         - list of documents, each doc is a numpy image pages list (valid RGB image with 3 channels)
@@ -76,9 +83,7 @@ def prepare_pdf_documents(
 
  
 
-def prepare_pdf_from_filepath(
-    filepath, pdf_resolution=None
-):
+def prepare_pdf_from_filepath(filepath, pdf_resolution=None):
     """
     Read a pdf from a filepath with fitz
     :param filepath: filepath of the .pdf file
@@ -96,6 +101,7 @@ def prepare_pdf_from_filepath(
             pdf = fitz.open(filepath)
 
         except:
+            warnings.warn('file is not a valid pdf')
             return None
 
         imgs, names = convert_pdf_pages_to_imgs(pdf, filename, resolution=pdf_resolution)
@@ -105,9 +111,7 @@ def prepare_pdf_from_filepath(
         raise NameError('not a pdf')
  
 
-def convert_pdf_pages_to_imgs(
-    pdf, filename, pages=None, resolution=None, img_type="np"
-):
+def convert_pdf_pages_to_imgs(pdf, filename, pages=None, resolution=None, img_type="np"):
     """
     Convert pdf pages to numpy arrays.
     :param pdf: pdf doc opened with fitz
@@ -144,7 +148,7 @@ def convert_pdf_pages_to_imgs(
         elif img_type == "png":
             imgs.append(pixmap.getImageData(output="png"))
         else:
-            logger.warning(f"could not convert to {img_type}, returning png")
+            warnings.warn(f"could not convert to {img_type}, returning png")
             imgs.append(pixmap.getImageData(output="png"))
 
         names.append(f"{filename}-p{str(i + 1).zfill(3)}")
@@ -191,23 +195,3 @@ def pixmap_to_numpy(pixmap, channel="RGB"):
         return img
     else:
         raise Exception("Invalid channel parameter! Must be RGB or BGR")
-
-
-"""
-filepaths = ["/home/datascientist-4/seg_dataset/sample/00ab1a5d-a1b0-4f68-90aa-a03955b0095b.pdf",
-"/home/datascientist-4/seg_dataset/sample/00b443c8-dc34-442d-9c48-fab08a9b74cf.pdf",
-"/home/datascientist-4/seg_dataset/sample/00b3352d-4a0a-4fa6-8b98-6e15b8cdc4cb.pdf", 
-"/home/datascientist-4/ex.pdf"]
-
-images, names, sizes = prepare_pdf_documents(
-    filepaths=filepaths, pdf_resolution=None, with_sizes=True)
-
-print(images)
-print(names)
-print(sizes)
-
-heights, widths, stri =  documents_to_strings(images)
-
-print(heights)
-print(widths)
-"""
