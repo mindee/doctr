@@ -1,0 +1,120 @@
+version: 2.1
+jobs:
+  pkg-install:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Cached build dependencies
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "requirements.txt" }}
+            - deps
+      - run:
+          name: Package installation
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -e .
+      - save_cache:
+          paths:
+            - ./venv
+          key: deps-{{ checksum "requirements.txt" }}
+  pkg-test:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/repo
+    steps:
+      - checkout
+      # Cached test dependencies
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/requirements.txt" }}
+            - deps-{{ checksum "requirements.txt" }}
+            - deps
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -e .
+            pip install -r .circleci/requirements.txt
+      - save_cache:
+          when: always
+          paths:
+            - ./venv
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum ".circleci/requirements.txt" }}
+      - run:
+          name: Package unit tests
+          command: |
+            . venv/bin/activate
+            coverage run -m pytest test/
+      - run:
+          name: Upload coverage
+          command: |
+            . venv/bin/activate
+            coverage xml
+            bash <(curl -s https://codecov.io/bash)
+  flake8-py3:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install flake8
+      - run:
+          name: Run flake8
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            flake8 --version
+            flake8 ./
+  mypy-py3:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "requirements.txt" }}
+            - deps
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -e . --upgrade
+            pip install mypy
+      - run:
+          name: Run mypy
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            mypy --version
+            mypy --config-file mypy.ini
+
+workflows:
+  version: 2.1
+  python-package:
+    jobs:
+      - pkg-install
+      - pkg-test:
+          requires:
+            - pkg-install
+      - flake8-py3:
+          requires:
+            - pkg-install
+      - mypy-py3:
+          requires:
+            - pkg-install
