@@ -1,5 +1,5 @@
 opencv-python>=3.4.5.20
 numpy>=1.16.0
 PyMuPDF>=1.16.0
-python-magic>=0.4.10
+
 

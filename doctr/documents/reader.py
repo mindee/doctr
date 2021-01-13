@@ -4,7 +4,6 @@
 
 import os
 import fitz
-import magic
 import numpy as np
 import pathlib
 import cv2
@@ -12,7 +11,8 @@ import math
 import warnings
 from typing import Union, List, Tuple, Optional
 
-ALLOWED_PDF = ["application/pdf"]
+__all__ = ['read_document']
+
 DEFAULT_RES_MIN = int(0.8e6)
 DEFAULT_RES_MAX = int(3e6)
 
@@ -80,16 +80,10 @@ def prepare_pdf_from_filepath(
 
     filename = pathlib.PurePosixPath(filepath).stem
 
-    mimetype = magic.from_file(filepath, True)
-
-    if mimetype in ALLOWED_PDF:
-        pdf = fitz.open(filepath)
-        imgs, names = convert_pdf_pages_to_imgs(
-            pdf=pdf, filename=filename, page_idxs=None, num_pixels=num_pixels)
-        return imgs, names
-
-    else:
-        raise TypeError('not a pdf')
+    pdf = fitz.open(filepath)
+    imgs, names = convert_pdf_pages_to_imgs(
+        pdf=pdf, filename=filename, page_idxs=None, num_pixels=num_pixels)
+    return imgs, names
 
 
 def convert_pdf_pages_to_imgs(
