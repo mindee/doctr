@@ -124,7 +124,7 @@ class Page(Element):
     Args:
         blocks: list of block elements
         page_idx: the index of the page in the input raw document
-        dimensions: the page size in pixels in format ()
+        dimensions: the page size in pixels in format (width, height)
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates
         are relative to the page's size. If not specified, it will be resolved by default to the smallest bounding box
         enclosing all blocks in it.
