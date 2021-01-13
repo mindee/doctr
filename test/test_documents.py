@@ -105,7 +105,7 @@ def test_page():
     assert len(page.children) == len(blocks)
     assert all(isinstance(b, documents.Block) for b in page.children)
     assert page.page_idx == page_idx
-    assert page.size == page_size
+    assert page.dimensions == page_size
     assert page.orientation == orientation
     assert page.language == language
 
@@ -113,7 +113,7 @@ def test_page():
     assert page.render() == "hello world\nhello world\n\nhello world\nhello world"
 
     # Export
-    assert page.export() == {"blocks": [b.export() for b in blocks], "page_idx": page_idx, "size": page_size,
+    assert page.export() == {"blocks": [b.export() for b in blocks], "page_idx": page_idx, "dimensions": page_size,
                              "orientation": orientation, "language": language}
 
 

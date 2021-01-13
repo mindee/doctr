@@ -119,21 +119,31 @@ class Block(Element):
 
 
 class Page(Element):
+    """Implements a page element as a collection of blocks
+
+    Args:
+        blocks: list of block elements
+        page_idx: the index of the page in the input raw document
+        dimensions: the page size in pixels in format ()
+        geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates
+        are relative to the page's size. If not specified, it will be resolved by default to the smallest bounding box
+        enclosing all blocks in it.
+    """
 
     _children_name: str = "blocks"
-    _exported_keys: List[str] = ["page_idx", "size", "orientation", "language"]
+    _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
 
     def __init__(
         self,
         blocks: List[Block],
         page_idx: int,
-        size: Tuple[int, int],
+        dimensions: Tuple[int, int],
         orientation: Dict[str, Any],
         language: Dict[str, Any],
     ) -> None:
         super().__init__(blocks)
         self.page_idx = page_idx
-        self.size = size
+        self.dimensions = dimensions
         self.orientation = orientation
         self.language = language
 
