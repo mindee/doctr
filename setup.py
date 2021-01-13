@@ -40,7 +40,6 @@ requirements = [
     "opencv-python>=4.2",
     "numpy>=1.16.0",
     "PyMuPDF>=1.16.0",
-    'tensorflow>=2.3.0',
 ]
 
 setup(

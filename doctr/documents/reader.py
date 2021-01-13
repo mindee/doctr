@@ -11,16 +11,16 @@ import math
 import warnings
 from typing import Union, List, Tuple, Optional
 
-__all__ = ['read_document']
+__all__ = ['read_documents']
 
 DEFAULT_RES_MIN = int(0.8e6)
 DEFAULT_RES_MAX = int(3e6)
 
 
-def read_document(
+def read_documents(
     filepaths: List[str],
     num_pixels: Optional[int] = None
-) -> Tuple[List[List[Tuple[int]]], List[List[bytes]], List[List[str]]]:
+) -> Tuple[List[List[Tuple[int, int]]], List[List[bytes]], List[List[str]]]:
     """
     :param filepaths: list of filepaths or filepaths
     :param num_pixels: num_pixels for the outputs images
@@ -52,7 +52,7 @@ def prepare_pdf_documents(
 
     documents_imgs = []
     documents_names = []
-
+    
     for f_document in filepaths:
 
         pages_imgs, pages_names = prepare_pdf_from_filepath(
@@ -74,12 +74,11 @@ def prepare_pdf_from_filepath(
     :param filepath: filepath of the .pdf file
     :param num_pixels: output num_pixels
     """
-
+    
     if not os.path.isfile(filepath):
         raise FileNotFoundError
 
     filename = pathlib.PurePosixPath(filepath).stem
-
     pdf = fitz.open(filepath)
     imgs, names = convert_pdf_pages_to_imgs(
         pdf=pdf, filename=filename, page_idxs=None, num_pixels=num_pixels)

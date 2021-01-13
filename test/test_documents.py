@@ -19,7 +19,7 @@ def mock_pdf(tmpdir_factory):
 
 
 def test_pdf_reader_with_pix(mock_pdf, num_pixels=2000000):
-    shapes, raw_images, documents_names = documents.reader.read_document(
+    shapes, raw_images, documents_names = documents.reader.read_documents(
         filepaths=[mock_pdf],
         num_pixels=num_pixels)
     for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
@@ -32,7 +32,7 @@ def test_pdf_reader_with_pix(mock_pdf, num_pixels=2000000):
 
 
 def test_pdf_reader(mock_pdf):
-    shapes, raw_images, documents_names = documents.reader.read_document(
+    shapes, raw_images, documents_names = documents.reader.read_documents(
         filepaths=[mock_pdf],
         num_pixels=None)
     for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
