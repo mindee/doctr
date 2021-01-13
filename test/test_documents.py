@@ -2,7 +2,7 @@ import requests
 import pytest
 from io import BytesIO
 
-from doctr.documents import reader
+from doctr import documents
 
 DEFAULT_RES_MIN = int(0.8e6)
 DEFAULT_RES_MAX = int(3e6)
@@ -18,7 +18,7 @@ def mock_pdf():
 
 
 def test_pdf_reader_with_pix(mock_pdf, num_pixels=2000000):
-    shapes, raw_images, documents_names = reader.document_reader(
+    shapes, raw_images, documents_names = documents.reader.document_reader(
         filepaths=[mock_pdf],
         num_pixels=num_pixels)
     for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
@@ -31,7 +31,7 @@ def test_pdf_reader_with_pix(mock_pdf, num_pixels=2000000):
 
 
 def test_pdf_reader(mock_pdf):
-    shapes, raw_images, documents_names = reader.document_reader(
+    shapes, raw_images, documents_names = documents.reader.document_reader(
         filepaths=[mock_pdf],
         num_pixels=None)
     for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
