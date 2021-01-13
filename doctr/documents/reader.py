@@ -8,12 +8,13 @@ import magic
 import numpy as np
 import pathlib
 import cv2
+import math
 import warnings
 from typing import Union, List, Tuple, Optional
 
 ALLOWED_PDF = ["application/pdf"]
-DEFAULT_RES_MIN = 0.8e6
-DEFAULT_RES_MAX = 3e6
+DEFAULT_RES_MIN = int(0.8e6)
+DEFAULT_RES_MAX = int(3e6)
 
 
 def document_reader(
@@ -145,11 +146,14 @@ def page_to_pixmap(
     Convert a fitz page to a fitz bitmap
     """
     out_res = num_pixels
-    scale = 1
-    if out_res:
-        box = page.MediaBox
-        in_res = int(box[2]) * int(box[3])
-        scale = min(20, out_res / in_res)  # to prevent error if in_res is very low
+    box = page.MediaBox
+    in_res = int(box[2]) * int(box[3])
+
+    if not out_res:
+        out_res = max(min(in_res, DEFAULT_RES_MAX), DEFAULT_RES_MIN)
+
+    scale = min(20, np.sqrt(out_res / in_res))  
+    
     return page.getPixmap(matrix=fitz.Matrix(scale, scale))
 
 
