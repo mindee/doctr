@@ -41,7 +41,6 @@ requirements = [
     "numpy>=1.16.0",
     "PyMuPDF>=1.16.0",
     "python-magic>=0.4.10",
-    "pathlib>=1.0",
 ]
 
 setup(

@@ -17,10 +17,10 @@ DEFAULT_RES_MIN = int(0.8e6)
 DEFAULT_RES_MAX = int(3e6)
 
 
-def document_reader(
+def read_document(
     filepaths: List[str],
     num_pixels: Optional[int] = None
-) -> Tuple[List[List[List[int]]], List[List[bytes]], List[List[str]]]:
+) -> Tuple[List[List[Tuple[int]]], List[List[bytes]], List[List[str]]]:
     """
     :param filepaths: list of filepaths or filepaths
     :param num_pixels: num_pixels for the outputs images
@@ -152,8 +152,8 @@ def page_to_pixmap(
     if not out_res:
         out_res = max(min(in_res, DEFAULT_RES_MAX), DEFAULT_RES_MIN)
 
-    scale = min(20, np.sqrt(out_res / in_res))  
-    
+    scale = min(20, np.sqrt(out_res / in_res)) 
+
     return page.getPixmap(matrix=fitz.Matrix(scale, scale))
 
 
