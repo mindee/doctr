@@ -40,7 +40,6 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     ]
 
 
-
 def test_word():
     word_str = "hello"
     conf = 0.8
@@ -90,7 +89,7 @@ def test_block():
     assert block.render() == "hello world\nhello world"
 
     # Export
-    assert block.export() == {"lines": [l.export() for l in lines], "geometry": geom}
+    assert block.export() == {"lines": [line.export() for line in lines], "geometry": geom}
 
 
 def test_page():
