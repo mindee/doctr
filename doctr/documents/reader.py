@@ -152,7 +152,7 @@ def page_to_pixmap(
     if not out_res:
         out_res = max(min(in_res, DEFAULT_RES_MAX), DEFAULT_RES_MIN)
 
-    scale = min(20, np.sqrt(out_res / in_res)) 
+    scale = min(20, np.sqrt(out_res / in_res))
 
     return page.getPixmap(matrix=fitz.Matrix(scale, scale))
 
