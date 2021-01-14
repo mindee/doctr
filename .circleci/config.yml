@@ -109,6 +109,9 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
+      - setup_remote_docker:
+        version: 19.03.13
+        docker_layer_caching: true
       - run:
           name: Build docker image
           command: docker build . -t doctr-py3.8.1-tf2.4-slim
