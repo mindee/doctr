@@ -103,6 +103,18 @@ jobs:
             . venv/bin/activate
             mypy --version
             mypy --config-file mypy.ini
+  docker-ready:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Build docker image
+          command: docker build . -t doctr-py3.8.1-tf2.4-slim
+      - run:
+          name: Run container
+          command: docker run -it a6d96d3aec4f python -c 'import doctr'
 
 workflows:
   version: 2.1
@@ -116,5 +128,8 @@ workflows:
           requires:
             - pkg-install
       - mypy-py3:
+          requires:
+            - pkg-install
+      - docker-ready:
           requires:
             - pkg-install
