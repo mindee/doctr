@@ -28,7 +28,7 @@ def read_documents(
     documents_imgs, documents_names = prepare_pdf_documents(
         filepaths=filepaths, num_pixels=num_pixels)
     shapes = [[page.shape[:2] for page in doc] for doc in documents_imgs]
-    raw_images = [[page.flatten().tostring() for page in doc] for doc in documents_imgs]
+    raw_images = [[page.astype(np.float32).flatten().tostring() for page in doc] for doc in documents_imgs]
 
     return shapes, raw_images, documents_names
 
@@ -52,7 +52,7 @@ def prepare_pdf_documents(
 
     documents_imgs = []
     documents_names = []
-    
+
     for f_document in filepaths:
 
         pages_imgs, pages_names = prepare_pdf_from_filepath(
@@ -74,7 +74,7 @@ def prepare_pdf_from_filepath(
     :param filepath: filepath of the .pdf file
     :param num_pixels: output num_pixels
     """
-    
+
     if not os.path.isfile(filepath):
         raise FileNotFoundError
 
