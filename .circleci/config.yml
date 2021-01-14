@@ -127,6 +127,17 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             sphinx-build docs/source docs/build -a
+  docker-ready:
+    machine: true
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Build docker image
+          command: docker build . -t doctr-py3.8.1-tf2.4-slim
+      - run:
+          name: Run container
+          command: docker run -it doctr-py3.8.1-tf2.4-slim python -c 'import doctr'
 
 workflows:
   version: 2.1
@@ -141,5 +152,8 @@ workflows:
           requires:
             - pkg-install
       - docs-build:
+          requires:
+            - pkg-install
+      - docker-ready:
           requires:
             - pkg-install

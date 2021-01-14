@@ -111,6 +111,16 @@ jobs:
           mypy --version
           mypy --config-file mypy.ini
 
+  docker-ready:
+    runs-on: ubuntu-latest
+    needs: pkg-install
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build docker image
+        run: docker build . -t doctr-py3.8.1-tf2.4-slim
+      - name: Run docker container
+        run: docker run -it a6d96d3aec4f python -c 'import doctr'
+
   docs-build:
     runs-on: ubuntu-latest
     needs: pkg-install
