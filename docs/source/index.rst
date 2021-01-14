@@ -13,6 +13,7 @@ The :mod:`doctr` package gives Python users the possibility to analyze documents
    :maxdepth: 1
    :caption: Package Documentation
 
+   documents
    models
 
 
