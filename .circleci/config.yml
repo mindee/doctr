@@ -113,7 +113,7 @@ jobs:
           command: docker build . -t doctr-py3.8.1-tf2.4-slim
       - run:
           name: Run container
-          command: docker run -it a6d96d3aec4f python -c 'import doctr'
+          command: docker run -it doctr-py3.8.1-tf2.4-slim python -c 'import doctr'
 
 workflows:
   version: 2.1
