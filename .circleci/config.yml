@@ -103,6 +103,30 @@ jobs:
             . venv/bin/activate
             mypy --version
             mypy --config-file mypy.ini
+  docs-build:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "requirements.txt" }}
+            - deps
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -e . --upgrade
+            pip install -r docs/requirements.txt
+      - run:
+          name: Build documentation
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            sphinx-build docs/source docs/build -a
 
 workflows:
   version: 2.1
@@ -112,9 +136,10 @@ workflows:
       - pkg-test:
           requires:
             - pkg-install
-      - flake8-py3:
+      - flake8-py3
+      - mypy-py3:
           requires:
             - pkg-install
-      - mypy-py3:
+      - docs-build:
           requires:
             - pkg-install
