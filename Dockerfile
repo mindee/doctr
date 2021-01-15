@@ -10,7 +10,7 @@ COPY ./setup.py /tmp/setup.py
 COPY ./doctr /tmp/doctr
 
 RUN apt-get update \
-    && apt-get install ffmpeg libsm6 libxext6 -y \
+    && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
     && pip install --upgrade pip setuptools wheel \
     && pip install -e /tmp/. \
     && pip cache purge \
