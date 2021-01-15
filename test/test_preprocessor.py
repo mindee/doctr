@@ -3,8 +3,7 @@ import requests
 from io import BytesIO
 
 from doctr.models.preprocessor import Preprocessor
-from doctr.documents.reader import read_documents
-
+from doctr import documents
 
 @pytest.fixture(scope="session")
 def mock_pdf(tmpdir_factory):
@@ -17,10 +16,10 @@ def mock_pdf(tmpdir_factory):
 
 
 def test_preprocess_documents(num_docs=10, batch_size=3):
-    documents = read_documents(
+    docs = documents.reader.read_documents(
         filepaths=[mock_pdf for _ in range(num_docs)])
     preprocessor = Preprocessor(out_size=(600, 600), normalization=True, batch_size=batch_size)
-    batched_docs, docs_indexes, pages_indexes = preprocessor(documents)
+    batched_docs, docs_indexes, pages_indexes = preprocessor(docs)
     assert len(docs_indexes) == len(pages_indexes)
     if num_docs > batch_size:
         for batch in batched_docs[:-1]:
