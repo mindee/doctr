@@ -12,42 +12,7 @@ import pyclipper
 import tensorflow as tf
 from typing import Union, List, Tuple, Optional, Any, Dict
 
-from doctr.documents.reader import prepare_pdf_documents
-
 MIN_SIZE_BOX = 5
-
-
-def batch_documents(
-    documents: Tuple[List[List[Tuple[int, int]]], List[List[bytes]], List[List[str]]],
-    batch_size: int = 1
-) -> List[Tuple[List[Tuple[int, int]], List[bytes], List[str]]]:
-    """
-    function to batch a list of read documents
-    :param documents: documents read by documents.reader.read_documents
-    :param batch_size: batch_size to use during inference, default goes to 1
-    """
-
-    shapes, raw_images, documents_names = documents
-
-    # keep track of both documents and pages indexes
-    docs_indexes = [raw_images.index(doc) for doc in raw_images for _ in doc]
-    pages_indexes = [doc.index(page) for doc in raw_images for page in doc]
-
-    # flatten structure
-    flat_shapes = [shape for doc in shapes for shape in doc]
-    flat_images = [raw for doc in raw_images for raw in doc]
-    flat_names = [name for doc in documents_names for name in doc]
-
-    range_batch = range((len(flat_shapes) + batch_size - 1) // batch_size)
-
-    b_shapes = [flat_shapes[i * batch_size:(i + 1) * batch_size] for i in range_batch]
-    b_images = [flat_images[i * batch_size:(i + 1) * batch_size] for i in range_batch]
-    b_names = [flat_names[i * batch_size:(i + 1) * batch_size] for i in range_batch]
-
-    b_docs = [[b_s, b_i, b_n] for b_s, b_i, b_n in zip(b_shapes, b_images, b_names)]
-
-    return b_docs, docs_indexes, pages_indexes
-
 
 def show_infer_pdf(
     filepaths: List[str],
@@ -69,7 +34,7 @@ def show_infer_pdf(
                 for box in boxes:
                     cv2.drawContours(page_img, [np.array(box)], -1, (0, 255, 0), 5)
                 cv2.namedWindow(page_name, cv2.WINDOW_NORMAL)
-                cv2.resizeWindow(page_name, 600,600)
+                cv2.resizeWindow(page_name, 600, 600)
                 cv2.imshow(page_name, page_img)
                 cv2.waitKey(0)
             else:
