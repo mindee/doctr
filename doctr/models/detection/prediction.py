@@ -9,9 +9,9 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 from doctr.models.detection.inference_utils import batch_documents
 
 
-def inference(
+def predict_DB(
     path_to_model: str,
-    documents: Tuple[List[List[Tuple[int, int]]], List[List[bytes]], List[List[str]]]
+    preprocessed_documents:
 ) -> Dict[str, Any]:
     """
     perform inference on documents
@@ -22,32 +22,21 @@ def inference(
     model = tf.saved_model.load(path_to_model)
 
     infer_dict = dict()
-    batched_docs, docs_indexes, pages_indexes = batch_documents(documents, batch_size=2)
+    batched_docs, docs_indexes, pages_indexes = preprocessed_documents
 
     for batch in batched_docs:
-        shapes, raw_images, documents_names = batch
+        images, names, shapes = batch
         heights = [h for (h, _) in shapes]
         widths = [w for (_, w) in shapes]
 
         infer = model.signatures["serving_default"]
-        pred = infer(raw_images=tf.constant(raw_images), heights=tf.constant(heights), widths=tf.constant(widths))
+        pred = infer(images=tf.constant(raw_images), heights=tf.constant(heights), widths=tf.constant(widths))
         pred = pred['output_0']
 
         boxes_batch, scores_batch = postprocess_img_dbnet(pred, heights, widths)
 
-        for doc_name, boxes, scores in zip(documents_names, boxes_batch, scores_batch):
+        for doc_name, boxes, scores in zip(names, boxes_batch, scores_batch):
             infer_dict[doc_name] = {"infer_boxes": boxes, "infer_scores": scores}
 
     return infer_dict
 
-
-"""
-path_to_model = '/home/datascientist-4/tf2_migration/savedmodeldb_1024'
-#path_to_images = '/home/datascientist-4/tf2_migration/inference_seg'
-path_to_images = "/home/datascientist-4/samplepdf"
-
-filepaths = [os.path.join(path_to_images, fil) for fil in os.listdir(path_to_images)]
-documents = read_documents(filepaths)
-infer_dict = inference(path_to_model, documents)
-show_infer_pdf(filepaths, infer_dict)
-"""
