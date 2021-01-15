@@ -43,16 +43,3 @@ def test_pdf_reader(mock_pdf):
             assert isinstance(image, np.ndarray)
             assert shape[0] * shape[1] <= DEFAULT_RES_MAX
             assert shape[0] * shape[1] >= DEFAULT_RES_MIN
-
-
-def test_pdf_reader(mock_pdf):
-    shapes, raw_images, documents_names = documents.reader.read_documents(
-        filepaths=[mock_pdf],
-        num_pixels=None)
-    for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
-        for shape, raw_image, document_name in zip(doc_shapes, doc_images, doc_names):
-            assert isinstance(shape, tuple)
-            assert isinstance(document_name, str)
-            assert isinstance(raw_image, bytes)
-            assert shape[0] * shape[1] <= DEFAULT_RES_MAX
-            assert shape[0] * shape[1] >= DEFAULT_RES_MIN
