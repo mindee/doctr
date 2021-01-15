@@ -9,12 +9,16 @@ import os
 import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
 
+
 class Preprocessor():
 
-    def __init__(self, out_size: Tuple[int, int],
+    def __init__(
+        self,
+        out_size: Tuple[int, int],
         normalization: bool = True,
-        batch_size: int = 1):
-        
+        batch_size: int = 1
+    ) -> None:
+
         self.out_size = out_size
         self.normalization = normalization
         self.batch_size = batch_size
@@ -35,7 +39,6 @@ class Preprocessor():
 
         return b_docs, docs_indexes, pages_indexes
 
-    
     def normalize_documents_imgs(
         documents_imgs: List[List[np.ndarray]],
         mode: str = 'symmetric'
@@ -43,10 +46,9 @@ class Preprocessor():
         """
         normalize documents imgs according to mode
         """
-        
+
         if mode == 'symmetric':
             return [[(img - 128) / 128 for img in doc] for doc in documents_imgs]
-
 
     def resize_documents_imgs(
         documents_imgs: List[List[np.ndarray]],
@@ -57,9 +59,7 @@ class Preprocessor():
         The nested structure documents/pages is preserved
         returns resized documents img
         """
-        return [[cv2.resize(img, out_size, cv2.INTER_LINEAR) for img in doc]
-            for doc in documents_imgs]
-
+        return [[cv2.resize(img, out_size, cv2.INTER_LINEAR) for img in doc] for doc in documents_imgs]
 
     def batch_documents(
         documents: Tuple[List[List[np.ndarray]], List[List[str]], List[List[Tuple[int, int]]]],
