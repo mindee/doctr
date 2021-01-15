@@ -18,33 +18,17 @@ DEFAULT_RES_MAX = int(3e6)
 
 
 def read_documents(
-    filepaths: List[str],
-    num_pixels: Optional[int] = None
-) -> Tuple[List[List[Tuple[int, int]]], List[List[bytes]], List[List[str]]]:
-    """
-    :param filepaths: list of filepaths or filepaths
-    :param num_pixels: num_pixels for the outputs images
-    """
-    documents_imgs, documents_names = prepare_pdf_documents(
-        filepaths=filepaths, num_pixels=num_pixels)
-    shapes = [[page.shape[:2] for page in doc] for doc in documents_imgs]
-    raw_images = [[page.astype(np.float32).flatten().tostring() for page in doc] for doc in documents_imgs]
-
-    return shapes, raw_images, documents_names
-
-
-def prepare_pdf_documents(
     filepaths: List[str] = None,
     num_pixels: Optional[int] = None
-) -> Tuple[List[List[np.ndarray]], List[List[str]]]:
+) -> Tuple[List[List[np.ndarray]], List[List[str]], List[List[Tuple[int, int]]]]:
     """
     Always return tuple of:
         - list of documents, each doc is a numpy image pages list (valid RGB image with 3 channels)
         - list of document names, each page inside a doc has a different name
+        - list of document shapes
     optional : list of sizes
     :param filepaths: list of pdf filepaths to prepare, or a filepath (str)
     :param num_pixels: output num_pixels of images
-    :param with_sizes: to return the list of sizes
     """
 
     if filepaths is None:
@@ -62,7 +46,9 @@ def prepare_pdf_documents(
         documents_imgs.append(pages_imgs)
         documents_names.append(pages_names)
 
-    return documents_imgs, documents_names
+    documents_shapes = [[page.shape[:2] for page in doc] for doc in documents_imgs]
+
+    return documents_imgs, documents_names, documents_shapes
 
 
 def prepare_pdf_from_filepath(
