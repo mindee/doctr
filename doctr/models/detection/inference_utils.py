@@ -69,6 +69,7 @@ def show_infer_pdf(
                 for box in boxes:
                     cv2.drawContours(page_img, [np.array(box)], -1, (0, 255, 0), 5)
                 cv2.namedWindow(page_name, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(page_name, 600,600)
                 cv2.imshow(page_name, page_img)
                 cv2.waitKey(0)
             else:
