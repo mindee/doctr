@@ -10,7 +10,15 @@ import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 
-class Preprocessor():
+__all__ = ['Preprocessor']
+
+
+class Preprocessor:
+    """
+    class to preprocess documents
+    a processor can perform noramization, resizing and batching
+    a processor is called on a document
+    """
 
     def __init__(
         self,
@@ -35,6 +43,8 @@ class Preprocessor():
 
         if self.mode == 'symmetric':
             return [[(img - 128) / 128 for img in doc] for doc in documents_imgs]
+        else:
+            return documents_imgs
 
     def resize_documents_imgs(
         self,
@@ -81,7 +91,7 @@ class Preprocessor():
     def __call__(
         self,
         documents: Tuple[List[List[np.ndarray]], List[List[str]], List[List[Tuple[int, int]]]]
-    ) -> List[Tuple[List[np.ndarray], List[str], List[Tuple[int, int]]]]:
+    ) -> Tuple[List[Tuple[List[np.ndarray], List[str], List[Tuple[int, int]]]], List[int], List[int]]:
         """
         perform resizing, normalization and batching on documents
         """
