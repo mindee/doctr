@@ -11,6 +11,8 @@ from tensorflow.keras.models import Sequential
 from doctr.models.preprocessor import Preprocessor
 from doctr import documents
 from test_documents import mock_pdf
+from doctr.models.detection.postprocessor import Postprocessor
+from doctr.models.detection.dbpostprocessor import DBpostprocessor
 
 
 @pytest.fixture(scope="module")
@@ -59,3 +61,17 @@ def test_preprocess_documents(mock_pdf, num_docs=10, batch_size=3):  # noqa: F81
     assert docs_indexes[-1] + 1 == num_docs
     if num_docs > batch_size:
         assert all(len(batch) == batch_size for batches in batched_docs[:-1] for batch in batches)
+
+
+@pytest.fixture(scope="module")
+def mock_db_output():
+    output_batch = tf.random.uniform(shape=[10, 600, 600, 1], minval=0, maxval=1)
+    output = [output_batch for _ in range(3)]
+    return output
+
+
+def test_dbpostprocessor(mock_db_output):
+    postprocessor = DBpostprocessor()
+    bounding_boxes = postprocessor(mock_db_output)
+    assert isinstance(bounding_boxes, list)
+    assert len(bounding_boxes) == 3
