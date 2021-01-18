@@ -6,9 +6,6 @@ from io import BytesIO
 
 from doctr import documents
 
-DEFAULT_RES_MIN = int(0.8e6)
-DEFAULT_RES_MAX = int(3e6)
-
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
@@ -172,8 +169,8 @@ def test_pdf_reader(mock_pdf):
             assert isinstance(shape, tuple)
             assert isinstance(document_name, str)
             assert isinstance(image, np.ndarray)
-            assert shape[0] * shape[1] <= DEFAULT_RES_MAX
-            assert shape[0] * shape[1] >= DEFAULT_RES_MIN
+            assert shape[0] * shape[1] <= int(3e6)
+            assert shape[0] * shape[1] >= int(0.8e6)
 
 
 def test_exceptions_channels(mock_pdf):
