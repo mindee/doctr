@@ -1,5 +1,6 @@
 import requests
 import pytest
+import fitz
 import numpy as np
 from io import BytesIO
 
@@ -7,6 +8,7 @@ from doctr import documents
 
 DEFAULT_RES_MIN = int(0.8e6)
 DEFAULT_RES_MAX = int(3e6)
+
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
@@ -172,3 +174,12 @@ def test_pdf_reader(mock_pdf):
             assert isinstance(image, np.ndarray)
             assert shape[0] * shape[1] <= DEFAULT_RES_MAX
             assert shape[0] * shape[1] >= DEFAULT_RES_MIN
+
+
+def test_exceptions_channels(mock_pdf):
+    pdf = fitz.open(mock_pdf)
+    pixmap = documents.reader.page_to_pixmap(pdf[0])
+    with pytest.raises(Exception):
+        nparray = documents.reader.pixmap_to_numpy(pixmap=pixmap, channel_order='false')
+    nparray = documents.reader.pixmap_to_numpy(pixmap=pixmap, channel_order='BGR')
+    assert isinstance(nparray, np.ndarray)

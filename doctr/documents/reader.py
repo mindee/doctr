@@ -31,9 +31,6 @@ def read_documents(
     :param num_pixels: output num_pixels of images
     """
 
-    if filepaths is None:
-        raise Exception
-
     documents_imgs = []
     documents_names = []
 
@@ -60,9 +57,6 @@ def prepare_pdf_from_filepath(
     :param filepath: filepath of the .pdf file
     :param num_pixels: output num_pixels
     """
-
-    if not os.path.isfile(filepath):
-        raise FileNotFoundError
 
     filename = pathlib.PurePosixPath(filepath).stem
     pdf = fitz.open(filepath)
