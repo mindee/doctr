@@ -40,6 +40,8 @@ requirements = [
     "opencv-python>=4.2",
     "numpy>=1.16.0",
     "PyMuPDF>=1.16.0",
+    "pyclipper>=1.2.0",
+    "shapely>=1.6.0"
 ]
 
 setup(
