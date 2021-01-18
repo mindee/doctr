@@ -5,6 +5,7 @@ from io import BytesIO
 from doctr.models.preprocessor import Preprocessor
 from doctr import documents
 
+
 @pytest.fixture(scope="session")
 def mock_pdf(tmpdir_factory):
     url = 'https://arxiv.org/pdf/1911.08947.pdf'
@@ -15,10 +16,10 @@ def mock_pdf(tmpdir_factory):
     return fn
 
 
-def test_preprocess_documents(num_docs=10, batch_size=3):
+def test_preprocess_documents(mock_pdf, num_docs=10, batch_size=3):
     docs = documents.reader.read_documents(
         filepaths=[mock_pdf for _ in range(num_docs)])
-    preprocessor = Preprocessor(out_size=(600, 600), normalization=True, batch_size=batch_size)
+    preprocessor = Preprocessor(out_size=(600, 600), normalization=True, mode='symmetric', batch_size=batch_size)
     batched_docs, docs_indexes, pages_indexes = preprocessor(docs)
     assert len(docs_indexes) == len(pages_indexes)
     if num_docs > batch_size:
