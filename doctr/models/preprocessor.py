@@ -43,8 +43,6 @@ class Preprocessor:
 
         if self.mode == 'symmetric':
             return [[(img - 128) / 128 for img in doc] for doc in documents_imgs]
-        else:
-            return documents_imgs
 
     def resize_documents_imgs(
         self,
@@ -84,7 +82,7 @@ class Preprocessor:
         b_names = [flat_names[i * self.batch_size:(i + 1) * self.batch_size] for i in range_batch]
         b_shapes = [flat_shapes[i * self.batch_size:(i + 1) * self.batch_size] for i in range_batch]
 
-        b_docs = [[b_i, b_n, b_s] for b_i, b_n, b_s in zip(b_images, b_names, b_shapes)]
+        b_docs = [(b_i, b_n, b_s) for b_i, b_n, b_s in zip(b_images, b_names, b_shapes)]
 
         return b_docs, docs_indexes, pages_indexes
 

@@ -1,10 +1,16 @@
 import pytest
+import requests
+from io import BytesIO
 
 from doctr import models
 
 import sys
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
+
+from doctr.models.preprocessor import Preprocessor
+from doctr import documents
+from test.test_documents import mock_pdf
 
 
 @pytest.fixture(scope="module")
@@ -42,3 +48,14 @@ def test_quantize_model(mock_model):
 def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantize_model):
     assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
     assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
+
+
+def test_preprocess_documents(mock_pdf, num_docs=10, batch_size=3):
+    docs = documents.reader.read_documents(
+        filepaths=[mock_pdf for _ in range(num_docs)])
+    preprocessor = Preprocessor(out_size=(600, 600), normalization=True, mode='symmetric', batch_size=batch_size)
+    batched_docs, docs_indexes, pages_indexes = preprocessor(docs)
+    assert len(docs_indexes) == len(pages_indexes)
+    assert docs_indexes[-1] + 1 == num_docs
+    if num_docs > batch_size:
+        assert all(len(batch) == batch_size for batches in batched_docs[:-1] for batch in batches)
