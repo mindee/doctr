@@ -1,5 +1,7 @@
-import pytest
 import requests
+import pytest
+import fitz
+import numpy as np
 from io import BytesIO
 
 from doctr import documents
@@ -146,26 +148,35 @@ def mock_pdf(tmpdir_factory):
 
 
 def test_pdf_reader_with_pix(mock_pdf, num_pixels=2000000):
-    shapes, raw_images, documents_names = documents.reader.read_documents(
+    documents_imgs, documents_names, documents_shapes = documents.reader.read_documents(
         filepaths=[mock_pdf],
         num_pixels=num_pixels)
-    for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
-        for shape, raw_image, document_name in zip(doc_shapes, doc_images, doc_names):
+    for doc_shapes, doc_images, doc_names in zip(documents_shapes, documents_imgs, documents_names):
+        for shape, image, document_name in zip(doc_shapes, doc_images, doc_names):
             assert isinstance(shape, tuple)
             assert isinstance(document_name, str)
-            assert isinstance(raw_image, bytes)
-            assert shape[0] * shape[1] <= 1.003 * num_pixels
-            assert shape[0] * shape[1] >= 0.997 * num_pixels
+            assert isinstance(image, np.ndarray)
+            assert shape[0] * shape[1] <= 1.005 * num_pixels
+            assert shape[0] * shape[1] >= 0.995 * num_pixels
 
 
 def test_pdf_reader(mock_pdf):
-    shapes, raw_images, documents_names = documents.reader.read_documents(
+    documents_imgs, documents_names, documents_shapes = documents.reader.read_documents(
         filepaths=[mock_pdf],
         num_pixels=None)
-    for doc_shapes, doc_images, doc_names in zip(shapes, raw_images, documents_names):
-        for shape, raw_image, document_name in zip(doc_shapes, doc_images, doc_names):
+    for doc_shapes, doc_images, doc_names in zip(documents_shapes, documents_imgs, documents_names):
+        for shape, image, document_name in zip(doc_shapes, doc_images, doc_names):
             assert isinstance(shape, tuple)
             assert isinstance(document_name, str)
-            assert isinstance(raw_image, bytes)
+            assert isinstance(image, np.ndarray)
             assert shape[0] * shape[1] <= 3000000
             assert shape[0] * shape[1] >= 800000
+
+
+def test_exceptions_channels(mock_pdf):
+    pdf = fitz.open(mock_pdf)
+    pixmap = documents.reader.page_to_pixmap(pdf[0])
+    with pytest.raises(Exception):
+        nparray = documents.reader.pixmap_to_numpy(pixmap=pixmap, channel_order='false')
+    nparray = documents.reader.pixmap_to_numpy(pixmap=pixmap, channel_order='BGR')
+    assert isinstance(nparray, np.ndarray)
