@@ -18,7 +18,7 @@ DEFAULT_RES_MAX = int(3e6)
 
 
 def read_documents(
-    filepaths: List[str] = None,
+    filepaths: List[str],
     num_pixels: Optional[int] = None
 ) -> Tuple[List[List[np.ndarray]], List[List[str]], List[List[Tuple[int, int]]]]:
     """
