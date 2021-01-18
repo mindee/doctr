@@ -10,6 +10,7 @@ from tensorflow.keras.models import Sequential
 
 from doctr.models.preprocessor import Preprocessor
 from doctr import documents
+from test_documents import mock_pdf
 
 
 @pytest.fixture(scope="module")
@@ -49,7 +50,7 @@ def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantiz
     assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
 
 
-def test_preprocess_documents(mock_pdf, num_docs=10, batch_size=3):
+def test_preprocess_documents(mock_pdf, num_docs=10, batch_size=3):  # noqa: F811
     docs = documents.reader.read_documents(
         filepaths=[mock_pdf for _ in range(num_docs)])
     preprocessor = Preprocessor(out_size=(600, 600), normalization=True, mode='symmetric', batch_size=batch_size)
