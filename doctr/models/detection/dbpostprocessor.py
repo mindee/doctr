@@ -84,7 +84,7 @@ class DBPostprocessor(Postprocessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-    ) -> List[List[float, float, float, float, float]]:
+    ) -> List[List[float]]:
         """
         predict scores and boxes from p_map and bin_map
         :param pred : probability map (np array)
@@ -117,15 +117,15 @@ class DBPostprocessor(Postprocessor):
 
     def __call__(
         self,
-        raw_pred: List[tf.tensor],
+        raw_pred: List[tf.Tensor],
     ) -> List[List[np.ndarray]]:
         """
         postprocessing function which convert the model output to boxes and scores
         :param raw_pred: raw outputs of the differentiable binarization model, list of batches
-        output : list of batches, 1 batch = list of np tensors, len = batch_size, 
+        output : list of batches, 1 batch = list of np tensors, len = batch_size,
         each tensor of size num_boxes X 5 (x, y, w, h, score)
         """
-        
+
         bounding_boxes = []
         for raw_batch in raw_pred:
             p = tf.squeeze(raw_batch, axis=-1)  # remove last dim
@@ -144,4 +144,3 @@ class DBPostprocessor(Postprocessor):
 
             bounding_boxes.append(boxes_batch)
         return bounding_boxes
-

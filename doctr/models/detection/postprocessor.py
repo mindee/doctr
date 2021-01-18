@@ -6,7 +6,6 @@ import tensorflow as tf
 import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
 
-from postprocess_dbnet import postprocess_dbnet
 
 __all__ = ['Postprocessor']
 
@@ -29,9 +28,8 @@ class Postprocessor:
         self.max_candidates = max_candidates
         self.box_thresh = box_thresh
 
-
     def __call__(
         self,
-        raw_pred: List[tf.tensor],
+        raw_pred: List[tf.Tensor],
     ) -> List[List[np.ndarray]]:
         raise NotImplementedError

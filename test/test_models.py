@@ -4,6 +4,8 @@ from io import BytesIO
 
 from doctr import models
 
+import tensorflow as tf
+import numpy as np
 import sys
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -12,7 +14,7 @@ from doctr.models.preprocessor import Preprocessor
 from doctr import documents
 from test_documents import mock_pdf
 from doctr.models.detection.postprocessor import Postprocessor
-from doctr.models.detection.dbpostprocessor import DBpostprocessor
+from doctr.models.detection.dbpostprocessor import DBPostprocessor
 
 
 @pytest.fixture(scope="module")
@@ -71,7 +73,8 @@ def mock_db_output():
 
 
 def test_dbpostprocessor(mock_db_output):
-    postprocessor = DBpostprocessor()
+    postprocessor = DBPostprocessor()
     bounding_boxes = postprocessor(mock_db_output)
     assert isinstance(bounding_boxes, list)
     assert len(bounding_boxes) == 3
+    assert np.shape(bounding_boxes[0][0])[-1] == 5
