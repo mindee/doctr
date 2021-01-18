@@ -24,5 +24,5 @@ def test_preprocess_documents(mock_pdf, num_docs=10, batch_size=3):
     assert len(docs_indexes) == len(pages_indexes)
     if num_docs > batch_size:
         for batch in batched_docs[:-1]:
-            for i in range(len(batch)):
-                assert len(batch[i]) == batch_size
+            for _, batch_i in enumerate(batch):
+                assert len(batch_i) == batch_size
