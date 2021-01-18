@@ -42,7 +42,10 @@ class Preprocessor:
         """
 
         if self.mode == 'symmetric':
-            return [[(img - 128) / 128 for img in doc] for doc in documents_imgs]
+            normalized = [[(img - 128) / 128 for img in doc] for doc in documents_imgs]
+        else:
+            normalized = documents_imgs
+        return normalized
 
     def resize_documents_imgs(
         self,

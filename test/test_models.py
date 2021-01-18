@@ -10,7 +10,6 @@ from tensorflow.keras.models import Sequential
 
 from doctr.models.preprocessor import Preprocessor
 from doctr import documents
-from test.test_documents import mock_pdf
 
 
 @pytest.fixture(scope="module")
