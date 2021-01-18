@@ -12,6 +12,9 @@ Extract valuable information from your documents.
 * [Getting Started](#getting-started)
   * [Prerequisites](#prerequisites)
   * [Installation](#installation)
+* [Usage](#usage)
+  * [Python package](#python-package)
+  * [Docker container](#docker-container)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -31,6 +34,26 @@ Clone the project and install it:
 ```shell
 git clone https://github.com/teamMindee/doctr.git
 pip install -e doctr/.
+```
+
+
+
+## Usage
+
+### Python package
+
+You can use the library like any other python package to analyze your documents as follows:
+
+```python
+import doctr
+```
+
+### Docker container
+
+If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
+
+```shell
+docker build . -t <YOUR_IMAGE_TAG>
 ```
 
 
