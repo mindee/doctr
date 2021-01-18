@@ -169,8 +169,8 @@ def test_pdf_reader(mock_pdf):
             assert isinstance(shape, tuple)
             assert isinstance(document_name, str)
             assert isinstance(image, np.ndarray)
-            assert shape[0] * shape[1] <= int(3e6)
-            assert shape[0] * shape[1] >= int(0.8e6)
+            assert shape[0] * shape[1] <= 3000000
+            assert shape[0] * shape[1] >= 800000
 
 
 def test_exceptions_channels(mock_pdf):
