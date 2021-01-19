@@ -2,11 +2,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
-import cv2
-import json
 import os
+import math
+import json
 import numpy as np
+import cv2
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 
@@ -14,93 +14,103 @@ __all__ = ['Preprocessor']
 
 
 class Preprocessor:
-    """
-    class to preprocess documents
-    a processor can perform noramization, resizing and batching
-    a processor is called on a document
+    """Implements an abstract preprocessor object
+
+    Args:
+        output_size: expected size of each page in format (H, W)
+        normalize: whether tensor should be normalized
+        batch_size: the size of page batches
+        mean: mean value of the training distribution by channel
+        std: standard deviation of the training distribution by channel
     """
 
     def __init__(
         self,
-        out_size: Tuple[int, int],
-        normalization: bool = True,
-        mode: str = 'symmetric',
-        batch_size: int = 1
+        output_size: Tuple[int, int],
+        batch_size: int,
+        mean: Tuple[float, float, float] = (.5, .5, .5),
+        std: Tuple[float, float, float] = (1., 1., 1.),
     ) -> None:
 
-        self.out_size = out_size
-        self.normalization = normalization
-        self.mode = mode
+        self.output_size = output_size
+        self.mean = np.array(mean, dtype=np.float32)
+        self.std = np.array(std, dtype=np.float32)
         self.batch_size = batch_size
 
-    def normalize_documents_imgs(
+    def normalize_inputs(
         self,
-        documents_imgs: List[List[np.ndarray]]
+        input_batches: List[np.ndarray]
+    ) -> List[np.ndarray]:
+        """Takes a uint8 ndarray and moves it to [-1, 1] range
+
+        Args:
+            input_images: nested list of images encoded in uint8
+        Returns:
+            normalized tensors encoded in float32
+        """
+
+        # Re-center and scale the distribution to [-1, 1]
+        return [batch.astype(np.float32) * (self.std / 255) - (self.mean / self.std)
+                for batch in input_batches]
+
+    def resize_inputs(
+        self,
+        input_samples: List[List[np.ndarray]]
     ) -> List[List[np.ndarray]]:
-        """
-        normalize documents imgs according to mode
-        """
+        """Resize each sample to a fixed size so that it could be batched
 
-        if self.mode == 'symmetric':
-            normalized = [[(img - 128) / 128 for img in doc] for doc in documents_imgs]
-        else:
-            normalized = documents_imgs
-        return normalized
+        Args:
+            input_samples: nested list of unconstrained size ndarrays
+        Returns:
+            nested list of fixed-size ndarray
+        """
+        return [[cv2.resize(img, self.output_size, cv2.INTER_LINEAR) for img in doc]
+                for doc in input_samples]
 
-    def resize_documents_imgs(
+    def batch_inputs(
         self,
-        documents_imgs: List[List[np.ndarray]]
-    ) -> List[List[np.ndarray]]:
-        """
-        Resize documents img to the out_size : size for the model inputs
-        The nested structure documents/pages is preserved
-        returns resized documents img
-        """
-        return [[cv2.resize(img, self.out_size, cv2.INTER_LINEAR) for img in doc] for doc in documents_imgs]
+        documents: List[List[np.ndarray]]
+    ) -> List[np.ndarray]:
+        """Gather pages into batches for inference purposes
 
-    def batch_documents(
-        self,
-        documents: Tuple[List[List[np.ndarray]], List[List[str]], List[List[Tuple[int, int]]]]
-    ) -> Tuple[List[Tuple[List[np.ndarray], List[str], List[Tuple[int, int]]]], List[int], List[int]]:
-        """
-        function to batch a list of read documents
-        :param documents: documents read by documents.reader.read_documents
-        :param batch_size: batch_size to use during inference, default goes to 1
-        """
+        Args:
+            documents: list of documents, which is expressed as list of pages (numpy ndarray)
 
-        images, names, shapes = documents
-
-        # keep track of both documents and pages indexes
-        docs_indexes = [i for i, doc in enumerate(images) for _ in doc]
-        pages_indexes = [i for doc in images for i, page in enumerate(doc)]
+        Returns:
+            list of batched samples
+        """
 
         # flatten structure
-        flat_images = [image for doc in images for image in doc]
-        flat_names = [name for doc in names for name in doc]
-        flat_shapes = [shape for doc in shapes for shape in doc]
+        page_list = [image for doc in documents for image in doc]
 
-        range_batch = range((len(flat_shapes) + self.batch_size - 1) // self.batch_size)
+        num_batches = len(page_list) / self.batch_size
 
-        b_images = [flat_images[i * self.batch_size:(i + 1) * self.batch_size] for i in range_batch]
-        b_names = [flat_names[i * self.batch_size:(i + 1) * self.batch_size] for i in range_batch]
-        b_shapes = [flat_shapes[i * self.batch_size:(i + 1) * self.batch_size] for i in range_batch]
+        # Deal with fixed-size batches
+        b_images = [np.stack(page_list[idx * self.batch_size: (idx + 1) * self.batch_size])
+                    for idx in range(int(num_batches))]
+        # Deal with the last batch
+        if num_batches > int(num_batches):
+            b_images.append(page_list[(int(num_batches) + 1) * self.batch_size:])
 
-        b_docs = [(b_i, b_n, b_s) for b_i, b_n, b_s in zip(b_images, b_names, b_shapes)]
-
-        return b_docs, docs_indexes, pages_indexes
+        return b_images
 
     def __call__(
         self,
-        documents: Tuple[List[List[np.ndarray]], List[List[str]], List[List[Tuple[int, int]]]]
-    ) -> Tuple[List[Tuple[List[np.ndarray], List[str], List[Tuple[int, int]]]], List[int], List[int]]:
-        """
-        perform resizing, normalization and batching on documents
-        """
-        images, names, shapes = documents
-        images = self.resize_documents_imgs(images)
-        if self.normalization:
-            images = self.normalize_documents_imgs(images)
-        norm_and_sized_docs = images, names, shapes
-        b_docs, docs_indexes, pages_indexes = self.batch_documents(norm_and_sized_docs)
+        documents: List[List[np.ndarray]]
+    ) -> List[np.ndarray]:
+        """Prepare document data for model forwarding
 
-        return b_docs, docs_indexes, pages_indexes
+        Args:
+            documents: list of documents, where each document is a list of pages (numpy ndarray)
+        Returns:
+            list of page batches
+        """
+
+        # Resize the inputs
+        images = self.resize_inputs(documents)
+        # Batch them
+        processed_batches = self.batch_inputs(images)
+        # Normalize
+        processed_batches = self.normalize_inputs(processed_batches)
+
+        return processed_batches
