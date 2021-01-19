@@ -8,4 +8,4 @@ The documents module enables users to easily access content from documents and e
 results to structured formats.
 
 
-.. autofunction:: read_documents
+.. autofunction:: read_pdf
