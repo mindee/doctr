@@ -1,4 +1,5 @@
 # Copyright (C) 2021, Mindee.
+
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
@@ -15,6 +16,12 @@ __all__ = ['Preprocessor']
 
 class Preprocessor:
     """Implements an abstract preprocessor object
+
+    Example::
+        >>> from doctr.documents import read_pdf
+        >>> from doctr.models import Preprocessor
+        >>> processor = Preprocessor(output_size=(600, 600), batch_size=8)
+        >>> processed_doc = processor([read_pdf("path/to/your/doc.pdf")])
 
     Args:
         output_size: expected size of each page in format (H, W)
