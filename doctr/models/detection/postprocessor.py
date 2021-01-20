@@ -14,6 +14,11 @@ __all__ = ['Postprocessor']
 class Postprocessor:
     """Abstract class to postprocess the raw output of the model
 
+    Args:
+        min_size_box (int): minimal length (pix) to keep a box
+        max_candidates (int): maximum boxes to consider in a single page
+        box_thresh (float): minimal objectness score to consider a box
+
     """
 
     def __init__(

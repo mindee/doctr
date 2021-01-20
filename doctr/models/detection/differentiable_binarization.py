@@ -21,6 +21,13 @@ class DBPostprocessor(Postprocessor):
     """Class to postprocess Differentiable binzarization model outputs
     Unherits from Postprocessor
 
+    Args:
+        unclip ratio (Union[float, int]): ratio used to unshrink polygons
+        min_size_box (int): minimal length (pix) to keep a box
+        max_candidates (int): maximum boxes to consider in a single page
+        box_thresh (float): minimal objectness score to consider a box
+        bin_thresh (float): threshold used to binzarized p_map at inference time
+
     """
     def __init__(
         self,
@@ -59,7 +66,7 @@ class DBPostprocessor(Postprocessor):
         ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
         ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
 
-        return cv2.mean(pred[ymin:ymax + 1, xmin:xmax + 1])[0]
+        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
 
     def polygon_to_box(
         self,
