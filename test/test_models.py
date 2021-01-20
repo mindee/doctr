@@ -72,7 +72,7 @@ def test_preprocess_documents(mock_pdf):  # noqa: F811
     assert all(batch.shape[1:] == (600, 600, 3) for batch in batched_docs)
 
 
-def mock_db_output():
+def _mock_db_output():
     output_batch = tf.random.uniform(shape=[10, 600, 600, 1], minval=0, maxval=1)
     output = [output_batch for _ in range(3)]
     return output
