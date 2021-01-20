@@ -74,7 +74,7 @@ def test_preprocess_documents(mock_pdf):  # noqa: F811
 
 def test_dbpostprocessor():
     postprocessor = models.DBPostProcessor()
-    output_batch = tf.random.uniform(shape=[10, 600, 600, 1], minval=0, maxval=1)
+    output_batch = tf.random.uniform(shape=[8, 600, 600, 1], minval=0, maxval=1)
     output = [output_batch for _ in range(3)]
     bounding_boxes = postprocessor(output)
     assert isinstance(bounding_boxes, list)
