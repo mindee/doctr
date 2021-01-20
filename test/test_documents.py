@@ -147,36 +147,26 @@ def mock_pdf(tmpdir_factory):
     return fn
 
 
-def test_pdf_reader_with_pix(mock_pdf, num_pixels=2000000):
-    documents_imgs, documents_names, documents_shapes = documents.reader.read_documents(
-        filepaths=[mock_pdf],
-        num_pixels=num_pixels)
-    for doc_shapes, doc_images, doc_names in zip(documents_shapes, documents_imgs, documents_names):
-        for shape, image, document_name in zip(doc_shapes, doc_images, doc_names):
-            assert isinstance(shape, tuple)
-            assert isinstance(document_name, str)
-            assert isinstance(image, np.ndarray)
-            assert shape[0] * shape[1] <= 1.005 * num_pixels
-            assert shape[0] * shape[1] >= 0.995 * num_pixels
-
-
-def test_pdf_reader(mock_pdf):
-    documents_imgs, documents_names, documents_shapes = documents.reader.read_documents(
-        filepaths=[mock_pdf],
-        num_pixels=None)
-    for doc_shapes, doc_images, doc_names in zip(documents_shapes, documents_imgs, documents_names):
-        for shape, image, document_name in zip(doc_shapes, doc_images, doc_names):
-            assert isinstance(shape, tuple)
-            assert isinstance(document_name, str)
-            assert isinstance(image, np.ndarray)
-            assert shape[0] * shape[1] <= 3000000
-            assert shape[0] * shape[1] >= 800000
-
-
-def test_exceptions_channels(mock_pdf):
+def test_convert_page_to_numpy(mock_pdf):
     pdf = fitz.open(mock_pdf)
-    pixmap = documents.reader.page_to_pixmap(pdf[0])
-    with pytest.raises(Exception):
-        nparray = documents.reader.pixmap_to_numpy(pixmap=pixmap, channel_order='false')
-    nparray = documents.reader.pixmap_to_numpy(pixmap=pixmap, channel_order='BGR')
-    assert isinstance(nparray, np.ndarray)
+    # Check correct read
+    rgb_page = documents.reader.convert_page_to_numpy(pdf[0])
+    assert isinstance(rgb_page, np.ndarray)
+    assert rgb_page.shape == (792, 612, 3)
+
+    # Check channel order
+    bgr_page = documents.reader.convert_page_to_numpy(pdf[0], rgb_output=False)
+    assert np.all(bgr_page == rgb_page[..., ::-1])
+
+    # Check rescaling
+    resized_page = documents.reader.convert_page_to_numpy(pdf[0], output_size=(396, 306))
+    assert resized_page.shape == (396, 306, 3)
+
+
+def test_read_pdf(mock_pdf):
+
+    doc_tensors = documents.reader.read_pdf(mock_pdf)
+
+    # 1 doc of 8 pages
+    assert(len(doc_tensors) == 8)
+    assert all(isinstance(page, np.ndarray) for page in doc_tensors)

@@ -5,6 +5,15 @@ doctr.models
 .. currentmodule:: doctr.models
 
 
+pre-processing
+--------------
+Operations that need to be carried out before passing data to actual models
+
+.. currentmodule:: doctr.models.preprocessor
+
+.. autoclass:: Preprocessor
+
+
 
 utils
 -----
