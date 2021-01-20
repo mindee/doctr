@@ -25,10 +25,10 @@ def _mock_artefacts(size=(1, 1), offset=(0, 0), confidence=0.8):
     return [
         documents.Artefact("qr_code", confidence, [
             (offset[0], offset[1]),
-            (size[0] / 2 + offset[0], size[1] / 2 + offset[1])
+            (sub_size[0] + offset[0], sub_size[1] + offset[1])
         ]),
         documents.Artefact("qr_code", confidence, [
-            (size[0] / 2 + offset[0], size[1] / 2 + offset[1]),
+            (sub_size[0] + offset[0], sub_size[1] + offset[1]),
             (size[0] + offset[0], size[1] + offset[1])
         ]),
     ]
