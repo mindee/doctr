@@ -213,3 +213,30 @@ def test_read_pdf(mock_pdf):
     # 1 doc of 8 pages
     assert(len(doc_tensors) == 8)
     assert all(isinstance(page, np.ndarray) for page in doc_tensors)
+    assert all(page.dtype == np.uint8 for page in doc_tensors)
+
+
+def test_read_img(tmpdir_factory):
+
+    url = 'https://upload.wikimedia.org/wikipedia/commons/5/55/Grace_Hopper.jpg'
+    file = BytesIO(requests.get(url).content)
+    tmp_path = str(tmpdir_factory.mktemp("data").join("mock_img_file.jpg"))
+    with open(tmp_path, 'wb') as f:
+        f.write(file.getbuffer())
+
+    page = documents.reader.read_img(tmp_path)
+
+    # Data type
+    assert isinstance(page, np.ndarray)
+    assert page.dtype == np.uint8
+    # Shape
+    assert page.shape == (606, 517, 3)
+
+    # RGB
+    bgr_page = documents.reader.read_img(tmp_path, rgb_output=False)
+    assert np.all(page == bgr_page[..., ::-1])
+
+    # Resize
+    target_size = (200, 150)
+    resized_page = documents.reader.read_img(tmp_path, target_size)
+    assert resized_page.shape[:2] == target_size
