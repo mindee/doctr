@@ -91,6 +91,7 @@ class Line(Element):
 
     _children_names: List[str] = ["words"]
     _exported_keys: List[str] = ["geometry"]
+    words: List[Word] = []
 
     def __init__(
         self,
@@ -122,10 +123,12 @@ class Block(Element):
 
     _children_names: List[str] = ["lines", "artefacts"]
     _exported_keys: List[str] = ["geometry"]
+    lines: List[Line] = []
+    artefacts: List[Artefact] = []
 
     def __init__(
         self,
-        lines: List[Word] = [],
+        lines: List[Line] = [],
         artefacts: List[Artefact] = [],
         geometry: Optional[BoundingBox] = None,
     ) -> None:
@@ -155,6 +158,7 @@ class Page(Element):
 
     _children_names: List[str] = ["blocks"]
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
+    blocks: List[Block] = []
 
     def __init__(
         self,
@@ -183,6 +187,7 @@ class Document(Element):
     """
 
     _children_names: List[str] = ["pages"]
+    pages: List[Page] = []
 
     def __init__(
         self,
