@@ -1,4 +1,5 @@
 # Copyright (C) 2021, Mindee.
+
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
@@ -11,10 +12,8 @@ __all__ = ['Postprocessor']
 
 
 class Postprocessor:
-    """
-    class to postprocess documents
-    a postprocessor takes the raw output from a model
-    a postprocessor return a list of tensor, each tensor N X 5
+    """Abstract class to postprocess the raw output of the model
+
     """
 
     def __init__(
