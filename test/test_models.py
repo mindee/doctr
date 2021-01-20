@@ -8,11 +8,10 @@ import numpy as np
 import sys
 import math
 import requests
-import numpy as np
+
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
-from doctr import models
 from doctr.documents import read_pdf
 from test_documents import mock_pdf
 from doctr.models.detection.postprocessor import Postprocessor
@@ -89,4 +88,3 @@ def test_dbpostprocessor(mock_db_output):
     assert isinstance(bounding_boxes, list)
     assert len(bounding_boxes) == 3
     assert np.shape(bounding_boxes[0][0])[-1] == 5
-
