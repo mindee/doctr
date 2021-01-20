@@ -15,7 +15,7 @@ from tensorflow.keras.models import Sequential
 from doctr.documents import read_pdf
 from test_documents import mock_pdf
 from doctr.models.detection.postprocessor import Postprocessor
-from doctr.models.detection.dbpostprocessor import DBPostprocessor
+from doctr.models.detection.differentiable_binarization import DBPostprocessor
 
 
 @pytest.fixture(scope="module")
