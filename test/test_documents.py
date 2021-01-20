@@ -20,6 +20,20 @@ def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     ]
 
 
+def _mock_artefacts(size=(1, 1), offset=(0, 0), confidence=0.8):
+    sub_size = (size[0] / 2, size[1] / 2)
+    return [
+        documents.Artefact("qr_code", confidence, [
+            (offset[0], offset[1]),
+            (sub_size[0] + offset[0], sub_size[1] + offset[1])
+        ]),
+        documents.Artefact("qr_code", confidence, [
+            (sub_size[0] + offset[0], sub_size[1] + offset[1]),
+            (size[0] + offset[0], size[1] + offset[1])
+        ]),
+    ]
+
+
 def _mock_lines(size=(1, 1), offset=(0, 0)):
     sub_size = (size[0] / 2, size[1] / 2)
     return [
@@ -29,10 +43,16 @@ def _mock_lines(size=(1, 1), offset=(0, 0)):
 
 
 def _mock_blocks(size=(1, 1), offset=(0, 0)):
-    sub_size = (size[0] / 2, size[1] / 2)
+    sub_size = (size[0] / 4, size[1] / 4)
     return [
-        documents.Block(_mock_lines(size=sub_size, offset=offset)),
-        documents.Block(_mock_lines(size=sub_size, offset=(offset[0] + sub_size[0], offset[1] + sub_size[1]))),
+        documents.Block(
+            _mock_lines(size=sub_size, offset=offset),
+            _mock_artefacts(size=sub_size, offset=(offset[0] + sub_size[0], offset[1] + sub_size[1]))
+        ),
+        documents.Block(
+            _mock_lines(size=sub_size, offset=(offset[0] + 2 * sub_size[0], offset[1] + 2 * sub_size[1])),
+            _mock_artefacts(size=sub_size, offset=(offset[0] + 3 * sub_size[0], offset[1] + 3 * sub_size[1])),
+        ),
     ]
 
 
@@ -69,8 +89,8 @@ def test_line():
     line = documents.Line(words)
 
     # Attribute checks
-    assert len(line.children) == len(words)
-    assert all(isinstance(w, documents.Word) for w in line.children)
+    assert len(line.words) == len(words)
+    assert all(isinstance(w, documents.Word) for w in line.words)
     assert line.geometry == geom
 
     # Render
@@ -80,21 +100,44 @@ def test_line():
     assert line.export() == {"words": [w.export() for w in words], "geometry": geom}
 
 
-def test_block():
+def test_artefact():
+    artefact_type = "qr_code"
+    conf = 0.8
     geom = ((0, 0), (1, 1))
-    lines = _mock_lines(size=geom[1], offset=geom[0])
-    block = documents.Block(lines)
+    artefact = documents.Artefact(artefact_type, conf, geom)
 
     # Attribute checks
-    assert len(block.children) == len(lines)
-    assert all(isinstance(w, documents.Line) for w in block.children)
+    assert artefact.type == artefact_type
+    assert artefact.confidence == conf
+    assert artefact.geometry == geom
+
+    # Render
+    assert artefact.render() == "[QR_CODE]"
+
+    # Export
+    assert artefact.export() == {"type": artefact_type, "confidence": conf, "geometry": geom}
+
+
+def test_block():
+    geom = ((0, 0), (1, 1))
+    sub_size = (geom[1][0] / 2, geom[1][0] / 2)
+    lines = _mock_lines(size=sub_size, offset=geom[0])
+    artefacts = _mock_artefacts(size=sub_size, offset=sub_size)
+    block = documents.Block(lines, artefacts)
+
+    # Attribute checks
+    assert len(block.lines) == len(lines)
+    assert len(block.artefacts) == len(artefacts)
+    assert all(isinstance(w, documents.Line) for w in block.lines)
+    assert all(isinstance(a, documents.Artefact) for a in block.artefacts)
     assert block.geometry == geom
 
     # Render
     assert block.render() == "hello world\nhello world"
 
     # Export
-    assert block.export() == {"lines": [line.export() for line in lines], "geometry": geom}
+    assert block.export() == {"lines": [line.export() for line in lines],
+                              "artefacts": [artefact.export() for artefact in artefacts], "geometry": geom}
 
 
 def test_page():
@@ -106,8 +149,8 @@ def test_page():
     page = documents.Page(blocks, page_idx, page_size, orientation, language)
 
     # Attribute checks
-    assert len(page.children) == len(blocks)
-    assert all(isinstance(b, documents.Block) for b in page.children)
+    assert len(page.blocks) == len(blocks)
+    assert all(isinstance(b, documents.Block) for b in page.blocks)
     assert page.page_idx == page_idx
     assert page.dimensions == page_size
     assert page.orientation == orientation
@@ -126,8 +169,8 @@ def test_document():
     doc = documents.Document(pages)
 
     # Attribute checks
-    assert len(doc.children) == len(pages)
-    assert all(isinstance(p, documents.Page) for p in doc.children)
+    assert len(doc.pages) == len(pages)
+    assert all(isinstance(p, documents.Page) for p in doc.pages)
 
     # Render
     page_export = "hello world\nhello world\n\nhello world\nhello world"
