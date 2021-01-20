@@ -1,2 +1,2 @@
 from . import postprocessor
-from . import dbpostprocessor
+from . import differentiable_binarization
