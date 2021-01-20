@@ -8,52 +8,51 @@ from tensorflow.keras import layers
 from typing import Tuple, List, Union, Optional, Dict
 
 
+class ResBlock(layers.Layer):
+    
+    def __init__(
+        self,
+        filters: int,
+        k_size: int = 3,
+        strides: int,
+    ) -> None:
+        self.filters = filters
+        self.k_size = k_size
+        self.strides = strides
+
+    def __call__(
+        self,
+        x: tf.Tensor,
+    ) -> tf.Tensor:
+
+        if strides > 1:
+            shortcut = layers.Conv2D(filters=self.filters, kernel_size=(1, 1), strides=self.strides)(x)
+            shortcut = layers.BatchNormalization()(shortcut)
+        else:
+            shortcut = layers.Lambda(lambda x: x)(x)
+
+        x = layers.Conv2D(filters=n, kernel_size=self.k_size, strides=self.strides, padding="same", use_bias=False)(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Activation('relu')(x)
+        x = layers.Conv2D(filters=n, kernel_size=self.k_size, strides=1, padding="same", use_bias=False)(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Activation('relu')(x + shortcut)
+        return x
+
+
 class Resnet18(layers.Layer):
 
     def __init__(
         self,
         shape: Tuple[int, int] = (600, 600),
     ) -> None:
-
         self.shape = shape
 
     def __call__(
         self,
     ) -> layers.Layer:
-
-    def resnet_layer(
-        self,
-        channels: int,
-        k_size: int = 3,
-        strides: int
-    ) -> layers.Layer:
-
-        model = keras.Sequential(
-            [
-
-            ]
-        )
-        if strides > 1:
-            shortcut = layers.Conv2D(filters=n,
-                                    kernel_size=(1, 1),
-                                    strides=strides)(x)
-            shortcut = layers.BatchNormalization()(shortcut)
-        else:
-            shortcut = layers.Lambda(lambda x: x)(x)
-
-        model = keras.Sequential(
-            [
-
-            ]
-        )
-        layers.Conv2D(filters=n, kernel_size=k_size, strides=strides, padding="same", use_bias=False),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.Conv2D(filters=n, kernel_size=k_size, strides=1, padding="same", use_bias=False),
-        layers.BatchNormalization(),
         
-        x = layers.Activation('relu')(x + shortcut)
-        return x
+        
         
 
     def resnet_bottleneck_layer(x, n, k_size, strides, force_shortcut=None):
