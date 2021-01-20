@@ -78,3 +78,12 @@ def test_dbpostprocessor(mock_db_output):
     assert isinstance(bounding_boxes, list)
     assert len(bounding_boxes) == 3
     assert np.shape(bounding_boxes[0][0])[-1] == 5
+
+
+def test_dbmodel():
+    dbmodel = DBModel(shape=(600,600), channels=128)
+    mock_input = tf.random.uniform(shape=[10, 600, 600, 3], minval=0, maxval=1)
+    output = dbmodel(mock_input, training=False)
+    assert isinstance(output, tf.Tensor)
+    assert isinstance(db_model, tf.keras.Model)
+    assert tf.shape(output) == 
