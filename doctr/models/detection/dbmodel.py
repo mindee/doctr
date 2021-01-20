@@ -25,8 +25,8 @@ class DBModel(DetectionModel, keras.Model):
         self.shape = shape
         self.channels = channels
 
+    @staticmethod
     def upsampling_addition(
-        self,
         x_small: tf.Tensor,
         x_big: tf.Tensor
     ) -> tf.Tensor:
@@ -99,10 +99,8 @@ class DBModel(DetectionModel, keras.Model):
 
         return features_concat
 
-
-    def get_p_map(
-        self,
-    ) -> layers.Layer:
+    @staticmethod
+    def get_p_map() -> layers.Layer:
         """
         get probability or treshold map function from features
         """
@@ -122,9 +120,8 @@ class DBModel(DetectionModel, keras.Model):
 
         return model
     
-    def get_t_map(
-        self,
-    ) -> layers.Layer:
+    @staticmethod
+    def get_t_map() -> layers.Layer:
         """
         get treshold map function from features
         """
@@ -143,9 +140,8 @@ class DBModel(DetectionModel, keras.Model):
         )
         return model
 
-
+    @staticmethod
     def get_approximate_binary_map(
-        self,
         p: tf.Tensor,
         t: tf.Tensor
     ) -> tf.Tensor:
