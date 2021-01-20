@@ -8,7 +8,36 @@ import numpy as np
 import cv2
 from typing import List, Tuple, Optional, Any
 
-__all__ = ['read_pdf']
+__all__ = ['read_pdf', 'read_img']
+
+
+def read_img(
+    file_path: str,
+    output_size: Optional[Tuple[int, int]] = None,
+    rgb_output: bool = True,
+) -> np.ndarray:
+    """Read an image file into numpy format
+
+    Example::
+        >>> from doctr.documents import read_img
+        >>> page = read_img("path/to/your/doc.jpg")
+
+    Args:
+        file_path: the path to the image file
+        output_size: the expected output size of each page in format H x W
+        rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
+    Returns:
+        the page decoded as numpy ndarray of shape H x W x 3
+    """
+
+    img = cv2.imread(file_path, cv2.IMREAD_COLOR)
+    # Resizing
+    if isinstance(output_size, tuple):
+        img = cv2.resize(img, output_size[::-1], interpolation=cv2.INTER_LINEAR)
+    # Switch the channel order
+    if rgb_output:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return img
 
 
 def read_pdf(file_path: str, **kwargs: Any) -> List[np.ndarray]:
