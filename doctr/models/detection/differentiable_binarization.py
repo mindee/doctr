@@ -12,14 +12,14 @@ import pyclipper
 import tensorflow as tf
 from typing import Union, List, Tuple, Optional, Any, Dict
 
-from doctr.models.detection.postprocessor import Postprocessor
+from .postprocessor import PostProcessor
 
-__all__ = ['DBPostprocessor']
+__all__ = ['DBPostProcessor']
 
 
-class DBPostprocessor(Postprocessor):
-    """Class to postprocess Differentiable binzarization model outputs
-    Unherits from Postprocessor
+class DBPostProcessor(PostProcessor):
+    """Class to postprocess Differentiable binarization model outputs
+    Inherits from Postprocessor
 
     Args:
         unclip ratio (Union[float, int]): ratio used to unshrink polygons

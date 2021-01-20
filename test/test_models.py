@@ -1,8 +1,6 @@
 import pytest
 from io import BytesIO
 
-from doctr import models
-
 import tensorflow as tf
 import numpy as np
 import sys
@@ -14,8 +12,7 @@ from tensorflow.keras.models import Sequential
 
 from doctr.documents import read_pdf
 from test_documents import mock_pdf
-from doctr.models.detection.postprocessor import Postprocessor
-from doctr.models.detection.differentiable_binarization import DBPostprocessor
+from doctr import models
 
 
 @pytest.fixture(scope="module")
@@ -75,7 +72,6 @@ def test_preprocess_documents(mock_pdf):  # noqa: F811
     assert all(batch.shape[1:] == (600, 600, 3) for batch in batched_docs)
 
 
-@pytest.fixture(scope="module")
 def mock_db_output():
     output_batch = tf.random.uniform(shape=[10, 600, 600, 1], minval=0, maxval=1)
     output = [output_batch for _ in range(3)]
@@ -83,7 +79,7 @@ def mock_db_output():
 
 
 def test_dbpostprocessor(mock_db_output):
-    postprocessor = DBPostprocessor()
+    postprocessor = models.DBPostProcessor()
     bounding_boxes = postprocessor(mock_db_output)
     assert isinstance(bounding_boxes, list)
     assert len(bounding_boxes) == 3

@@ -8,10 +8,10 @@ import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 
-__all__ = ['Postprocessor']
+__all__ = ['PostProcessor']
 
 
-class Postprocessor:
+class PostProcessor:
     """Abstract class to postprocess the raw output of the model
 
     Args:
