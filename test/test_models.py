@@ -1,15 +1,18 @@
 import pytest
 from io import BytesIO
+
+import tensorflow as tf
+import numpy as np
 import sys
 import math
 import requests
-import numpy as np
+
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
-from doctr import models
 from doctr.documents import read_pdf
 from test_documents import mock_pdf
+from doctr import models
 
 
 @pytest.fixture(scope="module")
@@ -67,3 +70,13 @@ def test_preprocess_documents(mock_pdf):  # noqa: F811
     assert all(batch.dtype == np.float32 for batch in batched_docs)
     # Image size
     assert all(batch.shape[1:] == (600, 600, 3) for batch in batched_docs)
+
+
+def test_dbpostprocessor():
+    postprocessor = models.DBPostProcessor()
+    output_batch = tf.random.uniform(shape=[8, 600, 600, 1], minval=0, maxval=1)
+    output = [output_batch for _ in range(3)]
+    bounding_boxes = postprocessor(output)
+    assert isinstance(bounding_boxes, list)
+    assert len(bounding_boxes) == 3
+    assert np.shape(bounding_boxes[0][0])[-1] == 5
