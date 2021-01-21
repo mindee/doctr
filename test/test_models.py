@@ -80,3 +80,25 @@ def test_dbpostprocessor():
     assert isinstance(bounding_boxes, list)
     assert len(bounding_boxes) == 3
     assert np.shape(bounding_boxes[0][0])[-1] == 5
+
+
+def test_dbmodel():
+    dbmodel = models.DBModel(shape=(640, 640), channels=128)
+    dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
+    # test prediction model
+    dboutput_notrain = dbmodel(inputs=dbinput, training=False)
+    assert isinstance(dboutput_notrain, tf.Tensor)
+    assert isinstance(dbmodel, tf.keras.Model)
+    assert isinstance(dbmodel, models.DetectionModel)
+    # batch size
+    assert np.shape(dboutput_notrain.numpy())[0] == 8
+    # output dimensions
+    assert np.shape(dboutput_notrain.numpy())[1] == np.shape(dboutput_notrain.numpy())[2] == 640
+    # test training model
+    dboutput_train = dbmodel(inputs=dbinput, training=True)
+    assert isinstance(dboutput_train, list)
+    assert len(dboutput_train) == 3
+    # batch size
+    assert all(np.shape(maps.numpy())[0] == 8 for maps in dboutput_train)
+    # output dimensions
+    assert all(np.shape(maps.numpy())[1] == np.shape(maps.numpy())[2] == 640 for maps in dboutput_train)
