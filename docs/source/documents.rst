@@ -31,3 +31,5 @@ Document reading
 High-performance file reading and conversion to processable structured data.
 
 .. autofunction:: read_pdf
+
+.. autofunction:: read_img
