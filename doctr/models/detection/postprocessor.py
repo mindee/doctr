@@ -7,14 +7,17 @@ import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 
-__all__ = ['Postprocessor']
+__all__ = ['PostProcessor']
 
 
-class Postprocessor:
-    """
-    class to postprocess documents
-    a postprocessor takes the raw output from a model
-    a postprocessor return a list of tensor, each tensor N X 5
+class PostProcessor:
+    """Abstract class to postprocess the raw output of the model
+
+    Args:
+        min_size_box (int): minimal length (pix) to keep a box
+        max_candidates (int): maximum boxes to consider in a single page
+        box_thresh (float): minimal objectness score to consider a box
+
     """
 
     def __init__(
