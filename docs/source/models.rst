@@ -5,7 +5,7 @@ doctr.models
 .. currentmodule:: doctr.models
 
 
-pre-processing
+Pre-processing
 --------------
 Operations that need to be carried out before passing data to actual models
 
@@ -14,9 +14,18 @@ Operations that need to be carried out before passing data to actual models
 .. autoclass:: Preprocessor
 
 
+Text Detection
+--------------
+Architectures to localize text elements
 
-utils
------
+
+Text Recognition
+----------------
+Architectures to identify strings inside the localized boxes
+
+
+Model export
+------------
 Utility functions to make the most of document analysis models.
 
 .. currentmodule:: doctr.models.utils
