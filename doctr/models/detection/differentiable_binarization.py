@@ -17,7 +17,7 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 from .postprocessor import PostProcessor
 from .model import DetectionModel
 
-__all__ = ['DBPostProcessor', 'DBModel']
+__all__ = ['DBPostProcessor', 'DBResNet50']
 
 
 class DBPostProcessor(PostProcessor):
@@ -166,171 +166,110 @@ class DBPostProcessor(PostProcessor):
         return bounding_boxes
 
 
-class DBModel(DetectionModel):
+class PyramidModule(layers.Layer):
+
+    def __init__(
+        self,
+        channels: int,
+    ) -> None:
+        super().__init__()
+        self.upsample_2 = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
+        self.conv_upsampling_1 = self.build_upsampling(channels=channels, dilation_factor=1)
+        self.conv_upsampling_2 = self.build_upsampling(channels=channels, dilation_factor=2)
+        self.conv_upsampling_4 = self.build_upsampling(channels=channels, dilation_factor=4)
+        self.conv_upsampling_8 = self.build_upsampling(channels=channels, dilation_factor=8)
+
+    @staticmethod
+    def build_upsampling(
+        channels: int,
+        dilation_factor: int = 1,
+    ) -> layers.Layer:
+        """Module which performs a 3x3 convolution followed by up-sampling
+
+        Args:
+            dialtion_factor (int): dilation factor to scale the convolution output before concatenation
+
+        Returns:
+            a  keras.layers.Layer object, wrapiing these operations in a sequential module
+
+        """
+        module = keras.Sequential(
+            [
+                layers.Conv2D(filters=channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
+                layers.BatchNormalization(),
+                layers.Activation('relu'),
+            ]
+        )
+        if dilation_factor > 1:
+            module.add(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
+
+        return module
+
+    def __call__(
+        self,
+        x: List[tf.Tensor]
+    ) -> tf.Tensor:
+
+        x1, x2, x3, x4 = x[0], x[1], x[2], x[3]
+
+        y1 = self.upsample_2(x4) + x3
+        y2 = self.upsample_2(y1) + x2
+        y3 = self.upsample_2(y2) + x1
+
+        z1 = self.conv_upsampling_1(y3)
+        z2 = self.conv_upsampling_2(y2)
+        z3 = self.conv_upsampling_4(y1)
+        z4 = self.conv_upsampling_8(x4)
+
+        features_concat = layers.concatenate([z1, z2, z3, z4])
+
+        return features_concat
+
+
+class DBResNet50(DetectionModel):
     """Implements DB keras model
 
     Args:
-        shape (Tuple[int, int]): shape of the input (h, w) in pixels
+        shape (Tuple[int, int]): shape of the input (H, W) in pixels
         channels (int): number of channels too keep during after extracting features map
 
     """
 
     def __init__(
         self,
-        shape: Tuple[int, int] = (600, 600),
+        image_shape: Tuple[int, int] = (600, 600),
         channels: int = 128,
     ) -> None:
-        super().__init__(shape)
+
+        super().__init__(image_shape)
         self.channels = channels
 
-    def build_resnet(
-        self,
-    ) -> tf.keras.Model:
-        """Import and build ResNet50V2 from the keras.applications lib
-
-        Args:
-
-        Returns:
-            a resnet model (instance of tf.keras.Model)
-
-        """
-        resnet_input = keras.Input(shape=(self.shape[0], self.shape[1], 3,), name="input")
+        resnet_input = keras.Input(shape=(self.image_shape[0], self.image_shape[1], 3,), name="input")
 
         resnet = tf.keras.applications.ResNet50(
             include_top=False,
-            weights="imagenet",
+            weights=None,
             input_tensor=resnet_input,
-            input_shape=(self.shape[0], self.shape[1], 3,),
+            input_shape=(self.image_shape[0], self.image_shape[1], 3,),
             pooling=None,
         )
 
-        return resnet
-
-    def build_feat_extractor(
-        self
-    ) -> tf.keras.Model:
-        """Build a tf.keras.Model feature extractor = returning the 4 feature maps
-
-        Args:
-
-        Returns:
-            a tf.keras.Model feat_extractor, returning a list of feature maps
-
-        """
-        resnet = self.build_resnet()
-        res_layers = [
-            resnet.get_layer("conv2_block3_out"),
-            resnet.get_layer("conv3_block4_out"),
-            resnet.get_layer("conv4_block6_out"),
-            resnet.get_layer("conv5_block3_out"),
-        ]
-        res_outputs = [res_layer.output for res_layer in res_layers]
-        feat_extractor = keras.Model(resnet.input, outputs=res_outputs)
-
-        return feat_extractor
-
-    @staticmethod
-    def upsampling_addition(
-        x_small: tf.Tensor,
-        x_big: tf.Tensor
-    ) -> tf.Tensor:
-        """Performs Upsampling x2 on x_small and element-wise addition x_small + x_big
-
-        Args:
-            x_small (tf.Tensor): small tensor to upscale before addition
-            x_big (tf.Tensor): big tensor to sum with the up-scaled x_small
-
-        Returns:
-            a tf.Tensor
-
-        """
-        x = layers.UpSampling2D(size=(2, 2), interpolation='nearest')(x_small)
-        x = layers.Add()([x, x_big])
-        return x
-
-    def conv_upsampling(
-        self,
-        up: int = 0,
-    ) -> layers.Layer:
-        """Module which performs a 3x3 convolution followed by up-sampling
-
-        Args:
-            up (int): dilatation factor to scale the convolution output before concatenation
-
-        Returns:
-            a  keras.layers.Layer object, wrapiing these operations in a sequential module
-
-        """
-        model = keras.Sequential(
-            [
-                layers.Conv2D(filters=self.channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
-                layers.BatchNormalization(),
-                layers.Activation('relu'),
-            ]
-        )
-        if up > 0:
-            model.add(layers.UpSampling2D(size=(up, up), interpolation='nearest'))
-
-        return model
-
-    def reduce_channel(
-        self,
-        feat_maps: List[tf.Tensor],
-    ) -> List[tf.Tensor]:
-        """Set channels for all tensors of the feat_maps list to self.channels, performing a 1x1 conv
-
-        Args:
-            feat_maps (List[tf.Tensor]): list of features maps
-
-        Returns:
-            a List[tf.Tensor], the feature_maps with self.channels channels
-
-        """
-        new_feat_maps = [
-            layers.Conv2D(filters=self.channels, kernel_size=(1, 1), strides=1)(feat_map) for feat_map in feat_maps
+        res_outputs = [
+            resnet.get_layer("conv2_block3_out").output,
+            resnet.get_layer("conv3_block4_out").output,
+            resnet.get_layer("conv4_block6_out").output,
+            resnet.get_layer("conv5_block3_out").output,
         ]
 
-        return new_feat_maps
+        feat_maps = [
+            layers.Conv2D(filters=self.channels, kernel_size=1, strides=1)(res_output) for res_output in res_outputs
+        ]
 
-    def pyramid_module(
-        self,
-        x: List[tf.Tensor],
-    ) -> tf.Tensor:
-        """Implements Pyramidal module as described in paper,
+        self.feat_extractor = keras.Model(resnet.input, outputs=feat_maps)
 
-        Args:
-            x (List[tf.Tensor]): List of features maps (from resnet backbone)
+        self.pyramid_module = PyramidModule(channels=self.channels)
 
-        Returns:
-            concatenated features (tf.Tensor)
-
-        """
-        x1, x2, x3, x4 = x[0], x[1], x[2], x[3]
-
-        y1 = self.upsampling_addition(x4, x3)
-        y2 = self.upsampling_addition(y1, x2)
-        y3 = self.upsampling_addition(y2, x1)
-
-        z1 = self.conv_upsampling(up=0)(y3)
-        z2 = self.conv_upsampling(up=2)(y2)
-        z3 = self.conv_upsampling(up=4)(y1)
-        z4 = self.conv_upsampling(up=8)(x4)
-
-        features_concat = layers.Concatenate()([z1, z2, z3, z4])
-
-        return features_concat
-
-    @staticmethod
-    def get_p_map() -> layers.Layer:
-        """Get probability map module, wrapped in a sequential model
-
-        Args:
-
-        Returns:
-            a tf.keras.layers.Layer
-
-        """
-        model = keras.Sequential(
+        self.p_map = keras.Sequential(
             [
                 layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="p_map1"),
                 layers.BatchNormalization(name="p_map2"),
@@ -342,20 +281,7 @@ class DBModel(DetectionModel):
                 layers.Activation('sigmoid'),
             ]
         )
-
-        return model
-
-    @staticmethod
-    def get_t_map() -> layers.Layer:
-        """Get threshold map module, wrapped in a sequential model
-
-        Args:
-
-        Returns:
-            a tf.keras.layers.Layer
-
-        """
-        model = keras.Sequential(
+        self.t_map = keras.Sequential(
             [
                 layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="t_map1"),
                 layers.BatchNormalization(name="t_map2"),
@@ -367,7 +293,6 @@ class DBModel(DetectionModel):
                 layers.Activation('sigmoid'),
             ]
         )
-        return model
 
     @staticmethod
     def get_approximate_binary_map(
@@ -394,19 +319,14 @@ class DBModel(DetectionModel):
         training: bool = False
     ) -> Union[List[tf.Tensor], tf.Tensor]:
 
-        feat_extractor = self.build_feat_extractor()
-        features_maps = feat_extractor(inputs)
-
-        reduced_channel_feat = self.reduce_channel(features_maps)
-        concat_features = self.pyramid_module(reduced_channel_feat)
-
-        probability_map = self.get_p_map()(concat_features)
+        feat = self.feat_extractor(inputs)
+        feat_concat = self.pyramid_module(feat)
+        p = self.p_map(feat_concat)
 
         if training:
-            treshold_map = self.get_t_map()(concat_features)
-            approx_binary_map = self.get_approximate_binary_map(probability_map, treshold_map)
-
-            return [probability_map, treshold_map, approx_binary_map]
+            t = self.t_map(feat_concat)
+            approx_binary_map = self.get_approximate_binary_map(p, t)
+            return [p, t, approx_binary_map]
 
         else:
-            return probability_map
+            return p
