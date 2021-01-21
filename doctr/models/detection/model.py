@@ -25,5 +25,5 @@ class DetectionModel(keras.Model):
         self,
         inputs: tf.Tensor,
         training: bool = False
-    ) -> Tuple[keras.Model, keras.Model]:
+    ) -> Union[List[tf.Tensor], tf.Tensor]:
         raise NotImplementedError

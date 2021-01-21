@@ -166,7 +166,7 @@ class DBPostProcessor(PostProcessor):
         return bounding_boxes
 
 
-class DBModel(DetectionModel, keras.Model):
+class DBModel(DetectionModel):
     """Implements DB keras model
 
     Args:
@@ -286,9 +286,9 @@ class DBModel(DetectionModel, keras.Model):
             a List[tf.Tensor], the feature_maps with self.channels channels
 
         """
-        new_feat_maps = [0, 0, 0, 0]
-        for i in range(len(feat_maps)):
-            new_feat_maps[i] = layers.Conv2D(filters=self.channels, kernel_size=(1, 1), strides=1)(feat_maps[i])
+        new_feat_maps = [
+            layers.Conv2D(filters=self.channels, kernel_size=(1, 1), strides=1)(feat_map) for feat_map in feat_maps
+        ]
 
         return new_feat_maps
 
@@ -392,7 +392,7 @@ class DBModel(DetectionModel, keras.Model):
         self,
         inputs: tf.Tensor,
         training: bool = False
-    ) -> Tuple[keras.Model, keras.Model]:
+    ) -> Union[List[tf.Tensor], tf.Tensor]:
 
         feat_extractor = self.build_feat_extractor()
         features_maps = feat_extractor(inputs)
@@ -401,11 +401,12 @@ class DBModel(DetectionModel, keras.Model):
         concat_features = self.pyramid_module(reduced_channel_feat)
 
         probability_map = self.get_p_map()(concat_features)
-        treshold_map = self.get_t_map()(concat_features)
-
-        approx_binary_map = self.get_approximate_binary_map(probability_map, treshold_map)
 
         if training:
+            treshold_map = self.get_t_map()(concat_features)
+            approx_binary_map = self.get_approximate_binary_map(probability_map, treshold_map)
+
             return [probability_map, treshold_map, approx_binary_map]
+
         else:
             return probability_map

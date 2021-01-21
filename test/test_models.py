@@ -89,7 +89,6 @@ def test_dbmodel():
     dboutput_notrain = dbmodel(inputs=dbinput, training=False)
     assert isinstance(dboutput_notrain, tf.Tensor)
     assert isinstance(dbmodel, tf.keras.Model)
-    assert isinstance(dbmodel, models.DetectionModel)
     # batch size
     assert np.shape(dboutput_notrain.numpy())[0] == 8
     # output dimensions
