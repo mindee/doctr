@@ -83,7 +83,7 @@ def test_dbpostprocessor():
 
 
 def test_dbmodel():
-    dbmodel = models.DBResNet50(image_shape=(640, 640), channels=128)
+    dbmodel = models.DBResNet50(input_size=(640, 640), channels=128)
     dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
     # test prediction model
     dboutput_notrain = dbmodel(inputs=dbinput, training=False)
@@ -92,7 +92,7 @@ def test_dbmodel():
     assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
     # test training model
     dboutput_train = dbmodel(inputs=dbinput, training=True)
-    assert isinstance(dboutput_train, list)
+    assert isinstance(dboutput_train, tuple)
     assert len(dboutput_train) == 3
     # batch size
     assert all(out.numpy().shape == (8, 640, 640, 1) for out in dboutput_train)

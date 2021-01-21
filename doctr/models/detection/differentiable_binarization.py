@@ -166,7 +166,13 @@ class DBPostProcessor(PostProcessor):
         return bounding_boxes
 
 
-class PyramidModule(layers.Layer):
+class FeaturePyramidNetwork(layers.Layer):
+    """Feature pyramid network
+
+    Args:
+        channels: number of channel to output
+
+    """
 
     def __init__(
         self,
@@ -187,21 +193,22 @@ class PyramidModule(layers.Layer):
         """Module which performs a 3x3 convolution followed by up-sampling
 
         Args:
-            dialtion_factor (int): dilation factor to scale the convolution output before concatenation
+            dilation_factor (int): dilation factor to scale the convolution output before concatenation
 
         Returns:
-            a  keras.layers.Layer object, wrapiing these operations in a sequential module
+            a  keras.layers.Layer object, wrapping these operations in a sequential module
 
         """
-        module = keras.Sequential(
-            [
-                layers.Conv2D(filters=channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
-                layers.BatchNormalization(),
-                layers.Activation('relu'),
-            ]
-        )
+        _layers = [
+            layers.Conv2D(filters=channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+        ]
+
         if dilation_factor > 1:
-            module.add(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
+            _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
+
+        module = keras.Sequential(_layers)
 
         return module
 
@@ -210,16 +217,14 @@ class PyramidModule(layers.Layer):
         x: List[tf.Tensor]
     ) -> tf.Tensor:
 
-        x1, x2, x3, x4 = x[0], x[1], x[2], x[3]
-
-        y1 = self.upsample_2(x4) + x3
-        y2 = self.upsample_2(y1) + x2
-        y3 = self.upsample_2(y2) + x1
+        y1 = self.upsample_2(x[3]) + x[2]
+        y2 = self.upsample_2(y1) + x[1]
+        y3 = self.upsample_2(y2) + x[0]
 
         z1 = self.conv_upsampling_1(y3)
         z2 = self.conv_upsampling_2(y2)
         z3 = self.conv_upsampling_4(y1)
-        z4 = self.conv_upsampling_8(x4)
+        z4 = self.conv_upsampling_8(x[3])
 
         features_concat = layers.concatenate([z1, z2, z3, z4])
 
@@ -230,27 +235,23 @@ class DBResNet50(DetectionModel):
     """Implements DB keras model
 
     Args:
-        shape (Tuple[int, int]): shape of the input (H, W) in pixels
+        input_size (Tuple[int, int]): shape of the input (H, W) in pixels
         channels (int): number of channels too keep during after extracting features map
 
     """
 
     def __init__(
         self,
-        image_shape: Tuple[int, int] = (600, 600),
+        input_size: Tuple[int, int] = (600, 600),
         channels: int = 128,
     ) -> None:
 
-        super().__init__(image_shape)
-        self.channels = channels
-
-        resnet_input = keras.Input(shape=(self.image_shape[0], self.image_shape[1], 3,), name="input")
+        super().__init__(input_size)
 
         resnet = tf.keras.applications.ResNet50(
             include_top=False,
             weights=None,
-            input_tensor=resnet_input,
-            input_shape=(self.image_shape[0], self.image_shape[1], 3,),
+            input_shape=(*input_size, 3),
             pooling=None,
         )
 
@@ -262,14 +263,14 @@ class DBResNet50(DetectionModel):
         ]
 
         feat_maps = [
-            layers.Conv2D(filters=self.channels, kernel_size=1, strides=1)(res_output) for res_output in res_outputs
+            layers.Conv2D(filters=channels, kernel_size=1, strides=1)(res_output) for res_output in res_outputs
         ]
 
         self.feat_extractor = keras.Model(resnet.input, outputs=feat_maps)
 
-        self.pyramid_module = PyramidModule(channels=self.channels)
+        self.fpn = FeaturePyramidNetwork(channels=channels)
 
-        self.p_map = keras.Sequential(
+        self.probability_head = keras.Sequential(
             [
                 layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="p_map1"),
                 layers.BatchNormalization(name="p_map2"),
@@ -281,7 +282,7 @@ class DBResNet50(DetectionModel):
                 layers.Activation('sigmoid'),
             ]
         )
-        self.t_map = keras.Sequential(
+        self.threshold_head = keras.Sequential(
             [
                 layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="t_map1"),
                 layers.BatchNormalization(name="t_map2"),
@@ -295,7 +296,7 @@ class DBResNet50(DetectionModel):
         )
 
     @staticmethod
-    def get_approximate_binary_map(
+    def compute_approx_binmap(
         p: tf.Tensor,
         t: tf.Tensor
     ) -> tf.Tensor:
@@ -310,23 +311,23 @@ class DBResNet50(DetectionModel):
             a tf.Tensor
 
         """
-        b_hat = layers.Lambda(lambda x: 1 / (1 + tf.exp(-50. * (x[0] - x[1]))), name="approx_bin_map")([p, t])
+        b_hat = 1 / (1 + tf.exp(-50. * (p - t)))
         return b_hat
 
     def __call__(
         self,
         inputs: tf.Tensor,
         training: bool = False
-    ) -> Union[List[tf.Tensor], tf.Tensor]:
+    ) -> Union[Tuple[tf.Tensor], tf.Tensor]:
 
         feat = self.feat_extractor(inputs)
-        feat_concat = self.pyramid_module(feat)
-        p = self.p_map(feat_concat)
+        feat_concat = self.fpn(feat)
+        p = self.probability_head(feat_concat)
 
         if training:
-            t = self.t_map(feat_concat)
-            approx_binary_map = self.get_approximate_binary_map(p, t)
-            return [p, t, approx_binary_map]
+            t = self.threshold_head(feat_concat)
+            approx_binmap = self.compute_approx_binmap(p, t)
+            return p, t, approx_binmap
 
         else:
             return p

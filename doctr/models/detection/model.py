@@ -19,10 +19,10 @@ class DetectionModel(keras.Model):
 
     def __init__(
         self,
-        image_shape: Tuple[int, int] = (600, 600),
+        input_size: Tuple[int, int] = (600, 600),
     ) -> None:
         super().__init__()
-        self.image_shape = image_shape
+        self.input_size = input_size
 
     def __call__(
         self,
