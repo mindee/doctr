@@ -118,7 +118,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 def test_crnn():
     crnn_model = models.CRNN(num_classes=30, input_size=(32, 128, 3), rnn_units=128)
     crnn_input = tf.random.uniform(shape=[8, 32, 128, 3], minval=0, maxval=1)
-    crnn_out = crnn_model(inputs=crnn_input, training=False)
+    crnn_out = crnn_model(inputs=crnn_input)
     assert isinstance(crnn_out, tf.Tensor)
     assert isinstance(crnn_model, tf.keras.Model)
     assert crnn_out.numpy().shape == (8, 32, 31)

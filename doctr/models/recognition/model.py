@@ -5,8 +5,7 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from typing import Union, List, Tuple, Optional, Any, Dict
-
+from typing import Tuple
 __all__ = ['RecognitionModel']
 
 
@@ -27,6 +26,5 @@ class RecognitionModel(keras.Model):
     def __call__(
         self,
         inputs: tf.Tensor,
-        training: bool = False
     ) -> tf.Tensor:
         raise NotImplementedError
