@@ -4,118 +4,110 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-from tensorflow import keras
-from keras import layers
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential
+from typing import Tuple, List, Union
 
-class VGG(layers.Layer):
+from doctr.models.recognition.model import RecognitionModel
+
+__all__ = ['CRNN']
+
+
+class VGG16(Sequential):
     """Visual Geometry Group (Oxford, 2014) network
 
     Args:
-        filters: number of filters
-        k_size: kernel size used for convolutions
+        input_shape: shapes of the images
 
     """
     def __init__(
         self,
-        filters: int,
-        k_size: int
+        input_size: Tuple[int, int, int] = (640, 640, 3)
     ) -> None:
+        _layers = [
+            layers.Conv2D(64, 3, padding='same', input_shape=input_size),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(64, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Conv2D(128, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(128, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Conv2D(256, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(256, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(256, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.MaxPooling2D((2, 1)),
+            layers.Conv2D(512, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(512, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(512, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.MaxPooling2D((2, 1)),
+            layers.Conv2D(512, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(512, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.Conv2D(512, 3, padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            layers.MaxPooling2D((2, 1)),
+        ]
+        super().__init__(_layers)
 
-        self.conv_maxpool_1 = conv_maxpool(num_filters=filters, k_size=k_size, p_size=2)
-        self.conv_maxpool_2 = conv_maxpool(num_filters=2*filters, k_size=k_size, p_size=2)
-        self.conv_1 = conv(num_filters=4*filters, k_size=k_size)
-        self.conv_maxpool_3 = conv_maxpool(num_filters=4*filters, k_size=k_size, p_size=[2,1])
-        self.conv_2 = conv(num_filters=8*filters, k_size=k_size)
-        self.conv_maxpool_4 = self.conv_maxpool(num_filters=8*filters, k_size=k_size, p_size=[2,1])
-        self.conv_3 = conv(num_filters=8*filters, k_size=k_size)
 
-    @staticmethod
-    def conv_maxpool(
-        num_filters: int,
-        k_size: int, 
-        p_size: Union[int, List[int]]
-        ) -> layers.Layer:
+class CRNN(RecognitionModel):
+    """Convolutional recurrent neural network (CRNN) class as described in paper
+    Feature Extractor: VGG16
 
-        module = keras.Sequential(
+    Args:
+        input_shape: shape of the image inputs
+
+    """
+    def __init__(
+        self,
+        num_classes: int,
+        input_size: Tuple[int, int, int] = (640, 640, 3),
+        rnn_units: int = 128
+    ) -> None:
+        super().__init__(input_size)
+        self.vgg16 = VGG16(input_size=input_size)
+        self.decoder = Sequential(
             [
-                layers.Conv2D(filters=num_filters, kernel_size=k_size, strides=1, padding="same", use_bias=False),
-                layers.BatchNormalization(),
-                layers.Activation('relu'),
-                layers.MaxPool2D(pool_size=p_size, strides=p_size, padding="same"),
+                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+                layers.Dense(units=num_classes + 1)
             ]
         )
-        return module
-
-    @staticmethod
-    def conv(
-        num_filters: int,
-        k_size: int
-        ) -> layers.Layer:
-
-        module = keras.Sequential(
-            [
-                layers.Conv2D(filters=num_filters, kernel_size=k_size, strides=1, padding="same", use_bias=False)
-                layers.BatchNormalization()
-                layers.Activation('relu')
-            ]
-        )
-        return module
 
     def __call__(
         self,
         inputs: tf.Tensor,
+        training: bool = False,
     ) -> tf.Tensor:
 
-        x = self.conv_maxpool_1(inputs)
-        x = self.conv_maxpool_2(x)
-        x = self.conv_1(x)
-        x = self.conv_maxpool_3(x)
-        x = self.conv_2(x)
-        x = self.conv_maxpool_4(x)
-        x = self.conv_3(x)
-        return x
+        features = self.vgg16(inputs)
+        print(features.shape)
+        transposed_feat = tf.transpose(features, perm=[0, 2, 1, 3])
+        num_columns, num_lines, num_features = transposed_feat.get_shape().as_list()[1:]
+        features_seq = tf.reshape(transposed_feat, shape=(-1, num_columns, num_lines * num_features))
+        decoded_features = self.decoder(features_seq)
 
-class CRNN(RecognitionModel):
-    """Convolutional recurrent neural network (CRNN) class as described in paper
-
-    Args:
-
-    """
-
-    def __init__(
-        self,
-    ) -> :
-
-    def __call__(
-        self
-    ) -> :
-
-def build_crnn(img_h,
-            img_w,
-            filters,
-            k_size,
-            rnn_units,
-            num_classes):
-
-    #vgg_model = build_vgg(img_h, img_w, filters, k_size)
-    vgg_model = build_resnet(img_h, img_w)
-
-    vgg_input = keras.Input(shape=(img_h, img_w, 3,), name="img")
-    vgg_output = vgg_model(vgg_input)
-
-    # RESHAPING THE FEATURE MAP
-    features = layers.Permute(dims=(2,1,3))(vgg_output)
-    num_columns, num_lines, num_features = features.get_shape().as_list()[1:]
-    features_seq = layers.Reshape(target_shape=(num_columns, num_lines * num_features))(features)
-
-    x = layers.Bidirectional(layers.LSTM(units=rnn_units,
-                                    return_sequences=True))(features_seq)
-
-    x = layers.Bidirectional(layers.LSTM(units=rnn_units,
-                                    return_sequences=True))(x)
-
-    crnn_output =  layers.Dense(units=num_classes + 1)(x)
-
-    crnn = keras.Model(vgg_input, crnn_output, name="crnn")
-
-    return crnn
+        return decoded_features
