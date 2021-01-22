@@ -82,6 +82,22 @@ def test_dbpostprocessor():
     assert np.shape(bounding_boxes[0][0])[-1] == 5
 
 
+def test_dbmodel():
+    dbmodel = models.DBResNet50(input_size=(640, 640), channels=128)
+    dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
+    # test prediction model
+    dboutput_notrain = dbmodel(inputs=dbinput, training=False)
+    assert isinstance(dboutput_notrain, tf.Tensor)
+    assert isinstance(dbmodel, tf.keras.Model)
+    assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
+    # test training model
+    dboutput_train = dbmodel(inputs=dbinput, training=True)
+    assert isinstance(dboutput_train, tuple)
+    assert len(dboutput_train) == 3
+    # batch size
+    assert all(out.numpy().shape == (8, 640, 640, 1) for out in dboutput_train)
+
+
 def test_extract_crops(mock_pdf):  # noqa: F811
     doc_img = read_pdf(mock_pdf)[0]
     num_crops = 2
