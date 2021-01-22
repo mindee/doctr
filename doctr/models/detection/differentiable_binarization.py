@@ -10,11 +10,14 @@ import numpy as np
 from shapely.geometry import Polygon
 import pyclipper
 import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .postprocessor import PostProcessor
+from .model import DetectionModel
 
-__all__ = ['DBPostProcessor']
+__all__ = ['DBPostProcessor', 'DBResNet50']
 
 
 class DBPostProcessor(PostProcessor):
@@ -161,3 +164,169 @@ class DBPostProcessor(PostProcessor):
 
             bounding_boxes.append(boxes_batch)
         return bounding_boxes
+
+
+class FeaturePyramidNetwork(layers.Layer):
+    """Feature pyramid network
+
+    Args:
+        channels: number of channel to output
+
+    """
+
+    def __init__(
+        self,
+        channels: int,
+    ) -> None:
+        super().__init__()
+        self.upsample_2 = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
+        self.conv_upsampling_1 = self.build_upsampling(channels=channels, dilation_factor=1)
+        self.conv_upsampling_2 = self.build_upsampling(channels=channels, dilation_factor=2)
+        self.conv_upsampling_4 = self.build_upsampling(channels=channels, dilation_factor=4)
+        self.conv_upsampling_8 = self.build_upsampling(channels=channels, dilation_factor=8)
+
+    @staticmethod
+    def build_upsampling(
+        channels: int,
+        dilation_factor: int = 1,
+    ) -> layers.Layer:
+        """Module which performs a 3x3 convolution followed by up-sampling
+
+        Args:
+            dilation_factor (int): dilation factor to scale the convolution output before concatenation
+
+        Returns:
+            a  keras.layers.Layer object, wrapping these operations in a sequential module
+
+        """
+        _layers = [
+            layers.Conv2D(filters=channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+        ]
+
+        if dilation_factor > 1:
+            _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
+
+        module = keras.Sequential(_layers)
+
+        return module
+
+    def __call__(
+        self,
+        x: List[tf.Tensor]
+    ) -> tf.Tensor:
+
+        y1 = self.upsample_2(x[3]) + x[2]
+        y2 = self.upsample_2(y1) + x[1]
+        y3 = self.upsample_2(y2) + x[0]
+
+        z1 = self.conv_upsampling_1(y3)
+        z2 = self.conv_upsampling_2(y2)
+        z3 = self.conv_upsampling_4(y1)
+        z4 = self.conv_upsampling_8(x[3])
+
+        features_concat = layers.concatenate([z1, z2, z3, z4])
+
+        return features_concat
+
+
+class DBResNet50(DetectionModel):
+    """Implements DB keras model
+
+    Args:
+        input_size (Tuple[int, int]): shape of the input (H, W) in pixels
+        channels (int): number of channels too keep during after extracting features map
+
+    """
+
+    def __init__(
+        self,
+        input_size: Tuple[int, int] = (600, 600),
+        channels: int = 128,
+    ) -> None:
+
+        super().__init__(input_size)
+
+        resnet = tf.keras.applications.ResNet50(
+            include_top=False,
+            weights=None,
+            input_shape=(*input_size, 3),
+            pooling=None,
+        )
+
+        res_outputs = [
+            resnet.get_layer("conv2_block3_out").output,
+            resnet.get_layer("conv3_block4_out").output,
+            resnet.get_layer("conv4_block6_out").output,
+            resnet.get_layer("conv5_block3_out").output,
+        ]
+
+        feat_maps = [
+            layers.Conv2D(filters=channels, kernel_size=1, strides=1)(res_output) for res_output in res_outputs
+        ]
+
+        self.feat_extractor = keras.Model(resnet.input, outputs=feat_maps)
+
+        self.fpn = FeaturePyramidNetwork(channels=channels)
+
+        self.probability_head = keras.Sequential(
+            [
+                layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="p_map1"),
+                layers.BatchNormalization(name="p_map2"),
+                layers.Activation('relu'),
+                layers.Conv2DTranspose(filters=64, kernel_size=(2, 2), strides=(2, 2), use_bias=False, name="p_map3"),
+                layers.BatchNormalization(name="p_map4"),
+                layers.Activation('relu'),
+                layers.Conv2DTranspose(filters=1, kernel_size=(2, 2), strides=(2, 2), name="p_map5"),
+                layers.Activation('sigmoid'),
+            ]
+        )
+        self.threshold_head = keras.Sequential(
+            [
+                layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="t_map1"),
+                layers.BatchNormalization(name="t_map2"),
+                layers.Activation('relu'),
+                layers.Conv2DTranspose(filters=64, kernel_size=(2, 2), strides=(2, 2), use_bias=False, name="t_map3"),
+                layers.BatchNormalization(name="t_map4"),
+                layers.Activation('relu'),
+                layers.Conv2DTranspose(filters=1, kernel_size=(2, 2), strides=(2, 2), name="t_map5"),
+                layers.Activation('sigmoid'),
+            ]
+        )
+
+    @staticmethod
+    def compute_approx_binmap(
+        p: tf.Tensor,
+        t: tf.Tensor
+    ) -> tf.Tensor:
+        """Compute approximate binary map as described in paper,
+        from threshold map t and probability map p
+
+        Args:
+            p (tf.Tensor): probability map
+            t (tf.Tensor): threshold map
+
+        returns:
+            a tf.Tensor
+
+        """
+        return 1 / (1 + tf.exp(-50. * (p - t)))
+
+    def __call__(
+        self,
+        inputs: tf.Tensor,
+        training: bool = False
+    ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
+
+        feat = self.feat_extractor(inputs)
+        feat_concat = self.fpn(feat)
+        p = self.probability_head(feat_concat)
+
+        if training:
+            t = self.threshold_head(feat_concat)
+            approx_binmap = self.compute_approx_binmap(p, t)
+            return p, t, approx_binmap
+
+        else:
+            return p
