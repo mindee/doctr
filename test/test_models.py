@@ -96,3 +96,20 @@ def test_dbmodel():
     assert len(dboutput_train) == 3
     # batch size
     assert all(out.numpy().shape == (8, 640, 640, 1) for out in dboutput_train)
+
+
+def test_extract_crops(mock_pdf):  # noqa: F811
+    doc_img = read_pdf(mock_pdf)[0]
+    num_crops = 2
+    boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
+                      for idx in range(num_crops)], dtype=np.float32)
+    croped_imgs = models.recognition.extract_crops(doc_img, boxes)
+
+    # Number of crops
+    assert len(croped_imgs) == num_crops
+    # Data type and shape
+    assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+    assert all(crop.ndim == 3 for crop in croped_imgs)
+
+    # Identity
+    assert np.all(doc_img == models.recognition.extract_crops(doc_img, np.array([[0, 0, 1, 1]]))[0])
