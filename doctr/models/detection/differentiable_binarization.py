@@ -311,14 +311,13 @@ class DBResNet50(DetectionModel):
             a tf.Tensor
 
         """
-        b_hat = 1 / (1 + tf.exp(-50. * (p - t)))
-        return b_hat
+        return 1 / (1 + tf.exp(-50. * (p - t)))
 
     def __call__(
         self,
         inputs: tf.Tensor,
         training: bool = False
-    ) -> Union[Tuple[tf.Tensor], tf.Tensor]:
+    ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
 
         feat = self.feat_extractor(inputs)
         feat_concat = self.fpn(feat)
