@@ -11,62 +11,70 @@ class VGG(layers.Layer):
     """Visual Geometry Group (Oxford, 2014) network
 
     Args:
+        filters: number of filters
+        k_size: kernel size used for convolutions
 
     """
-
     def __init__(
         self,
-    ) -> :
+        filters: int,
+        k_size: int
+    ) -> None:
+
+        self.conv_maxpool_1 = conv_maxpool(num_filters=filters, k_size=k_size, p_size=2)
+        self.conv_maxpool_2 = conv_maxpool(num_filters=2*filters, k_size=k_size, p_size=2)
+        self.conv_1 = conv(num_filters=4*filters, k_size=k_size)
+        self.conv_maxpool_3 = conv_maxpool(num_filters=4*filters, k_size=k_size, p_size=[2,1])
+        self.conv_2 = conv(num_filters=8*filters, k_size=k_size)
+        self.conv_maxpool_4 = self.conv_maxpool(num_filters=8*filters, k_size=k_size, p_size=[2,1])
+        self.conv_3 = conv(num_filters=8*filters, k_size=k_size)
+
+    @staticmethod
+    def conv_maxpool(
+        num_filters: int,
+        k_size: int, 
+        p_size: Union[int, List[int]]
+        ) -> layers.Layer:
+
+        module = keras.Sequential(
+            [
+                layers.Conv2D(filters=num_filters, kernel_size=k_size, strides=1, padding="same", use_bias=False),
+                layers.BatchNormalization(),
+                layers.Activation('relu'),
+                layers.MaxPool2D(pool_size=p_size, strides=p_size, padding="same"),
+            ]
+        )
+        return module
+
+    @staticmethod
+    def conv(
+        num_filters: int,
+        k_size: int
+        ) -> layers.Layer:
+
+        module = keras.Sequential(
+            [
+                layers.Conv2D(filters=num_filters, kernel_size=k_size, strides=1, padding="same", use_bias=False)
+                layers.BatchNormalization()
+                layers.Activation('relu')
+            ]
+        )
+        return module
 
     def __call__(
-        self
-    ) -> :
+        self,
+        inputs: tf.Tensor,
+    ) -> tf.Tensor:
 
-def conv2d_batchnorm_relu_maxpool2d(x,
-                                num_filters,
-                                k_size, 
-                                p_size):
+        x = self.conv_maxpool_1(inputs)
+        x = self.conv_maxpool_2(x)
+        x = self.conv_1(x)
+        x = self.conv_maxpool_3(x)
+        x = self.conv_2(x)
+        x = self.conv_maxpool_4(x)
+        x = self.conv_3(x)
+        return x
 
-    module = keras.Sequential(
-        [
-            layers.Conv2D(filters=num_filters, kernel_size=k_size, strides=1, padding="same", use_bias=False),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
-            layers.MaxPool2D(pool_size=p_size, strides=p_size, padding="same"),
-        ]
-    )
-    return module
-
-def conv2d_batchnorm_relu(x, num_filters, k_size):
-
-    module = keras.Sequential(
-        [
-            layers.Conv2D(filters=num_filters, kernel_size=k_size, strides=1, padding="same", use_bias=False)
-            layers.BatchNormalization()
-            layers.Activation('relu')
-        ]
-    )
-    return module
-
-
-def build_vgg(img_h, img_w, filters, k_size):
-
-    vgg_input = keras.Input(shape=(img_h, img_w, 3,), name="img")
-
-    x = conv2d_batchnorm_relu_maxpool2d(vgg_input, num_filters=filters, k_size=k_size, p_size=2)
-    x = conv2d_batchnorm_relu_maxpool2d(x, num_filters=2*filters, k_size=k_size, p_size=2)
-
-    x = conv2d_batchnorm_relu(x, num_filters=4*filters, k_size=k_size)
-    x = conv2d_batchnorm_relu_maxpool2d(x, num_filters=4*filters, k_size=k_size, p_size=[2,1])
-
-    x = conv2d_batchnorm_relu(x, num_filters=8*filters, k_size=k_size)
-    x = conv2d_batchnorm_relu_maxpool2d(x, num_filters=8*filters, k_size=k_size, p_size=[2,1])
-
-    vgg_output = conv2d_batchnorm_relu(x, num_filters=8*filters, k_size=k_size)
-
-    vgg = keras.Model(vgg_input, vgg_output, name="vgg")
-
-    return vgg
 class CRNN(RecognitionModel):
     """Convolutional recurrent neural network (CRNN) class as described in paper
 
