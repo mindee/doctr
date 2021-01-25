@@ -249,11 +249,9 @@ class DBResNet50(DetectionModel):
     """DBNet with a ResNet-50 backbone as described in `"Real-time Scene Text Detection with Differentiable
     Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
-
     Args:
         input_size (Tuple[int, int]): shape of the input (H, W) in pixels
         channels (int): number of channels too keep during after extracting features map
-
     """
 
     def __init__(
