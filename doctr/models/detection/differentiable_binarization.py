@@ -14,8 +14,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
-from .postprocessor import PostProcessor
-from .model import DetectionModel
+from .core import DetectionModel, PostProcessor
 
 __all__ = ['DBPostProcessor', 'DBResNet50']
 
@@ -167,7 +166,8 @@ class DBPostProcessor(PostProcessor):
 
 
 class FeaturePyramidNetwork(layers.Layer):
-    """Feature pyramid network
+    """Feature Pyramid Network as described in `"Feature Pyramid Networks for Object Detection"
+    <https://arxiv.org/pdf/1612.03144.pdf>`_.
 
     Args:
         channels: number of channel to output
@@ -179,11 +179,9 @@ class FeaturePyramidNetwork(layers.Layer):
         channels: int,
     ) -> None:
         super().__init__()
-        self.upsample_2 = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
-        self.conv_upsampling_1 = self.build_upsampling(channels=channels, dilation_factor=1)
-        self.conv_upsampling_2 = self.build_upsampling(channels=channels, dilation_factor=2)
-        self.conv_upsampling_4 = self.build_upsampling(channels=channels, dilation_factor=4)
-        self.conv_upsampling_8 = self.build_upsampling(channels=channels, dilation_factor=8)
+        self.upsample = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
+        self.inner_blocks = [layers.Conv2D(filters=channels, kernel_size=1, strides=1) for _ in range(4)]
+        self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
 
     @staticmethod
     def build_upsampling(
@@ -193,10 +191,11 @@ class FeaturePyramidNetwork(layers.Layer):
         """Module which performs a 3x3 convolution followed by up-sampling
 
         Args:
+            channels: number of output channels
             dilation_factor (int): dilation factor to scale the convolution output before concatenation
 
         Returns:
-            a  keras.layers.Layer object, wrapping these operations in a sequential module
+            a keras.layers.Layer object, wrapping these operations in a sequential module
 
         """
         _layers = [
@@ -217,22 +216,41 @@ class FeaturePyramidNetwork(layers.Layer):
         x: List[tf.Tensor]
     ) -> tf.Tensor:
 
-        y1 = self.upsample_2(x[3]) + x[2]
-        y2 = self.upsample_2(y1) + x[1]
-        y3 = self.upsample_2(y2) + x[0]
+        results = []
+        # Channel mapping
+        for idx in range(len(x)):
+            results.append(self.inner_blocks[idx](x[idx]))
+        # Upsample & sum
+        for idx in range(len(results) - 1, -1):
+            results[idx] += self.upsample(results[idx + 1])
+        # Conv & upsample
+        for idx in range(len(results)):
+            results[idx] = self.layer_blocks[idx](results[idx])
 
-        z1 = self.conv_upsampling_1(y3)
-        z2 = self.conv_upsampling_2(y2)
-        z3 = self.conv_upsampling_4(y1)
-        z4 = self.conv_upsampling_8(x[3])
+        return layers.concatenate(results)
 
-        features_concat = layers.concatenate([z1, z2, z3, z4])
 
-        return features_concat
+class IntermediateLayerGetter(keras.Model):
+    """Implements an intermediate layer getter
+
+    Args:
+        model: the model to extract feature maps from
+        layer_names: the list of layers to retrieve the feature map from
+    """
+    def __init__(
+        self,
+        model: tf.keras.Model,
+        layer_names: List[str]
+    ) -> None:
+        intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
+        super().__init__(model.input, outputs=intermediate_fmaps)
+
 
 
 class DBResNet50(DetectionModel):
-    """Implements DB keras model
+    """DBNet with a ResNet-50 backbone as described in `"Real-time Scene Text Detection with Differentiable
+    Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_.
+
 
     Args:
         input_size (Tuple[int, int]): shape of the input (H, W) in pixels
@@ -255,18 +273,10 @@ class DBResNet50(DetectionModel):
             pooling=None,
         )
 
-        res_outputs = [
-            resnet.get_layer("conv2_block3_out").output,
-            resnet.get_layer("conv3_block4_out").output,
-            resnet.get_layer("conv4_block6_out").output,
-            resnet.get_layer("conv5_block3_out").output,
-        ]
-
-        feat_maps = [
-            layers.Conv2D(filters=channels, kernel_size=1, strides=1)(res_output) for res_output in res_outputs
-        ]
-
-        self.feat_extractor = keras.Model(resnet.input, outputs=feat_maps)
+        self.feat_extractor = IntermediateLayerGetter(
+            resnet,
+            ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
+        )
 
         self.fpn = FeaturePyramidNetwork(channels=channels)
 
@@ -319,14 +329,14 @@ class DBResNet50(DetectionModel):
         training: bool = False
     ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
 
-        feat = self.feat_extractor(inputs)
-        feat_concat = self.fpn(feat)
-        p = self.probability_head(feat_concat)
+        feat_maps = self.feat_extractor(inputs)
+        feat_concat = self.fpn(feat_maps)
+        prob_map = self.probability_head(feat_concat)
 
         if training:
-            t = self.threshold_head(feat_concat)
-            approx_binmap = self.compute_approx_binmap(p, t)
-            return p, t, approx_binmap
+            thresh_map = self.threshold_head(feat_concat)
+            approx_binmap = self.compute_approx_binmap(prob_map, thresh_map)
+            return prob_map, thresh_map, approx_binmap
 
         else:
-            return p
+            return prob_map
