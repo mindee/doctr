@@ -215,16 +215,13 @@ class FeaturePyramidNetwork(layers.Layer):
         x: List[tf.Tensor]
     ) -> tf.Tensor:
 
-        results = []
         # Channel mapping
-        for idx in range(len(x)):
-            results.append(self.inner_blocks[idx](x[idx]))
+        results = [block(fmap) for block, fmap in zip(self.inner_blocks, x)]
         # Upsample & sum
         for idx in range(len(results) - 1, -1):
             results[idx] += self.upsample(results[idx + 1])
         # Conv & upsample
-        for idx in range(len(results)):
-            results[idx] = self.layer_blocks[idx](results[idx])
+        results = [block(fmap) for block, fmap in zip(self.layer_blocks, results)]
 
         return layers.concatenate(results)
 
