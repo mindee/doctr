@@ -18,10 +18,14 @@ Text Detection
 --------------
 Architectures to localize text elements
 
+.. autoclass:: doctr.models.detection.DBResNet50
+
 
 Text Recognition
 ----------------
 Architectures to identify strings inside the localized boxes
+
+.. autoclass:: doctr.models.recognition.CRNN
 
 
 Model export
