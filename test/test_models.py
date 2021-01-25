@@ -122,3 +122,31 @@ def test_crnn():
     assert isinstance(crnn_out, tf.Tensor)
     assert isinstance(crnn_model, tf.keras.Model)
     assert crnn_out.numpy().shape == (8, 32, 31)
+
+
+def test_ctc_decoder():
+    label_to_idx = {
+        "V": 0, "W": 1, ";": 2, "w": 3, "&": 4, "1": 5, "<": 6,
+        "\u00fb": 7, "p": 8, "h": 9, "9": 10, "\u00f9": 11, "\u00d9": 12, "j": 13,
+        "*": 14, "s": 15, "?": 16, ",": 17, "\u00ee": 18, "\u00d4": 19, "8": 20,
+        "@": 21, "D": 22, ">": 23, "$": 24, "\u00db": 25, "k": 26, "{": 27, "I": 28,
+        "F": 29, ":": 30, "O": 31, "\u00e0": 32, "a": 33, "\u00c0": 34, "v": 35, "X": 36,
+        "[": 37, "\u00ea": 38, "M": 39, "q": 40, "5": 41, "\u00c2": 42, "G": 43, "\u00f4": 44,
+        "\"": 45, "\u00e7": 46, "L": 47, "\u00e9": 48, "\u00ef": 49, "6": 50, "\u00ce": 51,
+        "y": 52, "/": 53, "#": 54, "3": 55, "N": 56, "x": 57, "\u00c8": 58, "]": 59, "K": 60,
+        "\u00a3": 61, "7": 62, "R": 63, "'": 64, "U": 65, "\u00e8": 66, "J": 67, "H": 68,
+        "t": 69, "r": 70, "c": 71, "P": 72, ".": 73, "\u00cf": 74, "z": 75, "m": 76, "Z": 77,
+        "}": 78, "0": 79, "(": 80, "\u00cb": 81, "b": 82, "\u00e2": 83, "-": 84, "B": 85, "T": 86,
+        "\u00eb": 87, "%": 88, "\u20ac": 89, "E": 90, ")": 91, "i": 92, "_": 93, "Q": 94, "|": 95,
+        "\u00c9": 96, "S": 97, "o": 98, "=": 99, "Y": 100, "A": 101, "4": 102, "e": 103, "n": 104,
+        "u": 105, "g": 106, "!": 107, "2": 108, "l": 109, "f": 110, "+": 111, "\u00c7": 112,
+        "C": 113, "d": 114
+    }
+    decoded = models.recognition.postprocessor(
+        num_classes=115,
+        logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32),
+        label_to_idx=label_to_idx
+    )
+    assert isinstance(decoded, list)
+    assert len(decoded) == 8
+    assert all(len(word) <= 30 for word in decoded)
