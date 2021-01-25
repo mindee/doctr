@@ -171,7 +171,6 @@ class FeaturePyramidNetwork(layers.Layer):
 
     Args:
         channels: number of channel to output
-
     """
 
     def __init__(
@@ -244,7 +243,6 @@ class IntermediateLayerGetter(keras.Model):
     ) -> None:
         intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
-
 
 
 class DBResNet50(DetectionModel):
