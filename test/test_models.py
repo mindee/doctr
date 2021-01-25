@@ -56,7 +56,7 @@ def test_preprocess_documents(mock_pdf):  # noqa: F811
     num_docs = 3
     batch_size = 4
     docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
-    processor = models.preprocessor.Preprocessor(output_size=(600, 600), batch_size=batch_size)
+    processor = models.Preprocessor(output_size=(600, 600), batch_size=batch_size)
     batched_docs = processor(docs)
 
     # Number of batches
