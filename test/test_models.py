@@ -150,3 +150,21 @@ def test_ctc_decoder():
     assert isinstance(decoded, list)
     assert len(decoded) == 8
     assert all(len(word) <= 30 for word in decoded)
+
+
+def test_sar():
+    sar_model = models.SARResNet50(
+        input_size=(64, 256, 3),
+        rnn_units=128,
+        embedding_units=128,
+        attention_units=128,
+        max_length=30,
+        num_classes=30,
+        num_decoder_layers=1
+    )
+    sar_input = tf.random.uniform(shape=[8, 64, 256, 3], minval=0, maxval=1)
+    sar_out = sar_model(inputs=sar_input)
+    assert isinstance(sar_out, tf.Tensor)
+    assert isinstance(sar_model, tf.keras.Model)
+    sar_model.summary()
+    assert sar_out.numpy().shape == (8, 32, 31)
