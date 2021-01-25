@@ -142,11 +142,11 @@ def test_ctc_decoder():
         "u": 105, "g": 106, "!": 107, "2": 108, "l": 109, "f": 110, "+": 111, "\u00c7": 112,
         "C": 113, "d": 114
     }
-    decoded = models.recognition.postprocessor(
+    ctc_postprocessor = models.recognition.CTCPostProcessor(
         num_classes=115,
-        logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32),
         label_to_idx=label_to_idx
     )
+    decoded = ctc_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
     assert len(decoded) == 8
     assert all(len(word) <= 30 for word in decoded)
