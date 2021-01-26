@@ -25,7 +25,6 @@ class PreProcessor:
 
     Args:
         output_size: expected size of each page in format (H, W)
-        normalize: whether tensor should be normalized
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
@@ -51,9 +50,9 @@ class PreProcessor:
         """Takes a uint8 ndarray and moves it to [-1, 1] range
 
         Args:
-            input_images: nested list of images encoded in uint8
+            x: images encoded in uint8
         Returns:
-            normalized tensors encoded in float32
+            normalized tensor encoded in float32
         """
 
         # Re-center and scale the distribution to [-1, 1]
