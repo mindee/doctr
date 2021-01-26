@@ -46,7 +46,7 @@ class AttentionModule(layers.Layer):
         # shape (N, 1, 1, rnn_units) -> (N, 1, 1, attention_units)
         hidden_state_projection = self.hidden_state_projector(hidden_state)
         # shape (N, H, W, vgg_units) -> (N, H, W, attention_units)
-        features_projection = self.feature_projector(features)
+        features_projection = self.features_projector(features)
         projection = tf.math.tanh(hidden_state_projection + features_projection)
         # shape (N, H, W, attention_units) -> (N, H, W, 1)
         attention = self.attention_projector(projection)
@@ -54,56 +54,11 @@ class AttentionModule(layers.Layer):
         attention = self.flatten(attention)
         attention = tf.nn.softmax(attention)
         # shape (N, H * W) -> (N, H, W, 1)
-        attention = tf.reshape(attention, [-1, H, W, 1])
-        glimpse = tf.math.multiply(features, attention)
+        attention_map = tf.reshape(attention, [-1, H, W, 1])
+        glimpse = tf.math.multiply(features, attention_map)
         # shape (N, H * W) -> (N, 1)
         glimpse = tf.reduce_sum(glimpse, axis=[1, 2])
-        return glimpse, attention
-
-
-class AttentionDecoder(layers.Layer):
-    """Implements attention decoder module of the SAR model
-
-    Args:
-        num_classes: number of classes in the model alphabet
-        embedding_units: number of hidden embedding units
-        attention_units: number of hidden attention units
-        decoder: lstm decoder layer
-
-    """
-    def __init__(
-        self,
-        num_classes: int,
-        embedding_units: int,
-        attention_units: int,
-        decoder: layers.Layer,
-    ) -> None:
-
-        self.num_classes = num_classes
-        self.embed = layers.Dense(embedding_units, use_bias=False)
-        self.decoder = decoder
-        self.attention_module = AttentionModule(attention_units)
-        self.output_dense = layers.Dense(num_classes + 1, use_bias=True)
-
-    def __call__(
-        self,
-        symbol: tf.Tensor,
-        states: tf.Tensor,
-        features: tf.Tensor
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
-
-        # embed symbol: shape symbol (N,) -> (N, num_classes + 2)
-        embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2))
-        print(embeded_symbol.shape)
-
-        output, states = self.decoder(embeded_symbol, states)
-        attention_state, attention_map = self.attention_module(
-            features=features, hidden_state=tf.expand_dims(tf.expand_dims(output, axis=1), axis=1)
-        )
-        output = tf.concat([output, attention_state], axis=-1)
-        output = self.output_dense(output)
-
-        return output, attention_map, states
+        return glimpse, attention_map
 
 
 class Decoder(layers.Layer):
@@ -129,12 +84,12 @@ class Decoder(layers.Layer):
     ) -> None:
 
         self.num_classes = num_classes
+        self.embed = layers.Dense(embedding_units, use_bias=False)
+        self.attention_module = AttentionModule(attention_units)
+        self.output_dense = layers.Dense(num_classes + 1, use_bias=True)
         self.max_length = max_length
         self.lstm_decoder = layers.StackedRNNCells(
-            [layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_layers)]
-        ))
-        self.attention_decoder = AttentionDecoder(
-            num_classes, embedding_units, attention_units, decoder=self.lstm_decoder
+            [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
 
     def __call__(
@@ -144,20 +99,30 @@ class Decoder(layers.Layer):
     ) -> tf.Tensor:
 
         batch_size = tf.shape(features)[0]
+        # initialize states (each of shape (N, rnn_units))
         states = self.lstm_decoder.get_initial_state(
             inputs=None, batch_size=batch_size, dtype=tf.float32
-        )  # shape (N, rnn_units)
-
+        )
         # run first step of lstm
-        _, states = self.lstm_decoder(holistic, states)  # shape (N, rnn_units)
+        # holistic: shape (N, rnn_units)
+        _, states = self.lstm_decoder(holistic, states)
         sos_symbol = self.num_classes + 1
         symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
-
         logits_list = []
-        for t in range(self.max_length + 1):
-            logits, attentions, states = self.attention_decoder(symbol, states, features)
+        for t in range(self.max_length + 1):  # keep 1 step for <eos>
+            # one-hot symbol with depth num_classes + 2
+            # embeded_symbol: shape (N, embedding_units)
+            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2))
+            logits, states = self.lstm_decoder(embeded_symbol, states)
+            glimpse, attention_map = self.attention_module(
+                features=features, hidden_state=tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1)
+            )
+            # logits: shape (N, rnn_units), glimpse: shape (N, 1)
+            logits = tf.concat([logits, glimpse], axis=-1)
+            # shape (N, rnn_units + 1) -> (N, num_classes + 1)
+            logits = self.output_dense(logits)
             logits_list.append(logits)
-        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, )
+        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, num_classes + 1)
 
         return outputs
 
@@ -187,8 +152,8 @@ class SARResNet50(RecognitionModel):
 
         self.encoder = Sequential(
             [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=False))
+                layers.LSTM(units=rnn_units, return_sequences=True),
+                layers.LSTM(units=rnn_units, return_sequences=False)
             ]
         )
 
