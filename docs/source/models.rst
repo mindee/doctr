@@ -26,7 +26,7 @@ Text Recognition
 Architectures to identify strings inside the localized boxes
 
 .. autoclass:: doctr.models.recognition.CRNN
-
+.. autoclass:: doctr.models.recognition.SAR
 
 Model export
 ------------
