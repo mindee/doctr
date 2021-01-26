@@ -10,7 +10,7 @@ from typing import Tuple
 from ..vgg import VGG16BN
 from .core import RecognitionModel
 
-__all__ = ['SARResNet50']
+__all__ = ['SAR']
 
 
 class AttentionModule(layers.Layer):
@@ -61,16 +61,28 @@ class AttentionModule(layers.Layer):
         return glimpse, attention_map
 
 
+<<<<<<< HEAD
 class Decoder(layers.Layer):
+=======
+class SARDecoder(layers.Layer):
+>>>>>>> main
     """Implements decoder module of the SAR model
 
     Args:
         rnn_units: number of hidden units in recurrent cells
         max_length: maximum length of a sequence
+<<<<<<< HEAD
         num_decoder_layers: number of LSTM layers to stack
         num_classes: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
+=======
+        num_classes: number of classes in the model alphabet
+        embedding_units: number of hidden embedding units
+        attention_units: number of hidden attention units
+        num_decoder_layers: number of LSTM layers to stack
+
+>>>>>>> main
 
     """
     def __init__(
@@ -127,12 +139,27 @@ class Decoder(layers.Layer):
         return outputs
 
 
+<<<<<<< HEAD
 class SARResNet50(RecognitionModel):
     """SAR with a ResNet-50 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
     Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
     Args:
         input_size (Tuple[int, int]): shape of the input (H, W) in pixels
+=======
+class SAR(RecognitionModel):
+    """SAR with a VGG16 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
+    Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
+
+    Args:
+        input_size: shape of the input (H, W) in pixels
+        rnn_units: number of hidden units in both encoder and decoder LSTM
+        embedding_units: number of embedding units
+        attention_units: number of hidden units in attention module
+        max_length: maximum word length handled by the model
+        num_classes: size of the alphabet
+        num_decoder_layers: number of LSTM to stack in decoder layer
+>>>>>>> main
 
     """
     def __init__(
@@ -157,7 +184,11 @@ class SARResNet50(RecognitionModel):
             ]
         )
 
+<<<<<<< HEAD
         self.decoder = Decoder(
+=======
+        self.decoder = SARDecoder(
+>>>>>>> main
             rnn_units, max_length, num_classes, embedding_units, attention_units, num_decoder_layers,
 
         )
