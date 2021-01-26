@@ -4,3 +4,4 @@ from .recognition import *
 from . import utils
 from ._utils import *
 from .vgg import *
+from .core import *

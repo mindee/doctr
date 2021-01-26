@@ -20,6 +20,9 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
     Returns:
         list of cropped images
     """
+
+    if boxes.shape[0] == 0:
+        return []
     if boxes.shape[1] != 4:
         raise AssertionError("boxes are expected to be relative and in order (xmin, ymin, xmax, ymax)")
 
