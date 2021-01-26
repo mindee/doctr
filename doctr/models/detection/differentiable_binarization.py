@@ -14,12 +14,12 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
-from .core import DetectionModel, PostProcessor
+from .core import DetectionModel, DetectionPostProcessor
 
 __all__ = ['DBPostProcessor', 'DBResNet50']
 
 
-class DBPostProcessor(PostProcessor):
+class DBPostProcessor(DetectionPostProcessor):
     """Class to postprocess Differentiable binarization model outputs
     Inherits from Postprocessor
 
@@ -132,8 +132,8 @@ class DBPostProcessor(PostProcessor):
 
     def __call__(
         self,
-        raw_pred: List[tf.Tensor],
-    ) -> List[List[np.ndarray]]:
+        x: tf.Tensor,
+    ) -> List[np.ndarray]:
         """Performs postprocessing for a list of model outputs
 
         Args:
@@ -145,24 +145,21 @@ class DBPostProcessor(PostProcessor):
                 Each tensor (= 1 image) has a shape(num_boxes, 5).
 
         """
-        bounding_boxes = []
-        for raw_batch in raw_pred:
-            p = tf.squeeze(raw_batch, axis=-1)  # remove last dim
-            bitmap = tf.cast(p > self.bin_thresh, tf.float32)
+        p = tf.squeeze(x, axis=-1)  # remove last dim
+        bitmap = tf.cast(p > self.bin_thresh, tf.float32)
 
-            p = tf.unstack(p, axis=0)
-            bitmap = tf.unstack(bitmap, axis=0)
+        p = tf.unstack(p, axis=0)
+        bitmap = tf.unstack(bitmap, axis=0)
 
-            boxes_batch = []
+        boxes_batch = []
 
-            for p_, bitmap_ in zip(p, bitmap):
-                p_ = p_.numpy()
-                bitmap_ = bitmap_.numpy()
-                boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-                boxes_batch.append(np.array(boxes))
+        for p_, bitmap_ in zip(p, bitmap):
+            p_ = p_.numpy()
+            bitmap_ = bitmap_.numpy()
+            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
+            boxes_batch.append(np.array(boxes))
 
-            bounding_boxes.append(boxes_batch)
-        return bounding_boxes
+        return boxes_batch
 
 
 class FeaturePyramidNetwork(layers.Layer):
