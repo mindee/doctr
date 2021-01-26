@@ -153,7 +153,7 @@ def test_ctc_decoder():
 
 
 def test_sar():
-    sar_model = models.SARResNet50(
+    sar_model = models.SAR(
         input_size=(64, 256, 3),
         rnn_units=512,
         embedding_units=512,
