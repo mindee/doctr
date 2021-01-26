@@ -11,10 +11,10 @@ import cv2
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 
-__all__ = ['Preprocessor']
+__all__ = ['PreProcessor']
 
 
-class Preprocessor:
+class PreProcessor:
     """Implements an abstract preprocessor object
 
     Example::
@@ -44,10 +44,10 @@ class Preprocessor:
         self.std = np.array(std, dtype=np.float32)
         self.batch_size = batch_size
 
-    def normalize_inputs(
+    def normalize(
         self,
-        input_batches: List[np.ndarray]
-    ) -> List[np.ndarray]:
+        x: np.ndarray
+    ) -> np.ndarray:
         """Takes a uint8 ndarray and moves it to [-1, 1] range
 
         Args:
@@ -57,67 +57,62 @@ class Preprocessor:
         """
 
         # Re-center and scale the distribution to [-1, 1]
-        return [batch.astype(np.float32) * (self.std / 255) - (self.mean / self.std)
-                for batch in input_batches]
+        return x.astype(np.float32) * (self.std / 255) - (self.mean / self.std)
 
-    def resize_inputs(
+    def resize(
         self,
-        input_samples: List[List[np.ndarray]]
-    ) -> List[List[np.ndarray]]:
+        x: np.ndarray
+    ) -> np.ndarray:
         """Resize each sample to a fixed size so that it could be batched
 
         Args:
-            input_samples: nested list of unconstrained size ndarrays
+            input_samples: list of unconstrained size ndarrays
         Returns:
             nested list of fixed-size ndarray
         """
-        return [[cv2.resize(img, self.output_size, cv2.INTER_LINEAR) for img in doc]
-                for doc in input_samples]
+        return cv2.resize(x, self.output_size, cv2.INTER_LINEAR)
 
     def batch_inputs(
         self,
-        documents: List[List[np.ndarray]]
+        x: List[np.ndarray]
     ) -> List[np.ndarray]:
-        """Gather pages into batches for inference purposes
+        """Gather samples into batches for inference purposes
 
         Args:
-            documents: list of documents, which is expressed as list of pages (numpy ndarray)
+            x: list of samples (numpy ndarray)
 
         Returns:
             list of batched samples
         """
 
-        # flatten structure
-        page_list = [image for doc in documents for image in doc]
-
-        num_batches = len(page_list) / self.batch_size
+        num_batches = len(x) / self.batch_size
 
         # Deal with fixed-size batches
-        b_images = [np.stack(page_list[idx * self.batch_size: (idx + 1) * self.batch_size])
+        b_images = [np.stack(x[idx * self.batch_size: (idx + 1) * self.batch_size])
                     for idx in range(int(num_batches))]
         # Deal with the last batch
         if num_batches > int(num_batches):
-            b_images.append(page_list[(int(num_batches) + 1) * self.batch_size:])
+            b_images.append(np.asarray(x[int(num_batches) * self.batch_size:]))
 
         return b_images
 
     def __call__(
         self,
-        documents: List[List[np.ndarray]]
+        x: List[np.ndarray]
     ) -> List[np.ndarray]:
         """Prepare document data for model forwarding
 
         Args:
-            documents: list of documents, where each document is a list of pages (numpy ndarray)
+            x: list of images (numpy ndarray)
         Returns:
             list of page batches
         """
 
         # Resize the inputs
-        images = self.resize_inputs(documents)
+        images = [self.resize(sample) for sample in x]
         # Batch them
         processed_batches = self.batch_inputs(images)
         # Normalize
-        processed_batches = self.normalize_inputs(processed_batches)
+        processed_batches = [self.normalize(b) for b in processed_batches]
 
         return processed_batches
