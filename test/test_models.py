@@ -145,6 +145,9 @@ def test_extract_crops(mock_pdf):  # noqa: F811
     # Identity
     assert np.all(doc_img == models.extract_crops(doc_img, np.array([[0, 0, 1, 1]]))[0])
 
+    # No box
+    assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
+
 
 def test_crnn():
     crnn_model = models.CRNN(num_classes=30, input_size=(32, 128, 3), rnn_units=128)
@@ -166,7 +169,7 @@ def test_ctc_decoder(mock_mapping):
     assert all(len(word) <= 30 for word in decoded)
 
 
-def test_detectionpredictor(mock_pdf):
+def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = models.DetectionPredictor(
@@ -182,7 +185,7 @@ def test_detectionpredictor(mock_pdf):
     assert len(out) == 8
 
 
-def test_recognitionpredictor(mock_pdf, mock_mapping):
+def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
 
     batch_size = 4
     predictor = models.RecognitionPredictor(
@@ -201,3 +204,31 @@ def test_recognitionpredictor(mock_pdf, mock_mapping):
     # One prediction per crop
     assert len(out) == boxes.shape[0]
     assert all(isinstance(charseq, str) for charseq in out)
+
+
+def test_ocrpredictor(mock_pdf, mock_mapping):  # noqa: F811
+
+    num_docs = 3
+    batch_size = 4
+    predictor = models.OCRPredictor(
+        models.DetectionPredictor(
+            models.PreProcessor(output_size=(640, 640), batch_size=batch_size),
+            models.DBResNet50(input_size=(640, 640), channels=128),
+            models.DBPostProcessor()
+        ),
+        models.RecognitionPredictor(
+            models.PreProcessor(output_size=(32, 128), batch_size=batch_size),
+            models.CRNN(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
+            models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
+        )
+    )
+
+    docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
+    out = predictor(docs)
+
+    assert len(out) == num_docs
+    # The input PDF has 8 pages
+    assert all(len(doc) == 8 for doc in out)
+    # Structure of page
+    assert all(isinstance(page, list) for doc in out for page in doc)
+    assert all(isinstance(elt, dict) for doc in out for page in doc for elt in page)
