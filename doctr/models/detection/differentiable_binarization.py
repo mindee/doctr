@@ -24,11 +24,11 @@ class DBPostProcessor(DetectionPostProcessor):
     Inherits from Postprocessor
 
     Args:
-        unclip ratio (Union[float, int]): ratio used to unshrink polygons
-        min_size_box (int): minimal length (pix) to keep a box
-        max_candidates (int): maximum boxes to consider in a single page
-        box_thresh (float): minimal objectness score to consider a box
-        bin_thresh (float): threshold used to binzarized p_map at inference time
+        unclip ratio: ratio used to unshrink polygons
+        min_size_box: minimal length (pix) to keep a box
+        max_candidates: maximum boxes to consider in a single page
+        box_thresh: minimal objectness score to consider a box
+        bin_thresh: threshold used to binzarized p_map at inference time
 
     """
     def __init__(
@@ -59,8 +59,7 @@ class DBPostProcessor(DetectionPostProcessor):
             pred (np.ndarray): p map returned by the model
 
         Returns:
-            score (float): Polygon objectness
-
+            polygon objectness
         """
         h, w = pred.shape[:2]
         xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
@@ -77,11 +76,10 @@ class DBPostProcessor(DetectionPostProcessor):
         """Expand a polygon (points) by a factor unclip_ratio, and returns a 4-points box
 
         Args:
-            points (np.ndarray): The first parameter.
+            points: The first parameter.
 
         Returns:
-            box (Tuple[int, int, int, int]): an absolute box (x, y, w, h)
-
+            a box in absolute coordinates (x, y, w, h)
         """
         poly = Polygon(points)
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
@@ -99,13 +97,12 @@ class DBPostProcessor(DetectionPostProcessor):
         """Compute boxes from a bitmap/pred_map
 
         Args:
-            pred (np.ndarray): Pred map from differentiable binarization output
-            bitmap (np.ndarray): Bitmap map computed from pred (binarized)
+            pred: Pred map from differentiable binarization output
+            bitmap: Bitmap map computed from pred (binarized)
 
         Returns:
-            boxes (List[List[float]]): list of boxes for the bitmap, each box is a 5-element list
+            list of boxes for the bitmap, each box is a 5-element list
                 containing x, y, w, h, score for the box
-
         """
         height, width = bitmap.shape[:2]
         boxes = []
@@ -137,13 +134,10 @@ class DBPostProcessor(DetectionPostProcessor):
         """Performs postprocessing for a list of model outputs
 
         Args:
-            raw_pred (List[tf.Tensor]): list of raw output from the model,
-                each tensor has a shape (batch_size x H x W x 1)
+            x: raw output of the model, of shape (N, H, W, 1)
 
         returns:
-            bounding_boxes (List[List[np.ndarray]]): list of batches, each batches is a list of tensor.
-                Each tensor (= 1 image) has a shape(num_boxes, 5).
-
+            list of N tensors (for each input sample), with each tensor of shape (*, 5).
         """
         p = tf.squeeze(x, axis=-1)  # remove last dim
         bitmap = tf.cast(p > self.bin_thresh, tf.float32)
