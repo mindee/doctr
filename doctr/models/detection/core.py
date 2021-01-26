@@ -7,8 +7,9 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
+from ..preprocessor import PreProcessor
 
-__all__ = ['DetectionModel', 'PostProcessor']
+__all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 
 
 class DetectionModel(keras.Model):
@@ -33,7 +34,7 @@ class DetectionModel(keras.Model):
         raise NotImplementedError
 
 
-class PostProcessor:
+class DetectionPostProcessor:
     """Abstract class to postprocess the raw output of the model
 
     Args:
@@ -58,3 +59,36 @@ class PostProcessor:
         raw_pred: List[tf.Tensor],
     ) -> List[List[np.ndarray]]:
         raise NotImplementedError
+
+
+class DetectionPredictor:
+    """Implements an object able to localize text elements in a document
+
+    Args:
+        pre_processor: transform inputs for easier batched model inference
+        model: core detection architecture
+        post_processor: post process model outputs
+    """
+
+    def __init__(
+        self,
+        pre_processor: PreProcessor,
+        model: DetectionModel,
+        post_processor: DetectionPostProcessor,
+    ) -> None:
+
+        self.pre_processor = pre_processor
+        self.model = model
+        self.post_processor = post_processor
+
+    def __call__(
+        self,
+        pages: List[np.ndarray],
+    ) -> List[np.ndarray]:
+
+        processed_batches = self.pre_processor(pages)
+        out = [self.model(tf.convert_to_tensor(batch)).numpy() for batch in processed_batches]
+        out = [self.post_processor(batch) for batch in out]
+        out = [boxes for batch in out for boxes in batch]
+
+        return out
