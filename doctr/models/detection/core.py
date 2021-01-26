@@ -87,7 +87,8 @@ class DetectionPredictor:
     ) -> List[np.ndarray]:
 
         processed_batches = self.pre_processor(pages)
-        out = [self.model(tf.convert_to_tensor(batch)).numpy() for batch in processed_batches]
+        out = [self.model(tf.convert_to_tensor(batch)).numpy()  # type: ignore[union-attr]
+               for batch in processed_batches]
         out = [self.post_processor(batch) for batch in out]
         out = [boxes for batch in out for boxes in batch]
 
