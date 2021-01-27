@@ -26,7 +26,7 @@ class CRNN(RecognitionModel):
     def __init__(
         self,
         num_classes: int,
-        input_size: Tuple[int, int, int] = (640, 640, 3),
+        input_size: Tuple[int, int, int] = (32, 128, 3),
         rnn_units: int = 128
     ) -> None:
         super().__init__(input_size)

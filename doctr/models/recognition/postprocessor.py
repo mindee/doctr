@@ -8,10 +8,12 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 from typing import Tuple, List, Union, Dict
 
+from .core import RecognitionPostProcessor
+
 __all__ = ['CTCPostProcessor']
 
 
-class CTCPostProcessor:
+class CTCPostProcessor(RecognitionPostProcessor):
     """
     Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
 
