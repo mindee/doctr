@@ -257,4 +257,4 @@ def test_resnet31():
     resnet_out = resnet_model(inputs=resnet_input)
     assert isinstance(resnet_out, tf.Tensor)
     assert isinstance(resnet_model, tf.keras.Model)
-    assert resnet_out.numpy().shape == (8, 4, 64)
+    assert resnet_out.numpy().shape == (8, 4, 32)

@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple
@@ -21,15 +22,15 @@ class ResnetBlock(layers.Layer):
     """
     def init(
         self,
-        conv_shortcut: bool,
         output_channels: int,
-        kernel_size: int
+        kernel_size: int,
+        conv_shortcut: bool,
     ) -> None:
 
         if conv_shortcut:
             self.shortcut = Sequential(
                 [
-                    layers.Conv2D(filters=n, kernel_size=1),
+                    layers.Conv2D(filters=output_channels, kernel_size=1, use_bias=False),
                     layers.BatchNormalization()
                 ]
             )
@@ -41,12 +42,12 @@ class ResnetBlock(layers.Layer):
         self.act = layers.Activation('relu')
 
     @staticmethod
-    def conv_resnetblock(output_channels, kernel_size, **kwargs):
+    def conv_resnetblock(output_channels, kernel_size):
         return [
-            layers.Conv2D(output_channels, kernel_size),
+            layers.Conv2D(output_channels, kernel_size, use_bias=False),
             layers.BatchNormalization(),
             layers.Activation('relu'),
-            layers.Conv2D(output_channels, kernel_size),
+            layers.Conv2D(output_channels, kernel_size, use_bias=False),
             layers.BatchNormalization(),
         ]
 
@@ -77,13 +78,11 @@ class ResnetStage(Sequential):
     ) -> None:
 
         final_blocks = [
-            ResnetBlock(
-                conv_shortcut=False, output_channels=output_channels, kernel_size=3
-            ) for _ in range(1, num_layers)
+            ResnetBlock(output_channels, 3, False) for _ in range(1, num_blocks)
         ]
-        super.__init__(
+        super().__init__(
             [
-                ResnetBlock(conv_shortcut=True, output_channels=output_channels, kernel_size=3),
+                ResnetBlock(output_channels, 3, True),
                 *final_blocks,
             ]
         )
@@ -92,7 +91,7 @@ class ResnetStage(Sequential):
 class Resnet31(Sequential):
     """Resnet31 architecture with rectangular pooling windows as described in
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
-    <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/2)
+    <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
 
     Args:
         input_size: size of the images
@@ -104,18 +103,18 @@ class Resnet31(Sequential):
     ) -> None:
 
         _layers = [
-            conv_bn_act(output_channels=64, kernel_size=3, input_shape=input_size),
-            conv_bn_act_pool(output_channels=128, kernel_size=3, p_size=2),
+            self.conv_bn_act(output_channels=64, kernel_size=3, input_shape=input_size, use_bias=False),
+            self.conv_bn_act_pool(output_channels=128, kernel_size=3, p_size=2, use_bias=False),
             ResnetStage(num_blocks=1, output_channels=256),
-            conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=2),
+            self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=2, use_bias=False),
             ResnetStage(num_blocks=2, output_channels=256),
-            conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2, 1)),
+            self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2, 1), use_bias=False),
             ResnetStage(num_blocks=5, output_channels=512),
-            conv_bn_act(output_channels=512, kernel_size=3),
+            self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
             ResnetStage(num_blocks=3, output_channels=512),
-            conv_bn_act(output_channels=512, kernel_size=3),
+            self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
         ]
-        super.__init__(_layers)
+        super().__init__(_layers)
 
     @staticmethod
     def conv_bn_act(output_channels, kernel_size, **kwargs):

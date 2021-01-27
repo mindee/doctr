@@ -5,4 +5,4 @@ from . import utils
 from ._utils import *
 from .vgg import *
 from .core import *
-from .resnet31 import *
+from .resnet import *
