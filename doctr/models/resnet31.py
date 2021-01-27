@@ -80,11 +80,11 @@ class ResnetStage(Sequential):
             ResnetBlock(
                 conv_shortcut=False, output_channels=output_channels, kernel_size=3
             ) for _ in range(1, num_layers)
-        ] 
+        ]
         super.__init__(
             [
-            ResnetBlock(conv_shortcut=True, output_channels=output_channels, kernel_size=3),
-            *final_blocks
+                ResnetBlock(conv_shortcut=True, output_channels=output_channels, kernel_size=3),
+                *final_blocks,
             ]
         )
 
@@ -92,7 +92,7 @@ class ResnetStage(Sequential):
 class Resnet31(Sequential):
     """Resnet31 architecture with rectangular pooling windows as described in
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
-    <https://arxiv.org/pdf/1811.00751.pdf>`_.
+    <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/2)
 
     Args:
         input_size: size of the images
@@ -109,7 +109,7 @@ class Resnet31(Sequential):
             ResnetStage(num_blocks=1, output_channels=256),
             conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=2),
             ResnetStage(num_blocks=2, output_channels=256),
-            conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2,1)),
+            conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2, 1)),
             ResnetStage(num_blocks=5, output_channels=512),
             conv_bn_act(output_channels=512, kernel_size=3),
             ResnetStage(num_blocks=3, output_channels=512),
