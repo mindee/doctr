@@ -23,10 +23,11 @@ class ResnetBlock(layers.Layer):
     def init(
         self,
         output_channels: int,
-        kernel_size: int,
+        k_size: int,
         conv_shortcut: bool,
     ) -> None:
 
+        super().__init__()
         if conv_shortcut:
             self.shortcut = Sequential(
                 [
@@ -37,7 +38,7 @@ class ResnetBlock(layers.Layer):
         else:
             self.shortcut = layers.Lambda(lambda x: x)
         self.conv_block = Sequential(
-            self.conv_resnetblock(output_channels, kernel_size)
+            self.conv_resnetblock(output_channels, k_size)
         )
         self.act = layers.Activation('relu')
 
