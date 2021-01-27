@@ -52,7 +52,7 @@ class ResnetBlock(layers.Layer):
             layers.BatchNormalization(),
         ]
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor
     ) -> tf.Tensor:
@@ -78,15 +78,13 @@ class ResnetStage(Sequential):
         output_channels: int
     ) -> None:
 
+        super().__init__()
         final_blocks = [
             ResnetBlock(output_channels, 3, False) for _ in range(1, num_blocks)
         ]
-        super().__init__(
-            [
-                ResnetBlock(output_channels, 3, True),
-                *final_blocks,
-            ]
-        )
+        self.add(ResnetBlock(output_channels, 3, True))
+        for final_block in final_blocks:
+            self.add(final_block)
 
 
 class Resnet31(Sequential):
@@ -104,16 +102,16 @@ class Resnet31(Sequential):
     ) -> None:
 
         _layers = [
-            self.conv_bn_act(output_channels=64, kernel_size=3, input_shape=input_size, use_bias=False),
-            self.conv_bn_act_pool(output_channels=128, kernel_size=3, p_size=2, use_bias=False),
+            *self.conv_bn_act(output_channels=64, kernel_size=3, input_shape=input_size, use_bias=False),
+            *self.conv_bn_act_pool(output_channels=128, kernel_size=3, p_size=2, use_bias=False),
             ResnetStage(num_blocks=1, output_channels=256),
-            self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=2, use_bias=False),
+            *self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=2, use_bias=False),
             ResnetStage(num_blocks=2, output_channels=256),
-            self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2, 1), use_bias=False),
+            *self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2, 1), use_bias=False),
             ResnetStage(num_blocks=5, output_channels=512),
-            self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
+            *self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
             ResnetStage(num_blocks=3, output_channels=512),
-            self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
+            *self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
         ]
         super().__init__(_layers)
 
