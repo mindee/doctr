@@ -133,4 +133,3 @@ class Resnet31(Sequential):
             layers.Activation('relu'),
             layers.MaxPool2D(pool_size=p_size, strides=p_size, padding='valid'),
         ]
- 
