@@ -49,21 +49,21 @@ def mock_mapping():
 
 @pytest.fixture(scope="module")
 def test_convert_to_tflite(mock_model):
-    serialized_model = models.utils.convert_to_tflite(mock_model)
+    serialized_model = models.export.convert_to_tflite(mock_model)
     assert isinstance(serialized_model, bytes)
     return serialized_model
 
 
 @pytest.fixture(scope="module")
 def test_convert_to_fp16(mock_model):
-    serialized_model = models.utils.convert_to_fp16(mock_model)
+    serialized_model = models.export.convert_to_fp16(mock_model)
     assert isinstance(serialized_model, bytes)
     return serialized_model
 
 
 @pytest.fixture(scope="module")
 def test_quantize_model(mock_model):
-    serialized_model = models.utils.quantize_model(mock_model, (224, 224, 3))
+    serialized_model = models.export.quantize_model(mock_model, (224, 224, 3))
     assert isinstance(serialized_model, bytes)
     return serialized_model
 
