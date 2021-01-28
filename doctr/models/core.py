@@ -46,7 +46,7 @@ class OCRPredictor:
         # Localize text elements
         boxes = self.det_predictor(pages)
         # Crop images
-        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes)]
+        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
         # Identify character sequences
         char_sequences = self.reco_predictor(crops)
 
