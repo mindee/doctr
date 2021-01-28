@@ -8,7 +8,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple
 
-from ..vgg import VGG16BN
+from ..vgg import vgg16_bn
 from .core import RecognitionModel
 
 __all__ = ['CRNN']
@@ -30,7 +30,7 @@ class CRNN(RecognitionModel):
         rnn_units: int = 128
     ) -> None:
         super().__init__(input_size)
-        self.feat_extractor = VGG16BN(input_size=input_size)
+        self.feat_extractor = vgg16_bn(input_size=input_size, include_top=False)
         self.decoder = Sequential(
             [
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),

@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from typing import Tuple
 
-from ..vgg import VGG16BN
+from ..vgg import vgg16_bn
 from .core import RecognitionModel
 
 __all__ = ['SAR']
@@ -155,7 +155,7 @@ class SAR(RecognitionModel):
 
         super().__init__(input_size)
 
-        self.feat_extractor = VGG16BN(input_size=input_size)
+        self.feat_extractor = vgg16_bn(input_size=input_size, include_top=False)
 
         self.encoder = Sequential(
             [
