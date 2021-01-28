@@ -14,10 +14,6 @@ from ._utils import extract_crops
 
 __all__ = ['OCRPredictor']
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
-
 
 class OCRPredictor:
     """Implements an object able to localize and identify text elements in a set of documents
