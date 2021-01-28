@@ -27,7 +27,7 @@ class RecognitionModel(keras.Model):
         super().__init__()
         self.input_size = input_size
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor,
     ) -> tf.Tensor:

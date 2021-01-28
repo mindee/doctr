@@ -37,7 +37,7 @@ class AttentionModule(layers.Layer):
         )
         self.flatten = layers.Flatten()
 
-    def __call__(
+    def call(
         self,
         features: tf.Tensor,
         hidden_state: tf.Tensor,
@@ -95,7 +95,7 @@ class SARDecoder(layers.Layer):
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
 
-    def __call__(
+    def call(
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
@@ -171,7 +171,7 @@ class SAR(RecognitionModel):
 
         )
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor
     ) -> tf.Tensor:
