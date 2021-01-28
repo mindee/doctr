@@ -10,7 +10,7 @@ from typing import Tuple, List, Union, Dict
 
 from .core import RecognitionPostProcessor
 
-__all__ = ['CTCPostProcessor']
+__all__ = ['CTCPostProcessor', 'SARPostProcessor']
 
 
 class CTCPostProcessor(RecognitionPostProcessor):
@@ -96,6 +96,55 @@ class CTCPostProcessor(RecognitionPostProcessor):
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
+        words_list = [word.decode() for word in list(decoded_strings_pred.numpy())]
+
+        if self.ignore_case:
+            words_list = [word.lower() for word in words_list]
+
+        if self.ignore_accents:
+            raise NotImplementedError
+
+        return words_list
+
+
+class SARPostProcessor(RecognitionPostProcessor):
+    """
+    Postprocess raw prediction of the model (logits) to a list of words
+
+    Args:
+        label_to_idx: dictionnary mapping alphabet labels to idx of the model classes
+        ignore_case: if True, ignore case of letters
+        ignore_accents: if True, ignore accents of letters
+
+    """
+    def __init__(
+        self,
+        label_to_idx: Dict[str, int],
+        ignore_case: bool = False,
+        ignore_accents: bool = False
+    ) -> None:
+
+        self.label_to_idx = label_to_idx
+        self.ignore_case = ignore_case
+        self.ignore_accents = ignore_accents
+
+    def __call__(
+        self,
+        logits: tf.Tensor,
+    ) -> List[str]:
+        # compute pred with argmax for attention models
+        pred = tf.math.argmax(logits, axis=2)
+
+        label_mapping = self.label_to_idx.copy()
+        label_mapping['<eos>'] = int(len(label_mapping))
+        label, _ = zip(*sorted(label_mapping.items(), key=lambda x: x[1]))
+        tf_label_to_idx = tf.constant(
+            value=label, dtype=tf.string, shape=[int(len(label_mapping))], name='dic_idx_label'
+        )
+        pred = tf.cast(pred, dtype='int32')
+        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(tf_label_to_idx, pred), axis=-1)
+        decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
+        decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
         words_list = [word.decode() for word in list(decoded_strings_pred.numpy())]
 
         if self.ignore_case:

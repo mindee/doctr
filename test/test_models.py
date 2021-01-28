@@ -112,7 +112,7 @@ def test_dbpostprocessor():
 
 
 def test_dbmodel():
-    dbmodel = models.DBResNet50(input_size=(640, 640))
+    dbmodel = models.DBResNet50(input_size=(640, 640, 3))
     dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
     # test prediction model
     dboutput_notrain = dbmodel(inputs=dbinput, training=False)
@@ -191,7 +191,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = models.DetectionPredictor(
         models.PreProcessor(output_size=(640, 640), batch_size=batch_size),
-        models.DBResNet50(input_size=(640, 640)),
+        models.DBResNet50(input_size=(640, 640, 3)),
         models.DBPostProcessor()
     )
 
@@ -230,7 +230,7 @@ def test_ocrpredictor(mock_pdf, mock_mapping):  # noqa: F811
     predictor = models.OCRPredictor(
         models.DetectionPredictor(
             models.PreProcessor(output_size=(640, 640), batch_size=batch_size),
-            models.DBResNet50(input_size=(640, 640), channels=128),
+            models.DBResNet50(input_size=(640, 640, 3), channels=128),
             models.DBPostProcessor()
         ),
         models.RecognitionPredictor(
@@ -249,3 +249,11 @@ def test_ocrpredictor(mock_pdf, mock_mapping):  # noqa: F811
     # Structure of page
     assert all(isinstance(page, list) for doc in out for page in doc)
     assert all(isinstance(elt, dict) for doc in out for page in doc for elt in page)
+
+
+def test_sar_decoder(mock_mapping):
+    sar_postprocessor = models.recognition.SARPostProcessor(label_to_idx=mock_mapping)
+    decoded = sar_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
+    assert isinstance(decoded, list)
+    assert len(decoded) == 8
+    assert all(len(word) <= 30 for word in decoded)

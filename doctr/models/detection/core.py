@@ -21,7 +21,7 @@ class DetectionModel(keras.Model):
 
     def __init__(
         self,
-        input_size: Tuple[int, int] = (600, 600),
+        input_size: Tuple[int, int, int] = (600, 600, 3),
     ) -> None:
         super().__init__()
         self.input_size = input_size

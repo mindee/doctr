@@ -244,7 +244,7 @@ class DBResNet50(DetectionModel):
 
     def __init__(
         self,
-        input_size: Tuple[int, int] = (600, 600),
+        input_size: Tuple[int, int, int] = (600, 600, 3),
         channels: int = 128,
     ) -> None:
 
@@ -253,7 +253,7 @@ class DBResNet50(DetectionModel):
         resnet = tf.keras.applications.ResNet50(
             include_top=False,
             weights=None,
-            input_shape=(*input_size, 3),
+            input_shape=input_size,
             pooling=None,
         )
 
