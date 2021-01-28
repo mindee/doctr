@@ -25,6 +25,7 @@ class AttentionModule(layers.Layer):
         attention_units: int
     ) -> None:
 
+        super().__init__()
         self.hidden_state_projector = layers.Conv2D(
             filters=attention_units, kernel_size=1, strides=1, use_bias=False, padding='same'
         )
@@ -84,6 +85,7 @@ class SARDecoder(layers.Layer):
         num_decoder_layers: int = 2
     ) -> None:
 
+        super().__init__()
         self.num_classes = num_classes
         self.embed = layers.Dense(embedding_units, use_bias=False)
         self.attention_module = AttentionModule(attention_units)
