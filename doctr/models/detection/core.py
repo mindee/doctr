@@ -25,11 +25,11 @@ class DetectionModel(keras.Model):
     ) -> None:
         super().__init__()
         self.input_size = input_size
+        self.training = False
 
     def call(
         self,
         inputs: tf.Tensor,
-        training: bool = False
     ) -> Union[List[tf.Tensor], tf.Tensor]:
         raise NotImplementedError
 

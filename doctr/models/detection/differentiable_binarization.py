@@ -17,7 +17,15 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 from .core import DetectionModel, DetectionPostProcessor
 from ..utils import IntermediateLayerGetter
 
-__all__ = ['DBPostProcessor', 'DBResNet50']
+__all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
+
+
+default_cfgs: Dict[str, Dict[str, Any]] = {
+    'db_resnet50': {'backbone': 'ResNet50',
+                    'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
+                    'input_shape': (1024, 1024, 3),
+                    'url': None},
+}
 
 
 class DBPostProcessor(DetectionPostProcessor):
@@ -218,7 +226,7 @@ class FeaturePyramidNetwork(layers.Layer):
         return layers.concatenate(results)
 
 
-class DBResNet50(DetectionModel):
+class DBNet(DetectionModel):
     """DBNet with a ResNet-50 backbone as described in `"Real-time Scene Text Detection with Differentiable
     Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
@@ -229,25 +237,15 @@ class DBResNet50(DetectionModel):
 
     def __init__(
         self,
-        input_size: Tuple[int, int] = (600, 600),
-        channels: int = 128,
+        feature_extractor,
+        fpn_channels: int = 128,
     ) -> None:
 
         super().__init__(input_size)
 
-        resnet = tf.keras.applications.ResNet50(
-            include_top=False,
-            weights=None,
-            input_shape=(*input_size, 3),
-            pooling=None,
-        )
+        self.feat_extractor = feature_extractor
 
-        self.feat_extractor = IntermediateLayerGetter(
-            resnet,
-            ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
-        )
-
-        self.fpn = FeaturePyramidNetwork(channels=channels)
+        self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
 
         self.probability_head = keras.Sequential(
             [
@@ -294,17 +292,54 @@ class DBResNet50(DetectionModel):
     def call(
         self,
         inputs: tf.Tensor,
-        training: bool = False
     ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
 
         feat_maps = self.feat_extractor(inputs)
         feat_concat = self.fpn(feat_maps)
         prob_map = self.probability_head(feat_concat)
 
-        if training:
+        if self.training:
             thresh_map = self.threshold_head(feat_concat)
             approx_binmap = self.compute_approx_binmap(prob_map, thresh_map)
             return prob_map, thresh_map, approx_binmap
 
         else:
             return prob_map
+
+
+def _db_resnet(arch: str, pretrained: bool, **kwargs: Any) -> DBNet:
+
+    # Feature extractor
+    resnet = tf.keras.applications.__dict__[default_cfgs[arch]['backbone']](
+        include_top=False,
+        weights=None if pretrained else "imagenet",
+        input_shape=default_cfgs[arch]['input_shape'],
+        pooling=None,
+    )
+
+    feat_extractor = IntermediateLayerGetter(
+        resnet,
+        default_cfgs[arch]['fpn_layers']
+    )
+
+    # Build the model
+    model = DBNet(feat_extractor, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    return model
+
+
+def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
+    """VGG-16 architecture as described in `"Very Deep Convolutional Networks for Large-Scale Image Recognition"
+    <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        VGG feature extractor
+    """
+
+    return _db_resnet('db_resnet50', pretrained, **kwargs)
