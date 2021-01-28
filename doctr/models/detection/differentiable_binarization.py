@@ -201,7 +201,7 @@ class FeaturePyramidNetwork(layers.Layer):
 
         return module
 
-    def __call__(
+    def call(
         self,
         x: List[tf.Tensor]
     ) -> tf.Tensor:
@@ -307,7 +307,7 @@ class DBResNet50(DetectionModel):
         """
         return 1 / (1 + tf.exp(-50. * (p - t)))
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor,
         training: bool = False

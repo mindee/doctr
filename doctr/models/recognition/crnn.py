@@ -39,7 +39,7 @@ class CRNN(RecognitionModel):
             ]
         )
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor,
     ) -> tf.Tensor:
