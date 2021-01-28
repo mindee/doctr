@@ -15,6 +15,7 @@ from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .core import DetectionModel, DetectionPostProcessor
+from ..utils import IntermediateLayerGetter
 
 __all__ = ['DBPostProcessor', 'DBResNet50']
 
@@ -215,22 +216,6 @@ class FeaturePyramidNetwork(layers.Layer):
         results = [block(fmap) for block, fmap in zip(self.layer_blocks, results)]
 
         return layers.concatenate(results)
-
-
-class IntermediateLayerGetter(keras.Model):
-    """Implements an intermediate layer getter
-
-    Args:
-        model: the model to extract feature maps from
-        layer_names: the list of layers to retrieve the feature map from
-    """
-    def __init__(
-        self,
-        model: tf.keras.Model,
-        layer_names: List[str]
-    ) -> None:
-        intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
-        super().__init__(model.input, outputs=intermediate_fmaps)
 
 
 class DBResNet50(DetectionModel):
