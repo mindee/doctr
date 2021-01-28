@@ -108,7 +108,7 @@ def test_dbpostprocessor():
     assert all(isinstance(sample, np.ndarray) for sample in out)
     assert all(sample.shape[1] == 5 for sample in out)
     # Relative coords
-    assert all(np.all(np.logical_and(sample[:4] > 0, sample[:4] < 1)) for sample in out)
+    assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
 
 
 def test_dbmodel():
@@ -124,7 +124,7 @@ def test_dbmodel():
     dboutput_train = dbmodel(inputs=dbinput, training=True)
     assert isinstance(dboutput_train, tuple)
     assert len(dboutput_train) == 3
-    assert all(np.all(out_map.numpy() > 0) and np.all(out_map.numpy() < 1) for out_map in dboutput_train)
+    assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
     # batch size
     assert all(out.numpy().shape == (8, 640, 640, 1) for out in dboutput_train)
 

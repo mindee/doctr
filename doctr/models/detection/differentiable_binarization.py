@@ -126,7 +126,7 @@ class DBPostProcessor(DetectionPostProcessor):
             w = w / width
             h = h / height
             boxes.append([x, y, w, h, score])
-        return boxes
+        return np.asarray(boxes) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
     def __call__(
         self,
@@ -152,7 +152,7 @@ class DBPostProcessor(DetectionPostProcessor):
             p_ = p_.numpy()
             bitmap_ = bitmap_.numpy()
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-            boxes_batch.append(np.array(boxes))
+            boxes_batch.append(boxes)
 
         return boxes_batch
 
@@ -202,7 +202,7 @@ class FeaturePyramidNetwork(layers.Layer):
 
         return module
 
-    def __call__(
+    def call(
         self,
         x: List[tf.Tensor]
     ) -> tf.Tensor:
@@ -286,13 +286,12 @@ class DBResNet50(DetectionModel):
             p (tf.Tensor): probability map
             t (tf.Tensor): threshold map
 
-        returns:
+        Returns:
             a tf.Tensor
-
         """
         return 1 / (1 + tf.exp(-50. * (p - t)))
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor,
         training: bool = False

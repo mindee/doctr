@@ -25,6 +25,7 @@ class AttentionModule(layers.Layer):
         attention_units: int
     ) -> None:
 
+        super().__init__()
         self.hidden_state_projector = layers.Conv2D(
             filters=attention_units, kernel_size=1, strides=1, use_bias=False, padding='same'
         )
@@ -36,7 +37,7 @@ class AttentionModule(layers.Layer):
         )
         self.flatten = layers.Flatten()
 
-    def __call__(
+    def call(
         self,
         features: tf.Tensor,
         hidden_state: tf.Tensor,
@@ -84,6 +85,7 @@ class SARDecoder(layers.Layer):
         num_decoder_layers: int = 2
     ) -> None:
 
+        super().__init__()
         self.num_classes = num_classes
         self.embed = layers.Dense(embedding_units, use_bias=False)
         self.attention_module = AttentionModule(attention_units)
@@ -93,7 +95,7 @@ class SARDecoder(layers.Layer):
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
 
-    def __call__(
+    def call(
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
@@ -169,7 +171,7 @@ class SAR(RecognitionModel):
 
         )
 
-    def __call__(
+    def call(
         self,
         inputs: tf.Tensor
     ) -> tf.Tensor:
