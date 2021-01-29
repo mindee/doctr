@@ -7,6 +7,11 @@ import sys
 import math
 import requests
 
+# Ensure runnings tests on GPU doesn't run out of memory
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if len(gpus) > 0:
+    tf.config.experimental.set_memory_growth(gpus[0], True)
+
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
@@ -111,17 +116,18 @@ def test_dbpostprocessor():
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
 
 
-def test_dbmodel():
-    dbmodel = models.DBResNet50(input_size=(640, 640, 3))
+def test_db_resnet50():
+    model = models.db_resnet50(pretrained=True)
     dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
     # test prediction model
-    dboutput_notrain = dbmodel(inputs=dbinput, training=False)
+    dboutput_notrain = model(dbinput)
     assert isinstance(dboutput_notrain, tf.Tensor)
-    assert isinstance(dbmodel, tf.keras.Model)
+    assert isinstance(model, tf.keras.Model)
     assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
     assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
-    dboutput_train = dbmodel(inputs=dbinput, training=True)
+    model.training = True
+    dboutput_train = model(dbinput)
     assert isinstance(dboutput_train, tuple)
     assert len(dboutput_train) == 3
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
@@ -149,30 +155,21 @@ def test_extract_crops(mock_pdf):  # noqa: F811
     assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
 
 
-def test_crnn():
-    crnn_model = models.CRNN(num_classes=30, input_size=(32, 128, 3), rnn_units=128)
-    crnn_input = tf.random.uniform(shape=[8, 32, 128, 3], minval=0, maxval=1)
-    crnn_out = crnn_model(inputs=crnn_input)
-    assert isinstance(crnn_out, tf.Tensor)
-    assert isinstance(crnn_model, tf.keras.Model)
-    assert crnn_out.numpy().shape == (8, 32, 31)
-
-
-def test_sar():
-    sar_model = models.SAR(
-        input_size=(64, 256, 3),
-        rnn_units=512,
-        embedding_units=512,
-        attention_units=512,
-        max_length=30,
-        num_classes=110,
-        num_decoder_layers=2
-    )
-    sar_input = tf.random.uniform(shape=[8, 64, 256, 3], minval=0, maxval=1)
-    sar_out = sar_model(inputs=sar_input)
-    assert isinstance(sar_out, tf.Tensor)
-    assert isinstance(sar_model, tf.keras.Model)
-    assert sar_out.numpy().shape == (8, 31, 111)
+@pytest.mark.parametrize(
+    "arch_name, input_size, output_size",
+    [
+        ["crnn_vgg16_bn", (32, 128, 3), (32, 31)],
+        ["sar_vgg16_bn", (64, 256, 3), (31, 111)],
+    ],
+)
+def test_recognition_architectures(arch_name, input_size, output_size):
+    batch_size = 8
+    reco_model = models.__dict__[arch_name](input_size=input_size)
+    input_tensor = tf.random.uniform(shape=[batch_size, *input_size], minval=0, maxval=1)
+    out = reco_model(input_tensor)
+    assert isinstance(out, tf.Tensor)
+    assert isinstance(reco_model, tf.keras.Model)
+    assert out.numpy().shape == (batch_size, *output_size)
 
 
 def test_ctc_decoder(mock_mapping):
@@ -186,12 +183,13 @@ def test_ctc_decoder(mock_mapping):
     assert all(len(word) <= 30 for word in decoded)
 
 
+@pytest.fixture(scope="module")
 def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = models.DetectionPredictor(
         models.PreProcessor(output_size=(640, 640), batch_size=batch_size),
-        models.DBResNet50(input_size=(640, 640, 3)),
+        models.db_resnet50(input_size=(640, 640, 3)),
         models.DBPostProcessor()
     )
 
@@ -201,13 +199,16 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     # The input PDF has 8 pages
     assert len(out) == 8
 
+    return predictor
 
+
+@pytest.fixture(scope="module")
 def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
 
     batch_size = 4
     predictor = models.RecognitionPredictor(
         models.PreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.CRNN(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
+        models.crnn_vgg16_bn(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
         models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
     )
 
@@ -222,22 +223,15 @@ def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
     assert len(out) == boxes.shape[0]
     assert all(isinstance(charseq, str) for charseq in out)
 
+    return predictor
 
-def test_ocrpredictor(mock_pdf, mock_mapping):  # noqa: F811
+
+def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
 
     num_docs = 3
-    batch_size = 4
     predictor = models.OCRPredictor(
-        models.DetectionPredictor(
-            models.PreProcessor(output_size=(640, 640), batch_size=batch_size),
-            models.DBResNet50(input_size=(640, 640, 3), channels=128),
-            models.DBPostProcessor()
-        ),
-        models.RecognitionPredictor(
-            models.PreProcessor(output_size=(32, 128), batch_size=batch_size),
-            models.CRNN(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
-            models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
-        )
+        test_detectionpredictor,
+        test_recognitionpredictor
     )
 
     docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
@@ -257,3 +251,25 @@ def test_sar_decoder(mock_mapping):
     assert isinstance(decoded, list)
     assert len(decoded) == 8
     assert all(len(word) <= 30 for word in decoded)
+
+
+@pytest.mark.parametrize(
+    "arch_name, top_implemented, input_size, output_size",
+    [
+        ["vgg16_bn", False, (224, 224, 3), (7, 56, 512)],
+    ],
+)
+def test_classification_architectures(arch_name, top_implemented, input_size, output_size):
+    # Head not implemented yet
+    if not top_implemented:
+        with pytest.raises(NotImplementedError):
+            models.__dict__[arch_name](include_top=True)
+
+    # Model
+    batch_size = 2
+    model = models.__dict__[arch_name](pretrained=True)
+    # Forward
+    out = model(tf.random.uniform(shape=[batch_size, *input_size], maxval=1, dtype=tf.float32))
+    # Output checks
+    assert isinstance(out, tf.Tensor)
+    assert out.numpy().shape == (batch_size, *output_size)
