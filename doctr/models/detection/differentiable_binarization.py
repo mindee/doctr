@@ -15,7 +15,7 @@ from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .core import DetectionModel, DetectionPostProcessor
-from ..utils import IntermediateLayerGetter
+from ..utils import IntermediateLayerGetter, load_pretrained_params
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -23,14 +23,14 @@ __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {'backbone': 'ResNet50',
                     'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
-                    'input_shape': (1024, 1024, 3),
+                    'fpn_channels': 128,
+                    'input_shape': (640, 640, 3),
                     'url': None},
 }
 
 
 class DBPostProcessor(DetectionPostProcessor):
-    """Class to postprocess Differentiable binarization model outputs
-    Inherits from Postprocessor
+    """Implements a post processor for DBNet
 
     Args:
         unclip ratio: ratio used to unshrink polygons
@@ -227,21 +227,21 @@ class FeaturePyramidNetwork(layers.Layer):
 
 
 class DBNet(DetectionModel):
-    """DBNet with a ResNet-50 backbone as described in `"Real-time Scene Text Detection with Differentiable
-    Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_.
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
-        input_size (Tuple[int, int]): shape of the input (H, W) in pixels
-        channels (int): number of channels too keep during after extracting features map
+        feature extractor: the backbone serving as feature extractor
+        fpn_channels: number of channels each extracted feature maps is mapped to
     """
 
     def __init__(
         self,
-        feature_extractor,
+        feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,
     ) -> None:
 
-        super().__init__(input_size)
+        super().__init__()
 
         self.feat_extractor = feature_extractor
 
@@ -307,20 +307,22 @@ class DBNet(DetectionModel):
             return prob_map
 
 
-def _db_resnet(arch: str, pretrained: bool, **kwargs: Any) -> DBNet:
+def _db_resnet(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
 
     # Feature extractor
     resnet = tf.keras.applications.__dict__[default_cfgs[arch]['backbone']](
         include_top=False,
-        weights=None if pretrained else "imagenet",
-        input_shape=default_cfgs[arch]['input_shape'],
+        weights=None,
+        input_shape=input_size or default_cfgs[arch]['input_shape'],
         pooling=None,
     )
 
     feat_extractor = IntermediateLayerGetter(
         resnet,
-        default_cfgs[arch]['fpn_layers']
+        default_cfgs[arch]['fpn_layers'],
     )
+
+    kwargs['fpn_channels'] = kwargs.get('fpn_channels', default_cfgs[arch]['fpn_channels'])
 
     # Build the model
     model = DBNet(feat_extractor, **kwargs)
@@ -332,14 +334,14 @@ def _db_resnet(arch: str, pretrained: bool, **kwargs: Any) -> DBNet:
 
 
 def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
-    """VGG-16 architecture as described in `"Very Deep Convolutional Networks for Large-Scale Image Recognition"
-    <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization.
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
     Returns:
-        VGG feature extractor
+        text detection architecture
     """
 
     return _db_resnet('db_resnet50', pretrained, **kwargs)

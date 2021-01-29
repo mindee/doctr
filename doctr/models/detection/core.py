@@ -13,19 +13,9 @@ __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 
 
 class DetectionModel(keras.Model):
-    """Implements abstract DetectionModel class
+    """Implements abstract DetectionModel class"""
 
-    Args:
-        input_shape: shape (H, W) of the model inputs
-    """
-
-    def __init__(
-        self,
-        input_size: Tuple[int, int, int] = (600, 600, 3),
-    ) -> None:
-        super().__init__()
-        self.input_size = input_size
-        self.training = False
+    training: bool = False
 
     def call(
         self,
