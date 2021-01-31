@@ -28,6 +28,7 @@ def load_pretrained_params(
     model: Model,
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
+    overwrite: bool = False,
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
@@ -63,11 +64,9 @@ def load_pretrained_params(
         # Unzip the archive
         archive_path = Path(archive_path)
         params_path = archive_path.parent.joinpath(archive_path.stem)
-        with ZipFile(archive_path, 'r') as f:  # type: ignore[assignment]
-            f.extractall(path=params_path)  # type: ignore[attr-defined]
-
-        # Remove the zip
-        os.remove(archive_path)
+        if not params_path.is_dir() or overwrite:
+            with ZipFile(archive_path, 'r') as f:  # type: ignore[assignment]
+                f.extractall(path=params_path)  # type: ignore[attr-defined]
 
         # Load weights
         model.load_weights(f"{params_path}{os.sep}")

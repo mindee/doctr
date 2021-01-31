@@ -283,10 +283,10 @@ def test_load_pretrained_params(tmpdir_factory):
     cache_dir = tmpdir_factory.mktemp("cache")
     # Pass an incorrect hash
     with pytest.raises(ValueError):
-        models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=cache_dir, cache_subdir='models')
+        models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=cache_dir)
     # Let the file resolve the hash
-    models.utils.load_pretrained_params(model, url, cache_dir=cache_dir, cache_subdir='models')
+    models.utils.load_pretrained_params(model, url, cache_dir=cache_dir)
     # Check that the file was downloaded & the archive extracted
     assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492"))
     # Check that archive was deleted
-    assert not os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
+    assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
