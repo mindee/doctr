@@ -6,16 +6,13 @@ import sys
 import math
 import requests
 import tensorflow as tf
-from tensorflow.keras import layers, Sequential
-
 
 # Ensure runnings tests on GPU doesn't run out of memory
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if len(gpus) > 0:
     tf.config.experimental.set_memory_growth(gpus[0], True)
 
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from tensorflow.keras import layers, Sequential
 
 from doctr.documents import read_pdf
 from test_documents import mock_pdf

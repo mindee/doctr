@@ -63,8 +63,8 @@ def load_pretrained_params(
         # Unzip the archive
         archive_path = Path(archive_path)
         params_path = archive_path.parent.joinpath(archive_path.stem)
-        with ZipFile(archive_path, 'r') as f:
-            f.extractall(path=params_path)
+        with ZipFile(archive_path, 'r') as f:  # type: ignore[assignment]
+            f.extractall(path=params_path)  # type: ignore[attr-defined]
 
         # Remove the zip
         os.remove(archive_path)
