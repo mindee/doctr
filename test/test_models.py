@@ -1,11 +1,13 @@
 import pytest
+import os
 from io import BytesIO
-
-import tensorflow as tf
 import numpy as np
 import sys
 import math
 import requests
+import tensorflow as tf
+from tensorflow.keras import layers, Sequential
+
 
 # Ensure runnings tests on GPU doesn't run out of memory
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -273,3 +275,21 @@ def test_classification_architectures(arch_name, top_implemented, input_size, ou
     # Output checks
     assert isinstance(out, tf.Tensor)
     assert out.numpy().shape == (batch_size, *output_size)
+
+
+def test_load_pretrained_params(tmpdir_factory):
+
+    model = Sequential([layers.Dense(8, activation='relu', input_shape=(4,)), layers.Dense(4)])
+    # Retrieve this URL
+    url = "https://srv-store1.gofile.io/download/0oRu0c/tmp_checkpoint-4a98e492.zip"
+    # Temp cache dir
+    cache_dir = tmpdir_factory.mktemp("cache")
+    # Pass an incorrect hash
+    with pytest.raises(ValueError):
+        models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=cache_dir, cache_subdir='models')
+    # Let the file resolve the hash
+    models.utils.load_pretrained_params(model, url, cache_dir=cache_dir, cache_subdir='models')
+    # Check that the file was downloaded & the archive extracted
+    assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492"))
+    # Check that archive was deleted
+    assert not os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
