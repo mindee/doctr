@@ -7,6 +7,8 @@ import logging
 import re
 import os
 import hashlib
+from pathlib import Path
+from zipfile import ZipFile
 import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.utils import get_file
@@ -26,6 +28,7 @@ def load_pretrained_params(
     model: Model,
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
+    **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
 
@@ -39,7 +42,7 @@ def load_pretrained_params(
         logging.warning("Invalid model URL, using default initialization.")
     else:
         filename = url.rpartition('/')[-1]
-        params_path = get_file(filename, url)
+        archive_path = get_file(filename, url, cache_subdir="models", **kwargs)
 
         # Check hash in file name
         if hash_prefix is None:
@@ -48,17 +51,26 @@ def load_pretrained_params(
 
         if isinstance(hash_prefix, str):
             # Hash the file
-            with open(params_path, 'rb') as f:
+            with open(archive_path, 'rb') as f:
                 sha_hash = hashlib.sha256(f.read()).hexdigest()
 
             # Compare to expected hash
             if sha_hash[:len(hash_prefix)] != hash_prefix:
                 # Remove file
-                os.remove(params_path)
+                os.remove(archive_path)
                 raise ValueError(f"corrupted download, the hash of {url} does not match its expected value")
 
+        # Unzip the archive
+        archive_path = Path(archive_path)
+        params_path = archive_path.parent.joinpath(archive_path.stem)
+        with ZipFile(archive_path, 'r') as f:
+            f.extractall(path=params_path)
+
+        # Remove the zip
+        os.remove(archive_path)
+
         # Load weights
-        model.load_weights(params_path)
+        model.load_weights(f"{params_path}{os.sep}")
 
 
 def conv_sequence(
