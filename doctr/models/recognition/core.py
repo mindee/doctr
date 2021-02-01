@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from typing import Tuple, List
+from typing import Tuple, List, Any
 import numpy as np
 
 from ..preprocessor import PreProcessor
