@@ -118,11 +118,12 @@ def test_dbpostprocessor():
 
 def test_db_resnet50():
     model = models.db_resnet50(pretrained=True)
+    assert isinstance(model, tf.keras.Model)
     dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
     # test prediction model
+    model.trainable = False
     dboutput_notrain = model(dbinput)
     assert isinstance(dboutput_notrain, tf.Tensor)
-    assert isinstance(model, tf.keras.Model)
     assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
     assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
