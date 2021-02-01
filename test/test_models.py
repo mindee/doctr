@@ -282,11 +282,11 @@ def test_load_pretrained_params(tmpdir_factory):
     url = "https://srv-store1.gofile.io/download/0oRu0c/tmp_checkpoint-4a98e492.zip"
     # Temp cache dir
     cache_dir = tmpdir_factory.mktemp("cache")
-    # Pass an incorrect hash
-    with pytest.raises(ValueError):
-        models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=cache_dir)
     # Remove try except once files have been moved to github
     try:
+        # Pass an incorrect hash
+        with pytest.raises(ValueError):
+            models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=cache_dir)
         # Let tit resolve the hash from the file name
         models.utils.load_pretrained_params(model, url, cache_dir=cache_dir)
         # Check that the file was downloaded & the archive extracted
