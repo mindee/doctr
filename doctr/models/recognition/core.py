@@ -14,18 +14,9 @@ __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor
 
 
 class RecognitionModel(keras.Model):
-    """Implements abstract RecognitionModel class
+    """Implements abstract RecognitionModel class"""
 
-    Args:
-        input_shape: shape (H, W) of the model inputs
-    """
-
-    def __init__(
-        self,
-        input_size: Tuple[int, int, int] = (640, 640, 3),
-    ) -> None:
-        super().__init__()
-        self.input_size = input_size
+    training: bool = False
 
     def call(
         self,

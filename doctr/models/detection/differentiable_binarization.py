@@ -15,13 +15,22 @@ from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .core import DetectionModel, DetectionPostProcessor
+from ..utils import IntermediateLayerGetter, load_pretrained_params
 
-__all__ = ['DBPostProcessor', 'DBResNet50']
+__all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
+
+
+default_cfgs: Dict[str, Dict[str, Any]] = {
+    'db_resnet50': {'backbone': 'ResNet50',
+                    'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
+                    'fpn_channels': 128,
+                    'input_shape': (640, 640, 3),
+                    'url': None},
+}
 
 
 class DBPostProcessor(DetectionPostProcessor):
-    """Class to postprocess Differentiable binarization model outputs
-    Inherits from Postprocessor
+    """Implements a post processor for DBNet
 
     Args:
         unclip ratio: ratio used to unshrink polygons
@@ -217,52 +226,26 @@ class FeaturePyramidNetwork(layers.Layer):
         return layers.concatenate(results)
 
 
-class IntermediateLayerGetter(keras.Model):
-    """Implements an intermediate layer getter
+class DBNet(DetectionModel):
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
-        model: the model to extract feature maps from
-        layer_names: the list of layers to retrieve the feature map from
-    """
-    def __init__(
-        self,
-        model: tf.keras.Model,
-        layer_names: List[str]
-    ) -> None:
-        intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
-        super().__init__(model.input, outputs=intermediate_fmaps)
-
-
-class DBResNet50(DetectionModel):
-    """DBNet with a ResNet-50 backbone as described in `"Real-time Scene Text Detection with Differentiable
-    Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_.
-
-    Args:
-        input_size (Tuple[int, int]): shape of the input (H, W) in pixels
-        channels (int): number of channels too keep during after extracting features map
+        feature extractor: the backbone serving as feature extractor
+        fpn_channels: number of channels each extracted feature maps is mapped to
     """
 
     def __init__(
         self,
-        input_size: Tuple[int, int, int] = (600, 600, 3),
-        channels: int = 128,
+        feature_extractor: IntermediateLayerGetter,
+        fpn_channels: int = 128,
     ) -> None:
 
-        super().__init__(input_size)
+        super().__init__()
 
-        resnet = tf.keras.applications.ResNet50(
-            include_top=False,
-            weights=None,
-            input_shape=input_size,
-            pooling=None,
-        )
+        self.feat_extractor = feature_extractor
 
-        self.feat_extractor = IntermediateLayerGetter(
-            resnet,
-            ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
-        )
-
-        self.fpn = FeaturePyramidNetwork(channels=channels)
+        self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
 
         self.probability_head = keras.Sequential(
             [
@@ -309,17 +292,56 @@ class DBResNet50(DetectionModel):
     def call(
         self,
         inputs: tf.Tensor,
-        training: bool = False
     ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
 
         feat_maps = self.feat_extractor(inputs)
         feat_concat = self.fpn(feat_maps)
         prob_map = self.probability_head(feat_concat)
 
-        if training:
+        if self.training:
             thresh_map = self.threshold_head(feat_concat)
             approx_binmap = self.compute_approx_binmap(prob_map, thresh_map)
             return prob_map, thresh_map, approx_binmap
 
         else:
             return prob_map
+
+
+def _db_resnet(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+
+    # Feature extractor
+    resnet = tf.keras.applications.__dict__[default_cfgs[arch]['backbone']](
+        include_top=False,
+        weights=None,
+        input_shape=input_size or default_cfgs[arch]['input_shape'],
+        pooling=None,
+    )
+
+    feat_extractor = IntermediateLayerGetter(
+        resnet,
+        default_cfgs[arch]['fpn_layers'],
+    )
+
+    kwargs['fpn_channels'] = kwargs.get('fpn_channels', default_cfgs[arch]['fpn_channels'])
+
+    # Build the model
+    model = DBNet(feat_extractor, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    return model
+
+
+def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        text detection architecture
+    """
+
+    return _db_resnet('db_resnet50', pretrained, **kwargs)
