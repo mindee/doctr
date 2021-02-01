@@ -99,7 +99,7 @@ class PreProcessor:
         # convert images to tf
         tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
         # Resize (and eventually pad) the inputs
-        images = [self.resize_fixed_h(sample) for sample in tensors]
+        images = [self.resize(sample) for sample in tensors]
         # Batch them
         processed_batches = self.batch_inputs(images)
         # Normalize
