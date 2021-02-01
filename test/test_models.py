@@ -121,14 +121,12 @@ def test_db_resnet50():
     assert isinstance(model, tf.keras.Model)
     dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
     # test prediction model
-    model.trainable = False
     dboutput_notrain = model(dbinput)
     assert isinstance(dboutput_notrain, tf.Tensor)
     assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
     assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
-    model.trainable = True
-    dboutput_train = model(dbinput)
+    dboutput_train = model(dbinput, training=True)
     assert isinstance(dboutput_train, tuple)
     assert len(dboutput_train) == 3
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
