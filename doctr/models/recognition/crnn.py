@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class CRNN(RecognitionModel):
-    """Implements a CRNN architecrure as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
+    """Implements a CRNN architecture as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
     from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
 
     Args:
