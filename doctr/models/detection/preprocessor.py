@@ -44,7 +44,7 @@ class DetectionPreProcessor(PreProcessor):
 
         super().__init__(output_size, batch_size, mean, std, interpolation)
 
-    def resize_fixed_h_and_w(
+    def resize(
         self,
         x: tf.Tensor,
     ) -> tf.Tensor:
@@ -58,25 +58,3 @@ class DetectionPreProcessor(PreProcessor):
         """
 
         return tf.image.resize(x, [self.output_size[0], self.output_size[1]], method=self.interpolation)
-
-    def __call__(
-        self,
-        x: List[np.ndarray]
-    ) -> List[tf.Tensor]:
-        """Prepare document data for model forwarding
-
-        Args:
-            x: list of images (np.array)
-        Returns:
-            list of page batches
-        """
-        # convert images to tf
-        tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
-        # Resize the inputs
-        images = [self.resize_fixed_h_and_w(sample) for sample in tensors]
-        # Batch them
-        processed_batches = self.batch_inputs(images)
-        # Normalize
-        processed_batches = [self.normalize(b) for b in processed_batches]
-
-        return processed_batches

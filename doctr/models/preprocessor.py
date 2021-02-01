@@ -41,6 +41,12 @@ class PreProcessor:
         self.batch_size = batch_size
         self.interpolation = interpolation
 
+    def resize(
+        self,
+        x: tf.Tensor
+    ) -> tf.Tensor:
+        raise NotImplementedError
+
     def normalize(
         self,
         x: tf.Tensor
@@ -83,4 +89,20 @@ class PreProcessor:
         self,
         x: List[np.ndarray]
     ) -> List[tf.Tensor]:
-        raise NotImplementedError
+        """Prepare document data for model forwarding
+
+        Args:
+            x: list of images (np.array)
+        Returns:
+            list of page batches
+        """
+        # convert images to tf
+        tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
+        # Resize (and eventually pad) the inputs
+        images = [self.resize_fixed_h(sample) for sample in tensors]
+        # Batch them
+        processed_batches = self.batch_inputs(images)
+        # Normalize
+        processed_batches = [self.normalize(b) for b in processed_batches]
+
+        return processed_batches

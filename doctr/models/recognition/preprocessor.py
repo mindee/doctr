@@ -42,7 +42,7 @@ class RecognitionPreProcessor(PreProcessor):
 
         super().__init__(output_size, batch_size, mean, std, interpolation)
 
-    def resize_fixed_h(
+    def resize(
         self,
         x: tf.Tensor,
     ) -> tf.Tensor:
@@ -52,6 +52,7 @@ class RecognitionPreProcessor(PreProcessor):
                 resize to (output_height, output_height/image_height * image_width)
             - Else :
                 resize to (output_height, output_width)
+        Pads the image source with 0 to the right to match target_width and to the bottom to match target_height
 
         Args:
             x: image as a tf.Tensor
@@ -67,46 +68,7 @@ class RecognitionPreProcessor(PreProcessor):
         max_width = tf.cast(self.output_size[1], tf.int32)
         new_width = tf.minimum(tf.cast(scale * image_width, dtype=tf.int32), max_width)
 
-        return tf.image.resize(x, [self.output_size[0], new_width], method=self.interpolation)
+        resized = tf.image.resize(x, [self.output_size[0], new_width], method=self.interpolation)
+        padded = tf.image.pad_to_bounding_box(resized, 0, 0, self.output_size[0], self.output_size[1])
 
-    def pad(
-        self,
-        x: tf.Tensor,
-    ) -> tf.Tensor:
-        """Pads the image source with 0 to the right to match target_width and to the bottom to match target_height
-        Be careful image height must not be greater than target_height
-        Be careful image width must not be greater than target_width
-
-        Args:
-            x: an image as a tf.Tensor
-            target_height: the output image height
-            target_width: the output image width
-
-        Returns:
-            tensor with shape (target_height, target_width)
-        """
-        return tf.image.pad_to_bounding_box(x, 0, 0, self.output_size[0], self.output_size[1])
-
-    def __call__(
-        self,
-        x: List[np.ndarray]
-    ) -> List[tf.Tensor]:
-        """Prepare document data for model forwarding
-
-        Args:
-            x: list of images (np.array)
-        Returns:
-            list of page batches
-        """
-        # convert images to tf
-        tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
-        # Resize the inputs
-        images = [self.resize_fixed_h(sample) for sample in tensors]
-        # pad inputs
-        padded_images = [self.pad(sample) for sample in images]
-        # Batch them
-        processed_batches = self.batch_inputs(padded_images)
-        # Normalize
-        processed_batches = [self.normalize(b) for b in processed_batches]
-
-        return processed_batches
+        return padded
