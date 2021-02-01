@@ -212,16 +212,17 @@ class FeaturePyramidNetwork(layers.Layer):
 
     def call(
         self,
-        x: List[tf.Tensor]
+        x: List[tf.Tensor],
+        **kwargs: Any,
     ) -> tf.Tensor:
 
         # Channel mapping
-        results = [block(fmap) for block, fmap in zip(self.inner_blocks, x)]
+        results = [block(fmap, **kwargs) for block, fmap in zip(self.inner_blocks, x)]
         # Upsample & sum
         for idx in range(len(results) - 1, -1):
             results[idx] += self.upsample(results[idx + 1])
         # Conv & upsample
-        results = [block(fmap) for block, fmap in zip(self.layer_blocks, results)]
+        results = [block(fmap, **kwargs) for block, fmap in zip(self.layer_blocks, results)]
 
         return layers.concatenate(results)
 
@@ -291,15 +292,16 @@ class DBNet(DetectionModel):
 
     def call(
         self,
-        inputs: tf.Tensor,
+        x: tf.Tensor,
+        **kwargs: Any,
     ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
 
-        feat_maps = self.feat_extractor(inputs)
-        feat_concat = self.fpn(feat_maps)
-        prob_map = self.probability_head(feat_concat)
+        feat_maps = self.feat_extractor(x, **kwargs)
+        feat_concat = self.fpn(feat_maps, **kwargs)
+        prob_map = self.probability_head(feat_concat, **kwargs)
 
-        if self.training:
-            thresh_map = self.threshold_head(feat_concat)
+        if self.trainable:
+            thresh_map = self.threshold_head(feat_concat, **kwargs)
             approx_binmap = self.compute_approx_binmap(prob_map, thresh_map)
             return prob_map, thresh_map, approx_binmap
 

@@ -19,7 +19,8 @@ class DetectionModel(keras.Model):
 
     def call(
         self,
-        inputs: tf.Tensor,
+        x: tf.Tensor,
+        **kwargs: Any,
     ) -> Union[List[tf.Tensor], tf.Tensor]:
         raise NotImplementedError
 

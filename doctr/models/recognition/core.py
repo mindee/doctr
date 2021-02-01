@@ -20,7 +20,8 @@ class RecognitionModel(keras.Model):
 
     def call(
         self,
-        inputs: tf.Tensor,
+        x: tf.Tensor,
+        **kwargs: Any,
     ) -> tf.Tensor:
         raise NotImplementedError
 
