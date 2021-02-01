@@ -65,6 +65,7 @@ class RecognitionPredictor:
     def __call__(
         self,
         crops: List[np.ndarray],
+        **kwargs: Any,
     ) -> List[str]:
 
         out = []
@@ -73,7 +74,7 @@ class RecognitionPredictor:
             processed_batches = self.pre_processor(crops)
 
             # Forward it
-            out = [self.model(tf.convert_to_tensor(batch)) for batch in processed_batches]
+            out = [self.model(tf.convert_to_tensor(batch), **kwargs) for batch in processed_batches]
 
             # Process outputs
             out = [charseq for batch in out for charseq in self.post_processor(batch)]
