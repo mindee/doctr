@@ -214,7 +214,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = models.DetectionPredictor(
         models.DetectionPreProcessor(output_size=(640, 640), batch_size=batch_size),
-        models.DBResNet50(input_size=(640, 640, 3)),
+        models.db_resnet50(input_size=(640, 640, 3)),
         models.DBPostProcessor()
     )
 
@@ -233,7 +233,7 @@ def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
     batch_size = 4
     predictor = models.RecognitionPredictor(
         models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.CRNN(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
+        models.crnn_vgg16_bn(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
         models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
     )
 
@@ -255,16 +255,8 @@ def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_reco
 
     num_docs = 3
     predictor = models.OCRPredictor(
-        models.DetectionPredictor(
-            models.DetectionPreProcessor(output_size=(640, 640), batch_size=batch_size),
-            models.DBResNet50(input_size=(640, 640, 3), channels=128),
-            models.DBPostProcessor()
-        ),
-        models.RecognitionPredictor(
-            models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-            models.CRNN(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
-            models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
-        )
+        test_detectionpredictor,
+        test_recognitionpredictor
     )
 
     docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
