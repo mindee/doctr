@@ -6,8 +6,8 @@
 import os
 import math
 import json
+import tensorflow as tf
 import numpy as np
-import cv2
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 
@@ -17,17 +17,13 @@ __all__ = ['PreProcessor']
 class PreProcessor:
     """Implements an abstract preprocessor object
 
-    Example::
-        >>> from doctr.documents import read_pdf
-        >>> from doctr.models import PreProcessor
-        >>> processor = PreProcessor(output_size=(600, 600), batch_size=8)
-        >>> processed_doc = processor(read_pdf("path/to/your/doc.pdf"))
-
     Args:
         output_size: expected size of each page in format (H, W)
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
+        interpolation: one of 'bilinear', 'nearest', 'bicubic', 'area', 'lanczos3', 'lanczos5'
+
     """
 
     def __init__(
@@ -36,49 +32,43 @@ class PreProcessor:
         batch_size: int,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
+        interpolation: str = 'bilinear'
     ) -> None:
 
         self.output_size = output_size
-        self.mean = np.array(mean, dtype=np.float32)
-        self.std = np.array(std, dtype=np.float32)
+        self.mean = tf.cast(mean, dtype=tf.float32)
+        self.std = tf.cast(std, dtype=tf.float32)
         self.batch_size = batch_size
-
-    def normalize(
-        self,
-        x: np.ndarray
-    ) -> np.ndarray:
-        """Takes a uint8 ndarray and moves it to [-1, 1] range
-
-        Args:
-            x: images encoded in uint8
-        Returns:
-            normalized tensor encoded in float32
-        """
-
-        # Re-center and scale the distribution to [-1, 1]
-        return x.astype(np.float32) * (self.std / 255) - (self.mean / self.std)
+        self.interpolation = interpolation
 
     def resize(
         self,
-        x: np.ndarray
-    ) -> np.ndarray:
-        """Resize each sample to a fixed size so that it could be batched
+        x: tf.Tensor
+    ) -> tf.Tensor:
+        raise NotImplementedError
+
+    def normalize(
+        self,
+        x: tf.Tensor
+    ) -> tf.Tensor:
+        """Takes a tensor and moves it to [-1, 1] range
 
         Args:
-            x: list of unconstrained size ndarrays
+            x: tensor ro normalize
         Returns:
-            nested list of fixed-size ndarray
+            normalized tensor encoded in float32
         """
-        return cv2.resize(x, self.output_size, cv2.INTER_LINEAR)
+        # Re-center and scale the distribution to [-1, 1]
+        return tf.cast(x, tf.float32) * (self.std / 255) - (self.mean / self.std)
 
     def batch_inputs(
         self,
-        x: List[np.ndarray]
-    ) -> List[np.ndarray]:
+        x: List[tf.Tensor]
+    ) -> List[tf.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
-            x: list of samples (numpy ndarray)
+            x: list of samples (tf.Tensor)
 
         Returns:
             list of batched samples
@@ -98,17 +88,18 @@ class PreProcessor:
     def __call__(
         self,
         x: List[np.ndarray]
-    ) -> List[np.ndarray]:
+    ) -> List[tf.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
-            x: list of images (numpy ndarray)
+            x: list of images (np.array)
         Returns:
             list of page batches
         """
-
-        # Resize the inputs
-        images = [self.resize(sample) for sample in x]
+        # convert images to tf
+        tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
+        # Resize (and eventually pad) the inputs
+        images = [self.resize(sample) for sample in tensors]
         # Batch them
         processed_batches = self.batch_inputs(images)
         # Normalize

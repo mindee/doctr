@@ -78,11 +78,11 @@ def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantiz
     assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
 
 
-def test_preprocess_documents(mock_pdf):  # noqa: F811
+def test_detpreprocessor(mock_pdf):  # noqa: F811
     num_docs = 3
     batch_size = 4
     docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
-    processor = models.PreProcessor(output_size=(600, 600), batch_size=batch_size)
+    processor = models.DetectionPreProcessor(output_size=(600, 600), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
 
     # Number of batches
@@ -93,12 +93,37 @@ def test_preprocess_documents(mock_pdf):  # noqa: F811
     assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
     assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
     # Data type
-    assert all(batch.dtype == np.float32 for batch in batched_docs)
+    assert all(batch.dtype == tf.float32 for batch in batched_docs)
     # Image size
     assert all(batch.shape[1:] == (600, 600, 3) for batch in batched_docs)
     # Test with non-full last batch
     batch_size = 16
-    processor = models.PreProcessor(output_size=(600, 600), batch_size=batch_size)
+    processor = models.DetectionPreProcessor(output_size=(600, 600), batch_size=batch_size)
+    batched_docs = processor([page for doc in docs for page in doc])
+    assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
+
+
+def test_recopreprocessor(mock_pdf):  # noqa: F811
+    num_docs = 3
+    batch_size = 4
+    docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
+    processor = models.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
+    batched_docs = processor([page for doc in docs for page in doc])
+
+    # Number of batches
+    assert len(batched_docs) == math.ceil(8 * num_docs / batch_size)
+    # Total number of samples
+    assert sum(batch.shape[0] for batch in batched_docs) == 8 * num_docs
+    # Batch size
+    assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
+    assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
+    # Data type
+    assert all(batch.dtype == tf.float32 for batch in batched_docs)
+    # Image size
+    assert all(batch.shape[1:] == (256, 128, 3) for batch in batched_docs)
+    # Test with non-full last batch
+    batch_size = 16
+    processor = models.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
     assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
 
@@ -187,7 +212,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = models.DetectionPredictor(
-        models.PreProcessor(output_size=(640, 640), batch_size=batch_size),
+        models.DetectionPreProcessor(output_size=(640, 640), batch_size=batch_size),
         models.db_resnet50(input_size=(640, 640, 3)),
         models.DBPostProcessor()
     )
@@ -206,7 +231,7 @@ def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
 
     batch_size = 4
     predictor = models.RecognitionPredictor(
-        models.PreProcessor(output_size=(32, 128), batch_size=batch_size),
+        models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
         models.crnn_vgg16_bn(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
         models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
     )
