@@ -300,7 +300,7 @@ class DBNet(DetectionModel):
         feat_concat = self.fpn(feat_maps, **kwargs)
         prob_map = self.probability_head(feat_concat, **kwargs)
 
-        if self.trainable:
+        if kwargs.get('training', False):
             thresh_map = self.threshold_head(feat_concat, **kwargs)
             approx_binmap = self.compute_approx_binmap(prob_map, thresh_map)
             return prob_map, thresh_map, approx_binmap
