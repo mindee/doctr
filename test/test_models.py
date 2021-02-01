@@ -126,7 +126,7 @@ def test_db_resnet50():
     assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
     assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
-    model.training = True
+    model.trainable = True
     dboutput_train = model(dbinput)
     assert isinstance(dboutput_train, tuple)
     assert len(dboutput_train) == 3
