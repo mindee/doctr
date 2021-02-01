@@ -19,9 +19,9 @@ class PreProcessor:
 
     Example::
         >>> from doctr.documents import read_pdf
-        >>> from doctr.models import Preprocessor
-        >>> processor = Preprocessor(output_size=(600, 600), batch_size=8)
-        >>> processed_doc = processor([read_pdf("path/to/your/doc.pdf")])
+        >>> from doctr.models import PreProcessor
+        >>> processor = PreProcessor(output_size=(600, 600), batch_size=8)
+        >>> processed_doc = processor(read_pdf("path/to/your/doc.pdf"))
 
     Args:
         output_size: expected size of each page in format (H, W)
@@ -65,7 +65,7 @@ class PreProcessor:
         """Resize each sample to a fixed size so that it could be batched
 
         Args:
-            input_samples: list of unconstrained size ndarrays
+            x: list of unconstrained size ndarrays
         Returns:
             nested list of fixed-size ndarray
         """
