@@ -49,16 +49,17 @@ class AttentionModule(layers.Layer):
         self,
         features: tf.Tensor,
         hidden_state: tf.Tensor,
+        **kwargs: Any,
     ) -> Tuple[tf.Tensor, tf.Tensor]:
 
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, 1, 1, rnn_units) -> (N, 1, 1, attention_units)
-        hidden_state_projection = self.hidden_state_projector(hidden_state)
+        hidden_state_projection = self.hidden_state_projector(hidden_state, **kwargs)
         # shape (N, H, W, vgg_units) -> (N, H, W, attention_units)
-        features_projection = self.features_projector(features)
+        features_projection = self.features_projector(features, **kwargs)
         projection = tf.math.tanh(hidden_state_projection + features_projection)
         # shape (N, H, W, attention_units) -> (N, H, W, 1)
-        attention = self.attention_projector(projection)
+        attention = self.attention_projector(projection, **kwargs)
         # shape (N, H, W, 1) -> (N, H * W)
         attention = self.flatten(attention)
         attention = tf.nn.softmax(attention)
@@ -107,6 +108,7 @@ class SARDecoder(layers.Layer):
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
+        **kwargs: Any,
     ) -> tf.Tensor:
 
         batch_size = tf.shape(features)[0]
@@ -116,22 +118,22 @@ class SARDecoder(layers.Layer):
         )
         # run first step of lstm
         # holistic: shape (N, rnn_units)
-        _, states = self.lstm_decoder(holistic, states)
+        _, states = self.lstm_decoder(holistic, states, **kwargs)
         sos_symbol = self.num_classes + 1
         symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth num_classes + 2
             # embeded_symbol: shape (N, embedding_units)
-            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2))
-            logits, states = self.lstm_decoder(embeded_symbol, states)
+            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2), **kwargs)
+            logits, states = self.lstm_decoder(embeded_symbol, states, **kwargs)
             glimpse, attention_map = self.attention_module(
-                features=features, hidden_state=tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1)
+                features, tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1), **kwargs,
             )
             # logits: shape (N, rnn_units), glimpse: shape (N, 1)
             logits = tf.concat([logits, glimpse], axis=-1)
             # shape (N, rnn_units + 1) -> (N, num_classes + 1)
-            logits = self.output_dense(logits)
+            logits = self.output_dense(logits, **kwargs)
             logits_list.append(logits)
         outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, num_classes + 1)
 
@@ -181,13 +183,14 @@ class SAR(RecognitionModel):
 
     def call(
         self,
-        inputs: tf.Tensor
+        x: tf.Tensor,
+        **kwargs: Any,
     ) -> tf.Tensor:
 
-        features = self.feat_extractor(inputs)
+        features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
-        encoded = self.encoder(pooled_features)
-        decoded = self.decoder(features=features, holistic=encoded)
+        encoded = self.encoder(pooled_features, **kwargs)
+        decoded = self.decoder(features, encoded, **kwargs)
 
         return decoded
 

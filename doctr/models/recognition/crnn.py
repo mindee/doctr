@@ -48,16 +48,17 @@ class CRNN(RecognitionModel):
 
     def call(
         self,
-        inputs: tf.Tensor,
+        x: tf.Tensor,
+        **kwargs: Any,
     ) -> tf.Tensor:
 
-        features = self.feat_extractor(inputs)
+        features = self.feat_extractor(x, **kwargs)
         # B x H x W x C --> B x W x H x C
         transposed_feat = tf.transpose(features, perm=[0, 2, 1, 3])
         w, h, c = transposed_feat.get_shape().as_list()[1:]
         # B x W x H x C --> B x W x H * C
         features_seq = tf.reshape(transposed_feat, shape=(-1, w, h * c))
-        decoded_features = self.decoder(features_seq)
+        decoded_features = self.decoder(features_seq, **kwargs)
 
         return decoded_features
 
