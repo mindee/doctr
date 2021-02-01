@@ -1,4 +1,4 @@
-# Contributing to doctr
+# Contributing to DocTR
 
 Everything you need to know to contribute efficiently to the project.
 
@@ -8,7 +8,7 @@ Everything you need to know to contribute efficiently to the project.
 
 - [doctr](https://github.com/teamMindee/doctr/blob/master/doctr) - The actual doctr library
 - [test](https://github.com/teamMindee/doctrblob/master/test) - Python unit tests
-
+- [docs](https://github.com/teamMindee/doctrblob/master/docs) - Library documentation building
 
 
 ## Continuous Integration
@@ -43,7 +43,7 @@ Use Github [issues](https://github.com/teamMindee/doctr/issues) for feature requ
 In order to run the same unit tests as the CI workflows, you can run unittests locally:
 
 ```shell
-coverage run -m pytest test/
+pytest test/
 ```
 
 #### Lint verification
@@ -63,3 +63,18 @@ Additionally, to catch type-related issues and have a cleaner codebase, annotati
 mypy --config-file mypy.ini
 ```
 The `mypy.ini` file will be read to check your typing.
+
+
+### Modifying the documentation
+
+In order to check locally your modifications to the documentation:
+- install doctr
+- install dependencies specific to documentation with:
+```shell
+pip install -r docs/requirements.txt
+```
+- build the documentation
+```shell
+sphinx-build docs/source docs/build -a
+```
+- you can now open your local version of the documentation located at `docs/build/index.html` in your browser

@@ -45,7 +45,8 @@ pip install -e doctr/.
 You can use the library like any other python package to analyze your documents as follows:
 
 ```python
-import doctr
+from doctr.documents import read_pdf
+doc = read_pdf("path/to/your/doc.pdf")
 ```
 
 ### Docker container
