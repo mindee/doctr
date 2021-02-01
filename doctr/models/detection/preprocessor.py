@@ -16,7 +16,13 @@ __all__ = ['DetectionPreProcessor']
 
 
 class DetectionPreProcessor(PreProcessor):
-    """Implements an abstract preprocessor object
+    """Implements a detection preprocessor
+
+        Example::
+        >>> from doctr.documents import read_pdf
+        >>> from doctr.models import RecoPreprocessor
+        >>> processor = RecoPreprocessor(output_size=(600, 600), batch_size=8)
+        >>> processed_doc = processor([read_pdf("path/to/your/doc.pdf")])
 
     Args:
         output_size: expected size of each page in format (H, W)
