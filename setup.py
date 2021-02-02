@@ -42,7 +42,9 @@ requirements = [
     "tensorflow>=2.3.0",
     "PyMuPDF>=1.16.0",
     "pyclipper>=1.2.0",
-    "shapely>=1.6.0"
+    "shapely>=1.6.0",
+    "matplotlib>=3.1.0",
+    "mplcursors>=0.3"
 ]
 
 setup(
