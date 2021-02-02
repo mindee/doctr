@@ -15,7 +15,7 @@ if len(gpus) > 0:
 
 from tensorflow.keras import layers, Sequential
 
-from doctr.documents import read_pdf
+from doctr.documents import read_pdf, Document, Page, Block, Line, Word
 from test_documents import mock_pdf
 from doctr import models
 
@@ -262,11 +262,10 @@ def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_reco
     out = predictor(docs)
 
     assert len(out) == num_docs
+    # Document
+    assert all(isinstance(doc, Document) for doc in out)
     # The input PDF has 8 pages
-    assert all(len(doc) == 8 for doc in out)
-    # Structure of page
-    assert all(isinstance(page, list) for doc in out for page in doc)
-    assert all(isinstance(elt, dict) for doc in out for page in doc for elt in page)
+    assert all(len(doc.pages) == 8 for doc in out)
 
 
 def test_sar_decoder(mock_mapping):
