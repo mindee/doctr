@@ -9,7 +9,9 @@ import mplcursors
 import numpy as np
 from typing import Union, Tuple, List
 
-from doctr.documents import Document, Page, Block, Line, Word, Artefact
+from doctr.documents import Page, Block, Line, Word, Artefact
+
+__all__ = ['visualize_page']
 
 
 def draw_word(
@@ -130,4 +132,3 @@ def visualize_page(
 
     # Create mlp Cursor to hover patches in artists
     mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
-    plt.show(block=False)
