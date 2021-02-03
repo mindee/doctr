@@ -1,5 +1,5 @@
 from doctr import utils
-from test_documents import _mocke_pages
+from test_documents import _mock_pages
 
 
 def test_bbox_to_polygon():
