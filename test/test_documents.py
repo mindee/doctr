@@ -7,6 +7,7 @@ from io import BytesIO
 from doctr import documents
 from doctr.utils import visualization
 
+
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
         documents.Word("hello", confidence, [
