@@ -1,3 +1,5 @@
+import numpy as np
+
 from doctr import utils
 from test_documents import _mock_pages
 
