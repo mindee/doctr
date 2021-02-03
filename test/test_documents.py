@@ -4,8 +4,8 @@ import fitz
 import numpy as np
 from io import BytesIO
 
-from doctr import documents, utils
-
+from doctr import documents
+from doctr.utils import visualization
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
@@ -246,4 +246,4 @@ def test_visualize_page():
     pages = _mock_pages()
     images = [np.ones((300, 200, 3)), np.ones((500, 1000, 3))]
     for image, page in zip(images, pages):
-        utils.visualize_page(page, image)
+        visualization.visualize_page(page, image)

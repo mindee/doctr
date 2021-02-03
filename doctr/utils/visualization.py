@@ -6,6 +6,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import mplcursors
+import numpy as np
 from typing import Union, Tuple, List
 
 from doctr.documents import Document, Page, Block, Line, Word, Artefact
