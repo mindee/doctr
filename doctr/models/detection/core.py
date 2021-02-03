@@ -57,7 +57,6 @@ class DetectionPreProcessor(PreProcessor):
         return tf.image.resize(x, [self.output_size[0], self.output_size[1]], method=self.interpolation)
 
 
-
 class DetectionModel(keras.Model):
     """Implements abstract DetectionModel class"""
 
