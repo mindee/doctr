@@ -44,7 +44,7 @@ requirements = [
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0",
-    "mplcursors>=0.3"
+    "mplcursors>=0.3",
 ]
 
 setup(
