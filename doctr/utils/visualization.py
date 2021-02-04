@@ -9,7 +9,7 @@ import mplcursors
 import numpy as np
 from typing import Union, Tuple, List
 
-from doctr.documents import Page, Block, Line, Word, Artefact
+from ..documents import Page, Block, Line, Word, Artefact
 
 __all__ = ['visualize_page']
 
