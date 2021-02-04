@@ -129,7 +129,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
             _box = self.polygon_to_box(points)
-            if _box is None or h < self.min_size_box or w < self.min_size_box:  # remove to small boxes
+            if _box is None or _box[2] < self.min_size_box or _box[3] < self.min_size_box:  # remove to small boxes
                 continue
             x, y, w, h = _box
             # compute relative polygon to get rid of img shape
