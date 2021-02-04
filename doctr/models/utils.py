@@ -29,7 +29,7 @@ def load_pretrained_params(
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
     overwrite: bool = False,
-    internal_name = 'weights',
+    internal_name: str = 'weights',
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
