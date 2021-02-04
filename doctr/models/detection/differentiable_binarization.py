@@ -131,12 +131,10 @@ class DBPostProcessor(DetectionPostProcessor):
             x, y, w, h = self.polygon_to_box(points)
             if h < self.min_size_box or w < self.min_size_box:  # remove to small boxes
                 continue
-            x = x / width  # compute relative polygon to get rid of img shape
-            y = y / height
-            w = w / width
-            h = h / height
-            boxes.append([x, y, x + w, y + h, score])
-        return np.asarray(boxes) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+            # compute relative polygon to get rid of img shape
+            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+            boxes.append([xmin, ymin, xmax, ymax, score])
+        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
     def __call__(
         self,
