@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List
-from .typing import BoundingBox, Polygon4P
+from ._typing import BoundingBox, Polygon4P
 
 __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox']
 

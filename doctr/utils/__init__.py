@@ -1,2 +1,2 @@
 from .geometry import *
-from . import typing
+from ._typing import *
