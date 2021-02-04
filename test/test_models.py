@@ -74,8 +74,12 @@ def test_quantize_model(mock_model):
 
 
 def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantize_model):
-    assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
-    assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
+    if tf.__version__ < "2.4.0":
+        assert sys.getsizeof(test_convert_to_tflite) >= sys.getsizeof(test_convert_to_fp16)
+        assert sys.getsizeof(test_convert_to_fp16) >= sys.getsizeof(test_quantize_model)
+    else:
+        assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
+        assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
 
 
 def test_detpreprocessor(mock_pdf):  # noqa: F811
@@ -309,9 +313,9 @@ def test_load_pretrained_params(tmpdir_factory):
     try:
         # Pass an incorrect hash
         with pytest.raises(ValueError):
-            models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=cache_dir)
+            models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir))
         # Let tit resolve the hash from the file name
-        models.utils.load_pretrained_params(model, url, cache_dir=cache_dir)
+        models.utils.load_pretrained_params(model, url, cache_dir=str(cache_dir))
         # Check that the file was downloaded & the archive extracted
         assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492"))
         # Check that archive was deleted
