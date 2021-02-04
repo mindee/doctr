@@ -5,7 +5,7 @@
 
 from typing import Tuple, Dict, List, Any, Optional
 from doctr.utils.geometry import resolve_enclosing_bbox
-from doctr.utils.typing import BoundingBox, Polygon4P
+from doctr.utils._typing import BoundingBox, Polygon4P
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 
