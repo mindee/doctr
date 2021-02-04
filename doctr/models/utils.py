@@ -29,6 +29,7 @@ def load_pretrained_params(
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
     overwrite: bool = False,
+    internal_name: str = 'weights',
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
@@ -37,6 +38,7 @@ def load_pretrained_params(
         model: the keras model to be loaded
         url: URL of the set of parameters
         hash_prefix: first characters of SHA256 expected hash
+        internal_name: name of the ckpt files
     """
 
     if url is None:
@@ -69,7 +71,7 @@ def load_pretrained_params(
                 f.extractall(path=params_path)  # type: ignore[attr-defined]
 
         # Load weights
-        model.load_weights(f"{params_path}{os.sep}")
+        model.load_weights(f"{params_path}{os.sep}{internal_name}")
 
 
 def conv_sequence(
