@@ -81,6 +81,7 @@ def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantiz
         assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
         assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
 
+
 def test_detpreprocessor(mock_pdf):  # noqa: F811
     num_docs = 3
     batch_size = 4
