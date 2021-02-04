@@ -65,7 +65,7 @@ class OCRPredictor:
 
             if horz_gap or vert_gap:
                 lines.append(words)
-                words.clear()
+                words = []
 
             words.append(idx)
 

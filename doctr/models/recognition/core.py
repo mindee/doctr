@@ -133,7 +133,7 @@ class RecognitionPredictor:
             processed_batches = self.pre_processor(crops)
 
             # Forward it
-            out = [self.model(tf.convert_to_tensor(batch), **kwargs) for batch in processed_batches]
+            out = [self.model(batch, **kwargs) for batch in processed_batches]
 
             # Process outputs
             out = [charseq for batch in out for charseq in self.post_processor(batch)]

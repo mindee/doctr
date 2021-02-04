@@ -75,14 +75,12 @@ class PreProcessor:
         """
 
         num_batches = len(x) / self.batch_size
-
         # Deal with fixed-size batches
-        b_images = [np.stack(x[idx * self.batch_size: (idx + 1) * self.batch_size])
+        b_images = [tf.stack(x[idx * self.batch_size: (idx + 1) * self.batch_size], axis=0)
                     for idx in range(int(num_batches))]
         # Deal with the last batch
         if num_batches > int(num_batches):
-            b_images.append(np.asarray(x[int(num_batches) * self.batch_size:]))
-
+            b_images.append(tf.stack(x[int(num_batches) * self.batch_size:], axis=0))
         return b_images
 
     def __call__(
