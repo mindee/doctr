@@ -15,7 +15,7 @@ __all__ = ['PreProcessor']
 
 
 class PreProcessor:
-    """Implements an abstract preprocessor object
+    """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
 
     Args:
         output_size: expected size of each page in format (H, W)
