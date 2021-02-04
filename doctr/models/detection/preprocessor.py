@@ -56,5 +56,4 @@ class DetectionPreProcessor(PreProcessor):
         Returns:
             the processed image after being resized
         """
-
         return tf.image.resize(x, [self.output_size[0], self.output_size[1]], method=self.interpolation)

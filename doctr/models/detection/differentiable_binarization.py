@@ -95,6 +95,8 @@ class DBPostProcessor(DetectionPostProcessor):
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
         expanded_points = np.array(offset.Execute(distance))  # expand polygon
+        if len(expanded_points) < 1:
+            return 0, 0, 0, 0
         x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
         return x, y, w, h
 
@@ -133,7 +135,7 @@ class DBPostProcessor(DetectionPostProcessor):
             y = y / height
             w = w / width
             h = h / height
-            boxes.append([x, y, w, h, score])
+            boxes.append([x, y, x + w, y + h, score])
         return np.asarray(boxes) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
     def __call__(
