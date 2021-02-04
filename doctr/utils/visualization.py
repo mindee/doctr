@@ -53,7 +53,7 @@ def draw_element(
     page_dimensions: Tuple[int, int],
     element_color: Tuple[int, int, int],
     alpha: float = 0.3,
-    force_label: bool = False,
+    force_label: bool = True,
 ) -> patches.Patch:
     """Create a matplotlib patch (rectangle) bounding the element
 
@@ -97,6 +97,7 @@ def draw_element(
 def visualize_page(
     page: Page,
     image: np.ndarray,
+    words_only: bool = True,
 ) -> None:
     """Visualize a full page with predicted blocks, lines and words
 
@@ -114,16 +115,18 @@ def visualize_page(
     artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     for block in page.blocks:
-        rect = draw_element(block, page_dimensions=page.dimensions, element_color=(0, 1, 0))
-        # add patch on figure
-        ax.add_patch(rect)
-        # add patch to cursor's artists
-        artists.append(rect)
+        if not words_only:
+            rect = draw_element(block, page_dimensions=page.dimensions, element_color=(0, 1, 0))
+            # add patch on figure
+            ax.add_patch(rect)
+            # add patch to cursor's artists
+            artists.append(rect)
 
         for line in block.lines:
-            rect = draw_element(line, page_dimensions=page.dimensions, element_color=(1, 0, 0))
-            ax.add_patch(rect)
-            artists.append(rect)
+            if not words_only:
+                rect = draw_element(line, page_dimensions=page.dimensions, element_color=(1, 0, 0))
+                ax.add_patch(rect)
+                artists.append(rect)
 
             for word in line.words:
                 rect = draw_word(word, page_dimensions=page.dimensions, word_color=(0, 0, 1))
