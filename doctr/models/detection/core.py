@@ -124,7 +124,7 @@ class DetectionPredictor:
     ) -> List[np.ndarray]:
 
         processed_batches = self.pre_processor(pages)
-        out = [self.model(batch) for batch in processed_batches]
+        out = [self.model(batch, **kwargs) for batch in processed_batches]
         out = [self.post_processor(batch) for batch in out]
         out = [boxes for batch in out for boxes in batch]
 

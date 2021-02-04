@@ -81,7 +81,7 @@ class DBPostProcessor(DetectionPostProcessor):
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Tuple[int, int, int, int]:
+    ) -> Optional[Tuple[int, int, int, int]]:
         """Expand a polygon (points) by a factor unclip_ratio, and returns a 4-points box
 
         Args:
@@ -96,7 +96,7 @@ class DBPostProcessor(DetectionPostProcessor):
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
         expanded_points = np.array(offset.Execute(distance))  # expand polygon
         if len(expanded_points) < 1:
-            return 0, 0, 0, 0
+            return None
         x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
         return x, y, w, h
 
@@ -128,9 +128,10 @@ class DBPostProcessor(DetectionPostProcessor):
             score = self.box_score(pred, points.reshape(-1, 2))
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            x, y, w, h = self.polygon_to_box(points)
-            if h < self.min_size_box or w < self.min_size_box:  # remove to small boxes
+            _box = self.polygon_to_box(points)
+            if _box is None or h < self.min_size_box or w < self.min_size_box:  # remove to small boxes
                 continue
+            x, y, w, h = _box
             # compute relative polygon to get rid of img shape
             xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
             boxes.append([xmin, ymin, xmax, ymax, score])
