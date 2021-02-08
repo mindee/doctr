@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -15,8 +16,11 @@ from .core import RecognitionModel
 __all__ = ['CRNN', 'crnn_vgg16_bn']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'crnn_vgg16_bn': {'backbone': 'vgg16_bn', 'num_classes': 30, 'rnn_units': 128,
-                      'input_size': (32, 128, 3),
+    'crnn_vgg16_bn': {'backbone': 'vgg16_bn', 'rnn_units': 128,
+                      'input_shape': (32, 128, 3),
+                      'post_processor': 'CTCPostProcessor',
+                      'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                                'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
                       'url': None},
 }
 
@@ -34,9 +38,10 @@ class CRNN(RecognitionModel):
         self,
         feature_extractor: tf.keras.Model,
         num_classes: int = 30,
-        rnn_units: int = 128
+        rnn_units: int = 128,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__()
+        super().__init__(cfg)
         self.feat_extractor = feature_extractor
         self.decoder = Sequential(
             [
@@ -63,22 +68,28 @@ class CRNN(RecognitionModel):
         return decoded_features
 
 
-def _crnn_vgg(arch: str, pretrained: bool, input_size: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
+def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['num_classes'] = kwargs.get('num_classes', len(_cfg['vocab']))
+    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = vgg.__dict__[default_cfgs[arch]['backbone']](
-        input_size=input_size or default_cfgs[arch]['input_size'],
+    feat_extractor = vgg.__dict__[_cfg['backbone']](
+        input_size=_cfg['input_shape'],
         include_top=False,
     )
 
-    kwargs['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
-    kwargs['rnn_units'] = kwargs.get('rnn_units', default_cfgs[arch]['rnn_units'])
+    kwargs['num_classes'] = _cfg['num_classes']
+    kwargs['rnn_units'] = _cfg['rnn_units']
 
     # Build the model
-    model = CRNN(feat_extractor, **kwargs)
+    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 
