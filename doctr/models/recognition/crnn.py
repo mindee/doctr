@@ -78,7 +78,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
 
     # Feature extractor
     feat_extractor = vgg.__dict__[_cfg['backbone']](
-        input_size=_cfg['input_shape'],
+        input_shape=_cfg['input_shape'],
         include_top=False,
     )
 

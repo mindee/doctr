@@ -257,6 +257,7 @@ class DBNet(DetectionModel):
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
 
+        #####
         self.probability_head = keras.Sequential(
             [
                 layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="p_map1"),
@@ -318,11 +319,11 @@ class DBNet(DetectionModel):
             return prob_map
 
 
-def _db_resnet(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_size or _cfg['input_shape']
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
 
     # Feature extractor
