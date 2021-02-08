@@ -104,7 +104,7 @@ class RecognitionPostProcessor:
     ) -> None:
 
         self.vocab = vocab + '<eos>'
-        self._embedding = tf.constant(value=[char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)])
+        self._embedding = tf.constant([char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)])
         self.ignore_case = ignore_case
         self.ignore_accents = ignore_accents
 
