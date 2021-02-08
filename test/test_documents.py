@@ -187,7 +187,7 @@ def mock_pdf(tmpdir_factory):
     fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
     with open(fn, 'wb') as f:
         f.write(file.getbuffer())
-    return fn
+    return str(fn)
 
 
 def test_convert_page_to_numpy(mock_pdf):
