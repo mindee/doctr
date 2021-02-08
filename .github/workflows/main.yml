@@ -119,7 +119,7 @@ jobs:
       - name: Build docker image
         run: docker build . -t doctr-py3.8.1-tf2.4-slim
       - name: Run docker container
-        run: docker run -it doctr-py3.8.1-tf2.4-slim python -c 'import doctr'
+        run: docker run doctr-py3.8.1-tf2.4-slim python -c 'import doctr'
 
   docs-build:
     runs-on: ubuntu-latest
