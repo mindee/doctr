@@ -18,7 +18,7 @@ from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .core import DetectionModel, DetectionPostProcessor
-from ..utils import IntermediateLayerGetter, load_pretrained_params
+from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -27,8 +27,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {'backbone': 'ResNet50',
                     'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
                     'fpn_channels': 128,
-                    'input_shape': (640, 640, 3),
-                    'url': None},
                     'input_shape': (1024, 1024, 3),
                     'post_processor': 'DBPostProcessor',
                     'url': 'https://srv-store6.gofile.io/download/mTjlOo/db_resnet50-56f1e578.zip'},
@@ -49,10 +47,10 @@ class DBPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        unclip_ratio: Union[float, int] = 1.5,
+        unclip_ratio: Union[float, int] = 2.,
         min_size_box: int = 5,
-        max_candidates: int = 100,
-        box_thresh: float = 0.5,
+        max_candidates: int = 1000,
+        box_thresh: float = 0.3,
         bin_thresh: float = 0.3,
     ) -> None:
 
@@ -210,11 +208,8 @@ class FeaturePyramidNetwork(layers.Layer):
             a keras.layers.Layer object, wrapping these operations in a sequential module
 
         """
-        _layers = [
-            layers.Conv2D(filters=channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
-        ]
+
+        _layers = conv_sequence(channels, 'relu', True, kernel_size=(3, 3))
 
         if dilation_factor > 1:
             _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
