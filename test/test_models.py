@@ -170,8 +170,8 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
-        ["crnn_vgg16_bn", (32, 128, 3), (32, 31)],
-        ["sar_vgg16_bn", (64, 256, 3), (31, 111)],
+        ["crnn_vgg16_bn", (32, 128, 3), (32, 119)],
+        ["sar_vgg16_bn", (64, 256, 3), (41, 119)],
     ],
 )
 def test_recognition_architectures(arch_name, input_shape, output_size):
