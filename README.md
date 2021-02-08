@@ -1,7 +1,7 @@
 
 # DocTR: Document Text Recognition
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) [![CircleCI](https://circleci.com/gh/teamMindee/doctr.svg?style=shield&circle-token=12c96bf5500b9dbe98f4ea0e43ca9c109c7506fe)](https://app.circleci.com/pipelines/github/teamMindee/doctr) [![codecov](https://codecov.io/gh/teamMindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/teamMindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/teammindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/teammindee/doctr)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) [![CircleCI](https://circleci.com/gh/publicMindee/doctr.svg?style=shield&circle-token=12c96bf5500b9dbe98f4ea0e43ca9c109c7506fe)](https://app.circleci.com/pipelines/github/publicMindee/doctr) [![codecov](https://codecov.io/gh/publicMindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/publicMindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/publicMindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/publicMindee/doctr)
 
 Extract valuable information from your documents.
 
@@ -32,7 +32,7 @@ Extract valuable information from your documents.
 Clone the project and install it:
 
 ```shell
-git clone https://github.com/teamMindee/doctr.git
+git clone https://github.com/publicMindee/doctr.git
 pip install -e doctr/.
 ```
 
