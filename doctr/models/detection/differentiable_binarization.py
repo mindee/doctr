@@ -3,6 +3,8 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+# Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
+
 import cv2
 import json
 import os
@@ -35,6 +37,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 class DBPostProcessor(DetectionPostProcessor):
     """Implements a post processor for DBNet
+    """Implements a post processor for DBNet adapted from the implementation of `xuannianz
+    <https://github.com/xuannianz/DifferentiableBinarization>`_.
 
     Args:
         unclip ratio: ratio used to unshrink polygons
