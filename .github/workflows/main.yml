@@ -53,7 +53,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e . --upgrade
-          pip install coverage>=4.5.4 pytest>=5.3.3
+          pip install coverage>=4.5.4 pytest>=5.3.2
 
       - name: Run unittests
         run: |
