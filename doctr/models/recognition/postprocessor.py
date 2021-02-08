@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from typing import List, Dict
+from typing import List
 
 from .core import RecognitionPostProcessor
 
