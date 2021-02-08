@@ -100,9 +100,9 @@ class SARDecoder(layers.Layer):
         self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(num_classes + 1, use_bias=True)
         self.max_length = max_length
-        self.lstm_decoder = layers.RNN(layers.StackedRNNCells(
+        self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
-        ))
+        )
 
     def call(
         self,
