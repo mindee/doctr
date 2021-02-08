@@ -31,13 +31,13 @@ class CRNN(RecognitionModel):
 
     Args:
         feature_extractor: the backbone serving as feature extractor
-        num_classes: number of output classes
+        vocab_size: number of output classes
         rnn_units: number of units in the LSTM layers
     """
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
-        num_classes: int = 30,
+        vocab_size: int = 30,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -47,7 +47,7 @@ class CRNN(RecognitionModel):
             [
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Dense(units=num_classes + 1)
+                layers.Dense(units=vocab_size + 1)
             ]
         )
 
@@ -73,7 +73,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['num_classes'] = kwargs.get('num_classes', len(_cfg['vocab']))
+    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
@@ -82,7 +82,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
         include_top=False,
     )
 
-    kwargs['num_classes'] = _cfg['num_classes']
+    kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
     # Build the model

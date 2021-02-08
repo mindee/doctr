@@ -83,7 +83,7 @@ class SARDecoder(layers.Layer):
     Args:
         rnn_units: number of hidden units in recurrent cells
         max_length: maximum length of a sequence
-        num_classes: number of classes in the model alphabet
+        vocab_size: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
         num_decoder_layers: number of LSTM layers to stack
@@ -94,17 +94,17 @@ class SARDecoder(layers.Layer):
         self,
         rnn_units: int,
         max_length: int,
-        num_classes: int,
+        vocab_size: int,
         embedding_units: int,
         attention_units: int,
         num_decoder_layers: int = 2
     ) -> None:
 
         super().__init__()
-        self.num_classes = num_classes
+        self.vocab_size = vocab_size
         self.embed = layers.Dense(embedding_units, use_bias=False)
         self.attention_module = AttentionModule(attention_units)
-        self.output_dense = layers.Dense(num_classes + 1, use_bias=True)
+        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True)
         self.max_length = max_length
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
@@ -125,23 +125,23 @@ class SARDecoder(layers.Layer):
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
-        sos_symbol = self.num_classes + 1
+        sos_symbol = self.vocab_size + 1
         symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
-            # one-hot symbol with depth num_classes + 2
+            # one-hot symbol with depth vocab_size + 2
             # embeded_symbol: shape (N, embedding_units)
-            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2), **kwargs)
+            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 2), **kwargs)
             logits, states = self.lstm_decoder(embeded_symbol, states, **kwargs)
             glimpse, attention_map = self.attention_module(
                 features, tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1), **kwargs,
             )
             # logits: shape (N, rnn_units), glimpse: shape (N, 1)
             logits = tf.concat([logits, glimpse], axis=-1)
-            # shape (N, rnn_units + 1) -> (N, num_classes + 1)
+            # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             logits_list.append(logits)
-        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, num_classes + 1)
+        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, vocab_size + 1)
 
         return outputs
 
@@ -152,7 +152,7 @@ class SAR(RecognitionModel):
 
     Args:
         feature_extractor: the backbone serving as feature extractor
-        num_classes: size of the alphabet
+        vocab_size: size of the alphabet
         rnn_units: number of hidden units in both encoder and decoder LSTM
         embedding_units: number of embedding units
         attention_units: number of hidden units in attention module
@@ -163,7 +163,7 @@ class SAR(RecognitionModel):
     def __init__(
         self,
         feature_extractor,
-        num_classes: int = 110,
+        vocab_size: int = 110,
         rnn_units: int = 512,
         embedding_units: int = 512,
         attention_units: int = 512,
@@ -184,7 +184,7 @@ class SAR(RecognitionModel):
         )
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, num_classes, embedding_units, attention_units, num_decoders,
+            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
 
         )
 
@@ -239,7 +239,7 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['num_classes'] = kwargs.get('num_classes', len(_cfg['vocab']))
+    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
     _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
     _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
@@ -252,7 +252,7 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
         include_top=False,
     )
 
-    kwargs['num_classes'] = _cfg['num_classes']
+    kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
     kwargs['embedding_units'] = _cfg['embedding_units']
     kwargs['attention_units'] = _cfg['attention_units']
