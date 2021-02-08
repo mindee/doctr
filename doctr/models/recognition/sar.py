@@ -216,14 +216,9 @@ class SARPostProcessor(RecognitionPostProcessor):
         # compute pred with argmax for attention models
         pred = tf.math.argmax(logits, axis=2)
 
-        # create tf_label_to_idx mapping to decode classes
-        tf_label_to_idx = tf.constant(
-            value=[char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)], name='dic_idx_label'
-        )
-
         # decode raw output of the model with tf_label_to_idx
         pred = tf.cast(pred, dtype='int32')
-        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(tf_label_to_idx, pred), axis=-1)
+        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, pred), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
         words_list = [word.decode() for word in list(decoded_strings_pred.numpy())]

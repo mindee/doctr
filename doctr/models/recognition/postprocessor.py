@@ -72,12 +72,8 @@ class CTCPostProcessor(RecognitionPostProcessor):
         # decode ctc for ctc models
         predictions = self.ctc_decoder(logits)
 
-        tf_label_to_idx = tf.constant(
-            value=[char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)], name='label_mapping'
-        )
-
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(tf_label_to_idx, predictions),
+            inputs=tf.nn.embedding_lookup(self._embedding, predictions),
             axis=-1
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
