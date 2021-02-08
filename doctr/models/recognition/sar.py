@@ -6,7 +6,7 @@
 from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
-from typing import Tuple, Dict, List, Any
+from typing import Tuple, Dict, List, Any, Optional
 
 from .. import vgg
 from ..utils import load_pretrained_params
@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16_bn-1aaf65b5.zip'
+        'url': None,
     },
 }
 
