@@ -32,24 +32,9 @@ def mock_model():
 
 
 @pytest.fixture(scope="module")
-def mock_mapping():
-    return {
-        "V": 0, "W": 1, ";": 2, "w": 3, "&": 4, "1": 5, "<": 6,
-        "\u00fb": 7, "p": 8, "h": 9, "9": 10, "\u00f9": 11, "\u00d9": 12, "j": 13,
-        "*": 14, "s": 15, "?": 16, ",": 17, "\u00ee": 18, "\u00d4": 19, "8": 20,
-        "@": 21, "D": 22, ">": 23, "$": 24, "\u00db": 25, "k": 26, "{": 27, "I": 28,
-        "F": 29, ":": 30, "O": 31, "\u00e0": 32, "a": 33, "\u00c0": 34, "v": 35, "X": 36,
-        "[": 37, "\u00ea": 38, "M": 39, "q": 40, "5": 41, "\u00c2": 42, "G": 43, "\u00f4": 44,
-        "\"": 45, "\u00e7": 46, "L": 47, "\u00e9": 48, "\u00ef": 49, "6": 50, "\u00ce": 51,
-        "y": 52, "/": 53, "#": 54, "3": 55, "N": 56, "x": 57, "\u00c8": 58, "]": 59, "K": 60,
-        "\u00a3": 61, "7": 62, "R": 63, "'": 64, "U": 65, "\u00e8": 66, "J": 67, "H": 68,
-        "t": 69, "r": 70, "c": 71, "P": 72, ".": 73, "\u00cf": 74, "z": 75, "m": 76, "Z": 77,
-        "}": 78, "0": 79, "(": 80, "\u00cb": 81, "b": 82, "\u00e2": 83, "-": 84, "B": 85, "T": 86,
-        "\u00eb": 87, "%": 88, "\u20ac": 89, "E": 90, ")": 91, "i": 92, "_": 93, "Q": 94, "|": 95,
-        "\u00c9": 96, "S": 97, "o": 98, "=": 99, "Y": 100, "A": 101, "4": 102, "e": 103, "n": 104,
-        "u": 105, "g": 106, "!": 107, "2": 108, "l": 109, "f": 110, "+": 111, "\u00c7": 112,
-        "C": 113, "d": 114
-    }
+def mock_vocab():
+    return ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j'
+            '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
 
 
 @pytest.fixture(scope="module")
@@ -199,11 +184,8 @@ def test_recognition_architectures(arch_name, input_size, output_size):
     assert out.numpy().shape == (batch_size, *output_size)
 
 
-def test_ctc_decoder(mock_mapping):
-    ctc_postprocessor = models.recognition.CTCPostProcessor(
-        num_classes=len(mock_mapping),
-        label_to_idx=mock_mapping
-    )
+def test_ctc_decoder(mock_vocab):
+    ctc_postprocessor = models.recognition.CTCPostProcessor(mock_vocab)
     decoded = ctc_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
     assert len(decoded) == 8
@@ -230,13 +212,13 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
 
 @pytest.fixture(scope="module")
-def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
+def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
     predictor = models.RecognitionPredictor(
         models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.crnn_vgg16_bn(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
-        models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
+        models.crnn_vgg16_bn(num_classes=len(mock_vocab), input_size=(32, 128, 3)),
+        models.CTCPostProcessor(mock_vocab)
     )
 
     pages = read_pdf(mock_pdf)
@@ -253,7 +235,7 @@ def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
     return predictor
 
 
-def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
+def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
 
     num_docs = 3
     predictor = models.OCRPredictor(
@@ -271,8 +253,8 @@ def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_reco
     assert all(len(doc.pages) == 8 for doc in out)
 
 
-def test_sar_decoder(mock_mapping):
-    sar_postprocessor = models.recognition.SARPostProcessor(label_to_idx=mock_mapping)
+def test_sar_decoder(mock_vocab):
+    sar_postprocessor = models.recognition.SARPostProcessor(mock_vocab)
     decoded = sar_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
     assert len(decoded) == 8
