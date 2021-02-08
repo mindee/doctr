@@ -96,12 +96,14 @@ def conv_sequence(
     """
     # No bias before Batch norm
     kwargs['use_bias'] = kwargs.get('use_bias', not(bn))
+    # Add activation directly to the conv if there is no BN
+    kwargs['activation'] = activation if not bn else None
     conv_seq = [layers.Conv2D(out_channels, padding=padding, kernel_initializer=kernel_initializer, **kwargs)]
 
     if bn:
         conv_seq.append(layers.BatchNormalization())
 
-    if isinstance(activation, str):
+    if isinstance(activation, str) and not(bn):
         conv_seq.append(layers.Activation(activation))
 
     return conv_seq
