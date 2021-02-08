@@ -5,7 +5,7 @@
 
 
 import numpy as np
-from typing import Union, List, Tuple, Optional, Any, Dict
+from typing import List
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops

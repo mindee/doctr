@@ -6,7 +6,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-from typing import Union, List, Tuple, Any, Dict
+from typing import Union, List, Tuple, Any
 from ..preprocessor import PreProcessor
 
 __all__ = ['DetectionPreProcessor', 'DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']

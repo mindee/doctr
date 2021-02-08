@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple, Optional, Any, Dict
+from typing import List, Tuple
 
 
 __all__ = ['PreProcessor']
