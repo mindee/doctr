@@ -74,11 +74,10 @@ def test_quantize_model(mock_model):
 
 
 def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantize_model):
+    assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
     if tf.__version__ < "2.4.0":
-        assert sys.getsizeof(test_convert_to_tflite) >= sys.getsizeof(test_convert_to_fp16)
         assert sys.getsizeof(test_convert_to_fp16) >= sys.getsizeof(test_quantize_model)
     else:
-        assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
         assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
 
 
