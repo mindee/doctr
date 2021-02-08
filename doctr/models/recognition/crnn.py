@@ -59,7 +59,6 @@ class CRNN(RecognitionModel):
         # B x W x H x C --> B x W x H * C
         features_seq = tf.reshape(transposed_feat, shape=(-1, w, h * c))
         decoded_features = self.decoder(features_seq, **kwargs)
-
         return decoded_features
 
 

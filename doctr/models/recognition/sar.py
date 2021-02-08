@@ -100,9 +100,9 @@ class SARDecoder(layers.Layer):
         self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(num_classes + 1, use_bias=True)
         self.max_length = max_length
-        self.lstm_decoder = layers.StackedRNNCells(
+        self.lstm_decoder = layers.RNN(layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
-        )
+        ))
 
     def call(
         self,
@@ -119,8 +119,11 @@ class SARDecoder(layers.Layer):
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
+
+        # initialize symbol
         sos_symbol = self.num_classes + 1
         symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
+
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth num_classes + 2
@@ -134,7 +137,10 @@ class SARDecoder(layers.Layer):
             logits = tf.concat([logits, glimpse], axis=-1)
             # shape (N, rnn_units + 1) -> (N, num_classes + 1)
             logits = self.output_dense(logits, **kwargs)
+            # update symbol with predicted logits for t+1 step
+            symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
+
         outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, num_classes + 1)
 
         return outputs
