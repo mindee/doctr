@@ -36,7 +36,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class DBPostProcessor(DetectionPostProcessor):
-    """Implements a post processor for DBNet
     """Implements a post processor for DBNet adapted from the implementation of `xuannianz
     <https://github.com/xuannianz/DifferentiableBinarization>`_.
 
