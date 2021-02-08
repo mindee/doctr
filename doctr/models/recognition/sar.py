@@ -41,13 +41,13 @@ class AttentionModule(layers.Layer):
 
         super().__init__()
         self.hidden_state_projector = layers.Conv2D(
-            filters=attention_units, kernel_size=1, strides=1, use_bias=False, padding='same'
+            attention_units, 1, strides=1, use_bias=False, padding='same', kernel_initializer='he_normal',
         )
         self.features_projector = layers.Conv2D(
-            filters=attention_units, kernel_size=3, strides=1, use_bias=True, padding='same'
+            attention_units, 3, strides=1, use_bias=True, padding='same', kernel_initializer='he_normal',
         )
         self.attention_projector = layers.Conv2D(
-            filters=1, kernel_size=1, strides=1, use_bias=False, padding="same"
+            1, 1, strides=1, use_bias=False, padding="same", kernel_initializer='he_normal',
         )
         self.flatten = layers.Flatten()
 
