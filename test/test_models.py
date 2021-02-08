@@ -184,12 +184,19 @@ def test_recognition_architectures(arch_name, input_shape, output_size):
     assert out.numpy().shape == (batch_size, *output_size)
 
 
-def test_ctc_decoder(mock_vocab):
-    ctc_postprocessor = models.recognition.CTCPostProcessor(mock_vocab)
-    decoded = ctc_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
+@pytest.mark.parametrize(
+    "post_processor, input_shape",
+    [
+        ["SARPostProcessor", [2, 30, 116]],
+        ["CTCPostProcessor", [2, 30, 116]],
+    ],
+)
+def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
+    processor = models.recognition.__dict__[post_processor](mock_vocab)
+    decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
-    assert len(decoded) == 8
-    assert all(len(word) <= 30 for word in decoded)
+    assert len(decoded) == input_shape[0]
+    assert all(len(word) <= input_shape[1] for word in decoded)
 
 
 @pytest.fixture(scope="module")
@@ -251,14 +258,6 @@ def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredict
     assert all(isinstance(doc, Document) for doc in out)
     # The input PDF has 8 pages
     assert all(len(doc.pages) == 8 for doc in out)
-
-
-def test_sar_decoder(mock_vocab):
-    sar_postprocessor = models.recognition.SARPostProcessor(mock_vocab)
-    decoded = sar_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
-    assert isinstance(decoded, list)
-    assert len(decoded) == 8
-    assert all(len(word) <= 30 for word in decoded)
 
 
 @pytest.mark.parametrize(
