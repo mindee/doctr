@@ -5,7 +5,7 @@
 
 from typing import Tuple, Dict, List, Any, Optional
 from doctr.utils.geometry import resolve_enclosing_bbox
-from doctr.utils.typing import BoundingBox, Polygon4P
+from doctr.utils._typing import BoundingBox, Polygon4P
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 
@@ -13,12 +13,13 @@ __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 class Element:
     """Implements an abstract document element with exporting and text rendering capabilities"""
 
-    _children_names: List[str] = []
     _exported_keys: List[str] = []
 
     def __init__(self, **kwargs: Any) -> None:
+        self._children_names: List[str] = []
         for k, v in kwargs.items():
             setattr(self, k, v)
+            self._children_names.append(k)
 
     def export(self) -> Dict[str, Any]:
         """Exports the object into a nested dict format"""
@@ -89,7 +90,6 @@ class Line(Element):
             all words in it.
     """
 
-    _children_names: List[str] = ["words"]
     _exported_keys: List[str] = ["geometry"]
     words: List[Word] = []
 
@@ -121,7 +121,6 @@ class Block(Element):
             all lines and artefacts in it.
     """
 
-    _children_names: List[str] = ["lines", "artefacts"]
     _exported_keys: List[str] = ["geometry"]
     lines: List[Line] = []
     artefacts: List[Artefact] = []
@@ -156,7 +155,6 @@ class Page(Element):
         language: a dictionary with the language value and confidence of the prediction
     """
 
-    _children_names: List[str] = ["blocks"]
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
     blocks: List[Block] = []
 
@@ -165,14 +163,14 @@ class Page(Element):
         blocks: List[Block],
         page_idx: int,
         dimensions: Tuple[int, int],
-        orientation: Dict[str, Any],
-        language: Dict[str, Any],
+        orientation: Optional[Dict[str, Any]] = None,
+        language: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(blocks=blocks)
         self.page_idx = page_idx
         self.dimensions = dimensions
-        self.orientation = orientation
-        self.language = language
+        self.orientation = orientation if isinstance(orientation, dict) else dict(value=None, confidence=None)
+        self.language = language if isinstance(language, dict) else dict(value=None, confidence=None)
 
     def render(self, block_break: str = '\n\n') -> str:
         """Renders the full text of the element"""
@@ -186,7 +184,6 @@ class Document(Element):
         pages: list of page elements
     """
 
-    _children_names: List[str] = ["pages"]
     pages: List[Page] = []
 
     def __init__(

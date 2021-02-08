@@ -9,27 +9,63 @@ import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
 from ..preprocessor import PreProcessor
 
-__all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
+__all__ = ['DetectionPreProcessor', 'DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 
 
-class DetectionModel(keras.Model):
-    """Implements abstract DetectionModel class
+class DetectionPreProcessor(PreProcessor):
+    """Implements a detection preprocessor
+
+        Example::
+        >>> from doctr.documents import read_pdf
+        >>> from doctr.models import RecoPreprocessor
+        >>> processor = RecoPreprocessor(output_size=(600, 600), batch_size=8)
+        >>> processed_doc = processor([read_pdf("path/to/your/doc.pdf")])
 
     Args:
-        input_shape: shape (H, W) of the model inputs
+        output_size: expected size of each page in format (H, W)
+        batch_size: the size of page batches
+        mean: mean value of the training distribution by channel
+        std: standard deviation of the training distribution by channel
+        interpolation: one of 'bilinear', 'nearest', 'bicubic', 'area', 'lanczos3', 'lanczos5'
+
     """
 
     def __init__(
         self,
-        input_size: Tuple[int, int] = (600, 600),
+        output_size: Tuple[int, int],
+        batch_size: int,
+        mean: Tuple[float, float, float] = (.5, .5, .5),
+        std: Tuple[float, float, float] = (1., 1., 1.),
+        interpolation: str = 'bilinear'
     ) -> None:
-        super().__init__()
-        self.input_size = input_size
 
-    def __call__(
+        super().__init__(output_size, batch_size, mean, std, interpolation)
+
+    def resize(
         self,
-        inputs: tf.Tensor,
-        training: bool = False
+        x: tf.Tensor,
+    ) -> tf.Tensor:
+        """Resize images using tensorflow backend.
+
+        Args:
+            x: image as a tf.Tensor
+
+        Returns:
+            the processed image after being resized
+        """
+
+        return tf.image.resize(x, [self.output_size[0], self.output_size[1]], method=self.interpolation)
+
+
+class DetectionModel(keras.Model):
+    """Implements abstract DetectionModel class"""
+
+    training: bool = False
+
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
     ) -> Union[List[tf.Tensor], tf.Tensor]:
         raise NotImplementedError
 
@@ -72,7 +108,7 @@ class DetectionPredictor:
 
     def __init__(
         self,
-        pre_processor: PreProcessor,
+        pre_processor: DetectionPreProcessor,
         model: DetectionModel,
         post_processor: DetectionPostProcessor,
     ) -> None:
@@ -84,11 +120,11 @@ class DetectionPredictor:
     def __call__(
         self,
         pages: List[np.ndarray],
+        **kwargs: Any,
     ) -> List[np.ndarray]:
 
         processed_batches = self.pre_processor(pages)
-        out = [self.model(tf.convert_to_tensor(batch)).numpy()  # type: ignore[union-attr]
-               for batch in processed_batches]
+        out = [self.model(batch, **kwargs) for batch in processed_batches]
         out = [self.post_processor(batch) for batch in out]
         out = [boxes for batch in out for boxes in batch]
 

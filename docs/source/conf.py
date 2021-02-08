@@ -43,7 +43,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax'
+    'sphinx.ext.mathjax',
+    'sphinxemoji.sphinxemoji',  # cf. https://sphinxemojicodes.readthedocs.io/en/stable/
 ]
 
 napoleon_use_ivar = True
@@ -78,6 +79,8 @@ html_theme_options = {
     'display_version': True,
     'logo_only': False,
 }
+
+# html_logo = '_static/images/logo.png'
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
