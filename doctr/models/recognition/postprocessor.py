@@ -18,24 +18,10 @@ class CTCPostProcessor(RecognitionPostProcessor):
     Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
 
     Args:
-        num_classes: number of classes of the model
-        label_to_idx: dictionnary mapping alphabet labels to idx of the model classes
+        vocab: string containing the ordered sequence of supported characters
         ignore_case: if True, ignore case of letters
         ignore_accents: if True, ignore accents of letters
-
     """
-    def __init__(
-        self,
-        num_classes: int,
-        label_to_idx: Dict[str, int],
-        ignore_case: bool = False,
-        ignore_accents: bool = False
-    ) -> None:
-
-        self.num_classes = num_classes
-        self.label_to_idx = label_to_idx
-        self.ignore_case = ignore_case
-        self.ignore_accents = ignore_accents
 
     def ctc_decoder(
         self,
@@ -62,7 +48,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         # masking -1 of CTC with num_classes (embedding <eos>)
         pred_shape = tf.shape(_predictions)
-        mask_eos = self.num_classes * tf.ones(pred_shape, dtype=tf.int64)
+        mask_eos = (len(self.vocab) - 1) * tf.ones(pred_shape, dtype=tf.int64)
         mask_1 = -1 * tf.ones(pred_shape, dtype=tf.int64)
         predictions = tf.where(mask_1 != _predictions, _predictions, mask_eos)
 
@@ -86,10 +72,10 @@ class CTCPostProcessor(RecognitionPostProcessor):
         # decode ctc for ctc models
         predictions = self.ctc_decoder(logits)
 
-        label_mapping = self.label_to_idx.copy()
-        label_mapping['<eos>'] = self.num_classes
-        label, _ = zip(*sorted(label_mapping.items(), key=lambda x: x[1]))
-        tf_label_to_idx = tf.constant(value=label, dtype=tf.string, shape=[self.num_classes + 1], name='label_mapping')
+        tf_label_to_idx = tf.constant(
+            value=[char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)], name='label_mapping'
+        )
+
         _decoded_strings_pred = tf.strings.reduce_join(
             inputs=tf.nn.embedding_lookup(tf_label_to_idx, predictions),
             axis=-1
