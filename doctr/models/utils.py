@@ -79,6 +79,7 @@ def conv_sequence(
     activation: str = None,
     bn: bool = False,
     padding: str = 'same',
+    kernel_initializer: str = 'he_normal',
     **kwargs: Any,
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
@@ -88,11 +89,14 @@ def conv_sequence(
         activation: activation to be used (default: no activation)
         bn: should a batch normalization layer be added
         padding: padding scheme
+        kernel_initializer: kernel initializer
 
     Returns:
         list of layers
     """
-    conv_seq = [layers.Conv2D(out_channels, padding=padding, **kwargs)]
+    # No bias before Batch norm
+    kwargs['use_bias'] = kwargs.get('use_bias', not(bn))
+    conv_seq = [layers.Conv2D(out_channels, padding=padding, kernel_initializer=kernel_initializer, **kwargs)]
 
     if bn:
         conv_seq.append(layers.BatchNormalization())
