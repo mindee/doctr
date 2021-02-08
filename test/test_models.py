@@ -1,10 +1,8 @@
 import pytest
 import os
-from io import BytesIO
 import numpy as np
 import sys
 import math
-import requests
 import warnings
 import tensorflow as tf
 
@@ -15,7 +13,7 @@ if len(gpus) > 0:
 
 from tensorflow.keras import layers, Sequential
 
-from doctr.documents import read_pdf, Document, Page, Block, Line, Word
+from doctr.documents import read_pdf, Document
 from test_documents import mock_pdf
 from doctr import models
 

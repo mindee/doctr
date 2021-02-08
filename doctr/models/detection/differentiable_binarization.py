@@ -6,8 +6,6 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 import cv2
-import json
-import os
 from copy import deepcopy
 import numpy as np
 from shapely.geometry import Polygon
