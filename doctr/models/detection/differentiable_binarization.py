@@ -192,7 +192,7 @@ class FeaturePyramidNetwork(layers.Layer):
     ) -> None:
         super().__init__()
         self.upsample = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
-        self.inner_blocks = [layers.Conv2D(filters=channels, kernel_size=1, strides=1) for _ in range(4)]
+        self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer='he_normal') for _ in range(4)]
         self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
 
     @staticmethod
@@ -211,7 +211,7 @@ class FeaturePyramidNetwork(layers.Layer):
 
         """
 
-        _layers = conv_sequence(channels, 'relu', True, kernel_size=(3, 3))
+        _layers = conv_sequence(channels, 'relu', True, kernel_size=3)
 
         if dilation_factor > 1:
             _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
@@ -259,28 +259,23 @@ class DBNet(DetectionModel):
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
 
-        #####
         self.probability_head = keras.Sequential(
             [
-                layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="p_map1"),
-                layers.BatchNormalization(name="p_map2"),
+                *conv_sequence(64, 'relu', True, kernel_size=3),
+                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
+                layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=64, kernel_size=(2, 2), strides=(2, 2), use_bias=False, name="p_map3"),
-                layers.BatchNormalization(name="p_map4"),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=1, kernel_size=(2, 2), strides=(2, 2), name="p_map5"),
+                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
                 layers.Activation('sigmoid'),
             ]
         )
         self.threshold_head = keras.Sequential(
             [
-                layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="t_map1"),
-                layers.BatchNormalization(name="t_map2"),
+                *conv_sequence(64, 'relu', True, kernel_size=3),
+                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
+                layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=64, kernel_size=(2, 2), strides=(2, 2), use_bias=False, name="t_map3"),
-                layers.BatchNormalization(name="t_map4"),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=1, kernel_size=(2, 2), strides=(2, 2), name="t_map5"),
+                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
                 layers.Activation('sigmoid'),
             ]
         )
