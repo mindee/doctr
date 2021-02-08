@@ -300,3 +300,16 @@ def test_load_pretrained_params(tmpdir_factory):
         assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
     except Exception as e:
         warnings.warn(e)
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "ocr_db_sar",
+    ],
+)
+def test_zoo_models(arch_name):
+    # Model
+    model = models.__dict__[arch_name](pretrained=True)
+    # Output checks
+    assert isinstance(model, models.OCRPredictor)
