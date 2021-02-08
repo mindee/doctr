@@ -3,10 +3,9 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from typing import Tuple, List, Union, Dict
+from typing import List, Union, Dict
 
 from .core import RecognitionPostProcessor
 

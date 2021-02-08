@@ -9,7 +9,6 @@ import os
 import hashlib
 from pathlib import Path
 from zipfile import ZipFile
-import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.utils import get_file
 from typing import Optional, List, Any

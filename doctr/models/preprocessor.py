@@ -3,12 +3,9 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
-import math
-import json
 import tensorflow as tf
 import numpy as np
-from typing import Union, List, Tuple, Optional, Any, Dict
+from typing import List, Tuple, Optional, Any, Dict
 
 
 __all__ = ['PreProcessor']

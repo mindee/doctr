@@ -3,11 +3,9 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import tensorflow as tf
-from tensorflow import keras
+
 import numpy as np
 from typing import Union, List, Tuple, Optional, Any, Dict
-from .preprocessor import PreProcessor
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
@@ -103,7 +101,7 @@ class OCRPredictor:
         num_crops = [_boxes.shape[0] for _boxes in boxes]
         page_idx, crop_idx = 0, 0
         results = []
-        for doc_idx, nb_pages in enumerate(num_pages):
+        for nb_pages in num_pages:
             _pages = []
             for page_boxes in boxes[page_idx: page_idx + nb_pages]:
                 # Assemble all detected words into structured blocks
