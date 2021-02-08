@@ -197,8 +197,8 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = models.DetectionPredictor(
-        models.DetectionPreProcessor(output_size=(640, 640), batch_size=batch_size),
-        models.db_resnet50(input_shape=(640, 640, 3)),
+        models.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size),
+        models.db_resnet50(input_shape=(512, 512, 3)),
         models.DBPostProcessor()
     )
 
