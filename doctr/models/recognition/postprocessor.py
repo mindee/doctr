@@ -5,7 +5,6 @@
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.keras.backend as K
 from typing import Tuple, List, Union, Dict
 
 from .core import RecognitionPostProcessor
@@ -52,21 +51,18 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         """
         batch_len = tf.cast(tf.shape(logits)[0], dtype=tf.int64)
-        sequence_len = tf.cast(tf.shape(logits)[1], dtype=tf.int64)
+        sequence_len = tf.cast(tf.shape(logits)[1], dtype=tf.int32)
 
         # computing prediction with ctc decoder
-        decoded_logits = K.ctc_decode(
-            tf.nn.softmax(logits), sequence_len * tf.ones(shape=(batch_len,), dtype=tf.int64), greedy=True
+        _prediction = tf.nn.ctc_greedy_decoder(
+            tf.nn.softmax(tf.transpose(logits, perm=[1, 0, 2])),
+            sequence_len * tf.ones(shape=(batch_len,), dtype="int32"),
+            merge_repeated=True
         )
-        _predictions = tf.squeeze(decoded_logits[0])
+        _prediction = _prediction[0][0]
+        prediction = tf.sparse.to_dense(_prediction, default_value=self.num_classes)
 
-        # masking -1 of CTC with num_classes (embedding <eos>)
-        pred_shape = tf.shape(_predictions)
-        mask_eos = self.num_classes * tf.ones(pred_shape, dtype=tf.int64)
-        mask_1 = -1 * tf.ones(pred_shape, dtype=tf.int64)
-        predictions = tf.where(mask_1 != _predictions, _predictions, mask_eos)
-
-        return predictions
+        return prediction
 
     def __call__(
         self,
