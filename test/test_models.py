@@ -176,7 +176,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 )
 def test_recognition_architectures(arch_name, input_shape, output_size):
     batch_size = 8
-    reco_model = models.__dict__[arch_name](input_shape=input_shape)
+    reco_model = models.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     out = reco_model(input_tensor)
     assert isinstance(out, tf.Tensor)
