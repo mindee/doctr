@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from typing import Tuple, Dict, List, Any, Optional
@@ -15,9 +16,12 @@ from .core import RecognitionPostProcessor
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {'backbone': 'vgg16_bn', 'num_classes': 110, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
-                     'input_size': (64, 256, 3),
-                     'url': None},
+    'sar_vgg16_bn': {'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
+                     'input_shape': (64, 256, 3),
+                     'post_processor': 'SARPostProcessor',
+                     'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                               'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
+                     'url': 'https://srv-store6.gofile.io/download/pYIzXL/sar_vgg16_bn-1aaf65b5.zip'},
 }
 
 
@@ -163,9 +167,10 @@ class SAR(RecognitionModel):
         attention_units: int = 512,
         max_length: int = 30,
         num_decoders: int = 2,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__()
+        super().__init__(cfg=cfg)
 
         self.feat_extractor = feature_extractor
 
@@ -199,20 +204,10 @@ class SARPostProcessor(RecognitionPostProcessor):
     """Post processor for SAR architectures
 
     Args:
-        label_to_idx: dictionnary mapping alphabet labels to idx of the model classes
+        vocab: string containing the ordered sequence of supported characters
         ignore_case: if True, ignore case of letters
         ignore_accents: if True, ignore accents of letters
     """
-    def __init__(
-        self,
-        label_to_idx: Dict[str, int],
-        ignore_case: bool = False,
-        ignore_accents: bool = False
-    ) -> None:
-
-        self.label_to_idx = label_to_idx
-        self.ignore_case = ignore_case
-        self.ignore_accents = ignore_accents
 
     def __call__(
         self,
@@ -222,11 +217,8 @@ class SARPostProcessor(RecognitionPostProcessor):
         pred = tf.math.argmax(logits, axis=2)
 
         # create tf_label_to_idx mapping to decode classes
-        label_mapping = self.label_to_idx.copy()
-        label_mapping['<eos>'] = int(len(label_mapping))
-        label, _ = zip(*sorted(label_mapping.items(), key=lambda x: x[1]))
         tf_label_to_idx = tf.constant(
-            value=label, dtype=tf.string, shape=[int(len(label_mapping))], name='dic_idx_label'
+            value=[char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)], name='dic_idx_label'
         )
 
         # decode raw output of the model with tf_label_to_idx
@@ -245,23 +237,33 @@ class SARPostProcessor(RecognitionPostProcessor):
         return words_list
 
 
-def _sar_vgg(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['num_classes'] = kwargs.get('num_classes', len(_cfg['vocab']))
+    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
+    _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
+    _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
+    _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
+    _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
 
     # Feature extractor
     feat_extractor = vgg.__dict__[default_cfgs[arch]['backbone']](
-        input_size=input_size or default_cfgs[arch]['input_size'],
+        input_shape=_cfg['input_shape'],
         include_top=False,
     )
 
-    kwargs['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
-    kwargs['rnn_units'] = kwargs.get('rnn_units', default_cfgs[arch]['rnn_units'])
-    kwargs['embedding_units'] = kwargs.get('embedding_units', kwargs['rnn_units'])
-    kwargs['attention_units'] = kwargs.get('attention_units', kwargs['rnn_units'])
-    kwargs['max_length'] = kwargs.get('max_length', default_cfgs[arch]['max_length'])
-    kwargs['num_decoders'] = kwargs.get('num_decoders', default_cfgs[arch]['num_decoders'])
+    kwargs['num_classes'] = _cfg['num_classes']
+    kwargs['rnn_units'] = _cfg['rnn_units']
+    kwargs['embedding_units'] = _cfg['embedding_units']
+    kwargs['attention_units'] = _cfg['attention_units']
+    kwargs['max_length'] = _cfg['max_length']
+    kwargs['num_decoders'] = _cfg['num_decoders']
 
     # Build the model
-    model = SAR(feat_extractor, **kwargs)
+    model = SAR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
