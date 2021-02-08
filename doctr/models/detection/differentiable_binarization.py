@@ -24,12 +24,14 @@ __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_resnet50': {'backbone': 'ResNet50',
-                    'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
-                    'fpn_channels': 128,
-                    'input_shape': (1024, 1024, 3),
-                    'post_processor': 'DBPostProcessor',
-                    'url': 'https://srv-store6.gofile.io/download/mTjlOo/db_resnet50-56f1e578.zip'},
+    'db_resnet50': {
+        'backbone': 'ResNet50',
+        'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
+        'fpn_channels': 128,
+        'input_shape': (1024, 1024, 3),
+        'post_processor': 'DBPostProcessor',
+        'url': 'https://github.com/publicMindee/doctr/releases/download/v0.1-models/db_resnet50-56f1e578.zip'
+    },
 }
 
 

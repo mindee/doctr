@@ -16,12 +16,14 @@ from .core import RecognitionPostProcessor
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
-                     'input_shape': (64, 256, 3),
-                     'post_processor': 'SARPostProcessor',
-                     'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                               'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-                     'url': 'https://srv-store6.gofile.io/download/pYIzXL/sar_vgg16_bn-1aaf65b5.zip'},
+    'sar_vgg16_bn': {
+        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
+        'input_shape': (64, 256, 3),
+        'post_processor': 'SARPostProcessor',
+        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
+        'url': 'https://github.com/publicMindee/doctr/releases/download/v0.1-models/sar_vgg16_bn-1aaf65b5.zip'
+    },
 }
 
 
