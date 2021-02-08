@@ -6,6 +6,7 @@
 import cv2
 import json
 import os
+from copy import deepcopy
 import numpy as np
 from shapely.geometry import Polygon
 import pyclipper
@@ -26,6 +27,9 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
                     'fpn_channels': 128,
                     'input_shape': (640, 640, 3),
                     'url': None},
+                    'input_shape': (1024, 1024, 3),
+                    'post_processor': 'DBPostProcessor',
+                    'url': 'https://srv-store6.gofile.io/download/mTjlOo/db_resnet50-56f1e578.zip'},
 }
 
 
@@ -246,9 +250,10 @@ class DBNet(DetectionModel):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__()
+        super().__init__(cfg=cfg)
 
         self.feat_extractor = feature_extractor
 
@@ -317,26 +322,31 @@ class DBNet(DetectionModel):
 
 def _db_resnet(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
 
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_size or _cfg['input_shape']
+    _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
+
     # Feature extractor
-    resnet = tf.keras.applications.__dict__[default_cfgs[arch]['backbone']](
+    resnet = tf.keras.applications.__dict__[_cfg['backbone']](
         include_top=False,
         weights=None,
-        input_shape=input_size or default_cfgs[arch]['input_shape'],
+        input_shape=_cfg['input_shape'],
         pooling=None,
     )
 
     feat_extractor = IntermediateLayerGetter(
         resnet,
-        default_cfgs[arch]['fpn_layers'],
+        _cfg['fpn_layers'],
     )
 
-    kwargs['fpn_channels'] = kwargs.get('fpn_channels', default_cfgs[arch]['fpn_channels'])
+    kwargs['fpn_channels'] = _cfg['fpn_channels']
 
     # Build the model
-    model = DBNet(feat_extractor, **kwargs)
+    model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 
