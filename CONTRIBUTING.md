@@ -6,9 +6,9 @@ Everything you need to know to contribute efficiently to the project.
 
 ## Codebase structure
 
-- [doctr](https://github.com/minde/doctr/blob/master/doctr) - The actual doctr library
-- [test](https://github.com/minde/doctr/blob/master/test) - Python unit tests
-- [docs](https://github.com/minde/doctr/blob/master/docs) - Library documentation building
+- [doctr](https://github.com/mindee/doctr/blob/master/doctr) - The actual doctr library
+- [test](https://github.com/mindee/doctr/blob/master/test) - Python unit tests
+- [docs](https://github.com/mindee/doctr/blob/master/docs) - Library documentation building
 
 
 ## Continuous Integration
@@ -24,7 +24,7 @@ As a contributor, you will only have to ensure coverage of your code by adding a
 
 ## Issues
 
-Use Github [issues](https://github.com/minde/doctr/issues) for feature requests, or bug reporting. When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.
+Use Github [issues](https://github.com/mindee/doctr/issues) for feature requests, or bug reporting. When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.
 
 
 

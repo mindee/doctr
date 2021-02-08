@@ -32,5 +32,5 @@ Install the library in developper mode:
 
 .. code:: bash
 
-    git clone https://github.com/minde/doctr.git
+    git clone https://github.com/mindee/doctr.git
     pip install -e doctr/.
