@@ -4,8 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import cv2
-import json
-import os
 import numpy as np
 from shapely.geometry import Polygon
 import pyclipper

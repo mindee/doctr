@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
-from typing import Tuple, Dict, List, Any, Optional
+from typing import Tuple, Dict, List, Any
 
 from .. import vgg
 from ..utils import load_pretrained_params
@@ -50,7 +50,7 @@ class AttentionModule(layers.Layer):
         features: tf.Tensor,
         hidden_state: tf.Tensor,
         **kwargs: Any,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    ) -> tf.Tensor:
 
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, 1, 1, rnn_units) -> (N, 1, 1, attention_units)
@@ -68,7 +68,7 @@ class AttentionModule(layers.Layer):
         glimpse = tf.math.multiply(features, attention_map)
         # shape (N, H * W) -> (N, 1)
         glimpse = tf.reduce_sum(glimpse, axis=[1, 2])
-        return glimpse, attention_map
+        return glimpse
 
 
 class SARDecoder(layers.Layer):
@@ -122,12 +122,12 @@ class SARDecoder(layers.Layer):
         sos_symbol = self.num_classes + 1
         symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
         logits_list = []
-        for t in range(self.max_length + 1):  # keep 1 step for <eos>
+        for _ in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth num_classes + 2
             # embeded_symbol: shape (N, embedding_units)
             embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2), **kwargs)
             logits, states = self.lstm_decoder(embeded_symbol, states, **kwargs)
-            glimpse, attention_map = self.attention_module(
+            glimpse = self.attention_module(
                 features, tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1), **kwargs,
             )
             # logits: shape (N, rnn_units), glimpse: shape (N, 1)
