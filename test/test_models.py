@@ -132,11 +132,11 @@ def test_dbpostprocessor():
 def test_db_resnet50():
     model = models.db_resnet50(pretrained=True)
     assert isinstance(model, tf.keras.Model)
-    dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
+    dbinput = tf.random.uniform(shape=[8, 1024, 1024, 3], minval=0, maxval=1)
     # test prediction model
     dboutput_notrain = model(dbinput)
     assert isinstance(dboutput_notrain, tf.Tensor)
-    assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
+    assert dboutput_notrain.numpy().shape == (8, 1024, 1024, 1)
     assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
     dboutput_train = model(dbinput, training=True)
@@ -144,7 +144,7 @@ def test_db_resnet50():
     assert len(dboutput_train) == 3
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
     # batch size
-    assert all(out.numpy().shape == (8, 640, 640, 1) for out in dboutput_train)
+    assert all(out.numpy().shape == (8, 1024, 1024, 1) for out in dboutput_train)
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -217,7 +217,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     batch_size = 4
     predictor = models.RecognitionPredictor(
         models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.crnn_vgg16_bn(num_classes=len(mock_vocab), input_shape=(32, 128, 3)),
+        models.crnn_vgg16_bn(vocab_size=len(mock_vocab), input_shape=(32, 128, 3)),
         models.CTCPostProcessor(mock_vocab)
     )
 
