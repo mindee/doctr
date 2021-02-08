@@ -168,16 +168,16 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_size, output_size",
+    "arch_name, input_shape, output_size",
     [
         ["crnn_vgg16_bn", (32, 128, 3), (32, 31)],
         ["sar_vgg16_bn", (64, 256, 3), (31, 111)],
     ],
 )
-def test_recognition_architectures(arch_name, input_size, output_size):
+def test_recognition_architectures(arch_name, input_shape, output_size):
     batch_size = 8
-    reco_model = models.__dict__[arch_name](input_size=input_size)
-    input_tensor = tf.random.uniform(shape=[batch_size, *input_size], minval=0, maxval=1)
+    reco_model = models.__dict__[arch_name](input_shape=input_shape)
+    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     out = reco_model(input_tensor)
     assert isinstance(out, tf.Tensor)
     assert isinstance(reco_model, tf.keras.Model)
@@ -198,7 +198,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = models.DetectionPredictor(
         models.DetectionPreProcessor(output_size=(640, 640), batch_size=batch_size),
-        models.db_resnet50(input_size=(640, 640, 3)),
+        models.db_resnet50(input_shape=(640, 640, 3)),
         models.DBPostProcessor()
     )
 
@@ -217,7 +217,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     batch_size = 4
     predictor = models.RecognitionPredictor(
         models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.crnn_vgg16_bn(num_classes=len(mock_vocab), input_size=(32, 128, 3)),
+        models.crnn_vgg16_bn(num_classes=len(mock_vocab), input_shape=(32, 128, 3)),
         models.CTCPostProcessor(mock_vocab)
     )
 
@@ -262,12 +262,12 @@ def test_sar_decoder(mock_vocab):
 
 
 @pytest.mark.parametrize(
-    "arch_name, top_implemented, input_size, output_size",
+    "arch_name, top_implemented, input_shape, output_size",
     [
         ["vgg16_bn", False, (224, 224, 3), (7, 56, 512)],
     ],
 )
-def test_classification_architectures(arch_name, top_implemented, input_size, output_size):
+def test_classification_architectures(arch_name, top_implemented, input_shape, output_size):
     # Head not implemented yet
     if not top_implemented:
         with pytest.raises(NotImplementedError):
@@ -277,7 +277,7 @@ def test_classification_architectures(arch_name, top_implemented, input_size, ou
     batch_size = 2
     model = models.__dict__[arch_name](pretrained=True)
     # Forward
-    out = model(tf.random.uniform(shape=[batch_size, *input_size], maxval=1, dtype=tf.float32))
+    out = model(tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32))
     # Output checks
     assert isinstance(out, tf.Tensor)
     assert out.numpy().shape == (batch_size, *output_size)
