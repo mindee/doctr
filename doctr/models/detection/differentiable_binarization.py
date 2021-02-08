@@ -94,7 +94,7 @@ class DBPostProcessor(DetectionPostProcessor):
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-        expanded_points = np.array(offset.Execute(distance))  # expand polygon
+        expanded_points = np.asarray(offset.Execute(distance))  # expand polygon
         if len(expanded_points) < 1:
             return None
         x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
@@ -120,6 +120,10 @@ class DBPostProcessor(DetectionPostProcessor):
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours[:self.max_candidates]:
+            # Check whether smallest enclosing bounding box is not too small
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) <= 5):
+                continue
+
             epsilon = 0.01 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)  # approximate contour by a polygon
             points = approx.reshape((-1, 2))  # get polygon points
@@ -129,6 +133,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
             _box = self.polygon_to_box(points)
+
             if _box is None or _box[2] < self.min_size_box or _box[3] < self.min_size_box:  # remove to small boxes
                 continue
             x, y, w, h = _box
