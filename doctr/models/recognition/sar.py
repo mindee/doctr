@@ -126,7 +126,7 @@ class SARDecoder(layers.Layer):
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
         sos_symbol = self.vocab_size + 1
-        symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
+        symbol = tf.fill(batch_size, sos_symbol)
 
         logits_list = []
         for _ in range(self.max_length + 1):  # keep 1 step for <eos>
