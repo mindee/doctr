@@ -262,6 +262,7 @@ def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredict
     "arch_name, top_implemented, input_shape, output_size",
     [
         ["vgg16_bn", False, (224, 224, 3), (7, 56, 512)],
+        ["resnet31", False, (32, 128, 3), (4, 32, 512)],
     ],
 )
 def test_classification_architectures(arch_name, top_implemented, input_shape, output_size):
