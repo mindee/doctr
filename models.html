@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>doctr.models &mdash; doctr 0.1.0a0-git documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="doctr.documents" href="documents.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> doctr
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0a0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-conda">Via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Package Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pre-processing">Pre-processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#text-recognition">Text Recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-export">Model export</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">doctr</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>doctr.models</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/models.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="doctr-models">
+<h1>doctr.models<a class="headerlink" href="#doctr-models" title="Permalink to this headline">¶</a></h1>
+<p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
+Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
+<p>For a given task, DocTR provides a Predictor, which is composed of 3 components:</p>
+<ul class="simple">
+<li><p>PreProcessor: a module in charge of making inputs directly usable by the TensorFlow model.</p></li>
+<li><p>Model: a deep learning model, implemented with TensorFlow backend.</p></li>
+<li><p>PostProcessor: making model outputs structured and reusable.</p></li>
+</ul>
+<div class="section" id="pre-processing">
+<h2>Pre-processing<a class="headerlink" href="#pre-processing" title="Permalink to this headline">¶</a></h2>
+<p>Operations that need to be carried out before passing data to actual models</p>
+<dl class="py class">
+<dt id="doctr.models.preprocessor.PreProcessor">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.models.preprocessor.</code><code class="sig-name descname">PreProcessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_size</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">mean</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(0.5, 0.5, 0.5)</span></em>, <em class="sig-param"><span class="n">std</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1.0, 1.0, 1.0)</span></em>, <em class="sig-param"><span class="n">interpolation</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'bilinear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/models/preprocessor.html#PreProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.preprocessor.PreProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_size</strong> – expected size of each page in format (H, W)</p></li>
+<li><p><strong>batch_size</strong> – the size of page batches</p></li>
+<li><p><strong>mean</strong> – mean value of the training distribution by channel</p></li>
+<li><p><strong>std</strong> – standard deviation of the training distribution by channel</p></li>
+<li><p><strong>interpolation</strong> – one of ‘bilinear’, ‘nearest’, ‘bicubic’, ‘area’, ‘lanczos3’, ‘lanczos5’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="text-detection">
+<h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
+<p>Architectures to localize text elements</p>
+<dl class="py function">
+<dt id="doctr.models.detection.db_resnet50">
+<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.differentiable_binarization.DBNet<a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization.html#db_resnet50"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">¶</a></dt>
+<dd><p>DBNet as described in <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>, using a ResNet-50 backbone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>text detection architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="text-recognition">
+<h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this headline">¶</a></h2>
+<p>Architectures to identify strings inside the localized boxes</p>
+<dl class="py function">
+<dt id="doctr.models.recognition.crnn_vgg16_bn">
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.crnn.CRNN<a class="reference internal" href="_modules/doctr/models/recognition/crnn.html#crnn_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">¶</a></dt>
+<dd><p>CRNN with a VGG-16 backbone as described in <a class="reference external" href="https://arxiv.org/pdf/1602.05875.pdf">“Convolutional RNN: an Enhanced Model for Extracting Features
+from Sequential Data”</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>text recognition architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="doctr.models.recognition.sar_vgg16_bn">
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">¶</a></dt>
+<dd><p>SAR with a VGG16 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
+Baseline for Irregular Text Recognition”</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>text recognition architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="model-export">
+<h2>Model export<a class="headerlink" href="#model-export" title="Permalink to this headline">¶</a></h2>
+<p>Utility functions to make the most of document analysis models.</p>
+<dl class="py function">
+<dt id="doctr.models.export.convert_to_tflite">
+<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_tflite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">tensorflow.python.keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a model to TFLite format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tf_model</strong> – a keras model</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="doctr.models.export.convert_to_fp16">
+<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_fp16</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">tensorflow.python.keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_fp16"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_fp16" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a model to half precision</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tf_model</strong> – a keras model</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the serialized FP16 model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="doctr.models.export.quantize_model">
+<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">quantize_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">tensorflow.python.keras.engine.training.Model</span></em>, <em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#quantize_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.quantize_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quantize a Tensorflow model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tf_model</strong> – a keras model</p></li>
+<li><p><strong>input_shape</strong> – shape of the expected input tensor (excluding batch dimension) with channel last order</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the serialized quantized model</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="documents.html" class="btn btn-neutral float-left" title="doctr.documents" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Mindee
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
