@@ -38,7 +38,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         # computing prediction with ctc decoder
         _prediction = tf.nn.ctc_greedy_decoder(
             tf.nn.softmax(tf.transpose(logits, perm=[1, 0, 2])),
-            tf.fill(tf.shape(logits)[0], tf.shape(logits)[1]),
+            tf.fill(logits.shape[0], logits.shape[1]),
             merge_repeated=True
         )[0][0]
         prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab))
