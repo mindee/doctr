@@ -1,10 +1,8 @@
 import pytest
 import os
-from io import BytesIO
 import numpy as np
 import sys
 import math
-import requests
 import warnings
 import tensorflow as tf
 
@@ -15,7 +13,7 @@ if len(gpus) > 0:
 
 from tensorflow.keras import layers, Sequential
 
-from doctr.documents import read_pdf, Document, Page, Block, Line, Word
+from doctr.documents import read_pdf, Document
 from test_documents import mock_pdf
 from doctr import models
 
@@ -32,24 +30,9 @@ def mock_model():
 
 
 @pytest.fixture(scope="module")
-def mock_mapping():
-    return {
-        "V": 0, "W": 1, ";": 2, "w": 3, "&": 4, "1": 5, "<": 6,
-        "\u00fb": 7, "p": 8, "h": 9, "9": 10, "\u00f9": 11, "\u00d9": 12, "j": 13,
-        "*": 14, "s": 15, "?": 16, ",": 17, "\u00ee": 18, "\u00d4": 19, "8": 20,
-        "@": 21, "D": 22, ">": 23, "$": 24, "\u00db": 25, "k": 26, "{": 27, "I": 28,
-        "F": 29, ":": 30, "O": 31, "\u00e0": 32, "a": 33, "\u00c0": 34, "v": 35, "X": 36,
-        "[": 37, "\u00ea": 38, "M": 39, "q": 40, "5": 41, "\u00c2": 42, "G": 43, "\u00f4": 44,
-        "\"": 45, "\u00e7": 46, "L": 47, "\u00e9": 48, "\u00ef": 49, "6": 50, "\u00ce": 51,
-        "y": 52, "/": 53, "#": 54, "3": 55, "N": 56, "x": 57, "\u00c8": 58, "]": 59, "K": 60,
-        "\u00a3": 61, "7": 62, "R": 63, "'": 64, "U": 65, "\u00e8": 66, "J": 67, "H": 68,
-        "t": 69, "r": 70, "c": 71, "P": 72, ".": 73, "\u00cf": 74, "z": 75, "m": 76, "Z": 77,
-        "}": 78, "0": 79, "(": 80, "\u00cb": 81, "b": 82, "\u00e2": 83, "-": 84, "B": 85, "T": 86,
-        "\u00eb": 87, "%": 88, "\u20ac": 89, "E": 90, ")": 91, "i": 92, "_": 93, "Q": 94, "|": 95,
-        "\u00c9": 96, "S": 97, "o": 98, "=": 99, "Y": 100, "A": 101, "4": 102, "e": 103, "n": 104,
-        "u": 105, "g": 106, "!": 107, "2": 108, "l": 109, "f": 110, "+": 111, "\u00c7": 112,
-        "C": 113, "d": 114
-    }
+def mock_vocab():
+    return ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j'
+            '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
 
 
 @pytest.fixture(scope="module")
@@ -74,11 +57,10 @@ def test_quantize_model(mock_model):
 
 
 def test_export_sizes(test_convert_to_tflite, test_convert_to_fp16, test_quantize_model):
+    assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
     if tf.__version__ < "2.4.0":
-        assert sys.getsizeof(test_convert_to_tflite) >= sys.getsizeof(test_convert_to_fp16)
         assert sys.getsizeof(test_convert_to_fp16) >= sys.getsizeof(test_quantize_model)
     else:
-        assert sys.getsizeof(test_convert_to_tflite) > sys.getsizeof(test_convert_to_fp16)
         assert sys.getsizeof(test_convert_to_fp16) > sys.getsizeof(test_quantize_model)
 
 
@@ -86,7 +68,7 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
     num_docs = 3
     batch_size = 4
     docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
-    processor = models.DetectionPreProcessor(output_size=(600, 600), batch_size=batch_size)
+    processor = models.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
 
     # Number of batches
@@ -99,10 +81,10 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
     # Data type
     assert all(batch.dtype == tf.float32 for batch in batched_docs)
     # Image size
-    assert all(batch.shape[1:] == (600, 600, 3) for batch in batched_docs)
+    assert all(batch.shape[1:] == (512, 512, 3) for batch in batched_docs)
     # Test with non-full last batch
     batch_size = 16
-    processor = models.DetectionPreProcessor(output_size=(600, 600), batch_size=batch_size)
+    processor = models.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
     assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
 
@@ -134,11 +116,11 @@ def test_recopreprocessor(mock_pdf):  # noqa: F811
 
 def test_dbpostprocessor():
     postprocessor = models.DBPostProcessor()
-    mock_batch = tf.random.uniform(shape=[8, 600, 600, 1], minval=0, maxval=1)
+    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
-    assert len(out) == 8
+    assert len(out) == 2
     assert all(isinstance(sample, np.ndarray) for sample in out)
     assert all(sample.shape[1] == 5 for sample in out)
     # Relative coords
@@ -148,11 +130,11 @@ def test_dbpostprocessor():
 def test_db_resnet50():
     model = models.db_resnet50(pretrained=True)
     assert isinstance(model, tf.keras.Model)
-    dbinput = tf.random.uniform(shape=[8, 640, 640, 3], minval=0, maxval=1)
+    dbinput = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     # test prediction model
     dboutput_notrain = model(dbinput)
     assert isinstance(dboutput_notrain, tf.Tensor)
-    assert dboutput_notrain.numpy().shape == (8, 640, 640, 1)
+    assert dboutput_notrain.numpy().shape == (2, 1024, 1024, 1)
     assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
     dboutput_train = model(dbinput, training=True)
@@ -160,7 +142,7 @@ def test_db_resnet50():
     assert len(dboutput_train) == 3
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
     # batch size
-    assert all(out.numpy().shape == (8, 640, 640, 1) for out in dboutput_train)
+    assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train)
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -184,31 +166,35 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_size, output_size",
+    "arch_name, input_shape, output_size",
     [
-        ["crnn_vgg16_bn", (32, 128, 3), (32, 31)],
-        ["sar_vgg16_bn", (64, 256, 3), (31, 111)],
+        ["crnn_vgg16_bn", (32, 128, 3), (32, 119)],
+        ["sar_vgg16_bn", (64, 256, 3), (41, 119)],
     ],
 )
-def test_recognition_architectures(arch_name, input_size, output_size):
+def test_recognition_architectures(arch_name, input_shape, output_size):
     batch_size = 8
-    reco_model = models.__dict__[arch_name](input_size=input_size)
-    input_tensor = tf.random.uniform(shape=[batch_size, *input_size], minval=0, maxval=1)
+    reco_model = models.__dict__[arch_name](pretrained=True, input_shape=input_shape)
+    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     out = reco_model(input_tensor)
     assert isinstance(out, tf.Tensor)
     assert isinstance(reco_model, tf.keras.Model)
     assert out.numpy().shape == (batch_size, *output_size)
 
 
-def test_ctc_decoder(mock_mapping):
-    ctc_postprocessor = models.recognition.CTCPostProcessor(
-        num_classes=len(mock_mapping),
-        label_to_idx=mock_mapping
-    )
-    decoded = ctc_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
+@pytest.mark.parametrize(
+    "post_processor, input_shape",
+    [
+        ["SARPostProcessor", [2, 30, 116]],
+        ["CTCPostProcessor", [2, 30, 116]],
+    ],
+)
+def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
+    processor = models.recognition.__dict__[post_processor](mock_vocab)
+    decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
-    assert len(decoded) == 8
-    assert all(len(word) <= 30 for word in decoded)
+    assert len(decoded) == input_shape[0]
+    assert all(len(word) <= input_shape[1] for word in decoded)
 
 
 @pytest.fixture(scope="module")
@@ -216,8 +202,8 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = models.DetectionPredictor(
-        models.DetectionPreProcessor(output_size=(640, 640), batch_size=batch_size),
-        models.db_resnet50(input_size=(640, 640, 3)),
+        models.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size),
+        models.db_resnet50(input_shape=(512, 512, 3)),
         models.DBPostProcessor()
     )
 
@@ -231,13 +217,13 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
 
 @pytest.fixture(scope="module")
-def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
+def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
     predictor = models.RecognitionPredictor(
         models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.crnn_vgg16_bn(num_classes=len(mock_mapping), input_size=(32, 128, 3)),
-        models.CTCPostProcessor(num_classes=len(mock_mapping), label_to_idx=mock_mapping)
+        models.crnn_vgg16_bn(vocab_size=len(mock_vocab), input_shape=(32, 128, 3)),
+        models.CTCPostProcessor(mock_vocab)
     )
 
     pages = read_pdf(mock_pdf)
@@ -254,7 +240,7 @@ def test_recognitionpredictor(mock_pdf, mock_mapping):  # noqa: F811
     return predictor
 
 
-def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
+def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
 
     num_docs = 3
     predictor = models.OCRPredictor(
@@ -272,21 +258,13 @@ def test_ocrpredictor(mock_pdf, mock_mapping, test_detectionpredictor, test_reco
     assert all(len(doc.pages) == 8 for doc in out)
 
 
-def test_sar_decoder(mock_mapping):
-    sar_postprocessor = models.recognition.SARPostProcessor(label_to_idx=mock_mapping)
-    decoded = sar_postprocessor(logits=tf.random.uniform(shape=[8, 30, 116], minval=0, maxval=1, dtype=tf.float32))
-    assert isinstance(decoded, list)
-    assert len(decoded) == 8
-    assert all(len(word) <= 30 for word in decoded)
-
-
 @pytest.mark.parametrize(
-    "arch_name, top_implemented, input_size, output_size",
+    "arch_name, top_implemented, input_shape, output_size",
     [
         ["vgg16_bn", False, (224, 224, 3), (7, 56, 512)],
     ],
 )
-def test_classification_architectures(arch_name, top_implemented, input_size, output_size):
+def test_classification_architectures(arch_name, top_implemented, input_shape, output_size):
     # Head not implemented yet
     if not top_implemented:
         with pytest.raises(NotImplementedError):
@@ -296,7 +274,7 @@ def test_classification_architectures(arch_name, top_implemented, input_size, ou
     batch_size = 2
     model = models.__dict__[arch_name](pretrained=True)
     # Forward
-    out = model(tf.random.uniform(shape=[batch_size, *input_size], maxval=1, dtype=tf.float32))
+    out = model(tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32))
     # Output checks
     assert isinstance(out, tf.Tensor)
     assert out.numpy().shape == (batch_size, *output_size)
@@ -322,6 +300,19 @@ def test_load_pretrained_params(tmpdir_factory):
         assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
     except Exception as e:
         warnings.warn(e)
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "ocr_db_sar",
+    ],
+)
+def test_zoo_models(arch_name):
+    # Model
+    model = models.__dict__[arch_name](pretrained=True)
+    # Output checks
+    assert isinstance(model, models.OCRPredictor)
 
 
 def test_resnet31():

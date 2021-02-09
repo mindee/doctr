@@ -6,7 +6,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-from typing import Union, List, Tuple, Optional, Any, Dict
+from typing import Union, List, Tuple, Any, Optional, Dict
 from ..preprocessor import PreProcessor
 
 __all__ = ['DetectionPreProcessor', 'DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
@@ -33,7 +33,7 @@ class DetectionPreProcessor(PreProcessor):
     def __init__(
         self,
         output_size: Tuple[int, int],
-        batch_size: int,
+        batch_size: int = 1,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
         interpolation: str = 'bilinear'
@@ -60,7 +60,9 @@ class DetectionPreProcessor(PreProcessor):
 class DetectionModel(keras.Model):
     """Implements abstract DetectionModel class"""
 
-    training: bool = False
+    def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.cfg = cfg
 
     def call(
         self,

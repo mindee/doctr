@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from typing import Tuple, List, Any
+from typing import Tuple, List, Any, Optional, Dict
 import numpy as np
 
 from ..preprocessor import PreProcessor
@@ -32,7 +32,7 @@ class RecognitionPreProcessor(PreProcessor):
     def __init__(
         self,
         output_size: Tuple[int, int],
-        batch_size: int,
+        batch_size: int = 1,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
         interpolation: str = 'bilinear',
@@ -75,7 +75,9 @@ class RecognitionPreProcessor(PreProcessor):
 class RecognitionModel(keras.Model):
     """Implements abstract RecognitionModel class"""
 
-    training: bool = False
+    def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.cfg = cfg
 
     def call(
         self,
@@ -89,10 +91,22 @@ class RecognitionPostProcessor:
     """Abstract class to postprocess the raw output of the model
 
     Args:
-        min_size_box (int): minimal length (pix) to keep a box
-        max_candidates (int): maximum boxes to consider in a single page
-        box_thresh (float): minimal objectness score to consider a box
+        vocab: string containing the ordered sequence of supported characters
+        ignore_case: if True, ignore case of letters
+        ignore_accents: if True, ignore accents of letters
     """
+
+    def __init__(
+        self,
+        vocab: str,
+        ignore_case: bool = False,
+        ignore_accents: bool = False
+    ) -> None:
+
+        self.vocab = vocab + '<eos>'
+        self._embedding = tf.constant([char for char in self.vocab], dtype=tf.string, shape=[len(self.vocab)])
+        self.ignore_case = ignore_case
+        self.ignore_accents = ignore_accents
 
     def __call__(
         self,

@@ -3,11 +3,9 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import tensorflow as tf
-from tensorflow import keras
+
 import numpy as np
-from typing import Union, List, Tuple, Optional, Any, Dict
-from .preprocessor import PreProcessor
+from typing import List, Any
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
@@ -87,23 +85,24 @@ class OCRPredictor:
     def __call__(
         self,
         documents: List[List[np.ndarray]],
+        **kwargs: Any,
     ) -> List[Document]:
 
         pages = [page for doc in documents for page in doc]
 
         # Localize text elements
-        boxes = self.det_predictor(pages)
+        boxes = self.det_predictor(pages, **kwargs)
         # Crop images
         crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
         # Identify character sequences
-        char_sequences = self.reco_predictor(crops)
+        char_sequences = self.reco_predictor(crops, **kwargs)
 
         # Reorganize
         num_pages = [len(doc) for doc in documents]
         num_crops = [_boxes.shape[0] for _boxes in boxes]
         page_idx, crop_idx = 0, 0
         results = []
-        for doc_idx, nb_pages in enumerate(num_pages):
+        for nb_pages in num_pages:
             _pages = []
             for page_boxes in boxes[page_idx: page_idx + nb_pages]:
                 # Assemble all detected words into structured blocks

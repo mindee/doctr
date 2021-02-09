@@ -29,7 +29,7 @@ class VGG(Sequential):
         planes: number of output channels in each stage
         rect_pools: whether pooling square kernels should be replace with rectangular ones
         include_top: whether the classifier head should be added
-        input_size: shapes of the input tensor
+        input_shape: shapes of the input tensor
     """
     def __init__(
         self,
@@ -37,12 +37,12 @@ class VGG(Sequential):
         planes: Tuple[int, int, int, int, int],
         rect_pools: Tuple[bool, bool, bool, bool, bool],
         include_top: bool = False,
-        input_size: Tuple[int, int, int] = (640, 640, 3),
+        input_shape: Tuple[int, int, int] = (512, 512, 3),
     ) -> None:
 
         _layers = []
         # Specify input_shape only for the first layer
-        kwargs = {"input_shape": input_size}
+        kwargs = {"input_shape": input_shape}
         for nb_blocks, out_chan, rect_pool in zip(num_blocks, planes, rect_pools):
             for _ in range(nb_blocks):
                 _layers.extend(conv_sequence(out_chan, 'relu', True, kernel_size=3, **kwargs))  # type: ignore[arg-type]

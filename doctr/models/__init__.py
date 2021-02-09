@@ -6,4 +6,5 @@ from ._utils import *
 from .vgg import *
 from .core import *
 from .export import *
+from .zoo import *
 from .resnet import *
