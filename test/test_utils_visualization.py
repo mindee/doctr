@@ -9,5 +9,5 @@ def test_visualize_page():
     pages = _mock_pages()
     images = [np.ones((300, 200, 3)), np.ones((500, 1000, 3))]
     for image, page in zip(images, pages):
-        visualization.visualize_page(page, image)
+        visualization.visualize_page(page, image, words_only=False)
         plt.show(block=False)
