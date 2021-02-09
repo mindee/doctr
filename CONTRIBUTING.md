@@ -6,9 +6,9 @@ Everything you need to know to contribute efficiently to the project.
 
 ## Codebase structure
 
-- [doctr](https://github.com/mindee/doctr/blob/master/doctr) - The actual doctr library
-- [test](https://github.com/mindee/doctr/blob/master/test) - Python unit tests
-- [docs](https://github.com/mindee/doctr/blob/master/docs) - Library documentation building
+- [doctr](https://github.com/mindee/doctr/blob/main/doctr) - The actual doctr library
+- [test](https://github.com/mindee/doctr/blob/main/test) - Python unit tests
+- [docs](https://github.com/mindee/doctr/blob/main/docs) - Library documentation building
 
 
 ## Continuous Integration
