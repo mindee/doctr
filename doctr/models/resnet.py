@@ -102,6 +102,7 @@ class ResnetStage(Sequential):
 
 
 class Resnet(Sequential):
+
     """Resnet class with two convolutions and a maxpooling before the first stage
 
     Args:
