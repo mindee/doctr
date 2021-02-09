@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-import tensorflow.keras.backend as K
 from typing import List
 
 from .core import RecognitionPostProcessor
