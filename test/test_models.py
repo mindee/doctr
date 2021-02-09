@@ -1,17 +1,9 @@
 import pytest
 import os
 import numpy as np
-import sys
-import math
-import warnings
 import tensorflow as tf
 
-# Ensure runnings tests on GPU doesn't run out of memory
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if len(gpus) > 0:
-    tf.config.experimental.set_memory_growth(gpus[0], True)
-
-from tensorflow.keras import layers, Sequential
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from doctr.documents import read_pdf, Document
 from test_documents import mock_pdf
@@ -22,31 +14,6 @@ from doctr import models
 def mock_vocab():
     return ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j'
             '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
-
-
-def test_recopreprocessor(mock_pdf):  # noqa: F811
-    num_docs = 3
-    batch_size = 4
-    docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
-    processor = models.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
-    batched_docs = processor([page for doc in docs for page in doc])
-
-    # Number of batches
-    assert len(batched_docs) == math.ceil(8 * num_docs / batch_size)
-    # Total number of samples
-    assert sum(batch.shape[0] for batch in batched_docs) == 8 * num_docs
-    # Batch size
-    assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
-    assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
-    # Data type
-    assert all(batch.dtype == tf.float32 for batch in batched_docs)
-    # Image size
-    assert all(batch.shape[1:] == (256, 128, 3) for batch in batched_docs)
-    # Test with non-full last batch
-    batch_size = 16
-    processor = models.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
-    batched_docs = processor([page for doc in docs for page in doc])
-    assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -67,62 +34,6 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
     # No box
     assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
-
-
-@pytest.mark.parametrize(
-    "arch_name, input_shape, output_size",
-    [
-        ["crnn_vgg16_bn", (32, 128, 3), (32, 119)],
-        ["sar_vgg16_bn", (64, 256, 3), (41, 119)],
-    ],
-)
-def test_recognition_architectures(arch_name, input_shape, output_size):
-    batch_size = 8
-    reco_model = models.__dict__[arch_name](pretrained=True, input_shape=input_shape)
-    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
-    out = reco_model(input_tensor)
-    assert isinstance(out, tf.Tensor)
-    assert isinstance(reco_model, tf.keras.Model)
-    assert out.numpy().shape == (batch_size, *output_size)
-
-
-@pytest.mark.parametrize(
-    "post_processor, input_shape",
-    [
-        ["SARPostProcessor", [2, 30, 119]],
-        ["CTCPostProcessor", [2, 30, 119]],
-    ],
-)
-def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
-    processor = models.recognition.__dict__[post_processor](mock_vocab)
-    decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
-    assert isinstance(decoded, list) and all(isinstance(word, str) for word in decoded)
-    assert len(decoded) == input_shape[0]
-    assert all(char in mock_vocab for word in decoded for char in word)
-
-
-@pytest.fixture(scope="module")
-def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
-
-    batch_size = 4
-    predictor = models.RecognitionPredictor(
-        models.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        models.crnn_vgg16_bn(vocab_size=len(mock_vocab), input_shape=(32, 128, 3)),
-        models.CTCPostProcessor(mock_vocab)
-    )
-
-    pages = read_pdf(mock_pdf)
-    # Create bounding boxes
-    boxes = np.array([[0, 0, 0.25, 0.25], [0.5, 0.5, 1., 1.]], dtype=np.float32)
-    crops = models.extract_crops(pages[0], boxes)
-
-    out = predictor(crops)
-
-    # One prediction per crop
-    assert len(out) == boxes.shape[0]
-    assert all(isinstance(charseq, str) for charseq in out)
-
-    return predictor
 
 
 def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
