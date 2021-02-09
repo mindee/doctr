@@ -234,7 +234,6 @@
         <span class="c1"># B x W x H x C --&gt; B x W x H * C</span>
         <span class="n">features_seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transposed_feat</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
         <span class="n">decoded_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features_seq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
         <span class="k">return</span> <span class="n">decoded_features</span>
 
 
