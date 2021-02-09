@@ -46,7 +46,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
             merge_repeated=True
         )
         _prediction = _prediction[0][0]
-        prediction = tf.sparse.to_dense(_prediction, default_value=self.num_classes)
+        prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab)- 1)
 
         return prediction
 
