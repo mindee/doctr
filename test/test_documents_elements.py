@@ -55,9 +55,9 @@ def _mock_blocks(size=(1, 1), offset=(0, 0)):
 def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     return [
         elements.Page(_mock_blocks(block_size, block_offset), 0, (300, 200),
-                       {"value": 0., "confidence": 1.}, {"value": "EN", "confidence": 0.8}),
+                      {"value": 0., "confidence": 1.}, {"value": "EN", "confidence": 0.8}),
         elements.Page(_mock_blocks(block_size, block_offset), 1, (500, 1000),
-                       {"value": 0.15, "confidence": 0.8}, {"value": "FR", "confidence": 0.7}),
+                      {"value": 0.15, "confidence": 0.8}, {"value": "FR", "confidence": 0.7}),
     ]
 
 
