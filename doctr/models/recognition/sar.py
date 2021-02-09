@@ -117,16 +117,15 @@ class SARDecoder(layers.Layer):
         **kwargs: Any,
     ) -> tf.Tensor:
 
-        batch_size = tf.shape(features)[0]
         # initialize states (each of shape (N, rnn_units))
         states = self.lstm_decoder.get_initial_state(
-            inputs=None, batch_size=batch_size, dtype=tf.float32
+            inputs=None, batch_size=features.shape[0], dtype=tf.float32
         )
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
         # Initialize with the index of virtual START symbol (placed after <eos>)
-        symbol = tf.fill(batch_size, self.vocab_size + 1)
+        symbol = tf.fill(features.shape[0], self.vocab_size + 1)
         logits_list = []
         for _ in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
