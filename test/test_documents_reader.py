@@ -43,7 +43,7 @@ def test_read_pdf(mock_pdf):
     assert all(page.dtype == np.uint8 for page in doc_tensors)
 
 
-def test_read_img(tmpdir_factory):
+def test_read_img(tmpdir_factory, mock_pdf):
 
     url = 'https://upload.wikimedia.org/wikipedia/commons/5/55/Grace_Hopper.jpg'
     file = BytesIO(requests.get(url).content)
@@ -70,7 +70,7 @@ def test_read_img(tmpdir_factory):
 
     # Non-existing file
     with pytest.raises(FileNotFoundError):
-        documents.reader.read_img("my_imaginary_file.jpg")
+        reader.read_img("my_imaginary_file.jpg")
     # Invalid image
     with pytest.raises(ValueError):
-        documents.reader.read_img(mock_pdf)
+        reader.read_img(str(mock_pdf))
