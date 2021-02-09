@@ -34,19 +34,14 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         Returns:
             decoded logits, shape BATCH_SIZE X SEQ_LEN
-
         """
-        batch_len = tf.cast(tf.shape(logits)[0], dtype=tf.int64)
-        sequence_len = tf.cast(tf.shape(logits)[1], dtype=tf.int32)
-
         # computing prediction with ctc decoder
         _prediction = tf.nn.ctc_greedy_decoder(
             tf.nn.softmax(tf.transpose(logits, perm=[1, 0, 2])),
-            sequence_len * tf.ones(shape=(batch_len,), dtype="int32"),
+            tf.fill(tf.shape(logits)[0], tf.shape(logits)[1]),
             merge_repeated=True
-        )
-        _prediction = _prediction[0][0]
-        prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab)- 1)
+        )[0][0]
+        prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab))
 
         return prediction
 
