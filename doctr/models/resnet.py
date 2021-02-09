@@ -105,22 +105,35 @@ class Resnet(Sequential):
     """
     def __init__(
         self,
-        input_size: Tuple[int, int, int] = (640, 640, 3)
+        input_size: Tuple[int, int, int] = (640, 640, 3),
+        num_blocks: Tuple[int, int, int, int],
+        output_channels: Tuple[int, int, int, int],
+        conv_seq: Tuple[bool, bool, bool, bool],
+        pooling: Tuple[
+            Optional[Tuple[int, int]],
+            Optional[Tuple[int, int]],
+            Optional[Tuple[int, int]],
+            Optional[Tuple[int, int]]
+        ],
+
     ) -> None:
 
         _layers = [
             *conv_sequence(output_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_size),
             *conv_sequence(output_channels=128, activation='relu', bn=True, kernel_size=3),
             layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
-            ResnetStage(num_blocks=1, output_channels=256),
-            *conv_sequence(output_channels=256, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
-            ResnetStage(num_blocks=2, output_channels=256),
-            *conv_sequence(output_channels=256, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPool2D(pool_size=2, strides=(2, 1), padding='valid'),
-            ResnetStage(num_blocks=5, output_channels=512),
-            *conv_sequence(output_channels=512, activation='relu', bn=True, kernel_size=3),
-            ResnetStage(num_blocks=3, output_channels=512),
-            *conv_sequence(output_channels=512, activation='relu', bn=True, kernel_size=3),
         ]
+        for n_blocks, out_channels, conv, pool in zip(num_blocks, output_channels, conv_seq, pooling):
+            _layers.append(ResnetStage(n_blocks, out_channels))
+            if conv:
+                _layers.append(*conv_sequence(out_channels, activation='relu', bn=True, kernel_size=3))
+            if pool:
+                _layers.append(layers.MaxPool2D(pool_size=pool, strides=pool, padding='valid'))
         super().__init__(_layers)
+
+
+default_cfgs: Dict[str, Dict[str, Any]] = {
+    'resnet31': {'num_blocks': (1, 2, 5, 3), 'output_channels': (256, 256, 512, 512),
+                 'conv_seq': (True, True, True, True), 'pooling': ((2, 2), (2, 1), None, None)
+                 'url': None},
+}
