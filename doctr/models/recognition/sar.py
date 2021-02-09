@@ -140,6 +140,8 @@ class SARDecoder(layers.Layer):
             logits = tf.concat([logits, glimpse], axis=-1)
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
+            # update symbol with predicted logits for t+1 step
+            symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
         outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, vocab_size + 1)
 
