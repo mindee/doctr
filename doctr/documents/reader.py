@@ -3,9 +3,10 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import fitz
 import numpy as np
 import cv2
+from pathlib import Path
+import fitz
 from typing import List, Tuple, Optional, Any
 
 __all__ = ['read_pdf', 'read_img']
