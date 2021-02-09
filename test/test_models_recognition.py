@@ -12,7 +12,7 @@ from doctr.models import extract_crops
 from test_documents_reader import mock_pdf
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def mock_vocab():
     return ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j'
             '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
