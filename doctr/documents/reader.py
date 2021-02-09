@@ -31,7 +31,13 @@ def read_img(
         the page decoded as numpy ndarray of shape H x W x 3
     """
 
+    if not Path(file_path).is_file():
+        raise FileNotFoundError(f"unable to access {file_path}")
+
     img = cv2.imread(file_path, cv2.IMREAD_COLOR)
+    # Validity check
+    if img is None:
+        raise ValueError("unable to read file.")
     # Resizing
     if isinstance(output_size, tuple):
         img = cv2.resize(img, output_size[::-1], interpolation=cv2.INTER_LINEAR)
