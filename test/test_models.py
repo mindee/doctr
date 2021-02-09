@@ -10,12 +10,6 @@ from test_documents import mock_pdf
 from doctr import models
 
 
-@pytest.fixture(scope="module")
-def mock_vocab():
-    return ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j'
-            '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
-
-
 def test_extract_crops(mock_pdf):  # noqa: F811
     doc_img = read_pdf(mock_pdf)[0]
     num_crops = 2
