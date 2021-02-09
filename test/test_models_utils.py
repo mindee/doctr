@@ -1,6 +1,5 @@
 import pytest
 import os
-import warnings
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -16,16 +15,12 @@ def test_load_pretrained_params(tmpdir_factory):
     url = "https://github.com/mindee/doctr/releases/download/v0.1-models/tmp_checkpoint-4a98e492.zip"
     # Temp cache dir
     cache_dir = tmpdir_factory.mktemp("cache")
-    # Remove try except once files have been moved to github
-    try:
-        # Pass an incorrect hash
-        with pytest.raises(ValueError):
-            models.utils.load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir), internal_name='')
-        # Let tit resolve the hash from the file name
-        models.utils.load_pretrained_params(model, url, cache_dir=str(cache_dir), internal_name='')
-        # Check that the file was downloaded & the archive extracted
-        assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492"))
-        # Check that archive was deleted
-        assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
-    except Exception as e:
-        warnings.warn(e)
+    # Pass an incorrect hash
+    with pytest.raises(ValueError):
+        utils.load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir), internal_name='')
+    # Let tit resolve the hash from the file name
+    utils.load_pretrained_params(model, url, cache_dir=str(cache_dir), internal_name='')
+    # Check that the file was downloaded & the archive extracted
+    assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492"))
+    # Check that archive was deleted
+    assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
