@@ -58,16 +58,11 @@ class RecognitionPreProcessor(PreProcessor):
         Returns:
             the processed image after being resized
         """
-        image_shape = tf.shape(x)
-        image_height = tf.cast(image_shape[0], dtype=tf.float32)
-        image_width = tf.cast(image_shape[1], dtype=tf.float32)
 
-        scale = self.output_size[0] / image_height
-        max_width = tf.cast(self.output_size[1], tf.int32)
-        new_width = tf.minimum(tf.cast(scale * image_width, dtype=tf.int32), max_width)
-
-        resized = tf.image.resize(x, [self.output_size[0], new_width], method=self.interpolation)
-        padded = tf.image.pad_to_bounding_box(resized, 0, 0, self.output_size[0], self.output_size[1])
+        # Preserve aspect ratio during resizing
+        resized = tf.image.resize(x, self.output_size, method=self.interpolation, preserve_aspect_ratio=True)
+        # Pad on the side that is still too small
+        padded = tf.image.pad_to_bounding_box(resized, 0, 0, *self.output_size)
 
         return padded
 
