@@ -185,8 +185,8 @@ def test_recognition_architectures(arch_name, input_shape, output_size):
 @pytest.mark.parametrize(
     "post_processor, input_shape",
     [
-        ["SARPostProcessor", [2, 30, 116]],
-        ["CTCPostProcessor", [2, 30, 116]],
+        ["SARPostProcessor", [2, 30, 119]],
+        ["CTCPostProcessor", [2, 30, 119]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
