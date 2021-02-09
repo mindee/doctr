@@ -47,7 +47,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         # masking -1 of CTC with num_classes (embedding <eos>)
         pred_shape = tf.shape(_predictions)
-        mask_eos = (len(self.vocab) - 1) * tf.ones(pred_shape, dtype=tf.int64)
+        mask_eos = len(self.vocab) * tf.ones(pred_shape, dtype=tf.int64)
         mask_1 = -1 * tf.ones(pred_shape, dtype=tf.int64)
         predictions = tf.where(mask_1 != _predictions, _predictions, mask_eos)
 
