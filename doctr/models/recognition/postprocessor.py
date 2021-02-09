@@ -41,7 +41,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
             tf.fill(tf.shape(logits)[0], tf.shape(logits)[1]),
             merge_repeated=True
         )[0][0]
-        prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab) - 1)
+        prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab))
 
         return prediction
 
