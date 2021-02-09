@@ -284,7 +284,7 @@ def test_load_pretrained_params(tmpdir_factory):
 
     model = Sequential([layers.Dense(8, activation='relu', input_shape=(4,)), layers.Dense(4)])
     # Retrieve this URL
-    url = "https://srv-store1.gofile.io/download/0oRu0c/tmp_checkpoint-4a98e492.zip"
+    url = "https://github.com/mindee/doctr/releases/download/v0.1-models/tmp_checkpoint-4a98e492.zip"
     # Temp cache dir
     cache_dir = tmpdir_factory.mktemp("cache")
     # Remove try except once files have been moved to github
