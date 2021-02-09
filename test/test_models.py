@@ -323,10 +323,11 @@ def test_load_pretrained_params(tmpdir_factory):
     except Exception as e:
         warnings.warn(e)
 
+
 def test_resnet31():
     resnet_model = models.Resnet31(input_size=(32, 128, 3))
     resnet_input = tf.random.uniform(shape=[8, 32, 128, 3], minval=0, maxval=1)
     resnet_out = resnet_model(inputs=resnet_input)
     assert isinstance(resnet_out, tf.Tensor)
     assert isinstance(resnet_model, tf.keras.Model)
-    assert resnet_out.numpy().shape == (8, 4, 32)
+    assert resnet_out.numpy().shape == (8, 4, 32, 512)

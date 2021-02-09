@@ -20,35 +20,41 @@ class ResnetBlock(layers.Layer):
         kernel_size: size of square kernels
 
     """
-    def init(
+    def __init__(
         self,
         output_channels: int,
-        k_size: int,
         conv_shortcut: bool,
+        **kwargs
     ) -> None:
 
-        super().__init__()
+        super().__init__(**kwargs)
         if conv_shortcut:
             self.shortcut = Sequential(
                 [
-                    layers.Conv2D(filters=output_channels, kernel_size=1, use_bias=False),
+                    layers.Conv2D(
+                        filters=output_channels,
+                        padding='same',
+                        kernel_size=1,
+                        use_bias=False,
+                        kernel_initializer='he_normal'
+                    ),
                     layers.BatchNormalization()
                 ]
             )
         else:
             self.shortcut = layers.Lambda(lambda x: x)
         self.conv_block = Sequential(
-            self.conv_resnetblock(output_channels, k_size)
+            self.conv_resnetblock(output_channels, 3)
         )
         self.act = layers.Activation('relu')
 
     @staticmethod
     def conv_resnetblock(output_channels, kernel_size):
         return [
-            layers.Conv2D(output_channels, kernel_size, use_bias=False),
+            layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
             layers.BatchNormalization(),
             layers.Activation('relu'),
-            layers.Conv2D(output_channels, kernel_size, use_bias=False),
+            layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
             layers.BatchNormalization(),
         ]
 
@@ -56,7 +62,6 @@ class ResnetBlock(layers.Layer):
         self,
         inputs: tf.Tensor
     ) -> tf.Tensor:
-
         clone = self.shortcut(inputs)
         conv_out = self.conv_block(inputs)
         out = self.act(clone + conv_out)
@@ -80,9 +85,9 @@ class ResnetStage(Sequential):
 
         super().__init__()
         final_blocks = [
-            ResnetBlock(output_channels, 3, False) for _ in range(1, num_blocks)
+            ResnetBlock(output_channels, conv_shortcut=False) for _ in range(1, num_blocks)
         ]
-        self.add(ResnetBlock(output_channels, 3, True))
+        self.add(ResnetBlock(output_channels, conv_shortcut=True))
         for final_block in final_blocks:
             self.add(final_block)
 
@@ -118,7 +123,7 @@ class Resnet31(Sequential):
     @staticmethod
     def conv_bn_act(output_channels, kernel_size, **kwargs):
         return [
-            layers.Conv2D(output_channels, kernel_size, **kwargs),
+            layers.Conv2D(output_channels, kernel_size, padding='same', kernel_initializer='he_normal', **kwargs),
             layers.BatchNormalization(),
             layers.Activation('relu'),
         ]
@@ -126,7 +131,7 @@ class Resnet31(Sequential):
     @staticmethod
     def conv_bn_act_pool(output_channels, kernel_size, p_size, **kwargs):
         return [
-            layers.Conv2D(output_channels, kernel_size, **kwargs),
+            layers.Conv2D(output_channels, kernel_size, padding='same', kernel_initializer='he_normal', **kwargs),
             layers.BatchNormalization(),
             layers.Activation('relu'),
             layers.MaxPool2D(pool_size=p_size, strides=p_size, padding='valid'),
