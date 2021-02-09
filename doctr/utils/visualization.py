@@ -106,7 +106,7 @@ def visualize_page(
         image: np array of the page, needs to have the same shape than page.dimensions
     """
     # Display the image
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     ax.imshow(image)
     # hide both axis
     ax.get_xaxis().set_visible(False)

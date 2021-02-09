@@ -56,8 +56,8 @@ setup(
     description='Extract valuable text information from your documents',
     long_description=readme,
     long_description_content_type="text/markdown",
-    url='https://github.com/teamMindee/doctr',
-    download_url='https://github.com/teamMindee/doctr/tags',
+    url='https://github.com/mindee/doctr',
+    download_url='https://github.com/mindee/doctr/tags',
     license='Apache',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

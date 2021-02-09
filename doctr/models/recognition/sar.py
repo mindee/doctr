@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from typing import Tuple, Dict, List, Any, Optional
@@ -15,9 +16,14 @@ from .core import RecognitionPostProcessor
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {'backbone': 'vgg16_bn', 'num_classes': 110, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
-                     'input_size': (64, 256, 3),
-                     'url': None},
+    'sar_vgg16_bn': {
+        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
+        'input_shape': (64, 256, 3),
+        'post_processor': 'SARPostProcessor',
+        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
+        'url': None,
+    },
 }
 
 
@@ -35,13 +41,13 @@ class AttentionModule(layers.Layer):
 
         super().__init__()
         self.hidden_state_projector = layers.Conv2D(
-            filters=attention_units, kernel_size=1, strides=1, use_bias=False, padding='same'
+            attention_units, 1, strides=1, use_bias=False, padding='same', kernel_initializer='he_normal',
         )
         self.features_projector = layers.Conv2D(
-            filters=attention_units, kernel_size=3, strides=1, use_bias=True, padding='same'
+            attention_units, 3, strides=1, use_bias=True, padding='same', kernel_initializer='he_normal',
         )
         self.attention_projector = layers.Conv2D(
-            filters=1, kernel_size=1, strides=1, use_bias=False, padding="same"
+            1, 1, strides=1, use_bias=False, padding="same", kernel_initializer='he_normal',
         )
         self.flatten = layers.Flatten()
 
@@ -50,7 +56,7 @@ class AttentionModule(layers.Layer):
         features: tf.Tensor,
         hidden_state: tf.Tensor,
         **kwargs: Any,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    ) -> tf.Tensor:
 
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, 1, 1, rnn_units) -> (N, 1, 1, attention_units)
@@ -68,7 +74,7 @@ class AttentionModule(layers.Layer):
         glimpse = tf.math.multiply(features, attention_map)
         # shape (N, H * W) -> (N, 1)
         glimpse = tf.reduce_sum(glimpse, axis=[1, 2])
-        return glimpse, attention_map
+        return glimpse
 
 
 class SARDecoder(layers.Layer):
@@ -77,7 +83,7 @@ class SARDecoder(layers.Layer):
     Args:
         rnn_units: number of hidden units in recurrent cells
         max_length: maximum length of a sequence
-        num_classes: number of classes in the model alphabet
+        vocab_size: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
         num_decoder_layers: number of LSTM layers to stack
@@ -88,17 +94,17 @@ class SARDecoder(layers.Layer):
         self,
         rnn_units: int,
         max_length: int,
-        num_classes: int,
+        vocab_size: int,
         embedding_units: int,
         attention_units: int,
         num_decoder_layers: int = 2
     ) -> None:
 
         super().__init__()
-        self.num_classes = num_classes
+        self.vocab_size = vocab_size
         self.embed = layers.Dense(embedding_units, use_bias=False)
         self.attention_module = AttentionModule(attention_units)
-        self.output_dense = layers.Dense(num_classes + 1, use_bias=True)
+        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True)
         self.max_length = max_length
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
@@ -119,29 +125,26 @@ class SARDecoder(layers.Layer):
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
-
-        # initialize symbol
-        sos_symbol = self.num_classes + 1
+        sos_symbol = self.vocab_size + 1
         symbol = sos_symbol * tf.ones(shape=(batch_size,), dtype=tf.int32)
 
         logits_list = []
-        for t in range(self.max_length + 1):  # keep 1 step for <eos>
-            # one-hot symbol with depth num_classes + 2
+        for _ in range(self.max_length + 1):  # keep 1 step for <eos>
+            # one-hot symbol with depth vocab_size + 2
             # embeded_symbol: shape (N, embedding_units)
-            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.num_classes + 2), **kwargs)
+            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 2), **kwargs)
             logits, states = self.lstm_decoder(embeded_symbol, states, **kwargs)
-            glimpse, attention_map = self.attention_module(
+            glimpse = self.attention_module(
                 features, tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1), **kwargs,
             )
             # logits: shape (N, rnn_units), glimpse: shape (N, 1)
             logits = tf.concat([logits, glimpse], axis=-1)
-            # shape (N, rnn_units + 1) -> (N, num_classes + 1)
+            # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
             symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
-
-        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, num_classes + 1)
+        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, vocab_size + 1)
 
         return outputs
 
@@ -152,7 +155,7 @@ class SAR(RecognitionModel):
 
     Args:
         feature_extractor: the backbone serving as feature extractor
-        num_classes: size of the alphabet
+        vocab_size: size of the alphabet
         rnn_units: number of hidden units in both encoder and decoder LSTM
         embedding_units: number of embedding units
         attention_units: number of hidden units in attention module
@@ -163,15 +166,16 @@ class SAR(RecognitionModel):
     def __init__(
         self,
         feature_extractor,
-        num_classes: int = 110,
+        vocab_size: int = 110,
         rnn_units: int = 512,
         embedding_units: int = 512,
         attention_units: int = 512,
         max_length: int = 30,
         num_decoders: int = 2,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__()
+        super().__init__(cfg=cfg)
 
         self.feat_extractor = feature_extractor
 
@@ -183,7 +187,7 @@ class SAR(RecognitionModel):
         )
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, num_classes, embedding_units, attention_units, num_decoders,
+            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
 
         )
 
@@ -205,20 +209,10 @@ class SARPostProcessor(RecognitionPostProcessor):
     """Post processor for SAR architectures
 
     Args:
-        label_to_idx: dictionnary mapping alphabet labels to idx of the model classes
+        vocab: string containing the ordered sequence of supported characters
         ignore_case: if True, ignore case of letters
         ignore_accents: if True, ignore accents of letters
     """
-    def __init__(
-        self,
-        label_to_idx: Dict[str, int],
-        ignore_case: bool = False,
-        ignore_accents: bool = False
-    ) -> None:
-
-        self.label_to_idx = label_to_idx
-        self.ignore_case = ignore_case
-        self.ignore_accents = ignore_accents
 
     def __call__(
         self,
@@ -227,17 +221,9 @@ class SARPostProcessor(RecognitionPostProcessor):
         # compute pred with argmax for attention models
         pred = tf.math.argmax(logits, axis=2)
 
-        # create tf_label_to_idx mapping to decode classes
-        label_mapping = self.label_to_idx.copy()
-        label_mapping['<eos>'] = int(len(label_mapping))
-        label, _ = zip(*sorted(label_mapping.items(), key=lambda x: x[1]))
-        tf_label_to_idx = tf.constant(
-            value=label, dtype=tf.string, shape=[int(len(label_mapping))], name='dic_idx_label'
-        )
-
         # decode raw output of the model with tf_label_to_idx
         pred = tf.cast(pred, dtype='int32')
-        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(tf_label_to_idx, pred), axis=-1)
+        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, pred), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
         words_list = [word.decode() for word in list(decoded_strings_pred.numpy())]
@@ -251,23 +237,33 @@ class SARPostProcessor(RecognitionPostProcessor):
         return words_list
 
 
-def _sar_vgg(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
+    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
+    _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
+    _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
+    _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
+    _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
 
     # Feature extractor
     feat_extractor = vgg.__dict__[default_cfgs[arch]['backbone']](
-        input_size=input_size or default_cfgs[arch]['input_size'],
+        input_shape=_cfg['input_shape'],
         include_top=False,
     )
 
-    kwargs['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
-    kwargs['rnn_units'] = kwargs.get('rnn_units', default_cfgs[arch]['rnn_units'])
-    kwargs['embedding_units'] = kwargs.get('embedding_units', kwargs['rnn_units'])
-    kwargs['attention_units'] = kwargs.get('attention_units', kwargs['rnn_units'])
-    kwargs['max_length'] = kwargs.get('max_length', default_cfgs[arch]['max_length'])
-    kwargs['num_decoders'] = kwargs.get('num_decoders', default_cfgs[arch]['num_decoders'])
+    kwargs['vocab_size'] = _cfg['vocab_size']
+    kwargs['rnn_units'] = _cfg['rnn_units']
+    kwargs['embedding_units'] = _cfg['embedding_units']
+    kwargs['attention_units'] = _cfg['attention_units']
+    kwargs['max_length'] = _cfg['max_length']
+    kwargs['num_decoders'] = _cfg['num_decoders']
 
     # Build the model
-    model = SAR(feat_extractor, **kwargs)
+    model = SAR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
