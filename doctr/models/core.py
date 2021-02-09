@@ -5,7 +5,7 @@
 
 
 import numpy as np
-from typing import List
+from typing import List, Any
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
@@ -85,16 +85,17 @@ class OCRPredictor:
     def __call__(
         self,
         documents: List[List[np.ndarray]],
+        **kwargs: Any,
     ) -> List[Document]:
 
         pages = [page for doc in documents for page in doc]
 
         # Localize text elements
-        boxes = self.det_predictor(pages)
+        boxes = self.det_predictor(pages, **kwargs)
         # Crop images
         crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
         # Identify character sequences
-        char_sequences = self.reco_predictor(crops)
+        char_sequences = self.reco_predictor(crops, **kwargs)
 
         # Reorganize
         num_pages = [len(doc) for doc in documents]

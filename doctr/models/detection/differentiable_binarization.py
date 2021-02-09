@@ -3,7 +3,10 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+# Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
+
 import cv2
+from copy import deepcopy
 import numpy as np
 from shapely.geometry import Polygon
 import pyclipper
@@ -13,22 +16,26 @@ from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .core import DetectionModel, DetectionPostProcessor
-from ..utils import IntermediateLayerGetter, load_pretrained_params
+from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_resnet50': {'backbone': 'ResNet50',
-                    'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
-                    'fpn_channels': 128,
-                    'input_shape': (640, 640, 3),
-                    'url': None},
+    'db_resnet50': {
+        'backbone': 'ResNet50',
+        'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
+        'fpn_channels': 128,
+        'input_shape': (1024, 1024, 3),
+        'post_processor': 'DBPostProcessor',
+        'url': None,
+    },
 }
 
 
 class DBPostProcessor(DetectionPostProcessor):
-    """Implements a post processor for DBNet
+    """Implements a post processor for DBNet adapted from the implementation of `xuannianz
+    <https://github.com/xuannianz/DifferentiableBinarization>`_.
 
     Args:
         unclip ratio: ratio used to unshrink polygons
@@ -40,10 +47,10 @@ class DBPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        unclip_ratio: Union[float, int] = 1.5,
+        unclip_ratio: Union[float, int] = 2.,
         min_size_box: int = 5,
-        max_candidates: int = 100,
-        box_thresh: float = 0.5,
+        max_candidates: int = 1000,
+        box_thresh: float = 0.3,
         bin_thresh: float = 0.3,
     ) -> None:
 
@@ -92,7 +99,7 @@ class DBPostProcessor(DetectionPostProcessor):
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-        expanded_points = np.array(offset.Execute(distance))  # expand polygon
+        expanded_points = np.asarray(offset.Execute(distance))  # expand polygon
         if len(expanded_points) < 1:
             return None
         x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
@@ -118,6 +125,10 @@ class DBPostProcessor(DetectionPostProcessor):
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours[:self.max_candidates]:
+            # Check whether smallest enclosing bounding box is not too small
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) <= 5):
+                continue
+
             epsilon = 0.01 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)  # approximate contour by a polygon
             points = approx.reshape((-1, 2))  # get polygon points
@@ -127,6 +138,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
             _box = self.polygon_to_box(points)
+
             if _box is None or _box[2] < self.min_size_box or _box[3] < self.min_size_box:  # remove to small boxes
                 continue
             x, y, w, h = _box
@@ -178,7 +190,7 @@ class FeaturePyramidNetwork(layers.Layer):
     ) -> None:
         super().__init__()
         self.upsample = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
-        self.inner_blocks = [layers.Conv2D(filters=channels, kernel_size=1, strides=1) for _ in range(4)]
+        self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer='he_normal') for _ in range(4)]
         self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
 
     @staticmethod
@@ -196,11 +208,8 @@ class FeaturePyramidNetwork(layers.Layer):
             a keras.layers.Layer object, wrapping these operations in a sequential module
 
         """
-        _layers = [
-            layers.Conv2D(filters=channels, kernel_size=(3, 3), strides=(1, 1), padding='same'),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
-        ]
+
+        _layers = conv_sequence(channels, 'relu', True, kernel_size=3)
 
         if dilation_factor > 1:
             _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
@@ -239,9 +248,10 @@ class DBNet(DetectionModel):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__()
+        super().__init__(cfg=cfg)
 
         self.feat_extractor = feature_extractor
 
@@ -249,25 +259,21 @@ class DBNet(DetectionModel):
 
         self.probability_head = keras.Sequential(
             [
-                layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="p_map1"),
-                layers.BatchNormalization(name="p_map2"),
+                *conv_sequence(64, 'relu', True, kernel_size=3),
+                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
+                layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=64, kernel_size=(2, 2), strides=(2, 2), use_bias=False, name="p_map3"),
-                layers.BatchNormalization(name="p_map4"),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=1, kernel_size=(2, 2), strides=(2, 2), name="p_map5"),
+                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
                 layers.Activation('sigmoid'),
             ]
         )
         self.threshold_head = keras.Sequential(
             [
-                layers.Conv2D(filters=64, kernel_size=(3, 3), padding='same', use_bias=False, name="t_map1"),
-                layers.BatchNormalization(name="t_map2"),
+                *conv_sequence(64, 'relu', True, kernel_size=3),
+                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
+                layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=64, kernel_size=(2, 2), strides=(2, 2), use_bias=False, name="t_map3"),
-                layers.BatchNormalization(name="t_map4"),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(filters=1, kernel_size=(2, 2), strides=(2, 2), name="t_map5"),
+                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
                 layers.Activation('sigmoid'),
             ]
         )
@@ -308,28 +314,33 @@ class DBNet(DetectionModel):
             return prob_map
 
 
-def _db_resnet(arch: str, pretrained: bool, input_size: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
 
     # Feature extractor
-    resnet = tf.keras.applications.__dict__[default_cfgs[arch]['backbone']](
+    resnet = tf.keras.applications.__dict__[_cfg['backbone']](
         include_top=False,
         weights=None,
-        input_shape=input_size or default_cfgs[arch]['input_shape'],
+        input_shape=_cfg['input_shape'],
         pooling=None,
     )
 
     feat_extractor = IntermediateLayerGetter(
         resnet,
-        default_cfgs[arch]['fpn_layers'],
+        _cfg['fpn_layers'],
     )
 
-    kwargs['fpn_channels'] = kwargs.get('fpn_channels', default_cfgs[arch]['fpn_channels'])
+    kwargs['fpn_channels'] = _cfg['fpn_channels']
 
     # Build the model
-    model = DBNet(feat_extractor, **kwargs)
+    model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 
