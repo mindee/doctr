@@ -8,7 +8,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from doctr.models import recognition
 from doctr.documents import read_pdf
-from test_documents import mock_pdf
+from test_documents_reader import mock_pdf
 
 
 @pytest.fixture(scope="module")

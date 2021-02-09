@@ -6,7 +6,7 @@ import tensorflow as tf
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from doctr.documents import read_pdf, Document
-from test_documents import mock_pdf
+from test_documents_reader import mock_pdf
 from doctr import models
 
 
