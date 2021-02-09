@@ -192,9 +192,9 @@ def test_recognition_architectures(arch_name, input_shape, output_size):
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     processor = models.recognition.__dict__[post_processor](mock_vocab)
     decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
-    assert isinstance(decoded, list)
+    assert isinstance(decoded, list) and all(isinstance(word, str) for word in decoded)
     assert len(decoded) == input_shape[0]
-    assert all(len(word) <= input_shape[1] for word in decoded)
+    assert all(char in mock_vocab for word in decoded for char in word)
 
 
 @pytest.fixture(scope="module")
