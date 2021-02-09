@@ -125,7 +125,7 @@ class SARDecoder(layers.Layer):
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
-        # fill with START symbol (index = vocab_size + 1)
+        # Initialize with the index of virtual START symbol (placed after <eos>)
         symbol = tf.fill(batch_size, self.vocab_size + 1)
         logits_list = []
         for _ in range(self.max_length + 1):  # keep 1 step for <eos>
