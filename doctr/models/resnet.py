@@ -7,18 +7,19 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple
+from utils import conv_sequence
 
 __all__ = ['Resnet31']
 
 
 class ResnetBlock(layers.Layer):
+
     """Implements a resnet31 block with shortcut
 
     Args:
         conv_shortcut: Use of shortcut
         output_channels: number of channels to use in Conv2D
         kernel_size: size of square kernels
-
     """
     def __init__(
         self,
@@ -49,11 +50,12 @@ class ResnetBlock(layers.Layer):
         self.act = layers.Activation('relu')
 
     @staticmethod
-    def conv_resnetblock(output_channels, kernel_size):
+    def conv_resnetblock(
+        output_channels: int,
+        kernel_size: int
+    ) -> list[layers.Layer]:
         return [
-            layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
+            *conv_sequence(output_channels, activation='relu', bn=True, kernel_size=kernel_size)
             layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
             layers.BatchNormalization(),
         ]
@@ -70,12 +72,12 @@ class ResnetBlock(layers.Layer):
 
 
 class ResnetStage(Sequential):
+
     """Implements a resnet31 stage
 
     Args:
         num_blocks: number of blocks inside the stage
         output_channels: number of channels to use in Conv2D
-
     """
     def __init__(
         self,
@@ -92,14 +94,14 @@ class ResnetStage(Sequential):
             self.add(final_block)
 
 
-class Resnet31(Sequential):
+class Resnet(Sequential):
+
     """Resnet31 architecture with rectangular pooling windows as described in
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
     <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
 
     Args:
         input_size: size of the images
-
     """
     def __init__(
         self,
@@ -107,32 +109,18 @@ class Resnet31(Sequential):
     ) -> None:
 
         _layers = [
-            *self.conv_bn_act(output_channels=64, kernel_size=3, input_shape=input_size, use_bias=False),
-            *self.conv_bn_act_pool(output_channels=128, kernel_size=3, p_size=2, use_bias=False),
+            *conv_sequence(output_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_size),
+            *conv_sequence(output_channels=128, activation='relu', bn=True, kernel_size=3),
+            layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
             ResnetStage(num_blocks=1, output_channels=256),
-            *self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=2, use_bias=False),
+            *conv_sequence(output_channels=256, activation='relu', bn=True, kernel_size=3),
+            layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
             ResnetStage(num_blocks=2, output_channels=256),
-            *self.conv_bn_act_pool(output_channels=256, kernel_size=3, p_size=(2, 1), use_bias=False),
+            *conv_sequence(output_channels=256, activation='relu', bn=True, kernel_size=3),
+            layers.MaxPool2D(pool_size=2, strides=(2, 1), padding='valid'),
             ResnetStage(num_blocks=5, output_channels=512),
-            *self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
+            *conv_sequence(output_channels=512, activation='relu', bn=True, kernel_size=3),
             ResnetStage(num_blocks=3, output_channels=512),
-            *self.conv_bn_act(output_channels=512, kernel_size=3, use_bias=False),
+            *conv_sequence(output_channels=512, activation='relu', bn=True, kernel_size=3),
         ]
         super().__init__(_layers)
-
-    @staticmethod
-    def conv_bn_act(output_channels, kernel_size, **kwargs):
-        return [
-            layers.Conv2D(output_channels, kernel_size, padding='same', kernel_initializer='he_normal', **kwargs),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
-        ]
-
-    @staticmethod
-    def conv_bn_act_pool(output_channels, kernel_size, p_size, **kwargs):
-        return [
-            layers.Conv2D(output_channels, kernel_size, padding='same', kernel_initializer='he_normal', **kwargs),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
-            layers.MaxPool2D(pool_size=p_size, strides=p_size, padding='valid'),
-        ]
