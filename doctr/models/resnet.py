@@ -6,10 +6,17 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from typing import Tuple
-from utils import conv_sequence
+from typing import Tuple, Dict, Optional, Any, List
+from .utils import conv_sequence, load_pretrained_params
 
-__all__ = ['Resnet31']
+__all__ = ['Resnet', 'resnet31']
+
+
+default_cfgs: Dict[str, Dict[str, Any]] = {
+    'resnet31': {'num_blocks': (1, 2, 5, 3), 'output_channels': (256, 256, 512, 512),
+                 'conv_seq': (True, True, True, True), 'pooling': ((2, 2), (2, 1), None, None),
+                 'url': None},
+}
 
 
 class ResnetBlock(layers.Layer):
@@ -53,9 +60,9 @@ class ResnetBlock(layers.Layer):
     def conv_resnetblock(
         output_channels: int,
         kernel_size: int
-    ) -> list[layers.Layer]:
+    ) -> List[layers.Layer]:
         return [
-            *conv_sequence(output_channels, activation='relu', bn=True, kernel_size=kernel_size)
+            *conv_sequence(output_channels, activation='relu', bn=True, kernel_size=kernel_size),
             layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
             layers.BatchNormalization(),
         ]
@@ -95,17 +102,19 @@ class ResnetStage(Sequential):
 
 
 class Resnet(Sequential):
-
-    """Resnet31 architecture with rectangular pooling windows as described in
-    `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
-    <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
+    """Resnet class with two convolutions and a maxpooling before the first stage
 
     Args:
-        input_size: size of the images
+        num_blocks: number of resnet block in each stage
+        output_channels: number of channels in each stage
+        conv_seq: wether to add a conv_sequence after each stage
+        pooling: pooling to add after each stage (if None, no pooling)
+        input_shape: shape of inputs
+        include_top: whether the classifier head should be added
     """
+
     def __init__(
         self,
-        input_size: Tuple[int, int, int] = (640, 640, 3),
         num_blocks: Tuple[int, int, int, int],
         output_channels: Tuple[int, int, int, int],
         conv_seq: Tuple[bool, bool, bool, bool],
@@ -115,25 +124,54 @@ class Resnet(Sequential):
             Optional[Tuple[int, int]],
             Optional[Tuple[int, int]]
         ],
+        input_shape: Tuple[int, int, int] = (640, 640, 3),
+        include_top: bool = False,
 
     ) -> None:
 
         _layers = [
-            *conv_sequence(output_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_size),
-            *conv_sequence(output_channels=128, activation='relu', bn=True, kernel_size=3),
+            *conv_sequence(out_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_shape),
+            *conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
             layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
         ]
         for n_blocks, out_channels, conv, pool in zip(num_blocks, output_channels, conv_seq, pooling):
             _layers.append(ResnetStage(n_blocks, out_channels))
             if conv:
-                _layers.append(*conv_sequence(out_channels, activation='relu', bn=True, kernel_size=3))
+                _layers.extend(conv_sequence(out_channels, activation='relu', bn=True, kernel_size=3))
             if pool:
                 _layers.append(layers.MaxPool2D(pool_size=pool, strides=pool, padding='valid'))
+        if include_top:
+            raise NotImplementedError
         super().__init__(_layers)
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
-    'resnet31': {'num_blocks': (1, 2, 5, 3), 'output_channels': (256, 256, 512, 512),
-                 'conv_seq': (True, True, True, True), 'pooling': ((2, 2), (2, 1), None, None)
-                 'url': None},
-}
+def _resnet(arch: str, pretrained: bool, **kwargs: Any) -> Resnet:
+
+    # Build the model
+    model = Resnet(
+        default_cfgs[arch]['num_blocks'],
+        default_cfgs[arch]['output_channels'],
+        default_cfgs[arch]['conv_seq'],
+        default_cfgs[arch]['pooling'],
+        **kwargs
+    )
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    return model
+
+
+def resnet31(pretrained: bool = False, **kwargs: Any) -> Resnet:
+    """Resnet31 architecture with rectangular pooling windows as described in
+    `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
+    <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A resnet31 model
+    """
+
+    return _resnet('resnet31', pretrained, **kwargs)

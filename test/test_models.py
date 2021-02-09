@@ -262,6 +262,7 @@ def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredict
     "arch_name, top_implemented, input_shape, output_size",
     [
         ["vgg16_bn", False, (224, 224, 3), (7, 56, 512)],
+        ["resnet31", False, (32, 128, 3), (4, 32, 512)],
     ],
 )
 def test_classification_architectures(arch_name, top_implemented, input_shape, output_size):
@@ -313,12 +314,3 @@ def test_zoo_models(arch_name):
     model = models.__dict__[arch_name](pretrained=True)
     # Output checks
     assert isinstance(model, models.OCRPredictor)
-
-
-def test_resnet31():
-    resnet_model = models.Resnet31(input_size=(32, 128, 3))
-    resnet_input = tf.random.uniform(shape=[8, 32, 128, 3], minval=0, maxval=1)
-    resnet_out = resnet_model(inputs=resnet_input)
-    assert isinstance(resnet_out, tf.Tensor)
-    assert isinstance(resnet_model, tf.keras.Model)
-    assert resnet_out.numpy().shape == (8, 4, 32, 512)
