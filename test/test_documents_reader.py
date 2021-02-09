@@ -7,16 +7,6 @@ from io import BytesIO
 from doctr.documents import reader
 
 
-@pytest.fixture(scope="session")
-def mock_pdf(tmpdir_factory):
-    url = 'https://arxiv.org/pdf/1911.08947.pdf'
-    file = BytesIO(requests.get(url).content)
-    fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
-    with open(fn, 'wb') as f:
-        f.write(file.getbuffer())
-    return str(fn)
-
-
 def test_convert_page_to_numpy(mock_pdf):
     pdf = fitz.open(mock_pdf)
     # Check correct read

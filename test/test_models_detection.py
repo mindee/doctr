@@ -1,16 +1,10 @@
 import pytest
-import os
 import math
 import numpy as np
-
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 import tensorflow as tf
-from doctr.models import detection
 
+from doctr.models import detection
 from doctr.documents import read_pdf
-from test_documents_reader import mock_pdf
 
 
 def test_detpreprocessor(mock_pdf):  # noqa: F811

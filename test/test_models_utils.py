@@ -1,8 +1,5 @@
 import pytest
 import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 from tensorflow.keras import layers, Sequential
 
 from doctr.models import utils
