@@ -18,6 +18,7 @@ def mock_pdf_stream():
     url = 'https://arxiv.org/pdf/1911.08947.pdf'
     return requests.get(url).content
 
+
 @pytest.fixture(scope="session")
 def mock_pdf(mock_pdf_stream, tmpdir_factory):
     file = BytesIO(mock_pdf_stream)
