@@ -179,7 +179,7 @@
 <span class="kn">import</span> <span class="nn">fitz</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_pdf_from_stream&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="read_img"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_img">[docs]</a><span class="k">def</span> <span class="nf">read_img</span><span class="p">(</span>
@@ -231,7 +231,24 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Read pages with fitz and convert them to numpy ndarrays</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">)]</span></div>
+    <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)]</span></div>
+
+
+<span class="k">def</span> <span class="nf">read_pdf_from_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Read a PDF stream and convert it into an image in numpy format</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.documents import read_pdf_from_stream</span>
+<span class="sd">        &gt;&gt;&gt; with open(&quot;path/to/your/doc.pdf&quot;, &#39;rb&#39;) as f: doc = read_pdf_from_stream(f.read())</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stream: serialized stream of the PDF content</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Read pages with fitz and convert them to numpy ndarrays</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)]</span>
 
 
 <span class="k">def</span> <span class="nf">convert_page_to_numpy</span><span class="p">(</span>
