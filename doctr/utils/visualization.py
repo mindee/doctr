@@ -92,5 +92,11 @@ def visualize_page(
                 ax.add_patch(rect)
                 artists.append(rect)
 
+        if not words_only:
+            for artfact in block['artefacts']:
+                rect = create_patch(line['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5), linewidth=1)
+                ax.add_patch(rect)
+                artists.append(rect)
+
     # Create mlp Cursor to hover patches in artists
     mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
