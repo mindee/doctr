@@ -93,8 +93,8 @@ def visualize_page(
                 artists.append(rect)
 
         if not words_only:
-            for artfact in block['artefacts']:
-                rect = create_patch(line['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5), linewidth=1)
+            for artefact in block['artefacts']:
+                rect = create_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5), linewidth=1)
                 ax.add_patch(rect)
                 artists.append(rect)
 
