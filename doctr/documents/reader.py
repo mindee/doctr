@@ -9,7 +9,7 @@ from pathlib import Path
 import fitz
 from typing import List, Tuple, Optional, Any
 
-__all__ = ['read_pdf', 'read_img']
+__all__ = ['read_pdf', 'read_pdf_from_stream', 'read_img']
 
 
 def read_img(
@@ -61,7 +61,24 @@ def read_pdf(file_path: str, **kwargs: Any) -> List[np.ndarray]:
     """
 
     # Read pages with fitz and convert them to numpy ndarrays
-    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(file_path)]
+    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(file_path, filetype="pdf")]
+
+
+def read_pdf_from_stream(stream: bytes, **kwargs: Any) -> List[np.ndarray]:
+    """Read a PDF stream and convert it into an image in numpy format
+
+    Example::
+        >>> from doctr.documents import read_pdf_from_stream
+        >>> with open("path/to/your/doc.pdf", 'rb') as f: doc = read_pdf_from_stream(f.read())
+
+    Args:
+        stream: serialized stream of the PDF content
+    Returns:
+        the list of pages decoded as numpy ndarray of shape H x W x 3
+    """
+
+    # Read pages with fitz and convert them to numpy ndarrays
+    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(stream=stream, filetype="pdf")]
 
 
 def convert_page_to_numpy(

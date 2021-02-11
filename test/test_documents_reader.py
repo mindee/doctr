@@ -23,14 +23,21 @@ def test_convert_page_to_numpy(mock_pdf):
     assert resized_page.shape == (396, 306, 3)
 
 
-def test_read_pdf(mock_pdf):
-
-    doc_tensors = reader.read_pdf(mock_pdf)
-
+def _check_pdf_content(doc_tensors):
     # 1 doc of 8 pages
     assert(len(doc_tensors) == 8)
     assert all(isinstance(page, np.ndarray) for page in doc_tensors)
     assert all(page.dtype == np.uint8 for page in doc_tensors)
+
+
+def test_read_pdf(mock_pdf):
+    doc_tensors = reader.read_pdf(mock_pdf)
+    _check_pdf_content(doc_tensors)
+
+
+def test_read_pdf_from_stream(mock_pdf_stream):
+    doc_tensors = reader.read_pdf_from_stream(mock_pdf_stream)
+    _check_pdf_content(doc_tensors)
 
 
 def test_read_img(tmpdir_factory, mock_pdf):
