@@ -42,6 +42,7 @@ class CRNN(RecognitionModel):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg)
+        super().__init__(cfg=cfg)
         self.feat_extractor = feature_extractor
         self.decoder = Sequential(
             [
