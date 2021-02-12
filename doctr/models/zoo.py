@@ -8,13 +8,11 @@ from .core import OCRPredictor
 from . import detection, recognition
 
 
-__all__ = ["ocr_db_sar"]
+__all__ = ["ocr_db_sar", "ocr_db_crnn"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'ocr_db_sar': {
-        'detection': 'db_resnet50',
-        'recognition': 'sar_vgg16_bn',
-    },
+    'ocr_db_sar': {'detection': 'db_resnet50', 'recognition': 'sar_vgg16_bn'},
+    'ocr_db_crnn': {'detection': 'db_resnet50', 'recognition': 'crnn_vgg16_bn'},
 }
 
 
@@ -51,3 +49,17 @@ def ocr_db_sar(pretrained: bool, **kwargs: Any) -> OCRPredictor:
     """
 
     return _predictor('ocr_db_sar', pretrained, **kwargs)
+
+
+def ocr_db_crnn(pretrained: bool, **kwargs: Any) -> OCRPredictor:
+    """End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
+    backbone as text recognition architecture.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        OCR predictor
+    """
+
+    return _predictor('ocr_db_crnn', pretrained, **kwargs)
