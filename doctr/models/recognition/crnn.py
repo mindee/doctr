@@ -41,7 +41,6 @@ class CRNN(RecognitionModel):
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(cfg)
         super().__init__(cfg=cfg)
         self.feat_extractor = feature_extractor
         self.decoder = Sequential(
