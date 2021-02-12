@@ -28,7 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'post_processor': 'DBPostProcessor',
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/db_resnet50-c8664afa.zip',
     },
 }
 
