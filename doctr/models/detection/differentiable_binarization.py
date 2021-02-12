@@ -47,11 +47,11 @@ class DBPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        unclip_ratio: Union[float, int] = 2.,
-        min_size_box: int = 5,
+        unclip_ratio: Union[float, int] = 1.5,
+        min_size_box: int = 3,
         max_candidates: int = 1000,
-        box_thresh: float = 0.3,
-        bin_thresh: float = 0.3,
+        box_thresh: float = 0.1,
+        bin_thresh: float = 0.1,
     ) -> None:
 
         super().__init__(
