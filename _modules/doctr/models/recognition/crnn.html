@@ -191,7 +191,7 @@
                       <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;3K}7eé;5àÎYho]QwV6qU~W&quot;XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-&#39;</span>
                                 <span class="s1">&#39;kçHëÀÂ2É/ûIJ</span><span class="se">\&#39;</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l&#39;</span><span class="p">),</span>
-                      <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+                      <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1-models/crnn_vgg16bn-f1d4cc4c.zip&#39;</span><span class="p">},</span>
 <span class="p">}</span>
 
 
@@ -211,7 +211,7 @@
         <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
             <span class="p">[</span>
