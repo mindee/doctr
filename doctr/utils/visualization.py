@@ -7,78 +7,36 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import mplcursors
 import numpy as np
-from typing import Union, Tuple, List
+from typing import Tuple, List, Dict, Any
 
-from ..documents import Page, Block, Line, Word, Artefact
+from ._typing import BoundingBox
 
 __all__ = ['visualize_page']
 
 
-def draw_word(
-    word: Word,
+def create_patch(
+    geometry: BoundingBox,
+    label: str,
     page_dimensions: Tuple[int, int],
-    word_color: Tuple[int, int, int],
-    alpha: float = 0.3
-) -> patches.Patch:
-    """Create a matplotlib patch (rectangle) bounding the word
-
-    Args:
-        word: Word object to bound
-        page_dimensions: dimensions of the Page
-        word_color: color to draw box
-        alpha: opacity parameter to fill the boxes, 0 = transparent
-
-    Returns:
-        a rectangular Patch
-    """
-    h, w = page_dimensions
-    (xmin, ymin), (xmax, ymax) = word.geometry
-    xmin, xmax = xmin * w, xmax * w
-    ymin, ymax = ymin * h, ymax * h
-    rect = patches.Rectangle(
-        (xmin, ymin),
-        xmax - xmin,
-        ymax - ymin,
-        fill=True,
-        linewidth=2,
-        edgecolor=word_color,
-        facecolor=(*word_color, alpha),
-        label=f"{word.value} (confidence: {word.confidence:.2%})"
-    )
-    return rect
-
-
-def draw_element(
-    element: Union[Artefact, Line, Block],
-    page_dimensions: Tuple[int, int],
-    element_color: Tuple[int, int, int],
+    color: Tuple[int, int, int],
     alpha: float = 0.3,
-    force_label: bool = True,
+    linewidth: int = 2,
 ) -> patches.Patch:
     """Create a matplotlib patch (rectangle) bounding the element
 
     Args:
-        element: Element (Artefact, Line, Block) to bound
+        geometry: bounding box of the element
+        label: label to display when hovered
         page_dimensions: dimensions of the Page
-        element_color: color to draw box
+        color: color to draw box
         alpha: opacity parameter to fill the boxes, 0 = transparent
-        force_label: wether to give a label to the patch or not if element = block or line
+        linewidth: line width
 
     Returns:
         a rectangular Patch
     """
-    if isinstance(element, Artefact):
-        value = "type: {type}, confidence {score}".format(type=element.type, score=element.confidence)
-    elif force_label:
-        if isinstance(element, Line):
-            value = "line"
-        elif isinstance(element, Block):
-            value = "block"
-    else:
-        value = None
-
     h, w = page_dimensions
-    (xmin, ymin), (xmax, ymax) = element.geometry
+    (xmin, ymin), (xmax, ymax) = geometry
     xmin, xmax = xmin * w, xmax * w
     ymin, ymax = ymin * h, ymax * h
     rect = patches.Rectangle(
@@ -86,50 +44,57 @@ def draw_element(
         xmax - xmin,
         ymax - ymin,
         fill=True,
-        linewidth=1,
-        edgecolor=(*element_color, alpha),
-        facecolor=(*element_color, alpha),
-        label=value
+        linewidth=linewidth,
+        edgecolor=(*color, alpha),
+        facecolor=(*color, alpha),
+        label=label
     )
     return rect
 
 
 def visualize_page(
-    page: Page,
+    page: Dict[str, Any],
     image: np.ndarray,
     words_only: bool = True,
 ) -> None:
     """Visualize a full page with predicted blocks, lines and words
 
     Args:
-        page: a Page of a Document
-        image: np array of the page, needs to have the same shape than page.dimensions
+        page: the exported Page of a Document
+        image: np array of the page, needs to have the same shape than page['dimensions']
+        words_only: whether only words should be displayed
     """
     # Display the image
     _, ax = plt.subplots()
     ax.imshow(image)
     # hide both axis
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
+    ax.axis('off')
 
     artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
-    for block in page.blocks:
+    for block in page['blocks']:
         if not words_only:
-            rect = draw_element(block, page_dimensions=page.dimensions, element_color=(0, 1, 0))
+            rect = create_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0), linewidth=1)
             # add patch on figure
             ax.add_patch(rect)
             # add patch to cursor's artists
             artists.append(rect)
 
-        for line in block.lines:
+        for line in block['lines']:
             if not words_only:
-                rect = draw_element(line, page_dimensions=page.dimensions, element_color=(1, 0, 0))
+                rect = create_patch(line['geometry'], 'line', page['dimensions'], (1, 0, 0), linewidth=1)
                 ax.add_patch(rect)
                 artists.append(rect)
 
-            for word in line.words:
-                rect = draw_word(word, page_dimensions=page.dimensions, word_color=(0, 0, 1))
+            for word in line['words']:
+                rect = create_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
+                                    page['dimensions'], (0, 0, 1))
+                ax.add_patch(rect)
+                artists.append(rect)
+
+        if not words_only:
+            for artefact in block['artefacts']:
+                rect = create_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5), linewidth=1)
                 ax.add_patch(rect)
                 artists.append(rect)
 

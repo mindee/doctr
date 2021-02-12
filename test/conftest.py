@@ -14,9 +14,14 @@ def mock_vocab():
 
 
 @pytest.fixture(scope="session")
-def mock_pdf(tmpdir_factory):
+def mock_pdf_stream():
     url = 'https://arxiv.org/pdf/1911.08947.pdf'
-    file = BytesIO(requests.get(url).content)
+    return requests.get(url).content
+
+
+@pytest.fixture(scope="session")
+def mock_pdf(mock_pdf_stream, tmpdir_factory):
+    file = BytesIO(mock_pdf_stream)
     fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
     with open(fn, 'wb') as f:
         f.write(file.getbuffer())
