@@ -73,6 +73,7 @@ def test_classification_architectures(arch_name, top_implemented, input_shape, o
     "arch_name",
     [
         "ocr_db_sar",
+        "ocr_db_crnn",
     ],
 )
 def test_zoo_models(arch_name):

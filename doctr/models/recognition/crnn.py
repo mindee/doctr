@@ -21,7 +21,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
                       'post_processor': 'CTCPostProcessor',
                       'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                                 'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-                      'url': None},
+                      'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/crnn_vgg16bn-f1d4cc4c.zip'},
 }
 
 
@@ -41,7 +41,7 @@ class CRNN(RecognitionModel):
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(cfg)
+        super().__init__(cfg=cfg)
         self.feat_extractor = feature_extractor
         self.decoder = Sequential(
             [
