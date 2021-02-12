@@ -37,7 +37,7 @@ class CRNN(RecognitionModel):
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
-        vocab_size: int = 30,
+        vocab_size: int = 118,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
