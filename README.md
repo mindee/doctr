@@ -47,7 +47,12 @@ You can use the library like any other python package to analyze your documents 
 
 ```python
 from doctr.documents import read_pdf
+from doctr.models import ocr_db_crnn
+
+model = ocr_db_crnn(pretrained=True)
 doc = read_pdf("path/to/your/doc.pdf")
+result = model([doc])
+json_output = result[0].export()
 ```
 
 ### Docker container
