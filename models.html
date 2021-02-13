@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#pre-processing">Pre-processing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#text-recognition">Text Recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#end-to-end-predictors">End-to-End predictors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#model-export">Model export</a></li>
 </ul>
 </li>
@@ -248,6 +249,25 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="end-to-end-predictors">
+<h2>End-to-End predictors<a class="headerlink" href="#end-to-end-predictors" title="Permalink to this headline">¶</a></h2>
+<p>Predictors that localize and identify text element in boxes</p>
+<dl class="py function">
+<dt id="doctr.models.zoo.ocr_db_crnn">
+<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_crnn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_crnn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_crnn" title="Permalink to this definition">¶</a></dt>
+<dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
+backbone as text recognition architecture.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>OCR predictor</p>
 </dd>
 </dl>
 </dd></dl>

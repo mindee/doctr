@@ -37,6 +37,13 @@ Architectures to identify strings inside the localized boxes
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn
 
 
+End-to-End predictors
+---------------------
+Predictors that localize and identify text element in boxes
+
+.. autofunction:: doctr.models.zoo.ocr_db_crnn
+
+
 Model export
 ------------
 Utility functions to make the most of document analysis models.
