@@ -148,4 +148,4 @@ jobs:
 
       - name: Build documentation
         run: |
-          sphinx-build docs/source docs/build -a
+          sphinx-build docs/source docs/_build -a
