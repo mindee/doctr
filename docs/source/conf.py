@@ -12,9 +12,9 @@ import sphinx_rtd_theme
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
 import doctr
 
 # -- Project information -----------------------------------------------------
@@ -38,13 +38,10 @@ extensions = [
 	'sphinx.ext.autodoc',
 	'sphinx.ext.napoleon',
 	'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.doctest',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinxemoji.sphinxemoji',  # cf. https://sphinxemojicodes.readthedocs.io/en/stable/
+    'sphinx_copybutton',
 ]
 
 napoleon_use_ivar = True
@@ -55,7 +52,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
 
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -86,10 +83,11 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
 
-html_context = {
-    'css_files': [
-        'https://fonts.googleapis.com/css?family=Lato',
-    ],
-}
+# A list of files that should not be packed into the epub file.
+epub_exclude_files = ['search.html']
+
+def setup(app):
+    app.add_css_file('css/mindee.css')
+    app.add_js_file('js/custom.js')
