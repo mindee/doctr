@@ -9,7 +9,7 @@ import mplcursors
 import numpy as np
 from typing import Tuple, List, Dict, Any
 
-from ._typing import BoundingBox
+from .common_types import BoundingBox
 
 __all__ = ['visualize_page']
 
