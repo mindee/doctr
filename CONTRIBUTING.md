@@ -75,6 +75,6 @@ pip install -r docs/requirements.txt
 ```
 - build the documentation
 ```shell
-sphinx-build docs/source docs/build -a
+sphinx-build docs/source docs/_build -a
 ```
-- you can now open your local version of the documentation located at `docs/build/index.html` in your browser
+- you can now open your local version of the documentation located at `docs/_build/index.html` in your browser
