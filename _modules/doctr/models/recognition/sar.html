@@ -448,6 +448,13 @@
     <span class="sd">&quot;&quot;&quot;SAR with a VGG16 feature extractor as described in `&quot;Show, Attend and Read:A Simple and Strong</span>
 <span class="sd">    Baseline for Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import sar_vgg16_bn</span>
+<span class="sd">        &gt;&gt;&gt; model = sar_vgg16_bn(pretrained=False)</span>
+<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
 

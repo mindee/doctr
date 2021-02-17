@@ -212,9 +212,16 @@
     <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span><span class="n">det_predictor</span><span class="p">,</span> <span class="n">reco_predictor</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">ocr_db_sar</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">ocr_db_sar</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_sar</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_db_sar(pretrained=False)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
@@ -226,9 +233,16 @@
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ocr_db_crnn"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_crnn">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_crnn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<div class="viewcode-block" id="ocr_db_crnn"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_crnn">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_crnn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_crnn</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_db_crnn(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>

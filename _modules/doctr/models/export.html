@@ -193,6 +193,12 @@
 <div class="viewcode-block" id="convert_to_tflite"><a class="viewcode-back" href="../../../models.html#doctr.models.export.convert_to_tflite">[docs]</a><span class="k">def</span> <span class="nf">convert_to_tflite</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Converts a model to TFLite format</span>
 
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import convert_to_tflite, conv_sequence</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; serialized_model = convert_to_tflite(model)</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        tf_model: a keras model</span>
 
@@ -205,6 +211,12 @@
 
 <div class="viewcode-block" id="convert_to_fp16"><a class="viewcode-back" href="../../../models.html#doctr.models.export.convert_to_fp16">[docs]</a><span class="k">def</span> <span class="nf">convert_to_fp16</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Converts a model to half precision</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import convert_to_fp16, conv_sequence</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; serialized_model = convert_to_fp16(model)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        tf_model: a keras model</span>
@@ -221,6 +233,12 @@
 
 <div class="viewcode-block" id="quantize_model"><a class="viewcode-back" href="../../../models.html#doctr.models.export.quantize_model">[docs]</a><span class="k">def</span> <span class="nf">quantize_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Quantize a Tensorflow model</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import quantize_model, conv_sequence</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; serialized_model = quantize_model(model, (224, 224, 3))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        tf_model: a keras model</span>

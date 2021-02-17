@@ -523,6 +523,13 @@
     <span class="sd">&quot;&quot;&quot;DBNet as described in `&quot;Real-time Scene Text Detection with Differentiable Binarization&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_, using a ResNet-50 backbone.</span>
 
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import db_resnet50</span>
+<span class="sd">        &gt;&gt;&gt; model = db_resnet50(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
 
