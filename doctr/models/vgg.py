@@ -69,6 +69,13 @@ def vgg16_bn(pretrained: bool = False, **kwargs: Any) -> VGG:
     """VGG-16 architecture as described in `"Very Deep Convolutional Networks for Large-Scale Image Recognition"
     <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization.
 
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import vgg16_bn
+        >>> model = vgg16_bn(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 

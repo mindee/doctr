@@ -33,10 +33,15 @@ def load_pretrained_params(
 ) -> None:
     """Load a set of parameters onto a model
 
+    Example::
+        >>> from doctr.models import load_pretrained_params
+        >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
+
     Args:
         model: the keras model to be loaded
-        url: URL of the set of parameters
+        url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
+        overwrite: should the zip extraction be enforced if the archive has already been extracted
         internal_name: name of the ckpt files
     """
 
@@ -83,6 +88,11 @@ def conv_sequence(
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
+    Example::
+        >>> from doctr.models import conv_sequence
+        >>> from tensorflow.keras import Sequential
+        >>> module = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=[224, 224, 3]))
+
     Args:
         out_channels: number of output channels
         activation: activation to be used (default: no activation)
@@ -110,6 +120,12 @@ def conv_sequence(
 
 class IntermediateLayerGetter(Model):
     """Implements an intermediate layer getter
+
+    Example::
+        >>> from doctr.models import IntermediateLayerGetter
+        >>> from tensorflow.keras.applications import ResNet50
+        >>> target_layers = ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
+        >>> feat_extractor = IntermediateLayerGetter(ResNet50(include_top=False, pooling=False), target_layers)
 
     Args:
         model: the model to extract feature maps from

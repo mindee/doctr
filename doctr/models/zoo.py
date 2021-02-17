@@ -37,9 +37,16 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> OCRPredictor:
     return OCRPredictor(det_predictor, reco_predictor)
 
 
-def ocr_db_sar(pretrained: bool, **kwargs: Any) -> OCRPredictor:
+def ocr_db_sar(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
     """End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN
     backbone as text recognition architecture.
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.models import ocr_db_sar
+        >>> model = ocr_db_sar(pretrained=False)
+        >>> input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)
+        >>> out = model([[input_page]])
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
@@ -51,9 +58,16 @@ def ocr_db_sar(pretrained: bool, **kwargs: Any) -> OCRPredictor:
     return _predictor('ocr_db_sar', pretrained, **kwargs)
 
 
-def ocr_db_crnn(pretrained: bool, **kwargs: Any) -> OCRPredictor:
+def ocr_db_crnn(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
     """End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
     backbone as text recognition architecture.
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.models import ocr_db_crnn
+        >>> model = ocr_db_crnn(pretrained=True)
+        >>> input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)
+        >>> out = model([[input_page]])
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet

@@ -97,6 +97,13 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a VGG-16 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
     from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
 
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import crnn_vgg16_bn
+        >>> model = crnn_vgg16_bn(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
 
