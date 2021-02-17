@@ -28,6 +28,65 @@ def test_extract_crops(mock_pdf):  # noqa: F811
     assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
 
 
+def test_documentbuilder():
+
+    with pytest.raises(NotImplementedError):
+        models.DocumentBuilder(resolve_blocks=True)
+
+    words_per_page = 10
+    num_pages = 2
+
+    # Don't resolve lines
+    doc_builder = models.DocumentBuilder()
+    boxes = np.random.rand(words_per_page, 5)
+    boxes[:2] *= boxes[2:4]
+
+    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
+    assert isinstance(out, list) and all(isinstance(doc, Document) for doc in out)
+    assert len(out[0].pages) == num_pages
+    # 1 Block & 1 line per page
+    assert len(out[0].pages[0].blocks) == 1 and len(out[0].pages[0].blocks[0].lines) == 1
+    assert len(out[0].pages[0].blocks[0].lines[0].words) == words_per_page
+
+    # Resolve lines
+    doc_builder = models.DocumentBuilder(resolve_lines=True)
+    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
+
+
+@pytest.mark.parametrize(
+    "input_boxes, sorted_idxs",
+    [
+        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0]],  # vertical
+        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0]],  # diagonal
+        [[[0, 0.5, 0.1, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [0, 1, 2]],  # same line, 2p
+        [[[0, 0.5, 0.1, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2]],  # ~same line
+        [[[0, 0.3, 0.4, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
+        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
+    ],
+)
+def test_sort_boxes(input_boxes, sorted_idxs):
+
+    doc_builder = models.DocumentBuilder()
+    assert doc_builder._sort_boxes(np.asarray(input_boxes)).tolist() == sorted_idxs
+
+
+@pytest.mark.parametrize(
+    "input_boxes, sorted_idxs, lines",
+    [
+        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0], [[2], [1], [0]]],  # vertical
+        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0], [[2], [1], [0]]],  # diagonal
+        [[[0, 0.5, 0.1, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [0, 1, 2], [[0, 1], [2]]],  # same line, 2p
+        [[[0, 0.5, 0.1, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2], [[0, 1], [2]]],  # ~same line
+        [[[0, 0.3, 0.4, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2], [[0, 1], [2]]],  # 2 lines
+        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2], [[0], [1], [2]]],  # 2 lines
+    ],
+)
+def test_resolve_lines(input_boxes, sorted_idxs, lines):
+
+    doc_builder = models.DocumentBuilder()
+    assert doc_builder._resolve_lines(np.asarray(input_boxes), np.asarray(sorted_idxs)) == lines
+
+
 def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
 
     num_docs = 3
