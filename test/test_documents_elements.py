@@ -1,5 +1,3 @@
-import pytest
-
 from doctr.documents import elements
 
 
