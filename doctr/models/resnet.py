@@ -168,6 +168,13 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> Resnet:
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
     <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
 
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import resnet31
+        >>> model = resnet31(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
     Args:
         pretrained: boolean, True if model is pretrained
 

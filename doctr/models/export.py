@@ -18,6 +18,12 @@ __all__ = ['convert_to_tflite', 'convert_to_fp16', 'quantize_model']
 def convert_to_tflite(tf_model: Model) -> bytes:
     """Converts a model to TFLite format
 
+    Example::
+        >>> from tensorflow.keras import Sequential
+        >>> from doctr.models import convert_to_tflite, conv_sequence
+        >>> model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))
+        >>> serialized_model = convert_to_tflite(model)
+
     Args:
         tf_model: a keras model
 
@@ -30,6 +36,12 @@ def convert_to_tflite(tf_model: Model) -> bytes:
 
 def convert_to_fp16(tf_model: Model) -> bytes:
     """Converts a model to half precision
+
+    Example::
+        >>> from tensorflow.keras import Sequential
+        >>> from doctr.models import convert_to_fp16, conv_sequence
+        >>> model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))
+        >>> serialized_model = convert_to_fp16(model)
 
     Args:
         tf_model: a keras model
@@ -46,6 +58,12 @@ def convert_to_fp16(tf_model: Model) -> bytes:
 
 def quantize_model(tf_model: Model, input_shape: Tuple[int, int, int]) -> bytes:
     """Quantize a Tensorflow model
+
+    Example::
+        >>> from tensorflow.keras import Sequential
+        >>> from doctr.models import quantize_model, conv_sequence
+        >>> model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))
+        >>> serialized_model = quantize_model(model, (224, 224, 3))
 
     Args:
         tf_model: a keras model

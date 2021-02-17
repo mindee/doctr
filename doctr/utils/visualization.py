@@ -59,6 +59,17 @@ def visualize_page(
 ) -> None:
     """Visualize a full page with predicted blocks, lines and words
 
+    Example::
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+        >>> from doctr.utils.visualization import visualize_page
+        >>> from doctr.models import ocr_db_crnn
+        >>> model = ocr_db_crnn(pretrained=True)
+        >>> input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)
+        >>> out = model([[input_page]])
+        >>> visualize_page(out[0].pages[0].export(), input_page)
+        >>> plt.show()
+
     Args:
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
