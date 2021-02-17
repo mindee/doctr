@@ -37,7 +37,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> OCRPredictor:
     return OCRPredictor(det_predictor, reco_predictor)
 
 
-def ocr_db_sar(pretrained: bool, **kwargs: Any) -> OCRPredictor:
+def ocr_db_sar(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
     """End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN
     backbone as text recognition architecture.
 
@@ -58,7 +58,7 @@ def ocr_db_sar(pretrained: bool, **kwargs: Any) -> OCRPredictor:
     return _predictor('ocr_db_sar', pretrained, **kwargs)
 
 
-def ocr_db_crnn(pretrained: bool, **kwargs: Any) -> OCRPredictor:
+def ocr_db_crnn(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
     """End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
     backbone as text recognition architecture.
 
