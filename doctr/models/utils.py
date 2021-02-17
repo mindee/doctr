@@ -39,8 +39,9 @@ def load_pretrained_params(
 
     Args:
         model: the keras model to be loaded
-        url: URL of the set of parameters
+        url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
+        overwrite: should the zip extraction be enforced if the archive has already been extracted
         internal_name: name of the ckpt files
     """
 
