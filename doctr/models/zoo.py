@@ -17,13 +17,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def _predictor(arch: str, pretrained: bool, det_batch_size=2, reco_batch_size=16, **kwargs: Any) -> OCRPredictor:
+def _predictor(arch: str, pretrained: bool, det_bs=2, reco_bs=16, **kwargs: Any) -> OCRPredictor:
 
     # Detection
-    det_predictor = det_zoo.__dict__[default_cfgs[arch]['detection']](pretrained=pretrained, batch_size=det_batch_size)
+    det_predictor = det_zoo.__dict__[default_cfgs[arch]['detection']](pretrained=pretrained, batch_size=det_bs)
 
     # Recognition
-    reco_predictor = reco_zoo.__dict__[default_cfgs[arch]['recognition']](pretrained=pretrained, batch_size=reco_batch_size)
+    reco_predictor = reco_zoo.__dict__[default_cfgs[arch]['recognition']](pretrained=pretrained, batch_size=reco_bs)
 
     return OCRPredictor(det_predictor, reco_predictor)
 
