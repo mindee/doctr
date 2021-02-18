@@ -5,34 +5,25 @@
 
 from typing import Dict, Any
 from .core import OCRPredictor
-from . import detection, recognition
+from .detection import zoo as det_zoo
+from .recognition import zoo as reco_zoo
 
 
 __all__ = ["ocr_db_sar", "ocr_db_crnn"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'ocr_db_sar': {'detection': 'db_resnet50', 'recognition': 'sar_vgg16_bn'},
-    'ocr_db_crnn': {'detection': 'db_resnet50', 'recognition': 'crnn_vgg16_bn'},
+    'ocr_db_sar': {'detection': 'db_resnet50_predictor', 'recognition': 'sar_vgg16_bn_predictor'},
+    'ocr_db_crnn': {'detection': 'db_resnet50_predictor', 'recognition': 'crnn_vgg16_bn_predictor'},
 }
 
 
-def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> OCRPredictor:
+def _predictor(arch: str, pretrained: bool, det_batch_size=2, reco_batch_size=16, **kwargs: Any) -> OCRPredictor:
 
     # Detection
-    _model = detection.__dict__[default_cfgs[arch]['detection']](pretrained=pretrained)
-    det_predictor = detection.DetectionPredictor(
-        detection.DetectionPreProcessor(output_size=_model.cfg['input_shape'][:2], batch_size=2),
-        _model,
-        detection.__dict__[_model.cfg['post_processor']]()
-    )
+    det_predictor = det_zoo.__dict__[default_cfgs[arch]['detection']](pretrained=pretrained, batch_size=det_batch_size)
 
     # Recognition
-    _model = recognition.__dict__[default_cfgs[arch]['recognition']](pretrained=pretrained)
-    reco_predictor = recognition.RecognitionPredictor(
-        recognition.RecognitionPreProcessor(output_size=_model.cfg['input_shape'][:2], batch_size=16),
-        _model,
-        recognition.__dict__[_model.cfg['post_processor']](_model.cfg['vocab'])
-    )
+    reco_predictor = reco_zoo.__dict__[default_cfgs[arch]['recognition']](pretrained=pretrained, batch_size=reco_batch_size)
 
     return OCRPredictor(det_predictor, reco_predictor)
 
