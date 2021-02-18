@@ -8,7 +8,7 @@ from tensorflow import keras
 from typing import Tuple, List, Any, Optional, Dict
 import numpy as np
 
-from ..preprocessor import PreProcessor
+from ..core import PreProcessor
 
 __all__ = ['RecognitionPreProcessor', 'RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor']
 
