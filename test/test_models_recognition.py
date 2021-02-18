@@ -40,7 +40,7 @@ def test_recopreprocessor(mock_pdf):  # noqa: F811
         ["sar_vgg16_bn", (64, 256, 3), (41, 119)],
     ],
 )
-def test_recognition_architectures(arch_name, input_shape, output_size):
+def test_recognition_models(arch_name, input_shape, output_size):
     batch_size = 8
     reco_model = recognition.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
@@ -87,3 +87,22 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     assert all(isinstance(charseq, str) for charseq in out)
 
     return predictor
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "crnn_vgg16_bn_predictor",
+        "sar_vgg16_bn_predictor",
+    ],
+)
+def test_recognition_zoo(arch_name):
+    batch_size = 2
+    # Model
+    predictor = recognition.zoo.__dict__[arch_name](pretrained=False)
+    # object check
+    assert isinstance(predictor, recognition.RecognitionPredictor)
+    input_tensor = tf.random.uniform(shape=[batch_size, 1024, 1024, 3], minval=0, maxval=1)
+    out = predictor(input_tensor)
+    assert isinstance(out, list) and len(out) == batch_size
+    assert all(isinstance(word, str) for word in out)

@@ -45,15 +45,10 @@ def test_dbpostprocessor():
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
 
 
-def test_db_resnet50():
-    model = detection.db_resnet50(pretrained=True)
+def test_db_resnet50_training_mode():
+    model = detection.db_resnet50(pretrained=False)
     assert isinstance(model, tf.keras.Model)
     dbinput = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
-    # test prediction model
-    dboutput_notrain = model(dbinput)
-    assert isinstance(dboutput_notrain, tf.Tensor)
-    assert dboutput_notrain.numpy().shape == (2, 1024, 1024, 1)
-    assert np.all(dboutput_notrain.numpy() > 0) and np.all(dboutput_notrain.numpy() < 1)
     # test training model
     dboutput_train = model(dbinput, training=True)
     assert isinstance(dboutput_train, tuple)
@@ -61,6 +56,27 @@ def test_db_resnet50():
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
     # batch size
     assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train)
+
+
+@pytest.mark.parametrize(
+    "arch_name, input_shape, output_size, out_prob",
+    [
+        ["db_resnet50", (1024, 1024, 3), (1024, 1024, 1), True],
+    ],
+)
+def test_detection_models(arch_name, input_shape, output_size, out_prob):
+
+    batch_size = 2
+    model = detection.__dict__[arch_name](pretrained=True)
+    assert isinstance(model, tf.keras.Model)
+    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
+    # test prediction model
+    out = model(input_tensor)
+    assert isinstance(out, tf.Tensor)
+    out = out.numpy()
+    assert out.shape == (batch_size, *output_size)
+    if out_prob:
+        assert np.all(np.logical_and(out >= 0, out <= 1))
 
 
 @pytest.fixture(scope="session")
@@ -80,3 +96,20 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     assert len(out) == 8
 
     return predictor
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "db_resnet50_predictor",
+    ],
+)
+def test_detection_zoo(arch_name):
+    # Model
+    predictor = detection.zoo.__dict__[arch_name](pretrained=False)
+    # object check
+    assert isinstance(predictor, detection.DetectionPredictor)
+    input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
+    out = predictor(input_tensor)
+    assert isinstance(out, list)
+    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
