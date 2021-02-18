@@ -5,7 +5,7 @@
 
 import os
 import matplotlib.pyplot as plt
-from doctr import models
+from doctr.models import zoo
 from doctr.documents import read_pdf
 from doctr.utils.visualization import visualize_page
 
@@ -13,6 +13,9 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def main(args):
+
+    if args.model not in zoo.__all__:
+        raise ValueError('only the following end-to-end predictors are supported:', zoo.__all__)
 
     model = models.__dict__[args.model](pretrained=True)
 
@@ -30,7 +33,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR end-to-end analysis',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('path', type=str, help='Path to the input document')
+    parser.add_argument('path', type=str, help='Path to the input PDF document')
     parser.add_argument('--model', type=str, default='ocr_db_crnn', help='OCR model to use for analysis')
     args = parser.parse_args()
 

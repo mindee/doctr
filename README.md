@@ -15,6 +15,7 @@ Extract valuable information from your documents.
 * [Usage](#usage)
   * [Python package](#python-package)
   * [Docker container](#docker-container)
+  * [Example script](#example-script)
 * [Documentation](#documentation)
 * [Contributing](#contributing)
 * [License](#license)
@@ -62,6 +63,16 @@ If you are to deploy containerized environments, you can use the provided Docker
 ```shell
 docker build . -t <YOUR_IMAGE_TAG>
 ```
+
+### Example script
+
+An example script is provided for a simple documentation analysis of a PDF file:
+
+```shell
+python scripts/analyze.py path/to/your/doc.pdf
+```
+All script arguments can be checked using `python scripts/analyze.py --help`
+
 
 ## Documentation
 
