@@ -5,13 +5,106 @@
 
 
 import numpy as np
+import tensorflow as tf
 from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
 from ..documents.elements import Word, Line, Block, Page, Document
 
-__all__ = ['OCRPredictor', 'DocumentBuilder']
+__all__ = ['PreProcessor', 'OCRPredictor', 'DocumentBuilder']
+
+
+class PreProcessor:
+    """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
+
+    Args:
+        output_size: expected size of each page in format (H, W)
+        batch_size: the size of page batches
+        mean: mean value of the training distribution by channel
+        std: standard deviation of the training distribution by channel
+        interpolation: one of 'bilinear', 'nearest', 'bicubic', 'area', 'lanczos3', 'lanczos5'
+
+    """
+
+    def __init__(
+        self,
+        output_size: Tuple[int, int],
+        batch_size: int,
+        mean: Tuple[float, float, float] = (.5, .5, .5),
+        std: Tuple[float, float, float] = (1., 1., 1.),
+        interpolation: str = 'bilinear'
+    ) -> None:
+
+        self.output_size = output_size
+        self.mean = tf.cast(mean, dtype=tf.float32)
+        self.std = tf.cast(std, dtype=tf.float32)
+        self.batch_size = batch_size
+        self.interpolation = interpolation
+
+    def resize(
+        self,
+        x: tf.Tensor
+    ) -> tf.Tensor:
+        raise NotImplementedError
+
+    def normalize(
+        self,
+        x: tf.Tensor
+    ) -> tf.Tensor:
+        """Takes a tensor and moves it to [-1, 1] range
+
+        Args:
+            x: tensor ro normalize
+        Returns:
+            normalized tensor encoded in float32
+        """
+        # Re-center and scale the distribution to [-1, 1]
+        return tf.cast(x, tf.float32) * (self.std / 255) - (self.mean / self.std)
+
+    def batch_inputs(
+        self,
+        x: List[tf.Tensor]
+    ) -> List[tf.Tensor]:
+        """Gather samples into batches for inference purposes
+
+        Args:
+            x: list of samples (tf.Tensor)
+
+        Returns:
+            list of batched samples
+        """
+
+        num_batches = len(x) / self.batch_size
+        # Deal with fixed-size batches
+        b_images = [tf.stack(x[idx * self.batch_size: (idx + 1) * self.batch_size], axis=0)
+                    for idx in range(int(num_batches))]
+        # Deal with the last batch
+        if num_batches > int(num_batches):
+            b_images.append(tf.stack(x[int(num_batches) * self.batch_size:], axis=0))
+        return b_images
+
+    def __call__(
+        self,
+        x: List[np.ndarray]
+    ) -> List[tf.Tensor]:
+        """Prepare document data for model forwarding
+
+        Args:
+            x: list of images (np.array)
+        Returns:
+            list of page batches
+        """
+        # convert images to tf
+        tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
+        # Resize (and eventually pad) the inputs
+        images = [self.resize(sample) for sample in tensors]
+        # Batch them
+        processed_batches = self.batch_inputs(images)
+        # Normalize
+        processed_batches = [self.normalize(b) for b in processed_batches]
+
+        return processed_batches
 
 
 class OCRPredictor:
