@@ -103,10 +103,24 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#pre-processing">Pre-processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-predictors">End-to-End predictors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#id1">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a></li>
 </ul>
 </li>
@@ -216,11 +230,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.export.convert_to_fp16">convert_to_fp16() (in module doctr.models.export)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.export.convert_to_tflite">convert_to_tflite() (in module doctr.models.export)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.crnn_vgg16_bn">crnn_vgg16_bn() (in module doctr.models.recognition)</a>
+</li>
+      <li><a href="models.html#doctr.models.recognition.crnn_vgg16_bn_predictor">crnn_vgg16_bn_predictor() (in module doctr.models.recognition)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -230,6 +246,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.detection.db_resnet50">db_resnet50() (in module doctr.models.detection)</a>
 </li>
+      <li><a href="models.html#doctr.models.detection.db_resnet50_predictor">db_resnet50_predictor() (in module doctr.models.detection)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     doctr
 
@@ -237,8 +257,6 @@
         <li><a href="index.html#module-doctr">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="documents.html#doctr.documents.Document">Document (class in doctr.documents)</a>
 </li>
   </ul></td>
@@ -279,10 +297,6 @@
       <li><a href="documents.html#doctr.documents.Page">Page (class in doctr.documents)</a>
 </li>
   </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#doctr.models.preprocessor.PreProcessor">PreProcessor (class in doctr.models.preprocessor)</a>
-</li>
-  </ul></td>
 </tr></table>
 
 <h2 id="Q">Q</h2>
@@ -309,6 +323,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn_predictor">sar_vgg16_bn_predictor() (in module doctr.models.recognition)</a>
 </li>
   </ul></td>
 </tr></table>
