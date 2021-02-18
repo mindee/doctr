@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python Module Index &mdash; doctr 0.1.0a0-git documentation</title>
+  <title>doctr.utils &mdash; doctr 0.1.0a0-git documentation</title>
   
 
   
@@ -39,13 +39,7 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
- 
-
-    <script>
-      DOCUMENTATION_OPTIONS.COLLAPSE_INDEX = true;
-    </script>
-
-
+    <link rel="prev" title="doctr.models" href="models.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -103,7 +97,7 @@
 </li>
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
@@ -117,8 +111,8 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
 </ul>
@@ -166,10 +160,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Python Module Index</li>
+      <li>doctr.utils</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -181,29 +179,56 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
+  <div class="section" id="doctr-utils">
+<h1>doctr.utils<a class="headerlink" href="#doctr-utils" title="Permalink to this headline">¶</a></h1>
+<p>This module regroups non-core features that are complementary to the rest of the package.</p>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<p>Easy-to-use functions to make sense of your model’s predictions.</p>
+<dl class="py function">
+<dt id="doctr.utils.visualization.visualize_page">
+<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize a full page with predicted blocks, lines and words</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">visualize_page</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_db_crnn</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_db_crnn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([[</span><span class="n">input_page</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">visualize_page</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="n">input_page</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the exported Page of a Document</p></li>
+<li><p><strong>image</strong> – np array of the page, needs to have the same shape than page[‘dimensions’]</p></li>
+<li><p><strong>words_only</strong> – whether only words should be displayed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
-   <h1>Python Module Index</h1>
-
-   <div class="modindex-jumpbox">
-   <a href="#cap-d"><strong>d</strong></a>
-   </div>
-
-   <table class="indextable modindextable">
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-d"><td></td><td>
-       <strong>d</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="index.html#module-doctr"><code class="xref">doctr</code></a></td><td>
-       <em></em></td></tr>
-   </table>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="models.html" class="btn btn-neutral float-left" title="doctr.models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

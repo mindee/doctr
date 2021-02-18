@@ -18,6 +18,7 @@ DocTR provides an easy and powerful way to extract valuable information from you
 
    documents
    models
+   utils
 
 
 .. automodule:: doctr
