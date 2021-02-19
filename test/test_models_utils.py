@@ -21,3 +21,11 @@ def test_load_pretrained_params(tmpdir_factory):
     assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492"))
     # Check that archive was deleted
     assert os.path.exists(cache_dir.join('models').join("tmp_checkpoint-4a98e492.zip"))
+
+
+def test_conv_sequence():
+
+    assert len(utils.conv_sequence(8, kernel_size=3)) == 1
+    assert len(utils.conv_sequence(8, 'relu', kernel_size=3)) == 1
+    assert len(utils.conv_sequence(8, None, True, kernel_size=3)) == 2
+    assert len(utils.conv_sequence(8, 'relu', True, kernel_size=3)) == 3
