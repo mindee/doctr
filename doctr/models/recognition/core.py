@@ -9,6 +9,7 @@ from typing import Tuple, List, Any, Optional, Dict
 import numpy as np
 
 from ..preprocessor import PreProcessor
+from doctr.utils.repr import NestedObject
 
 __all__ = ['RecognitionPreProcessor', 'RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor']
 
@@ -67,15 +68,12 @@ class RecognitionPreProcessor(PreProcessor):
         return padded
 
 
-class RecognitionModel(keras.Model):
+class RecognitionModel(keras.Model, NestedObject):
     """Implements abstract RecognitionModel class"""
 
     def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.cfg = cfg
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
 
     def call(
         self,
@@ -85,7 +83,7 @@ class RecognitionModel(keras.Model):
         raise NotImplementedError
 
 
-class RecognitionPostProcessor:
+class RecognitionPostProcessor(NestedObject):
     """Abstract class to postprocess the raw output of the model
 
     Args:
@@ -106,8 +104,8 @@ class RecognitionPostProcessor:
         self.ignore_case = ignore_case
         self.ignore_accents = ignore_accents
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(vocab_size={len(self.vocab)})"
+    def extra_repr(self) -> str:
+        return f"vocab_size={len(self.vocab)}"
 
     def __call__(
         self,
@@ -116,7 +114,7 @@ class RecognitionPostProcessor:
         raise NotImplementedError
 
 
-class RecognitionPredictor:
+class RecognitionPredictor(NestedObject):
     """Implements an object able to identify character sequences in images
 
     Args:
@@ -124,6 +122,8 @@ class RecognitionPredictor:
         model: core detection architecture
         post_processor: post process model outputs
     """
+
+    _children_names: List[str] = ['pre_processor', 'model', 'post_processor']
 
     def __init__(
         self,

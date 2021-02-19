@@ -8,6 +8,7 @@ from tensorflow import keras
 import numpy as np
 from typing import Union, List, Tuple, Any, Optional, Dict
 from ..preprocessor import PreProcessor
+from doctr.utils.repr import NestedObject
 
 __all__ = ['DetectionPreProcessor', 'DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 
@@ -57,15 +58,12 @@ class DetectionPreProcessor(PreProcessor):
         return tf.image.resize(x, self.output_size, method=self.interpolation)
 
 
-class DetectionModel(keras.Model):
+class DetectionModel(keras.Model, NestedObject):
     """Implements abstract DetectionModel class"""
 
     def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.cfg = cfg
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
 
     def call(
         self,
@@ -75,7 +73,7 @@ class DetectionModel(keras.Model):
         raise NotImplementedError
 
 
-class DetectionPostProcessor:
+class DetectionPostProcessor(NestedObject):
     """Abstract class to postprocess the raw output of the model
 
     Args:
@@ -95,8 +93,8 @@ class DetectionPostProcessor:
         self.max_candidates = max_candidates
         self.box_thresh = box_thresh
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(box_thresh={self.box_thresh}, max_candidates={self.max_candidates})"
+    def extra_repr(self) -> str:
+        return f"box_thresh={self.box_thresh}, max_candidates={self.max_candidates}"
 
     def __call__(
         self,
@@ -105,7 +103,7 @@ class DetectionPostProcessor:
         raise NotImplementedError
 
 
-class DetectionPredictor:
+class DetectionPredictor(NestedObject):
     """Implements an object able to localize text elements in a document
 
     Args:
@@ -113,6 +111,8 @@ class DetectionPredictor:
         model: core detection architecture
         post_processor: post process model outputs
     """
+
+    _children_names: List[str] = ['pre_processor', 'model', 'post_processor']
 
     def __init__(
         self,
