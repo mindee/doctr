@@ -1,6 +1,9 @@
 import pytest
 import os
+import tensorflow as tf
 from tensorflow.keras import layers, Sequential
+from tensorflow.keras.applications import ResNet50
+
 
 from doctr.models import utils
 
@@ -29,3 +32,14 @@ def test_conv_sequence():
     assert len(utils.conv_sequence(8, 'relu', kernel_size=3)) == 1
     assert len(utils.conv_sequence(8, None, True, kernel_size=3)) == 2
     assert len(utils.conv_sequence(8, 'relu', True, kernel_size=3)) == 3
+
+
+def test_intermediate_layer_getter():
+    backbone = ResNet50(include_top=False, weights=None, pooling=None)
+    feat_extractor = utils.IntermediateLayerGetter(backbone, ["conv2_block3_out", "conv3_block4_out"])
+    # Check num of output features
+    input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], minval=0, maxval=1)
+    assert len(feat_extractor(input_tensor)) == 2
+
+    # Repr
+    assert repr(feat_extractor) == "IntermediateLayerGetter()"

@@ -7,11 +7,13 @@ import tensorflow as tf
 import numpy as np
 from typing import List, Tuple
 
+from doctr.utils.repr import NestedObject
+
 
 __all__ = ['PreProcessor']
 
 
-class PreProcessor:
+class PreProcessor(NestedObject):
     """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
 
     Args:
@@ -79,6 +81,9 @@ class PreProcessor:
         if num_batches > int(num_batches):
             b_images.append(tf.stack(x[int(num_batches) * self.batch_size:], axis=0))
         return b_images
+
+    def extra_repr(self) -> str:
+        return f"output_size={self.output_size}, mean={self.mean}, std={self.std}"
 
     def __call__(
         self,

@@ -6,11 +6,12 @@
 from typing import Tuple, Dict, List, Any, Optional
 from doctr.utils.geometry import resolve_enclosing_bbox
 from doctr.utils.common_types import BoundingBox
+from doctr.utils.repr import NestedObject
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 
 
-class Element:
+class Element(NestedObject):
     """Implements an abstract document element with exporting and text rendering capabilities"""
 
     _exported_keys: List[str] = []
@@ -56,6 +57,9 @@ class Word(Element):
         """Renders the full text of the element"""
         return self.value
 
+    def extra_repr(self) -> str:
+        return f"value='{self.value}', confidence={self.confidence:.2}"
+
 
 class Artefact(Element):
     """Implements a non-textual element
@@ -78,6 +82,9 @@ class Artefact(Element):
     def render(self) -> str:
         """Renders the full text of the element"""
         return f"[{self.type.upper()}]"
+
+    def extra_repr(self) -> str:
+        return f"type='{self.type}', confidence={self.confidence:.2}"
 
 
 class Line(Element):
@@ -175,6 +182,9 @@ class Page(Element):
     def render(self, block_break: str = '\n\n') -> str:
         """Renders the full text of the element"""
         return block_break.join(b.render() for b in self.blocks)
+
+    def extra_repr(self) -> str:
+        return f"dimensions={self.dimensions}"
 
 
 class Document(Element):

@@ -76,6 +76,9 @@ def test_word():
     # Export
     assert word.export() == {"value": word_str, "confidence": conf, "geometry": geom}
 
+    # Repr
+    assert word.__repr__() == f"Word(value='hello', confidence={conf:.2})"
+
 
 def test_line():
     geom = ((0, 0), (0.5, 0.5))
@@ -92,6 +95,10 @@ def test_line():
 
     # Export
     assert line.export() == {"words": [w.export() for w in words], "geometry": geom}
+
+    # Repr
+    words_str = ' ' * 4 + ',\n    '.join(repr(word) for word in words) + ','
+    assert line.__repr__() == f"Line(\n  (words): [\n{words_str}\n  ]\n)"
 
 
 def test_artefact():
@@ -110,6 +117,9 @@ def test_artefact():
 
     # Export
     assert artefact.export() == {"type": artefact_type, "confidence": conf, "geometry": geom}
+
+    # Repr
+    assert artefact.__repr__() == f"Artefact(type='{artefact_type}', confidence={conf:.2})"
 
 
 def test_block():
@@ -156,6 +166,9 @@ def test_page():
     # Export
     assert page.export() == {"blocks": [b.export() for b in blocks], "page_idx": page_idx, "dimensions": page_size,
                              "orientation": orientation, "language": language}
+
+    # Repr
+    assert '\n'.join(repr(page).split('\n')[:2]) == f'Page(\n  dimensions={repr(page_size)}'
 
 
 def test_document():

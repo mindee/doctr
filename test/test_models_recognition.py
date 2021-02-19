@@ -31,6 +31,8 @@ def test_recopreprocessor(mock_pdf):  # noqa: F811
     processor = recognition.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
     assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
+    # Repr
+    assert repr(processor) == 'RecognitionPreProcessor(output_size=(256, 128), mean=[0.5 0.5 0.5], std=[1. 1. 1.])'
 
 
 @pytest.mark.parametrize(
@@ -63,6 +65,8 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert isinstance(decoded, list) and all(isinstance(word, str) for word in decoded)
     assert len(decoded) == input_shape[0]
     assert all(char in mock_vocab for word in decoded for char in word)
+    # Repr
+    assert repr(processor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
 
 
 @pytest.fixture(scope="session")

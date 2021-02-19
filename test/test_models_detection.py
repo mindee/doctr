@@ -31,6 +31,9 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
     batched_docs = processor([page for doc in docs for page in doc])
     assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
 
+    # Repr
+    assert repr(processor) == 'DetectionPreProcessor(output_size=(512, 512), mean=[0.5 0.5 0.5], std=[1. 1. 1.])'
+
 
 def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor()
@@ -43,6 +46,8 @@ def test_dbpostprocessor():
     assert all(sample.shape[1] == 5 for sample in out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
+    # Repr
+    assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1, max_candidates=1000)'
 
 
 def test_db_resnet50_training_mode():

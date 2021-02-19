@@ -9,18 +9,21 @@ from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
-from ..documents.elements import Word, Line, Block, Page, Document
+from doctr.documents.elements import Word, Line, Block, Page, Document
+from doctr.utils.repr import NestedObject
 
 __all__ = ['OCRPredictor', 'DocumentBuilder']
 
 
-class OCRPredictor:
+class OCRPredictor(NestedObject):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
         det_predictor: detection module
         reco_predictor: recognition module
     """
+
+    _children_names: List[str] = ['det_predictor', 'reco_predictor', 'doc_builder']
 
     def __init__(
         self,
@@ -54,7 +57,7 @@ class OCRPredictor:
         return results
 
 
-class DocumentBuilder:
+class DocumentBuilder(NestedObject):
     """Implements a document builder
 
     Args:
@@ -165,6 +168,9 @@ class DocumentBuilder:
         ]
 
         return blocks
+
+    def extra_repr(self) -> str:
+        return f"resolve_lines={self.resolve_lines}, paragraph_break={self.paragraph_break}"
 
     def __call__(
         self,
