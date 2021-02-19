@@ -17,7 +17,7 @@ def main(args):
     if args.model not in zoo.__all__:
         raise ValueError('only the following end-to-end predictors are supported:', zoo.__all__)
 
-    model = models.__dict__[args.model](pretrained=True)
+    model = zoo.__dict__[args.model](pretrained=True)
 
     doc = read_pdf(args.path)
 
