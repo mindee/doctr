@@ -52,6 +52,9 @@ def test_documentbuilder():
     doc_builder = models.DocumentBuilder(resolve_lines=True)
     out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
 
+    # Repr
+    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=False, paragraph_break=False)"
+
 
 @pytest.mark.parametrize(
     "input_boxes, sorted_idxs",
