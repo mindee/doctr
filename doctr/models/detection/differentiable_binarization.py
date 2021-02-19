@@ -17,6 +17,7 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 
 from .core import DetectionModel, DetectionPostProcessor
 from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
+from doctr.utils.repr import NestedObject
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -175,7 +176,7 @@ class DBPostProcessor(DetectionPostProcessor):
         return boxes_batch
 
 
-class FeaturePyramidNetwork(layers.Layer):
+class FeaturePyramidNetwork(layers.Layer, NestedObject):
     """Feature Pyramid Network as described in `"Feature Pyramid Networks for Object Detection"
     <https://arxiv.org/pdf/1612.03144.pdf>`_.
 
@@ -188,6 +189,7 @@ class FeaturePyramidNetwork(layers.Layer):
         channels: int,
     ) -> None:
         super().__init__()
+        self.channels = channels
         self.upsample = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
         self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer='he_normal') for _ in range(4)]
         self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
@@ -217,6 +219,9 @@ class FeaturePyramidNetwork(layers.Layer):
 
         return module
 
+    def extra_repr(self) -> str:
+        return f"channels={self.channels}"
+
     def call(
         self,
         x: List[tf.Tensor],
@@ -234,7 +239,7 @@ class FeaturePyramidNetwork(layers.Layer):
         return layers.concatenate(results)
 
 
-class DBNet(DetectionModel):
+class DBNet(DetectionModel, NestedObject):
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
@@ -242,6 +247,8 @@ class DBNet(DetectionModel):
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
+
+    _children_names = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head']
 
     def __init__(
         self,

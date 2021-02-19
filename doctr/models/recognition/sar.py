@@ -12,6 +12,7 @@ from .. import vgg
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
 from .core import RecognitionPostProcessor
+from doctr.utils.repr import NestedObject
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
 
@@ -27,7 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class AttentionModule(layers.Layer):
+class AttentionModule(layers.Layer, NestedObject):
     """Implements attention module of the SAR model
 
     Args:
@@ -77,7 +78,7 @@ class AttentionModule(layers.Layer):
         return glimpse
 
 
-class SARDecoder(layers.Layer):
+class SARDecoder(layers.Layer, NestedObject):
     """Implements decoder module of the SAR model
 
     Args:
@@ -161,6 +162,8 @@ class SAR(RecognitionModel):
         num_decoders: number of LSTM to stack in decoder layer
 
     """
+
+    _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder']
     def __init__(
         self,
         feature_extractor,
