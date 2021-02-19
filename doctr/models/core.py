@@ -166,6 +166,9 @@ class DocumentBuilder:
 
         return blocks
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(resolve_lines={self.resolve_lines}, paragraph_break={self.paragraph_break})"
+
     def __call__(
         self,
         boxes: List[np.ndarray],
