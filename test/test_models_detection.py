@@ -61,8 +61,6 @@ def test_db_resnet50_training_mode():
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
     # batch size
     assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train)
-    # repr
-    assert repr(model) == "DBNet()"
 
 
 @pytest.mark.parametrize(
