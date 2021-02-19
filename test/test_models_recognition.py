@@ -66,7 +66,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert len(decoded) == input_shape[0]
     assert all(char in mock_vocab for word in decoded for char in word)
     # Repr
-    assert repr(postprocessor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
+    assert repr(processor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
 
 
 @pytest.fixture(scope="session")

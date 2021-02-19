@@ -53,7 +53,7 @@ def test_documentbuilder():
     out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
 
     # Repr
-    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=False, paragraph_break=False)"
+    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, paragraph_break=0.15)"
 
 
 @pytest.mark.parametrize(
