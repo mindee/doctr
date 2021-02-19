@@ -64,6 +64,9 @@ class DetectionModel(keras.Model):
         super().__init__(*args, **kwargs)
         self.cfg = cfg
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
     def call(
         self,
         x: tf.Tensor,
@@ -91,6 +94,9 @@ class DetectionPostProcessor:
         self.min_size_box = min_size_box
         self.max_candidates = max_candidates
         self.box_thresh = box_thresh
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(box_thresh={self.box_thresh}, max_candidates={self.max_candidates})"
 
     def __call__(
         self,

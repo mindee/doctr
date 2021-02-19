@@ -74,6 +74,9 @@ class RecognitionModel(keras.Model):
         super().__init__(*args, **kwargs)
         self.cfg = cfg
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
     def call(
         self,
         x: tf.Tensor,
@@ -102,6 +105,9 @@ class RecognitionPostProcessor:
         self._embedding = tf.constant(list(self.vocab) + ['<eos>'], dtype=tf.string)
         self.ignore_case = ignore_case
         self.ignore_accents = ignore_accents
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(vocab_size={len(self.vocab)})"
 
     def __call__(
         self,
