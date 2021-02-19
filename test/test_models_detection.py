@@ -47,7 +47,7 @@ def test_dbpostprocessor():
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
     # Repr
-    assert repr(postprocessor) == 'DetectionPostProcessor(box_thresh=0.1, max_candidates=1000)'
+    assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1, max_candidates=1000)'
 
 
 def test_db_resnet50_training_mode():
