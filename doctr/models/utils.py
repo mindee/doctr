@@ -112,7 +112,7 @@ def conv_sequence(
     if bn:
         conv_seq.append(layers.BatchNormalization())
 
-    if isinstance(activation, str) and not(bn):
+    if isinstance(activation, str) and bn:
         conv_seq.append(layers.Activation(activation))
 
     return conv_seq
