@@ -80,6 +80,9 @@ class PreProcessor:
             b_images.append(tf.stack(x[int(num_batches) * self.batch_size:], axis=0))
         return b_images
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(output_size={self.output_size}, mean={self.mean}, std={self.std})"
+
     def __call__(
         self,
         x: List[np.ndarray]
