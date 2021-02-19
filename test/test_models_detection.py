@@ -46,6 +46,8 @@ def test_dbpostprocessor():
     assert all(sample.shape[1] == 5 for sample in out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
+    # Repr
+    assert repr(postprocessor) == 'DetectionPostProcessor(box_thresh=0.5, max_candidates=100)'
 
 
 def test_db_resnet50_training_mode():
@@ -59,6 +61,8 @@ def test_db_resnet50_training_mode():
     assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
     # batch size
     assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train)
+    # repr
+    assert repr(model) == "DBNet()"
 
 
 @pytest.mark.parametrize(
