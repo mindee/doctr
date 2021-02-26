@@ -15,6 +15,9 @@ def test_extract_crops(mock_pdf):  # noqa: F811
                       for idx in range(num_crops)], dtype=np.float32)
     croped_imgs = models.extract_crops(doc_img, boxes)
 
+    with pytest.raises(AssertionError):
+        models.extract_crops(doc_img, np.zeros((1, 5)))
+
     # Number of crops
     assert len(croped_imgs) == num_crops
     # Data type and shape
