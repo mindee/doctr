@@ -56,6 +56,8 @@ result = model([doc])
 json_output = result[0].export()
 ```
 
+For an exhaustive list of pretrained models available, please refer to the [documentation](https://mindee.github.io/doctr/models.html).
+
 ### Docker container
 
 If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
