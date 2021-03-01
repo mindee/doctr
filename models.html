@@ -207,6 +207,35 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <div class="section" id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
 <p>Localizing text elements in images</p>
+<table class="colwidths-given docutils align-default" id="id2">
+<caption><span class="caption-text">Text detection model zoo</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Architecture</p></th>
+<th class="head"><p>Input shape</p></th>
+<th class="head"><p># params</p></th>
+<th class="head"><p>Recall</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>FPS</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>db_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="pre-processing-for-detection">
 <h3>Pre-processing for detection<a class="headerlink" href="#pre-processing-for-detection" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for detection is the following:</p>
@@ -280,6 +309,38 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <div class="section" id="text-recognition">
 <h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this headline">¶</a></h2>
 <p>Identifying strings in images</p>
+<table class="colwidths-given docutils align-default" id="id3">
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 20%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Architecture</p></th>
+<th class="head"><p>Input shape</p></th>
+<th class="head"><p># params</p></th>
+<th class="head"><p>Accuracy</p></th>
+<th class="head"><p>FPS</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>sar_vgg16_bn</p></td>
+<td><p>(64, 256, 3)</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="pre-processing-for-recognition">
 <h3>Pre-processing for recognition<a class="headerlink" href="#pre-processing-for-recognition" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for recognition is the following:</p>

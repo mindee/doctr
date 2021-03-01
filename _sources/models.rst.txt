@@ -17,6 +17,23 @@ Text Detection
 --------------
 Localizing text elements in images
 
+.. list-table:: Text detection model zoo
+   :widths: 20 20 15 10 10 10
+   :header-rows: 1
+
+   * - Architecture
+     - Input shape
+     - # params
+     - Recall
+     - Precision
+     - FPS
+   * - db_resnet50
+     - (1024, 1024, 3)
+     -
+     -
+     -
+     -
+
 Pre-processing for detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 In DocTR, the pre-processing scheme for detection is the following:
@@ -48,6 +65,27 @@ Combining the right components around a given architecture for easier usage, pre
 Text Recognition
 ----------------
 Identifying strings in images
+
+.. list-table:: Text recognition model zoo
+   :widths: 20 20 15 10 10
+   :header-rows: 1
+
+   * - Architecture
+     - Input shape
+     - # params
+     - Accuracy
+     - FPS
+   * - crnn_vgg16_bn
+     - (32, 128, 3)
+     -
+     -
+     -
+   * - sar_vgg16_bn
+     - (64, 256, 3)
+     -
+     -
+     -
+
 
 Pre-processing for recognition
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
