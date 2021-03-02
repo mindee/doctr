@@ -145,10 +145,11 @@ class SARDecoder(layers.Layer, NestedObject):
                 dense_labels = tf.sparse.to_dense(
                     labels, default_value=self.vocab_size
                 )
-                # padding function
+                # padding dense_labels: shape (N, sequence_length) -> (N, max_length + 1)
+                # with constant values: eos symbol = vocab_size
                 batch_size = dense_labels.shape[0]
                 s = tf.shape(dense_labels)
-                paddings = [[0, m-s[i]] for (i,m) in enumerate([batch_size, self.max_length + 1])]
+                paddings = [[0, m - s[i]] for (i, m) in enumerate([batch_size, self.max_length + 1])]
                 dense_labels = tf.pad(dense_labels, paddings, 'CONSTANT', constant_values=self.vocab_size)
                 symbol = dense_labels[:, t]
             else:
