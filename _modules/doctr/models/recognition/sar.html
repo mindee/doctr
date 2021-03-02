@@ -282,7 +282,6 @@
 <span class="sd">        attention_units: number of hidden attention units</span>
 <span class="sd">        num_decoder_layers: number of LSTM layers to stack</span>
 
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -291,7 +290,7 @@
         <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">embedding_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">attention_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">num_decoder_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">num_decoder_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -308,6 +307,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">features</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">holistic</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 
@@ -321,7 +321,7 @@
         <span class="c1"># Initialize with the index of virtual START symbol (placed after &lt;eos&gt;)</span>
         <span class="n">symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">logits_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># keep 1 step for &lt;eos&gt;</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># keep 1 step for &lt;eos&gt;</span>
             <span class="c1"># one-hot symbol with depth vocab_size + 1</span>
             <span class="c1"># embeded_symbol: shape (N, embedding_units)</span>
             <span class="n">embeded_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -334,7 +334,13 @@
             <span class="c1"># shape (N, rnn_units + 1) -&gt; (N, vocab_size + 1)</span>
             <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dense</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c1"># update symbol with predicted logits for t+1 step</span>
-            <span class="n">symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">):</span>
+                <span class="n">dense_labels</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span>
+                    <span class="n">labels</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span>
+                <span class="p">)</span>
+                <span class="n">symbol</span> <span class="o">=</span> <span class="n">dense_labels</span><span class="p">[:,</span> <span class="n">t</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">logits_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
         <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">logits_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># shape (N, max_length + 1, vocab_size + 1)</span>
 
@@ -389,13 +395,19 @@
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 
         <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">pooled_features</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># vertical max pooling</span>
         <span class="n">encoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">pooled_features</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">decoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Need to provide labels during training for teacher forcing&#39;</span><span class="p">)</span>
+            <span class="n">decoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">decoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">decoded</span>
 
