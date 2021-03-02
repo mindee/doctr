@@ -141,7 +141,7 @@ class SARDecoder(layers.Layer, NestedObject):
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            if labels is not None:
+            if kwargs.get('training'):
                 dense_labels = tf.sparse.to_dense(
                     labels, default_value=self.vocab_size
                 )
@@ -203,20 +203,18 @@ class SAR(RecognitionModel):
         self,
         x: tf.Tensor,
         labels: Optional[tf.sparse.SparseTensor] = None,
-        training: bool = False,
         **kwargs: Any,
     ) -> tf.Tensor:
 
         features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
-        if training:
-            if labels is not None:
-                decoded = self.decoder(features, encoded, labels, training=training, **kwargs)
-            else:
+        if kwargs.get('training'):
+            if labels is None:
                 raise ValueError('Need to provide labels during training for teacher forcing')
+            decoded = self.decoder(features, encoded, labels, **kwargs)
         else:
-            decoded = self.decoder(features, encoded, training=training, **kwargs)
+            decoded = self.decoder(features, encoded, **kwargs)
 
         return decoded
 
