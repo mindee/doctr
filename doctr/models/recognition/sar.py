@@ -89,7 +89,6 @@ class SARDecoder(layers.Layer, NestedObject):
         attention_units: number of hidden attention units
         num_decoder_layers: number of LSTM layers to stack
 
-
     """
     def __init__(
         self,
@@ -98,7 +97,7 @@ class SARDecoder(layers.Layer, NestedObject):
         vocab_size: int,
         embedding_units: int,
         attention_units: int,
-        num_decoder_layers: int = 2
+        num_decoder_layers: int = 2,
     ) -> None:
 
         super().__init__()
@@ -115,6 +114,7 @@ class SARDecoder(layers.Layer, NestedObject):
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
+        labels: Optional[tf.sparse.SparseTensor] = None,
         **kwargs: Any,
     ) -> tf.Tensor:
 
@@ -128,7 +128,7 @@ class SARDecoder(layers.Layer, NestedObject):
         # Initialize with the index of virtual START symbol (placed after <eos>)
         symbol = tf.fill(features.shape[0], self.vocab_size + 1)
         logits_list = []
-        for _ in range(self.max_length + 1):  # keep 1 step for <eos>
+        for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
             # embeded_symbol: shape (N, embedding_units)
             embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 1), **kwargs)
@@ -141,7 +141,13 @@ class SARDecoder(layers.Layer, NestedObject):
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            symbol = tf.argmax(logits, axis=-1)
+            if kwargs.get('training'):
+                dense_labels = tf.sparse.to_dense(
+                    labels, default_value=self.vocab_size
+                )
+                symbol = dense_labels[:, t]
+            else:
+                symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
         outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, vocab_size + 1)
 
@@ -196,13 +202,19 @@ class SAR(RecognitionModel):
     def call(
         self,
         x: tf.Tensor,
+        labels: Optional[tf.sparse.SparseTensor] = None,
         **kwargs: Any,
     ) -> tf.Tensor:
 
         features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
-        decoded = self.decoder(features, encoded, **kwargs)
+        if kwargs.get('training'):
+            if labels is None:
+                raise ValueError('Need to provide labels during training for teacher forcing')
+            decoded = self.decoder(features, encoded, labels, **kwargs)
+        else:
+            decoded = self.decoder(features, encoded, **kwargs)
 
         return decoded
 
