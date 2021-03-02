@@ -18,7 +18,7 @@ __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_vgg16_bn': {
-        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2, 'teacher_forcing': False,
+        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
         'input_shape': (64, 256, 3),
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
@@ -88,7 +88,6 @@ class SARDecoder(layers.Layer, NestedObject):
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
         num_decoder_layers: number of LSTM layers to stack
-        teacher_forcing: use teacher forcing during training (if true, need to provide labels)
 
     """
     def __init__(
@@ -99,7 +98,6 @@ class SARDecoder(layers.Layer, NestedObject):
         embedding_units: int,
         attention_units: int,
         num_decoder_layers: int = 2,
-        teacher_forcing: bool = False,
     ) -> None:
 
         super().__init__()
@@ -111,7 +109,6 @@ class SARDecoder(layers.Layer, NestedObject):
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
-        self.teacher_forcing = teacher_forcing
 
     def call(
         self,
@@ -144,7 +141,7 @@ class SARDecoder(layers.Layer, NestedObject):
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            if self.teacher_forcing:
+            if labels:
                 dense_labels = tf.sparse.to_dense(
                     labels, default_value=self.vocab_size
                 )
@@ -173,7 +170,6 @@ class SAR(RecognitionModel):
         attention_units: int = 512,
         max_length: int = 30,
         num_decoders: int = 2,
-        teacher_forcing: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -189,23 +185,26 @@ class SAR(RecognitionModel):
         )
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders, teacher_forcing,
+            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
 
         )
-        self.teacher_forcing = teacher_forcing
 
     def call(
         self,
         x: tf.Tensor,
         labels: Optional[tf.sparse.SparseTensor] = None,
+        training: bool = False,
         **kwargs: Any,
     ) -> tf.Tensor:
 
         features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
-        if self.teacher_forcing:
-            decoded = self.decoder(features, encoded, labels, **kwargs)
+        if training:
+            if labels:
+                decoded = self.decoder(features, encoded, labels, **kwargs)
+            else:
+                raise ValueError('Need to provide labels during training for teacher forcing')
         else:
             decoded = self.decoder(features, encoded, **kwargs)
 
@@ -255,7 +254,6 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
     _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
     _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
-    _cfg['teacher_forcing'] = kwargs.get('teacher_forcing', _cfg['teacher_forcing'])
 
     # Feature extractor
     feat_extractor = vgg.__dict__[default_cfgs[arch]['backbone']](
@@ -269,7 +267,6 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     kwargs['attention_units'] = _cfg['attention_units']
     kwargs['max_length'] = _cfg['max_length']
     kwargs['num_decoders'] = _cfg['num_decoders']
-    kwargs['teacher_forcing'] = _cfg['teacher_forcing']
 
     # Build the model
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
