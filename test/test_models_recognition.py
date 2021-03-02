@@ -58,6 +58,8 @@ def test_sar_training():
     output_size = (41, 119)
     reco_model = recognition.sar_vgg16_bn(input_shape=input_shape)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
+    # input_labels: sparse_tensor of shape batch_size x max_len, encoding the labels
+    # filled with integers (classes of the characters at each timestep)
     indices = [[0, 0], [0, 1], [1, 0], [1, 1], [1, 2], [2, 0], [3, 0], [3, 1], [3, 2], [3, 3], [3, 4]]
     values = tf.random.uniform(shape=[11], minval=0, maxval=118, dtype=tf.dtypes.int64)
     input_labels = tf.sparse.reorder(

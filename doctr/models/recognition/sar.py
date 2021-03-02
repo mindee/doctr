@@ -141,7 +141,7 @@ class SARDecoder(layers.Layer, NestedObject):
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            if labels:
+            if labels is not None:
                 dense_labels = tf.sparse.to_dense(
                     labels, default_value=self.vocab_size
                 )
@@ -157,6 +157,16 @@ class SARDecoder(layers.Layer, NestedObject):
 class SAR(RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
     Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
+
+    Args:
+        feature_extractor: the backbone serving as feature extractor
+        vocab_size: size of the alphabet
+        rnn_units: number of hidden units in both encoder and decoder LSTM
+        embedding_units: number of embedding units
+        attention_units: number of hidden units in attention module
+        max_length: maximum word length handled by the model
+        num_decoders: number of LSTM to stack in decoder layer
+
     """
 
     _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder']
@@ -201,12 +211,12 @@ class SAR(RecognitionModel):
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
         if training:
-            if labels:
-                decoded = self.decoder(features, encoded, labels, **kwargs)
+            if labels is not None:
+                decoded = self.decoder(features, encoded, labels, training=training, **kwargs)
             else:
                 raise ValueError('Need to provide labels during training for teacher forcing')
         else:
-            decoded = self.decoder(features, encoded, **kwargs)
+            decoded = self.decoder(features, encoded, training=training, **kwargs)
 
         return decoded
 
