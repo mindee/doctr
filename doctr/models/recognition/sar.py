@@ -18,8 +18,7 @@ __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_vgg16_bn': {
-        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
-        'input_shape': (64, 256, 3),
+        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2, 'teacher_forcing': False,
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
@@ -88,7 +87,7 @@ class SARDecoder(layers.Layer, NestedObject):
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
         num_decoder_layers: number of LSTM layers to stack
-
+        teacher_forcing: use teacher forcing during training (if true, need to provide labels)
 
     """
     def __init__(
@@ -98,7 +97,8 @@ class SARDecoder(layers.Layer, NestedObject):
         vocab_size: int,
         embedding_units: int,
         attention_units: int,
-        num_decoder_layers: int = 2
+        num_decoder_layers: int = 2,
+        teacher_forcing: bool = False,
     ) -> None:
 
         super().__init__()
@@ -110,11 +110,13 @@ class SARDecoder(layers.Layer, NestedObject):
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
+        self.teacher_forcing = teacher_forcing
 
     def call(
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
+        labels: Optional[tf.sparse.SparseTensor] = None,
         **kwargs: Any,
     ) -> tf.Tensor:
 
@@ -128,7 +130,7 @@ class SARDecoder(layers.Layer, NestedObject):
         # Initialize with the index of virtual START symbol (placed after <eos>)
         symbol = tf.fill(features.shape[0], self.vocab_size + 1)
         logits_list = []
-        for _ in range(self.max_length + 1):  # keep 1 step for <eos>
+        for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
             # embeded_symbol: shape (N, embedding_units)
             embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 1), **kwargs)
@@ -141,7 +143,13 @@ class SARDecoder(layers.Layer, NestedObject):
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            symbol = tf.argmax(logits, axis=-1)
+            if self.teacher_forcing:
+                dense_labels = tf.sparse.to_dense(
+                    labels, default_value=self.vocab_size
+                )
+                symbol = dense_labels[:, t]
+            else:
+                symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
         outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, vocab_size + 1)
 
@@ -151,16 +159,6 @@ class SARDecoder(layers.Layer, NestedObject):
 class SAR(RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
     Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
-
-    Args:
-        feature_extractor: the backbone serving as feature extractor
-        vocab_size: size of the alphabet
-        rnn_units: number of hidden units in both encoder and decoder LSTM
-        embedding_units: number of embedding units
-        attention_units: number of hidden units in attention module
-        max_length: maximum word length handled by the model
-        num_decoders: number of LSTM to stack in decoder layer
-
     """
 
     _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder']
@@ -174,6 +172,7 @@ class SAR(RecognitionModel):
         attention_units: int = 512,
         max_length: int = 30,
         num_decoders: int = 2,
+        teacher_forcing: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -189,20 +188,25 @@ class SAR(RecognitionModel):
         )
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
+            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders, teacher_forcing,
 
         )
+        self.teacher_forcing = teacher_forcing
 
     def call(
         self,
         x: tf.Tensor,
+        labels: Optional[tf.sparse.SparseTensor] = None,
         **kwargs: Any,
     ) -> tf.Tensor:
 
         features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
-        decoded = self.decoder(features, encoded, **kwargs)
+        if self.teacher_forcing:
+            decoded = self.decoder(features, encoded, labels, **kwargs)
+        else:
+            decoded = self.decoder(features, encoded, **kwargs)
 
         return decoded
 
@@ -250,6 +254,7 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
     _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
     _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
+    _cfg['teacher_forcing'] = kwargs.get('teacher_forcing', _cfg['teacher_forcing'])
 
     # Feature extractor
     feat_extractor = vgg.__dict__[default_cfgs[arch]['backbone']](
@@ -263,6 +268,7 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     kwargs['attention_units'] = _cfg['attention_units']
     kwargs['max_length'] = _cfg['max_length']
     kwargs['num_decoders'] = _cfg['num_decoders']
+    kwargs['teacher_forcing'] = _cfg['teacher_forcing']
 
     # Build the model
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
