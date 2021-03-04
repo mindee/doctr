@@ -18,7 +18,7 @@ class ExactMatch:
     def __init__(
         self,
         ignore_case: bool = False,
-        ignore_accents:bool = False,
+        ignore_accents: bool = False,
     ) -> None:
 
         self.matches = 0
