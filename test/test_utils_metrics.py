@@ -1,12 +1,15 @@
+import pytest
 from doctr.utils import metrics
 
 
-def test_exact_match():
-    mock_gt = ['grass', '56', 'True', 'STOP']
-    mock_pred = ['grass', '56', 'true', 'stop']
-    metric_a = metrics.ExactMatch(ignore_case=True, ignore_accents=False)
-    metric_b = metrics.ExactMatch(ignore_case=False, ignore_accents=False)
-    metric_a.update_state(mock_gt, mock_pred)
-    metric_b.update_state(mock_gt, mock_pred)
-    assert metric_a.result() == 1.0
-    assert metric_b.result() == 0.5
+@pytest.mark.parametrize(
+    "gt, pred, ignore_case, ignore_accents, result",
+    [
+        [['grass', '56', 'True', 'STOP'], ['grass', '56', 'true', 'stop'], True, False, 1.0],
+        [['grass', '56', 'True', 'STOP'], ['grass', '56', 'true', 'stop'], False, False, .5],
+    ],
+)
+def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
+    metric = metrics.ExactMatch(ignore_case, ignore_accents)
+    metric.update_state(gt, pred)
+    assert metric.result() == result

@@ -17,8 +17,8 @@ class ExactMatch:
 
     def __init__(
         self,
-        ignore_case,
-        ignore_accents
+        ignore_case: bool = False,
+        ignore_accents:bool = False,
     ) -> None:
 
         self.matches = 0
@@ -50,7 +50,7 @@ class ExactMatch:
             pred: list of predicted character sequences"""
 
         if len(gt) != len(pred):
-            raise AttributeError("prediction size does not match with ground-truth labels size")
+            raise AssertionError("prediction size does not match with ground-truth labels size")
 
         for pred_word, gt_word in zip(pred, gt):
             if self.ignore_accents:
@@ -64,7 +64,7 @@ class ExactMatch:
             if pred_word == gt_word:
                 self.matches += 1
 
-            self.total += 1
+        self.total += len(gt)
 
     def result(self) -> float:
         """Gives the result of the metric
