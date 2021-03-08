@@ -5,8 +5,9 @@
 
 import numpy as np
 from typing import List, Tuple
+from scipy.optimize import linear_sum_assignment
 
-__all__ = ['ExactMatch']
+__all__ = ['ExactMatch', 'box_iou', 'assign_pairs', 'LocalizationConfusion']
 
 
 class ExactMatch:
@@ -76,7 +77,7 @@ class ExactMatch:
         return self.matches / self.total
 
 
-def compute_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
+def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     """Compute the IoU between two sets of bounding boxes
 
     Args:
@@ -87,24 +88,34 @@ def compute_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         the IoU matrix of shape (N, M)
     """
 
-    return 0.
+    l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+    l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
+
+    left = np.maximum(l1, l2.T)
+    top = np.maximum(t1, t2.T)
+    right = np.minimum(r1, r2.T)
+    bot = np.minimum(b1, b2.T)
+
+    intersection = np.abs(right - left) * np.abs(bot - top)
+
+    union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
+
+    return intersection / union
 
 
-def assign_iou(iou_mat: np.ndarray, iou_threshold: float = 0.5) -> Tuple[List[int], List[int]]:
-    """Assigns boxes by IoU"""
-    gt_kept = iou_mat.max(axis=1) >= iou_threshold
-    _idxs = iou_mat.argmax(axis=1)
-    assign_unique = np.unique(_idxs[gt_kept])
-    # Filter
-    if _idxs[gt_kept].shape[0] == assign_unique.shape[0]:
-        return np.arange(iou_mat.shape[0])[gt_kept], _idxs[gt_kept]  # type: ignore[return-value]
-    else:
-        gt_indices, pred_indices = [], []
-        for pred_idx in assign_unique:
-            selection = iou.values[gt_kept][_idxs[gt_kept] == pred_idx].argmax()
-            gt_indices.append(np.arange(iou_mat.shape[0])[gt_kept][selection].item())
-            pred_indices.append(_idxs[gt_kept][selection].item())
-        return gt_indices, pred_indices  # type: ignore[return-value]
+def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
+    """Assigns candidates by maximizing the score of all pairs
+
+    Args:
+        score_mat: score matrix
+        score_threshold: minimum score to validate an assignment
+    Returns:
+        a tuple of two lists: the list of assigned row candidates indices, and the list of their column counterparts
+    """
+
+    row_ind, col_ind = linear_sum_assignment(-score_mat)
+    is_kept = score_mat[row_ind, col_ind] >= score_threshold
+    return row_ind[is_kept], col_ind[is_kept]
 
 
 class LocalizationConfusion:
@@ -125,19 +136,18 @@ class LocalizationConfusion:
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
 
         # Compute IoU
-        iou_mat = compute_iou(gts, preds)
-        self.tot_iou += iou_mat.max(axis=1).sum()
+        iou_mat = box_iou(gts, preds)
+        self.tot_iou += float(iou_mat.max(axis=1).sum())
 
         # Assign pairs
-        gt_indices, pred_indices = assign_iou(iou_mat, self.iou_thresh)
+        gt_indices, pred_indices = assign_pairs(iou_mat, self.iou_thresh)
         self.num_matches += len(gt_indices)
 
         # Update counts
         self.num_gts += gts.shape[0]
         self.num_preds += preds.shape[0]
 
-
-    def result(self) -> Tuple[float, float]:
+    def summary(self) -> Tuple[float, float, float]:
 
         # Recall
         recall = self.num_matches / self.num_gts
