@@ -140,7 +140,7 @@ class LocalizationConfusion:
         self.tot_iou += float(iou_mat.max(axis=1).sum())
 
         # Assign pairs
-        gt_indices, pred_indices = assign_pairs(iou_mat, self.iou_thresh)
+        gt_indices, _ = assign_pairs(iou_mat, self.iou_thresh)
         self.num_matches += len(gt_indices)
 
         # Update counts
