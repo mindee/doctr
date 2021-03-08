@@ -39,7 +39,7 @@ class ExactMatch:
 
         raise NotImplementedError
 
-    def update_state(
+    def update(
         self,
         gt: List[str],
         pred: List[str],
@@ -67,8 +67,8 @@ class ExactMatch:
 
         self.total += len(gt)
 
-    def result(self) -> float:
-        """Gives the result of the metric
+    def summary(self) -> float:
+        """Computes the aggregated evaluation
 
         Returns:
             metric result"""
