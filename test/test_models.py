@@ -55,6 +55,11 @@ def test_documentbuilder():
     doc_builder = models.DocumentBuilder(resolve_lines=True)
     out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
 
+    # No detection
+    boxes = np.zeros((0, 5))
+    out = doc_builder([boxes, boxes], [], [num_pages], [(100, 200), (100, 200)])
+    assert len(out[0].pages[0].blocks) == 0
+
     # Repr
     assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, paragraph_break=0.15)"
 
