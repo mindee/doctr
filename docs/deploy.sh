@@ -4,9 +4,9 @@ function deploy_doc(){
     pip install -U ..
     if [ ! -z "$2" ]
     then
-        if [ "$2" == "main" ]; then
+        if [ "$2" == "latest" ]; then
             echo "Pushing main"
-            sphinx-build source _build -a && mkdir build && mkdir build/$2 && cp -a _build/* build/$2/
+            sphinx-build source _build -a && mv _build build/$2
             # sphinx-build source _build -a && scp -r -oStrictHostKeyChecking=no _build/* $doc:$dir/$2/
             # cp -r _build/_static .
         elif ssh -oStrictHostKeyChecking=no $doc "[ -d build/$2 ]"; then
@@ -17,8 +17,7 @@ function deploy_doc(){
             echo "Pushing version" $2
             sphinx-build source _build -a
             # cp -r _static _build/_static
-            mkdir build/$2
-            cp -a _build/* build/$2
+            mv _build build/$2
             # scp -r -oStrictHostKeyChecking=no _build $doc:$dir/$2
         fi
     else
@@ -31,5 +30,6 @@ function deploy_doc(){
 }
 
 # You can find the commit for each tag on https://github.com/mindee/doctr/tags
-deploy_doc "main" main
+if [ -d build ]; then rm -Rf build && mdkir build; fi
+deploy_doc "main" latest
 deploy_doc "571af3dc" # v0.1.0 Latest stable release
