@@ -127,6 +127,7 @@
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -224,6 +225,35 @@
 <li><p><strong>image</strong> – np array of the page, needs to have the same shape than page[‘dimensions’]</p></li>
 <li><p><strong>words_only</strong> – whether only words should be displayed</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="task-evaluation">
+<h2>Task evaluation<a class="headerlink" href="#task-evaluation" title="Permalink to this headline">¶</a></h2>
+<p>Implementations of task-specific metrics to easily assess your model performances.</p>
+<dl class="py class">
+<dt id="doctr.utils.metrics.ExactMatch">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">ExactMatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_case</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ignore_accents</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#ExactMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.ExactMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements exact match metric (word-level accuracy) for recognition task</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ignore_case</strong> – if true, ignore letter case when computing metric</p></li>
+<li><p><strong>ignore_accents</strong> – if true, ignore accents errors when computing metrics</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.utils.metrics.LocalizationConfusion">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">LocalizationConfusion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements common confusion metrics and mean IoU for localization evaluation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
 </dd>
 </dl>
 </dd></dl>
