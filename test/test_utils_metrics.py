@@ -1,8 +1,5 @@
 import pytest
-<<<<<<< HEAD
-=======
 import numpy as np
->>>>>>> main
 from doctr.utils import metrics
 
 
@@ -15,10 +12,6 @@ from doctr.utils import metrics
 )
 def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
     metric = metrics.ExactMatch(ignore_case, ignore_accents)
-<<<<<<< HEAD
-    metric.update_state(gt, pred)
-    assert metric.result() == result
-=======
     metric.update(gt, pred)
     assert metric.summary() == result
 
@@ -63,4 +56,3 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
     metric = metrics.LocalizationConfusion(iou_thresh)
     metric.update(np.asarray(gts), np.asarray(preds))
     assert metric.summary() == (recall, precision, mean_iou)
->>>>>>> main
