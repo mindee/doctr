@@ -24,3 +24,5 @@ Implementations of task-specific metrics to easily assess your model performance
 .. autoclass:: ExactMatch
 
 .. autoclass:: LocalizationConfusion
+
+.. autoclass:: OCRMetric
