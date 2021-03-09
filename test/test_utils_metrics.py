@@ -8,12 +8,15 @@ from doctr.utils import metrics
     [
         [['grass', '56', 'True', 'STOP'], ['grass', '56', 'true', 'stop'], True, False, 1.0],
         [['grass', '56', 'True', 'STOP'], ['grass', '56', 'true', 'stop'], False, False, .5],
-        [['éléphant', 'TOUT'], ['elePHant', 'tout'], True, True, 1],
     ],
 )
 def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
     metric = metrics.ExactMatch(ignore_case, ignore_accents)
-    metric.update(gt, pred)
+    if ignore_accents:
+        with pytest.raises(AssertionError):
+            metric.update(gt, pred)
+    else:
+        metric.update(gt, pred)
     assert metric.summary() == result
 
 
