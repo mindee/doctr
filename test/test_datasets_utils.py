@@ -16,7 +16,7 @@ from doctr import datasets
     ],
 )
 def test_translate(input_str, vocab, output_str):
-    out = datasets.translate(input_str, vocab)
+    out = datasets.translate(input_str, vocab, unknown_char='■')
     assert out == output_str
 
 

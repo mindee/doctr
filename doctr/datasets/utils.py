@@ -6,30 +6,24 @@
 import string
 import unicodedata
 import numpy as np
-from typing import Dict, List
+from typing import List
 
-__all__ = ['translate', 'encode_sequence', 'decode_sequence', 'VOCABS']
+from doctr.datasets.vocabs import VOCABS
 
-
-VOCABS: Dict[str, str] = {
-    'digits': string.digits,
-    'ascii_letters': string.ascii_letters,
-    'punctuation': string.punctuation,
-    'currency': '£€¥¢฿',
-    'latin': string.digits + string.ascii_letters + string.punctuation + '°',
-    'french': string.digits + string.ascii_letters + string.punctuation + '°' + 'àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ' + '£€¥¢฿',
-}
+__all__ = ['translate', 'encode_sequence', 'decode_sequence']
 
 
 def translate(
     input_string: str,
     vocab_name: str,
+    unknown_char: str,
 ) -> str:
     """Translate a string input in a given vocabulary
 
     Args:
         input_string: input string to translate
-        vocab: vocabulary to use (french, latin, ...)
+        vocab_name: vocabulary to use (french, latin, ...)
+        unknown_char: unknown character for non-translatable characters
 
     Returns:
         A string translated in a given vocab"""
@@ -47,8 +41,8 @@ def translate(
             # normalize character if it is not in vocab
             char = unicodedata.normalize('NFD', char).encode('ascii', 'ignore').decode('ascii')
             if char == '' or char not in VOCABS[vocab_name]:
-                # if normalization fails or char still not in vocab, return a black square (unknown symbol)
-                char = '■'
+                # if normalization fails or char still not in vocab, return unknown character)
+                char = unknown_char
         translated += char
     return translated
 
