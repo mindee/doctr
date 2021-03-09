@@ -9,7 +9,7 @@
 }
 
 .version-button:hover, .version-button:focus {
-    background-color: #365ba3;
+    background-color: #5eb2e6;
 }
 
 .version-dropdown {
@@ -27,7 +27,7 @@
 }
 
 .version-dropdown a:hover {
-    background-color: #365ba3;
+    background-color: #5eb2e6;
 }
 
 .version-show {
