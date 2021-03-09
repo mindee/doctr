@@ -13,6 +13,8 @@ from doctr.utils import metrics
 )
 def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
     metric = metrics.ExactMatch(ignore_case, ignore_accents)
+    with pytest.raises(AssertionError):
+        metric.summary()
     if ignore_accents:
         with pytest.raises(NotImplementedError):
             metric.update(gt, pred)
