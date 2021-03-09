@@ -12,7 +12,7 @@ Install the last stable release of the package using pip:
 
 .. code:: bash
 
-    pip install doctr
+    pip install python-doctr
 
 
 Via Conda
