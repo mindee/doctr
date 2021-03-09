@@ -11,26 +11,17 @@ function deploy_doc(){
         if [ "$2" == "latest" ]; then
             echo "Pushing main"
             sphinx-build source _build -a && mkdir build && mkdir build/$2 && cp -a _build/* build/$2/
-            # sphinx-build source _build -a && scp -r -oStrictHostKeyChecking=no _build/* $doc:$dir/$2/
-            # cp -r _build/_static .
         elif ssh -oStrictHostKeyChecking=no $doc "[ -d build/$2 ]"; then
             echo "Directory" $2 "already exists"
-            # scp -r -oStrictHostKeyChecking=no _static/* $doc:$dir/$2/_static/
-            # cp -a _static/* build/$2/_static/
         else
             echo "Pushing version" $2
             sphinx-build source _build -a
-            # cp -r _static _build/_static
             mkdir build/$2 && cp -a _build/* build/$2/
-            # scp -r -oStrictHostKeyChecking=no _build $doc:$dir/$2
         fi
     else
         echo "Pushing stable"
         sphinx-build source build -a
-        # cp -r _static build/_static
-        # scp -r -oStrictHostKeyChecking=no _build/* $doc:$dir
     fi
-    # rm -r _static _build
 }
 
 # You can find the commit for each tag on https://github.com/mindee/doctr/tags
