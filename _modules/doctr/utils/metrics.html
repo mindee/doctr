@@ -191,10 +191,11 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">textdistance</span> <span class="kn">import</span> <span class="n">levenshtein</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ExactMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_pairs&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ExactMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_pairs&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="ExactMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.ExactMatch">[docs]</a><span class="k">class</span> <span class="nc">ExactMatch</span><span class="p">:</span>
@@ -347,6 +348,73 @@
         <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
 
         <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
+
+
+<div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        max_dist: maximum Levenshtein distance between 2 sequence to consider a match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">max_dist</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_dist</span> <span class="o">=</span> <span class="n">max_dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gts_vertices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">preds_vertices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gts_texts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">preds_texts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="c1"># Compute IoU</span>
+        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gts_vertices</span><span class="p">,</span> <span class="n">preds_vertices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="c1"># Assign pairs</span>
+        <span class="n">gt_indices</span><span class="p">,</span> <span class="n">preds_indices</span> <span class="o">=</span> <span class="n">assign_pairs</span><span class="p">(</span><span class="n">iou_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span><span class="p">)</span>
+
+        <span class="c1"># Compare sequences</span>
+        <span class="k">for</span> <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">preds_indices</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">gts_texts</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">preds_texts</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">+=</span> <span class="n">dist</span>
+            <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dist</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Update counts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gts_vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds_vertices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+
+        <span class="c1"># Recall</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span>
+
+        <span class="c1"># Precision</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
+
+        <span class="c1"># mean IoU (overall detected boxes)</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
+
+        <span class="c1"># mean distance (overall detection-matching boxes)</span>
+        <span class="n">mean_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span>
+
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span><span class="p">,</span> <span class="n">mean_distance</span></div>
 </pre></div>
 
            </div>
