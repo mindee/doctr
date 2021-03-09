@@ -54,8 +54,8 @@ class ExactMatch:
 
         for pred_word, gt_word in zip(pred, gt):
             if self.ignore_accents:
-                gt_word = remove_accent(gt_word)
-                pred_word = remove_accent(pred_word)
+                gt_word = self.remove_accent(gt_word)
+                pred_word = self.remove_accent(pred_word)
 
             if self.ignore_case:
                 gt_word = gt_word.lower()
