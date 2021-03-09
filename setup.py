@@ -46,7 +46,7 @@ requirements = [
     "shapely>=1.6.0",
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
-    "python-Levenshtein>=0.12.0",
+    "textdistance>=4.1.0",
 ]
 
 setup(
