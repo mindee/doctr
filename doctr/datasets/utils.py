@@ -66,7 +66,7 @@ def encode_sequence(
     Returns:
         A list encoding the input_string"""
 
-    encoded = list(map(lambda x: mapping.index(x), input_string))
+    encoded = list(map(mapping.index, input_string))
     return encoded
 
 
