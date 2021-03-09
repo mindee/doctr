@@ -15,20 +15,20 @@ function deploy_doc(){
             echo "Directory" $2 "already exists"
         else
             echo "Pushing version" $2
-            cp _static source/_static
+            cp -r _static source/_static
             sphinx-build source _build -a
             mkdir build/$2 && cp -a _build/* build/$2/
         fi
     else
         echo "Pushing stable"
-        cp _static source/_static
+        cp -r _static source/_static
         sphinx-build source build -a
     fi
 }
 
 # You can find the commit for each tag on https://github.com/mindee/doctr/tags
 if [ -d build ]; then rm -Rf build; fi
-cp source/_static _static
+cp -r source/_static _static
 deploy_doc "" latest
 deploy_doc "571af3dc" # v0.1.0 Latest stable release
 rm -rf _build
