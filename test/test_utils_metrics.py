@@ -14,11 +14,11 @@ from doctr.utils import metrics
 def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
     metric = metrics.ExactMatch(ignore_case, ignore_accents)
     if ignore_accents:
-        with pytest.raises(AssertionError):
+        with pytest.raises(NotImplementedError):
             metric.update(gt, pred)
     else:
         metric.update(gt, pred)
-    assert metric.summary() == result
+        assert metric.summary() == result
 
 
 @pytest.mark.parametrize(

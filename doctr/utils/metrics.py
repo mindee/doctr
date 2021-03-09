@@ -73,7 +73,8 @@ class ExactMatch:
 
         Returns:
             metric result"""
-
+        if self.total == 0:
+            raise AssertionError("you need to update the metric before getting the summary")
         return self.matches / self.total
 
 
