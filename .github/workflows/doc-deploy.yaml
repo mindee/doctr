@@ -31,8 +31,7 @@ jobs:
           pip install -r docs/requirements.txt
 
       - name: Build documentation
-        run: |
-          sphinx-build docs/source docs/_build -a
+        run: cd docs && bash build.sh
 
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.4.1
@@ -43,7 +42,7 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           BRANCH: gh-pages
-          FOLDER: 'docs/_build'
+          FOLDER: 'docs/build'
           COMMIT_MESSAGE: '[skip ci] Documentation updates'
           CLEAN: true
           SSH: true
