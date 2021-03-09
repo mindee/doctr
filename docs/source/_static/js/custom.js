@@ -72,11 +72,12 @@ function addVersionControl() {
     const div = document.createElement("div");
     div.appendChild(versionButton);
     div.appendChild(versionMenu);
-    div.style.paddingTop = '25px';
+    div.style.paddingTop = '5px';
+    div.style.paddingBottom = '5px';
     div.style.display = 'block';
     div.style.textAlign = 'center';
 
-    const scrollDiv = document.querySelector(".wy-side-scroll");
+    const scrollDiv = document.querySelector(".wy-side-nav-search");
     scrollDiv.insertBefore(div, scrollDiv.children[1]);
 }
 
