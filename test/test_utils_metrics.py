@@ -8,6 +8,7 @@ from doctr.utils import metrics
     [
         [['grass', '56', 'True', 'STOP'], ['grass', '56', 'true', 'stop'], True, False, 1.0],
         [['grass', '56', 'True', 'STOP'], ['grass', '56', 'true', 'stop'], False, False, .5],
+        [['éléphant'], ['elephant'], False, True, 1.0],
     ],
 )
 def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
