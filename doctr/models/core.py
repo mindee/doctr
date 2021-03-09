@@ -144,6 +144,9 @@ class DocumentBuilder(NestedObject):
         if boxes.shape[0] != len(char_sequences):
             raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(char_sequences)}")
 
+        if boxes.shape[0] == 0:
+            return []
+
         # Sort bounding boxes from top to bottom, left to right
         idxs = self._sort_boxes(boxes[:, :4])
 

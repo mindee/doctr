@@ -3,9 +3,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List
+import numpy as np
+from typing import List, Tuple
+from scipy.optimize import linear_sum_assignment
 
-__all__ = ['ExactMatch']
+__all__ = ['ExactMatch', 'box_iou', 'assign_pairs', 'LocalizationConfusion']
 
 
 class ExactMatch:
@@ -38,7 +40,7 @@ class ExactMatch:
 
         raise NotImplementedError
 
-    def update_state(
+    def update(
         self,
         gt: List[str],
         pred: List[str],
@@ -66,10 +68,94 @@ class ExactMatch:
 
         self.total += len(gt)
 
-    def result(self) -> float:
-        """Gives the result of the metric
+    def summary(self) -> float:
+        """Computes the aggregated evaluation
 
         Returns:
             metric result"""
 
         return self.matches / self.total
+
+
+def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
+    """Compute the IoU between two sets of bounding boxes
+
+    Args:
+        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
+
+    Returns:
+        the IoU matrix of shape (N, M)
+    """
+
+    l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+    l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
+
+    left = np.maximum(l1, l2.T)
+    top = np.maximum(t1, t2.T)
+    right = np.minimum(r1, r2.T)
+    bot = np.minimum(b1, b2.T)
+
+    intersection = np.abs(right - left) * np.abs(bot - top)
+
+    union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
+
+    return intersection / union
+
+
+def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
+    """Assigns candidates by maximizing the score of all pairs
+
+    Args:
+        score_mat: score matrix
+        score_threshold: minimum score to validate an assignment
+    Returns:
+        a tuple of two lists: the list of assigned row candidates indices, and the list of their column counterparts
+    """
+
+    row_ind, col_ind = linear_sum_assignment(-score_mat)
+    is_kept = score_mat[row_ind, col_ind] >= score_threshold
+    return row_ind[is_kept], col_ind[is_kept]
+
+
+class LocalizationConfusion:
+    """Implements common confusion metrics and mean IoU for localization evaluation
+
+    Args:
+        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+    """
+
+    def __init__(self, iou_thresh: float = 0.5) -> None:
+
+        self.iou_thresh = iou_thresh
+        self.num_gts = 0
+        self.num_preds = 0
+        self.num_matches = 0
+        self.tot_iou = 0.
+
+    def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
+
+        # Compute IoU
+        iou_mat = box_iou(gts, preds)
+        self.tot_iou += float(iou_mat.max(axis=1).sum())
+
+        # Assign pairs
+        gt_indices, _ = assign_pairs(iou_mat, self.iou_thresh)
+        self.num_matches += len(gt_indices)
+
+        # Update counts
+        self.num_gts += gts.shape[0]
+        self.num_preds += preds.shape[0]
+
+    def summary(self) -> Tuple[float, float, float]:
+
+        # Recall
+        recall = self.num_matches / self.num_gts
+
+        # Precision
+        precision = self.num_matches / self.num_preds
+
+        # mean IoU
+        mean_iou = self.tot_iou / self.num_preds
+
+        return recall, precision, mean_iou

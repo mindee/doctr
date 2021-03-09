@@ -14,7 +14,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 
-version = "0.1.0a0"
+version = "0.1.1a0"
 sha = 'Unknown'
 package_name = 'doctr'
 
@@ -38,6 +38,7 @@ with open('README.md', 'r') as f:
 
 requirements = [
     "numpy>=1.16.0",
+    "scipy>=1.4.0",
     "opencv-python>=4.2",
     "tensorflow>=2.3.0",
     "PyMuPDF>=1.16.0",
@@ -51,7 +52,7 @@ setup(
     # Metadata
     name=package_name,
     version=version,
-    author='François-Guillaume Fernandez, Charles Gaillard, Mohamed Biaz',
+    author='François-Guillaume Fernandez, Charles Gaillard',
     author_email='fg@mindee.co',
     description='Extract valuable text information from your documents',
     long_description=readme,
@@ -60,7 +61,7 @@ setup(
     download_url='https://github.com/mindee/doctr/tags',
     license='Apache',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
@@ -75,7 +76,7 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    keywords=['ocr', 'deep learning', 'tensorflow', 'text recognition'],
+    keywords=['ocr', 'deep learning', 'tensorflow', 'text detection', 'text recognition'],
 
     # Package info
     packages=find_packages(exclude=('test',)),
