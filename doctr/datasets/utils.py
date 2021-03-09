@@ -8,7 +8,7 @@ import unicodedata
 import numpy as np
 from typing import List
 
-from doctr.datasets.vocabs import VOCABS
+from .vocabs import VOCABS
 
 __all__ = ['translate', 'encode_sequence', 'decode_sequence']
 
@@ -16,7 +16,7 @@ __all__ = ['translate', 'encode_sequence', 'decode_sequence']
 def translate(
     input_string: str,
     vocab_name: str,
-    unknown_char: str,
+    unknown_char: str = '■',
 ) -> str:
     """Translate a string input in a given vocabulary
 
