@@ -8,6 +8,7 @@ const stableVersion = "v0.1.0"
 const versionMapping = {
     "latest": "latest",
     "": "v0.1.0 (stable)",
+    // "v0.1.1": "v0.1.1",
 }
 
 function addGithubButton() {
