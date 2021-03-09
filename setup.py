@@ -38,6 +38,7 @@ with open('README.md', 'r') as f:
 
 requirements = [
     "numpy>=1.16.0",
+    "scipy>=1.4.0",
     "opencv-python>=4.2",
     "tensorflow>=2.3.0",
     "PyMuPDF>=1.16.0",
