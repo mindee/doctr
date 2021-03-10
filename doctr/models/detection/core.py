@@ -131,6 +131,10 @@ class DetectionPredictor(NestedObject):
         **kwargs: Any,
     ) -> List[np.ndarray]:
 
+        # Dimension check
+        if any(page.ndim != 3 for page in pages):
+            raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
+
         processed_batches = self.pre_processor(pages)
         out = [self.model(batch, **kwargs) for batch in processed_batches]
         out = [self.post_processor(batch) for batch in out]

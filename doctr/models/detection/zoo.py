@@ -35,7 +35,7 @@ def db_resnet50_predictor(pretrained: bool = False, **kwargs: Any) -> DetectionP
         >>> import numpy as np
         >>> from doctr.models import db_resnet50_predictor
         >>> model = db_resnet50_predictor(pretrained=True)
-        >>> input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
     Args:
