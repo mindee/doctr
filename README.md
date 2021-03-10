@@ -77,7 +77,7 @@ All script arguments can be checked using `python scripts/analyze.py --help`
 
 ## Documentation
 
-The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications. The documentation was built with [Sphinx](sphinx-doc.org) using a [theme](github.com/readthedocs/sphinx_rtd_theme) provided by [Read the Docs](readthedocs.org).
+The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications. The documentation was built with [Sphinx](https://www.sphinx-doc.org/) using a [theme](github.com/readthedocs/sphinx_rtd_theme) provided by [Read the Docs](https://readthedocs.org/).
 
 
 
