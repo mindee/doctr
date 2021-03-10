@@ -26,7 +26,7 @@ Extract valuable information from your documents.
 
 ### Prerequisites
 
-- Python 3.6 (or more recent)
+- Python 3.6 (or higher)
 - [pip](https://pip.pypa.io/en/stable/)
 
 ### Installation
