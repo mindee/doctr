@@ -46,12 +46,17 @@ pip install python-doctr
 You can use the library like any other python package to analyze your documents as follows:
 
 ```python
-from doctr.documents import read_pdf
+from doctr.documents import read_pdf, read_img
 from doctr.models import ocr_db_crnn
 
 model = ocr_db_crnn(pretrained=True)
+# PDF
 doc = read_pdf("path/to/your/doc.pdf")
 result = model([doc])
+# Image
+page = read_img("path/to/your/img.jpg")
+result = model([[page]])
+# Export
 json_output = result[0].export()
 ```
 
