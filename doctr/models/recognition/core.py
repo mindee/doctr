@@ -20,7 +20,7 @@ class RecognitionPreProcessor(PreProcessor):
     Example::
         >>> from doctr.documents import read_pdf
         >>> from doctr.models import RecoPreprocessor
-        >>> processor = RecoPreprocessor(output_size=(600, 600), batch_size=8)
+        >>> processor = RecoPreprocessor(output_size=(128, 256), batch_size=8)
         >>> processed_doc = processor([read_pdf("path/to/your/doc.pdf")])
 
     Args:
