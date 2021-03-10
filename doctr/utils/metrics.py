@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-from textdistance import levenshtein
+from rapidfuzz.string_metric import levenshtein
 from typing import List, Tuple
 from scipy.optimize import linear_sum_assignment
 
@@ -203,7 +203,7 @@ class OCRMetric:
 
         # Compare sequences
         for gt_idx, pred_idx in zip(gt_indices, preds_indices):
-            dist = levenshtein.distance(gts_texts[gt_idx], preds_texts[pred_idx])
+            dist = levenshtein(gts_texts[gt_idx], preds_texts[pred_idx])
             self.tot_dist += dist
             if dist <= self.max_dist:
                 self.num_reco_matches += 1
