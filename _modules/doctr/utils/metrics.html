@@ -191,7 +191,7 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">textdistance</span> <span class="kn">import</span> <span class="n">levenshtein</span>
+<span class="kn">from</span> <span class="nn">rapidfuzz.string_metric</span> <span class="kn">import</span> <span class="n">levenshtein</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 
@@ -390,7 +390,7 @@
 
         <span class="c1"># Compare sequences</span>
         <span class="k">for</span> <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">preds_indices</span><span class="p">):</span>
-            <span class="n">dist</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">gts_texts</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">preds_texts</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">gts_texts</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">preds_texts</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">+=</span> <span class="n">dist</span>
             <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dist</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">+=</span> <span class="mi">1</span>
