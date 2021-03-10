@@ -103,7 +103,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     # Dimension check
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
-        _ = predictor([input_shape])
+        _ = predictor([input_page])
 
     return predictor
 

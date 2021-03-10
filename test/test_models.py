@@ -117,8 +117,7 @@ def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredict
     # Dimension check
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
-        _ = predictor([[input_shape]])
-
+        _ = predictor([[input_page]])
 
 
 @pytest.mark.parametrize(
