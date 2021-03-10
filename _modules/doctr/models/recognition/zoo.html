@@ -222,7 +222,7 @@
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_vgg16_bn_predictor</span>
 <span class="sd">        &gt;&gt;&gt; model = crnn_vgg16_bn_predictor(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 512, 128, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
@@ -242,7 +242,7 @@
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import sar_vgg16_bn_predictor</span>
 <span class="sd">        &gt;&gt;&gt; model = sar_vgg16_bn_predictor(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 512, 128, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>

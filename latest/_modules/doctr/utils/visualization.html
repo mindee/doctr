@@ -252,7 +252,7 @@
 <span class="sd">        &gt;&gt;&gt; from doctr.utils.visualization import visualize_page</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_crnn</span>
 <span class="sd">        &gt;&gt;&gt; model = ocr_db_crnn(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
 <span class="sd">        &gt;&gt;&gt; visualize_page(out[0].pages[0].export(), input_page)</span>
 <span class="sd">        &gt;&gt;&gt; plt.show()</span>
