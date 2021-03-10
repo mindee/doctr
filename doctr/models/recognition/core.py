@@ -144,6 +144,10 @@ class RecognitionPredictor(NestedObject):
 
         out = []
         if len(crops) > 0:
+            # Dimension check
+            if any(crop.ndim != 3 for crop in crops):
+                raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
+
             # Resize & batch them
             processed_batches = self.pre_processor(crops)
 
