@@ -35,7 +35,7 @@ def crnn_vgg16_bn_predictor(pretrained: bool = False, **kwargs: Any) -> Recognit
         >>> import numpy as np
         >>> from doctr.models import crnn_vgg16_bn_predictor
         >>> model = crnn_vgg16_bn_predictor(pretrained=True)
-        >>> input_page = (255 * np.random.rand(1, 512, 128, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
     Args:
@@ -55,7 +55,7 @@ def sar_vgg16_bn_predictor(pretrained: bool = False, **kwargs: Any) -> Recogniti
         >>> import numpy as np
         >>> from doctr.models import sar_vgg16_bn_predictor
         >>> model = sar_vgg16_bn_predictor(pretrained=False)
-        >>> input_page = (255 * np.random.rand(1, 512, 128, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
     Args:

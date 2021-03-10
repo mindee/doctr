@@ -109,6 +109,11 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     assert len(out) == boxes.shape[0]
     assert all(isinstance(charseq, str) for charseq in out)
 
+    # Dimension check
+    with pytest.raises(ValueError):
+        input_crop = (255 * np.random.rand(1, 128, 64, 3)).astype(np.uint8)
+        _ = predictor([input_crop])
+
     return predictor
 
 

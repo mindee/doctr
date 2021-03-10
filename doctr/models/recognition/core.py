@@ -20,7 +20,7 @@ class RecognitionPreProcessor(PreProcessor):
     Example::
         >>> from doctr.documents import read_pdf
         >>> from doctr.models import RecoPreprocessor
-        >>> processor = RecoPreprocessor(output_size=(600, 600), batch_size=8)
+        >>> processor = RecoPreprocessor(output_size=(128, 256), batch_size=8)
         >>> processed_doc = processor([read_pdf("path/to/your/doc.pdf")])
 
     Args:
@@ -144,6 +144,10 @@ class RecognitionPredictor(NestedObject):
 
         out = []
         if len(crops) > 0:
+            # Dimension check
+            if any(crop.ndim != 3 for crop in crops):
+                raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
+
             # Resize & batch them
             processed_batches = self.pre_processor(crops)
 

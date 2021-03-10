@@ -36,7 +36,7 @@ def ocr_db_sar(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
         >>> import numpy as np
         >>> from doctr.models import ocr_db_sar
         >>> model = ocr_db_sar(pretrained=True)
-        >>> input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([[input_page]])
 
     Args:
@@ -57,7 +57,7 @@ def ocr_db_crnn(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
         >>> import numpy as np
         >>> from doctr.models import ocr_db_crnn
         >>> model = ocr_db_crnn(pretrained=True)
-        >>> input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([[input_page]])
 
     Args:
