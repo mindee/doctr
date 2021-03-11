@@ -40,7 +40,7 @@ def test_recopreprocessor(mock_pdf):  # noqa: F811
     [
         ["crnn_vgg16_bn", (32, 128, 3), (32, 119)],
         ["sar_vgg16_bn", (64, 256, 3), (41, 119)],
-        ["sar_resnet31", (32, 128, 3), (41, 119)],
+        ["sar_resnet31", (32, 128, 3), (31, 119)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, output_size):
