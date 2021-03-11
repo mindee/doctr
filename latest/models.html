@@ -409,7 +409,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="py function">
 <dt id="doctr.models.recognition.crnn_vgg16_bn_predictor">
 <code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#crnn_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
+<dd><p>Text recognition architecture using a CRNN with a VGG16 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">crnn_vgg16_bn_predictor</span>
@@ -433,7 +433,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_vgg16_bn_predictor">
 <code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
+<dd><p>Text detection architecture using a SAR with a VGG16 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">sar_vgg16_bn_predictor</span>
