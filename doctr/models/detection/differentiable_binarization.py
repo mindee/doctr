@@ -52,7 +52,7 @@ class DBPostProcessor(DetectionPostProcessor):
         min_size_box: int = 3,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
-        bin_thresh: float = 0.1,
+        bin_thresh: float = 0.012,
     ) -> None:
 
         super().__init__(
