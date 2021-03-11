@@ -114,6 +114,10 @@ def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredict
     assert all(isinstance(doc, Document) for doc in out)
     # The input PDF has 8 pages
     assert all(len(doc.pages) == 8 for doc in out)
+    # Dimension check
+    with pytest.raises(ValueError):
+        input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
+        _ = predictor([[input_page]])
 
 
 @pytest.mark.parametrize(
@@ -148,6 +152,6 @@ def test_classification_architectures(arch_name, top_implemented, input_shape, o
 )
 def test_zoo_models(arch_name):
     # Model
-    model = models.__dict__[arch_name](pretrained=True)
+    predictor = models.__dict__[arch_name](pretrained=True)
     # Output checks
-    assert isinstance(model, models.OCRPredictor)
+    assert isinstance(predictor, models.OCRPredictor)

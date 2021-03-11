@@ -41,6 +41,10 @@ class OCRPredictor(NestedObject):
         **kwargs: Any,
     ) -> List[Document]:
 
+        # Dimension check
+        if any(page.ndim != 3 for doc in documents for page in doc):
+            raise ValueError("incorrect input shape: all documents are expected to be list of multi-channel 2D images.")
+
         pages = [page for doc in documents for page in doc]
 
         # Localize text elements

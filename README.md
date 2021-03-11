@@ -26,7 +26,7 @@ Extract valuable information from your documents.
 
 ### Prerequisites
 
-- Python 3.6 (or more recent)
+- Python 3.6 (or higher)
 - [pip](https://pip.pypa.io/en/stable/)
 
 ### Installation
@@ -46,12 +46,17 @@ pip install python-doctr
 You can use the library like any other python package to analyze your documents as follows:
 
 ```python
-from doctr.documents import read_pdf
+from doctr.documents import read_pdf, read_img
 from doctr.models import ocr_db_crnn
 
 model = ocr_db_crnn(pretrained=True)
+# PDF
 doc = read_pdf("path/to/your/doc.pdf")
 result = model([doc])
+# Image
+page = read_img("path/to/your/img.jpg")
+result = model([[page]])
+# Export
 json_output = result[0].export()
 ```
 
@@ -77,7 +82,7 @@ All script arguments can be checked using `python scripts/analyze.py --help`
 
 ## Documentation
 
-The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications. The documentation was built with [Sphinx](sphinx-doc.org) using a [theme](github.com/readthedocs/sphinx_rtd_theme) provided by [Read the Docs](readthedocs.org).
+The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications. The documentation was built with [Sphinx](https://www.sphinx-doc.org/) using a [theme](github.com/readthedocs/sphinx_rtd_theme) provided by [Read the Docs](https://readthedocs.org/).
 
 
 
