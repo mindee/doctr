@@ -8,10 +8,19 @@ from .core import DetectionPredictor, DetectionPreProcessor
 from .. import detection
 
 
-__all__ = ["db_resnet50_predictor"]
+__all__ = ["db_resnet50_predictor", "db_resnet50_predictor_normed"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_resnet50_predictor': {'model': 'db_resnet50', 'post_processor': 'DBPostProcessor'},
+    'db_resnet50_predictor_normed': {
+        'model': 'db_resnet50',
+        'post_processor': 'DBPostProcessor',
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.274, 0.287),
+    },
+    'db_resnet50_predictor': {
+        'model': 'db_resnet50',
+        'post_processor': 'DBPostProcessor',
+    },
 }
 
 
@@ -46,3 +55,23 @@ def db_resnet50_predictor(pretrained: bool = False, **kwargs: Any) -> DetectionP
     """
 
     return _predictor('db_resnet50_predictor', pretrained, **kwargs)
+
+
+def db_resnet50_predictor_normed(pretrained: bool = False, **kwargs: Any) -> DetectionPredictor:
+    """Text detection architecture using a DBNet with a ResNet-50 backbone.
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.models import db_resnet50_predictor
+        >>> model = db_resnet50_predictor(pretrained=True)
+        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+        >>> out = model([input_page])
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        Detection predictor
+    """
+
+    return _predictor('db_resnet50_predictor_normed', pretrained, **kwargs)
