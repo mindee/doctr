@@ -12,11 +12,12 @@ from tensorflow.keras.utils import get_file
 from typing import List, Dict, Any, Tuple
 
 from doctr.models.utils import download_from_url
+from .core import VisionDataset
 
 __all__ = ['FUNSD']
 
 
-class FUNSD:
+class FUNSD(VisionDataset):
     """FUNSD dataset from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents"
     <https://arxiv.org/pdf/1905.13538.pdf>`_.
 
@@ -32,40 +33,21 @@ class FUNSD:
 
     def __init__(
         self,
-        subset: str = "train",
-        download: bool = False,
-        overwrite: bool = False,
+        train: bool = True,
+        **kwargs: Any,
     ) -> None:
 
-        dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
-
-        # Download the file if not present
-        archive_path = os.path.join(dataset_cache, self.FILE_NAME)
-
-        if not os.path.exists(archive_path) and not download:
-            raise ValueError("the dataset needs to be downloaded first with download=True")
-
-        archive_path = download_from_url(self.URL, self.FILE_NAME, self.SHA256, cache_subdir='datasets')
-
-        # Extract to funsd
-        archive_path = Path(archive_path)
-        dataset_path = archive_path.parent.joinpath(archive_path.stem)
-        if not dataset_path.is_dir() or overwrite:
-            with ZipFile(archive_path, 'r') as f:  # type: ignore[assignment]
-                f.extractall(path=dataset_path)  # type: ignore[attr-defined]
+        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
 
         # Use the subset
-        if subset == 'train':
-            subfolder = os.path.join('dataset', 'training_data')
-        else:
-            subfolder = os.path.join('dataset', 'testing_data')
+        subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
 
-        # List images
-        self.root = os.path.join(dataset_path, subfolder, 'images')
+        # # List images
+        self.root = os.path.join(self._root, subfolder, 'images')
         self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
-            with open(os.path.join(dataset_path, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
+            with open(os.path.join(self._root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
                 data = json.load(f)
 
             _targets = [(word['text'], word['box']) for block in data['form']
@@ -77,9 +59,3 @@ class FUNSD:
 
     def __getitem__(self, index: int) -> Tuple[str, Dict[str, Any]]:
         return self.data[index]
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
-
-    def __len__(self) -> int:
-        return len(self.data)
