@@ -8,13 +8,13 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from typing import Tuple, Dict, List, Any, Optional
 
-from .. import vgg
+from .. import vgg, resnet
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
 from .core import RecognitionPostProcessor
 from doctr.utils.repr import NestedObject
 
-__all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn']
+__all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_vgg16_bn': {
@@ -24,6 +24,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
+    },
+    'sar_resnet31': {
+        'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
+        'input_shape': (32, 128, 3),
+        'post_processor': 'SARPostProcessor',
+        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
+        'url': None,
     },
 }
 
@@ -310,3 +318,58 @@ def sar_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> SAR:
     """
 
     return _sar_vgg('sar_vgg16_bn', pretrained, **kwargs)
+
+
+def _sar_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
+    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
+    _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
+    _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
+    _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
+    _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
+
+    # Feature extractor
+    feat_extractor = resnet.__dict__[default_cfgs[arch]['backbone']](
+        input_shape=_cfg['input_shape'],
+        include_top=False,
+    )
+
+    kwargs['vocab_size'] = _cfg['vocab_size']
+    kwargs['rnn_units'] = _cfg['rnn_units']
+    kwargs['embedding_units'] = _cfg['embedding_units']
+    kwargs['attention_units'] = _cfg['attention_units']
+    kwargs['max_length'] = _cfg['max_length']
+    kwargs['num_decoders'] = _cfg['num_decoders']
+
+    # Build the model
+    model = SAR(feat_extractor, cfg=_cfg, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    return model
+
+
+def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
+    """SAR with a resnet-31 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
+    Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
+
+    Example:
+        >>> import tensorflow as tf
+        >>> from doctr.models import sar_resnet31
+        >>> model = sar_resnet31(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _sar_resnet('sar_resnet31', pretrained, **kwargs)
