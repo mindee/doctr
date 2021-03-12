@@ -5,10 +5,7 @@
 
 import os
 import json
-import hashlib
-from zipfile import ZipFile
 from pathlib import Path
-from tensorflow.keras.utils import get_file
 from typing import List, Dict, Any, Tuple
 
 from doctr.models.utils import download_from_url
