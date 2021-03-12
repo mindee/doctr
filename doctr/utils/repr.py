@@ -35,7 +35,7 @@ class NestedObject:
         if hasattr(self, '_children_names'):
             for key in self._children_names:
                 child = getattr(self, key)
-                if isinstance(child, list):
+                if isinstance(child, list) and len(child) > 0:
                     child_str = ",\n".join([repr(subchild) for subchild in child])
                     if len(child) > 1:
                         child_str = _addindent(f"\n{child_str},", 2)
