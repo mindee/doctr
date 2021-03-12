@@ -34,7 +34,7 @@ class VisionDataset:
 
         archive_path = download_from_url(url, file_name, file_hash, cache_subdir='datasets')
 
-        # Extract to funsd
+        # Extract the archive
         if extract_archive:
             archive_path = Path(archive_path)
             dataset_path = archive_path.parent.joinpath(archive_path.stem)
