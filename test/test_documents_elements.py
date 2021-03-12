@@ -101,7 +101,7 @@ def test_line():
     assert line.__repr__() == f"Line(\n  (words): [\n{words_str}\n  ]\n)"
 
     # Ensure that words repr does't span on several lines when there are none
-    assert repr(elements.Line([], ((0, 0), (1, 1)))) == f"Line(\n  (words): []\n)"
+    assert repr(elements.Line([], ((0, 0), (1, 1)))) == "Line(\n  (words): []\n)"
 
 
 def test_artefact():
