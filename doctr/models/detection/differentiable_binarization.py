@@ -102,7 +102,17 @@ class DBPostProcessor(DetectionPostProcessor):
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-        expanded_points = np.asarray(offset.Execute(distance))  # expand polygon
+        _points = offset.Execute(distance)
+        # Take biggest stack of points
+        idx = 0
+        if len(_points) > 1:
+            max_size = 0
+            for _idx, p in enumerate(_points):
+                if len(p) > max_size:
+                    idx = _idx
+                    max_size = len(p)
+            _points = [_points[idx]]
+        expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
         x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
