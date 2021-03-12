@@ -29,6 +29,7 @@ function deploy_doc(){
 # You can find the commit for each tag on https://github.com/mindee/doctr/tags
 if [ -d build ]; then rm -Rf build; fi
 cp -r source/_static .
+git fetch
 deploy_doc "" latest
 deploy_doc "571af3dc" # v0.1.0 Latest stable release
 rm -rf _build _static
