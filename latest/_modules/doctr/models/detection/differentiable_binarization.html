@@ -211,6 +211,8 @@
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;db_resnet50&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
         <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;ResNet50&#39;</span><span class="p">,</span>
         <span class="s1">&#39;fpn_layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;conv2_block3_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv3_block4_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv4_block6_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv5_block3_out&quot;</span><span class="p">],</span>
         <span class="s1">&#39;fpn_channels&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
