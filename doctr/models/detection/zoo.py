@@ -16,15 +16,15 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor:
-
     # Detection
     _model = detection.__dict__[default_cfgs[arch]['model']](pretrained=pretrained)
+    kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
+    kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     predictor = DetectionPredictor(
         DetectionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
         _model,
         detection.__dict__[default_cfgs[arch]['post_processor']]()
     )
-
     return predictor
 
 

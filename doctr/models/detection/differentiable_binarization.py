@@ -24,12 +24,14 @@ __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'backbone': 'ResNet50',
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'post_processor': 'DBPostProcessor',
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/db_resnet50-c8664afa.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/db_resnet50-4448d997.zip',
     },
 }
 
@@ -52,7 +54,7 @@ class DBPostProcessor(DetectionPostProcessor):
         min_size_box: int = 3,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
-        bin_thresh: float = 0.1,
+        bin_thresh: float = 0.012,
     ) -> None:
 
         super().__init__(
