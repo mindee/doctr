@@ -32,7 +32,9 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
     assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
 
     # Repr
-    assert repr(processor) == 'DetectionPreProcessor(output_size=(512, 512), mean=[0.798, 0.785, 0.772], std=[0.264, 0.274, 0.287])'
+    print(repr(processor))
+    assert repr(processor) == 'DetectionPreProcessor(output_size=(512, 512), ' \
+        'mean=[0.798 0.785 0.772], std=[0.264 0.274 0.287])'
 
 
 def test_dbpostprocessor():
