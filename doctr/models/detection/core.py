@@ -35,8 +35,8 @@ class DetectionPreProcessor(PreProcessor):
         self,
         output_size: Tuple[int, int],
         batch_size: int = 1,
-        mean: Tuple[float, float, float] = (.5, .5, .5),
-        std: Tuple[float, float, float] = (1., 1., 1.),
+        mean: Tuple[float, float, float] = (0.798, 0.785, 0.772),
+        std: Tuple[float, float, float] = (0.264, 0.274, 0.287),
         interpolation: str = 'bilinear'
     ) -> None:
 
