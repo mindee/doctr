@@ -111,6 +111,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 if len(p) > max_size:
                     idx = _idx
                     max_size = len(p)
+            # We ensure that _points can be correctly casted to a ndarray
             _points = [_points[idx]]
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
