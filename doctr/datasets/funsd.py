@@ -61,8 +61,9 @@ class FUNSD:
             subfolder = os.path.join('dataset', 'testing_data')
 
         # List images
+        self.root = os.path.join(dataset_path, subfolder, 'images')
         self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
-        for img_path in os.listdir(os.path.join(dataset_path, subfolder, 'images')):
+        for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
             with open(os.path.join(dataset_path, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
                 data = json.load(f)
