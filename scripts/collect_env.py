@@ -31,6 +31,13 @@ try:
 except (ImportError, NameError, AttributeError):
     TF_AVAILABLE = False
 
+
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except (ImportError, NameError, AttributeError):
+    CV2_AVAILABLE = False
+
 PY3 = sys.version_info >= (3, 0)
 
 
@@ -38,6 +45,7 @@ PY3 = sys.version_info >= (3, 0)
 SystemEnv = namedtuple('SystemEnv', [
     'doctr_version',
     'tf_version',
+    'cv2_version',
     'os',
     'python_version',
     'is_cuda_available',
@@ -211,10 +219,7 @@ def get_os(run_lambda):
 def get_env_info():
     run_lambda = run
 
-    if DOCTR_AVAILABLE:
-        doctr_str = doctr.__version__
-    else:
-        doctr_str = 'N/A'
+    doctr_str = doctr.__version__ if DOCTR_AVAILABLE else 'N/A'
 
     if TF_AVAILABLE:
         tf_str = tf.__version__
@@ -222,9 +227,12 @@ def get_env_info():
     else:
         tf_str = cuda_available_str = 'N/A'
 
+    cv2_str = cv2.__version__ if CV2_AVAILABLE else 'N/A'
+
     return SystemEnv(
         doctr_version=doctr_str,
         tf_version=tf_str,
+        cv2_version=cv2_str,
         python_version='{}.{}'.format(sys.version_info[0], sys.version_info[1]),
         is_cuda_available=cuda_available_str,
         cuda_runtime_version=get_running_cuda_version(run_lambda),
@@ -238,6 +246,7 @@ def get_env_info():
 env_info_fmt = """
 DocTR version: {doctr_version}
 TensorFlow version: {tf_version}
+OpenCV version: {cv2_version}
 OS: {os}
 Python version: {python_version}
 Is CUDA available: {is_cuda_available}
