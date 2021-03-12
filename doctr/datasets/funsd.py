@@ -74,5 +74,11 @@ class FUNSD:
 
             self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
 
+    def __getitem__(self, index: int) -> Tuple[str, Dict[str, Any]]:
+        return self.data[index]
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
     def __len__(self) -> int:
         return len(self.data)
