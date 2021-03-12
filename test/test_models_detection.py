@@ -112,7 +112,6 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     "arch_name",
     [
         "db_resnet50_predictor",
-        "db_resnet50_predictor_normed",
     ],
 )
 def test_detection_zoo(arch_name):
