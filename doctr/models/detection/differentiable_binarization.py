@@ -24,6 +24,8 @@ __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'backbone': 'ResNet50',
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'fpn_channels': 128,
