@@ -90,11 +90,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#file-reading">File reading</a></li>
@@ -124,7 +119,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -208,15 +202,15 @@
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
+
     <span class="c1"># Detection</span>
     <span class="n">_model</span> <span class="o">=</span> <span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;model&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">])</span>
     <span class="n">predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
         <span class="n">DetectionPreProcessor</span><span class="p">(</span><span class="n">output_size</span><span class="o">=</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
         <span class="n">_model</span><span class="p">,</span>
         <span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;post_processor&#39;</span><span class="p">]]()</span>
     <span class="p">)</span>
+
     <span class="k">return</span> <span class="n">predictor</span>
 
 
@@ -227,7 +221,7 @@
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import db_resnet50_predictor</span>
 <span class="sd">        &gt;&gt;&gt; model = db_resnet50_predictor(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>

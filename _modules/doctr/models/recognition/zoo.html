@@ -90,11 +90,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#file-reading">File reading</a></li>
@@ -124,7 +119,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -200,12 +194,11 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">recognition</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;crnn_vgg16_bn_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_vgg16_bn_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_resnet31_predictor&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;crnn_vgg16_bn_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_vgg16_bn_predictor&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">},</span>
     <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">},</span>
-    <span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_resnet31&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">},</span>
 <span class="p">}</span>
 
 
@@ -222,13 +215,13 @@
 
 
 <div class="viewcode-block" id="crnn_vgg16_bn_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.crnn_vgg16_bn_predictor">[docs]</a><span class="k">def</span> <span class="nf">crnn_vgg16_bn_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Text recognition architecture using a CRNN with a VGG16 backbone.</span>
+    <span class="sd">&quot;&quot;&quot;Text detection architecture using a DBNet with a ResNet-50 backbone.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_vgg16_bn_predictor</span>
 <span class="sd">        &gt;&gt;&gt; model = crnn_vgg16_bn_predictor(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 512, 128, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
@@ -242,13 +235,13 @@
 
 
 <div class="viewcode-block" id="sar_vgg16_bn_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.sar_vgg16_bn_predictor">[docs]</a><span class="k">def</span> <span class="nf">sar_vgg16_bn_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Text detection architecture using a SAR with a VGG16 backbone.</span>
+    <span class="sd">&quot;&quot;&quot;Text detection architecture using a DBNet with a ResNet-50 backbone.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import sar_vgg16_bn_predictor</span>
 <span class="sd">        &gt;&gt;&gt; model = sar_vgg16_bn_predictor(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 512, 128, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
@@ -259,26 +252,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
-<span class="k">def</span> <span class="nf">sar_resnet31_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Text detection architecture using a SAR with a ResNet-31 backbone.</span>
-
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import sar_vgg16_bn_predictor</span>
-<span class="sd">        &gt;&gt;&gt; model = sar_resnet31_predictor(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Recognition predictor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 
            </div>

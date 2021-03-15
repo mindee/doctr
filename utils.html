@@ -91,11 +91,6 @@
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
@@ -125,7 +120,6 @@
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -208,7 +202,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">visualize_page</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_db_crnn</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_db_crnn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([[</span><span class="n">input_page</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">visualize_page</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="n">input_page</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -222,49 +216,6 @@
 <li><p><strong>page</strong> – the exported Page of a Document</p></li>
 <li><p><strong>image</strong> – np array of the page, needs to have the same shape than page[‘dimensions’]</p></li>
 <li><p><strong>words_only</strong> – whether only words should be displayed</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="task-evaluation">
-<h2>Task evaluation<a class="headerlink" href="#task-evaluation" title="Permalink to this headline">¶</a></h2>
-<p>Implementations of task-specific metrics to easily assess your model performances.</p>
-<dl class="py class">
-<dt id="doctr.utils.metrics.ExactMatch">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">ExactMatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_case</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ignore_accents</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#ExactMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.ExactMatch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements exact match metric (word-level accuracy) for recognition task</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ignore_case</strong> – if true, ignore letter case when computing metric</p></li>
-<li><p><strong>ignore_accents</strong> – if true, ignore accents errors when computing metrics</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.utils.metrics.LocalizationConfusion">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">LocalizationConfusion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements common confusion metrics and mean IoU for localization evaluation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.utils.metrics.OCRMetric">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">max_dist</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements end-to-end OCR metric</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
-<li><p><strong>max_dist</strong> – maximum Levenshtein distance between 2 sequence to consider a match</p></li>
 </ul>
 </dd>
 </dl>
