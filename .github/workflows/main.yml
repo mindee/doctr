@@ -176,4 +176,4 @@ jobs:
       - name: Run analysis script
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
-          python scripts/analysis.py sample.pdf
+          python scripts/analysis.py sample.pdf --noviz
