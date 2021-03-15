@@ -11,7 +11,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.documents import read_pdf_from_stream
 from doctr.models import db_resnet50_predictor
-from doctr.utils.visualization import visualize_page
 
 
 predictor = db_resnet50_predictor(pretrained=True)
