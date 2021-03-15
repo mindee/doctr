@@ -113,6 +113,7 @@ def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[n
     Returns:
         a tuple of two lists: the list of assigned row candidates indices, and the list of their column counterparts
     """
+
     row_ind, col_ind = linear_sum_assignment(-score_mat)
     is_kept = score_mat[row_ind, col_ind] >= score_threshold
     return row_ind[is_kept], col_ind[is_kept]
