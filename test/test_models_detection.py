@@ -48,6 +48,35 @@ def test_dbpostprocessor():
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
     # Repr
     assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1, max_candidates=1000)'
+    # Edge case when the expanded points of the polygon has two lists
+    issue_points = np.array([
+        [869, 561],
+        [923, 581],
+        [925, 595],
+        [915, 583],
+        [889, 583],
+        [905, 593],
+        [882, 601],
+        [901, 595],
+        [904, 604],
+        [876, 608],
+        [915, 614],
+        [911, 605],
+        [925, 601],
+        [930, 616],
+        [911, 617],
+        [900, 636],
+        [931, 637],
+        [904, 649],
+        [932, 649],
+        [932, 628],
+        [918, 627],
+        [934, 624],
+        [935, 573],
+        [909, 569],
+        [934, 562]], dtype=np.int32)
+    out = postprocessor.polygon_to_box(issue_points)
+    assert isinstance(out, tuple) and len(out) == 4
 
 
 def test_db_resnet50_training_mode():
