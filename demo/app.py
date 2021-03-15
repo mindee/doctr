@@ -7,7 +7,7 @@ import os
 import streamlit as st
 import matplotlib.pyplot as plt
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.documents import read_pdf_from_stream
 from doctr.models import db_resnet50_predictor
