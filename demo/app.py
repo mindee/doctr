@@ -29,7 +29,7 @@ def main():
     # Disabling warning
     st.set_option('deprecation.showfileUploaderEncoding', False)
     # Choose your own image
-    uploaded_file = st.sidebar.file_uploader(" ",type=['pdf'] )
+    uploaded_file = st.sidebar.file_uploader(" ", type=['pdf'])
 
     # Set the two columns
     col1, col2 = st.beta_columns((1, 1))
@@ -62,6 +62,7 @@ def main():
                 ax.imshow(seg_map)
                 ax.axis('off')
                 col2.pyplot(fig, use_column_width=True)
+
 
 if __name__ == '__main__':
     main()
