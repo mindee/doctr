@@ -204,4 +204,4 @@ jobs:
           pip install -r demo/requirements.txt
 
       - name: Run the demo app
-        run: streamlit run app/app.py
+        run: streamlit run demo/app.py
