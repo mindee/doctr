@@ -25,7 +25,7 @@ def main(args):
 
     for page, img in zip(out[0].pages, doc):
         visualize_page(page.export(), img)
-        plt.show(block=True)
+        plt.show(block=not args.noblock)
 
 
 def parse_args():
@@ -35,6 +35,7 @@ def parse_args():
 
     parser.add_argument('path', type=str, help='Path to the input PDF document')
     parser.add_argument('--model', type=str, default='ocr_db_crnn', help='OCR model to use for analysis')
+    parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization", action="store_true")
     args = parser.parse_args()
 
     return args
