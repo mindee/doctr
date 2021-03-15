@@ -187,14 +187,14 @@ class OCRMetric:
 
     def update(
         self,
-        gts_vertices: np.ndarray,
-        preds_vertices: np.ndarray,
-        gts_texts: List[str],
-        preds_texts: List[str],
+        gt_boxes: np.ndarray,
+        pred_boxes: np.ndarray,
+        gt_labels: List[str],
+        pred_labels: List[str],
     ) -> None:
 
         # Compute IoU
-        iou_mat = box_iou(gts_vertices, preds_vertices)
+        iou_mat = box_iou(gt_boxes, pred_boxes)
         self.tot_iou += float(iou_mat.max(axis=1).sum())
 
         # Assign pairs
@@ -202,15 +202,15 @@ class OCRMetric:
 
         # Compare sequences
         for gt_idx, pred_idx in zip(gt_indices, preds_indices):
-            dist = levenshtein(gts_texts[gt_idx], preds_texts[pred_idx])
+            dist = levenshtein(gt_labels[gt_idx], pred_labels[pred_idx])
             self.tot_dist += dist
             if dist <= self.max_dist:
                 self.num_reco_matches += 1
 
         # Update counts
         self.num_det_matches = len(gt_indices)
-        self.num_gts += gts_vertices.shape[0]
-        self.num_preds += preds_vertices.shape[0]
+        self.num_gts += gt_boxes.shape[0]
+        self.num_preds += pred_boxes.shape[0]
 
     def summary(self) -> Tuple[float, float, float, float]:
 
