@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 
+from doctr.documents.reader import read_img
 from doctr.models.utils import download_from_url
 from .core import VisionDataset
 
@@ -55,4 +56,8 @@ class FUNSD(VisionDataset):
             self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
 
     def __getitem__(self, index: int) -> Tuple[str, Dict[str, Any]]:
-        return self.data[index]
+        img_path, target = self.data[index]
+        # Read image
+        img = read_img(os.path.join(self.root, img_path))
+
+        return img, target
