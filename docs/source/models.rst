@@ -30,8 +30,8 @@ Localizing text elements in images
    * - db_resnet50
      - (1024, 1024, 3)
      -
-     -
-     -
+     - 0.45
+     - 0.64
      -
 
 Pre-processing for detection
@@ -78,12 +78,12 @@ Identifying strings in images
    * - crnn_vgg16_bn
      - (32, 128, 3)
      -
-     -
+     - 0.87
      -
    * - sar_vgg16_bn
-     - (64, 256, 3)
+     - (32, 128, 3)
      -
-     -
+     - 0.87
      -
 
 
@@ -120,6 +120,29 @@ Combining the right components around a given architecture for easier usage.
 End-to-End OCR
 --------------
 Predictors that localize and identify text elements in images
+
+.. list-table:: end-to-end model zoo
+   :widths: 20 20 15 10 10 10
+   :header-rows: 1
+
+   * - Architecture
+     - Input shape
+     - # params
+     - Recall
+     - Precision
+     - FPS
+   * - ocr_db_crnn
+     - (1024, 1024, 3)
+     -
+     - 0.39
+     - 0.56
+     -
+   * - ocr_db_sar
+     - (1024, 1024, 3)
+     -
+     - 0.40
+     - 0.56
+     -
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
