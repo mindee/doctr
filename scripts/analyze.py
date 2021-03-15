@@ -3,13 +3,10 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import matplotlib.pyplot as plt
 from doctr.models import zoo
 from doctr.documents import read_pdf
 from doctr.utils.visualization import visualize_page
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def main(args):
