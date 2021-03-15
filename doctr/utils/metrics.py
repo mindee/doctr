@@ -98,8 +98,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     right = np.minimum(r1, r2.T)
     bot = np.minimum(b1, b2.T)
 
-    intersection = np.abs(right - left) * np.abs(bot - top)
-
+    intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
     union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
 
     return intersection / union
