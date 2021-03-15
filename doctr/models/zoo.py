@@ -17,7 +17,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def _predictor(arch: str, pretrained: bool, det_bs=2, reco_bs=16, **kwargs: Any) -> OCRPredictor:
+def _predictor(arch: str, pretrained: bool, det_bs=2, reco_bs=32, **kwargs: Any) -> OCRPredictor:
 
     # Detection
     det_predictor = det_zoo.__dict__[default_cfgs[arch]['detection']](pretrained=pretrained, batch_size=det_bs)
