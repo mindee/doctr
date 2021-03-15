@@ -44,6 +44,7 @@ def test_assign_pairs(mat, row_indices, col_indices):
         [[0, 0, .5, .5], [.5, .5, 1, 1], 0, 0],  # No match
         [[0, 0, 1, 1], [.5, .5, 1, 1], 0.25, 0],  # Partial match
         [[.2, .2, .6, .6], [.4, .4, .8, .8], 4 / 28, 1e-7],  # Partial match
+        [[0, 0, .1, .1], [.9, .9, 1, 1], 0, 0],  # Boxes far from each other
     ],
 )
 def test_box_iou(box1, box2, iou, abs_tol):
@@ -56,7 +57,6 @@ def test_box_iou(box1, box2, iou, abs_tol):
         [[[0, 0, .5, .5]], [[0, 0, .5, .5]], 0.5, 1, 1, 1],  # Perfect match
         [[[0, 0, 1, 1]], [[0, 0, .5, .5], [.6, .6, .7, .7]], 0.2, 1, 0.5, 0.125],  # Bad match
         [[[0, 0, 1, 1]], [[0, 0, .5, .5], [.6, .6, .7, .7]], 0.5, 0, 0, 0.125],  # Bad match
-        [[0, 0, .1, .1], [.9, .9, 1, 1], 0, 0],  # Boxes far from each other
     ],
 )
 def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):
