@@ -1,5 +1,6 @@
 import pytest
 import os
+import numpy as np
 from doctr import datasets
 
 
@@ -18,6 +19,6 @@ def test_dataset(dataset_name, size):
 
     assert len(ds) == size
     assert repr(ds) == f"{dataset_name}()"
-    img_name, target = ds[0]
-    assert isinstance(img_name, str) and os.path.exists(os.path.join(ds.root, img_name))
+    img, target = ds[0]
+    assert isinstance(img, np.ndarray) and img.ndim == 3
     assert isinstance(target, dict)
