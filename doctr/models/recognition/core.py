@@ -33,7 +33,7 @@ class RecognitionPreProcessor(PreProcessor):
     def __init__(
         self,
         output_size: Tuple[int, int],
-        batch_size: int = 1,
+        batch_size: int = 32,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
         interpolation: str = 'bilinear',
