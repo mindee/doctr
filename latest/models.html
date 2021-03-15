@@ -229,8 +229,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <tr class="row-even"><td><p>db_resnet50</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
-<td></td>
-<td></td>
+<td><p>0.45</p></td>
+<td><p>0.64</p></td>
 <td></td>
 </tr>
 </tbody>
@@ -329,13 +329,13 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td></td>
-<td></td>
+<td><p>0.87</p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p>sar_vgg16_bn</p></td>
-<td><p>(64, 256, 3)</p></td>
+<td><p>(32, 128, 3)</p></td>
 <td></td>
-<td></td>
+<td><p>0.87</p></td>
 <td></td>
 </tr>
 </tbody>
@@ -464,6 +464,42 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <div class="section" id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this headline">¶</a></h2>
 <p>Predictors that localize and identify text elements in images</p>
+<table class="colwidths-given docutils align-default" id="id4">
+<caption><span class="caption-text">end-to-end model zoo</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Architecture</p></th>
+<th class="head"><p>Input shape</p></th>
+<th class="head"><p># params</p></th>
+<th class="head"><p>Recall</p></th>
+<th class="head"><p>Precision</p></th>
+<th class="head"><p>FPS</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ocr_db_crnn</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td></td>
+<td><p>0.39</p></td>
+<td><p>0.56</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>ocr_db_sar</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td></td>
+<td><p>0.40</p></td>
+<td><p>0.56</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <div class="section" id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">¶</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>
