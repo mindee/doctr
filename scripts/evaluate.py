@@ -9,10 +9,10 @@ from tqdm import tqdm
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.utils import metrics
+from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
 from doctr.datasets import FUNSD
 from doctr.documents import read_img
-from doctr.models import zoo
+from doctr.models import zoo, extract_crops
 
 
 def main(args):
@@ -27,7 +27,9 @@ def main(args):
     test_set = FUNSD(train=False, download=True)
     dataset.data.extend(test_set.data)
 
-    metric = metrics.OCRMetric(iou_thresh=args.iou)
+    det_metric = LocalizationConfusion(iou_thresh=args.iou)
+    reco_metric = ExactMatch()
+    e2e_metric = OCRMetric(iou_thresh=args.iou)
 
     for page, target in tqdm(dataset):
         # GT
@@ -36,6 +38,9 @@ def main(args):
 
         # Forward
         out = model([[page]])
+        # Crop GT
+        crops = extract_crops(page, gt_boxes)
+        reco_out = model.reco_predictor(crops)
 
         # Unpack preds
         pred_boxes = []
@@ -50,12 +55,18 @@ def main(args):
                         pred_labels.append(word.value)
 
         # Update the metric
-        metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
+        det_metric.update(gt_boxes, np.asarray(pred_boxes))
+        reco_metric.update(gt_labels, reco_out)
+        e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
-    recall, precision, mean_iou, _ = metric.summary()
-    print(f"End-to-End Evaluation (model='{args.model}', dataset='{args.dataset}')")
-    print(f"Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
+    print(f"Model Evaluation (model='{args.model}', dataset='FUNSD')")
+    recall, precision, mean_iou = det_metric.summary()
+    print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
+    acc = reco_metric.summary()
+    print(f"Text Recognition - Accuracy: {acc:.2%}")
+    recall, precision, mean_iou, _ = e2e_metric.summary()
+    print(f"OCR - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
 
 
 def parse_args():
