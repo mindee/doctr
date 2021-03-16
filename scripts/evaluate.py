@@ -22,42 +22,41 @@ def main(args):
 
     model = zoo.__dict__[args.model](pretrained=True)
 
-    dataset = FUNSD(train=True, download=True)
-    # Patch the dataset to use both subsets as they are not used for training
+    train_set = FUNSD(train=True, download=True)
     test_set = FUNSD(train=False, download=True)
-    dataset.data.extend(test_set.data)
 
     det_metric = LocalizationConfusion(iou_thresh=args.iou)
     reco_metric = ExactMatch()
     e2e_metric = OCRMetric(iou_thresh=args.iou)
 
-    for page, target in tqdm(dataset):
-        # GT
-        gt_boxes = np.asarray(target['boxes'])
-        gt_labels = list(target['labels'])
+    for dataset in (train_set, test_set):
+        for page, target in tqdm(dataset):
+            # GT
+            gt_boxes = np.asarray(target['boxes'])
+            gt_labels = list(target['labels'])
 
-        # Forward
-        out = model([[page]])
-        # Crop GT
-        crops = extract_crops(page, gt_boxes)
-        reco_out = model.reco_predictor(crops)
+            # Forward
+            out = model([[page]])
+            # Crop GT
+            crops = extract_crops(page, gt_boxes)
+            reco_out = model.reco_predictor(crops)
 
-        # Unpack preds
-        pred_boxes = []
-        pred_labels = []
-        for page in out[0].pages:
-            h, w = page.dimensions
-            for block in page.blocks:
-                for line in block.lines:
-                    for word in line.words:
-                        (a, b), (c, d) = word.geometry
-                        pred_boxes.append([int(a * w), int(b * h), int(c * w), int(d * h)])
-                        pred_labels.append(word.value)
+            # Unpack preds
+            pred_boxes = []
+            pred_labels = []
+            for page in out[0].pages:
+                h, w = page.dimensions
+                for block in page.blocks:
+                    for line in block.lines:
+                        for word in line.words:
+                            (a, b), (c, d) = word.geometry
+                            pred_boxes.append([int(a * w), int(b * h), int(c * w), int(d * h)])
+                            pred_labels.append(word.value)
 
-        # Update the metric
-        det_metric.update(gt_boxes, np.asarray(pred_boxes))
-        reco_metric.update(gt_labels, reco_out)
-        e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
+            # Update the metric
+            det_metric.update(gt_boxes, np.asarray(pred_boxes))
+            reco_metric.update(gt_labels, reco_out)
+            e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
     print(f"Model Evaluation (model='{args.model}', dataset='FUNSD')")
