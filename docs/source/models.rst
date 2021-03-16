@@ -30,8 +30,8 @@ Localizing text elements in images
    * - db_resnet50
      - (1024, 1024, 3)
      -
-     - 0.45
-     - 0.64
+     - 0.59
+     - 0.84
      -
 
 Pre-processing for detection
@@ -81,6 +81,11 @@ Identifying strings in images
      - 0.86
      -
    * - sar_vgg16_bn
+     - (32, 128, 3)
+     -
+     - 0.86
+     -
+   * - sar_resnet31
      - (32, 128, 3)
      -
      - 0.86
@@ -142,6 +147,12 @@ Predictors that localize and identify text elements in images
      -
      - 0.40
      - 0.56
+     -
+   * - ocr_db_sar_resnet
+     - (1024, 1024, 3)
+     -
+     - 0.52
+     - 0.74
      -
    * - google vision
      - (1024, 1024, 3)
