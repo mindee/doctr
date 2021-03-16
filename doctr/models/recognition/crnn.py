@@ -9,19 +9,29 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any, Optional
 
-from .. import vgg
+from .. import vgg, resnet
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
 
-__all__ = ['CRNN', 'crnn_vgg16_bn']
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'crnn_vgg16_bn': {'backbone': 'vgg16_bn', 'rnn_units': 128,
-                      'input_shape': (32, 128, 3),
-                      'post_processor': 'CTCPostProcessor',
-                      'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                                'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-                      'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/crnn_vgg16bn-b37097a8.zip'},
+    'crnn_vgg16_bn': {
+        'backbone': 'vgg16_bn', 'rnn_units': 128,
+        'input_shape': (32, 128, 3),
+        'post_processor': 'CTCPostProcessor',
+        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/crnn_vgg16bn-b37097a8.zip',
+    },
+    'crnn_resnet31': {
+        'backbone': 'resnet31', 'rnn_units': 128,
+        'input_shape': (32, 128, 3),
+        'post_processor': 'CTCPostProcessor',
+        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
+        'url': None,
+    },
 }
 
 
@@ -93,6 +103,34 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
     return model
 
 
+def _crnn_resnet(
+    arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any
+) -> CRNN:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
+    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
+
+    # Feature extractor
+    feat_extractor = resnet.__dict__[_cfg['backbone']](
+        input_shape=_cfg['input_shape'],
+        include_top=False,
+    )
+
+    kwargs['vocab_size'] = _cfg['vocab_size']
+    kwargs['rnn_units'] = _cfg['rnn_units']
+
+    # Build the model
+    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, _cfg['url'])
+
+    return model
+
+
 def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a VGG-16 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
     from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
@@ -112,3 +150,24 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """
 
     return _crnn_vgg('crnn_vgg16_bn', pretrained, **kwargs)
+
+
+def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with a resnet31 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
+    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import crnn_resnet31
+        >>> model = crnn_resnet31(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn_resnet('crnn_resnet31', pretrained, **kwargs)

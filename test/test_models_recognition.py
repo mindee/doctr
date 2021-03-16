@@ -41,6 +41,7 @@ def test_recopreprocessor(mock_pdf):  # noqa: F811
         ["crnn_vgg16_bn", (32, 128, 3), (32, 119)],
         ["sar_vgg16_bn", (32, 128, 3), (31, 119)],
         ["sar_resnet31", (32, 128, 3), (31, 119)],
+        ["crnn_resnet31", (32, 128, 3), (32, 119)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, output_size):
@@ -124,6 +125,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
         "crnn_vgg16_bn_predictor",
         "sar_vgg16_bn_predictor",
         "sar_resnet31_predictor",
+        "crnn_resnet31_predictor",
     ],
 )
 def test_recognition_zoo(arch_name):
