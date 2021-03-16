@@ -14,6 +14,17 @@ __all__ = ['VisionDataset']
 
 
 class VisionDataset:
+    """Implements an abstract dataset
+
+    Args:
+        url: URL of the dataset
+        file_name: name of the file once downloaded
+        file_hash: expected SHA256 of the file
+        extract_archive: whether the downloaded file is an archive to be extracted
+        download: whether the dataset should be downloaded if not present on disk
+        overwrite: whether the archive should be re-extracted
+    """
+
     def __init__(
         self,
         url: str,
