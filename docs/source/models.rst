@@ -78,12 +78,12 @@ Identifying strings in images
    * - crnn_vgg16_bn
      - (32, 128, 3)
      -
-     - 0.87
+     - 0.86
      -
    * - sar_vgg16_bn
      - (32, 128, 3)
      -
-     - 0.87
+     - 0.86
      -
 
 
@@ -143,6 +143,19 @@ Predictors that localize and identify text elements in images
      - 0.40
      - 0.56
      -
+   * - google vision
+     - (1024, 1024, 3)
+     -
+     - 0.59
+     - 0.63
+     -
+   * - aws textract
+     - (1024, 1024, 3)
+     -
+     - 0.78
+     - 0.83
+     -
+
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
