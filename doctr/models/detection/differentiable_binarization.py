@@ -275,10 +275,13 @@ class DBNet(DetectionModel, NestedObject):
         self.feat_extractor = feature_extractor
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
+        # Initialize kernels
+        _inputs = [layers.Input(shape=in_shape[1:]) for in_shape in self.feat_extractor.output_shape]
+        output_shape = tuple(self.fpn(_inputs).shape)
 
         self.probability_head = keras.Sequential(
             [
-                *conv_sequence(64, 'relu', True, kernel_size=3),
+                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
@@ -288,7 +291,7 @@ class DBNet(DetectionModel, NestedObject):
         )
         self.threshold_head = keras.Sequential(
             [
-                *conv_sequence(64, 'relu', True, kernel_size=3),
+                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
