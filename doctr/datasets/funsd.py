@@ -21,9 +21,7 @@ class FUNSD(VisionDataset):
     <https://arxiv.org/pdf/1905.13538.pdf>`_.
 
     Args:
-        subset: subset of the dataset ('train' or 'test')
-        download: whether the dataset should be downloaded if not present on disk
-        overwrite: whether the archive should be re-extracted
+        train: whether the subset should be the training one
     """
 
     URL = 'https://guillaumejaume.github.io/FUNSD/dataset.zip'

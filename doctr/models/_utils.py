@@ -28,9 +28,10 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
 
     # Project relative coordinates
     _boxes = boxes.copy()
-    _boxes[:, [0, 2]] *= img.shape[1]
-    _boxes[:, [1, 3]] *= img.shape[0]
-    _boxes = _boxes.round().astype(int)
-    # Add last index
-    _boxes[2:] += 1
+    if _boxes.dtype != np.int:
+        _boxes[:, [0, 2]] *= img.shape[1]
+        _boxes[:, [1, 3]] *= img.shape[0]
+        _boxes = _boxes.round().astype(int)
+        # Add last index
+        _boxes[2:] += 1
     return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
