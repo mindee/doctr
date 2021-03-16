@@ -18,8 +18,8 @@ __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_vgg16_bn': {
-        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 40, 'num_decoders': 2,
-        'input_shape': (64, 256, 3),
+        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
+        'input_shape': (32, 128, 3),
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),

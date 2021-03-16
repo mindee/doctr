@@ -100,6 +100,9 @@ def test_line():
     words_str = ' ' * 4 + ',\n    '.join(repr(word) for word in words) + ','
     assert line.__repr__() == f"Line(\n  (words): [\n{words_str}\n  ]\n)"
 
+    # Ensure that words repr does't span on several lines when there are none
+    assert repr(elements.Line([], ((0, 0), (1, 1)))) == "Line(\n  (words): []\n)"
+
 
 def test_artefact():
     artefact_type = "qr_code"

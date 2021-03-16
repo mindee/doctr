@@ -16,6 +16,7 @@ Extract valuable information from your documents.
   * [Python package](#python-package)
   * [Docker container](#docker-container)
   * [Example script](#example-script)
+  * [Demo app](#demo-app)
 * [Documentation](#documentation)
 * [Contributing](#contributing)
 * [License](#license)
@@ -78,6 +79,20 @@ An example script is provided for a simple documentation analysis of a PDF file:
 python scripts/analyze.py path/to/your/doc.pdf
 ```
 All script arguments can be checked using `python scripts/analyze.py --help`
+
+### Demo app
+
+A minimal demo app is provided for you to play with the text detection model!
+
+You will need an extra dependency ([Streamlit](https://streamlit.io/)) for the app to run:
+```shell
+pip install -r demo/requirements.txt
+```
+You can then easily run your app in your default browser by running:
+
+```shell
+streamlit run demo/app.py
+```
 
 
 ## Documentation

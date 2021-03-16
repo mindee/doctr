@@ -11,21 +11,27 @@ from test_models_recognition import test_recognitionpredictor
 def test_extract_crops(mock_pdf):  # noqa: F811
     doc_img = read_pdf(mock_pdf)[0]
     num_crops = 2
-    boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
-                      for idx in range(num_crops)], dtype=np.float32)
-    croped_imgs = models.extract_crops(doc_img, boxes)
+    rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
+                          for idx in range(num_crops)], dtype=np.float32)
+    abs_boxes = np.array([[int(idx * doc_img.shape[1] / num_crops),
+                           int(idx * doc_img.shape[0]) / num_crops,
+                           int((idx + 1) * doc_img.shape[1] / num_crops),
+                           int((idx + 1) * doc_img.shape[0] / num_crops)]
+                          for idx in range(num_crops)], dtype=np.float32)
 
     with pytest.raises(AssertionError):
         models.extract_crops(doc_img, np.zeros((1, 5)))
 
-    # Number of crops
-    assert len(croped_imgs) == num_crops
-    # Data type and shape
-    assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
-    assert all(crop.ndim == 3 for crop in croped_imgs)
+    for boxes in (rel_boxes, abs_boxes):
+        croped_imgs = models.extract_crops(doc_img, boxes)
+        # Number of crops
+        assert len(croped_imgs) == num_crops
+        # Data type and shape
+        assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+        assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # Identity
-    assert np.all(doc_img == models.extract_crops(doc_img, np.array([[0, 0, 1, 1]]))[0])
+    assert np.all(doc_img == models.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32))[0])
 
     # No box
     assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
