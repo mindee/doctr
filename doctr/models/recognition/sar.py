@@ -110,6 +110,7 @@ class SARDecoder(layers.Layer, NestedObject):
         embedding_units: int,
         attention_units: int,
         num_decoder_layers: int = 2,
+        input_shape: Optional[List[Tuple[Optional[int]]]] = None,
     ) -> None:
 
         super().__init__()
@@ -121,6 +122,10 @@ class SARDecoder(layers.Layer, NestedObject):
         self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(vocab_size + 1, use_bias=True, input_shape=(None, 2 * rnn_units))
         self.max_length = max_length
+
+        # Initialize kernels
+        if input_shape is not None:
+            self.attention_module.call(layers.Input(input_shape[0][1:]), layers.Input((1, 1, rnn_units)))
 
     def call(
         self,
@@ -216,7 +221,7 @@ class SAR(RecognitionModel):
 
         self.decoder = SARDecoder(
             rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
-
+            input_shape=[self.feat_extractor.output_shape, self.encoder.output_shape]
         )
 
     def call(
