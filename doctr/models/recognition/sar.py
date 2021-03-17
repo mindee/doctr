@@ -114,12 +114,12 @@ class SARDecoder(layers.Layer, NestedObject):
 
         super().__init__()
         self.vocab_size = vocab_size
-        self.embed = layers.Dense(embedding_units, use_bias=False, input_shape=(self.vocab_size + 1,))
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
+        self.embed = layers.Dense(embedding_units, use_bias=False, input_shape=(None, self.vocab_size + 1))
         self.attention_module = AttentionModule(attention_units)
-        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True, input_shape=(2 * rnn_units,))
+        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True, input_shape=(None, 2 * rnn_units))
         self.max_length = max_length
 
     def call(
