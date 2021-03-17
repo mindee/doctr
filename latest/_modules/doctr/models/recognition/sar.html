@@ -217,7 +217,7 @@
         <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">,</span>
         <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;3K}7eé;5àÎYho]QwV6qU~W&quot;XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-&#39;</span>
                   <span class="s1">&#39;kçHëÀÂ2É/ûIJ</span><span class="se">\&#39;</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.0/sar_vgg16_bn-e0be6df9.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;sar_resnet31&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">),</span>
@@ -227,7 +227,7 @@
         <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">,</span>
         <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;3K}7eé;5àÎYho]QwV6qU~W&quot;XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-&#39;</span>
                   <span class="s1">&#39;kçHëÀÂ2É/ûIJ</span><span class="se">\&#39;</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l&#39;</span><span class="p">),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-ea202587.zip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-sha4182d.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -306,13 +306,13 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">=</span> <span class="n">vocab_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">embed</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">embedding_units</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">attention_module</span> <span class="o">=</span> <span class="n">AttentionModule</span><span class="p">(</span><span class="n">attention_units</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_dense</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embed</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">embedding_units</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lstm_decoder</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">StackedRNNCells</span><span class="p">(</span>
             <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">implementation</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_decoder_layers</span><span class="p">)]</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention_module</span> <span class="o">=</span> <span class="n">AttentionModule</span><span class="p">(</span><span class="n">attention_units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dense</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rnn_units</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -403,6 +403,8 @@
                 <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="p">]</span>
         <span class="p">)</span>
+        <span class="c1"># Initialize the kernels (watch out for reduce_max)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">SARDecoder</span><span class="p">(</span>
             <span class="n">rnn_units</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_units</span><span class="p">,</span> <span class="n">attention_units</span><span class="p">,</span> <span class="n">num_decoders</span><span class="p">,</span>
