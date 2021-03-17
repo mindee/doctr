@@ -53,9 +53,13 @@ class CRNN(RecognitionModel):
     ) -> None:
         super().__init__(cfg=cfg)
         self.feat_extractor = feature_extractor
+
+        # Initialize kernels
+        h, w, c = self.feat_extractor.output_shape[1:]
+
         self.decoder = Sequential(
             [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True, input_shape=(w, h * c))),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Dense(units=vocab_size + 1)
             ]
