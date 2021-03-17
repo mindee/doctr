@@ -63,11 +63,12 @@ class CRNN(RecognitionModel):
 
         self.decoder = Sequential(
             [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True, input_shape=(w, h * c))),
+                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Dense(units=vocab_size + 1)
             ]
         )
+        self.decoder.build(input_shape=(None, w, h * c))
 
     def call(
         self,
