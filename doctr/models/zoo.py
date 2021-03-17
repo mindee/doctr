@@ -35,8 +35,8 @@ def ocr_db_sar_vgg(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
 
     Example::
         >>> import numpy as np
-        >>> from doctr.models import ocr_db_sar
-        >>> model = ocr_db_sar(pretrained=True)
+        >>> from doctr.models import ocr_db_sar_vgg
+        >>> model = ocr_db_sar_vgg(pretrained=True)
         >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([[input_page]])
 
@@ -56,8 +56,8 @@ def ocr_db_sar_resnet(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
 
     Example::
         >>> import numpy as np
-        >>> from doctr.models import ocr_db_sar
-        >>> model = ocr_db_sar(pretrained=True)
+        >>> from doctr.models import ocr_db_sar_resnet
+        >>> model = ocr_db_sar_resnet(pretrained=True)
         >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([[input_page]])
 
@@ -77,8 +77,8 @@ def ocr_db_crnn_vgg(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
 
     Example::
         >>> import numpy as np
-        >>> from doctr.models import ocr_db_crnn
-        >>> model = ocr_db_crnn(pretrained=True)
+        >>> from doctr.models import ocr_db_crnn_vgg
+        >>> model = ocr_db_crnn_vgg(pretrained=True)
         >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([[input_page]])
 
