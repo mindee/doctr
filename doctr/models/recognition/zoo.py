@@ -21,6 +21,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
 
     _model = recognition.__dict__[default_cfgs[arch]['model']](pretrained=pretrained)
+    kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
+    kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     predictor = RecognitionPredictor(
         RecognitionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
         _model,

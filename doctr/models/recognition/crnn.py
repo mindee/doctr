@@ -17,6 +17,8 @@ __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'post_processor': 'CTCPostProcessor',
@@ -25,6 +27,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/crnn_vgg16bn-b37097a8.zip',
     },
     'crnn_resnet31': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'backbone': 'resnet31', 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'post_processor': 'CTCPostProcessor',
