@@ -8,10 +8,11 @@ from .core import RecognitionPredictor, RecognitionPreProcessor
 from .. import recognition
 
 
-__all__ = ["crnn_vgg16_bn_predictor", "sar_vgg16_bn_predictor", "sar_resnet31_predictor"]
+__all__ = ["crnn_vgg16_bn_predictor", "crnn_resnet31_predictor", "sar_vgg16_bn_predictor", "sar_resnet31_predictor"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn_predictor': {'model': 'crnn_vgg16_bn', 'post_processor': 'CTCPostProcessor'},
+    'crnn_resnet31_predictor': {'model': 'crnn_resnet31', 'post_processor': 'CTCPostProcessor'},
     'sar_vgg16_bn_predictor': {'model': 'sar_vgg16_bn', 'post_processor': 'SARPostProcessor'},
     'sar_resnet31_predictor': {'model': 'sar_resnet31', 'post_processor': 'SARPostProcessor'},
 }
@@ -20,6 +21,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
 
     _model = recognition.__dict__[default_cfgs[arch]['model']](pretrained=pretrained)
+    kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
+    kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     predictor = RecognitionPredictor(
         RecognitionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
         _model,
@@ -36,7 +39,7 @@ def crnn_vgg16_bn_predictor(pretrained: bool = False, **kwargs: Any) -> Recognit
         >>> import numpy as np
         >>> from doctr.models import crnn_vgg16_bn_predictor
         >>> model = crnn_vgg16_bn_predictor(pretrained=True)
-        >>> input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
     Args:
@@ -49,6 +52,26 @@ def crnn_vgg16_bn_predictor(pretrained: bool = False, **kwargs: Any) -> Recognit
     return _predictor('crnn_vgg16_bn_predictor', pretrained, **kwargs)
 
 
+def crnn_resnet31_predictor(pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
+    """Text detection architecture using a CRNN with a ResNet-31 backbone.
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.models import crnn_resnet31_bn_predictor
+        >>> model = crnn_resnet31_predictor(pretrained=False)
+        >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
+        >>> out = model([input_page])
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        Recognition predictor
+    """
+
+    return _predictor('sar_resnet31_predictor', pretrained, **kwargs)
+
+
 def sar_vgg16_bn_predictor(pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
     """Text detection architecture using a SAR with a VGG16 backbone.
 
@@ -56,7 +79,7 @@ def sar_vgg16_bn_predictor(pretrained: bool = False, **kwargs: Any) -> Recogniti
         >>> import numpy as np
         >>> from doctr.models import sar_vgg16_bn_predictor
         >>> model = sar_vgg16_bn_predictor(pretrained=False)
-        >>> input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
     Args:
@@ -74,9 +97,9 @@ def sar_resnet31_predictor(pretrained: bool = False, **kwargs: Any) -> Recogniti
 
     Example::
         >>> import numpy as np
-        >>> from doctr.models import sar_vgg16_bn_predictor
+        >>> from doctr.models import sar_resnet31_predictor
         >>> model = sar_resnet31_predictor(pretrained=False)
-        >>> input_page = (255 * np.random.rand(512, 128, 3)).astype(np.uint8)
+        >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
     Args:

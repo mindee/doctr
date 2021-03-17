@@ -30,8 +30,8 @@ Localizing text elements in images
    * - db_resnet50
      - (1024, 1024, 3)
      -
-     - 0.45
-     - 0.64
+     - 0.59
+     - 0.84
      -
 
 Pre-processing for detection
@@ -78,12 +78,17 @@ Identifying strings in images
    * - crnn_vgg16_bn
      - (32, 128, 3)
      -
-     - 0.87
+     - 0.86
      -
    * - sar_vgg16_bn
      - (32, 128, 3)
      -
-     - 0.87
+     - 0.86
+     -
+   * - sar_resnet31
+     - (32, 128, 3)
+     -
+     - 0.86
      -
 
 
@@ -103,7 +108,7 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn
-
+.. autofunction:: doctr.models.recognition.sar_resnet31
 
 Post-processing outputs
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,6 +120,7 @@ Combining the right components around a given architecture for easier usage.
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn_predictor
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn_predictor
+.. autofunction:: doctr.models.recognition.sar_resnet31_predictor
 
 
 End-to-End OCR
@@ -131,24 +137,45 @@ Predictors that localize and identify text elements in images
      - Recall
      - Precision
      - FPS
-   * - ocr_db_crnn
+   * - ocr_db_crnn_vgg
      - (1024, 1024, 3)
      -
      - 0.39
      - 0.56
      -
-   * - ocr_db_sar
+   * - ocr_db_sar_vgg
      - (1024, 1024, 3)
      -
      - 0.40
      - 0.56
      -
+   * - ocr_db_sar_resnet
+     - (1024, 1024, 3)
+     -
+     - 0.52
+     - 0.74
+     -
+   * - google vision
+     - (1024, 1024, 3)
+     -
+     - 0.59
+     - 0.63
+     -
+   * - aws textract
+     - (1024, 1024, 3)
+     -
+     - 0.78
+     - 0.83
+     -
+
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
 Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.
 
-.. autofunction:: doctr.models.zoo.ocr_db_crnn
+.. autofunction:: doctr.models.zoo.ocr_db_crnn_vgg
+.. autofunction:: doctr.models.zoo.ocr_db_sar_resnet
+.. autofunction:: doctr.models.zoo.ocr_db_sar_vgg
 
 
 Model export
