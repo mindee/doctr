@@ -83,7 +83,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
@@ -212,8 +211,14 @@
     <span class="sd">&quot;&quot;&quot;FUNSD dataset from `&quot;FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.13538.pdf&gt;`_.</span>
 
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.datasets import FUNSD</span>
+<span class="sd">        &gt;&gt;&gt; train_set = FUNSD(train=True, download=True)</span>
+<span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>
+<span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;https://guillaumejaume.github.io/FUNSD/dataset.zip&#39;</span>

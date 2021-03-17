@@ -83,7 +83,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
@@ -206,6 +205,12 @@
 <div class="viewcode-block" id="ExactMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.ExactMatch">[docs]</a><span class="k">class</span> <span class="nc">ExactMatch</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Implements exact match metric (word-level accuracy) for recognition task</span>
 
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.utils import ExactMatch</span>
+<span class="sd">        &gt;&gt;&gt; metric = ExactMatch()</span>
+<span class="sd">        &gt;&gt;&gt; metric.update([&#39;Hello&#39;, &#39;world&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        ignore_case: if true, ignore letter case when computing metric</span>
 <span class="sd">        ignore_accents: if true, ignore accents errors when computing metrics&quot;&quot;&quot;</span>
@@ -314,6 +319,13 @@
 <div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation</span>
 
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
+<span class="sd">        &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
+<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
+<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -356,6 +368,14 @@
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
+<span class="sd">        &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
+<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">        [&#39;hello&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
