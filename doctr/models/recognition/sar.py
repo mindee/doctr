@@ -114,8 +114,6 @@ class SARDecoder(layers.Layer, NestedObject):
 
         super().__init__()
         self.vocab_size = vocab_size
-        self.embed = layers.Dense(embedding_units, use_bias=False)
-        self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(vocab_size + 1, use_bias=True)
         self.max_length = max_length
         self.lstm_decoder = layers.StackedRNNCells(
