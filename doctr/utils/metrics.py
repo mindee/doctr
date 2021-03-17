@@ -14,6 +14,12 @@ __all__ = ['ExactMatch', 'box_iou', 'assign_pairs', 'LocalizationConfusion', 'OC
 class ExactMatch:
     """Implements exact match metric (word-level accuracy) for recognition task
 
+    Example::
+        >>> from doctr.utils import ExactMatch
+        >>> metric = ExactMatch()
+        >>> metric.update(['Hello', 'world'], ['hello', 'world'])
+        >>> metric.summary()
+
     Args:
         ignore_case: if true, ignore letter case when computing metric
         ignore_accents: if true, ignore accents errors when computing metrics"""
@@ -122,6 +128,13 @@ def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[n
 class LocalizationConfusion:
     """Implements common confusion metrics and mean IoU for localization evaluation
 
+    Example::
+        >>> import numpy as np
+        >>> from doctr.utils import LocalizationConfusion
+        >>> metric = LocalizationConfusion(iou_thresh=0.5)
+        >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))
+        >>> metric.summary()
+
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
@@ -164,6 +177,14 @@ class LocalizationConfusion:
 
 class OCRMetric:
     """Implements end-to-end OCR metric
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.utils import OCRMetric
+        >>> metric = OCRMetric(iou_thresh=0.5)
+        >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
+        ['hello'], ['hello', 'world'])
+        >>> metric.summary()
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
