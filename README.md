@@ -32,12 +32,18 @@ Extract valuable information from your documents.
 
 ### Installation
 
-You can install the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
+You can install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
 ```shell
 pip install python-doctr
 ```
 
+Or you can install it from source:
+
+```shell
+git clone https://github.com/mindee/doctr.git
+pip install -e doctr/.
+```
 
 
 ## Usage
