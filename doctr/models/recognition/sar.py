@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_vgg16_bn-e0be6df9.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
     },
     'sar_resnet31': {
         'mean': (.5, .5, .5),
@@ -35,7 +35,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-sha4182d.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-ea202587.zip',
     },
 }
 
