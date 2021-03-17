@@ -15,16 +15,6 @@ Install the last stable release of the package using pip:
     pip install python-doctr
 
 
-Via Conda
-=========
-
-Install the last stable release of the package using conda:
-
-.. code:: bash
-
-    conda install -c mindee doctr
-
-
 Via Git
 =======
 
