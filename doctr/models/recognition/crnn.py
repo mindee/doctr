@@ -17,14 +17,18 @@ __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'post_processor': 'CTCPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/crnn_vgg16bn-b37097a8.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/crnn_vgg16_bn-f29aa0aa.zip',
     },
     'crnn_resnet31': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'backbone': 'resnet31', 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'post_processor': 'CTCPostProcessor',
@@ -53,9 +57,13 @@ class CRNN(RecognitionModel):
     ) -> None:
         super().__init__(cfg=cfg)
         self.feat_extractor = feature_extractor
+
+        # Initialize kernels
+        h, w, c = self.feat_extractor.output_shape[1:]
+
         self.decoder = Sequential(
             [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True, input_shape=(w, h * c))),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Dense(units=vocab_size + 1)
             ]

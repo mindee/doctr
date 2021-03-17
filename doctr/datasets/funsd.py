@@ -20,8 +20,14 @@ class FUNSD(VisionDataset):
     """FUNSD dataset from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents"
     <https://arxiv.org/pdf/1905.13538.pdf>`_.
 
+    Example::
+        >>> from doctr.datasets import FUNSD
+        >>> train_set = FUNSD(train=True, download=True)
+        >>> img, target = train_set[0]
+
     Args:
         train: whether the subset should be the training one
+        **kwargs: keyword arguments from `VisionDataset`.
     """
 
     URL = 'https://guillaumejaume.github.io/FUNSD/dataset.zip'

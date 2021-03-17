@@ -18,20 +18,24 @@ __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_vgg16_bn': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_vgg16_bn-e0be6df9.zip',
     },
     'sar_resnet31': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
         'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-sha4182d.zip',
     },
 }
 
@@ -110,13 +114,13 @@ class SARDecoder(layers.Layer, NestedObject):
 
         super().__init__()
         self.vocab_size = vocab_size
-        self.embed = layers.Dense(embedding_units, use_bias=False)
-        self.attention_module = AttentionModule(attention_units)
-        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True)
-        self.max_length = max_length
+        self.embed = layers.Dense(embedding_units, use_bias=False, input_shape=(self.vocab_size + 1,))
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
         )
+        self.attention_module = AttentionModule(attention_units)
+        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True, input_shape=(2 * rnn_units,))
+        self.max_length = max_length
 
     def call(
         self,
@@ -207,6 +211,8 @@ class SAR(RecognitionModel):
                 layers.LSTM(units=rnn_units, return_sequences=False)
             ]
         )
+        # Initialize the kernels (watch out for reduce_max)
+        self.encoder.build(input_shape=(None,) + self.feat_extractor.output_shape[2:])
 
         self.decoder = SARDecoder(
             rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,

@@ -32,12 +32,18 @@ Extract valuable information from your documents.
 
 ### Installation
 
-You can install the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
+You can install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
 ```shell
 pip install python-doctr
 ```
 
+Or you can install it from source:
+
+```shell
+git clone https://github.com/mindee/doctr.git
+pip install -e doctr/.
+```
 
 
 ## Usage
@@ -48,9 +54,9 @@ You can use the library like any other python package to analyze your documents 
 
 ```python
 from doctr.documents import read_pdf, read_img
-from doctr.models import ocr_db_crnn
+from doctr.models import ocr_db_crnn_vgg
 
-model = ocr_db_crnn(pretrained=True)
+model = ocr_db_crnn_vgg(pretrained=True)
 # PDF
 doc = read_pdf("path/to/your/doc.pdf")
 result = model([doc])

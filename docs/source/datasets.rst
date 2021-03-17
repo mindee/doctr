@@ -9,6 +9,11 @@ can be a significant save of time.
 
 Available Datasets
 ------------------
+The datasets from DocTR inherit from an abstract class that handles verified downloading from a given URL.
+
+.. autoclass:: doctr.datasets.core.VisionDataset
+
+
 Here are all datasets that are available through DocTR:
 
 .. autoclass:: FUNSD

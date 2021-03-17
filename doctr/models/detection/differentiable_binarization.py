@@ -24,14 +24,14 @@ __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
         'backbone': 'ResNet50',
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'post_processor': 'DBPostProcessor',
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/db_resnet50-4448d997.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/db_resnet50-091c08a5.zip',
     },
 }
 
@@ -54,7 +54,7 @@ class DBPostProcessor(DetectionPostProcessor):
         min_size_box: int = 3,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
-        bin_thresh: float = 0.012,
+        bin_thresh: float = 0.07,
     ) -> None:
 
         super().__init__(
@@ -275,10 +275,13 @@ class DBNet(DetectionModel, NestedObject):
         self.feat_extractor = feature_extractor
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
+        # Initialize kernels
+        _inputs = [layers.Input(shape=in_shape[1:]) for in_shape in self.feat_extractor.output_shape]
+        output_shape = tuple(self.fpn(_inputs).shape)
 
         self.probability_head = keras.Sequential(
             [
-                *conv_sequence(64, 'relu', True, kernel_size=3),
+                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
@@ -288,7 +291,7 @@ class DBNet(DetectionModel, NestedObject):
         )
         self.threshold_head = keras.Sequential(
             [
-                *conv_sequence(64, 'relu', True, kernel_size=3),
+                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
