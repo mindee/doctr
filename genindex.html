@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; doctr 0.1.1a0-git documentation</title>
+  <title>Index &mdash; doctr 0.1.2a0-git documentation</title>
   
 
   
@@ -27,6 +27,7 @@
         <script src="_static/clipboard.min.js"></script>
         <script src="_static/copybutton.js"></script>
         <script src="_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -83,13 +84,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
@@ -99,14 +104,14 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#id1">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -119,6 +124,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -191,6 +197,8 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#O"><strong>O</strong></a>
@@ -255,10 +263,30 @@
   </ul></td>
 </tr></table>
 
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#doctr.utils.metrics.ExactMatch">ExactMatch (class in doctr.utils.metrics)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="datasets.html#doctr.datasets.FUNSD">FUNSD (class in doctr.datasets)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="documents.html#doctr.documents.Line">Line (class in doctr.documents)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#doctr.utils.metrics.LocalizationConfusion">LocalizationConfusion (class in doctr.utils.metrics)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -279,7 +307,15 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#doctr.models.zoo.ocr_db_crnn">ocr_db_crnn() (in module doctr.models.zoo)</a>
+      <li><a href="models.html#doctr.models.zoo.ocr_db_crnn_vgg">ocr_db_crnn_vgg() (in module doctr.models.zoo)</a>
+</li>
+      <li><a href="models.html#doctr.models.zoo.ocr_db_sar_resnet">ocr_db_sar_resnet() (in module doctr.models.zoo)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#doctr.models.zoo.ocr_db_sar_vgg">ocr_db_sar_vgg() (in module doctr.models.zoo)</a>
+</li>
+      <li><a href="utils.html#doctr.utils.metrics.OCRMetric">OCRMetric (class in doctr.utils.metrics)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -315,10 +351,14 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
+      <li><a href="models.html#doctr.models.recognition.sar_resnet31">sar_resnet31() (in module doctr.models.recognition)</a>
+</li>
+      <li><a href="models.html#doctr.models.recognition.sar_resnet31_predictor">sar_resnet31_predictor() (in module doctr.models.recognition)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
+</li>
       <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn_predictor">sar_vgg16_bn_predictor() (in module doctr.models.recognition)</a>
 </li>
   </ul></td>
@@ -326,6 +366,10 @@
 
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="datasets.html#doctr.datasets.core.VisionDataset">VisionDataset (class in doctr.datasets.core)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#doctr.utils.visualization.visualize_page">visualize_page() (in module doctr.utils.visualization)</a>
 </li>

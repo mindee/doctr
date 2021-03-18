@@ -30,9 +30,15 @@ Localizing text elements in images
    * - db_resnet50
      - (1024, 1024, 3)
      -
+     - 0.775
+     - 0.856
      -
-     -
-     -
+
+
+All text detection models above have been evaluated using both the training and evaluation sets of FUNSD (cf. :ref:`datasets`).
+Explanations about the metrics being used are available in :ref:`metrics`.
+
+*Disclaimer: both subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
 Pre-processing for detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -50,8 +56,8 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.detection.db_resnet50
 
 
-Post-processing outputs
-^^^^^^^^^^^^^^^^^^^^^^^
+Post-processing detections
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.
 
 
@@ -78,13 +84,23 @@ Identifying strings in images
    * - crnn_vgg16_bn
      - (32, 128, 3)
      -
-     -
+     - 0.860
      -
    * - sar_vgg16_bn
-     - (64, 256, 3)
+     - (32, 128, 3)
      -
+     - 0.862
      -
+   * - sar_resnet31
+     - (32, 128, 3)
      -
+     - 0.863
+     -
+
+All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD (cf. :ref:`datasets`).
+Explanations about the metrics being used are available in :ref:`metrics`.
+
+*Disclaimer: both subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
 
 Pre-processing for recognition
@@ -103,7 +119,7 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn
-
+.. autofunction:: doctr.models.recognition.sar_resnet31
 
 Post-processing outputs
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,17 +131,67 @@ Combining the right components around a given architecture for easier usage.
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn_predictor
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn_predictor
+.. autofunction:: doctr.models.recognition.sar_resnet31_predictor
 
 
 End-to-End OCR
 --------------
 Predictors that localize and identify text elements in images
 
+.. list-table:: end-to-end model zoo
+   :widths: 20 20 15 10 10 10
+   :header-rows: 1
+
+   * - Architecture
+     - Input shape
+     - # params
+     - Recall
+     - Precision
+     - FPS
+   * - ocr_db_crnn_vgg
+     - (1024, 1024, 3)
+     -
+     - 0.652
+     - 0.721
+     -
+   * - ocr_db_sar_vgg
+     - (1024, 1024, 3)
+     -
+     - 0.653
+     - 0.721
+     -
+   * - ocr_db_sar_resnet
+     - (1024, 1024, 3)
+     -
+     - 0.665
+     - 0.735
+     -
+   * - google vision
+     - (1024, 1024, 3)
+     -
+     - 0.595
+     - 0.625
+     -
+   * - aws textract
+     - (1024, 1024, 3)
+     -
+     - 0.781
+     - 0.830
+     -
+
+All OCR models above have been evaluated using both the training and evaluation sets of FUNSD (cf. :ref:`datasets`).
+Explanations about the metrics being used are available in :ref:`metrics`.
+
+*Disclaimer: both subsets combine have 199 pages which might not be representative enough of the model capabilities*
+
+
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
 Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.
 
-.. autofunction:: doctr.models.zoo.ocr_db_crnn
+.. autofunction:: doctr.models.zoo.ocr_db_crnn_vgg
+.. autofunction:: doctr.models.zoo.ocr_db_sar_resnet
+.. autofunction:: doctr.models.zoo.ocr_db_sar_vgg
 
 
 Model export

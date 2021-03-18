@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.zoo &mdash; doctr 0.1.1a0-git documentation</title>
+  <title>doctr.models.zoo &mdash; doctr 0.1.2a0-git documentation</title>
   
 
   
@@ -27,6 +27,7 @@
         <script src="../../../_static/clipboard.min.js"></script>
         <script src="../../../_static/copybutton.js"></script>
         <script src="../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -83,13 +84,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../documents.html#file-reading">File reading</a></li>
@@ -99,14 +104,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#id1">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -119,6 +124,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -195,15 +201,16 @@
 <span class="kn">from</span> <span class="nn">.recognition</span> <span class="kn">import</span> <span class="n">zoo</span> <span class="k">as</span> <span class="n">reco_zoo</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_db_sar&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_db_sar_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_sar_resnet&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;ocr_db_sar&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">},</span>
-    <span class="s1">&#39;ocr_db_crnn&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_sar_vgg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_sar_resnet&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_crnn_vgg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">},</span>
 <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 
     <span class="c1"># Detection</span>
     <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">det_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;detection&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">)</span>
@@ -214,15 +221,15 @@
     <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span><span class="n">det_predictor</span><span class="p">,</span> <span class="n">reco_predictor</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">ocr_db_sar</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<div class="viewcode-block" id="ocr_db_sar_vgg"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_sar_vgg">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_sar_vgg</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_sar</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_db_sar(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_sar_vgg</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_db_sar_vgg(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
 
 <span class="sd">    Args:</span>
@@ -232,18 +239,39 @@
 <span class="sd">        OCR predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar_vgg&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ocr_db_crnn"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_crnn">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_crnn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<div class="viewcode-block" id="ocr_db_sar_resnet"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_sar_resnet">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_sar_resnet</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
+<span class="sd">    backbone as text recognition architecture.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_sar_resnet</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_db_sar_resnet(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        OCR predictor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar_resnet&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ocr_db_crnn_vgg"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_crnn_vgg">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_crnn_vgg</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_crnn</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_db_crnn(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_crnn_vgg</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_db_crnn_vgg(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
 
 <span class="sd">    Args:</span>
@@ -253,7 +281,7 @@
 <span class="sd">        OCR predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_crnn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_crnn_vgg&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
