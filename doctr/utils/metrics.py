@@ -12,7 +12,27 @@ __all__ = ['ExactMatch', 'box_iou', 'assign_pairs', 'LocalizationConfusion', 'OC
 
 
 class ExactMatch:
-    """Implements exact match metric (word-level accuracy) for recognition task
+    """Implements exact match metric (word-level accuracy) for recognition task.
+
+    The aggregated metric is computed as follows:
+
+    .. math::
+        \\forall X, Y \\in \\mathcal{W}^N,
+        ExactMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)
+
+    with the function :math:`f_{a}` is the indicator function for :math`a`, defined as:
+
+    .. math::
+        \\forall a, x \\in \\mathcal{W},
+        f_a(x) = \\left\\{
+            \\begin{array}{ll}
+                1 & \\mbox{if } x = a \\\\
+                0 & \\mbox{otherwise.}
+            \\end{array}
+        \\right.
+
+    where :math:`\\mathcal{W}` is the set of all possible character sequences,
+    :math:`N` is a strictly positive integer.
 
     Example::
         >>> from doctr.utils import ExactMatch
