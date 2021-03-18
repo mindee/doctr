@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'post_processor': 'CTCPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/crnn_vgg16_bn-f29aa0aa.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/crnn_vgg16_bn-748c855f.zip',
     },
     'crnn_resnet31': {
         'mean': (0.694, 0.695, 0.693),
@@ -63,11 +63,12 @@ class CRNN(RecognitionModel):
 
         self.decoder = Sequential(
             [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True, input_shape=(w, h * c))),
+                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Dense(units=vocab_size + 1)
             ]
         )
+        self.decoder.build(input_shape=(None, w, h * c))
 
     def call(
         self,
