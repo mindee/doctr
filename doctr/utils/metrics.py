@@ -20,7 +20,7 @@ class ExactMatch:
         \\forall X, Y \\in \\mathcal{W}^N,
         ExactMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)
 
-    with the function :math:`f_{a}` is the indicator function for :math`a`, defined as:
+    with the indicator function :math:`f_{a}` defined as:
 
     .. math::
         \\forall a, x \\in \\mathcal{W},
@@ -146,7 +146,30 @@ def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[n
 
 
 class LocalizationConfusion:
-    """Implements common confusion metrics and mean IoU for localization evaluation
+    """Implements common confusion metrics and mean IoU for localization evaluation.
+
+    The aggregated metrics are computed as follows:
+
+    .. math::
+        \\forall Y \\in \\mathcal{B}^N, \\forall X \\in \\mathcal{B}^M, \\\\
+        Recall(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\
+        Precision(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\
+        meanIoU(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(X_i, Y_j)
+
+    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
+    :math:`y`, and the function :math:`g_{X}` defined as:
+
+    .. math::
+        \\forall y \\in \\mathcal{B},
+        g_X(y) = \\left\\{
+            \\begin{array}{ll}
+                1 & \\mbox{if } y\\mbox{ has been assigned to any }(X_i)_i\\mbox{ with an }IoU \\geq 0.5 \\\\
+                0 & \\mbox{otherwise.}
+            \\end{array}
+        \\right.
+
+    where :math:`\\mathcal{B}` is the set of possible bounding boxes,
+    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
     Example::
         >>> import numpy as np
@@ -196,7 +219,33 @@ class LocalizationConfusion:
 
 
 class OCRMetric:
-    """Implements end-to-end OCR metric
+    """Implements end-to-end OCR metric.
+
+    The aggregated metrics are computed as follows:
+
+    .. math::
+        \\forall (B, L) \\in \\mathcal{B}^N \\times \\mathcal{L}^N,
+        \\forall (\\hat{B}, \\hat{L}) \\in \\mathcal{B}^M \\times \\mathcal{L}^M, \\\\
+        Recall(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{N} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\
+        Precision(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{M} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\
+        meanIoU(B, \\hat{B}) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(\\hat{B}_i, B_j)
+
+    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
+    :math:`y`, and the function :math:`h_{B, L}` defined as:
+
+    .. math::
+        \\forall (b, l) \\in \\mathcal{B} \\times \\mathcal{L},
+        h_{B,L}(b, l) = \\left\\{
+            \\begin{array}{ll}
+                1 & \\mbox{if } b\\mbox{ has been assigned to a given }B_j\\mbox{ with an } \\\\
+                & IoU \\geq 0.5 \\mbox{ and that for this assignment, } l = L_j\\\\
+                0 & \\mbox{otherwise.}
+            \\end{array}
+        \\right.
+
+    where :math:`\\mathcal{B}` is the set of possible bounding boxes,
+    :math:`\\mathcal{L}` is the set of possible character sequences,
+    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
     Example::
         >>> import numpy as np
