@@ -15,6 +15,8 @@ Easy-to-use functions to make sense of your model's predictions.
 .. autofunction:: visualize_page
 
 
+.. _metrics:
+
 Task evaluation
 ---------------
 Implementations of task-specific metrics to easily assess your model performances.
