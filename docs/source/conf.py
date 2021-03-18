@@ -40,6 +40,7 @@ extensions = [
 	'sphinx.ext.viewcode',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
+    'sphinx.ext.autosectionlabel',
     'sphinxemoji.sphinxemoji',  # cf. https://sphinxemojicodes.readthedocs.io/en/stable/
     'sphinx_copybutton',
 ]
