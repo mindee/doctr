@@ -7,6 +7,8 @@ Whether it is for training or for evaluation, having predefined objects to acces
 can be a significant save of time.
 
 
+.. _datasets:
+
 Available Datasets
 ------------------
 The datasets from DocTR inherit from an abstract class that handles verified downloading from a given URL.

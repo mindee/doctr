@@ -27,6 +27,7 @@
         <script src="_static/clipboard.min.js"></script>
         <script src="_static/copybutton.js"></script>
         <script src="_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -105,14 +106,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -205,8 +206,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <div class="section" id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
 <p>Localizing text elements in images</p>
-<table class="colwidths-given docutils align-default" id="id3">
-<caption><span class="caption-text">Text detection model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<table class="colwidths-given docutils align-default" id="id2">
+<caption><span class="caption-text">Text detection model zoo</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 24%" />
 <col style="width: 24%" />
@@ -234,6 +235,9 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </tr>
 </tbody>
 </table>
+<p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
+<p><em>Disclaimer: both subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
 <div class="section" id="pre-processing-for-detection">
 <h3>Pre-processing for detection<a class="headerlink" href="#pre-processing-for-detection" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for detection is the following:</p>
@@ -271,8 +275,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </dd></dl>
 
 </div>
-<div class="section" id="post-processing-outputs">
-<h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="post-processing-detections">
+<h3>Post-processing detections<a class="headerlink" href="#post-processing-detections" title="Permalink to this headline">¶</a></h3>
 <p>The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.</p>
 </div>
 <div class="section" id="detection-predictors">
@@ -307,8 +311,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <div class="section" id="text-recognition">
 <h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this headline">¶</a></h2>
 <p>Identifying strings in images</p>
-<table class="colwidths-given docutils align-default" id="id4">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<table class="colwidths-given docutils align-default" id="id3">
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 27%" />
 <col style="width: 27%" />
@@ -345,6 +349,9 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </tr>
 </tbody>
 </table>
+<p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
+<p><em>Disclaimer: both subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
 <div class="section" id="pre-processing-for-recognition">
 <h3>Pre-processing for recognition<a class="headerlink" href="#pre-processing-for-recognition" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for recognition is the following:</p>
@@ -432,8 +439,8 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="id2">
-<h3>Post-processing outputs<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="post-processing-outputs">
+<h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">¶</a></h3>
 <p>The purpose of this block is to turn the model output (symbol classification for the sequence), into a set of strings.</p>
 </div>
 <div class="section" id="recognition-predictors">
@@ -516,8 +523,8 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <div class="section" id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this headline">¶</a></h2>
 <p>Predictors that localize and identify text elements in images</p>
-<table class="colwidths-given docutils align-default" id="id5">
-<caption><span class="caption-text">end-to-end model zoo</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<table class="colwidths-given docutils align-default" id="id4">
+<caption><span class="caption-text">end-to-end model zoo</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 24%" />
 <col style="width: 24%" />
@@ -573,6 +580,9 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </tr>
 </tbody>
 </table>
+<p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
+<p><em>Disclaimer: both subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
 <div class="section" id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">¶</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>

@@ -27,6 +27,7 @@
         <script src="../../../_static/clipboard.min.js"></script>
         <script src="../../../_static/copybutton.js"></script>
         <script src="../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -103,14 +104,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#id2">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -203,7 +204,27 @@
 
 
 <div class="viewcode-block" id="ExactMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.ExactMatch">[docs]</a><span class="k">class</span> <span class="nc">ExactMatch</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements exact match metric (word-level accuracy) for recognition task</span>
+    <span class="sd">&quot;&quot;&quot;Implements exact match metric (word-level accuracy) for recognition task.</span>
+
+<span class="sd">    The aggregated metric is computed as follows:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\forall X, Y \\in \\mathcal{W}^N,</span>
+<span class="sd">        ExactMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)</span>
+
+<span class="sd">    with the indicator function :math:`f_{a}` defined as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\forall a, x \\in \\mathcal{W},</span>
+<span class="sd">        f_a(x) = \\left\\{</span>
+<span class="sd">            \\begin{array}{ll}</span>
+<span class="sd">                1 &amp; \\mbox{if } x = a \\\\</span>
+<span class="sd">                0 &amp; \\mbox{otherwise.}</span>
+<span class="sd">            \\end{array}</span>
+<span class="sd">        \\right.</span>
+
+<span class="sd">    where :math:`\\mathcal{W}` is the set of all possible character sequences,</span>
+<span class="sd">    :math:`N` is a strictly positive integer.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.utils import ExactMatch</span>
@@ -317,7 +338,30 @@
 
 
 <div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation</span>
+    <span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation.</span>
+
+<span class="sd">    The aggregated metrics are computed as follows:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\forall Y \\in \\mathcal{B}^N, \\forall X \\in \\mathcal{B}^M, \\\\</span>
+<span class="sd">        Recall(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\</span>
+<span class="sd">        Precision(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\</span>
+<span class="sd">        meanIoU(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(X_i, Y_j)</span>
+
+<span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
+<span class="sd">    :math:`y`, and the function :math:`g_{X}` defined as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\forall y \\in \\mathcal{B},</span>
+<span class="sd">        g_X(y) = \\left\\{</span>
+<span class="sd">            \\begin{array}{ll}</span>
+<span class="sd">                1 &amp; \\mbox{if } y\\mbox{ has been assigned to any }(X_i)_i\\mbox{ with an }IoU \\geq 0.5 \\\\</span>
+<span class="sd">                0 &amp; \\mbox{otherwise.}</span>
+<span class="sd">            \\end{array}</span>
+<span class="sd">        \\right.</span>
+
+<span class="sd">    where :math:`\\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -367,7 +411,33 @@
 
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric</span>
+    <span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric.</span>
+
+<span class="sd">    The aggregated metrics are computed as follows:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\forall (B, L) \\in \\mathcal{B}^N \\times \\mathcal{L}^N,</span>
+<span class="sd">        \\forall (\\hat{B}, \\hat{L}) \\in \\mathcal{B}^M \\times \\mathcal{L}^M, \\\\</span>
+<span class="sd">        Recall(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{N} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\</span>
+<span class="sd">        Precision(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{M} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\</span>
+<span class="sd">        meanIoU(B, \\hat{B}) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(\\hat{B}_i, B_j)</span>
+
+<span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
+<span class="sd">    :math:`y`, and the function :math:`h_{B, L}` defined as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \\forall (b, l) \\in \\mathcal{B} \\times \\mathcal{L},</span>
+<span class="sd">        h_{B,L}(b, l) = \\left\\{</span>
+<span class="sd">            \\begin{array}{ll}</span>
+<span class="sd">                1 &amp; \\mbox{if } b\\mbox{ has been assigned to a given }B_j\\mbox{ with an } \\\\</span>
+<span class="sd">                &amp; IoU \\geq 0.5 \\mbox{ and that for this assignment, } l = L_j\\\\</span>
+<span class="sd">                0 &amp; \\mbox{otherwise.}</span>
+<span class="sd">            \\end{array}</span>
+<span class="sd">        \\right.</span>
+
+<span class="sd">    where :math:`\\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    :math:`\\mathcal{L}` is the set of possible character sequences,</span>
+<span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
