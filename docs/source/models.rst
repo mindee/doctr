@@ -31,7 +31,7 @@ Localizing text elements in images
      - (1024, 1024, 3)
      -
      - 0.775
-     - 0.854
+     - 0.856
      -
 
 Pre-processing for detection
@@ -141,19 +141,19 @@ Predictors that localize and identify text elements in images
      - (1024, 1024, 3)
      -
      - 0.652
-     - 0.719
+     - 0.721
      -
    * - ocr_db_sar_vgg
      - (1024, 1024, 3)
      -
      - 0.653
-     - 0.720
+     - 0.721
      -
    * - ocr_db_sar_resnet
      - (1024, 1024, 3)
      -
      - 0.665
-     - 0.733
+     - 0.735
      -
    * - google vision
      - (1024, 1024, 3)
