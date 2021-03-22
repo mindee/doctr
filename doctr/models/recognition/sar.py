@@ -197,7 +197,7 @@ class SAR(RecognitionModel):
     def __init__(
         self,
         feature_extractor,
-        vocab_size: int = 110,
+        vocab_size: int = 118,
         rnn_units: int = 512,
         embedding_units: int = 512,
         attention_units: int = 512,
