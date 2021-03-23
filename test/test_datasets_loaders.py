@@ -4,7 +4,7 @@ import json
 from doctr.datasets import loaders
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def mock_detection_label(tmpdir_factory):
     folder = tmpdir_factory.mktemp("labels")
     label = {

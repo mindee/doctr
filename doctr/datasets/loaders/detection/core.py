@@ -84,7 +84,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[Any]:
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Get one batch of data
         indexes = self.indexes[index * self.batch_size:min(self.__len__(), (index + 1) * self.batch_size)]
         # Find list of paths
