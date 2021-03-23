@@ -31,7 +31,7 @@ def load_annotation(
     polys = [
         [[int(x), int(y)] for [x, y] in poly] for poly in labels["boxes_1"] + labels["boxes_2"] + labels["boxes_3"]
     ]
-    to_masks = [False for poly in labels["boxes_1"] + labels["boxes_2"]] + [True for poly in labels["boxes_3"]]
+    to_masks = [False] * (len(labels["boxes_1"]) + len(labels["boxes_2"])) + [True] * len(labels["boxes_3"])
 
     return polys, to_masks
 
@@ -54,6 +54,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         labels_path: str,
         batch_size: int = 1,
         shuffle: bool = True,
+        std_rgb: Tuple[float, float, float] = (0.264, 0.274, 0.287),
+        std_mean: Tuple[float, float, float] = (0.798, 0.785, 0.772),
     ) -> None:
         self.input_size = input_size
         self.batch_size = batch_size
@@ -62,8 +64,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.shuffle = shuffle
         self.on_epoch_end()
         self.min_size_box = 3
-        self.std_rgb = (0.264, 0.274, 0.287)
-        self.mean_rgb = (0.798, 0.785, 0.772)
+        self.std = tf.cast(std_rgb, tf.float32)
+        self.mean = tf.cast(std_mean, tf.float32)
 
     def __len__(self):
         # Denotes the number of batches per epoch
@@ -80,7 +82,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         index: int
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Get one batch of data
-        indexes = self.indexes[index * self.batch_size:min(self.__len__() - 1, (index + 1) * self.batch_size)]
+        indexes = self.indexes[index * self.batch_size:min(self.__len__(), (index + 1) * self.batch_size)]
         # Find list of paths
         list_paths = [os.listdir(self.images_path)[k] for k in indexes]
         # Generate data
@@ -91,9 +93,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         list_paths: List[str],
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Init batch arrays
-        batch_images = np.empty((self.batch_size, *self.input_size, 3))
-        batch_gts = np.empty((self.batch_size, *self.input_size))
-        batch_masks = np.empty((self.batch_size, *self.input_size))
+        batch_images, batch_gts, batch_masks = [], [], []
         for index, path in enumerate(list_paths):
             image_name = list_paths[index]
             # Load annotation for image
@@ -130,20 +130,18 @@ class DataGenerator(tf.keras.utils.Sequence):
             mask = tf.cast(mask, tf.float32)
             # Resize
             image = tf.image.resize(image, [*self.input_size], method='bilinear')
-            gt = tf.image.resize(gt, [*self.input_size], method='bilinear')
-            mask = tf.image.resize(mask, [*self.input_size], method='bilinear')
+            gt = tf.image.resize(tf.expand_dims(gt, -1), [*self.input_size], method='bilinear')
+            mask = tf.image.resize(tf.expand_dims(mask, -1), [*self.input_size], method='bilinear')
             # Batch
-            batch_images[index, ] = image
-            batch_gts[index, ] = gt
-            batch_masks[index, ] = mask
+            batch_images.append(image)
+            batch_gts.append(gt)
+            batch_masks.append(mask)
 
         # Stack batches
         batch_images = tf.stack(batch_images, axis=0)
         batch_gts = tf.stack(batch_gts, axis=0)
         batch_masks = tf.stack(batch_masks, axis=0)
         # Normalize
-        std = tf.cast(self.std_rgb, tf.float32)
-        mean = tf.cast(self.mean_rgb, tf.float32)
-        batch_images = tf.cast(batch_images, tf.float32) * (std / 255) - (mean / std)
+        batch_images = tf.cast(batch_images, tf.float32) * (self.std / 255) - (self.mean / self.std)
 
         return batch_images, batch_gts, batch_masks
