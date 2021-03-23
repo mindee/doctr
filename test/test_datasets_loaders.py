@@ -1,8 +1,7 @@
-from doctr.datasets import loaders
-from typing import Tuple
 import tensorflow as tf
 import pytest
 import json
+from doctr.datasets import loaders
 
 
 @pytest.fixture(scope="session")
