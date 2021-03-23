@@ -201,12 +201,13 @@
 <span class="kn">from</span> <span class="nn">.recognition</span> <span class="kn">import</span> <span class="n">zoo</span> <span class="k">as</span> <span class="n">reco_zoo</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_db_sar_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_sar_resnet&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_db_sar_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_sar_resnet&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn_resnet&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;ocr_db_sar_vgg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">},</span>
     <span class="s1">&#39;ocr_db_sar_resnet&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">},</span>
     <span class="s1">&#39;ocr_db_crnn_vgg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_crnn_resnet&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_resnet31_predictor&#39;</span><span class="p">},</span>
 <span class="p">}</span>
 
 
@@ -282,6 +283,27 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_crnn_vgg&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">ocr_db_crnn_resnet</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a Resnet31</span>
+<span class="sd">    backbone as text recognition architecture.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_crnn_resnet</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_db_crnn_resnet(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        OCR predictor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_crnn_resnet&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 
            </div>
