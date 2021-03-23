@@ -20,7 +20,7 @@ def mock_detection_label(tmpdir_factory):
 
 
 def test_detection_core_generator(mock_image_folder, mock_detection_label):
-    core_loader = loaders.detection.core.DataGenerator(
+    core_loader = loaders.DataGenerator(
         input_size=(1024, 1024),
         images_path=mock_image_folder,
         labels_path=mock_detection_label,
@@ -33,3 +33,21 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
         assert image.shape[1] == image.shape[2] == 1024
         assert isinstance(gt, tf.Tensor)
         assert isinstance(mask, tf.Tensor)
+
+
+def test_detection_db_generator(mock_image_folder, mock_detection_label):
+    core_loader = loaders.DBGenerator(
+        input_size=(1024, 1024),
+        images_path=mock_image_folder,
+        labels_path=mock_detection_label,
+        batch_size=1,
+    )
+    assert core_loader.__len__() == 5
+    for _, batch in enumerate(core_loader):
+        image, gt, mask, thresh_gt, thresh_mask = batch
+        assert isinstance(image, tf.Tensor)
+        assert image.shape[1] == image.shape[2] == 1024
+        assert isinstance(gt, tf.Tensor)
+        assert isinstance(mask, tf.Tensor)
+        assert isinstance(thresh_gt, tf.Tensor)
+        assert isinstance(thresh_mask, tf.Tensor)

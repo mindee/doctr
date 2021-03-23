@@ -8,9 +8,9 @@ import json
 import cv2
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple, Any
+from typing import List, Tuple
 
-__all__ = ["DataGenerator"]
+__all__ = ["DataGenerator", "load_annotation"]
 
 
 def load_annotation(
