@@ -28,8 +28,10 @@ def load_annotation(
     with open(os.path.join(labels_path, img_name + '.json')) as f:
         labels = json.load(f)
 
-    polys = [[[int(x), int(y)] for [x, y] in polygon] for polygon in labels["boxes_1"] + labels["boxes_2"] + labels["boxes_3"]]
-    to_masks = [False for polygon in labels["boxes_1"] + labels["boxes_2"]] + [True for polygon in labels["boxes_3"]]
+    polys = [
+        [[int(x), int(y)] for [x, y] in poly] for poly in labels["boxes_1"] + labels["boxes_2"] + labels["boxes_3"]
+    ]
+    to_masks = [False for poly in labels["boxes_1"] + labels["boxes_2"]] + [True for poly in labels["boxes_3"]]
 
     return polys, to_masks
 
@@ -96,10 +98,10 @@ class DataGenerator(tf.keras.utils.Sequence):
             image_name = list_paths[index]
             # Load annotation for image
             try:
-                polys, polys_mask = load_annotation(self.labels_path, image_name)
+                polys, to_masks = load_annotation(self.labels_path, image_name)
             except ValueError:
                 mask = np.zeros(self.input_size, dtype=np.float32)
-                polys, polys_mask = [], []
+                polys, to_masks = [], []
 
             image = cv2.imread(os.path.join(self.images_path, image_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
