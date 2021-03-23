@@ -10,6 +10,8 @@ import tensorflow as tf
 import numpy as np
 from typing import List, Tuple
 
+__all__ = ["DataGenerator"]
+
 
 def load_annotation(
     labels_path: str,
