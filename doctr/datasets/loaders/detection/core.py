@@ -8,7 +8,7 @@ import json
 import cv2
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 __all__ = ["DataGenerator"]
 
@@ -58,8 +58,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         labels_path: str,
         batch_size: int = 1,
         shuffle: bool = True,
-        std_rgb: Tuple[float, float, float] = (0.264, 0.274, 0.287),
-        std_mean: Tuple[float, float, float] = (0.798, 0.785, 0.772),
+        std: Tuple[float, float, float] = (0.264, 0.274, 0.287),
+        mean: Tuple[float, float, float] = (0.798, 0.785, 0.772),
     ) -> None:
         self.input_size = input_size
         self.batch_size = batch_size
@@ -68,8 +68,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.shuffle = shuffle
         self.on_epoch_end()
         self.min_size_box = 3
-        self.std = tf.cast(std_rgb, tf.float32)
-        self.mean = tf.cast(std_mean, tf.float32)
+        self.std = tf.cast(std, tf.float32)
+        self.mean = tf.cast(mean, tf.float32)
 
     def __len__(self):
         # Denotes the number of batches per epoch
@@ -84,7 +84,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    ) -> Tuple[Any]:
         # Get one batch of data
         indexes = self.indexes[index * self.batch_size:min(self.__len__(), (index + 1) * self.batch_size)]
         # Find list of paths
