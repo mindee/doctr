@@ -11,7 +11,7 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
         batch_size=1,
     )
     assert core_loader.__len__() == 5
-    for batch_step, batch in enumerate(core_loader):
+    for _, batch in enumerate(core_loader):
         image, gt, mask = batch
         assert isinstance(image, tf.Tensor)
         assert isinstance(gt, tf.Tensor)

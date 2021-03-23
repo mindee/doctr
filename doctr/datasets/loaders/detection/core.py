@@ -98,9 +98,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Init batch arrays
         batch_images, batch_gts, batch_masks = [], [], []
-        for index, path in enumerate(list_paths):
-            image_name = list_paths[index]
-            # Load annotation for image
+        for image_name in list_paths:
             try:
                 polys, to_masks = load_annotation(self.labels_path, image_name)
             except ValueError:
