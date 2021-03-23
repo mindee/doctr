@@ -39,7 +39,7 @@ def load_annotation(
 
 
 class DataGenerator(tf.keras.utils.Sequence):
-    """Data loader for Differentiable Binarization detection model
+    """Data loader for detection model
 
     Args:
         input_size: size (h, w) for the images
@@ -47,6 +47,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         labels_path: pathe to the folder containing json label for each image
         batch_size: batch size to train on
         suffle: if True, dataset is shuffled between each epoch
+        std_rgb: to normalize dataset
+        std_mean: to normalize dataset
 
     """
     def __init__(
