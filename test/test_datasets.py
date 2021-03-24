@@ -8,6 +8,7 @@ from doctr import datasets
     "dataset_name, size",
     [
         ['FUNSD', 149],
+        ['SROIE', 626],
     ],
 )
 def test_dataset(dataset_name, size):
