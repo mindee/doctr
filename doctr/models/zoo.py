@@ -9,12 +9,13 @@ from .detection import zoo as det_zoo
 from .recognition import zoo as reco_zoo
 
 
-__all__ = ["ocr_db_sar_vgg", "ocr_db_crnn_vgg", "ocr_db_sar_resnet"]
+__all__ = ["ocr_db_sar_vgg", "ocr_db_crnn_vgg", "ocr_db_sar_resnet", "ocr_db_crnn_resnet"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'ocr_db_sar_vgg': {'detection': 'db_resnet50_predictor', 'recognition': 'sar_vgg16_bn_predictor'},
     'ocr_db_sar_resnet': {'detection': 'db_resnet50_predictor', 'recognition': 'sar_resnet31_predictor'},
     'ocr_db_crnn_vgg': {'detection': 'db_resnet50_predictor', 'recognition': 'crnn_vgg16_bn_predictor'},
+    'ocr_db_crnn_resnet': {'detection': 'db_resnet50_predictor', 'recognition': 'crnn_resnet31_predictor'},
 }
 
 
@@ -90,3 +91,24 @@ def ocr_db_crnn_vgg(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
     """
 
     return _predictor('ocr_db_crnn_vgg', pretrained, **kwargs)
+
+
+def ocr_db_crnn_resnet(pretrained: bool = False, **kwargs: Any) -> OCRPredictor:
+    """End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a Resnet31
+    backbone as text recognition architecture.
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.models import ocr_db_crnn_resnet
+        >>> model = ocr_db_crnn_resnet(pretrained=True)
+        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+        >>> out = model([[input_page]])
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+
+    Returns:
+        OCR predictor
+    """
+
+    return _predictor('ocr_db_crnn_resnet', pretrained, **kwargs)

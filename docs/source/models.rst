@@ -91,6 +91,11 @@ Identifying strings in images
      -
      - 0.862
      -
+   * - crnn_resnet31
+     - (32, 128, 3)
+     -
+     - 0.863
+     -
    * - sar_resnet31
      - (32, 128, 3)
      -
@@ -159,6 +164,12 @@ Predictors that localize and identify text elements in images
      -
      - 0.653
      - 0.721
+     -
+   * - ocr_db_crnn_resnet
+     - (1024, 1024, 3)
+     -
+     - 0.665
+     - 0.735
      -
    * - ocr_db_sar_resnet
      - (1024, 1024, 3)
