@@ -10,7 +10,7 @@ import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Any
 
-__all__ = ["DataGenerator"]
+__all__ = ["DetectionDataGenerator"]
 
 
 def load_annotation(
@@ -20,7 +20,7 @@ def load_annotation(
     """Loads detection annotations (boxes) for an image, from a folder containing
     annotations in json files for each image
 
-    Agrs:
+    Args:
         labels_path: path to the folder containing all json annotations
         img_name: name of the image to find the corresponding json annotation
 
@@ -38,7 +38,7 @@ def load_annotation(
     return polys, to_masks
 
 
-class DataGenerator(tf.keras.utils.Sequence):
+class DetectionDataGenerator(tf.keras.utils.Sequence):
     """Data loader for detection model
 
     Args:
