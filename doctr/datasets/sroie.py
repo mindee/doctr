@@ -20,8 +20,6 @@ class SROIE(VisionDataset):
     """SROIE dataset from `"ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction"
     <https://arxiv.org/pdf/2103.10213.pdf>`_.
 
-    Visit SROIE 2019 download page
-
     Example::
         >>> from doctr.datasets import SROIE
         >>> train_set = SROIE(train=True, download=True)
