@@ -49,6 +49,7 @@ def download_from_url(
 
     if not isinstance(kwargs.get('cache_dir'), str):
         kwargs['cache_dir'] = os.path.join(os.path.expanduser('~'), '.cache', 'doctr')
+        Path(kwargs['cache_dir']).mkdir(parents=True, exist_ok=True)
 
     file_path = get_file(file_name, url, **kwargs)
 
