@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.datasets.funsd &mdash; doctr 0.1.2a0-git documentation</title>
+  <title>doctr.datasets.sroie &mdash; doctr 0.1.2a0-git documentation</title>
   
 
   
@@ -27,7 +27,6 @@
         <script src="../../../_static/clipboard.min.js"></script>
         <script src="../../../_static/copybutton.js"></script>
         <script src="../../../_static/js/custom.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -84,17 +83,13 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
 <p class="caption"><span class="caption-text">Package Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../documents.html#file-reading">File reading</a></li>
@@ -104,14 +99,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-detections">Post-processing detections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#id1">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -124,7 +119,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -174,7 +168,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>doctr.datasets.funsd</li>
+      <li>doctr.datasets.sroie</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -189,14 +183,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for doctr.datasets.funsd</h1><div class="highlight"><pre>
+  <h1>Source code for doctr.datasets.sroie</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -204,16 +198,16 @@
 <span class="kn">from</span> <span class="nn">doctr.documents.reader</span> <span class="kn">import</span> <span class="n">read_img</span>
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FUNSD&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SROIE&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="FUNSD"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.FUNSD">[docs]</a><span class="k">class</span> <span class="nc">FUNSD</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;FUNSD dataset from `&quot;FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents&quot;</span>
-<span class="sd">    &lt;https://arxiv.org/pdf/1905.13538.pdf&gt;`_.</span>
+<div class="viewcode-block" id="SROIE"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.SROIE">[docs]</a><span class="k">class</span> <span class="nc">SROIE</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SROIE dataset from `&quot;ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/2103.10213.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import FUNSD</span>
-<span class="sd">        &gt;&gt;&gt; train_set = FUNSD(train=True, download=True)</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.datasets import SROIE</span>
+<span class="sd">        &gt;&gt;&gt; train_set = SROIE(train=True, download=True)</span>
 <span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
@@ -221,9 +215,10 @@
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;https://guillaumejaume.github.io/FUNSD/dataset.zip&#39;</span>
-    <span class="n">SHA256</span> <span class="o">=</span> <span class="s1">&#39;c31735649e4f441bcbb4fd0f379574f7520b42286e80b01d80b445649d54761f&#39;</span>
-    <span class="n">FILE_NAME</span> <span class="o">=</span> <span class="s1">&#39;funsd.zip&#39;</span>
+    <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/sroie2019_train_task1.zip&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;d4fa9e60abb03500d83299c845b9c87fd9c9430d1aeac96b83c5d0bb0ab27f6f&#39;</span><span class="p">)</span>
+    <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/sroie2019_test.zip&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;41b3c746a20226fddc80d86d4b2a903d43b5be4f521dd1bbe759dbf8844745e2&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -231,21 +226,27 @@
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">URL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">FILE_NAME</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-        <span class="c1"># Use the subset</span>
-        <span class="n">subfolder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;training_data&#39;</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="s1">&#39;testing_data&#39;</span><span class="p">)</span>
+        <span class="n">url</span><span class="p">,</span> <span class="n">sha256</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRAIN</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEST</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sha256</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># # List images</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="n">subfolder</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">):</span>
             <span class="n">stem</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="n">subfolder</span><span class="p">,</span> <span class="s1">&#39;annotations&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-            <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">word</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s1">&#39;box&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;form&#39;</span><span class="p">]</span>
-                        <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;words&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s1">&#39;annotations&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
+                    <span class="c1"># Safeguard for blank lines</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># Label may contain commas</span>
+                        <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">8</span><span class="p">:])</span>
+                        <span class="c1"># Reduce 8 coords to 4</span>
+                        <span class="n">p1_x</span><span class="p">,</span> <span class="n">p1_y</span><span class="p">,</span> <span class="n">p2_x</span><span class="p">,</span> <span class="n">p2_y</span><span class="p">,</span> <span class="n">p3_x</span><span class="p">,</span> <span class="n">p3_y</span><span class="p">,</span> <span class="n">p4_x</span><span class="p">,</span> <span class="n">p4_y</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">row</span><span class="p">[:</span><span class="mi">8</span><span class="p">])</span>
+                        <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p1_x</span><span class="p">,</span> <span class="n">p2_x</span><span class="p">,</span> <span class="n">p3_x</span><span class="p">,</span> <span class="n">p4_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">p1_x</span><span class="p">,</span> <span class="n">p2_x</span><span class="p">,</span> <span class="n">p3_x</span><span class="p">,</span> <span class="n">p4_x</span><span class="p">)</span>
+                        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">p1_y</span><span class="p">,</span> <span class="n">p2_y</span><span class="p">,</span> <span class="n">p3_y</span><span class="p">,</span> <span class="n">p4_y</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">p1_y</span><span class="p">,</span> <span class="n">p2_y</span><span class="p">,</span> <span class="n">p3_y</span><span class="p">,</span> <span class="n">p4_y</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_targets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">label</span><span class="p">,</span> <span class="p">[</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bot</span><span class="p">]))</span>
 
             <span class="n">text_targets</span><span class="p">,</span> <span class="n">box_targets</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_targets</span><span class="p">)</span>
 
