@@ -56,7 +56,7 @@ class SROIE(VisionDataset):
                         # Label may contain commas
                         label = ",".join(row[8:])
                         # Reduce 8 coords to 4
-                        p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y = map(lambda x: int(x), row[:8])
+                        p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y = map(int, row[:8])
                         left, right = min(p1_x, p2_x, p3_x, p4_x), max(p1_x, p2_x, p3_x, p4_x)
                         top, bot = min(p1_y, p2_y, p3_y, p4_y), max(p1_y, p2_y, p3_y, p4_y)
                         if len(label) > 0:
