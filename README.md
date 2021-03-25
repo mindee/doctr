@@ -109,10 +109,10 @@ The full package documentation is available [here](https://mindee.github.io/doct
 
 ## Contributing
 
-Please refer to `CONTRIBUTING` if you wish to contribute to this project.
+Please refer to [`CONTRIBUTING`](CONTRIBUTING.md) if you wish to contribute to this project.
 
 
 
 ## License
 
-Distributed under the Apache 2.0 License. See `LICENSE` for more information.
+Distributed under the Apache 2.0 License. See [`LICENSE`](LICENSE) for more information.
