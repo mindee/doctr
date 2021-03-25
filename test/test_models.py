@@ -163,3 +163,13 @@ def test_zoo_models(det_arch, reco_arch):
     predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
     # Output checks
     assert isinstance(predictor, models.OCRPredictor)
+
+
+def test_preprocessor():
+    preprocessor = models.PreProcessor(output_size=(1024, 1024), batch_size=2)
+    input_tensor = tf.random.uniform(shape=[2, 512, 512, 3], minval=0, maxval=1)
+    preprocessed = preprocessor(input_tensor)
+    assert isinstance(preprocessed, list)
+    for batch in preprocessed:
+        assert batch.shape[0] == 2
+        assert batch.shape[1] == batch.shape[2] == 1024

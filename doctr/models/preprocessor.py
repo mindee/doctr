@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from doctr.utils.repr import NestedObject
 
@@ -87,21 +87,28 @@ class PreProcessor(NestedObject):
 
     def __call__(
         self,
-        x: List[np.ndarray]
+        x: Union[tf.Tensor, List[np.ndarray]]
     ) -> List[tf.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
-            x: list of images (np.array)
+            x: list of images (np.array) or tf.Tensor (already resized and batched)
         Returns:
             list of page batches
         """
-        # convert images to tf
-        tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
-        # Resize (and eventually pad) the inputs
-        images = [self.resize(sample) for sample in tensors]
-        # Batch them
-        processed_batches = self.batch_inputs(images)
+        # Check input type
+        if isinstance(x, list):
+            # convert images to tf
+            tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
+            # Resize (and eventually pad) the inputs
+            images = [self.resize(sample) for sample in tensors]
+            # Batch them
+            processed_batches = self.batch_inputs(images)
+        else:
+            # Tf tensor from data loader: check if tensor size is output_size
+            if x.shape[1] != self.output_size[0] or x.shape[2] != self.output_size[1]:
+                x = tf.image.resize(x, self.output_size, method=self.interpolation)
+            processed_batches = [x]
         # Normalize
         processed_batches = [self.normalize(b) for b in processed_batches]
 
