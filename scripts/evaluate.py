@@ -36,7 +36,7 @@ def main(args):
             gt_labels = list(target['labels'])
 
             # Forward
-            out = model([[page]])
+            out = model([page])
             # Crop GT
             crops = extract_crops(page, gt_boxes)
             reco_out = model.reco_predictor(crops)
@@ -44,7 +44,7 @@ def main(args):
             # Unpack preds
             pred_boxes = []
             pred_labels = []
-            for page in out[0].pages:
+            for page in out.pages:
                 h, w = page.dimensions
                 for block in page.blocks:
                     for line in block.lines:

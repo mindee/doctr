@@ -18,9 +18,9 @@ def main(args):
 
     doc = read_pdf(args.path)
 
-    out = model([doc])
+    out = model(doc)
 
-    for page, img in zip(out[0].pages, doc):
+    for page, img in zip(out.pages, doc):
         visualize_page(page.export(), img)
         plt.show(block=not args.noblock)
 
