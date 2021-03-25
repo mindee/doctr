@@ -19,6 +19,7 @@ The datasets from DocTR inherit from an abstract class that handles verified dow
 Here are all datasets that are available through DocTR:
 
 .. autoclass:: FUNSD
+.. autoclass:: SROIE
 
 
 Supported Vocabs

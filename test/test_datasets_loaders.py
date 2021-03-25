@@ -1,7 +1,7 @@
 import tensorflow as tf
 import pytest
 import json
-from doctr.datasets import loaders
+from doctr.datasets import DetectionDataGenerator, RecognitionDataGenerator
 
 
 @pytest.fixture(scope="function")

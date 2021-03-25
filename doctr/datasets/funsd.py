@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple
 
 from doctr.documents.reader import read_img
-from doctr.models.utils import download_from_url
 from .core import VisionDataset
 
 __all__ = ['FUNSD']

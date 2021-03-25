@@ -10,7 +10,7 @@ import tensorflow as tf
 import numpy as np
 from typing import List, Tuple
 
-__all__ = ["DataGenerator"]
+__all__ = ["DetectionDataGenerator"]
 
 
 class DataGenerator(tf.keras.utils.Sequence):
