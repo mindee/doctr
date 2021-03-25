@@ -379,7 +379,7 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
 
     Returns:
         text detection architecture

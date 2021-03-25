@@ -4,17 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import matplotlib.pyplot as plt
-from doctr.models import zoo
+from doctr.models import ocr_predictor
 from doctr.documents import read_pdf
 from doctr.utils.visualization import visualize_page
 
 
 def main(args):
 
-    if args.model not in zoo.__all__:
-        raise ValueError('only the following end-to-end predictors are supported:', zoo.__all__)
-
-    model = zoo.__dict__[args.model](pretrained=True)
+    model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     doc = read_pdf(args.path)
 
@@ -31,7 +28,10 @@ def parse_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('path', type=str, help='Path to the input PDF document')
-    parser.add_argument('--model', type=str, default='ocr_db_crnn_vgg', help='OCR model to use for analysis')
+    parser.add_argument('--detection', type=str, default='db_resnet50',
+                        help='Text detection model to use for analysis')
+    parser.add_argument('--recognition', type=str, default='crnn_vgg16_bn',
+                        help='Text recognition model to use for analysis')
     parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization", action="store_true")
     args = parser.parse_args()
 
