@@ -4,14 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import matplotlib.pyplot as plt
-from doctr.models import ocr_model
+from doctr.models import ocr_predictor
 from doctr.documents import read_pdf
 from doctr.utils.visualization import visualize_page
 
 
 def main(args):
 
-    model = ocr_model(args.detection, args.recognition, pretrained=True)
+    model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     doc = read_pdf(args.path)
 
