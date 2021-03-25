@@ -122,19 +122,24 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 @pytest.mark.parametrize(
     "arch_name",
     [
-        "crnn_vgg16_bn_predictor",
-        "sar_vgg16_bn_predictor",
-        "sar_resnet31_predictor",
-        "crnn_resnet31_predictor",
+        "crnn_vgg16_bn",
+        "sar_vgg16_bn",
+        "sar_resnet31",
+        "crnn_resnet31",
     ],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
     # Model
-    predictor = recognition.zoo.__dict__[arch_name](pretrained=False)
+    predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, recognition.RecognitionPredictor)
     input_tensor = tf.random.uniform(shape=[batch_size, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
     assert all(isinstance(word, str) for word in out)
+
+
+def test_recognition_zoo_error():
+    with pytest.raises(ValueError):
+        _ = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)

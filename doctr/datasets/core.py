@@ -28,7 +28,7 @@ class VisionDataset:
     def __init__(
         self,
         url: str,
-        file_name: str,
+        file_name: Optional[str] = None,
         file_hash: Optional[str] = None,
         extract_archive: bool = False,
         download: bool = False,
@@ -37,6 +37,7 @@ class VisionDataset:
 
         dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
 
+        file_name = file_name if isinstance(file_name, str) else os.path.basename(url)
         # Download the file if not present
         archive_path = os.path.join(dataset_cache, file_name)
 
