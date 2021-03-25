@@ -272,6 +272,11 @@ class DBNet(DetectionModel, NestedObject):
 
         super().__init__(cfg=cfg)
 
+        self.shrink_ratio = 0.4
+        self.thresh_min = 0.3
+        self.thresh_max = 0.7
+        self.min_size_box = 3
+
         self.feat_extractor = feature_extractor
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
@@ -299,6 +304,177 @@ class DBNet(DetectionModel, NestedObject):
                 layers.Activation('sigmoid'),
             ]
         )
+
+    @staticmethod
+    def compute_distance(
+        xs: np.array,
+        ys: np.array,
+        a: np.array,
+        b: np.array,
+    ) -> float:
+        """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
+
+        Args:
+            xs : map of x coordinates (height, width)
+            ys : map of y coordinates (height, width)
+            a: first point defining the [ab] segment
+            b: second point defining the [ab] segment
+
+        Returns:
+            The computed distance
+
+        """
+        square_dist_1 = np.square(xs - a[0]) + np.square(ys - a[1])
+        square_dist_2 = np.square(xs - b[0]) + np.square(ys - b[1])
+        square_dist = np.square(a[0] - b[0]) + np.square(a[1] - b[1])
+        cosin = (square_dist - square_dist_1 - square_dist_2) / (2 * np.sqrt(square_dist_1 * square_dist_2))
+        square_sin = 1 - np.square(cosin)
+        square_sin = np.nan_to_num(square_sin)
+        result = np.sqrt(square_dist_1 * square_dist_2 * square_sin / square_dist)
+        result[cosin < 0] = np.sqrt(np.fmin(square_dist_1, square_dist_2))[cosin < 0]
+        return result
+
+    @staticmethod
+    def draw_thresh_map(
+        polygon: np.array,
+        canvas: np.array,
+        mask: np.array,
+    ) -> None:
+        """Draw a polygon treshold map on a canvas, as described in the DB paper
+
+        Args:
+            polygon : array of coord., to draw the boundary of the polygon
+            canvas : threshold map to fill with polygons
+            mask : mask for training on threshold polygons
+            shrink_ratio : 0.4, as described in the DB paper
+
+        """
+        if polygon.ndim != 2 or polygon.shape[1] != 2:
+            raise AttributeError("polygon should be a 2 dimensional array of coords")
+
+        # Augment polygon by shrink_ratio
+        polygon_shape = Polygon(polygon)
+        distance = polygon_shape.area * (1 - np.power(self.shrink_ratio, 2)) / polygon_shape.length
+        subject = [tuple(coor) for coor in polygon]  # Get coord as list of tuples
+        padding = pyclipper.PyclipperOffset()
+        padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        padded_polygon = np.array(padding.Execute(distance)[0])
+
+        # Fill the mask with 1 on the new padded polygon
+        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
+
+        # Get min/max to recover polygon after distance computation
+        xmin = padded_polygon[:, 0].min()
+        xmax = padded_polygon[:, 0].max()
+        ymin = padded_polygon[:, 1].min()
+        ymax = padded_polygon[:, 1].max()
+        width = xmax - xmin + 1
+        height = ymax - ymin + 1
+        # Get absolute polygon for distance computation
+        polygon[:, 0] = polygon[:, 0] - xmin
+        polygon[:, 1] = polygon[:, 1] - ymin
+        # Get absolute padded polygon
+        xs = np.broadcast_to(np.linspace(0, width - 1, num=width).reshape(1, width), (height, width))
+        ys = np.broadcast_to(np.linspace(0, height - 1, num=height).reshape(height, 1), (height, width))
+
+        # Compute distance map to fill the padded polygon
+        distance_map = np.zeros((polygon.shape[0], height, width), dtype=np.float32)
+        for i in range(polygon.shape[0]):
+            j = (i + 1) % polygon.shape[0]
+            absolute_distance = self.compute_distance(xs, ys, polygon[i], polygon[j])
+            distance_map[i] = np.clip(absolute_distance / distance, 0, 1)
+        distance_map = np.min(distance_map, axis=0)
+
+        # Clip the padded polygon inside the canvas
+        xmin_valid = min(max(0, xmin), canvas.shape[1] - 1)
+        xmax_valid = min(max(0, xmax), canvas.shape[1] - 1)
+        ymin_valid = min(max(0, ymin), canvas.shape[0] - 1)
+        ymax_valid = min(max(0, ymax), canvas.shape[0] - 1)
+
+        # Fill the canvas with the distances computed inside the valid padded polygon
+        canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1] = np.fmax(
+            1 - distance_map[
+                ymin_valid - ymin:ymax_valid - ymin + 1,
+                xmin_valid - xmin:xmax_valid - xmin + 1
+            ],
+            canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1]
+        )
+
+    @staticmethod
+    def compute_target(
+        output_shape: Tuple(int, int, int, int),
+        polys: List[List[List[List[float]]]],
+        to_masks: List[List[List[List[bool]]]]
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a batch of images,
+        a list of boxes for each image and a list of masks for each image.
+
+        Args:
+            output_shape: shape N x H x W x C of the model output to get batch_size, h and w
+            polys: list of boxes for each image of the batch
+            to_masks: list of boxes to mask for each image of the batch
+
+        Returns:
+            a batch of gts, masks, thresh_gts, thresh_masks
+        """
+
+        batch_size, h, w, _ = output_shape
+        for batch_idx in range(batch_size):
+            # Initialize mask and gt
+            gt = np.zeros((h, w), dtype=np.float32)
+            mask = np.ones((h, w), dtype=np.float32)
+            thresh_gt = np.zeros((h, w), dtype=np.float32)
+            thresh_mask = np.zeros((h, w), dtype=np.float32)
+
+            # Draw each polygon on gt
+            for poly, to_mask in zip(polys[batch_idx], to_masks[batch_idx]):
+                # Convert polygon to absolute polygon and to np array
+                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
+                poly = np.array(poly)
+                if to_mask is True:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                height = max(poly[:, 1]) - min(poly[:, 1])
+                width = max(poly[:, 0]) - min(poly[:, 0])
+                if min(height, width) < self.min_size_box:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+
+                # Negative shrink for gt, as described in paper
+                polygon = Polygon(poly)
+                distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
+                subject = [tuple(coor) for coor in poly]
+                padding = pyclipper.PyclipperOffset()
+                padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+                shrinked = padding.Execute(-distance)
+
+                # Draw polygon on gt if it is valid
+                if len(shrinked) == 0:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                shrinked = np.array(shrinked[0]).reshape(-1, 2)
+                if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                cv2.fillPoly(gt, [shrinked.astype(np.int32)], 1)
+
+                # Draw on both thresh map and thresh mask
+                self.draw_thresh_map(poly, thresh_gt, thresh_mask, shrink_ratio=self.shrink_ratio)
+            thresh_gt = thresh_gt * (self.thresh_max - self.thresh_min) + self.thresh_min
+
+            # Batch
+            batch_gts.append(gt)
+            batch_masks.append(mask)
+            batch_thresh_gts.append(thresh_gt)
+            batch_thresh_masks.append(thresh_mask)
+
+        # Cast
+        gt = tf.convert_to_tensor(gt, tf.float32)
+        mask = tf.convert_to_tensor(mask, tf.float32)
+        thresh_gt = tf.convert_to_tensor(thresh_gt, tf.float32)
+        thresh_mask = tf.convert_to_tensor(thresh_mask, tf.float32)
+
+        return gt, mask, thresh_gt, thresh_mask
 
     @staticmethod
     def compute_approx_binmap(
