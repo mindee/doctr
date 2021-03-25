@@ -152,14 +152,14 @@ def test_classification_architectures(arch_name, top_implemented, input_shape, o
 @pytest.mark.parametrize(
     "arch_name",
     [
-        "ocr_db_sar_vgg",
-        "ocr_db_crnn_vgg",
-        "ocr_db_sar_resnet",
-        "ocr_db_crnn_resnet",
+        "db_sar_vgg",
+        "db_crnn_vgg",
+        "db_sar_resnet",
+        "db_crnn_resnet",
     ],
 )
 def test_zoo_models(arch_name):
     # Model
-    predictor = models.__dict__[arch_name](pretrained=True)
+    predictor = models.ocr_model(arch_name, pretrained=True)
     # Output checks
     assert isinstance(predictor, models.OCRPredictor)

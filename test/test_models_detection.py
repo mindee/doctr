@@ -140,12 +140,12 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 @pytest.mark.parametrize(
     "arch_name",
     [
-        "db_resnet50_predictor",
+        "db_resnet50",
     ],
 )
 def test_detection_zoo(arch_name):
     # Model
-    predictor = detection.zoo.__dict__[arch_name](pretrained=False)
+    predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, detection.DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
