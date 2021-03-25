@@ -107,8 +107,8 @@ class PreProcessor(NestedObject):
         else:
             # Tf tensor from data loader: check if tensor size is output_size
             if x.shape[1] != self.output_size[0] or x.shape[2] != self.output_size[1]:
-                batch = tf.image.resize(x, self.output_size, method=self.interpolation)
-            processed_batches = [batch]
+                x = tf.image.resize(x, self.output_size, method=self.interpolation)
+            processed_batches = [x]
         # Normalize
         processed_batches = [self.normalize(b) for b in processed_batches]
 

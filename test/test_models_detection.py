@@ -156,13 +156,14 @@ def test_detection_zoo(arch_name):
 
 def test_compute_target_db():
     polys = [
+        [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
         [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]]
-    ],
-    to_masks = [[True, False]],
-    dbnet = detection.DBNet()
+    ]
+    to_masks = [[True, False], [True, False]]
+    dbnet = detection.db_resnet50()
     gts, masks, thresh_gts, thresh_masks = dbnet.compute_target(
-        output_shape=(2, 1024, 1024, 3),
-        polys=polys,
+        out_shape=(2, 1024, 1024, 3),
+        batch_polys=polys,
         to_masks=to_masks,
     )
     assert isinstance(gts, tf.Tensor)

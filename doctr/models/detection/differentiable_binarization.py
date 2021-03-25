@@ -334,8 +334,8 @@ class DBNet(DetectionModel, NestedObject):
         result[cosin < 0] = np.sqrt(np.fmin(square_dist_1, square_dist_2))[cosin < 0]
         return result
 
-    @staticmethod
     def draw_thresh_map(
+        self,
         polygon: np.array,
         canvas: np.array,
         mask: np.array,
@@ -400,25 +400,24 @@ class DBNet(DetectionModel, NestedObject):
             canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1]
         )
 
-    @staticmethod
     def compute_target(
-        output_shape: Tuple[int, int, int, int],
-        polys: List[List[List[List[float]]]],
+        self,
+        out_shape: Tuple[int, int, int, int],
+        batch_polys: List[List[List[List[float]]]],
         to_masks: List[List[bool]]
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a batch of images,
         a list of boxes for each image and a list of masks for each image.
 
         Args:
-            output_shape: shape N x H x W x C of the model output to get batch_size, h and w
+            out_shape: shape N x H x W x C of the model output to get batch_size, h and w
             polys: list of boxes for each image of the batch
             to_masks: list of boxes to mask for each image of the batch
 
         Returns:
             a batch of gts, masks, thresh_gts, thresh_masks
         """
-
-        batch_size, h, w, _ = output_shape
+        batch_size, h, w, _ = out_shape
         batch_gts, batch_masks, batch_thresh_gts, batch_thresh_masks = [], [], [], []
         for batch_idx in range(batch_size):
             # Initialize mask and gt
@@ -428,7 +427,7 @@ class DBNet(DetectionModel, NestedObject):
             thresh_mask = np.zeros((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            for poly, to_mask in zip(polys[batch_idx], to_masks[batch_idx]):
+            for poly, to_mask in zip(batch_polys[batch_idx], to_masks[batch_idx]):
                 # Convert polygon to absolute polygon and to np array
                 poly = [[int(w * x), int(h * y)] for [x, y] in poly]
                 poly = np.array(poly)
@@ -460,7 +459,7 @@ class DBNet(DetectionModel, NestedObject):
                 cv2.fillPoly(gt, [shrinked.astype(np.int32)], 1)
 
                 # Draw on both thresh map and thresh mask
-                self.draw_thresh_map(poly, thresh_gt, thresh_mask, shrink_ratio=self.shrink_ratio)
+                self.draw_thresh_map(poly, thresh_gt, thresh_mask)
             thresh_gt = thresh_gt * (self.thresh_max - self.thresh_min) + self.thresh_min
 
             # Batch

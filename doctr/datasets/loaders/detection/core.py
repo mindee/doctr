@@ -54,7 +54,9 @@ class DataGenerator(tf.keras.utils.Sequence):
         index: int
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Get one batch of data
-        indexes = self.indexes[index * self.batch_size:min(self.__len__(), (index + 1) * self.batch_size)]
+        indexes = self.indexes[
+            index * self.batch_size:min(len(os.listdir(self.images_path)), (index + 1) * self.batch_size)
+        ]
         # Find list of paths
         list_paths = [os.listdir(self.images_path)[k] for k in indexes]
         # Generate data
@@ -106,16 +108,17 @@ class DataGenerator(tf.keras.utils.Sequence):
             h, w = image.shape[:2]
             # Resize and batch images
             image = tf.image.resize(image, self.input_size)
+            image = tf.cast(image, tf.float32)
             batch_images.append(image)
-            tf.convert_to_tensor(batch_images)
 
             try:
-                polys, to_masks = load_annotation(self.labels_path, image_name)
+                polys, to_masks = self.load_annotation(self.labels_path, image_name)
             except ValueError:
                 polys, to_masks = [], []
             # Normalize polys
             polys = [[[x / w, y / h] for [x, y] in poly] for poly in polys]
             batch_polys.append(polys)
             batch_masks.append(to_masks)
+        batch_images = tf.stack(batch_images, axis=0)
 
         return batch_images, batch_polys, batch_masks

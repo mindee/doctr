@@ -26,13 +26,14 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
         labels_path=mock_detection_label,
         batch_size=2,
     )
-    assert core_loader.__len__() == 5
+    assert core_loader.__len__() == 3
     for _, batch in enumerate(core_loader):
         batch_images, batch_polys, batch_masks = batch
         assert isinstance(batch_images, tf.Tensor)
-        assert image.shape[1] == image.shape[2] == 1024
+        assert batch_images.shape[1] == batch_images.shape[2] == 1024
         assert isinstance(batch_polys, list)
         assert isinstance(batch_masks, list)
         for poly, mask in zip(batch_polys, batch_masks):
             assert len(poly) == len(mask)
-            assert all(x <= 1 and y <= 1 for [x, y] in coords for coords in poly)
+            for box in poly:
+                assert all(x <= 1 and y <= 1 for [x, y] in box)
