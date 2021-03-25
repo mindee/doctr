@@ -266,7 +266,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text detection dataset</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text detection architecture</p>
@@ -283,13 +283,13 @@ Explanations about the metrics being used are available in <a class="reference i
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this headline">¶</a></h3>
 <p>Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.</p>
 <dl class="py function">
-<dt id="doctr.models.detection.db_resnet50_predictor">
-<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.core.DetectionPredictor<a class="reference internal" href="_modules/doctr/models/detection/zoo.html#db_resnet50_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50_predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
+<dt id="doctr.models.detection.detection_predictor">
+<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">detection_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arch</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'db_resnet50'</span></em>, <em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.core.DetectionPredictor<a class="reference internal" href="_modules/doctr/models/detection/zoo.html#detection_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.detection_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Text detection architecture.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">db_resnet50_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">db_resnet50_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
@@ -298,7 +298,10 @@ Explanations about the metrics being used are available in <a class="reference i
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arch</strong> – name of the architecture to use (‘db_resnet50’)</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Detection predictor</p>
@@ -388,7 +391,7 @@ from Sequential Data”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text recognition dataset</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
@@ -413,7 +416,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text recognition dataset</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
@@ -436,7 +439,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text recognition dataset</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
@@ -453,13 +456,13 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this headline">¶</a></h3>
 <p>Combining the right components around a given architecture for easier usage.</p>
 <dl class="py function">
-<dt id="doctr.models.recognition.crnn_vgg16_bn_predictor">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#crnn_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Text recognition architecture using a CRNN with a VGG16 backbone.</p>
+<dt id="doctr.models.recognition.recognition_predictor">
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">recognition_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arch</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'crnn_vgg16_bn'</span></em>, <em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#recognition_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.recognition_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Text recognition architecture.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">crnn_vgg16_bn_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
@@ -468,55 +471,10 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Recognition predictor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.recognition.sar_vgg16_bn_predictor">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Text detection architecture using a SAR with a VGG16 backbone.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">sar_vgg16_bn_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">sar_vgg16_bn_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Recognition predictor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.recognition.sar_resnet31_predictor">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_resnet31_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31_predictor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Text detection architecture using a SAR with a ResNet-31 backbone.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">sar_resnet31_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">sar_resnet31_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arch</strong> – name of the architecture to use (‘crnn_vgg16_bn’, ‘crnn_resnet31’, ‘sar_vgg16_bn’, ‘sar_resnet31’)</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Recognition predictor</p>
@@ -549,28 +507,28 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>ocr_db_crnn_vgg</p></td>
+<tr class="row-even"><td><p>db_resnet50 + crnn_vgg16_bn</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
 <td><p>0.652</p></td>
 <td><p>0.721</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>ocr_db_sar_vgg</p></td>
+<tr class="row-odd"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
 <td><p>0.653</p></td>
 <td><p>0.721</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>ocr_db_crnn_resnet</p></td>
+<tr class="row-even"><td><p>db_resnet50 + crnn_resnet31</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
 <td><p>0.665</p></td>
 <td><p>0.735</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>ocr_db_sar_resnet</p></td>
+<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
 <td><p>0.665</p></td>
@@ -600,14 +558,13 @@ Explanations about the metrics being used are available in <a class="reference i
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">¶</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>
 <dl class="py function">
-<dt id="doctr.models.zoo.ocr_db_crnn_vgg">
-<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_crnn_vgg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_crnn_vgg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_crnn_vgg" title="Permalink to this definition">¶</a></dt>
-<dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
-backbone as text recognition architecture.</p>
+<dt id="doctr.models.zoo.ocr_predictor">
+<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">det_arch</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'db_resnet50'</span></em>, <em class="sig-param"><span class="n">reco_arch</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'crnn_vgg16_bn'</span></em>, <em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_predictor" title="Permalink to this definition">¶</a></dt>
+<dd><p>End-to-end OCR architecture using one model for localization, and another for text recognition.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_db_crnn_vgg</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_db_crnn_vgg</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([[</span><span class="n">input_page</span><span class="p">]])</span>
 </pre></div>
@@ -616,57 +573,10 @@ backbone as text recognition architecture.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>OCR predictor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.zoo.ocr_db_sar_resnet">
-<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_sar_resnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_sar_resnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_sar_resnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN
-backbone as text recognition architecture.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_db_sar_resnet</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_db_sar_resnet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([[</span><span class="n">input_page</span><span class="p">]])</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>OCR predictor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.zoo.ocr_db_sar_vgg">
-<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_sar_vgg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_sar_vgg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_sar_vgg" title="Permalink to this definition">¶</a></dt>
-<dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN
-backbone as text recognition architecture.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_db_sar_vgg</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_db_sar_vgg</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([[</span><span class="n">input_page</span><span class="p">]])</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arch</strong> – name of the architecture to use (‘db_sar_vgg’, ‘db_sar_resnet’, ‘db_crnn_vgg’, ‘db_crnn_resnet’)</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our OCR dataset</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>OCR predictor</p>
