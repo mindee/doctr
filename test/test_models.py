@@ -160,6 +160,6 @@ def test_classification_architectures(arch_name, top_implemented, input_shape, o
 )
 def test_zoo_models(det_arch, reco_arch):
     # Model
-    predictor = models.ocr_predictor(arch_name, pretrained=True)
+    predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
     # Output checks
     assert isinstance(predictor, models.OCRPredictor)
