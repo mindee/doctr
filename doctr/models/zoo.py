@@ -36,7 +36,7 @@ def ocr_predictor(
         >>> from doctr.models import ocr_predictor
         >>> model = ocr_predictor(pretrained=True)
         >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
-        >>> out = model([[input_page]])
+        >>> out = model([input_page])
 
     Args:
         arch: name of the architecture to use ('db_sar_vgg', 'db_sar_resnet', 'db_crnn_vgg', 'db_crnn_resnet')
