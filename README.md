@@ -50,13 +50,13 @@ pip install -e doctr/.
 
 ### Python package
 
-You can use the library like any other python package to analyze your documents as follows:
+The python package provides you with tools to read files and detect all text information they are holding.
 
 ```python
 from doctr.documents import read_pdf, read_img
-from doctr.models import ocr_db_crnn_vgg
+from doctr.models import ocr_model
 
-model = ocr_db_crnn_vgg(pretrained=True)
+model = ocr_model(pretrained=True)
 # PDF
 doc = read_pdf("path/to/your/doc.pdf")
 result = model([doc])
@@ -109,10 +109,10 @@ The full package documentation is available [here](https://mindee.github.io/doct
 
 ## Contributing
 
-Please refer to `CONTRIBUTING` if you wish to contribute to this project.
+Please refer to [`CONTRIBUTING`](CONTRIBUTING.md) if you wish to contribute to this project.
 
 
 
 ## License
 
-Distributed under the Apache 2.0 License. See `LICENSE` for more information.
+Distributed under the Apache 2.0 License. See [`LICENSE`](LICENSE) for more information.
