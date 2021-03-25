@@ -150,15 +150,15 @@ def test_classification_architectures(arch_name, top_implemented, input_shape, o
 
 
 @pytest.mark.parametrize(
-    "arch_name",
+    "det_arch, reco_arch",
     [
-        "db_sar_vgg",
-        "db_crnn_vgg",
-        "db_sar_resnet",
-        "db_crnn_resnet",
+        ["db_resnet50", "sar_vgg16_bn"],
+        ["db_resnet50", "crnn_vgg16_bn"],
+        ["db_resnet50", "sar_resnet31"],
+        ["db_resnet50", "crnn_resnet31"],
     ],
 )
-def test_zoo_models(arch_name):
+def test_zoo_models(det_arch, reco_arch):
     # Model
     predictor = models.ocr_predictor(arch_name, pretrained=True)
     # Output checks
