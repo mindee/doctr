@@ -228,7 +228,7 @@
 <span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
 <span class="sd">        &gt;&gt;&gt; model = ocr_predictor(pretrained=True)</span>
 <span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
+<span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        arch: name of the architecture to use (&#39;db_sar_vgg&#39;, &#39;db_sar_resnet&#39;, &#39;db_crnn_vgg&#39;, &#39;db_crnn_resnet&#39;)</span>
