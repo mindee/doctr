@@ -156,4 +156,4 @@ def test_detection_zoo(arch_name):
 
 def test_detection_zoo_error():
     with pytest.raises(ValueError):
-        predictor = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
+        _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)

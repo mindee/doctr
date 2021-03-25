@@ -142,4 +142,4 @@ def test_recognition_zoo(arch_name):
 
 def test_recognition_zoo_error():
     with pytest.raises(ValueError):
-        predictor = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)
+        _ = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)
