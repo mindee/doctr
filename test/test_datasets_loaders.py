@@ -1,7 +1,7 @@
 import tensorflow as tf
 import pytest
 import json
-from doctr.datasets import DetectionDataGenerator, RecognitionDataGenerator
+from doctr.datasets import DataGenerator
 
 
 @pytest.fixture(scope="function")
@@ -20,7 +20,7 @@ def mock_detection_label(tmpdir_factory):
 
 
 def test_detection_core_generator(mock_image_folder, mock_detection_label):
-    core_loader = loaders.DataGenerator(
+    core_loader = DataGenerator(
         input_size=(1024, 1024),
         images_path=mock_image_folder,
         labels_path=mock_detection_label,
