@@ -65,7 +65,7 @@ Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.
 
-.. autofunction:: doctr.models.detection.db_resnet50_predictor
+.. autofunction:: doctr.models.detection.detection_predictor
 
 
 Text Recognition
@@ -134,9 +134,7 @@ Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
 Combining the right components around a given architecture for easier usage.
 
-.. autofunction:: doctr.models.recognition.crnn_vgg16_bn_predictor
-.. autofunction:: doctr.models.recognition.sar_vgg16_bn_predictor
-.. autofunction:: doctr.models.recognition.sar_resnet31_predictor
+.. autofunction:: doctr.models.recognition.recognition_predictor
 
 
 End-to-End OCR
@@ -153,25 +151,25 @@ Predictors that localize and identify text elements in images
      - Recall
      - Precision
      - FPS
-   * - ocr_db_crnn_vgg
+   * - db_resnet50 + crnn_vgg16_bn
      - (1024, 1024, 3)
      -
      - 0.652
      - 0.721
      -
-   * - ocr_db_sar_vgg
+   * - db_resnet50 + sar_vgg16_bn
      - (1024, 1024, 3)
      -
      - 0.653
      - 0.721
      -
-   * - ocr_db_crnn_resnet
+   * - db_resnet50 + crnn_resnet31
      - (1024, 1024, 3)
      -
      - 0.665
      - 0.735
      -
-   * - ocr_db_sar_resnet
+   * - db_resnet50 + sar_resnet31
      - (1024, 1024, 3)
      -
      - 0.665
@@ -200,9 +198,7 @@ Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
 Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.
 
-.. autofunction:: doctr.models.zoo.ocr_db_crnn_vgg
-.. autofunction:: doctr.models.zoo.ocr_db_sar_resnet
-.. autofunction:: doctr.models.zoo.ocr_db_sar_vgg
+.. autofunction:: doctr.models.zoo.ocr_predictor
 
 
 Model export
