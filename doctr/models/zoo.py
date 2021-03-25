@@ -3,20 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Dict, Any
+from typing import Any
 from .core import OCRPredictor
 from .detection.zoo import detection_predictor
 from .recognition.zoo import recognition_predictor
 
 
 __all__ = ["ocr_predictor"]
-
-default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_sar_vgg': {'detection': 'db_resnet50_predictor', 'recognition': 'sar_vgg16_bn_predictor'},
-    'db_sar_resnet': {'detection': 'db_resnet50_predictor', 'recognition': 'sar_resnet31_predictor'},
-    'db_crnn_vgg': {'detection': 'db_resnet50_predictor', 'recognition': 'crnn_vgg16_bn_predictor'},
-    'db_crnn_resnet': {'detection': 'db_resnet50_predictor', 'recognition': 'crnn_resnet31_predictor'},
-}
 
 
 def _predictor(det_arch: str, reco_arch: str, pretrained: bool, det_bs=2, reco_bs=32) -> OCRPredictor:
