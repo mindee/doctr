@@ -50,21 +50,21 @@ def test_documentbuilder():
     boxes = np.random.rand(words_per_page, 5)
     boxes[:2] *= boxes[2:4]
 
-    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
-    assert isinstance(out, list) and all(isinstance(doc, Document) for doc in out)
-    assert len(out[0].pages) == num_pages
+    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [(100, 200), (100, 200)])
+    assert isinstance(out, Document)
+    assert len(out.pages) == num_pages
     # 1 Block & 1 line per page
-    assert len(out[0].pages[0].blocks) == 1 and len(out[0].pages[0].blocks[0].lines) == 1
-    assert len(out[0].pages[0].blocks[0].lines[0].words) == words_per_page
+    assert len(out.pages[0].blocks) == 1 and len(out.pages[0].blocks[0].lines) == 1
+    assert len(out.pages[0].blocks[0].lines[0].words) == words_per_page
 
     # Resolve lines
     doc_builder = models.DocumentBuilder(resolve_lines=True)
-    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [num_pages], [(100, 200), (100, 200)])
+    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [(100, 200), (100, 200)])
 
     # No detection
     boxes = np.zeros((0, 5))
-    out = doc_builder([boxes, boxes], [], [num_pages], [(100, 200), (100, 200)])
-    assert len(out[0].pages[0].blocks) == 0
+    out = doc_builder([boxes, boxes], [], [(100, 200), (100, 200)])
+    assert len(out.pages[0].blocks) == 0
 
     # Repr
     assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, paragraph_break=0.15)"
@@ -106,24 +106,22 @@ def test_resolve_lines(input_boxes, sorted_idxs, lines):
 
 def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
 
-    num_docs = 3
     predictor = models.OCRPredictor(
         test_detectionpredictor,
         test_recognitionpredictor
     )
 
-    docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
-    out = predictor(docs)
+    doc = read_pdf(mock_pdf)
+    out = predictor(doc)
 
-    assert len(out) == num_docs
     # Document
-    assert all(isinstance(doc, Document) for doc in out)
+    assert isinstance(out, Document)
     # The input PDF has 8 pages
-    assert all(len(doc.pages) == 8 for doc in out)
+    assert len(out.pages) == 8
     # Dimension check
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
-        _ = predictor([[input_page]])
+        _ = predictor([input_page])
 
 
 @pytest.mark.parametrize(
