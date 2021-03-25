@@ -64,7 +64,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     def load_annotation(
         labels_path: str,
         img_name: str,
-    ) -> Tuple[List[List[List[int]]], List[List[List[bool]]]]:
+    ) -> Tuple[List[List[List[int]]], List[bool]]:
         """Loads detection annotations (boxes) for an image, from a folder containing
         annotations in json files for each image
 
@@ -88,7 +88,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     def __data_generation(
         self,
         list_paths: List[str],
-    ) -> Tuple[tf.Tensor, List[List[List[List[float]]]], List[List[List[List[bool]]]]]:
+    ) -> Tuple[tf.Tensor, List[List[List[List[float]]]], List[List[bool]]]:
         """Generate a batch of images and corresponding relative boxes (as a list of list of boxes),
         and corresponding boxes to mask
 

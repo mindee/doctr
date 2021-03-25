@@ -402,9 +402,9 @@ class DBNet(DetectionModel, NestedObject):
 
     @staticmethod
     def compute_target(
-        output_shape: Tuple(int, int, int, int),
+        output_shape: Tuple[int, int, int, int],
         polys: List[List[List[List[float]]]],
-        to_masks: List[List[List[List[bool]]]]
+        to_masks: List[List[bool]]
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a batch of images,
         a list of boxes for each image and a list of masks for each image.
@@ -419,6 +419,7 @@ class DBNet(DetectionModel, NestedObject):
         """
 
         batch_size, h, w, _ = output_shape
+        batch_gts, batch_masks, batch_thresh_gts, batch_thresh_masks = [], [], [], []
         for batch_idx in range(batch_size):
             # Initialize mask and gt
             gt = np.zeros((h, w), dtype=np.float32)
@@ -469,12 +470,12 @@ class DBNet(DetectionModel, NestedObject):
             batch_thresh_masks.append(thresh_mask)
 
         # Cast
-        gt = tf.convert_to_tensor(gt, tf.float32)
-        mask = tf.convert_to_tensor(mask, tf.float32)
-        thresh_gt = tf.convert_to_tensor(thresh_gt, tf.float32)
-        thresh_mask = tf.convert_to_tensor(thresh_mask, tf.float32)
+        gts = tf.convert_to_tensor(batch_gts, tf.float32)
+        masks = tf.convert_to_tensor(batch_masks, tf.float32)
+        thresh_gts = tf.convert_to_tensor(batch_thresh_gts, tf.float32)
+        thresh_masks = tf.convert_to_tensor(batch_thresh_masks, tf.float32)
 
-        return gt, mask, thresh_gt, thresh_mask
+        return gts, masks, thresh_gts, thresh_masks
 
     @staticmethod
     def compute_approx_binmap(

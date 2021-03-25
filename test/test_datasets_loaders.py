@@ -24,30 +24,15 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
         input_size=(1024, 1024),
         images_path=mock_image_folder,
         labels_path=mock_detection_label,
-        batch_size=1,
+        batch_size=2,
     )
     assert core_loader.__len__() == 5
     for _, batch in enumerate(core_loader):
-        image, gt, mask = batch
-        assert isinstance(image, tf.Tensor)
+        batch_images, batch_polys, batch_masks = batch
+        assert isinstance(batch_images, tf.Tensor)
         assert image.shape[1] == image.shape[2] == 1024
-        assert isinstance(gt, tf.Tensor)
-        assert isinstance(mask, tf.Tensor)
-
-
-def test_detection_db_generator(mock_image_folder, mock_detection_label):
-    core_loader = loaders.DBGenerator(
-        input_size=(1024, 1024),
-        images_path=mock_image_folder,
-        labels_path=mock_detection_label,
-        batch_size=1,
-    )
-    assert core_loader.__len__() == 5
-    for _, batch in enumerate(core_loader):
-        image, gt, mask, thresh_gt, thresh_mask = batch
-        assert isinstance(image, tf.Tensor)
-        assert image.shape[1] == image.shape[2] == 1024
-        assert isinstance(gt, tf.Tensor)
-        assert isinstance(mask, tf.Tensor)
-        assert isinstance(thresh_gt, tf.Tensor)
-        assert isinstance(thresh_mask, tf.Tensor)
+        assert isinstance(batch_polys, list)
+        assert isinstance(batch_masks, list)
+        for poly, mask in zip(batch_polys, batch_masks):
+            assert len(poly) == len(mask)
+            assert all(x <= 1 and y <= 1 for [x, y] in coords for coords in poly)
