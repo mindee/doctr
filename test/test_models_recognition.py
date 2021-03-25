@@ -138,3 +138,8 @@ def test_recognition_zoo(arch_name):
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
     assert all(isinstance(word, str) for word in out)
+
+
+def test_recognition_zoo_error():
+    with pytest.raises(ValueError):
+        predictor = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)

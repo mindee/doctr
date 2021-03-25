@@ -152,3 +152,8 @@ def test_detection_zoo(arch_name):
     out = predictor(input_tensor)
     assert isinstance(out, list)
     assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
+
+
+def test_detection_zoo_error():
+    with pytest.raises(ValueError):
+        predictor = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
