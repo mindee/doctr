@@ -56,6 +56,7 @@ def visualize_page(
     page: Dict[str, Any],
     image: np.ndarray,
     words_only: bool = True,
+    scale: float = 10,
 ) -> None:
     """Visualize a full page with predicted blocks, lines and words
 
@@ -74,9 +75,13 @@ def visualize_page(
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
+        scale: figsize of the largest windows side
     """
+    # Get proper scale and aspect ratio
+    h, w = image.shape[:2]
+    size = (scale * w / h, scale) if h > w else (scale, h / w * scale)
+    fig, ax = plt.subplots(figsize=size)
     # Display the image
-    _, ax = plt.subplots()
     ax.imshow(image)
     # hide both axis
     ax.axis('off')
@@ -111,3 +116,4 @@ def visualize_page(
 
     # Create mlp Cursor to hover patches in artists
     mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
+    fig.tight_layout()
