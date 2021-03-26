@@ -104,6 +104,10 @@ class ExactMatch:
             raise AssertionError("you need to update the metric before getting the summary")
         return self.matches / self.total
 
+    def reset(self) -> None:
+        self.matches = 0
+        self.total = 0
+
 
 def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     """Compute the IoU between two sets of bounding boxes
@@ -217,6 +221,12 @@ class LocalizationConfusion:
 
         return recall, precision, mean_iou
 
+    def reset(self) -> None:
+        self.num_gts = 0
+        self.num_preds = 0
+        self.num_matches = 0
+        self.tot_iou = 0.
+
 
 class OCRMetric:
     """Implements end-to-end OCR metric.
@@ -317,3 +327,11 @@ class OCRMetric:
         mean_distance = self.tot_dist / self.num_det_matches
 
         return recall, precision, mean_iou, mean_distance
+
+    def reset(self) -> None:
+        self.num_gts = 0
+        self.num_preds = 0
+        self.num_det_matches = 0
+        self.num_reco_matches = 0
+        self.tot_iou = 0.
+        self.tot_dist = 0
