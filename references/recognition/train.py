@@ -3,6 +3,8 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import os
+import json
 import datetime
 import numpy as np
 import tensorflow as tf
@@ -19,15 +21,15 @@ def main(args):
     train_dataset = RecognitionDataGenerator(
         input_size=args.input_size,
         batch_size=args.batch_size,
-        images_path=args.train_images_path,
-        labels_path=args.train_labels_path
+        images_path=os.path.join(args.data_path, 'train'),
+        labels_path=os.path.join(args.data_path, 'labels.json')
     )
 
     val_dataset = RecognitionDataGenerator(
         input_size=args.input_size,
         batch_size=args.batch_size,
-        images_path=args.val_images_path,
-        labels_path=args.val_labels_path
+        images_path=os.path.join(args.data_path, 'val'),
+        labels_path=os.path.join(args.data_path, 'labels.json')
     )
 
     h, w = args.input_size
@@ -123,10 +125,7 @@ def parse_args():
     parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--postprocessor', type=str, default='crnn', help='postprocessor, either crnn or sar')
     parser.add_argument('--teacher_forcing', type=bool, default=False, help='if True, teacher forcing during training')
-    parser.add_argument('--train_images_path', type=str, help='path to training images folder')
-    parser.add_argument('--val_images_path', type=str, help='path to validation images folder')
-    parser.add_argument('--train_labels_path', type=str, help='path to json file containing training labels')
-    parser.add_argument('--val_labels_path', type=str, help='path to json file containing validation labels')
+    parser.add_argument('--data_path', type=str, help='path to data folder')
     args = parser.parse_args()
 
     return args
