@@ -5,21 +5,21 @@
 
 import os
 import json
-import cv2
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple
+import cv2
+from typing import Tuple, List
 
-__all__ = ["DetectionDataGenerator"]
+__all__ = ["RecognitionDataGenerator"]
 
 
-class DataGenerator(tf.keras.utils.Sequence):
-    """Data loader for detection model
+class RecognitionDataGenerator(tf.keras.utils.Sequence):
+    """Data loader for recognition model
 
     Args:
         input_size: size (h, w) for the images
         images_path: path to the images folder
-        labels_path: pathe to the folder containing json label for each image
+        labels_path: pathe to the json file containing all labels (character sequences)
         batch_size: batch size to train on
         suffle: if True, dataset is shuffled between each epoch
 
@@ -29,7 +29,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         input_size: Tuple[int, int],
         images_path: str,
         labels_path: str,
-        batch_size: int = 1,
+        batch_size: int = 64,
         shuffle: bool = True,
     ) -> None:
         self.input_size = input_size
@@ -62,63 +62,43 @@ class DataGenerator(tf.keras.utils.Sequence):
         # Generate data
         return self.__data_generation(list_paths)
 
-    @staticmethod
     def load_annotation(
-        labels_path: str,
+        self,
         img_name: str,
-    ) -> Tuple[List[List[List[int]]], List[bool]]:
-        """Loads detection annotations (boxes) for an image, from a folder containing
-        annotations in json files for each image
+    ) -> str:
+        """Loads recognition annotation (character sequence) for an image from a json file
 
-        Agrs:
-            labels_path: path to the folder containing all json annotations
-            img_name: name of the image to find the corresponding json annotation
+        Args:
+            labels_path: path to the json file containing annotations
+            img_name: name of the image to find the corresponding label
 
         Returns:
-            A tuple of 2 lists: a list of polygons and a boolean vector to mask suspicious polygons
+            A string (character sequence)
         """
-        with open(os.path.join(labels_path, img_name + '.json')) as f:
+        with open(self.labels_path) as f:
             labels = json.load(f)
 
-        polys = [
-            [[int(x), int(y)] for [x, y] in poly] for poly in labels["boxes_1"] + labels["boxes_2"] + labels["boxes_3"]
-        ]
-        to_masks = [False] * (len(labels["boxes_1"]) + len(labels["boxes_2"])) + [True] * len(labels["boxes_3"])
+        if img_name not in labels.keys():
+            raise AttributeError("Image is not in referenced in label file")
 
-        return polys, to_masks
+        return labels[img_name]
 
     def __data_generation(
         self,
         list_paths: List[str],
-    ) -> Tuple[tf.Tensor, List[List[List[List[float]]]], List[List[bool]]]:
-        """Generate a batch of images and corresponding relative boxes (as a list of list of boxes),
-        and corresponding boxes to mask
-
-        Args:
-            list_paths: list of paths to images to batch
-
-        Returns:
-            Images, boxes, boxes to mask
-        """
+    ) -> Tuple[tf.Tensor, List[str]]:
         # Init batch lists
-        batch_images, batch_polys, batch_masks = [], [], []
+        batch_images, batch_gts, = [], []
         for image_name in list_paths:
+            gt = self.load_annotation(image_name)
             image = cv2.imread(os.path.join(self.images_path, image_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            h, w = image.shape[:2]
-            # Resize and batch images
-            image = tf.image.resize(image, self.input_size)
+            # Cast, resize
             image = tf.cast(image, tf.float32)
+            image = tf.image.resize(image, [*self.input_size], method='bilinear')
+            # Batch
             batch_images.append(image)
-
-            try:
-                polys, to_masks = self.load_annotation(self.labels_path, image_name)
-            except ValueError:
-                polys, to_masks = [], []
-            # Normalize polys
-            polys = [[[x / w, y / h] for [x, y] in poly] for poly in polys]
-            batch_polys.append(polys)
-            batch_masks.append(to_masks)
+            batch_gts.append(gt)
         batch_images = tf.stack(batch_images, axis=0)
 
-        return batch_images, batch_polys, batch_masks
+        return batch_images, batch_gts

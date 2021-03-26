@@ -1,7 +1,7 @@
 import tensorflow as tf
 import pytest
 import json
-from doctr.datasets import DataGenerator
+from doctr.datasets import DetectionDataGenerator, RecognitionDataGenerator
 
 
 @pytest.fixture(scope="function")
@@ -20,7 +20,7 @@ def mock_detection_label(tmpdir_factory):
 
 
 def test_detection_core_generator(mock_image_folder, mock_detection_label):
-    core_loader = DataGenerator(
+    core_loader = DetectionDataGenerator(
         input_size=(1024, 1024),
         images_path=mock_image_folder,
         labels_path=mock_detection_label,
@@ -37,3 +37,37 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
             assert len(poly) == len(mask)
             for box in poly:
                 assert all(x <= 1 and y <= 1 for [x, y] in box)
+
+
+@pytest.fixture(scope="function")
+def mock_recognition_label(tmpdir_factory):
+    label_file = tmpdir_factory.mktemp("labels").join("labels.json")
+    label = {
+        "mock_image_file_0.jpeg": "I",
+        "mock_image_file_1.jpeg": "am",
+        "mock_image_file_2.jpeg": "a",
+        "mock_image_file_3.jpeg": "jedi",
+        "mock_image_file_4.jpeg": "!",
+    }
+    with open(label_file, 'w') as f:
+        json.dump(label, f)
+    return str(label_file)
+
+
+def test_recognition_core_generator(mock_image_folder, mock_recognition_label):
+    core_loader = RecognitionDataGenerator(
+        input_size=(32, 128),
+        images_path=mock_image_folder,
+        labels_path=mock_recognition_label,
+        batch_size=2,
+    )
+    assert core_loader.__len__() == 3
+    for _, batch in enumerate(core_loader):
+        images, gts = batch
+        assert isinstance(images, tf.Tensor)
+        assert images.shape[1] == 32
+        assert images.shape[2] == 128
+        assert isinstance(gts, list)
+        assert len(gts) == images.shape[0]
+        for gt in gts:
+            assert isinstance(gt, str)
