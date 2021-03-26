@@ -199,13 +199,17 @@
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">fitz</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_pdf_from_stream&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">,</span> <span class="s1">&#39;DocumentFile&#39;</span><span class="p">]</span>
+
+
+<span class="n">AbstractPath</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
+<span class="n">AbstractFile</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">AbstractPath</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="read_img"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_img">[docs]</a><span class="k">def</span> <span class="nf">read_img</span><span class="p">(</span>
-    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span>
     <span class="n">output_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">rgb_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -216,17 +220,23 @@
 <span class="sd">        &gt;&gt;&gt; page = read_img(&quot;path/to/your/doc.jpg&quot;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        file_path: the path to the image file</span>
+<span class="sd">        file: the path to the image file</span>
 <span class="sd">        output_size: the expected output size of each page in format H x W</span>
 <span class="sd">        rgb_output: whether the output ndarray channel order should be RGB instead of BGR.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        the page decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to access </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to access </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">IMREAD_COLOR</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imdecode</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">IMREAD_COLOR</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported object type for argument &#39;file&#39;&quot;</span><span class="p">)</span>
 
-    <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">IMREAD_COLOR</span><span class="p">)</span>
     <span class="c1"># Validity check</span>
     <span class="k">if</span> <span class="n">img</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unable to read file.&quot;</span><span class="p">)</span>
@@ -239,7 +249,7 @@
     <span class="k">return</span> <span class="n">img</span></div>
 
 
-<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
 
 <span class="sd">    Example::</span>
@@ -247,30 +257,22 @@
 <span class="sd">        &gt;&gt;&gt; doc = read_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        file_path: the path to the PDF file</span>
+<span class="sd">        file: the path to the PDF file</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Read pages with fitz and convert them to numpy ndarrays</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)]</span></div>
+    <span class="n">fitz_args</span> <span class="o">=</span> <span class="p">{}</span>
 
-
-<span class="k">def</span> <span class="nf">read_pdf_from_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Read a PDF stream and convert it into an image in numpy format</span>
-
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import read_pdf_from_stream</span>
-<span class="sd">        &gt;&gt;&gt; with open(&quot;path/to/your/doc.pdf&quot;, &#39;rb&#39;) as f: doc = read_pdf_from_stream(f.read())</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        stream: serialized stream of the PDF content</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x 3</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+        <span class="n">fitz_args</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">fitz_args</span><span class="p">[</span><span class="s1">&#39;stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported object type for argument &#39;file&#39;&quot;</span><span class="p">)</span>
 
     <span class="c1"># Read pages with fitz and convert them to numpy ndarrays</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="n">stream</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="o">**</span><span class="n">fitz_args</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">)]</span></div>
 
 
 <span class="k">def</span> <span class="nf">convert_page_to_numpy</span><span class="p">(</span>
@@ -306,6 +308,27 @@
         <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">img</span>
+
+
+<div class="viewcode-block" id="DocumentFile"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile">[docs]</a><span class="k">class</span> <span class="nc">DocumentFile</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read a document from multiple extensions</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_images([&quot;path/to/your/page1.png&quot;, &quot;path/to/your/page2.png&quot;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_images</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">],</span> <span class="n">AbstractFile</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">read_img</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div>
 </pre></div>
 
            </div>
