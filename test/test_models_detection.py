@@ -189,10 +189,8 @@ def test_compute_loss_db(test_compute_target_db):
     model = detection.db_resnet50(pretrained=False)
     db_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
     gt, mask, thresh_gt, thresh_mask = test_compute_target_db
-    optimizer = tf.keras.optimizers.SGD(learning_rate=1e-3)
     with tf.GradientTape() as tape:
         proba_map, thresh_map, binary_map = model(db_input, training=True)
         loss = model.compute_loss(proba_map, binary_map, thresh_map, gt, mask, thresh_gt, thresh_mask)
         assert isinstance(loss, tf.Tensor)
     grads = tape.gradient(loss, model.trainable_weights)
-    optimizer.apply_gradients(zip(grads, model.trainable_weights))
