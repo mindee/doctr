@@ -10,14 +10,25 @@ from collections import deque
 
 from doctr import recognition
 from doctr.utils import metrics
-from doctr.datasets import RecognitionDataGenerator
+from doctr.datasets import RecognitionDataGenerator, VOCABS
 
 
 def main(args):
 
     # Load both train and val data generators
-    train_dataset = RecognitionDataGenerator()
-    val_dataset = RecognitionDataGenerator()
+    train_dataset = RecognitionDataGenerator(
+        input_size=args.input_size,
+        batch_size=args.batch_size,
+        images_path=args.train_images_path,
+        labels_path=args.train_labels_path
+    )
+
+    val_dataset = RecognitionDataGenerator(
+        input_size=args.input_size,
+        batch_size=args.batch_size,
+        images_path=args.val_images_path,
+        labels_path=args.val_labels_path
+    )
 
     h, w = args.input_size
 
@@ -35,9 +46,9 @@ def main(args):
 
     # Postprocessor to decode output (to feed metric during val step)
     if args.postprocessor == 'sar':
-        postprocessor = recognition.SARPostProcessor(vocab="!!!!!!!!")
+        postprocessor = recognition.SARPostProcessor(vocab=VOCABS["french"])
     else:
-        postprocessor = recognition.CTCPostProcessor(vocab="!!!!!!!!")
+        postprocessor = recognition.CTCPostProcessor(vocab=VOCABS["french"])
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -55,7 +66,7 @@ def main(args):
                 train_logits = model(x, training=True)
             train_loss = "!!!LOSS FN!!!"
         grads = tape.gradient(train_loss, model.trainable_weights)
-        optimizer.apply_gradients(zi(grads, model.trainable_weights))
+        optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
 
     @tf.function
@@ -72,7 +83,7 @@ def main(args):
     # Training loop
     for epoch in range(args.epochs):
         # Iterate over the batches of the dataset
-        for batch_step, ((x_batch_train, names), y_batch_train) in enumerate(train_dataset):
+        for x_batch_train, y_batch_train in train_dataset:
             train_loss = train_step(x_batch_train, y_batch_train)
             # Update steps
             step.assign_add(args.batch_size)
@@ -88,7 +99,7 @@ def main(args):
 
         # Validation loop at the end of each epoch
         loss_val = []
-        for batch_step_val, ((x_batch_val, names), y_batch_val) in enumerate(val_dataset):
+        for x_batch_val, y_batch_val in val_dataset:
             val_loss = test_step(x_batch_val, y_batch_val)
             loss_val.append(np.mean(val_loss))
         mean_loss = sum(loss_val) / len(loss_val)
@@ -97,7 +108,7 @@ def main(args):
             tf.summary.scalar('loss', mean_loss, step=step)
             tf.summary.scalar('exact_match', val_metric.result(), step=step)
         #reset val metric
-        val_metric.reset_states()
+        val_metric.reset()
 
 
 def parse_args():
@@ -110,9 +121,12 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=64, help='batch size for training')
     parser.add_argument('--input_size', type=Tuple[int, int], default=(32, 128), help='input size (H, W) for the model')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('--posprocessor', type=str, default='crnn', help='postprocessor, either crnn or sar')
+    parser.add_argument('--postprocessor', type=str, default='crnn', help='postprocessor, either crnn or sar')
     parser.add_argument('--teacher_forcing', type=bool, default=False, help='if True, teacher forcing during training')
-
+    parser.add_argument('--train_images_path', type=str, help='path to training images folder')
+    parser.add_argument('--val_images_path', type=str, help='path to validation images folder')
+    parser.add_argument('--train_labels_path', type=str, help='path to json file containing training labels')
+    parser.add_argument('--val_labels_path', type=str, help='path to json file containing validation labels')
     args = parser.parse_args()
 
     return args
