@@ -493,78 +493,67 @@ class DBNet(DetectionModel, NestedObject):
         """
         return 1 / (1 + tf.exp(-50. * (p - t)))
     
-    def compute_loss():
+    def compute_loss(
+        proba_map: tf.Tensor,
+        binary_map: tf.Tensor,
+        thresh_map: tf.Tensor,
+        gt: tf.Tensor,
+        mask: tf.Tensor,
+        thresh_gt: tf.Tensor,
+        thresh_mask: tf.Tensor
+    ) -> tf.Tensor:
+        """Implements DB loss: weighted sum of balanced BCE loss for probability head, Dice loss 
+        for approximated binary head and L1 loss for threshold head
 
-        def balanced_crossentropy_loss(args, negative_ratio=3., scale=5.):
-            pred, true, mask = args
-            pred = tf.cast(pred, tf.float32)
-            true = tf.cast(true, tf.float32)
-            mask = tf.cast(mask, tf.float32)
-            pred = pred[..., 0]
-            positive_mask = (true * mask)
-            negative_mask = ((1 - true) * mask)
-            positive_count = tf.math.reduce_sum(positive_mask)
-            negative_count = tf.math.reduce_min([tf.math.reduce_sum(negative_mask), positive_count * negative_ratio])
-            true = tf.expand_dims(true, axis=-1)
-            pred = tf.expand_dims(pred, axis=-1)
-            loss = tf.keras.losses.binary_crossentropy(true, pred)
-            positive_loss = loss * positive_mask
-            negative_loss = loss * negative_mask
-            negative_loss, _ = tf.nn.top_k(tf.reshape(negative_loss, (-1,)), tf.cast(negative_count, tf.int32))
-            balanced_loss = (tf.math.reduce_sum(positive_loss) + tf.math.reduce_sum(negative_loss)) / (positive_count + negative_count + 1e-6)
-            balanced_loss = balanced_loss * scale
-            return balanced_loss, loss
+        Args:
+            proba_map: output of the model (prob_map), shape (N, H, W, 1)
+            binary_map: output of the model (approxbin_map), shape (N, H, W, 1)
+            thresh_map: output of the model (thresh_map), shape (N, H, W, 1)
+            gt: ground-truth text regions , shape (N, H, W)
+            mask: text regions to mask, shape (N, H, W)
+            thresh_gt: ground-truth threshold map, shape (N, H, W)
+            thresh_mask: threhsold map areas to mask, shape (N, H, W)
+        
+        Returns:
+            DB loss
+        """
+        # Compute balanced BCE loss for proba_map
+        negative_ratio = 3.
+        bce_scale = 5.
+        proba_map= tf.squeeze(proba_map, axis=[-1])
+        positive_mask = (gt * mask)
+        negative_mask = ((1 - gt) * mask)
+        positive_count = tf.math.reduce_sum(positive_mask)
+        negative_count = tf.math.reduce_min([tf.math.reduce_sum(negative_mask), positive_count * negative_ratio])
+        gt = tf.expand_dims(gt, axis=-1)
+        proba_map = tf.expand_dims(proba_map, axis=-1)
+        bce_loss = tf.keras.losses.binary_crossentropy(gt, proba_map)
+        positive_loss = bce_loss * positive_mask
+        negative_loss = bce_loss * negative_mask
+        negative_loss, _ = tf.nn.top_k(tf.reshape(negative_loss, (-1,)), tf.cast(negative_count, tf.int32))
+        balanced_bce_loss = (tf.math.reduce_sum(positive_loss) + tf.math.reduce_sum(negative_loss)) / (positive_count + negative_count + 1e-6)
+        balanced_bce_loss = balanced_bce_loss
 
-        def dice_loss(args):
-            """
-            Args:
-                pred: (b, h, w, 1)
-                true: (b, h, w)
-                mask: (b, h, w)
-                weights: (b, h, w)
-            Returns:
-            """
-            # Compute dice-loss for binary head 
-            binary, gt, mask, weights = args
-            binary = tf.squeeze(binary, axis=[-1])
-            weights = (weights - tf.math.reduce_min(weights)) / (tf.math.reduce_max(weights) - tf.math.reduce_min(weights)) + 1.
-            mask = mask * weights
-            intersection = tf.math.reduce_sum(binary * gt * mask)
-            union = tf.math.reduce_sum(binary * mask) + tf.math.reduce_sum(gt * mask) + 1e-6
-            loss = 1 - 2.0 * intersection / union
-            return loss
 
-        def l1_loss(
-            thresh_map,
-            thresh_gt,
-            thresh_mask,
-            scale=10.
-        ) -> tf.Tensor:
-            """Compute l1-loss for threshold head
+        # Compute dice loss for approxbin_map
+        weights = bce_loss
+        binary_map = tf.squeeze(binary_map, axis=[-1])
+        weights = (weights - tf.math.reduce_min(weights)) / (tf.math.reduce_max(weights) - tf.math.reduce_min(weights)) + 1.
+        mask = mask * weights
+        intersection = tf.math.reduce_sum(binary_map * gt * mask)
+        union = tf.math.reduce_sum(binary_map * mask) + tf.math.reduce_sum(gt * mask) + 1e-8
+        dice_loss = 1 - 2.0 * intersection / union
 
-            Args:
-                thresh_map: predicted threshold map, shape N x H x W x 1
-                thresh_gt: generated threshold gts, shape N x H x W
-                thresh_mask: generated threshold masks, shape N x H x W
-                scale: 
+        # Compute l1 loss for thresh_map
+        l1_scale = 10.
+        thresh_map = tf.squeeze(thresh_map, axis=[-1])
+        mask_sum = tf.math.reduce_sum(thresh_mask)
+        if mask_sum == 0:
+            l1_loss = tf.constant(0.)
+        else:
+            l1_loss = tf.math.reduce_sum(tf.math.abs(thresh_map - thresh_gt) * thresh_mask) / mask_sum)
 
-            Returns:
-                L1 loss
-            """
-            thresh_map, thresh_gt, thresh_mask = args
-            thresh_map = tf.squeeze(thresh_map, axis=[-1])
-            mask_sum = tf.math.reduce_sum(thresh_mask)
-            if mask_sum == 0:
-                return tf.constant(0.)
-            loss = tf.math.reduce_sum(tf.math.abs(thresh_map - thresh_gt) * thresh_mask) / mask_sum)
-            return loss * scale
-
-        def db_loss(proba, binary, true, mask, thresh, thresh_map, thresh_mask):
-            l1_loss_ = l1_loss([thresh, thresh_map, thresh_mask])
-            balanced_ce_loss_, dice_loss_weights = balanced_crossentropy_loss([proba, true, mask])
-            dice_loss_ = dice_loss([binary, true, mask, dice_loss_weights])
-            return l1_loss_ + balanced_ce_loss_ + dice_loss_
-
+        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
     def call(
         self,
