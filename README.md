@@ -79,6 +79,8 @@ docker build . -t <YOUR_IMAGE_TAG>
 
 ### Example script
 
+![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
+
 An example script is provided for a simple documentation analysis of a PDF file:
 
 ```shell
