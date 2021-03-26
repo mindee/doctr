@@ -14,9 +14,9 @@ Extract valuable information from your documents.
   * [Installation](#installation)
 * [Usage](#usage)
   * [Python package](#python-package)
-  * [Docker container](#docker-container)
   * [Example script](#example-script)
   * [Demo app](#demo-app)
+  * [Docker container](#docker-container)
 * [Documentation](#documentation)
 * [Contributing](#contributing)
 * [License](#license)
@@ -53,31 +53,31 @@ pip install -e doctr/.
 The python package provides you with tools to read files and detect all text information they are holding.
 
 ```python
-from doctr.documents import read_pdf, read_img
-from doctr.models import ocr_model
+from doctr.documents import DocumentFile
+from doctr.models import ocr_predictor
 
-model = ocr_model(pretrained=True)
+model = ocr_predictor(pretrained=True)
 # PDF
-doc = read_pdf("path/to/your/doc.pdf")
-result = model(doc)
+doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 # Image
-page = read_img("path/to/your/img.jpg")
-result = model([page])
+# doc = DocumentFile.from_images("path/to/your/img.jpg")
+# Multiple page images
+# doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jpg"])
+# Analyze
+result = model(doc)
 # Export
 json_output = result.export()
+# Visualize
+result.show(doc)
 ```
+
+![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
 
 For an exhaustive list of pretrained models available, please refer to the [documentation](https://mindee.github.io/doctr/models.html).
 
-### Docker container
-
-If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
-
-```shell
-docker build . -t <YOUR_IMAGE_TAG>
-```
-
 ### Example script
+
+![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
 
 An example script is provided for a simple documentation analysis of a PDF file:
 
@@ -85,6 +85,7 @@ An example script is provided for a simple documentation analysis of a PDF file:
 python scripts/analyze.py path/to/your/doc.pdf
 ```
 All script arguments can be checked using `python scripts/analyze.py --help`
+
 
 ### Demo app
 
@@ -98,6 +99,14 @@ You can then easily run your app in your default browser by running:
 
 ```shell
 streamlit run demo/app.py
+```
+
+### Docker container
+
+If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
+
+```shell
+docker build . -t <YOUR_IMAGE_TAG>
 ```
 
 
