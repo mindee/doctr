@@ -288,7 +288,11 @@
 <span class="sd">            metric result&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;you need to update the metric before getting the summary&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
 <span class="k">def</span> <span class="nf">box_iou</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -401,7 +405,13 @@
         <span class="c1"># mean IoU</span>
         <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
 
-        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span></div>
 
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
@@ -502,7 +512,15 @@
         <span class="c1"># mean distance (overall detection-matching boxes)</span>
         <span class="n">mean_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span>
 
-        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span><span class="p">,</span> <span class="n">mean_distance</span></div>
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span><span class="p">,</span> <span class="n">mean_distance</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">=</span> <span class="mi">0</span></div>
 </pre></div>
 
            </div>
