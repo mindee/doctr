@@ -7,7 +7,6 @@ import numpy as np
 import cv2
 from pathlib import Path
 import fitz
-from collections.abc import Iterable
 from typing import List, Tuple, Optional, Any, Union, Sequence
 
 __all__ = ['read_pdf', 'read_img', 'DocumentFile']
