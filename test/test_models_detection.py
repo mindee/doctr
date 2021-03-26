@@ -190,7 +190,7 @@ def test_compute_loss_db(test_compute_target_db):
     db_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
     gt, mask, thresh_gt, thresh_mask = test_compute_target_db
     # Freeze layers:
-    for layer in model.layers[:-3]:
+    for layer in model.layers[:-1]:
         layer.trainable = False
     with tf.GradientTape() as tape:
         proba_map, thresh_map, binary_map = model(db_input, training=True)
