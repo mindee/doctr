@@ -53,16 +53,18 @@ pip install -e doctr/.
 The python package provides you with tools to read files and detect all text information they are holding.
 
 ```python
-from doctr.documents import read_pdf, read_img
+from doctr.documents import DocumentFile
 from doctr.models import ocr_model
 
 model = ocr_model(pretrained=True)
 # PDF
-doc = read_pdf("path/to/your/doc.pdf")
+doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 result = model(doc)
 # Image
-page = read_img("path/to/your/img.jpg")
-result = model([page])
+doc = DocumentFile.from_images("path/to/your/img.jpg")
+# Multiple page images
+# doc = DocumentFile.from_images(["path/to/page1.jpg", ""path/to/page2.jpg""])
+result = model(doc)
 # Export
 json_output = result.export()
 ```
