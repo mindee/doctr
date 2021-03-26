@@ -56,7 +56,7 @@ def visualize_page(
     page: Dict[str, Any],
     image: np.ndarray,
     words_only: bool = True,
-    scale: float = 12,
+    scale: float = 10,
 ) -> None:
     """Visualize a full page with predicted blocks, lines and words
 
