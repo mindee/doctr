@@ -62,6 +62,8 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 result = model(doc)
 # Image
 doc = DocumentFile.from_images("path/to/your/img.jpg")
+# Multiple page images
+# doc = DocumentFile.from_images(["path/to/page1.jpg", ""path/to/page2.jpg""])
 result = model(doc)
 # Export
 json_output = result.export()
