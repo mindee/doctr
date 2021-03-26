@@ -59,12 +59,12 @@ from doctr.models import ocr_model
 model = ocr_model(pretrained=True)
 # PDF
 doc = read_pdf("path/to/your/doc.pdf")
-result = model([doc])
+result = model(doc)
 # Image
 page = read_img("path/to/your/img.jpg")
-result = model([[page]])
+result = model([page])
 # Export
-json_output = result[0].export()
+json_output = result.export()
 ```
 
 For an exhaustive list of pretrained models available, please refer to the [documentation](https://mindee.github.io/doctr/models.html).
