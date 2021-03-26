@@ -152,7 +152,7 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
 
     Returns:
         text recognition architecture
@@ -173,7 +173,7 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
         >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
 
     Returns:
         text recognition architecture

@@ -24,15 +24,19 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
         input_size=(1024, 1024),
         images_path=mock_image_folder,
         labels_path=mock_detection_label,
-        batch_size=1,
+        batch_size=2,
     )
-    assert core_loader.__len__() == 5
+    assert core_loader.__len__() == 3
     for _, batch in enumerate(core_loader):
-        image, gt, mask = batch
-        assert isinstance(image, tf.Tensor)
-        assert image.shape[1] == image.shape[2] == 1024
-        assert isinstance(gt, tf.Tensor)
-        assert isinstance(mask, tf.Tensor)
+        batch_images, batch_polys, batch_masks = batch
+        assert isinstance(batch_images, tf.Tensor)
+        assert batch_images.shape[1] == batch_images.shape[2] == 1024
+        assert isinstance(batch_polys, list)
+        assert isinstance(batch_masks, list)
+        for poly, mask in zip(batch_polys, batch_masks):
+            assert len(poly) == len(mask)
+            for box in poly:
+                assert all(x <= 1 and y <= 1 for [x, y] in box)
 
 
 @pytest.fixture(scope="function")
@@ -55,13 +59,15 @@ def test_recognition_core_generator(mock_image_folder, mock_recognition_label):
         input_size=(32, 128),
         images_path=mock_image_folder,
         labels_path=mock_recognition_label,
-        batch_size=1,
+        batch_size=2,
     )
-    assert core_loader.__len__() == 5
+    assert core_loader.__len__() == 3
     for _, batch in enumerate(core_loader):
-        image, gt = batch
-        assert isinstance(image, tf.Tensor)
-        assert image.shape[1] == 32
-        assert image.shape[2] == 128
-        assert isinstance(gt, tf.Tensor)
-        assert gt.dtype == tf.string
+        images, gts = batch
+        assert isinstance(images, tf.Tensor)
+        assert images.shape[1] == 32
+        assert images.shape[2] == 128
+        assert isinstance(gts, list)
+        assert len(gts) == images.shape[0]
+        for gt in gts:
+            assert isinstance(gt, str)

@@ -1,3 +1,4 @@
+import numpy as np
 from doctr.documents import elements
 
 
@@ -173,6 +174,9 @@ def test_page():
     # Repr
     assert '\n'.join(repr(page).split('\n')[:2]) == f'Page(\n  dimensions={repr(page_size)}'
 
+    # Show
+    page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
+
 
 def test_document():
     pages = _mock_pages()
@@ -188,3 +192,6 @@ def test_document():
 
     # Export
     assert doc.export() == {"pages": [p.export() for p in pages]}
+
+    # Show
+    doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)

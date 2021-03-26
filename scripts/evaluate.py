@@ -11,16 +11,12 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
 from doctr.datasets import FUNSD
-from doctr.documents import read_img
-from doctr.models import zoo, extract_crops
+from doctr.models import ocr_predictor, extract_crops
 
 
 def main(args):
 
-    if args.model not in zoo.__all__:
-        raise ValueError('only the following end-to-end predictors are supported:', zoo.__all__)
-
-    model = zoo.__dict__[args.model](pretrained=True)
+    model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     train_set = FUNSD(train=True, download=True)
     test_set = FUNSD(train=False, download=True)
@@ -36,7 +32,7 @@ def main(args):
             gt_labels = list(target['labels'])
 
             # Forward
-            out = model([[page]])
+            out = model([page])
             # Crop GT
             crops = extract_crops(page, gt_boxes)
             reco_out = model.reco_predictor(crops)
@@ -44,7 +40,7 @@ def main(args):
             # Unpack preds
             pred_boxes = []
             pred_labels = []
-            for page in out[0].pages:
+            for page in out.pages:
                 h, w = page.dimensions
                 for block in page.blocks:
                     for line in block.lines:
@@ -73,7 +69,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR end-to-end evaluation',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('model', type=str, help='OCR model to use for analysis')
+    parser.add_argument('detection', type=str, help='Text detection model to use for analysis')
+    parser.add_argument('recognition', type=str, help='Text recognition model to use for analysis')
     parser.add_argument('--iou', type=float, default=0.5, help='IoU threshold to match a pair of boxes')
     args = parser.parse_args()
 

@@ -37,15 +37,13 @@ class OCRPredictor(NestedObject):
 
     def __call__(
         self,
-        documents: List[List[np.ndarray]],
+        pages: List[np.ndarray],
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> Document:
 
         # Dimension check
-        if any(page.ndim != 3 for doc in documents for page in doc):
-            raise ValueError("incorrect input shape: all documents are expected to be list of multi-channel 2D images.")
-
-        pages = [page for doc in documents for page in doc]
+        if any(page.ndim != 3 for page in pages):
+            raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
@@ -55,10 +53,9 @@ class OCRPredictor(NestedObject):
         char_sequences = self.reco_predictor(crops, **kwargs)
 
         # Reorganize
-        num_pages = [len(doc) for doc in documents]
-        results = self.doc_builder(boxes, char_sequences, num_pages, [page.shape[:2] for page in pages])
+        out = self.doc_builder(boxes, char_sequences, [page.shape[:2] for page in pages])
 
-        return results
+        return out
 
 
 class DocumentBuilder(NestedObject):
@@ -183,15 +180,13 @@ class DocumentBuilder(NestedObject):
         self,
         boxes: List[np.ndarray],
         char_sequences: List[str],
-        num_pages: List[int],
         page_shapes: List[Tuple[int, int]]
-    ) -> List[Document]:
+    ) -> Document:
         """Re-arrange detected words into structured blocks
 
         Args:
             boxes: list of localization predictions for all words, of shape (N, 5)
             char_sequences: list of all word values, of size N
-            num_pages: number of pages for each document
             page_shape: shape of each page
 
         Returns:
@@ -199,25 +194,21 @@ class DocumentBuilder(NestedObject):
         """
 
         # Check the number of crops for each page
-        num_crops = [_boxes.shape[0] for _boxes in boxes]
         page_idx, crop_idx = 0, 0
-        results = []
-        for nb_pages in num_pages:
-            _pages = []
-            for page_boxes in boxes[page_idx: page_idx + nb_pages]:
-                # Assemble all detected words into structured blocks
-                _pages.append(
-                    Page(
-                        self._build_blocks(
-                            page_boxes[:num_crops[page_idx]],
-                            char_sequences[crop_idx: crop_idx + num_crops[page_idx]]
-                        ),
-                        page_idx,
-                        page_shapes[page_idx],
-                    )
+        _pages = []
+        for page_boxes in boxes:
+            # Assemble all detected words into structured blocks
+            _pages.append(
+                Page(
+                    self._build_blocks(
+                        page_boxes,
+                        char_sequences[crop_idx: crop_idx + page_boxes.shape[0]]
+                    ),
+                    page_idx,
+                    page_shapes[page_idx],
                 )
-                crop_idx += num_crops[page_idx]
-                page_idx += 1
-            results.append(Document(_pages))
+            )
+            crop_idx += page_boxes.shape[0]
+            page_idx += 1
 
-        return results
+        return Document(_pages)
