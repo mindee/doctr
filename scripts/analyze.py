@@ -5,7 +5,7 @@
 
 import matplotlib.pyplot as plt
 from doctr.models import ocr_predictor
-from doctr.documents import read_pdf
+from doctr.documents import DocumentFile
 from doctr.utils.visualization import visualize_page
 
 
@@ -13,7 +13,10 @@ def main(args):
 
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
-    doc = read_pdf(args.path)
+    if args.path.endswith(".pdf"):
+        doc = DocumentFile.from_pdf(args.path)
+    else:
+        doc = DocumentFile.from_images(args.path)
 
     out = model(doc)
 
@@ -27,7 +30,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR end-to-end analysis',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('path', type=str, help='Path to the input PDF document')
+    parser.add_argument('path', type=str, help='Path to the input document (PDF or image)')
     parser.add_argument('--detection', type=str, default='db_resnet50',
                         help='Text detection model to use for analysis')
     parser.add_argument('--recognition', type=str, default='crnn_vgg16_bn',
