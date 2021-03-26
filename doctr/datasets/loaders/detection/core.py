@@ -13,7 +13,7 @@ from typing import List, Tuple
 __all__ = ["DetectionDataGenerator"]
 
 
-class DataGenerator(tf.keras.utils.Sequence):
+class DetectionDataGenerator(tf.keras.utils.Sequence):
     """Data loader for detection model
 
     Args:
@@ -62,22 +62,20 @@ class DataGenerator(tf.keras.utils.Sequence):
         # Generate data
         return self.__data_generation(list_paths)
 
-    @staticmethod
     def load_annotation(
-        labels_path: str,
-        img_name: str,
+        self,
+        img_name: str
     ) -> Tuple[List[List[List[int]]], List[bool]]:
         """Loads detection annotations (boxes) for an image, from a folder containing
         annotations in json files for each image
 
-        Agrs:
-            labels_path: path to the folder containing all json annotations
+        Args:
             img_name: name of the image to find the corresponding json annotation
 
         Returns:
             A tuple of 2 lists: a list of polygons and a boolean vector to mask suspicious polygons
         """
-        with open(os.path.join(labels_path, img_name + '.json')) as f:
+        with open(os.path.join(self.labels_path, img_name + '.json')) as f:
             labels = json.load(f)
 
         polys = [
@@ -107,12 +105,12 @@ class DataGenerator(tf.keras.utils.Sequence):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             h, w = image.shape[:2]
             # Resize and batch images
-            image = tf.image.resize(image, self.input_size)
             image = tf.cast(image, tf.float32)
+            image = tf.image.resize(image, self.input_size)
             batch_images.append(image)
 
             try:
-                polys, to_masks = self.load_annotation(self.labels_path, image_name)
+                polys, to_masks = self.load_annotation(image_name)
             except ValueError:
                 polys, to_masks = [], []
             # Normalize polys
