@@ -427,6 +427,9 @@ class DBNet(DetectionModel, NestedObject):
             thresh_mask = np.zeros((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
+            if batch_polys[batch_idx] == to_masks[batch_idx] == []:
+                # Empty image, full masked
+                mask = np.zeros((h, w), dtype=np.float32)
             for poly, to_mask in zip(batch_polys[batch_idx], to_masks[batch_idx]):
                 # Convert polygon to absolute polygon and to np array
                 poly = [[int(w * x), int(h * y)] for [x, y] in poly]
