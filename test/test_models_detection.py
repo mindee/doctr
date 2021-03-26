@@ -159,7 +159,7 @@ def test_detection_zoo_error():
         _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def test_compute_target_db():
     batch_size = 3
     polys = [
@@ -182,9 +182,13 @@ def test_compute_target_db():
     assert gts.shape[1] == masks.shape[1] == thresh_gts.shape[1] == thresh_masks.shape[1] == 1024
     assert gts.shape[2] == masks.shape[2] == thresh_gts.shape[2] == thresh_masks.shape[2] == 1024
 
+    return gts, masks, thresh_gts, thresh_masks
+
 
 def test_compute_loss_db(test_compute_target_db):
     model = detection.db_resnet50(pretrained=False)
-    dbinput = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
-    proba_map, thresh_map,approx_binmap = model(dbinput, training=True)
-
+    dbinput = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
+    proba_map, thresh_map, binary_map = model(dbinput, training=True)
+    gt, mask, thresh_gt, thresh_mask = test_compute_target_db
+    loss = model.compute_loss(proba_map, binary_map, thresh_map, gt, mask, thresh_gt, thresh_mask)
+    assert isinstance(loss, tf.Tensor)

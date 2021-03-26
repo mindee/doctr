@@ -495,7 +495,8 @@ class DBNet(DetectionModel, NestedObject):
             a tf.Tensor
         """
         return 1 / (1 + tf.exp(-50. * (p - t)))
-    
+
+    @staticmethod
     def compute_loss(
         proba_map: tf.Tensor,
         binary_map: tf.Tensor,
@@ -505,7 +506,7 @@ class DBNet(DetectionModel, NestedObject):
         thresh_gt: tf.Tensor,
         thresh_mask: tf.Tensor
     ) -> tf.Tensor:
-        """Implements DB loss: weighted sum of balanced BCE loss for probability head, Dice loss 
+        """Implements DB loss: weighted sum of balanced BCE loss for probability head, Dice loss
         for approximated binary head and L1 loss for threshold head
 
         Args:
@@ -516,32 +517,32 @@ class DBNet(DetectionModel, NestedObject):
             mask: text regions to mask, shape (N, H, W)
             thresh_gt: ground-truth threshold map, shape (N, H, W)
             thresh_mask: threhsold map areas to mask, shape (N, H, W)
-        
+
         Returns:
             DB loss
         """
         # Compute balanced BCE loss for proba_map
         negative_ratio = 3.
         bce_scale = 5.
-        proba_map= tf.squeeze(proba_map, axis=[-1])
+        proba_map = tf.squeeze(proba_map, axis=[-1])
         positive_mask = (gt * mask)
         negative_mask = ((1 - gt) * mask)
         positive_count = tf.math.reduce_sum(positive_mask)
         negative_count = tf.math.reduce_min([tf.math.reduce_sum(negative_mask), positive_count * negative_ratio])
-        gt = tf.expand_dims(gt, axis=-1)
+        gt_exp = tf.expand_dims(gt, axis=-1)
         proba_map = tf.expand_dims(proba_map, axis=-1)
-        bce_loss = tf.keras.losses.binary_crossentropy(gt, proba_map)
+        bce_loss = tf.keras.losses.binary_crossentropy(gt_exp, proba_map)
         positive_loss = bce_loss * positive_mask
         negative_loss = bce_loss * negative_mask
         negative_loss, _ = tf.nn.top_k(tf.reshape(negative_loss, (-1,)), tf.cast(negative_count, tf.int32))
-        balanced_bce_loss = (tf.math.reduce_sum(positive_loss) + tf.math.reduce_sum(negative_loss)) / (positive_count + negative_count + 1e-6)
+        sum_losses = tf.math.reduce_sum(positive_loss) + tf.math.reduce_sum(negative_loss)
+        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
         balanced_bce_loss = balanced_bce_loss
 
-
         # Compute dice loss for approxbin_map
-        weights = bce_loss
         binary_map = tf.squeeze(binary_map, axis=[-1])
-        weights = (weights - tf.math.reduce_min(weights)) / (tf.math.reduce_max(weights) - tf.math.reduce_min(weights)) + 1.
+        wght = bce_loss
+        weights = (wght - tf.math.reduce_min(wght)) / (tf.math.reduce_max(wght) - tf.math.reduce_min(wght)) + 1.
         mask = mask * weights
         intersection = tf.math.reduce_sum(binary_map * gt * mask)
         union = tf.math.reduce_sum(binary_map * mask) + tf.math.reduce_sum(gt * mask) + 1e-8
@@ -554,7 +555,7 @@ class DBNet(DetectionModel, NestedObject):
         if mask_sum == 0:
             l1_loss = tf.constant(0.)
         else:
-            l1_loss = tf.math.reduce_sum(tf.math.abs(thresh_map - thresh_gt) * thresh_mask) / mask_sum)
+            l1_loss = tf.math.reduce_sum(tf.math.abs(thresh_map - thresh_gt) * thresh_mask) / mask_sum
 
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
