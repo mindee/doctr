@@ -200,7 +200,7 @@
 <p>Easy-to-use functions to make sense of your model’s predictions.</p>
 <dl class="py function">
 <dt id="doctr.utils.visualization.visualize_page">
-<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">scale</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">10</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize a full page with predicted blocks, lines and words</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -222,6 +222,7 @@
 <li><p><strong>page</strong> – the exported Page of a Document</p></li>
 <li><p><strong>image</strong> – np array of the page, needs to have the same shape than page[‘dimensions’]</p></li>
 <li><p><strong>words_only</strong> – whether only words should be displayed</p></li>
+<li><p><strong>scale</strong> – figsize of the largest windows side</p></li>
 </ul>
 </dd>
 </dl>
