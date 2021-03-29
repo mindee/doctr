@@ -59,6 +59,8 @@ class RecognitionPreProcessor(PreProcessor):
         Returns:
             the processed image after being resized
         """
+        if x.shape[0] == 0 or x.shape[1] == 0:
+            return tf.zeros((*self.output_size, 3))
 
         # Preserve aspect ratio during resizing
         resized = tf.image.resize(x, self.output_size, method=self.interpolation, preserve_aspect_ratio=True)

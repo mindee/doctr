@@ -10,7 +10,7 @@ from tqdm import tqdm
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
-from doctr.datasets import FUNSD
+from doctr.datasets import FUNSD, SROIE
 from doctr.models import ocr_predictor, extract_crops
 
 
@@ -55,7 +55,7 @@ def main(args):
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
-    print(f"Model Evaluation (model='{args.model}', dataset='FUNSD')")
+    print(f"Model Evaluation (model= {args.detection} + {args.recognition}, dataset='FUNSD')")
     recall, precision, mean_iou = det_metric.summary()
     print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
     acc = reco_metric.summary()
