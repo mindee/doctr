@@ -303,7 +303,7 @@ class OCRMetric:
         # Compute IoU
         iou_mat = box_iou(gt_boxes, pred_boxes)
         if iou_mat.shape[1] == 0:
-            self.tot_iou == 0
+            self.tot_iou = 0
         else:
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
