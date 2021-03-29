@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-import json
 import datetime
 import numpy as np
 import tensorflow as tf
@@ -32,8 +31,6 @@ def main(args):
         labels_path=os.path.join(args.data_path, 'val_labels')
     )
 
-    h, w = args.input_size
-
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
 
@@ -44,7 +41,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = utils.metrics.LocalizationConfusion()
+    val_metric = metrics.LocalizationConfusion()
 
     # Postprocessor to decode output (to feed metric during val step with boxes)
     postprocessor = detection.DBPostProcessor()
@@ -78,7 +75,7 @@ def main(args):
         val_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
         decoded = postprocessor(proba_map)
         # Compute metric
-        for boxes_gt, boxes_pred in zip(list_boxes, decoded):
+        for boxes_gt, boxes_pred in zip(boxes, decoded):
             boxes_pred = np.array(boxes_pred)[:, :-1]  # Remove scores
             boxes_gt = np.array([[
                 np.array(box).min(axis=0), np.array(box).min(axis=1),
@@ -91,7 +88,7 @@ def main(args):
     loss_q = deque(maxlen=100)
 
     # Training loop
-    for epoch in range(args.epochs):
+    for _ in range(args.epochs):
         # Iterate over the batches of the dataset
         for x_batch_train, y_batch_train in train_dataset:
             train_loss = train_step(x_batch_train, y_batch_train)
