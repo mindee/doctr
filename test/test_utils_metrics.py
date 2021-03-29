@@ -53,6 +53,7 @@ def test_assign_pairs(mat, row_indices, col_indices):
 )
 def test_box_iou(box1, box2, iou, abs_tol):
     iou_mat = metrics.box_iou(np.asarray(box1), np.asarray(box2))
+    assert iou_mat.shape == (len(box1), len(box2))
     if iou_mat.size > 0:
         assert abs(iou_mat - iou) <= abs_tol
 
