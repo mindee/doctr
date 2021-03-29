@@ -19,24 +19,25 @@ python references/recognition/train.py crnn_vgg16_bn --epochs 5 --data_path path
 ## Data format
 
 You need to provide a --data_path argument to start training. 
-The data_path must lead to a 3 elements folder:
+The data_path must lead to a 4-elements folder:
 
 ```shell
-├── labels.json
 ├── train
     ├── img_1.jpg
     ├── img_2.jpg
     ├── img_3.jpg
     └── ...
+├── train_labels.json
 ├── val                    
     ├── img_a.jpg
     ├── img_b.jpg
     ├── img_c.jpg
     └── ...
+├── val_labels.json
 ```
 
-The JSON file must contains word-labels for each picture as a string. 
-The order of entries in the json does not matter (train labels and val labels can be mixed)
+The JSON files must contain word-labels for each picture as a string. 
+The order of entries in the json does not matter.
 
 ```shell
 labels = {
@@ -45,12 +46,6 @@ labels = {
     'img_3.jpg': 'a',
     'img_4.jpg': 'Jedi',
     'img_5.jpg': '!',
-    ...
-    'img_a.jpg': 'I',
-    'img_b.jpg': 'am',
-    'img_c.jpg': 'a',
-    'img_d.jpg': 'Sith',
-    'img_e.jpg': '!',
     ...
 }
 ```

@@ -22,14 +22,14 @@ def main(args):
         input_size=args.input_size,
         batch_size=args.batch_size,
         images_path=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'labels.json')
+        labels_path=os.path.join(args.data_path, 'train_labels.json')
     )
 
     val_dataset = RecognitionDataGenerator(
         input_size=args.input_size,
         batch_size=args.batch_size,
         images_path=os.path.join(args.data_path, 'val'),
-        labels_path=os.path.join(args.data_path, 'labels.json')
+        labels_path=os.path.join(args.data_path, 'val_labels.json')
     )
 
     h, w = args.input_size
