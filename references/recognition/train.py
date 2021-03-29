@@ -9,8 +9,9 @@ import datetime
 import numpy as np
 import tensorflow as tf
 from collections import deque
+from typing import Tuple
 
-from doctr import recognition
+from doctr.models import recognition
 from doctr.utils import metrics
 from doctr.datasets import RecognitionDataGenerator, VOCABS
 
@@ -44,7 +45,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = utils.metrics.ExactMatch()
+    val_metric = metrics.ExactMatch()
 
     # Postprocessor to decode output (to feed metric during val step)
     if args.postprocessor == 'sar':
@@ -59,7 +60,6 @@ def main(args):
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     val_summary_writer = tf.summary.create_file_writer(val_log_dir)
 
-    @tf.function
     def train_step(x, y):
         with tf.GradientTape() as tape:
             if args.teacher_forcing is True:
@@ -71,7 +71,6 @@ def main(args):
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
 
-    @tf.function
     def test_step(x, y):
         val_logits = model(x, training=False)
         val_loss = train_logits.sum()  # FIXME
@@ -85,7 +84,7 @@ def main(args):
     # Training loop
     for epoch in range(args.epochs):
         # Iterate over the batches of the dataset
-        for x_batch_train, y_batch_train in train_dataset:
+        for batch_step, x_batch_train, y_batch_train in enumerate(train_dataset):
             train_loss = train_step(x_batch_train, y_batch_train)
             # Update steps
             step.assign_add(args.batch_size)

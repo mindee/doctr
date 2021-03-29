@@ -8,8 +8,9 @@ import datetime
 import numpy as np
 import tensorflow as tf
 from collections import deque
+from typing import Tuple
 
-from doctr import detection
+from doctr.models import detection
 from doctr.utils import metrics
 from doctr.datasets import DetectionDataGenerator
 
@@ -35,7 +36,7 @@ def main(args):
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
 
     # Load doctr model
-    model = detection.__dict__[args.model](pretrained=False, input_shape=args.input_size)
+    model = detection.__dict__[args.model](pretrained=False, input_shape=(*args.input_size, 3))
 
     # Tf variable to log steps
     step = tf.Variable(0, dtype="int64")
@@ -55,8 +56,7 @@ def main(args):
 
     output_shape = (args.batch_size, *args.input_size, 3)
 
-    @tf.function
-    def train_step(x, y):
+    def train_step(x):
         with tf.GradientTape() as tape:
             images, boxes, to_masks = x
             [proba_map, thresh_map, bin_map] = model(images, training=True)
@@ -66,8 +66,7 @@ def main(args):
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
 
-    @tf.function
-    def test_step(x, y):
+    def test_step(x):
         # If we want to compute val loss, we need to pass training=True to have a thresh_map
         images, boxes, to_masks = x
         [proba_map, thresh_map, bin_map] = model(images, training=True)
@@ -90,8 +89,8 @@ def main(args):
     # Training loop
     for _ in range(args.epochs):
         # Iterate over the batches of the dataset
-        for x_batch_train, y_batch_train in train_dataset:
-            train_loss = train_step(x_batch_train, y_batch_train)
+        for batch_step, batch in enumerate(train_dataset):
+            train_loss = train_step(batch)
             # Update steps
             step.assign_add(args.batch_size)
             # Add loss to queue
@@ -106,8 +105,8 @@ def main(args):
 
         # Validation loop at the end of each epoch
         loss_val = []
-        for x_batch_val, y_batch_val in val_dataset:
-            val_loss = test_step(x_batch_val, y_batch_val)
+        for batch in val_dataset:
+            val_loss = test_step(batch)
             loss_val.append(np.mean(val_loss))
         mean_loss = sum(loss_val) / len(loss_val)
         #tensorboard
