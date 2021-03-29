@@ -48,7 +48,7 @@ def main(args):
 
     # Postprocessor to decode output (to feed metric during val step with boxes)
     postprocessor = detection.DBPostProcessor()
-     
+
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     train_log_dir = 'log/' + current_time + '/train'
@@ -75,7 +75,7 @@ def main(args):
         images, boxes, to_masks = x
         [proba_map, thresh_map, bin_map] = model(images, training=True)
         gts, masks, thresh_gts, thresh_masks = model.compute_target(output_shape, boxes, to_masks)
-        train_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
+        val_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
         decoded = postprocessor(proba_map)
         # Compute metric
         for boxes_gt, boxes_pred in zip(list_boxes, decoded):
@@ -129,7 +129,7 @@ def parse_args():
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
-    parser.add_argument('--input_size', type=Tuple[int, int], default=(1024, 1024), help='input size (H, W) for the model')
+    parser.add_argument('--input_size', type=Tuple[int, int], default=(1024, 1024), help='model input size (H, W)')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--data_path', type=str, help='path to data folder')
     args = parser.parse_args()
