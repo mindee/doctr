@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'post_processor': 'CTCPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.1/crnn_resnet31-69ab71db.zip',
     },
 }
 
@@ -152,7 +152,7 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
 
     Returns:
         text recognition architecture
@@ -173,7 +173,7 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
         >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
 
     Returns:
         text recognition architecture

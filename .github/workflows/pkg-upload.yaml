@@ -39,8 +39,7 @@ jobs:
           VERSION: ${{ steps.release_tag.outputs.VERSION }}
         run: |
           VERSION="${VERSION:1}"
-          BUILD_VERSION=$VERSION python setup.py sdist bdist_wheel
-          cd dist && for f in doctr-*; do mv "$f" "python-$f"; done && cd ..
+          BUILD_VERSION=$VERSION PKG_INDEX=python-doctr python setup.py sdist bdist_wheel
           twine check dist/*
           twine upload dist/*
 

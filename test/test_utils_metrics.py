@@ -21,6 +21,8 @@ def test_exact_match(gt, pred, ignore_case, ignore_accents, result):
     else:
         metric.update(gt, pred)
         assert metric.summary() == result
+        metric.reset()
+        assert metric.matches == metric.total == 0
 
 
 @pytest.mark.parametrize(
@@ -40,15 +42,20 @@ def test_assign_pairs(mat, row_indices, col_indices):
 @pytest.mark.parametrize(
     "box1, box2, iou, abs_tol",
     [
-        [[0, 0, .5, .5], [0, 0, .5, .5], 1, 0],  # Perfect match
-        [[0, 0, .5, .5], [.5, .5, 1, 1], 0, 0],  # No match
-        [[0, 0, 1, 1], [.5, .5, 1, 1], 0.25, 0],  # Partial match
-        [[.2, .2, .6, .6], [.4, .4, .8, .8], 4 / 28, 1e-7],  # Partial match
-        [[0, 0, .1, .1], [.9, .9, 1, 1], 0, 0],  # Boxes far from each other
+        [[[0, 0, .5, .5]], [[0, 0, .5, .5]], 1, 0],  # Perfect match
+        [[[0, 0, .5, .5]], [[.5, .5, 1, 1]], 0, 0],  # No match
+        [[[0, 0, 1, 1]], [[.5, .5, 1, 1]], 0.25, 0],  # Partial match
+        [[[.2, .2, .6, .6]], [[.4, .4, .8, .8]], 4 / 28, 1e-7],  # Partial match
+        [[[0, 0, .1, .1]], [[.9, .9, 1, 1]], 0, 0],  # Boxes far from each other
+        [np.zeros((0, 4)), [[0, 0, .5, .5]], 0, 0],  # Zero-sized inputs
+        [[[0, 0, .5, .5]], np.zeros((0, 4)), 0, 0],  # Zero-sized inputs
     ],
 )
 def test_box_iou(box1, box2, iou, abs_tol):
-    assert abs(metrics.box_iou(np.asarray([box1]), np.asarray([box2])) - iou) <= abs_tol
+    iou_mat = metrics.box_iou(np.asarray(box1), np.asarray(box2))
+    assert iou_mat.shape == (len(box1), len(box2))
+    if iou_mat.size > 0:
+        assert abs(iou_mat - iou) <= abs_tol
 
 
 @pytest.mark.parametrize(
@@ -64,6 +71,8 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
     metric = metrics.LocalizationConfusion(iou_thresh)
     metric.update(np.asarray(gts), np.asarray(preds))
     assert metric.summary() == (recall, precision, mean_iou)
+    metric.reset()
+    assert metric.num_matches == metric.num_gts == metric.num_preds == 0
 
 
 @pytest.mark.parametrize(
@@ -80,3 +89,5 @@ def test_ocr_metric(
     metric = metrics.OCRMetric(iou_thresh, max_dist)
     metric.update(np.asarray(gts_vert), np.asarray(preds_vert), gts_texts, preds_texts)
     assert metric.summary() == (recall, precision, mean_iou, mean_distance)
+    metric.reset()
+    assert metric.num_reco_matches == metric.num_det_matches == metric.num_gts == metric.num_preds == 0

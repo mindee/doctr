@@ -14,7 +14,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 
-version = "0.1.1a0"
+version = "0.1.2a0"
 sha = 'Unknown'
 package_name = 'doctr'
 
@@ -51,7 +51,7 @@ requirements = [
 
 setup(
     # Metadata
-    name=package_name,
+    name=os.getenv('PKG_INDEX') if os.getenv('PKG_INDEX') else package_name,
     version=version,
     author='François-Guillaume Fernandez, Charles Gaillard',
     author_email='fg@mindee.co',

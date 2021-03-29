@@ -10,10 +10,16 @@ import matplotlib.pyplot as plt
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.documents import read_pdf_from_stream
-from doctr.models import db_resnet50_predictor
+import tensorflow as tf
+
+gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+if any(gpu_devices):
+    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
+
+from doctr.models import detection_predictor
 
 
-predictor = db_resnet50_predictor(pretrained=True)
+predictor = detection_predictor('db_resnet50', pretrained=True)
 
 
 def main():
@@ -28,7 +34,7 @@ def main():
     # Disabling warning
     st.set_option('deprecation.showfileUploaderEncoding', False)
     # Choose your own image
-    uploaded_file = st.sidebar.file_uploader(" ", type=['pdf'])
+    uploaded_file = st.sidebar.file_uploader("Upload files", type=['pdf', 'png', 'jpeg', 'jpg'])
 
     # Set the two columns
     col1, col2 = st.beta_columns((1, 1))

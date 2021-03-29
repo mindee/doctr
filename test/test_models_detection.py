@@ -140,15 +140,55 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 @pytest.mark.parametrize(
     "arch_name",
     [
-        "db_resnet50_predictor",
+        "db_resnet50",
     ],
 )
 def test_detection_zoo(arch_name):
     # Model
-    predictor = detection.zoo.__dict__[arch_name](pretrained=False)
+    predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, detection.DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list)
     assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
+
+
+def test_detection_zoo_error():
+    with pytest.raises(ValueError):
+        _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
+
+
+@pytest.fixture(scope="function")
+def test_compute_target_db():
+    batch_size = 3
+    polys = [
+        [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
+        [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
+        []
+    ]
+    to_masks = [[True, False], [True, False], []]
+    dbnet = detection.db_resnet50()
+    gts, masks, thresh_gts, thresh_masks = dbnet.compute_target(
+        out_shape=(batch_size, 1024, 1024, 3),
+        batch_polys=polys,
+        to_masks=to_masks,
+    )
+    assert isinstance(gts, tf.Tensor)
+    assert isinstance(masks, tf.Tensor)
+    assert isinstance(thresh_gts, tf.Tensor)
+    assert isinstance(thresh_masks, tf.Tensor)
+    assert gts.shape[0] == masks.shape[0] == thresh_gts.shape[0] == thresh_masks.shape[0] == batch_size
+    assert gts.shape[1] == masks.shape[1] == thresh_gts.shape[1] == thresh_masks.shape[1] == 1024
+    assert gts.shape[2] == masks.shape[2] == thresh_gts.shape[2] == thresh_masks.shape[2] == 1024
+
+    return gts, masks, thresh_gts, thresh_masks
+
+
+def test_compute_loss_db(test_compute_target_db):
+    model = detection.db_resnet50(pretrained=False)
+    db_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
+    gt, mask, thresh_gt, thresh_mask = test_compute_target_db
+    proba_map, thresh_map, binary_map = model(db_input, training=True)
+    loss = model.compute_loss(proba_map, binary_map, thresh_map, gt, mask, thresh_gt, thresh_mask)
+    assert isinstance(loss, tf.Tensor)

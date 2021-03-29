@@ -9,18 +9,20 @@ from tqdm import tqdm
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+import tensorflow as tf
+
+gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+if any(gpu_devices):
+    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
+
 from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
 from doctr.datasets import FUNSD
-from doctr.documents import read_img
-from doctr.models import zoo, extract_crops
+from doctr.models import ocr_predictor, extract_crops
 
 
 def main(args):
 
-    if args.model not in zoo.__all__:
-        raise ValueError('only the following end-to-end predictors are supported:', zoo.__all__)
-
-    model = zoo.__dict__[args.model](pretrained=True)
+    model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     train_set = FUNSD(train=True, download=True)
     test_set = FUNSD(train=False, download=True)
@@ -36,7 +38,7 @@ def main(args):
             gt_labels = list(target['labels'])
 
             # Forward
-            out = model([[page]])
+            out = model([page])
             # Crop GT
             crops = extract_crops(page, gt_boxes)
             reco_out = model.reco_predictor(crops)
@@ -44,7 +46,7 @@ def main(args):
             # Unpack preds
             pred_boxes = []
             pred_labels = []
-            for page in out[0].pages:
+            for page in out.pages:
                 h, w = page.dimensions
                 for block in page.blocks:
                     for line in block.lines:
@@ -59,7 +61,7 @@ def main(args):
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
-    print(f"Model Evaluation (model='{args.model}', dataset='FUNSD')")
+    print(f"Model Evaluation (model= {args.detection} + {args.recognition}, dataset='FUNSD')")
     recall, precision, mean_iou = det_metric.summary()
     print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
     acc = reco_metric.summary()
@@ -73,7 +75,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR end-to-end evaluation',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('model', type=str, help='OCR model to use for analysis')
+    parser.add_argument('detection', type=str, help='Text detection model to use for analysis')
+    parser.add_argument('recognition', type=str, help='Text recognition model to use for analysis')
     parser.add_argument('--iou', type=float, default=0.5, help='IoU threshold to match a pair of boxes')
     args = parser.parse_args()
 

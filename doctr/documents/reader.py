@@ -7,13 +7,17 @@ import numpy as np
 import cv2
 from pathlib import Path
 import fitz
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any, Union, Sequence
 
-__all__ = ['read_pdf', 'read_pdf_from_stream', 'read_img']
+__all__ = ['read_pdf', 'read_img', 'DocumentFile']
+
+
+AbstractPath = Union[str, Path]
+AbstractFile = Union[AbstractPath, bytes]
 
 
 def read_img(
-    file_path: str,
+    file: AbstractFile,
     output_size: Optional[Tuple[int, int]] = None,
     rgb_output: bool = True,
 ) -> np.ndarray:
@@ -24,17 +28,23 @@ def read_img(
         >>> page = read_img("path/to/your/doc.jpg")
 
     Args:
-        file_path: the path to the image file
+        file: the path to the image file
         output_size: the expected output size of each page in format H x W
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
     Returns:
         the page decoded as numpy ndarray of shape H x W x 3
     """
 
-    if not Path(file_path).is_file():
-        raise FileNotFoundError(f"unable to access {file_path}")
+    if isinstance(file, (str, Path)):
+        if not Path(file).is_file():
+            raise FileNotFoundError(f"unable to access {file}")
+        img = cv2.imread(str(file), cv2.IMREAD_COLOR)
+    elif isinstance(file, bytes):
+        file = np.frombuffer(file, np.uint8)
+        img = cv2.imdecode(file, cv2.IMREAD_COLOR)
+    else:
+        raise TypeError("unsupported object type for argument 'file'")
 
-    img = cv2.imread(file_path, cv2.IMREAD_COLOR)
     # Validity check
     if img is None:
         raise ValueError("unable to read file.")
@@ -47,7 +57,7 @@ def read_img(
     return img
 
 
-def read_pdf(file_path: str, **kwargs: Any) -> List[np.ndarray]:
+def read_pdf(file: AbstractFile, **kwargs: Any) -> List[np.ndarray]:
     """Read a PDF file and convert it into an image in numpy format
 
     Example::
@@ -55,30 +65,22 @@ def read_pdf(file_path: str, **kwargs: Any) -> List[np.ndarray]:
         >>> doc = read_pdf("path/to/your/doc.pdf")
 
     Args:
-        file_path: the path to the PDF file
+        file: the path to the PDF file
     Returns:
         the list of pages decoded as numpy ndarray of shape H x W x 3
     """
 
-    # Read pages with fitz and convert them to numpy ndarrays
-    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(file_path, filetype="pdf")]
+    fitz_args = {}
 
-
-def read_pdf_from_stream(stream: bytes, **kwargs: Any) -> List[np.ndarray]:
-    """Read a PDF stream and convert it into an image in numpy format
-
-    Example::
-        >>> from doctr.documents import read_pdf_from_stream
-        >>> with open("path/to/your/doc.pdf", 'rb') as f: doc = read_pdf_from_stream(f.read())
-
-    Args:
-        stream: serialized stream of the PDF content
-    Returns:
-        the list of pages decoded as numpy ndarray of shape H x W x 3
-    """
+    if isinstance(file, (str, Path)):
+        fitz_args['filename'] = file
+    elif isinstance(file, bytes):
+        fitz_args['stream'] = file
+    else:
+        raise TypeError("unsupported object type for argument 'file'")
 
     # Read pages with fitz and convert them to numpy ndarrays
-    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(stream=stream, filetype="pdf")]
+    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(**fitz_args, filetype="pdf")]
 
 
 def convert_page_to_numpy(
@@ -114,3 +116,24 @@ def convert_page_to_numpy(
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     return img
+
+
+class DocumentFile:
+    """Read a document from multiple extensions
+
+    Example::
+        >>> from doctr.documents import DocumentFile
+        >>> doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+        >>> doc = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
+    """
+
+    @classmethod
+    def from_pdf(cls, file: AbstractFile, **kwargs) -> List[np.ndarray]:
+        return read_pdf(file, **kwargs)
+
+    @classmethod
+    def from_images(cls, files: Union[Sequence[AbstractFile], AbstractFile], **kwargs) -> List[np.ndarray]:
+        if isinstance(files, (str, Path, bytes)):
+            files = [files]
+
+        return [read_img(file, **kwargs) for file in files]

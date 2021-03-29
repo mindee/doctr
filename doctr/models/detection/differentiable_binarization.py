@@ -137,7 +137,7 @@ class DBPostProcessor(DetectionPostProcessor):
         height, width = bitmap.shape[:2]
         boxes = []
         # get contours from connected components on the bitmap
-        contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours[:self.max_candidates]:
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) <= self.min_size_box):
@@ -272,6 +272,11 @@ class DBNet(DetectionModel, NestedObject):
 
         super().__init__(cfg=cfg)
 
+        self.shrink_ratio = 0.4
+        self.thresh_min = 0.3
+        self.thresh_max = 0.7
+        self.min_size_box = 3
+
         self.feat_extractor = feature_extractor
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
@@ -301,6 +306,180 @@ class DBNet(DetectionModel, NestedObject):
         )
 
     @staticmethod
+    def compute_distance(
+        xs: np.array,
+        ys: np.array,
+        a: np.array,
+        b: np.array,
+    ) -> float:
+        """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
+
+        Args:
+            xs : map of x coordinates (height, width)
+            ys : map of y coordinates (height, width)
+            a: first point defining the [ab] segment
+            b: second point defining the [ab] segment
+
+        Returns:
+            The computed distance
+
+        """
+        square_dist_1 = np.square(xs - a[0]) + np.square(ys - a[1])
+        square_dist_2 = np.square(xs - b[0]) + np.square(ys - b[1])
+        square_dist = np.square(a[0] - b[0]) + np.square(a[1] - b[1])
+        cosin = (square_dist - square_dist_1 - square_dist_2) / (2 * np.sqrt(square_dist_1 * square_dist_2))
+        square_sin = 1 - np.square(cosin)
+        square_sin = np.nan_to_num(square_sin)
+        result = np.sqrt(square_dist_1 * square_dist_2 * square_sin / square_dist)
+        result[cosin < 0] = np.sqrt(np.fmin(square_dist_1, square_dist_2))[cosin < 0]
+        return result
+
+    def draw_thresh_map(
+        self,
+        polygon: np.array,
+        canvas: np.array,
+        mask: np.array,
+    ) -> None:
+        """Draw a polygon treshold map on a canvas, as described in the DB paper
+
+        Args:
+            polygon : array of coord., to draw the boundary of the polygon
+            canvas : threshold map to fill with polygons
+            mask : mask for training on threshold polygons
+            shrink_ratio : 0.4, as described in the DB paper
+
+        """
+        if polygon.ndim != 2 or polygon.shape[1] != 2:
+            raise AttributeError("polygon should be a 2 dimensional array of coords")
+
+        # Augment polygon by shrink_ratio
+        polygon_shape = Polygon(polygon)
+        distance = polygon_shape.area * (1 - np.power(self.shrink_ratio, 2)) / polygon_shape.length
+        subject = [tuple(coor) for coor in polygon]  # Get coord as list of tuples
+        padding = pyclipper.PyclipperOffset()
+        padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        padded_polygon = np.array(padding.Execute(distance)[0])
+
+        # Fill the mask with 1 on the new padded polygon
+        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
+
+        # Get min/max to recover polygon after distance computation
+        xmin = padded_polygon[:, 0].min()
+        xmax = padded_polygon[:, 0].max()
+        ymin = padded_polygon[:, 1].min()
+        ymax = padded_polygon[:, 1].max()
+        width = xmax - xmin + 1
+        height = ymax - ymin + 1
+        # Get absolute polygon for distance computation
+        polygon[:, 0] = polygon[:, 0] - xmin
+        polygon[:, 1] = polygon[:, 1] - ymin
+        # Get absolute padded polygon
+        xs = np.broadcast_to(np.linspace(0, width - 1, num=width).reshape(1, width), (height, width))
+        ys = np.broadcast_to(np.linspace(0, height - 1, num=height).reshape(height, 1), (height, width))
+
+        # Compute distance map to fill the padded polygon
+        distance_map = np.zeros((polygon.shape[0], height, width), dtype=np.float32)
+        for i in range(polygon.shape[0]):
+            j = (i + 1) % polygon.shape[0]
+            absolute_distance = self.compute_distance(xs, ys, polygon[i], polygon[j])
+            distance_map[i] = np.clip(absolute_distance / distance, 0, 1)
+        distance_map = np.min(distance_map, axis=0)
+
+        # Clip the padded polygon inside the canvas
+        xmin_valid = min(max(0, xmin), canvas.shape[1] - 1)
+        xmax_valid = min(max(0, xmax), canvas.shape[1] - 1)
+        ymin_valid = min(max(0, ymin), canvas.shape[0] - 1)
+        ymax_valid = min(max(0, ymax), canvas.shape[0] - 1)
+
+        # Fill the canvas with the distances computed inside the valid padded polygon
+        canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1] = np.fmax(
+            1 - distance_map[
+                ymin_valid - ymin:ymax_valid - ymin + 1,
+                xmin_valid - xmin:xmax_valid - xmin + 1
+            ],
+            canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1]
+        )
+
+    def compute_target(
+        self,
+        out_shape: Tuple[int, int, int, int],
+        batch_polys: List[List[List[List[float]]]],
+        to_masks: List[List[bool]]
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a batch of images,
+        a list of boxes for each image and a list of masks for each image.
+
+        Args:
+            out_shape: shape N x H x W x C of the model output to get batch_size, h and w
+            polys: list of boxes for each image of the batch
+            to_masks: list of boxes to mask for each image of the batch
+
+        Returns:
+            a batch of gts, masks, thresh_gts, thresh_masks
+        """
+        batch_size, h, w, _ = out_shape
+        batch_gts, batch_masks, batch_thresh_gts, batch_thresh_masks = [], [], [], []
+        for batch_idx in range(batch_size):
+            # Initialize mask and gt
+            gt = np.zeros((h, w), dtype=np.float32)
+            mask = np.ones((h, w), dtype=np.float32)
+            thresh_gt = np.zeros((h, w), dtype=np.float32)
+            thresh_mask = np.zeros((h, w), dtype=np.float32)
+
+            # Draw each polygon on gt
+            if batch_polys[batch_idx] == to_masks[batch_idx] == []:
+                # Empty image, full masked
+                mask = np.zeros((h, w), dtype=np.float32)
+            for poly, to_mask in zip(batch_polys[batch_idx], to_masks[batch_idx]):
+                # Convert polygon to absolute polygon and to np array
+                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
+                poly = np.array(poly)
+                if to_mask is True:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                height = max(poly[:, 1]) - min(poly[:, 1])
+                width = max(poly[:, 0]) - min(poly[:, 0])
+                if min(height, width) < self.min_size_box:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+
+                # Negative shrink for gt, as described in paper
+                polygon = Polygon(poly)
+                distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
+                subject = [tuple(coor) for coor in poly]
+                padding = pyclipper.PyclipperOffset()
+                padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+                shrinked = padding.Execute(-distance)
+
+                # Draw polygon on gt if it is valid
+                if len(shrinked) == 0:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                shrinked = np.array(shrinked[0]).reshape(-1, 2)
+                if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                cv2.fillPoly(gt, [shrinked.astype(np.int32)], 1)
+
+                # Draw on both thresh map and thresh mask
+                self.draw_thresh_map(poly, thresh_gt, thresh_mask)
+            thresh_gt = thresh_gt * (self.thresh_max - self.thresh_min) + self.thresh_min
+
+            # Batch
+            batch_gts.append(gt)
+            batch_masks.append(mask)
+            batch_thresh_gts.append(thresh_gt)
+            batch_thresh_masks.append(thresh_mask)
+
+        # Cast
+        gts = tf.convert_to_tensor(batch_gts, tf.float32)
+        masks = tf.convert_to_tensor(batch_masks, tf.float32)
+        thresh_gts = tf.convert_to_tensor(batch_thresh_gts, tf.float32)
+        thresh_masks = tf.convert_to_tensor(batch_thresh_masks, tf.float32)
+
+        return gts, masks, thresh_gts, thresh_masks
+
+    @staticmethod
     def compute_approx_binmap(
         p: tf.Tensor,
         t: tf.Tensor
@@ -316,6 +495,69 @@ class DBNet(DetectionModel, NestedObject):
             a tf.Tensor
         """
         return 1 / (1 + tf.exp(-50. * (p - t)))
+
+    @staticmethod
+    def compute_loss(
+        proba_map: tf.Tensor,
+        binary_map: tf.Tensor,
+        thresh_map: tf.Tensor,
+        gt: tf.Tensor,
+        mask: tf.Tensor,
+        thresh_gt: tf.Tensor,
+        thresh_mask: tf.Tensor
+    ) -> tf.Tensor:
+        """Implements DB loss: weighted sum of balanced BCE loss for probability head, Dice loss
+        for approximated binary head and L1 loss for threshold head
+
+        Args:
+            proba_map: output of the model (prob_map), shape (N, H, W, 1)
+            binary_map: output of the model (approxbin_map), shape (N, H, W, 1)
+            thresh_map: output of the model (thresh_map), shape (N, H, W, 1)
+            gt: ground-truth text regions , shape (N, H, W)
+            mask: text regions to mask, shape (N, H, W)
+            thresh_gt: ground-truth threshold map, shape (N, H, W)
+            thresh_mask: threhsold map areas to mask, shape (N, H, W)
+
+        Returns:
+            DB loss
+        """
+        # Compute balanced BCE loss for proba_map
+        negative_ratio = 3.
+        bce_scale = 5.
+        proba_map = tf.squeeze(proba_map, axis=[-1])
+        positive_mask = (gt * mask)
+        negative_mask = ((1 - gt) * mask)
+        positive_count = tf.math.reduce_sum(positive_mask)
+        negative_count = tf.math.reduce_min([tf.math.reduce_sum(negative_mask), positive_count * negative_ratio])
+        gt_exp = tf.expand_dims(gt, axis=-1)
+        proba_map = tf.expand_dims(proba_map, axis=-1)
+        bce_loss = tf.keras.losses.binary_crossentropy(gt_exp, proba_map)
+        positive_loss = bce_loss * positive_mask
+        negative_loss = bce_loss * negative_mask
+        negative_loss, _ = tf.nn.top_k(tf.reshape(negative_loss, (-1,)), tf.cast(negative_count, tf.int32))
+        sum_losses = tf.math.reduce_sum(positive_loss) + tf.math.reduce_sum(negative_loss)
+        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
+        balanced_bce_loss = balanced_bce_loss
+
+        # Compute dice loss for approxbin_map
+        binary_map = tf.squeeze(binary_map, axis=[-1])
+        wght = bce_loss
+        weights = (wght - tf.math.reduce_min(wght)) / (tf.math.reduce_max(wght) - tf.math.reduce_min(wght)) + 1.
+        mask = mask * weights
+        intersection = tf.math.reduce_sum(binary_map * gt * mask)
+        union = tf.math.reduce_sum(binary_map * mask) + tf.math.reduce_sum(gt * mask) + 1e-8
+        dice_loss = 1 - 2.0 * intersection / union
+
+        # Compute l1 loss for thresh_map
+        l1_scale = 10.
+        thresh_map = tf.squeeze(thresh_map, axis=[-1])
+        mask_sum = tf.math.reduce_sum(thresh_mask)
+        if mask_sum == 0:
+            l1_loss = tf.constant(0.)
+        else:
+            l1_loss = tf.math.reduce_sum(tf.math.abs(thresh_map - thresh_gt) * thresh_mask) / mask_sum
+
+        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
     def call(
         self,
@@ -379,7 +621,7 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
 
     Returns:
         text detection architecture

@@ -3,8 +3,12 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import numpy as np
+import matplotlib.pyplot as plt
 from typing import Tuple, Dict, List, Any, Optional
+
 from doctr.utils.geometry import resolve_enclosing_bbox
+from doctr.utils.visualization import visualize_page
 from doctr.utils.common_types import BoundingBox
 from doctr.utils.repr import NestedObject
 
@@ -186,6 +190,10 @@ class Page(Element):
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
 
+    def show(self, page: np.ndarray, **kwargs) -> None:
+        visualize_page(self.export(), page)
+        plt.show(**kwargs)
+
 
 class Document(Element):
     """Implements a document element as a collection of pages
@@ -205,3 +213,8 @@ class Document(Element):
     def render(self, page_break: str = '\n\n\n\n') -> str:
         """Renders the full text of the element"""
         return page_break.join(p.render() for p in self.pages)
+
+    def show(self, pages: List[np.ndarray], **kwargs) -> None:
+        """Plot the results"""
+        for img, result in zip(pages, self.pages):
+            result.show(img, **kwargs)

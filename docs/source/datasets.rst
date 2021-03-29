@@ -7,6 +7,8 @@ Whether it is for training or for evaluation, having predefined objects to acces
 can be a significant save of time.
 
 
+.. _datasets:
+
 Available Datasets
 ------------------
 The datasets from DocTR inherit from an abstract class that handles verified downloading from a given URL.
@@ -17,6 +19,7 @@ The datasets from DocTR inherit from an abstract class that handles verified dow
 Here are all datasets that are available through DocTR:
 
 .. autoclass:: FUNSD
+.. autoclass:: SROIE
 
 
 Supported Vocabs
