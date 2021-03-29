@@ -9,7 +9,6 @@ import datetime
 import numpy as np
 import tensorflow as tf
 from collections import deque
-from typing import Tuple
 
 from doctr.models import recognition
 from doctr.utils import metrics
@@ -33,13 +32,11 @@ def main(args):
         labels_path=os.path.join(args.data_path, 'val_labels.json')
     )
 
-    h, w = args.input_size
-
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
 
     # Load doctr model
-    model = recognition.__dict__[args.model](pretrained=False, input_shape=args.input_size)
+    model = recognition.__dict__[args.model](pretrained=False, input_shape=(args.input_size, 4 * args.input_size))
 
     # Tf variable to log steps
     step = tf.Variable(0, dtype="int64")
@@ -120,7 +117,7 @@ def parse_args():
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=64, help='batch size for training')
-    parser.add_argument('--input_size', type=Tuple[int, int], default=(32, 128), help='input size (H, W) for the model')
+    parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--postprocessor', type=str, default='crnn', help='postprocessor, either crnn or sar')
     parser.add_argument('--teacher_forcing', type=bool, default=False, help='if True, teacher forcing during training')

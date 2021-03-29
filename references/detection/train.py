@@ -8,7 +8,6 @@ import datetime
 import numpy as np
 import tensorflow as tf
 from collections import deque
-from typing import Tuple
 
 from doctr.models import detection
 from doctr.utils import metrics
@@ -36,7 +35,7 @@ def main(args):
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
 
     # Load doctr model
-    model = detection.__dict__[args.model](pretrained=False, input_shape=(*args.input_size, 3))
+    model = detection.__dict__[args.model](pretrained=False, input_shape=(args.input_size, args.input_size, 3))
 
     # Tf variable to log steps
     step = tf.Variable(0, dtype="int64")
@@ -54,7 +53,7 @@ def main(args):
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     val_summary_writer = tf.summary.create_file_writer(val_log_dir)
 
-    output_shape = (args.batch_size, *args.input_size, 3)
+    output_shape = (args.batch_size, args.input_size, args.input_size, 3)
 
     def train_step(x):
         with tf.GradientTape() as tape:
@@ -125,7 +124,7 @@ def parse_args():
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
-    parser.add_argument('--input_size', type=Tuple[int, int], default=(1024, 1024), help='model input size (H, W)')
+    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--data_path', type=str, help='path to data folder')
     args = parser.parse_args()
