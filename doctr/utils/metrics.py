@@ -120,9 +120,9 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         the IoU matrix of shape (N, M)
     """
 
-    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[1]), dtype=np.float32)
+    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
-    if boxes_1.shape[0] > 0 and boxes_2.shape[1] > 0:
+    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
         l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
         l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
 
