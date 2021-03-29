@@ -120,18 +120,22 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         the IoU matrix of shape (N, M)
     """
 
-    l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
-    l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
+    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[1]), dtype=np.float32)
 
-    left = np.maximum(l1, l2.T)
-    top = np.maximum(t1, t2.T)
-    right = np.minimum(r1, r2.T)
-    bot = np.minimum(b1, b2.T)
+    if boxes_1.shape[0] > 0 and boxes_2.shape[1] > 0:
+        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
 
-    intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
-    union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
+        left = np.maximum(l1, l2.T)
+        top = np.maximum(t1, t2.T)
+        right = np.minimum(r1, r2.T)
+        bot = np.minimum(b1, b2.T)
 
-    return intersection / union
+        intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
+        union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
+        iou_mat = intersection / union
+
+    return iou_mat
 
 
 def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
