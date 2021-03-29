@@ -55,7 +55,7 @@ def main(args):
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
-    print(f"Model Evaluation (model='{args.model}', dataset='FUNSD')")
+    print(f"Model Evaluation (model= {args.detection} + {args.recognition}, dataset='FUNSD')")
     recall, precision, mean_iou = det_metric.summary()
     print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
     acc = reco_metric.summary()
