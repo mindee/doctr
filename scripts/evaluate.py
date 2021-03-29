@@ -10,7 +10,7 @@ from tqdm import tqdm
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
-from doctr.datasets import FUNSD, SROIE
+from doctr.datasets import FUNSD
 from doctr.models import ocr_predictor, extract_crops
 
 
