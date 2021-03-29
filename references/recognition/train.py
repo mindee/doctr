@@ -66,7 +66,7 @@ def main(args):
                 train_logits = model(x, y, training=True)
             else:
                 train_logits = model(x, training=True)
-            train_loss = train_logits.sum()
+            train_loss = train_logits.sum()  # FIXME
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
@@ -74,7 +74,7 @@ def main(args):
     @tf.function
     def test_step(x, y):
         val_logits = model(x, training=False)
-        val_loss = train_logits.sum()
+        val_loss = train_logits.sum()  # FIXME
         decoded = postprocessor(val_logits)
         val_metric.update(gts=y, preds=decoded)
         return val_loss
