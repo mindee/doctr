@@ -18,14 +18,14 @@ def main(args):
 
     # Load both train and val data generators
     train_dataset = DetectionDataGenerator(
-        input_size=args.input_size,
+        input_size=(args.input_size, args.input_size)
         batch_size=args.batch_size,
         images_path=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels')
     )
 
     val_dataset = DetectionDataGenerator(
-        input_size=args.input_size,
+        input_size=(args.input_size, args.input_size)
         batch_size=args.batch_size,
         images_path=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels')
@@ -47,7 +47,7 @@ def main(args):
     MEAN_RGB = (0.798, 0.785, 0.772)
     STD_RGB = (0.264, 0.2749, 0.287)
     preprocessor = DetectionPreProcessor(
-        output_size=(args.inut_size, args.input_size),
+        output_size=(args.input_size, args.input_size),
         batch_size=args.batch_size,
         mean=MEAN_RGB,
         std=STD_RGB
