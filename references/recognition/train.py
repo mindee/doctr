@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 from collections import deque
 
-from doctr.models import recognition
+from doctr.models import recognition, RecognitionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import RecognitionDataGenerator, VOCABS
 
@@ -44,6 +44,16 @@ def main(args):
     # Metrics
     val_metric = metrics.ExactMatch()
 
+    # Preprocessor to normalize
+    MEAN_RGB = (0.694, 0.695, 0.693)
+    STD_RGB = (0.299, 0.296, 0.301)
+    preprocessor = RecognitionPreProcessor(
+        output_size=(args.input_size, args.input_size),
+        batch_size=args.batch_size,
+        mean=MEAN_RGB,
+        std=STD_RGB
+    )
+
     # Postprocessor to decode output (to feed metric during val step)
     if args.postprocessor == 'sar':
         postprocessor = recognition.SARPostProcessor(vocab=VOCABS["french"])
@@ -60,6 +70,7 @@ def main(args):
     def train_step(x, y):
         with tf.GradientTape() as tape:
             if args.teacher_forcing is True:
+                x = preprocessor(x)
                 train_logits = model(x, y, training=True)
             else:
                 train_logits = model(x, training=True)
@@ -69,6 +80,7 @@ def main(args):
         return train_loss
 
     def test_step(x, y):
+        x = preprocessor(x)
         val_logits = model(x, training=False)
         val_loss = train_logits.sum()  # FIXME
         decoded = postprocessor(val_logits)

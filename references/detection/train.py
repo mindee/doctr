@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from collections import deque
 
-from doctr.models import detection
+from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import DetectionDataGenerator
 
@@ -43,8 +43,15 @@ def main(args):
     # Metrics
     val_metric = metrics.LocalizationConfusion()
 
-    # Postprocessor to decode output (to feed metric during val step with boxes)
-    postprocessor = detection.DBPostProcessor()
+    # Preprocessor to normalize
+    MEAN_RGB = (0.798, 0.785, 0.772)
+    STD_RGB = (0.264, 0.2749, 0.287)
+    preprocessor = DetectionPreProcessor(
+        output_size=(args.inut_size, args.input_size),
+        batch_size=args.batch_size,
+        mean=MEAN_RGB,
+        std=STD_RGB
+    )
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -58,6 +65,7 @@ def main(args):
     def train_step(x):
         with tf.GradientTape() as tape:
             images, boxes, to_masks = x
+            images = preprocessor(images)
             [proba_map, thresh_map, bin_map] = model(images, training=True)
             gts, masks, thresh_gts, thresh_masks = model.compute_target(output_shape, boxes, to_masks)
             train_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
@@ -66,8 +74,9 @@ def main(args):
         return train_loss
 
     def test_step(x):
-        # If we want to compute val loss, we need to pass training=True to have a thresh_map
         images, boxes, to_masks = x
+        images = preprocessor(images)
+        # If we want to compute val loss, we need to pass training=True to have a thresh_map
         [proba_map, thresh_map, bin_map] = model(images, training=True)
         gts, masks, thresh_gts, thresh_masks = model.compute_target(output_shape, boxes, to_masks)
         val_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
