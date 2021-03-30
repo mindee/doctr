@@ -465,17 +465,23 @@ class DBNet(DetectionModel, NestedObject):
                 self.draw_thresh_map(poly, thresh_gt, thresh_mask)
             thresh_gt = thresh_gt * (self.thresh_max - self.thresh_min) + self.thresh_min
 
-            # Batch
-            batch_gts.append(gt)
-            batch_masks.append(mask)
-            batch_thresh_gts.append(thresh_gt)
-            batch_thresh_masks.append(thresh_mask)
+            # Cast
+            gts = tf.convert_to_tensor(gt, tf.float32)
+            masks = tf.convert_to_tensor(mask, tf.float32)
+            thresh_gts = tf.convert_to_tensor(thresh_gt, tf.float32)
+            thresh_masks = tf.convert_to_tensor(thresh_mask, tf.float32)
 
-        # Cast
-        gts = tf.convert_to_tensor(batch_gts, tf.float32)
-        masks = tf.convert_to_tensor(batch_masks, tf.float32)
-        thresh_gts = tf.convert_to_tensor(batch_thresh_gts, tf.float32)
-        thresh_masks = tf.convert_to_tensor(batch_thresh_masks, tf.float32)
+            # Batch
+            batch_gts.append(gts)
+            batch_masks.append(masks)
+            batch_thresh_gts.append(thresh_gts)
+            batch_thresh_masks.append(thresh_masks)
+
+        # Stack
+        gts = tf.stack(batch_gts, axis=0)
+        masks = tf.stack(batch_masks, axis=0)
+        thresh_gts = tf.stack(batch_thresh_gts, axis=0)
+        thresh_masks = tf.stack(batch_thresh_masks, axis=0)
 
         return gts, masks, thresh_gts, thresh_masks
 

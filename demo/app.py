@@ -9,14 +9,17 @@ import matplotlib.pyplot as plt
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.documents import read_pdf_from_stream
 import tensorflow as tf
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
+from doctr.documents import DocumentFile
 from doctr.models import detection_predictor
+
+DET_ARCHS = ["db_resnet50"]
+RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
 
 
 predictor = detection_predictor('db_resnet50', pretrained=True)
@@ -30,6 +33,14 @@ def main():
     st.write('\n')
 
     # Sidebar
+    st.sidebar.title("Model selection")
+    det_arch = st.sidebar.selectbox("Text detection model", DET_ARCHS)
+
+    predictor = detection_predictor(det_arch, pretrained=True)
+
+    # reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
+    # predictor = detection_predictor(reco_arch, pretrained=True)
+
     st.sidebar.title("Document selection")
     # Disabling warning
     st.set_option('deprecation.showfileUploaderEncoding', False)
@@ -43,7 +54,10 @@ def main():
 
     if uploaded_file is not None:
 
-        doc = read_pdf_from_stream(uploaded_file.read())
+        if uploaded_file.name.endswith('.pdf'):
+            doc = DocumentFile.from_pdf(uploaded_file.read())
+        else:
+            doc = DocumentFile.from_images(uploaded_file.read())
         col1.image(doc[0], 'First page', use_column_width=True)
 
     # For newline
