@@ -189,8 +189,7 @@ class SAR(RecognitionModel):
     def __init__(
         self,
         feature_extractor,
-        vocab: str = '3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                     'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l',
+        vocab: str,
         vocab_size: int = 118,
         rnn_units: int = 512,
         embedding_units: int = 512,
@@ -240,9 +239,9 @@ class SAR(RecognitionModel):
             target_size=self.max_length + 1,
             eos=len(self.vocab)
         )
-        tf_encoded = tf.cast(encoded, dtype="int64")
+        tf_encoded = tf.cast(encoded, tf.int64)
         seq_len = [len(word) for word in gts]
-        tf_seq_len = tf.cast(seq_len, dtype="int64")
+        tf_seq_len = tf.cast(seq_len, tf.int64)
         return tf_encoded, tf_seq_len
 
     @staticmethod
@@ -334,6 +333,7 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
     _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
@@ -347,6 +347,7 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
         include_top=False,
     )
 
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
     kwargs['embedding_units'] = _cfg['embedding_units']
@@ -389,6 +390,7 @@ def _sar_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] =
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
     _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
@@ -402,6 +404,7 @@ def _sar_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] =
         include_top=False,
     )
 
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
     kwargs['embedding_units'] = _cfg['embedding_units']
