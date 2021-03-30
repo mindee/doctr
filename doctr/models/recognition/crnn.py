@@ -69,6 +69,28 @@ class CRNN(RecognitionModel):
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
+    
+    def ctc_loss(gt, model_output, seq_len):
+
+    """
+    CTC Loss function which applies to all models : CRNN, GTC
+
+    params:
+
+    y_true: sparse tensor of ground-truth labels of size : Batch_size x labels lengths
+    y_pred: dense tensor with the !!! SOFTMAX !!! of model outputs, size: Batch size x Timestep (max_len + 1, for EOS) x num_classes + 1 (for EOS) 
+
+    """
+        model_output = tf.nn.softmax(model_output)
+        input_length = tf.shape(model_output, dtype='int64')[1] * tf.ones(shape=(batch_length, 1), dtype="int64")
+        
+        # New version
+        input_length = tf.squeeze(input_length)
+        seq_len = tf.squeeze(seq_len)
+        ctc_loss = tf.nn.ctc_loss(gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=-1)
+        ctc_loss = tf.expand_dims(ctc_loss, -1)
+
+        return ctc_loss
 
     def call(
         self,
