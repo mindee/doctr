@@ -53,6 +53,9 @@ def main(args):
         std=STD_RGB
     )
 
+    # Postprocessor to feed metric at test time
+    postprocessor = detection.DBPostProcessor()
+
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     train_log_dir = 'log/' + current_time + '/train'
