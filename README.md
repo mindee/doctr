@@ -92,7 +92,7 @@ Credits where it's due: this repository is implementing, among others, architect
 - [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
 
 ### Text Recognition
-- [Convolutional RNN: an Enhanced Model for Extracting Features from Sequential Data](https://arxiv.org/pdf/1602.05875.pdf).
+- [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
 - [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
 
 
