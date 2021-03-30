@@ -27,3 +27,5 @@ Supported Vocabs
 
 Since textual content has to be encoded properly for models to interpret them efficiently, DocTR supports multiple sets
 of vocabs.
+
+.. autofunction:: encode_sequences
