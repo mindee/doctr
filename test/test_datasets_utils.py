@@ -35,3 +35,24 @@ def test_encode_decode(input_str):
     encoded = utils.encode_sequence(input_str, mapping)
     decoded = utils.decode_sequence(np.array(encoded), mapping)
     assert decoded == input_str
+
+
+@pytest.mark.parametrize(
+    "sequences, vocab, target_size, eos, error, out_shape, gts",
+    [
+        [['cba'], 'abcdef', None, 1, True, (1, 3), [[2, 1, 0]]],
+        [['cba', 'a'], 'abcdef', None, -1, False, (2, 3), [[2, 1, 0], [0, -1, -1]]],
+        [['cba', 'a'], 'abcdef', None, 6, False, (2, 3), [[2, 1, 0], [0, 6, 6]]],
+        [['cba', 'a'], 'abcdef', 2, -1, False, (2, 2), [[2, 1], [0, -1]]],
+        [['cba', 'a'], 'abcdef', 4, -1, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
+    ],
+)
+def test_encode_sequences(sequences, vocab, target_size, eos, error, out_shape, gts):
+    if error:
+        with pytest.raises(ValueError):
+            _ = utils.encode_sequences(sequences, vocab, target_size, eos)
+    else:
+        out = utils.encode_sequences(sequences, vocab, target_size, eos)
+        assert isinstance(out, np.ndarray)
+        assert out.shape == out_shape
+        assert np.all(out == np.asarray(gts)), print(out, gts)
