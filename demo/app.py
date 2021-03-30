@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.documents import read_pdf_from_stream
 import tensorflow as tf
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
+from doctr.documents import DocumentFile
 from doctr.models import detection_predictor
 
 
@@ -43,7 +43,7 @@ def main():
 
     if uploaded_file is not None:
 
-        doc = read_pdf_from_stream(uploaded_file.read())
+        doc = DocumentFile.from_pdf(uploaded_file.read())
         col1.image(doc[0], 'First page', use_column_width=True)
 
     # For newline
