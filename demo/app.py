@@ -18,6 +18,9 @@ if any(gpu_devices):
 from doctr.documents import DocumentFile
 from doctr.models import detection_predictor
 
+DET_ARCHS = ["db_resnet50"]
+RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
+
 
 predictor = detection_predictor('db_resnet50', pretrained=True)
 
@@ -30,6 +33,13 @@ def main():
     st.write('\n')
 
     # Sidebar
+    st.sidebar.title("Model selection")
+    det_arch = st.sidebar.selectbox("Text detection model", DET_ARCHS)
+
+    predictor = detection_predictor(det_arch, pretrained=True)
+
+    reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
+
     st.sidebar.title("Document selection")
     # Disabling warning
     st.set_option('deprecation.showfileUploaderEncoding', False)
