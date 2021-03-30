@@ -38,7 +38,8 @@ def main():
 
     predictor = detection_predictor(det_arch, pretrained=True)
 
-    reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
+    # reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
+    # predictor = detection_predictor(reco_arch, pretrained=True)
 
     st.sidebar.title("Document selection")
     # Disabling warning
