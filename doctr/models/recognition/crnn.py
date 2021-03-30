@@ -40,8 +40,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class CRNN(RecognitionModel):
-    """Implements a CRNN architecture as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
-    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+    """Implements a CRNN architecture as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Args:
         feature_extractor: the backbone serving as feature extractor
@@ -163,8 +163,8 @@ def _crnn_resnet(
 
 
 def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a VGG-16 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
-    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+    """CRNN with a VGG-16 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
@@ -184,8 +184,8 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
 
 
 def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a resnet31 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
-    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+    """CRNN with a resnet31 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
