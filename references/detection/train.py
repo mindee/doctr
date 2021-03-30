@@ -53,7 +53,7 @@ def main(args):
         std=STD_RGB
     )
 
-    # Postprocessor to feed metric at test time
+    # Postprocessor to decode output (to feed metric during val step with boxes)
     postprocessor = detection.DBPostProcessor()
 
     # Tensorboard to monitor training
