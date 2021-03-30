@@ -51,6 +51,7 @@ class CRNN(RecognitionModel):
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
+        vocab: str,
         vocab_size: int = 118,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
@@ -69,6 +70,55 @@ class CRNN(RecognitionModel):
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
+
+    def compute_target(
+        self,
+        gts: List[str],
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
+        """Encode a list of gts sequences into a tf tensor and gives the corresponding*
+        sequence lengths.
+
+        Args:
+            gts: list of ground-truth labels
+
+        Returns:
+            A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
+        """
+        encoded = encode_sequences(
+            sequences=gts,
+            vocab=self.vocab,
+            target_size=self.feat_extractor.output_shape[2],
+            eos=len(self.vocab)
+        )
+        tf_encoded = tf.cast(encoded, tf.int64)
+        seq_len = [len(word) for word in gts]
+        tf_seq_len = tf.cast(seq_len, tf.int64)
+        return tf_encoded, tf_seq_len
+
+    def compute_loss(
+        self,
+        gt: tf.Tensor,
+        model_output: tf.Tensor,
+        seq_len: tf.Tensor
+    ) -> tf.Tensor:
+        """Compute CTC loss for the model.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+
+        Returns:
+            The loss of the model on the batch
+        """
+        model_output = tf.nn.softmax(model_output)
+        input_length = tf.shape(model_output, dtype='int64')[1] * tf.ones(shape=(batch_length, 1), dtype="int64")
+        input_length = tf.squeeze(input_length)
+        seq_len = tf.squeeze(seq_len)
+        ctc_loss = tf.nn.ctc_loss(
+            gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
+        )
+        return ctc_loss
 
     def call(
         self,
@@ -91,6 +141,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
@@ -100,6 +151,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
         include_top=False,
     )
 
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
@@ -119,6 +171,7 @@ def _crnn_resnet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
@@ -128,6 +181,7 @@ def _crnn_resnet(
         include_top=False,
     )
 
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
