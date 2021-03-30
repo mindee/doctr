@@ -43,7 +43,10 @@ def main():
 
     if uploaded_file is not None:
 
-        doc = DocumentFile.from_pdf(uploaded_file.read())
+        if uploaded_file.name.endswith('.pdf'):
+            doc = DocumentFile.from_pdf(uploaded_file.read())
+        else:
+            doc = DocumentFile.from_images(uploaded_file.read())
         col1.image(doc[0], 'First page', use_column_width=True)
 
     # For newline
