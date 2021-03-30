@@ -3,34 +3,73 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/python-package/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.1.1-blue.svg)](https://pypi.org/project/python-doctr/) 
 
-Extract valuable information from your documents.
+
+**Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2.0**
 
 
-
-## Table of Contents
-
-* [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
-  * [Installation](#installation)
-* [Usage](#usage)
-  * [Python package](#python-package)
-  * [Example script](#example-script)
-  * [Demo app](#demo-app)
-  * [Docker container](#docker-container)
-* [Documentation](#documentation)
-* [Contributing](#contributing)
-* [License](#license)
+What you can expect from this repository:
+- efficient ways to parse textual information (localize and identify each word) from your documents
+- guidance on how to integrate this in your current architecture
 
 
+## Quick Tour
 
-## Getting started
+### Getting your pretrained model
 
-### Prerequisites
+End-to-End OCR is achieved in DocTR using a two-stage approach: text detection (localizing words), then text recognition (identify all characters in the word).
+As such, you can select the architecture used for [text detection](https://mindee.github.io/doctr/latest/models.html#id2), and the one for [text recognition](https://mindee.github.io/doctr/latest/models.html#id3) from the list of available implementations.
 
-- Python 3.6 (or higher)
-- [pip](https://pip.pypa.io/en/stable/)
+```python
+from doctr.models import ocr_predictor
 
-### Installation
+model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
+```
+
+### Reading files
+
+Documents can be interpreted from PDF or images:
+
+```python
+from doctr.documents import DocumentFile
+# PDF
+pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+# Image
+single_img_doc = DocumentFile.from_images("path/to/your/img.jpg")
+# Multiple page images
+multi_img_doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jpg"])
+```
+
+### Putting it together
+Let's use the default pretrained model for an example:
+```python
+from doctr.documents import DocumentFile
+from doctr.models import ocr_predictor
+
+model = ocr_predictor(pretrained=True)
+# PDF
+doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+# Analyze
+result = model(doc)
+```
+
+To make sense of your model's predictions, you can visualize them as follows:
+
+```python
+result.show(doc)
+```
+
+![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
+
+or export them to JSON format (to get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/documents.html#document-structure)):
+
+```python
+json_output = result.export()
+```
+
+
+## Installation
+
+Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR.
 
 You can install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
@@ -46,45 +85,22 @@ pip install -e doctr/.
 ```
 
 
-## Usage
+## Models architectures
+Credits where it's due: this repository is implementing, among others, architectures from published research papers.
 
-### Python package
+### Text Detection
+- [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
 
-The python package provides you with tools to read files and detect all text information they are holding.
+### Text Recognition
+- [Convolutional RNN: an Enhanced Model for Extracting Features from Sequential Data](https://arxiv.org/pdf/1602.05875.pdf).
+- [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
 
-```python
-from doctr.documents import DocumentFile
-from doctr.models import ocr_predictor
 
-model = ocr_predictor(pretrained=True)
-# PDF
-doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
-# Image
-# doc = DocumentFile.from_images("path/to/your/img.jpg")
-# Multiple page images
-# doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jpg"])
-# Analyze
-result = model(doc)
-# Export
-json_output = result.export()
-# Visualize
-result.show(doc)
-```
+## More goodies
 
-![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
+### Documentation
 
-For an exhaustive list of pretrained models available, please refer to the [documentation](https://mindee.github.io/doctr/models.html).
-
-### Example script
-
-![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
-
-An example script is provided for a simple documentation analysis of a PDF file:
-
-```shell
-python scripts/analyze.py path/to/your/doc.pdf
-```
-All script arguments can be checked using `python scripts/analyze.py --help`
+The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications.
 
 
 ### Demo app
@@ -101,6 +117,8 @@ You can then easily run your app in your default browser by running:
 streamlit run demo/app.py
 ```
 
+![Demo app](https://user-images.githubusercontent.com/76527547/111645201-c4ea5080-8800-11eb-9807-fd69459e1067.png)
+
 ### Docker container
 
 If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
@@ -109,19 +127,25 @@ If you are to deploy containerized environments, you can use the provided Docker
 docker build . -t <YOUR_IMAGE_TAG>
 ```
 
+### Example script
 
-## Documentation
+An example script is provided for a simple documentation analysis of a PDF or image file:
 
-The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications. The documentation was built with [Sphinx](https://www.sphinx-doc.org/) using a [theme](github.com/readthedocs/sphinx_rtd_theme) provided by [Read the Docs](https://readthedocs.org/).
+```shell
+python scripts/analyze.py path/to/your/doc.pdf
+```
+All script arguments can be checked using `python scripts/analyze.py --help`
 
 
 
 ## Contributing
 
-Please refer to [`CONTRIBUTING`](CONTRIBUTING.md) if you wish to contribute to this project.
+If you scrolled down to this section, you most likely appreciate open source. Do you feel like extending the range of our supported characters? Or perhaps submitting a paper implementation? Or contributing in any other way?
 
+You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](CONTRIBUTING.md)) for you to easily do so!
 
 
 ## License
 
 Distributed under the Apache 2.0 License. See [`LICENSE`](LICENSE) for more information.
+
