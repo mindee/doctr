@@ -239,6 +239,7 @@ class SAR(RecognitionModel):
         tf_seq_len = tf.cast(seq_len, dtype="int64")
         return tf_encoded, tf_seq_len
 
+    @staticmethod
     def compute_loss(
         gt: tf.Tensor,
         model_output: tf.Tensor,
