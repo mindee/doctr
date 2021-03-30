@@ -88,7 +88,7 @@ def encode_sequences(
     target_size: Optional[int] = None,
     eos: int = -1,
     **kwargs: Any,
-    ) -> np.ndarray:
+) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
 
     Args:
