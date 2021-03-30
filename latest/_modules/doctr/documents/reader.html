@@ -96,7 +96,15 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../documents.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../documents.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../documents.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../documents.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../documents.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../documents.html#document">Document</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../../documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
@@ -311,24 +319,40 @@
 
 
 <div class="viewcode-block" id="DocumentFile"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile">[docs]</a><span class="k">class</span> <span class="nc">DocumentFile</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read a document from multiple extensions</span>
+    <span class="sd">&quot;&quot;&quot;Read a document from multiple extensions&quot;&quot;&quot;</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_images([&quot;path/to/your/page1.png&quot;, &quot;path/to/your/page2.png&quot;])</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="DocumentFile.from_pdf"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile.from_pdf">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
 
-    <span class="nd">@classmethod</span>
+<span class="sd">        Example::</span>
+<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">            &gt;&gt;&gt; doc = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file: the path to the PDF file or a binary stream</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DocumentFile.from_images"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile.from_images">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_images</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">],</span> <span class="n">AbstractFile</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Read an image file (or a collection of image files) and convert it into an image in numpy format</span>
+
+<span class="sd">        Example::</span>
+<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">            &gt;&gt;&gt; doc = DocumentFile.from_images([&quot;path/to/your/page1.png&quot;, &quot;path/to/your/page2.png&quot;])</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            files: the path to the image file or a binary stream, or a collection of those</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
             <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="p">[</span><span class="n">read_img</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="n">read_img</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div></div>
 </pre></div>
 
            </div>
