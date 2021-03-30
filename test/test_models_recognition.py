@@ -67,7 +67,8 @@ def test_sar_training():
     input_labels = tf.sparse.reorder(
         tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=[batch_size, 31])
     )
-    out = reco_model(input_tensor, labels=input_labels, training=True)
+    input_dense = tf.sparse.to_dense(input_labels, default_value=118)
+    out = reco_model(input_tensor, labels=input_dense, training=True)
     assert isinstance(out, tf.Tensor)
     assert isinstance(reco_model, tf.keras.Model)
     assert out.numpy().shape == (batch_size, *output_size)

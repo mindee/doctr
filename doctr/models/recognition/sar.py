@@ -189,6 +189,8 @@ class SAR(RecognitionModel):
     def __init__(
         self,
         feature_extractor,
+        vocab: str = '3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
+                     'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l',
         vocab_size: int = 118,
         rnn_units: int = 512,
         embedding_units: int = 512,
@@ -199,6 +201,9 @@ class SAR(RecognitionModel):
     ) -> None:
 
         super().__init__(cfg=cfg)
+
+        self.vocab = vocab
+        self.max_length = max_length
 
         self.feat_extractor = feature_extractor
 
@@ -217,6 +222,7 @@ class SAR(RecognitionModel):
         )
 
     def compute_target(
+        self,
         gts: List[str],
     ) -> Tuple[tf.Tensor, tf.Tensor]:
         """Encode a list of gts sequences into a tf tensor and gives the corresponding*
@@ -229,10 +235,10 @@ class SAR(RecognitionModel):
             A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
         """
         encoded = encode_sequences(
-            sequences=list_str,
+            sequences=gts,
             vocab=self.vocab,
-            target_size=self.max_length,
-            eos=self.vocab_size
+            target_size=self.max_length + 1,
+            eos=len(self.vocab)
         )
         tf_encoded = tf.cast(encoded, dtype="int64")
         seq_len = [len(word) for word in gts]
@@ -252,12 +258,12 @@ class SAR(RecognitionModel):
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
-        
+
         Returns:
             The loss of the model on the batch
         """
         # Input length : number of timesteps
-        input_len = tf.cast(tf.shape(model_output)[1], dtype="int64")    
+        input_len = tf.shape(model_output)[1]
         # Add one for additional <eos> token
         seq_len = seq_len + 1
         # One-hot gt labels
@@ -267,8 +273,8 @@ class SAR(RecognitionModel):
         # Compute mask
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len)
-        masked_loss =  tf.where(mask_2d, cce, mask_values)
-        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), seq_len)
+        masked_loss = tf.where(mask_2d, cce, mask_values)
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, tf.float32))
         return tf.expand_dims(ce_loss, axis=1)
 
     def call(
