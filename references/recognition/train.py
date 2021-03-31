@@ -14,6 +14,12 @@ from doctr.models import recognition, RecognitionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import RecognitionDataGenerator, VOCABS
 
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 def main(args):
 
@@ -36,7 +42,11 @@ def main(args):
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
 
     # Load doctr model
-    model = recognition.__dict__[args.model](pretrained=False, input_shape=(args.input_size, 4 * args.input_size))
+    model = recognition.__dict__[args.model](
+        pretrained=False,
+        input_shape=(args.input_size, 4 * args.input_size, 3),
+        vocab = VOCABS['french']
+    )
 
     # Tf variable to log steps
     step = tf.Variable(0, dtype="int64")
@@ -69,12 +79,13 @@ def main(args):
 
     def train_step(x, y):
         with tf.GradientTape() as tape:
+            x = preprocessor(x)
+            encoded_gts, seq_len = model.compute_target(y)
             if args.teacher_forcing is True:
-                x = preprocessor(x)
-                train_logits = model(x, y, training=True)
+                train_logits = model(x, encoded_gts, training=True)
             else:
                 train_logits = model(x, training=True)
-            train_loss = train_logits.sum()  # FIXME
+            train_loss = model.compute_loss(encoded_gts, train_logits, seq_len)
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
@@ -82,7 +93,8 @@ def main(args):
     def test_step(x, y):
         x = preprocessor(x)
         val_logits = model(x, training=False)
-        val_loss = train_logits.sum()  # FIXME
+        encoded_gts, seq_len = model.compute_target(y)
+        val_loss = model.compute_loss(encoded_gts, val_logits, seq_len)
         decoded = postprocessor(val_logits)
         val_metric.update(gts=y, preds=decoded)
         return val_loss
@@ -93,17 +105,18 @@ def main(args):
     # Training loop
     for epoch in range(args.epochs):
         # Iterate over the batches of the dataset
-        for batch_step, x_batch_train, y_batch_train in enumerate(train_dataset):
+        for batch_step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
             train_loss = train_step(x_batch_train, y_batch_train)
             # Update steps
             step.assign_add(args.batch_size)
             # Add loss to queue
             loss_q.append(np.mean(train_loss))
             # Log loss and save weights every 100 batch step
-            if batch_step % 100 == 0:
+            if batch_step % 10 == 0:
                 model.save_weights('./checkpointsreco/weights')
                 # Compute loss
                 loss = sum(loss_q) / len(loss_q)
+                print(loss)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', loss, step=step)
 
