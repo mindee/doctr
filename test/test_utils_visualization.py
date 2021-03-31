@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from doctr.utils import visualization
 from test_documents_elements import _mock_pages
