@@ -14,10 +14,8 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-import matplotlib.pyplot as plt
 from doctr.models import ocr_predictor
 from doctr.documents import DocumentFile
-from doctr.utils.visualization import visualize_page
 
 
 def main(args):
@@ -32,8 +30,7 @@ def main(args):
     out = model(doc)
 
     for page, img in zip(out.pages, doc):
-        visualize_page(page.export(), img)
-        plt.show(block=not args.noblock)
+        page.show(img, block=not args.noblock, interactive=not args.static)
 
 
 def parse_args():
@@ -47,6 +44,7 @@ def parse_args():
     parser.add_argument('--recognition', type=str, default='crnn_vgg16_bn',
                         help='Text recognition model to use for analysis')
     parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization", action="store_true")
+    parser.add_argument("--static", dest="static", help="Switches to static visualization", action="store_true")
     args = parser.parse_args()
 
     return args
