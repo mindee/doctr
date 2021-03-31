@@ -106,11 +106,10 @@ def main(args):
             # Add loss to queue
             loss_q.append(np.mean(train_loss))
             # Log loss and save weights every 100 batch step
-            if batch_step % 10 == 0:
+            if batch_step % 100 == 0:
                 model.save_weights('./checkpointsreco/weights')
                 # Compute loss
                 loss = sum(loss_q) / len(loss_q)
-                print(loss)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', loss, step=step)
 
