@@ -147,7 +147,7 @@ def test_recognition_zoo_error():
 
 
 @pytest.fixture(scope="function")
-def test_compute_target():
+def test_compute_target_sar():
     list_gts = ['elephants', '1234', 'Rémouleur']
     model = recognition.sar_vgg16_bn()
     encoded_gts, seq_len = model.compute_target(list_gts)

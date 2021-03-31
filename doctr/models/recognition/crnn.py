@@ -7,11 +7,13 @@ from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, List
 
 from .. import vgg, resnet
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
+from doctr.datasets import encode_sequences
+
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31']
 
@@ -57,6 +59,7 @@ class CRNN(RecognitionModel):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
+        self.vocab = vocab
         self.feat_extractor = feature_extractor
 
         # Initialize kernels
@@ -112,7 +115,8 @@ class CRNN(RecognitionModel):
             The loss of the model on the batch
         """
         model_output = tf.nn.softmax(model_output)
-        input_length = model_output.shape[1] * tf.ones(shape=(batch_length))
+        batch_len = model_output.shape[0]
+        input_length = model_output.shape[1] * tf.ones(shape=(batch_len))
         ctc_loss = tf.nn.ctc_loss(
             gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
         )
