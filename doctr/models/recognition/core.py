@@ -74,8 +74,9 @@ class RecognitionPreProcessor(PreProcessor):
 class RecognitionModel(keras.Model, NestedObject):
     """Implements abstract RecognitionModel class"""
 
-    def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, vocab: str, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        self.vocab = vocab
         self.cfg = cfg
 
     def compute_target(

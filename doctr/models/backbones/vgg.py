@@ -7,7 +7,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any
 
-from .utils import conv_sequence, load_pretrained_params
+from ..utils import conv_sequence, load_pretrained_params
 
 
 __all__ = ['VGG', 'vgg16_bn']

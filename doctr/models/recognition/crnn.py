@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any, Optional
 
-from .. import vgg, resnet
+from .. import backbones
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
 
@@ -45,19 +45,18 @@ class CRNN(RecognitionModel):
 
     Args:
         feature_extractor: the backbone serving as feature extractor
-        vocab_size: number of output classes
+        vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
+        cfg: configuration dictionary
     """
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
         vocab: str,
-        vocab_size: int = 118,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(cfg=cfg)
-        self.vocab = vocab
+        super().__init__(vocab=vocab, cfg=cfg)
         self.feat_extractor = feature_extractor
 
         # Initialize kernels
@@ -68,7 +67,7 @@ class CRNN(RecognitionModel):
             [
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Dense(units=vocab_size + 1)
+                layers.Dense(units=len(vocab) + 1)
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
@@ -113,53 +112,21 @@ class CRNN(RecognitionModel):
         return decoded_features
 
 
-def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
+def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = vgg.__dict__[_cfg['backbone']](
+    feat_extractor = backbones.__dict__[_cfg['backbone']](
         input_shape=_cfg['input_shape'],
         include_top=False,
     )
 
     kwargs['vocab'] = _cfg['vocab']
-    kwargs['vocab_size'] = _cfg['vocab_size']
-    kwargs['rnn_units'] = _cfg['rnn_units']
-
-    # Build the model
-    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
-    # Load pretrained parameters
-    if pretrained:
-        load_pretrained_params(model, _cfg['url'])
-
-    return model
-
-
-def _crnn_resnet(
-    arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any
-) -> CRNN:
-
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
-    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
-
-    # Feature extractor
-    feat_extractor = resnet.__dict__[_cfg['backbone']](
-        input_shape=_cfg['input_shape'],
-        include_top=False,
-    )
-
-    kwargs['vocab'] = _cfg['vocab']
-    kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
     # Build the model
@@ -189,7 +156,7 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn_vgg('crnn_vgg16_bn', pretrained, **kwargs)
+    return _crnn('crnn_vgg16_bn', pretrained, **kwargs)
 
 
 def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -210,4 +177,4 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn_resnet('crnn_resnet31', pretrained, **kwargs)
+    return _crnn('crnn_resnet31', pretrained, **kwargs)

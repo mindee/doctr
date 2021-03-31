@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
 import numpy as np
@@ -14,13 +15,14 @@ from .common_types import BoundingBox
 __all__ = ['visualize_page']
 
 
-def create_patch(
+def create_rect_patch(
     geometry: BoundingBox,
     label: str,
     page_dimensions: Tuple[int, int],
     color: Tuple[int, int, int],
     alpha: float = 0.3,
     linewidth: int = 2,
+    fill: bool = True,
 ) -> patches.Patch:
     """Create a matplotlib patch (rectangle) bounding the element
 
@@ -43,7 +45,7 @@ def create_patch(
         (xmin, ymin),
         xmax - xmin,
         ymax - ymin,
-        fill=True,
+        fill=fill,
         linewidth=linewidth,
         edgecolor=(*color, alpha),
         facecolor=(*color, alpha),
@@ -57,7 +59,10 @@ def visualize_page(
     image: np.ndarray,
     words_only: bool = True,
     scale: float = 10,
-) -> None:
+    interactive: bool = True,
+    add_labels: bool = True,
+    **kwargs: Any,
+) -> Figure:
     """Visualize a full page with predicted blocks, lines and words
 
     Example::
@@ -86,34 +91,52 @@ def visualize_page(
     # hide both axis
     ax.axis('off')
 
-    artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+    if interactive:
+        artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     for block in page['blocks']:
         if not words_only:
-            rect = create_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0), linewidth=1)
+            rect = create_rect_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0), linewidth=1, **kwargs)
             # add patch on figure
             ax.add_patch(rect)
-            # add patch to cursor's artists
-            artists.append(rect)
+            if interactive:
+                # add patch to cursor's artists
+                artists.append(rect)
 
         for line in block['lines']:
             if not words_only:
-                rect = create_patch(line['geometry'], 'line', page['dimensions'], (1, 0, 0), linewidth=1)
+                rect = create_rect_patch(line['geometry'], 'line', page['dimensions'], (1, 0, 0), linewidth=1, **kwargs)
                 ax.add_patch(rect)
-                artists.append(rect)
+                if interactive:
+                    artists.append(rect)
 
             for word in line['words']:
-                rect = create_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
-                                    page['dimensions'], (0, 0, 1))
+                rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
+                                         page['dimensions'], (0, 0, 1), **kwargs)
                 ax.add_patch(rect)
-                artists.append(rect)
+                if interactive:
+                    artists.append(rect)
+                elif add_labels:
+                    ax.text(
+                        int(page['dimensions'][1] * word['geometry'][0][0]),
+                        int(page['dimensions'][0] * word['geometry'][0][1]),
+                        word['value'],
+                        size=10,
+                        alpha=0.5,
+                        color=(0, 0, 1),
+                    )
 
         if not words_only:
             for artefact in block['artefacts']:
-                rect = create_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5), linewidth=1)
+                rect = create_rect_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5),
+                                         linewidth=1, **kwargs)
                 ax.add_patch(rect)
-                artists.append(rect)
+                if interactive:
+                    artists.append(rect)
 
-    # Create mlp Cursor to hover patches in artists
-    mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
+    if interactive:
+        # Create mlp Cursor to hover patches in artists
+        mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
     fig.tight_layout()
+
+    return fig
