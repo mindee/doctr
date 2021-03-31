@@ -8,7 +8,7 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from typing import Tuple, Dict, List, Any, Optional
 
-from .. import vgg, resnet
+from .. import backbones
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
 from .core import RecognitionPostProcessor
@@ -174,7 +174,7 @@ class SAR(RecognitionModel):
 
     Args:
         feature_extractor: the backbone serving as feature extractor
-        vocab_size: size of the alphabet
+        vocab: vocabulary used for encoding
         rnn_units: number of hidden units in both encoder and decoder LSTM
         embedding_units: number of embedding units
         attention_units: number of hidden units in attention module
@@ -189,7 +189,6 @@ class SAR(RecognitionModel):
         self,
         feature_extractor,
         vocab: str,
-        vocab_size: int = 118,
         rnn_units: int = 512,
         embedding_units: int = 512,
         attention_units: int = 512,
@@ -198,9 +197,8 @@ class SAR(RecognitionModel):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__(cfg=cfg)
+        super().__init__(vocab=vocab, cfg=cfg)
 
-        self.vocab = vocab
         self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
         self.feat_extractor = feature_extractor
@@ -215,7 +213,7 @@ class SAR(RecognitionModel):
         self.encoder.build(input_shape=(None,) + self.feat_extractor.output_shape[2:])
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
+            rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders,
             input_shape=[self.feat_extractor.output_shape, self.encoder.output_shape]
         )
 
@@ -303,13 +301,12 @@ class SARPostProcessor(RecognitionPostProcessor):
         return words_list
 
 
-def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
     _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
     _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
@@ -317,13 +314,12 @@ def _sar_vgg(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
 
     # Feature extractor
-    feat_extractor = vgg.__dict__[default_cfgs[arch]['backbone']](
+    feat_extractor = backbones.__dict__[default_cfgs[arch]['backbone']](
         input_shape=_cfg['input_shape'],
         include_top=False,
     )
 
     kwargs['vocab'] = _cfg['vocab']
-    kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
     kwargs['embedding_units'] = _cfg['embedding_units']
     kwargs['attention_units'] = _cfg['attention_units']
@@ -357,43 +353,7 @@ def sar_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> SAR:
         text recognition architecture
     """
 
-    return _sar_vgg('sar_vgg16_bn', pretrained, **kwargs)
-
-
-def _sar_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
-
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
-    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
-    _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
-    _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
-    _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
-    _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
-
-    # Feature extractor
-    feat_extractor = resnet.__dict__[default_cfgs[arch]['backbone']](
-        input_shape=_cfg['input_shape'],
-        include_top=False,
-    )
-
-    kwargs['vocab'] = _cfg['vocab']
-    kwargs['vocab_size'] = _cfg['vocab_size']
-    kwargs['rnn_units'] = _cfg['rnn_units']
-    kwargs['embedding_units'] = _cfg['embedding_units']
-    kwargs['attention_units'] = _cfg['attention_units']
-    kwargs['max_length'] = _cfg['max_length']
-    kwargs['num_decoders'] = _cfg['num_decoders']
-
-    # Build the model
-    model = SAR(feat_extractor, cfg=_cfg, **kwargs)
-    # Load pretrained parameters
-    if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
-
-    return model
+    return _sar('sar_vgg16_bn', pretrained, **kwargs)
 
 
 def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
@@ -414,4 +374,4 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
         text recognition architecture
     """
 
-    return _sar_resnet('sar_resnet31', pretrained, **kwargs)
+    return _sar('sar_resnet31', pretrained, **kwargs)
