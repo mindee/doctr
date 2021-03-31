@@ -7,13 +7,11 @@ from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from typing import Tuple, Dict, Any, Optional, List
+from typing import Tuple, Dict, Any, Optional
 
 from .. import vgg, resnet
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
-from doctr.datasets import encode_sequences
-
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31']
 
@@ -64,6 +62,7 @@ class CRNN(RecognitionModel):
 
         # Initialize kernels
         h, w, c = self.feat_extractor.output_shape[1:]
+        self.max_length = w
 
         self.decoder = Sequential(
             [
@@ -73,30 +72,6 @@ class CRNN(RecognitionModel):
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
-
-    def compute_target(
-        self,
-        gts: List[str],
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
-        """Encode a list of gts sequences into a tf tensor and gives the corresponding*
-        sequence lengths.
-
-        Args:
-            gts: list of ground-truth labels
-
-        Returns:
-            A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
-        """
-        encoded = encode_sequences(
-            sequences=gts,
-            vocab=self.vocab,
-            target_size=self.feat_extractor.output_shape[2],
-            eos=len(self.vocab)
-        )
-        tf_encoded = tf.cast(encoded, tf.int64)
-        seq_len = [len(word) for word in gts]
-        tf_seq_len = tf.cast(seq_len, tf.int64)
-        return tf_encoded, tf_seq_len
 
     def compute_loss(
         self,

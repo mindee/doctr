@@ -10,6 +10,7 @@ import numpy as np
 
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
+from doctr.datasets import encode_sequences
 
 __all__ = ['RecognitionPreProcessor', 'RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor']
 
@@ -76,6 +77,30 @@ class RecognitionModel(keras.Model, NestedObject):
     def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.cfg = cfg
+
+    def compute_target(
+        self,
+        gts: List[str],
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
+        """Encode a list of gts sequences into a tf tensor and gives the corresponding*
+        sequence lengths.
+
+        Args:
+            gts: list of ground-truth labels
+
+        Returns:
+            A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
+        """
+        encoded = encode_sequences(
+            sequences=gts,
+            vocab=self.vocab,
+            target_size=self.max_length,
+            eos=len(self.vocab)
+        )
+        tf_encoded = tf.cast(encoded, tf.int64)
+        seq_len = [len(word) for word in gts]
+        tf_seq_len = tf.cast(seq_len, tf.int64)
+        return tf_encoded, tf_seq_len
 
     def call(
         self,

@@ -13,7 +13,6 @@ from ..utils import load_pretrained_params
 from .core import RecognitionModel
 from .core import RecognitionPostProcessor
 from doctr.utils.repr import NestedObject
-from doctr.datasets import encode_sequences
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
 
@@ -202,7 +201,7 @@ class SAR(RecognitionModel):
         super().__init__(cfg=cfg)
 
         self.vocab = vocab
-        self.max_length = max_length
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
         self.feat_extractor = feature_extractor
 
@@ -219,30 +218,6 @@ class SAR(RecognitionModel):
             rnn_units, max_length, vocab_size, embedding_units, attention_units, num_decoders,
             input_shape=[self.feat_extractor.output_shape, self.encoder.output_shape]
         )
-
-    def compute_target(
-        self,
-        gts: List[str],
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
-        """Encode a list of gts sequences into a tf tensor and gives the corresponding*
-        sequence lengths.
-
-        Args:
-            gts: list of ground-truth labels
-
-        Returns:
-            A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
-        """
-        encoded = encode_sequences(
-            sequences=gts,
-            vocab=self.vocab,
-            target_size=self.max_length + 1,
-            eos=len(self.vocab)
-        )
-        tf_encoded = tf.cast(encoded, tf.int64)
-        seq_len = [len(word) for word in gts]
-        tf_seq_len = tf.cast(seq_len, tf.int64)
-        return tf_encoded, tf_seq_len
 
     @staticmethod
     def compute_loss(
