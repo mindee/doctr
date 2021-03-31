@@ -147,7 +147,7 @@ def test_recognition_zoo_error():
 
 
 @pytest.fixture(scope="function")
-def test_compute_target_sar():
+def test_compute_target():
     list_gts = ['elephants', '1234', 'Rémouleur']
     model = recognition.sar_vgg16_bn()
     encoded_gts, seq_len = model.compute_target(list_gts)
@@ -162,5 +162,25 @@ def test_compute_loss_sar(test_compute_target_sar):
     model = recognition.sar_vgg16_bn()
     model_output = model(model_input)
     encoded_gts, seq_len = test_compute_target_sar
+    loss = model.compute_loss(encoded_gts, model_output, seq_len)
+    assert isinstance(loss, tf.Tensor)
+
+
+@pytest.fixture(scope="function")
+def test_compute_target_crnn():
+    list_gts = ['elephants', '1234', 'Rémouleur']
+    model = recognition.crnn_vgg16_bn()
+    encoded_gts, seq_len = model.compute_target(list_gts)
+    assert isinstance(encoded_gts, tf.Tensor)
+    assert isinstance(seq_len, tf.Tensor)
+    assert list(seq_len.numpy()) == [9, 4, 9]
+    return encoded_gts, seq_len
+
+
+def test_compute_loss_crnn(test_compute_target_crnn):
+    model_input = tf.random.uniform(shape=[3, 32, 128, 3], minval=0, maxval=1)
+    model = recognition.crnn_vgg16_bn()
+    model_output = model(model_input)
+    encoded_gts, seq_len = test_compute_target_crnn
     loss = model.compute_loss(encoded_gts, model_output, seq_len)
     assert isinstance(loss, tf.Tensor)

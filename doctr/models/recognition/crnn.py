@@ -112,9 +112,7 @@ class CRNN(RecognitionModel):
             The loss of the model on the batch
         """
         model_output = tf.nn.softmax(model_output)
-        input_length = tf.shape(model_output, dtype='int64')[1] * tf.ones(shape=(batch_length, 1), dtype="int64")
-        input_length = tf.squeeze(input_length)
-        seq_len = tf.squeeze(seq_len)
+        input_length = model_output.shape[1] * tf.ones(shape=(batch_length))
         ctc_loss = tf.nn.ctc_loss(
             gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
         )
