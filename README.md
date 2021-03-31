@@ -117,7 +117,7 @@ You can then easily run your app in your default browser by running:
 streamlit run demo/app.py
 ```
 
-![Demo app](https://user-images.githubusercontent.com/76527547/111645201-c4ea5080-8800-11eb-9807-fd69459e1067.png)
+![Demo app](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_demo_app.png)
 
 ### Docker container
 
