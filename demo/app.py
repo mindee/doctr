@@ -22,9 +22,6 @@ DET_ARCHS = ["db_resnet50"]
 RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
 
 
-predictor = detection_predictor('db_resnet50', pretrained=True)
-
-
 def main():
 
     # Designing the interface
