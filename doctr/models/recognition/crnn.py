@@ -51,15 +51,18 @@ class CRNN(RecognitionModel):
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
+        vocab: str,
         vocab_size: int = 118,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
+        self.vocab = vocab
         self.feat_extractor = feature_extractor
 
         # Initialize kernels
         h, w, c = self.feat_extractor.output_shape[1:]
+        self.max_length = w
 
         self.decoder = Sequential(
             [
@@ -69,6 +72,30 @@ class CRNN(RecognitionModel):
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
+
+    def compute_loss(
+        self,
+        gt: tf.Tensor,
+        model_output: tf.Tensor,
+        seq_len: tf.Tensor
+    ) -> tf.Tensor:
+        """Compute CTC loss for the model.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+
+        Returns:
+            The loss of the model on the batch
+        """
+        model_output = tf.nn.softmax(model_output)
+        batch_len = model_output.shape[0]
+        input_length = model_output.shape[1] * tf.ones(shape=(batch_len))
+        ctc_loss = tf.nn.ctc_loss(
+            gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
+        )
+        return ctc_loss
 
     def call(
         self,
@@ -91,6 +118,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
@@ -100,6 +128,7 @@ def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int,
         include_top=False,
     )
 
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
@@ -119,6 +148,7 @@ def _crnn_resnet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
@@ -128,6 +158,7 @@ def _crnn_resnet(
         include_top=False,
     )
 
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['vocab_size'] = _cfg['vocab_size']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
