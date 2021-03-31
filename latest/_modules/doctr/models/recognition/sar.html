@@ -213,7 +213,6 @@
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span>
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionPostProcessor</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
-<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">encode_sequences</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SAR&#39;</span><span class="p">,</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">,</span> <span class="s1">&#39;sar_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;sar_resnet31&#39;</span><span class="p">]</span>
 
@@ -402,7 +401,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="n">vocab</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># Add 1 timestep for EOS after the longest word</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span>
 
@@ -419,30 +418,6 @@
             <span class="n">rnn_units</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">embedding_units</span><span class="p">,</span> <span class="n">attention_units</span><span class="p">,</span> <span class="n">num_decoders</span><span class="p">,</span>
             <span class="n">input_shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">output_shape</span><span class="p">]</span>
         <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">compute_target</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">gts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Encode a list of gts sequences into a tf tensor and gives the corresponding*</span>
-<span class="sd">        sequence lengths.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            gts: list of ground-truth labels</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">encoded</span> <span class="o">=</span> <span class="n">encode_sequences</span><span class="p">(</span>
-            <span class="n">sequences</span><span class="o">=</span><span class="n">gts</span><span class="p">,</span>
-            <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span>
-            <span class="n">target_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="n">eos</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">tf_encoded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-        <span class="n">seq_len</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">gts</span><span class="p">]</span>
-        <span class="n">tf_seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">tf_encoded</span><span class="p">,</span> <span class="n">tf_seq_len</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
