@@ -112,12 +112,12 @@ def visualize_page(
 
             for word in line['words']:
                 rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
-                                    page['dimensions'], (0, 0, 1), **kwargs)
+                                         page['dimensions'], (0, 0, 1), **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
-                    text = ax.text(
+                    ax.text(
                         int(page['dimensions'][1] * word['geometry'][0][0]),
                         int(page['dimensions'][0] * word['geometry'][0][1]),
                         word['value'],

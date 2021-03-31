@@ -23,7 +23,6 @@ from doctr.utils.visualization import visualize_page
 DET_ARCHS = ["db_resnet50"]
 RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
 
-ARCH_NAME = "db_resnet50crnn_vgg16_bn"
 
 def main():
 
@@ -58,7 +57,6 @@ def main():
     st.sidebar.title("Model selection")
     det_arch = st.sidebar.selectbox("Text detection model", DET_ARCHS)
     reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
-
 
     # For newline
     st.sidebar.write('\n')
