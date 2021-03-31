@@ -14,12 +14,6 @@ from doctr.models import recognition, RecognitionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import RecognitionDataGenerator, VOCABS
 
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
 
 def main(args):
 
@@ -45,7 +39,7 @@ def main(args):
     model = recognition.__dict__[args.model](
         pretrained=False,
         input_shape=(args.input_size, 4 * args.input_size, 3),
-        vocab = VOCABS['french']
+        vocab=VOCABS['french']
     )
 
     # Tf variable to log steps
