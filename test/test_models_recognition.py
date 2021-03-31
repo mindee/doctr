@@ -152,11 +152,11 @@ def test_compute_loss_sar():
     model = recognition.sar_vgg16_bn()
     model_output = model(model_input)
     encoded_gts, seq_len = model.compute_target(list_gts)
-    loss = model.compute_loss(encoded_gts, model_output, seq_len)
-    assert isinstance(loss, tf.Tensor)
     assert isinstance(encoded_gts, tf.Tensor)
     assert isinstance(seq_len, tf.Tensor)
     assert list(seq_len.numpy()) == [9, 4, 9]
+    loss = model.compute_loss(encoded_gts, model_output, seq_len)
+    assert isinstance(loss, tf.Tensor)
 
 
 def test_compute_loss_crnn():
@@ -165,8 +165,8 @@ def test_compute_loss_crnn():
     model = recognition.crnn_vgg16_bn()
     model_output = model(model_input)
     encoded_gts, seq_len = model.compute_target(list_gts)
-    loss = model.compute_loss(encoded_gts, model_output, seq_len)
-    assert isinstance(loss, tf.Tensor)
     assert isinstance(encoded_gts, tf.Tensor)
     assert isinstance(seq_len, tf.Tensor)
     assert list(seq_len.numpy()) == [9, 4, 9]
+    loss = model.compute_loss(encoded_gts, model_output, seq_len)
+    assert isinstance(loss, tf.Tensor)
