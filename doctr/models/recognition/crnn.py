@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any, Optional
 
-from .. import vgg, resnet
+from .. import backbones
 from ..utils import load_pretrained_params
 from .core import RecognitionModel
 
@@ -40,35 +40,61 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class CRNN(RecognitionModel):
-    """Implements a CRNN architecture as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
-    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+    """Implements a CRNN architecture as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Args:
         feature_extractor: the backbone serving as feature extractor
-        vocab_size: number of output classes
+        vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
+        cfg: configuration dictionary
     """
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
-        vocab_size: int = 118,
+        vocab: str,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(cfg=cfg)
+        super().__init__(vocab=vocab, cfg=cfg)
         self.feat_extractor = feature_extractor
 
         # Initialize kernels
         h, w, c = self.feat_extractor.output_shape[1:]
+        self.max_length = w
 
         self.decoder = Sequential(
             [
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Dense(units=vocab_size + 1)
+                layers.Dense(units=len(vocab) + 1)
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
+
+    def compute_loss(
+        self,
+        gt: tf.Tensor,
+        model_output: tf.Tensor,
+        seq_len: tf.Tensor
+    ) -> tf.Tensor:
+        """Compute CTC loss for the model.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+
+        Returns:
+            The loss of the model on the batch
+        """
+        model_output = tf.nn.softmax(model_output)
+        batch_len = model_output.shape[0]
+        input_length = model_output.shape[1] * tf.ones(shape=(batch_len))
+        ctc_loss = tf.nn.ctc_loss(
+            gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
+        )
+        return ctc_loss
 
     def call(
         self,
@@ -86,49 +112,21 @@ class CRNN(RecognitionModel):
         return decoded_features
 
 
-def _crnn_vgg(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
+def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = vgg.__dict__[_cfg['backbone']](
+    feat_extractor = backbones.__dict__[_cfg['backbone']](
         input_shape=_cfg['input_shape'],
         include_top=False,
     )
 
-    kwargs['vocab_size'] = _cfg['vocab_size']
-    kwargs['rnn_units'] = _cfg['rnn_units']
-
-    # Build the model
-    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
-    # Load pretrained parameters
-    if pretrained:
-        load_pretrained_params(model, _cfg['url'])
-
-    return model
-
-
-def _crnn_resnet(
-    arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any
-) -> CRNN:
-
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab_size'] = kwargs.get('vocab_size', len(_cfg['vocab']))
-    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
-
-    # Feature extractor
-    feat_extractor = resnet.__dict__[_cfg['backbone']](
-        input_shape=_cfg['input_shape'],
-        include_top=False,
-    )
-
-    kwargs['vocab_size'] = _cfg['vocab_size']
+    kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']
 
     # Build the model
@@ -141,8 +139,8 @@ def _crnn_resnet(
 
 
 def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a VGG-16 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
-    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+    """CRNN with a VGG-16 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
@@ -158,12 +156,12 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn_vgg('crnn_vgg16_bn', pretrained, **kwargs)
+    return _crnn('crnn_vgg16_bn', pretrained, **kwargs)
 
 
 def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a resnet31 backbone as described in `"Convolutional RNN: an Enhanced Model for Extracting Features
-    from Sequential Data" <https://arxiv.org/pdf/1602.05875.pdf>`_.
+    """CRNN with a resnet31 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
@@ -179,4 +177,4 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn_resnet('crnn_resnet31', pretrained, **kwargs)
+    return _crnn('crnn_resnet31', pretrained, **kwargs)

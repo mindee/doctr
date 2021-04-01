@@ -67,7 +67,8 @@ def test_sar_training():
     input_labels = tf.sparse.reorder(
         tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=[batch_size, 31])
     )
-    out = reco_model(input_tensor, labels=input_labels, training=True)
+    input_dense = tf.sparse.to_dense(input_labels, default_value=118)
+    out = reco_model(input_tensor, labels=input_dense, training=True)
     assert isinstance(out, tf.Tensor)
     assert isinstance(reco_model, tf.keras.Model)
     assert out.numpy().shape == (batch_size, *output_size)
@@ -96,7 +97,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     batch_size = 4
     predictor = recognition.RecognitionPredictor(
         recognition.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        recognition.crnn_vgg16_bn(vocab_size=len(mock_vocab), input_shape=(32, 128, 3)),
+        recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3)),
         recognition.CTCPostProcessor(mock_vocab)
     )
 
@@ -143,3 +144,29 @@ def test_recognition_zoo(arch_name):
 def test_recognition_zoo_error():
     with pytest.raises(ValueError):
         _ = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)
+
+
+def test_compute_loss_sar():
+    list_gts = ['elephants', '1234', 'Rémouleur']
+    model_input = tf.random.uniform(shape=[3, 32, 128, 3], minval=0, maxval=1)
+    model = recognition.sar_vgg16_bn()
+    model_output = model(model_input)
+    encoded_gts, seq_len = model.compute_target(list_gts)
+    assert isinstance(encoded_gts, tf.Tensor)
+    assert isinstance(seq_len, tf.Tensor)
+    assert list(seq_len.numpy()) == [9, 4, 9]
+    loss = model.compute_loss(encoded_gts, model_output, seq_len)
+    assert isinstance(loss, tf.Tensor)
+
+
+def test_compute_loss_crnn():
+    list_gts = ['elephants', '1234', 'Rémouleur']
+    model_input = tf.random.uniform(shape=[3, 32, 128, 3], minval=0, maxval=1)
+    model = recognition.crnn_vgg16_bn()
+    model_output = model(model_input)
+    encoded_gts, seq_len = model.compute_target(list_gts)
+    assert isinstance(encoded_gts, tf.Tensor)
+    assert isinstance(seq_len, tf.Tensor)
+    assert list(seq_len.numpy()) == [9, 4, 9]
+    loss = model.compute_loss(encoded_gts, model_output, seq_len)
+    assert isinstance(loss, tf.Tensor)

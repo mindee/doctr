@@ -190,8 +190,8 @@ class Page(Element):
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
 
-    def show(self, page: np.ndarray, **kwargs) -> None:
-        visualize_page(self.export(), page)
+    def show(self, page: np.ndarray, interactive: bool = True, **kwargs) -> None:
+        visualize_page(self.export(), page, interactive=interactive)
         plt.show(**kwargs)
 
 
