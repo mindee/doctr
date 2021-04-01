@@ -113,6 +113,7 @@ def load_pretrained_params(
 
 def conv_sequence(
     out_channels: int,
+    strides: int = 1,
     activation: str = None,
     bn: bool = False,
     padding: str = 'same',
@@ -128,6 +129,7 @@ def conv_sequence(
 
     Args:
         out_channels: number of output channels
+        strides: square strides to use in the Conv2D
         activation: activation to be used (default: no activation)
         bn: should a batch normalization layer be added
         padding: padding scheme
@@ -140,7 +142,7 @@ def conv_sequence(
     kwargs['use_bias'] = kwargs.get('use_bias', not(bn))
     # Add activation directly to the conv if there is no BN
     kwargs['activation'] = activation if not bn else None
-    conv_seq = [layers.Conv2D(out_channels, padding=padding, kernel_initializer=kernel_initializer, **kwargs)]
+    conv_seq = [layers.Conv2D(out_channels, strides=strides, padding=padding, kernel_initializer=kernel_initializer, **kwargs)]
 
     if bn:
         conv_seq.append(layers.BatchNormalization())

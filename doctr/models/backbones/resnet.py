@@ -9,7 +9,7 @@ from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Optional, Any, List
 from ..utils import conv_sequence, load_pretrained_params
 
-__all__ = ['Resnet', 'resnet31']
+__all__ = ['Resnet', 'resnet31', 'ResnetStage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -27,11 +27,13 @@ class ResnetBlock(layers.Layer):
         conv_shortcut: Use of shortcut
         output_channels: number of channels to use in Conv2D
         kernel_size: size of square kernels
+        strides: strides to use in the first convolution of the block
     """
     def __init__(
         self,
         output_channels: int,
         conv_shortcut: bool,
+        strides: int = 1,
         **kwargs
     ) -> None:
 
@@ -52,17 +54,18 @@ class ResnetBlock(layers.Layer):
         else:
             self.shortcut = layers.Lambda(lambda x: x)
         self.conv_block = Sequential(
-            self.conv_resnetblock(output_channels, 3)
+            self.conv_resnetblock(output_channels, strides=strides, 3)
         )
         self.act = layers.Activation('relu')
 
     @staticmethod
     def conv_resnetblock(
         output_channels: int,
-        kernel_size: int
+        kernel_size: int,
+        strides: int = 1,
     ) -> List[layers.Layer]:
         return [
-            *conv_sequence(output_channels, activation='relu', bn=True, kernel_size=kernel_size),
+            *conv_sequence(output_channels, strides=strides, activation='relu', bn=True, kernel_size=kernel_size),
             layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
             layers.BatchNormalization(),
         ]
@@ -85,18 +88,23 @@ class ResnetStage(Sequential):
     Args:
         num_blocks: number of blocks inside the stage
         output_channels: number of channels to use in Conv2D
+        downsample: if true, performs a /2 downsampling at the first block of the stage
     """
     def __init__(
         self,
         num_blocks: int,
-        output_channels: int
+        output_channels: int,
+        downsample: bool = False,
     ) -> None:
 
         super().__init__()
         final_blocks = [
             ResnetBlock(output_channels, conv_shortcut=False) for _ in range(1, num_blocks)
         ]
-        self.add(ResnetBlock(output_channels, conv_shortcut=True))
+        if downsample is True:
+            self.add(ResnetBlock(output_channels, conv_shortcut=True, strides=2))
+        else:
+            self.add(ResnetBlock(output_channels, conv_shortcut=True))
         for final_block in final_blocks:
             self.add(final_block)
 
