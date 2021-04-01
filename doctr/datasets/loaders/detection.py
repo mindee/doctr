@@ -37,28 +37,29 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
         self.images_path = images_path
         self.labels_path = labels_path
         self.shuffle = shuffle
+        self.files_list = os.listdir(self.images_path)
         self.on_epoch_end()
 
     def __len__(self):
         # Denotes the number of batches per epoch
-        return int(np.ceil(len(os.listdir(self.images_path)) / self.batch_size))
+        return int(np.ceil(len(self.files_list) / self.batch_size))
 
     def on_epoch_end(self):
-        # Updates indexes after each epoch
-        self.indexes = np.arange(len(os.listdir(self.images_path)))
+        # Updates indices after each epoch
+        self.indices = np.arange(len(self.files_list))
         if self.shuffle is True:
-            np.random.shuffle(self.indexes)
+            np.random.shuffle(self.indices)
 
     def __getitem__(
         self,
         index: int
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Get one batch of data
-        indexes = self.indexes[
-            index * self.batch_size:min(len(os.listdir(self.images_path)), (index + 1) * self.batch_size)
+        indices = self.indices[
+            index * self.batch_size: min(len(self.files_list), (index + 1) * self.batch_size)
         ]
         # Find list of paths
-        list_paths = [os.listdir(self.images_path)[k] for k in indexes]
+        list_paths = [self.files_list[k] for k in indices]
         # Generate data
         return self.__data_generation(list_paths)
 
