@@ -43,6 +43,7 @@ class ResnetBlock(layers.Layer):
                 [
                     layers.Conv2D(
                         filters=output_channels,
+                        strides=strides,
                         padding='same',
                         kernel_size=1,
                         use_bias=False,
@@ -54,7 +55,7 @@ class ResnetBlock(layers.Layer):
         else:
             self.shortcut = layers.Lambda(lambda x: x)
         self.conv_block = Sequential(
-            self.conv_resnetblock(output_channels, strides=strides, 3)
+            self.conv_resnetblock(output_channels, 3, strides)
         )
         self.act = layers.Activation('relu')
 
@@ -65,7 +66,7 @@ class ResnetBlock(layers.Layer):
         strides: int = 1,
     ) -> List[layers.Layer]:
         return [
-            *conv_sequence(output_channels, strides=strides, activation='relu', bn=True, kernel_size=kernel_size),
+            *conv_sequence(output_channels, activation='relu', bn=True, strides=strides, kernel_size=kernel_size),
             layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
             layers.BatchNormalization(),
         ]
