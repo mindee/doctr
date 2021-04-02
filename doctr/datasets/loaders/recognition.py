@@ -38,7 +38,7 @@ class RecognitionDataGenerator(tf.keras.utils.Sequence):
         self.shuffle = shuffle
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        with open(self.labels_path) as f:
+        with open(labels_path) as f:
             labels = json.load(f)
         for img_path in os.listdir(self.root):
             label = labels.get(img_path)
