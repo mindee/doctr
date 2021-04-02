@@ -58,17 +58,13 @@ def mock_recognition_label(tmpdir_factory):
 def test_recognition_core_generator(mock_image_folder, mock_recognition_label):
     core_loader = RecognitionDataGenerator(
         input_size=(32, 128),
-        images_path=mock_image_folder,
+        img_folder=mock_image_folder,
         labels_path=mock_recognition_label,
         batch_size=2,
     )
     assert core_loader.__len__() == 3
-    for _, batch in enumerate(core_loader):
-        images, gts = batch
+    for _, (images, labels) in enumerate(core_loader):
         assert isinstance(images, tf.Tensor)
-        assert images.shape[1] == 32
-        assert images.shape[2] == 128
-        assert isinstance(gts, list)
-        assert len(gts) == images.shape[0]
-        for gt in gts:
-            assert isinstance(gt, str)
+        assert images.shape[1] == 32 and images.shape[2] == 128
+        assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
+        assert len(labels) == images.shape[0]
