@@ -18,7 +18,7 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
 
     Args:
         input_size: size (h, w) for the images
-        images_path: path to the images folder
+        img_folder: path to the images folder
         labels_path: pathe to the folder containing json label for each image
         batch_size: batch size to train on
         shuffle: if True, dataset is shuffled between each epoch
@@ -27,21 +27,28 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
     def __init__(
         self,
         input_size: Tuple[int, int],
-        images_path: str,
+        img_folder: str,
         labels_path: str,
         batch_size: int = 1,
         shuffle: bool = True,
     ) -> None:
         self.input_size = input_size
         self.batch_size = batch_size
-        self.images_path = images_path
-        self.labels_path = labels_path
+        self.root = img_folder
         self.shuffle = shuffle
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        for img_path in os.listdir(self.images_path):
-            bboxes, flags = self.load_target(img_path)
-            self.data.append((img_path, dict(boxes=bboxes, flags=flags)))
+        for img_path in os.listdir(self.root):
+            with open(os.path.join(labels_path, img_path + '.json'), 'rb') as f:
+                boxes = json.load(f)
+
+            bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
+            # Switch to xmin, ymin, xmax, ymax
+            bboxes = np.concatenate((bboxes.min(axis=1), bboxes.max(axis=1)), axis=1)
+
+            is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
+
+            self.data.append((img_path, dict(boxes=bboxes, flags=np.asarray(is_ambiguous))))
         self.on_epoch_end()
 
     def __len__(self):
@@ -57,7 +64,7 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    ) -> Tuple[tf.Tensor, List[np.ndarray], List[np.ndarray]]:
         # Get one batch of data
         indices = self.indices[
             index * self.batch_size: min(len(self.data), (index + 1) * self.batch_size)
@@ -67,39 +74,15 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
         # Generate data
         return self.__data_generation(samples)
 
-    def load_target(
-        self,
-        img_name: str
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """Loads detection annotations (boxes) for an image, from a folder containing
-        annotations in json files for each image
-
-        Args:
-            img_name: name of the image to find the corresponding json annotation
-
-        Returns:
-            A tuple of 2 lists: a list of polygons and a boolean vector to mask suspicious polygons
-        """
-        with open(os.path.join(self.labels_path, img_name + '.json')) as f:
-            boxes = json.load(f)
-
-        bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
-        # Switch to xmin, ymin, xmax, ymax
-        bboxes = np.concatenate((bboxes.min(axis=1), bboxes.max(axis=1)), axis=1)
-
-        is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
-
-        return bboxes, np.asarray(is_ambiguous)
-
     def __data_generation(
         self,
         samples: List[Tuple[str, Dict[str, Any]]],
-    ) -> Tuple[tf.Tensor, List[List[List[List[float]]]], List[List[bool]]]:
+    ) -> Tuple[tf.Tensor, List[np.ndarray], List[np.ndarray]]:
         """Generate a batch of images and corresponding relative boxes (as a list of list of boxes),
         and corresponding boxes to mask
 
         Args:
-            list_paths: list of paths to images to batch
+            samples: list of paths to images to batch
 
         Returns:
             Images, boxes, boxes to mask
@@ -108,7 +91,7 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
         # # Init batch lists
         batch_images, batch_boxes, batch_flags = [], [], []
         for img_name, target in samples:
-            image = cv2.imread(os.path.join(self.images_path, img_name))
+            image = cv2.imread(os.path.join(self.root, img_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             h, w = image.shape[:2]
             # Resize and batch images
