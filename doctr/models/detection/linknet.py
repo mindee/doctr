@@ -10,7 +10,6 @@ import tensorflow as tf
 from tensorflow.keras import layers, Sequential
 from typing import Dict, Any, Tuple, Optional
 
-from .core import DetectionModel
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from ...utils.repr import NestedObject
