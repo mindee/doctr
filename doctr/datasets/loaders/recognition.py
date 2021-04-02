@@ -84,7 +84,7 @@ class RecognitionDataGenerator(tf.keras.utils.Sequence):
             image = tf.image.resize(image, [*self.input_size], method='bilinear')
             # Batch
             batch_images.append(image)
-            batch_gts.append(label)
+            batch_labels.append(label)
         batch_images = tf.stack(batch_images, axis=0)
 
-        return batch_images, batch_gts
+        return batch_images, batch_labels
