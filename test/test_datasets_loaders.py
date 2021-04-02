@@ -1,6 +1,8 @@
 import tensorflow as tf
 import pytest
 import json
+import numpy as np
+
 from doctr.datasets import DetectionDataGenerator, RecognitionDataGenerator
 
 
@@ -27,16 +29,15 @@ def test_detection_core_generator(mock_image_folder, mock_detection_label):
         batch_size=2,
     )
     assert core_loader.__len__() == 3
-    for _, batch in enumerate(core_loader):
-        batch_images, batch_polys, batch_masks = batch
+    for _, (batch_images, batch_boxes, batch_flags) in enumerate(core_loader):
         assert isinstance(batch_images, tf.Tensor)
         assert batch_images.shape[1] == batch_images.shape[2] == 1024
-        assert isinstance(batch_polys, list)
-        assert isinstance(batch_masks, list)
-        for poly, mask in zip(batch_polys, batch_masks):
-            assert len(poly) == len(mask)
-            for box in poly:
-                assert all(x <= 1 and y <= 1 for [x, y] in box)
+        assert isinstance(batch_boxes, list) and isinstance(batch_flags, list)
+        assert all(isinstance(boxes, np.ndarray) and boxes.dtype == np.float32 for boxes in batch_boxes)
+        assert all(np.all(np.logical_and(boxes >= 0, boxes <= 1)) for boxes in batch_boxes)
+        assert all(boxes.shape[1] == 4 for boxes in batch_boxes)
+        assert all(isinstance(flags, np.ndarray) and flags.dtype == np.bool for flags in batch_flags)
+        assert all(boxes.shape[0] == flags.shape[0] for boxes, flags in zip(batch_boxes, batch_flags))
 
 
 @pytest.fixture(scope="function")
