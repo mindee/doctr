@@ -24,7 +24,7 @@ def mock_detection_label(tmpdir_factory):
 def test_detection_core_generator(mock_image_folder, mock_detection_label):
     core_loader = DetectionDataGenerator(
         input_size=(1024, 1024),
-        images_path=mock_image_folder,
+        img_folder=mock_image_folder,
         labels_path=mock_detection_label,
         batch_size=2,
     )
