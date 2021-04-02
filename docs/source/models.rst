@@ -54,6 +54,7 @@ Detection models
 Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:
 
 .. autofunction:: doctr.models.detection.db_resnet50
+.. autofunction:: doctr.models.detection.linknet
 
 
 Post-processing detections
