@@ -52,7 +52,7 @@ def main(args):
     MEAN_RGB = (0.694, 0.695, 0.693)
     STD_RGB = (0.299, 0.296, 0.301)
     preprocessor = RecognitionPreProcessor(
-        output_size=(args.input_size, args.input_size),
+        output_size=(args.input_size, 4 * args.input_size),
         batch_size=args.batch_size,
         mean=MEAN_RGB,
         std=STD_RGB
