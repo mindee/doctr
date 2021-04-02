@@ -20,14 +20,14 @@ def main(args):
     train_dataset = DetectionDataGenerator(
         input_size=(args.input_size, args.input_size),
         batch_size=args.batch_size,
-        images_path=os.path.join(args.data_path, 'train'),
+        img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels')
     )
 
     val_dataset = DetectionDataGenerator(
         input_size=(args.input_size, args.input_size),
         batch_size=args.batch_size,
-        images_path=os.path.join(args.data_path, 'val'),
+        img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels')
     )
 
