@@ -8,7 +8,7 @@ import json
 import cv2
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 __all__ = ["DetectionDataGenerator"]
 
@@ -21,7 +21,7 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
         images_path: path to the images folder
         labels_path: pathe to the folder containing json label for each image
         batch_size: batch size to train on
-        suffle: if True, dataset is shuffled between each epoch
+        shuffle: if True, dataset is shuffled between each epoch
 
     """
     def __init__(
@@ -37,16 +37,20 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
         self.images_path = images_path
         self.labels_path = labels_path
         self.shuffle = shuffle
-        self.files_list = os.listdir(self.images_path)
+
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        for img_path in os.listdir(self.images_path):
+            bboxes, flags = self.load_target(img_path)
+            self.data.append((img_path, dict(boxes=bboxes, flags=flags)))
         self.on_epoch_end()
 
     def __len__(self):
         # Denotes the number of batches per epoch
-        return int(np.ceil(len(self.files_list) / self.batch_size))
+        return int(np.ceil(len(self.data) / self.batch_size))
 
     def on_epoch_end(self):
         # Updates indices after each epoch
-        self.indices = np.arange(len(self.files_list))
+        self.indices = np.arange(len(self.data))
         if self.shuffle is True:
             np.random.shuffle(self.indices)
 
@@ -56,17 +60,17 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # Get one batch of data
         indices = self.indices[
-            index * self.batch_size: min(len(self.files_list), (index + 1) * self.batch_size)
+            index * self.batch_size: min(len(self.data), (index + 1) * self.batch_size)
         ]
         # Find list of paths
-        list_paths = [self.files_list[k] for k in indices]
+        samples = [self.data[k] for k in indices]
         # Generate data
-        return self.__data_generation(list_paths)
+        return self.__data_generation(samples)
 
-    def load_annotation(
+    def load_target(
         self,
         img_name: str
-    ) -> Tuple[List[List[List[int]]], List[bool]]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Loads detection annotations (boxes) for an image, from a folder containing
         annotations in json files for each image
 
@@ -77,18 +81,19 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
             A tuple of 2 lists: a list of polygons and a boolean vector to mask suspicious polygons
         """
         with open(os.path.join(self.labels_path, img_name + '.json')) as f:
-            labels = json.load(f)
+            boxes = json.load(f)
 
-        polys = [
-            [[int(x), int(y)] for [x, y] in poly] for poly in labels["boxes_1"] + labels["boxes_2"] + labels["boxes_3"]
-        ]
-        to_masks = [False] * (len(labels["boxes_1"]) + len(labels["boxes_2"])) + [True] * len(labels["boxes_3"])
+        bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
+        # Switch to xmin, ymin, xmax, ymax
+        bboxes = np.concatenate((bboxes.min(axis=1), bboxes.max(axis=1)), axis=1)
 
-        return polys, to_masks
+        is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
+
+        return bboxes, np.asarray(is_ambiguous)
 
     def __data_generation(
         self,
-        list_paths: List[str],
+        samples: List[Tuple[str, Dict[str, Any]]],
     ) -> Tuple[tf.Tensor, List[List[List[List[float]]]], List[List[bool]]]:
         """Generate a batch of images and corresponding relative boxes (as a list of list of boxes),
         and corresponding boxes to mask
@@ -99,10 +104,11 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
         Returns:
             Images, boxes, boxes to mask
         """
-        # Init batch lists
-        batch_images, batch_polys, batch_masks = [], [], []
-        for image_name in list_paths:
-            image = cv2.imread(os.path.join(self.images_path, image_name))
+
+        # # Init batch lists
+        batch_images, batch_boxes, batch_flags = [], [], []
+        for img_name, target in samples:
+            image = cv2.imread(os.path.join(self.images_path, img_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             h, w = image.shape[:2]
             # Resize and batch images
@@ -110,14 +116,12 @@ class DetectionDataGenerator(tf.keras.utils.Sequence):
             image = tf.image.resize(image, self.input_size)
             batch_images.append(image)
 
-            try:
-                polys, to_masks = self.load_annotation(image_name)
-            except ValueError:
-                polys, to_masks = [], []
-            # Normalize polys
-            polys = [[[x / w, y / h] for [x, y] in poly] for poly in polys]
-            batch_polys.append(polys)
-            batch_masks.append(to_masks)
+            # Switch to relative coords
+            boxes = target['boxes']
+            boxes[..., [0, 2]] /= w
+            boxes[..., [1, 3]] /= h
+            batch_boxes.append(boxes)
+            batch_flags.append(target['flags'])
         batch_images = tf.stack(batch_images, axis=0)
 
-        return batch_images, batch_polys, batch_masks
+        return batch_images, batch_boxes, batch_flags
