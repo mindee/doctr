@@ -115,7 +115,6 @@ def conv_sequence(
     out_channels: int,
     activation: str = None,
     bn: bool = False,
-    strides: int = 1,
     padding: str = 'same',
     kernel_initializer: str = 'he_normal',
     **kwargs: Any,
@@ -129,7 +128,6 @@ def conv_sequence(
 
     Args:
         out_channels: number of output channels
-        strides: square strides to use in the Conv2D
         activation: activation to be used (default: no activation)
         bn: should a batch normalization layer be added
         padding: padding scheme
