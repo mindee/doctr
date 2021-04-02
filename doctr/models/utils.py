@@ -143,7 +143,7 @@ def conv_sequence(
     # Add activation directly to the conv if there is no BN
     kwargs['activation'] = activation if not bn else None
     conv_seq = [
-        layers.Conv2D(out_channels, strides=strides, padding=padding, kernel_initializer=kernel_initializer, **kwargs)
+        layers.Conv2D(out_channels, padding=padding, kernel_initializer=kernel_initializer, **kwargs)
     ]
 
     if bn:
