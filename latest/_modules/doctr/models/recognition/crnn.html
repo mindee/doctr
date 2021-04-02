@@ -288,7 +288,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">model_output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">model_output</span><span class="p">)</span>
         <span class="n">batch_len</span> <span class="o">=</span> <span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">input_length</span> <span class="o">=</span> <span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">batch_len</span><span class="p">))</span>
         <span class="n">ctc_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ctc_loss</span><span class="p">(</span>
