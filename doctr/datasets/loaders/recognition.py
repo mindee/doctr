@@ -18,7 +18,7 @@ class RecognitionDataGenerator(tf.keras.utils.Sequence):
 
     Args:
         input_size: size (h, w) for the images
-        images_path: path to the images folder
+        img_folder: path to the images folder
         labels_path: pathe to the json file containing all labels (character sequences)
         batch_size: batch size to train on
         suffle: if True, dataset is shuffled between each epoch
@@ -27,78 +27,64 @@ class RecognitionDataGenerator(tf.keras.utils.Sequence):
     def __init__(
         self,
         input_size: Tuple[int, int],
-        images_path: str,
+        img_folder: str,
         labels_path: str,
         batch_size: int = 64,
         shuffle: bool = True,
     ) -> None:
         self.input_size = input_size
         self.batch_size = batch_size
-        self.images_path = images_path
-        self.labels_path = labels_path
+        self.root = img_folder
         self.shuffle = shuffle
+
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        with open(labels_path) as f:
+            labels = json.load(f)
+        for img_path in os.listdir(self.root):
+            label = labels.get(img_path)
+            if not isinstance(label, str):
+                raise KeyError("Image is not in referenced in label file")
+            self.data.append((img_path, label))
         self.on_epoch_end()
 
     def __len__(self):
         # Denotes the number of batches per epoch
-        return int(np.ceil(len(os.listdir(self.images_path)) / self.batch_size))
+        return int(np.ceil(len(self.data) / self.batch_size))
 
     def on_epoch_end(self):
-        # Updates indexes after each epoch
-        self.indexes = np.arange(len(os.listdir(self.images_path)))
+        # Updates indices after each epoch
+        self.indices = np.arange(len(self.data))
         if self.shuffle is True:
-            np.random.shuffle(self.indexes)
+            np.random.shuffle(self.indices)
 
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    ) -> Tuple[tf.Tensor, List[str]]:
         # Get one batch of data
-        indexes = self.indexes[
-            index * self.batch_size:min(len(os.listdir(self.images_path)), (index + 1) * self.batch_size)
+        indices = self.indices[
+            index * self.batch_size:min(len(self.data), (index + 1) * self.batch_size)
         ]
         # Find list of paths
-        list_paths = [os.listdir(self.images_path)[k] for k in indexes]
+        samples = [self.data[k] for k in indices]
         # Generate data
-        return self.__data_generation(list_paths)
-
-    def load_annotation(
-        self,
-        img_name: str,
-    ) -> str:
-        """Loads recognition annotation (character sequence) for an image from a json file
-
-        Args:
-            labels_path: path to the json file containing annotations
-            img_name: name of the image to find the corresponding label
-
-        Returns:
-            A string (character sequence)
-        """
-        with open(self.labels_path) as f:
-            labels = json.load(f)
-
-        if img_name not in labels.keys():
-            raise AttributeError("Image is not in referenced in label file")
-
-        return labels[img_name]
+        return self.__data_generation(samples)
 
     def __data_generation(
         self,
-        list_paths: List[str],
+        samples: List[Tuple[str, str]],
     ) -> Tuple[tf.Tensor, List[str]]:
         # Init batch lists
-        batch_images, batch_gts, = [], []
-        for image_name in list_paths:
-            gt = self.load_annotation(image_name)
-            image = cv2.imread(os.path.join(self.images_path, image_name))
+        batch_images, batch_labels = [], []
+        for img_name, label in samples:
+            image = cv2.imread(os.path.join(self.root, img_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             # Cast, resize
             image = tf.cast(image, tf.float32)
             image = tf.image.resize(image, [*self.input_size], method='bilinear')
             # Batch
             batch_images.append(image)
-            batch_gts.append(gt)
+            batch_labels.append(label)
         batch_images = tf.stack(batch_images, axis=0)
 
-        return batch_images, batch_gts
+        return batch_images, batch_labels
