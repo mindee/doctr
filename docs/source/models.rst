@@ -30,8 +30,8 @@ Localizing text elements in images
    * - db_resnet50
      - (1024, 1024, 3)
      -
-     - 0.775
-     - 0.856
+     - 0.733
+     - 0.817
      -
 
 
@@ -92,11 +92,6 @@ Identifying strings in images
      -
      - 0.862
      -
-   * - crnn_resnet31
-     - (32, 128, 3)
-     -
-     - 0.863
-     -
    * - sar_resnet31
      - (32, 128, 3)
      -
@@ -155,26 +150,20 @@ Predictors that localize and identify text elements in images
    * - db_resnet50 + crnn_vgg16_bn
      - (1024, 1024, 3)
      -
-     - 0.652
-     - 0.721
+     - 0.629
+     - 0.701
      -
    * - db_resnet50 + sar_vgg16_bn
      - (1024, 1024, 3)
      -
-     - 0.653
-     - 0.721
-     -
-   * - db_resnet50 + crnn_resnet31
-     - (1024, 1024, 3)
-     -
-     - 0.665
-     - 0.735
+     - 0.630
+     - 0.702
      -
    * - db_resnet50 + sar_resnet31
      - (1024, 1024, 3)
      -
-     - 0.665
-     - 0.735
+     - 0.640
+     - 0.713
      -
    * - google vision
      - (1024, 1024, 3)
