@@ -37,6 +37,7 @@ class SROIE(VisionDataset):
     def __init__(
         self,
         train: bool = True,
+        input_size: Tuple[int, int],
         **kwargs: Any,
     ) -> None:
 
@@ -66,9 +67,22 @@ class SROIE(VisionDataset):
 
             self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
 
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
-        img_path, target = self.data[index]
+    def extra_repr(self) -> str:
+        return f"train={self.train}"
+
+    def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
+        img_name, target = self.data[index]
         # Read image
-        img = read_img(os.path.join(self.root, img_path))
+        img = tf.io.read_file(os.path.join(self.root, img_name))
+        img = tf.image.decode_jpeg(img, channels=3)
+        img = tf.image.resize(img, self.input_size, method='bilinear')
 
         return img, target
+
+    @staticmethod
+    def collate_fn(samples):
+
+        images, targets = zip(*samples)
+        images = tf.stack(images, axis=0)
+
+        return images, list(targets)
