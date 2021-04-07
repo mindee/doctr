@@ -3,7 +3,7 @@ import pytest
 import json
 import numpy as np
 
-from doctr.datasets import DataLoader, DetectionDataset
+from doctr.datasets.detection import DetectionDataset
 
 
 @pytest.fixture(scope="function")
@@ -41,24 +41,3 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert boxes.shape[0] == flags.shape[0]
 
     return ds
-
-
-def test_dataloader(test_detection_dataset):
-
-    loader = DataLoader(
-        test_detection_dataset,
-        shuffle=True,
-        batch_size=2,
-        drop_last=True,
-    )
-
-    ds_iter = iter(loader)
-    batch_images, batch_boxes, batch_flags = next(ds_iter)
-    assert isinstance(batch_images, tf.Tensor)
-    assert batch_images.shape[1] == batch_images.shape[2] == 1024
-    assert isinstance(batch_boxes, list) and isinstance(batch_flags, list)
-    assert all(isinstance(boxes, np.ndarray) and boxes.dtype == np.float32 for boxes in batch_boxes)
-    assert all(np.all(np.logical_and(boxes >= 0, boxes <= 1)) for boxes in batch_boxes)
-    assert all(boxes.shape[1] == 4 for boxes in batch_boxes)
-    assert all(isinstance(flags, np.ndarray) and flags.dtype == np.bool for flags in batch_flags)
-    assert all(boxes.shape[0] == flags.shape[0] for boxes, flags in zip(batch_boxes, batch_flags))
