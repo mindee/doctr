@@ -8,10 +8,12 @@ import json
 import tensorflow as tf
 from typing import Tuple, List
 
+from .core import AbstractDataset
+
 __all__ = ["RecognitionDataset"]
 
 
-class RecognitionDataset:
+class RecognitionDataset(AbstractDataset):
     """Data loader for recognition model
 
     Args:
@@ -24,9 +26,9 @@ class RecognitionDataset:
     """
     def __init__(
         self,
-        input_size: Tuple[int, int],
         img_folder: str,
         labels_path: str,
+        input_size: Tuple[int, int],
     ) -> None:
         self.input_size = input_size
         self.root = img_folder
@@ -39,9 +41,6 @@ class RecognitionDataset:
             if not isinstance(label, str):
                 raise KeyError("Image is not in referenced in label file")
             self.data.append((img_path, label))
-
-    def __len__(self):
-        return len(self.data)
 
     def __getitem__(
         self,

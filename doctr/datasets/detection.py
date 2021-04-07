@@ -10,15 +10,17 @@ import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Dict, Any
 
+from .core import AbstractDataset
+
 __all__ = ["DetectionDataset"]
 
 
-class DetectionDataset:
+class DetectionDataset(AbstractDataset):
     def __init__(
         self,
-        input_size: Tuple[int, int],
         img_folder: str,
         labels_path: str,
+        input_size: Tuple[int, int],
     ) -> None:
         self.input_size = input_size
         self.root = img_folder
@@ -35,9 +37,6 @@ class DetectionDataset:
             is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
 
             self.data.append((img_path, dict(boxes=bboxes, flags=np.asarray(is_ambiguous))))
-
-    def __len__(self):
-        return len(self.data)
 
     def __getitem__(
         self,
