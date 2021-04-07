@@ -21,7 +21,6 @@ def mock_detection_label(tmpdir_factory):
     return str(folder)
 
 
-@pytest.fixture(scope="function")
 def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     ds = DetectionDataset(
@@ -34,10 +33,11 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     img, boxes, flags = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape[:2] == (1024, 1024)
+    # Bounding boxes
     assert isinstance(boxes, np.ndarray) and boxes.dtype == np.float32
     assert np.all(np.logical_and(boxes >= 0, boxes <= 1))
     assert boxes.shape[1] == 4
+    # Flags
     assert isinstance(flags, np.ndarray) and flags.dtype == np.bool
+    # Cardinality consistency
     assert boxes.shape[0] == flags.shape[0]
-
-    return ds

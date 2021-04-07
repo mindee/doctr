@@ -3,8 +3,7 @@ import pytest
 import json
 import numpy as np
 
-from doctr.datasets import RecognitionDataGenerator
-# from doctr.datasets import DataLoader, DetectionDataset
+from doctr.datasets import RecognitionDataset
 
 
 @pytest.fixture(scope="function")
@@ -22,16 +21,14 @@ def mock_recognition_label(tmpdir_factory):
     return str(label_file)
 
 
-def test_recognition_core_generator(mock_image_folder, mock_recognition_label):
-    core_loader = RecognitionDataGenerator(
+def test_recognition_dataset(mock_image_folder, mock_recognition_label):
+    ds = RecognitionDataset(
         input_size=(32, 128),
         img_folder=mock_image_folder,
-        labels_path=mock_recognition_label,
-        batch_size=2,
+        labels_path=mock_recognition_label
     )
-    assert core_loader.__len__() == 3
-    for _, (images, labels) in enumerate(core_loader):
-        assert isinstance(images, tf.Tensor)
-        assert images.shape[1] == 32 and images.shape[2] == 128
-        assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
-        assert len(labels) == images.shape[0]
+    assert ds.__len__() == 5
+    image, label = ds[0]
+    assert isinstance(image, tf.Tensor)
+    assert image.shape[:2] == (32, 128)
+    assert isinstance(label, str)
