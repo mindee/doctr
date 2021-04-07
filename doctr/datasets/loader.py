@@ -13,9 +13,11 @@ __all__ = ["DataLoader"]
 
 def default_collate(samples):
 
-    images, targets = zip(*samples)
+    batch_data = zip(*samples)
 
-    return tf.stack(images, axis=0), tf.stack(targets, axis=0)
+    tf_data = tuple(tf.stack(elt, axis=0) for elt in batch_data)
+
+    return tf_data
 
 
 class DataLoader:
