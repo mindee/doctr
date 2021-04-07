@@ -231,7 +231,7 @@
         <span class="s1">&#39;fpn_channels&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;DBPostProcessor&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.0/db_resnet50-091c08a5.zip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/db_resnet50-98ba765d.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -383,6 +383,9 @@
         <span class="k">for</span> <span class="n">p_</span><span class="p">,</span> <span class="n">bitmap_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">bitmap</span><span class="p">):</span>
             <span class="n">p_</span> <span class="o">=</span> <span class="n">p_</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
             <span class="n">bitmap_</span> <span class="o">=</span> <span class="n">bitmap_</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="c1"># perform opening (erosion + dilatation)</span>
+            <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <span class="n">bitmap_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">morphologyEx</span><span class="p">(</span><span class="n">bitmap_</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">MORPH_OPEN</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
             <span class="n">boxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitmap_to_boxes</span><span class="p">(</span><span class="n">pred</span><span class="o">=</span><span class="n">p_</span><span class="p">,</span> <span class="n">bitmap</span><span class="o">=</span><span class="n">bitmap_</span><span class="p">)</span>
             <span class="n">boxes_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>
 

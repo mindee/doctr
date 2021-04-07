@@ -17,28 +17,18 @@ Text Detection
 --------------
 Localizing text elements in images
 
-.. list-table:: Text detection model zoo
-   :widths: 20 20 15 10 10 10
-   :header-rows: 1
++---------------------------------------------------+----------------------------+----------------------------+---------+
+|                                                   |        FUNSD               |        CORD                |         |
++==================+=================+==============+============+===============+============+===============+=========+
+| **Architecture** | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
++------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| db_resnet50      | (1024, 1024, 3) |              |   0.733    |     0.817     |   0.745    |     0.875     |         |
++------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
-   * - Architecture
-     - Input shape
-     - # params
-     - Recall
-     - Precision
-     - FPS
-   * - db_resnet50
-     - (1024, 1024, 3)
-     -
-     - 0.775
-     - 0.856
-     -
-
-
-All text detection models above have been evaluated using both the training and evaluation sets of FUNSD (cf. :ref:`datasets`).
+All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-*Disclaimer: both subsets combine have 199 pages which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
 Pre-processing for detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,39 +64,38 @@ Text Recognition
 Identifying strings in images
 
 .. list-table:: Text recognition model zoo
-   :widths: 20 20 15 10 10
+   :widths: 20 20 15 10 10 10
    :header-rows: 1
 
    * - Architecture
      - Input shape
      - # params
-     - Accuracy
+     - FUNSD
+     - CORD
      - FPS
    * - crnn_vgg16_bn
      - (32, 128, 3)
      -
      - 0.860
+     - 0.913
      -
    * - sar_vgg16_bn
      - (32, 128, 3)
      -
      - 0.862
-     -
-   * - crnn_resnet31
-     - (32, 128, 3)
-     -
-     - 0.863
+     - 0.917
      -
    * - sar_resnet31
      - (32, 128, 3)
      -
-     - 0.863
+     - **0.863**
+     - **0.921**
      -
 
-All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD (cf. :ref:`datasets`).
+All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-*Disclaimer: both subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
 
 Pre-processing for recognition
@@ -142,57 +131,26 @@ End-to-End OCR
 --------------
 Predictors that localize and identify text elements in images
 
-.. list-table:: end-to-end model zoo
-   :widths: 20 20 15 10 10 10
-   :header-rows: 1
++--------------------------------------------------------------+----------------------------+----------------------------+---------+
+|                                                              |        FUNSD               |        CORD                |         |
++=============================+=================+==============+============+===============+============+===============+=========+
+|      **Architecture**       | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
++-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| db_resnet50 + crnn_vgg16_bn | (1024, 1024, 3) |              |   0.629    |     0.701     |    0.664   |     0.780     |         |
++-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| db_resnet50 + sar_vgg16_bn  | (1024, 1024, 3) |              |   0.630    |     0.702     |    0.666   |     0.783     |         |
++-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| db_resnet50 + sar_resnet31  | (1024, 1024, 3) |              |   0.640    |     0.713     |    0.672   |   **0.789**   |         |
++-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| google vision               |                 |              |   0.595    |     0.625     |    N/A     |     N/A       |         |
++-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| aws textract                |                 |              | **0.781**  |   **0.830**   |    N/A     |     N/A       |         |
++-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
-   * - Architecture
-     - Input shape
-     - # params
-     - Recall
-     - Precision
-     - FPS
-   * - db_resnet50 + crnn_vgg16_bn
-     - (1024, 1024, 3)
-     -
-     - 0.652
-     - 0.721
-     -
-   * - db_resnet50 + sar_vgg16_bn
-     - (1024, 1024, 3)
-     -
-     - 0.653
-     - 0.721
-     -
-   * - db_resnet50 + crnn_resnet31
-     - (1024, 1024, 3)
-     -
-     - 0.665
-     - 0.735
-     -
-   * - db_resnet50 + sar_resnet31
-     - (1024, 1024, 3)
-     -
-     - 0.665
-     - 0.735
-     -
-   * - google vision
-     - (1024, 1024, 3)
-     -
-     - 0.595
-     - 0.625
-     -
-   * - aws textract
-     - (1024, 1024, 3)
-     -
-     - 0.781
-     - 0.830
-     -
-
-All OCR models above have been evaluated using both the training and evaluation sets of FUNSD (cf. :ref:`datasets`).
+All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-*Disclaimer: both subsets combine have 199 pages which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
 
 Two-stage approaches
