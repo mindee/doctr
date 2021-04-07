@@ -142,12 +142,12 @@ Predictors that localize and identify text elements in images
 +-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 | db_resnet50 + sar_resnet31  | (1024, 1024, 3) |              |   0.640    |     0.713     |    0.672   |   **0.789**   |         |
 +-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| google vision               |                 |              |   0.595    |     0.625     |    0       |     0         |         |
+| google vision               |                 |              |   0.595    |     0.625     |    N/A     |     N/A       |         |
 +-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| aws textract                |                 |              | **0.781**  |   **0.830**   |    0       |     0         |         |
+| aws textract                |                 |              | **0.781**  |   **0.830**   |    N/A     |     N/A       |         |
 +-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
-All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD(cf. :ref:`datasets`).
+All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
