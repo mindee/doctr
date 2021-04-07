@@ -55,6 +55,7 @@ def test_dataloader():
         batch_size=2,
         drop_last=False,
     )
+    ds_iter = iter(loader)
     num_batches = 0
     for x, y in ds_iter:
         num_batches += 1
