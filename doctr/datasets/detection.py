@@ -5,7 +5,6 @@
 
 import os
 import json
-import cv2
 import math
 import tensorflow as tf
 import numpy as np
@@ -38,7 +37,6 @@ class DetectionDataset:
             self.data.append((img_path, dict(boxes=bboxes, flags=np.asarray(is_ambiguous))))
 
     def __len__(self):
-        # Denotes the number of batches per epoch
         return len(self.data)
 
     def __getitem__(
@@ -58,3 +56,11 @@ class DetectionDataset:
         boxes[..., [1, 3]] /= h
 
         return img, boxes, target['flags']
+
+    @staticmethod
+    def collate_fn(samples):
+
+        images, boxes, flags = zip(*samples)
+        images = tf.stack(images, axis=0)
+
+        return images, list(boxes), list(flags)
