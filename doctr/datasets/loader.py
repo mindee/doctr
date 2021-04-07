@@ -31,7 +31,8 @@ class DataLoader:
         self.dataset = dataset
         self.shuffle = shuffle
         self.batch_size = batch_size
-        self.num_batches = math.floor(len(self.dataset) / batch_size) if drop_last else math.ceil(len(self.dataset) / batch_size)
+        nb = len(self.dataset) / batch_size
+        self.num_batches = math.floor(nb) if drop_last else math.ceil(nb)
         self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
         self.reset()
 
@@ -49,7 +50,8 @@ class DataLoader:
     def __next__(self):
         if self._num_yielded < self.num_batches:
             # Get next indices
-            indices = self.indices[self._num_yielded * self.batch_size: min(len(self.dataset), (self._num_yielded + 1) * self.batch_size)]
+            idx = self._num_yielded * self.batch_size
+            indices = self.indices[idx: min(len(self.dataset), idx + self.batch_size)]
 
             samples = map(self.dataset.__getitem__, indices)
 
