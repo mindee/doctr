@@ -47,7 +47,7 @@ class DataLoader:
         return self
 
     def __next__(self):
-        if self._num_yielded <= self.num_batches:
+        if self._num_yielded < self.num_batches:
             # Get next indices
             indices = self.indices[self._num_yielded * self.batch_size: min(len(self.dataset), (self._num_yielded + 1) * self.batch_size)]
 
