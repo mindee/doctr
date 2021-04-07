@@ -96,6 +96,7 @@ def test_db_resnet50_training_mode():
     "arch_name, input_shape, output_size, out_prob",
     [
         ["db_resnet50", (1024, 1024, 3), (1024, 1024, 1), True],
+        ["linknet", (1024, 1024, 3), (1024, 1024, 1), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):

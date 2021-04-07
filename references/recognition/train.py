@@ -19,16 +19,16 @@ def main(args):
 
     # Load both train and val data generators
     train_dataset = RecognitionDataGenerator(
-        input_size=(args.input_size, args.input_size),
+        input_size=(args.input_size, 4 * args.input_size),
         batch_size=args.batch_size,
-        images_path=os.path.join(args.data_path, 'train'),
+        img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels.json')
     )
 
     val_dataset = RecognitionDataGenerator(
-        input_size=(args.input_size, args.input_size),
+        input_size=(args.input_size, 4 * args.input_size),
         batch_size=args.batch_size,
-        images_path=os.path.join(args.data_path, 'val'),
+        img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels.json')
     )
 
@@ -52,7 +52,7 @@ def main(args):
     MEAN_RGB = (0.694, 0.695, 0.693)
     STD_RGB = (0.299, 0.296, 0.301)
     preprocessor = RecognitionPreProcessor(
-        output_size=(args.input_size, args.input_size),
+        output_size=(args.input_size, 4 * args.input_size),
         batch_size=args.batch_size,
         mean=MEAN_RGB,
         std=STD_RGB
