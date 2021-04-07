@@ -4,3 +4,4 @@ from .loaders import *
 from .funsd import *
 from .sroie import *
 from .loader import *
+from .detection import *
