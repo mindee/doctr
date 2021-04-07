@@ -31,7 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'post_processor': 'DBPostProcessor',
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/db_resnet50-091c08a5.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.1/db_resnet50-98ba765d.zip',
     },
 }
 
@@ -183,6 +183,9 @@ class DBPostProcessor(DetectionPostProcessor):
         for p_, bitmap_ in zip(p, bitmap):
             p_ = p_.numpy()
             bitmap_ = bitmap_.numpy()
+            # perform opening (erosion + dilatation)
+            kernel = np.ones((3, 3), np.uint8)
+            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
             boxes_batch.append(boxes)
 
