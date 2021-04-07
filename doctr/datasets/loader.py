@@ -12,6 +12,14 @@ __all__ = ["DataLoader"]
 
 
 def default_collate(samples):
+    """Collate multiple elements into batches
+
+    Args:
+        samples: list of N tuples containing M elements
+
+    Returns:
+        Tuple of M sequences contianing N elements each
+    """
 
     batch_data = zip(*samples)
 
@@ -21,6 +29,22 @@ def default_collate(samples):
 
 
 class DataLoader:
+    """Implements a dataset wrapper for fast data loading
+
+    Example::
+        >>> from doctr.datasets import FUNSD, DataLoader
+        >>> train_set = CORD(train=True, download=True)
+        >>> train_loader = DataLoader(train_set, batch_size=32)
+        >>> train_iter = iter(train_loader)
+        >>> images, targets = next(train_iter)
+
+    Args:
+        dataset: the dataset
+        shuffle: whether the samples should be shuffled before passing it to the iterator
+        batch_size: number of elements in each batch
+        drop_last: if `True`, drops the last batch if it isn't full
+    """
+
     def __init__(
         self,
         dataset,
