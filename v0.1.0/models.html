@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>doctr.models &mdash; doctr 0.1.2a0-git documentation</title>
@@ -81,7 +82,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <p><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
@@ -90,7 +91,7 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Package Documentation</span></p>
+<p><span class="caption-text">Package Documentation</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a></li>
@@ -187,7 +188,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="doctr-models">
+  <section id="doctr-models">
 <h1>doctr.models<a class="headerlink" href="#doctr-models" title="Permalink to this headline">¶</a></h1>
 <p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
@@ -197,7 +198,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <li><p>Model: a deep learning model, implemented with TensorFlow backend.</p></li>
 <li><p>PostProcessor: making model outputs structured and reusable.</p></li>
 </ul>
-<div class="section" id="text-detection">
+<section id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
 <p>Localizing text elements in images</p>
 <table class="colwidths-given docutils align-default" id="id2">
@@ -229,7 +230,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </tr>
 </tbody>
 </table>
-<div class="section" id="pre-processing-for-detection">
+<section id="pre-processing-for-detection">
 <h3>Pre-processing for detection<a class="headerlink" href="#pre-processing-for-detection" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for detection is the following:</p>
 <ol class="arabic simple">
@@ -237,8 +238,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <li><p>batch images together</p></li>
 <li><p>normalize the batch using the training data statistics</p></li>
 </ol>
-</div>
-<div class="section" id="detection-models">
+</section>
+<section id="detection-models">
 <h3>Detection models<a class="headerlink" href="#detection-models" title="Permalink to this headline">¶</a></h3>
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
@@ -265,12 +266,12 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="post-processing-outputs">
+</section>
+<section id="post-processing-outputs">
 <h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">¶</a></h3>
 <p>The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.</p>
-</div>
-<div class="section" id="detection-predictors">
+</section>
+<section id="detection-predictors">
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this headline">¶</a></h3>
 <p>Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.</p>
 <dl class="py function">
@@ -297,9 +298,9 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="text-recognition">
+</section>
+</section>
+<section id="text-recognition">
 <h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this headline">¶</a></h2>
 <p>Identifying strings in images</p>
 <table class="colwidths-given docutils align-default" id="id3">
@@ -334,7 +335,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </tr>
 </tbody>
 </table>
-<div class="section" id="pre-processing-for-recognition">
+<section id="pre-processing-for-recognition">
 <h3>Pre-processing for recognition<a class="headerlink" href="#pre-processing-for-recognition" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for recognition is the following:</p>
 <ol class="arabic simple">
@@ -343,8 +344,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <li><p>batch images together</p></li>
 <li><p>normalize the batch using the training data statistics</p></li>
 </ol>
-</div>
-<div class="section" id="recognition-models">
+</section>
+<section id="recognition-models">
 <h3>Recognition models<a class="headerlink" href="#recognition-models" title="Permalink to this headline">¶</a></h3>
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
@@ -397,12 +398,12 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="id1">
+</section>
+<section id="id1">
 <h3>Post-processing outputs<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>The purpose of this block is to turn the model output (symbol classification for the sequence), into a set of strings.</p>
-</div>
-<div class="section" id="recognition-predictors">
+</section>
+<section id="recognition-predictors">
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this headline">¶</a></h3>
 <p>Combining the right components around a given architecture for easier usage.</p>
 <dl class="py function">
@@ -453,12 +454,12 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="end-to-end-ocr">
+</section>
+</section>
+<section id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this headline">¶</a></h2>
 <p>Predictors that localize and identify text elements in images</p>
-<div class="section" id="two-stage-approaches">
+<section id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">¶</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>
 <dl class="py function">
@@ -486,9 +487,9 @@ backbone as text recognition architecture.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="model-export">
+</section>
+</section>
+<section id="model-export">
 <h2>Model export<a class="headerlink" href="#model-export" title="Permalink to this headline">¶</a></h2>
 <p>Utility functions to make the most of document analysis models.</p>
 <dl class="py function">
@@ -572,8 +573,8 @@ backbone as text recognition architecture.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
