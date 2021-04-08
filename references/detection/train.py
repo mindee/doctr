@@ -11,25 +11,25 @@ from collections import deque
 
 from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
-from doctr.datasets import DetectionDataGenerator
+from doctr.datasets import DetectionDataset, DataLoader
 
 
 def main(args):
 
     # Load both train and val data generators
-    train_dataset = DetectionDataGenerator(
+    train_set = DetectionDataset(
         input_size=(args.input_size, args.input_size),
-        batch_size=args.batch_size,
         img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels')
     )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True)
 
-    val_dataset = DetectionDataGenerator(
+    val_set = DetectionDataset(
         input_size=(args.input_size, args.input_size),
-        batch_size=args.batch_size,
         img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels')
     )
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False)
 
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
@@ -65,7 +65,9 @@ def main(args):
 
     def train_step(x):
         with tf.GradientTape() as tape:
-            images, boxes, to_masks = x
+            images, targets = x
+            boxes = [target['boxes'] for target in targets]
+            to_masks = [target['flags'] for target in targets]
             images = preprocessor(images)
             model_output = model(images, training=True)
             train_loss = model.compute_loss(model_output, gts, masks)
@@ -74,7 +76,9 @@ def main(args):
         return train_loss
 
     def test_step(x):
-        images, boxes, to_masks = x
+        images, targets = x
+        boxes = [target['boxes'] for target in targets]
+        to_masks = [target['flags'] for target in targets]
         images = preprocessor(images)
         # If we want to compute val loss, we need to pass training=True to have a thresh_map
         model_output = model(images, training=True)
@@ -95,8 +99,10 @@ def main(args):
 
     # Training loop
     for _ in range(args.epochs):
+        train_iter = iter(train_loader)
         # Iterate over the batches of the dataset
-        for batch_step, batch in enumerate(train_dataset):
+        for batch_step in range(train_loader.num_batches):
+            batch = next(train_iter)
             train_loss = train_step(batch)
             # Update steps
             step.assign_add(args.batch_size)
@@ -112,7 +118,8 @@ def main(args):
 
         # Validation loop at the end of each epoch
         loss_val = []
-        for batch in val_dataset:
+        val_iter = iter(val_loader)
+        for batch in val_iter:
             val_loss = test_step(batch)
             loss_val.append(np.mean(val_loss))
         mean_loss = sum(loss_val) / len(loss_val)

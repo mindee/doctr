@@ -10,10 +10,28 @@ from typing import List, Any, Optional
 
 from doctr.models.utils import download_from_url
 
-__all__ = ['VisionDataset']
+
+__all__ = ['AbstractDataset', 'VisionDataset']
 
 
-class VisionDataset:
+class AbstractDataset:
+
+    data: List[Any] = []
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index: int) -> Any:
+        raise NotImplementedError
+
+    def extra_repr(self) -> str:
+        return ""
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.extra_repr()})"
+
+
+class VisionDataset(AbstractDataset):
     """Implements an abstract dataset
 
     Args:
@@ -57,12 +75,3 @@ class VisionDataset:
         # List images
         self._root = dataset_path if extract_archive else archive_path
         self.data: List[Any] = []
-
-    def __getitem__(self, index: int) -> Any:
-        return NotImplementedError
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
-
-    def __len__(self) -> int:
-        return len(self.data)
