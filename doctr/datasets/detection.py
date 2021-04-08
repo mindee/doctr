@@ -41,7 +41,7 @@ class DetectionDataset(AbstractDataset):
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, List[np.ndarray], List[np.ndarray]]:
+    ) -> Tuple[tf.Tensor, Dict[str, np.ndarray]]:
 
         img_name, target = self.data[index]
         img = tf.io.read_file(os.path.join(self.root, img_name))
@@ -53,13 +53,17 @@ class DetectionDataset(AbstractDataset):
         boxes = target['boxes']
         boxes[..., [0, 2]] /= w
         boxes[..., [1, 3]] /= h
+        target['boxes'] = boxes
 
-        return img, boxes, target['flags']
+        return img, target
+
+    def extra_repr(self) -> str:
+        return f"input_size={self.input_size}"
 
     @staticmethod
-    def collate_fn(samples):
+    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, np.ndarray]]]) -> Tuple[tf.Tensor, List[Dict[str, np.ndarray]]]:
 
-        images, boxes, flags = zip(*samples)
+        images, targets = zip(*samples)
         images = tf.stack(images, axis=0)
 
-        return images, list(boxes), list(flags)
+        return images, list(targets)
