@@ -7,8 +7,10 @@
 
 from copy import deepcopy
 import tensorflow as tf
+import numpy as np
+import cv2
 from tensorflow.keras import layers, Sequential
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, List
 
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
@@ -135,7 +137,83 @@ class LinkNet(Sequential, NestedObject):
                 kernel_initializer='he_normal'
             )
         )
+        _layers.append(layers.Activation('sigmoid'))
         super().__init__(_layers)
+
+        self.min_size_box = 3
+
+    def compute_loss(
+        self,
+        model_output: Dict[str, tf.Tensor],
+        batch_polys: List[List[List[List[float]]]],
+        to_masks: List[List[bool]]
+    ) -> tf.Tensor:
+        """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
+        Then, it computes the loss function with proba_map, gts and masks
+
+        Args:
+            model_output: dictionary containing the output of the model
+            batch_polys: list of boxes for each image of the batch
+            to_masks: list of boxes to mask for each image of the batch
+
+        Returns:
+            A loss tensor
+        """
+        # Get model output
+        proba_map = model_output["proba_map"]
+        batch_size, h, w, _ = proba_map.shape
+
+        # Compute masks and gts
+        batch_gts, batch_masks = [], []
+        for batch_idx in range(batch_size):
+            # Initialize mask and gt
+            gt = np.zeros((h, w), dtype=np.float32)
+            mask = np.ones((h, w), dtype=np.float32)
+
+            # Draw each polygon on gt
+            if batch_polys[batch_idx] == to_masks[batch_idx] == []:
+                # Empty image, full masked
+                mask = np.zeros((h, w), dtype=np.float32)
+            for poly, to_mask in zip(batch_polys[batch_idx], to_masks[batch_idx]):
+                # Convert polygon to absolute polygon and to np array
+                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
+                poly = np.array(poly)
+                if to_mask is True:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                height = max(poly[:, 1]) - min(poly[:, 1])
+                width = max(poly[:, 0]) - min(poly[:, 0])
+                if min(height, width) < self.min_size_box:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                # Fill polygon with 1
+                cv2.fillPoly(gt, [poly.astype(np.int32)], 1)
+
+            # Cast
+            gts = tf.convert_to_tensor(gt, tf.float32)
+            masks = tf.convert_to_tensor(mask, tf.float32)
+
+            # Batch
+            batch_gts.append(gts)
+            batch_masks.append(masks)
+
+        # Stack
+        gts = tf.stack(batch_gts, axis=0)
+        masks = tf.stack(batch_masks, axis=0)
+
+        proba_map = tf.squeeze(proba_map, axis=[-1])
+
+        # Compute BCE loss
+        bce_loss = tf.keras.losses.binary_crossentropy(gts * mask, proba_map * masks)
+
+        return bce_loss
+
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
+    ) -> Dict[str, tf.Tensor]:
+        return dict(proba_map=Sequential(self._layers)(x))
 
 
 def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> LinkNet:
