@@ -67,10 +67,10 @@ def main(args):
         with tf.GradientTape() as tape:
             images, targets = x
             boxes = [target['boxes'] for target in targets]
-            to_masks = [target['flags'] for target in targets]
+            flags = [target['flags'] for target in targets]
             images = preprocessor(images)
             model_output = model(images, training=True)
-            train_loss = model.compute_loss(model_output, boxes, to_masks)
+            train_loss = model.compute_loss(model_output, boxes, flags)
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
@@ -78,11 +78,11 @@ def main(args):
     def test_step(x):
         images, targets = x
         boxes = [target['boxes'] for target in targets]
-        to_masks = [target['flags'] for target in targets]
+        flags = [target['flags'] for target in targets]
         images = preprocessor(images)
         # If we want to compute val loss, we need to pass training=True to have a thresh_map
         model_output = model(images, training=True)
-        val_loss = model.compute_loss(model_output, boxes, to_masks)
+        val_loss = model.compute_loss(model_output, boxes, flags)
         decoded = postprocessor(model_output)
         # Compute metric
         for boxes_gt, boxes_pred in zip(boxes, decoded):

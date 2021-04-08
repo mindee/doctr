@@ -169,19 +169,19 @@ def test_detection_zoo_error():
         "linknet"
     ],
 )
-def test_compute_target_linknet(arch_name):
+def test_compute_detection_loss(arch_name):
     polys = [
         [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
         [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
         []
     ]
-    to_masks = [[True, False], [True, False], []]
+    flags = [[True, False], [True, False], []]
     model = detection.__dict__[arch_name](pretrained=True)
     model_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
     output = model(model_input, training=True)
     loss = model.compute_loss(
         model_output=output,
         batch_polys=polys,
-        to_masks=to_masks,
+        batch_flags=flags,
     )
     assert isinstance(loss, tf.Tensor)

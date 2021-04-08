@@ -146,15 +146,15 @@ class LinkNet(Sequential, NestedObject):
         self,
         model_output: Dict[str, tf.Tensor],
         batch_polys: List[List[List[List[float]]]],
-        to_masks: List[List[bool]]
+        batch_flags: List[List[bool]]
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
         Then, it computes the loss function with proba_map, gts and masks
 
         Args:
-            model_output: dictionary containing the output of the model
+            model_output: dictionary containing the output of the model, proba_map, shape: N x H x W x C
             batch_polys: list of boxes for each image of the batch
-            to_masks: list of boxes to mask for each image of the batch
+            batch_flags: list of boxes to mask for each image of the batch
 
         Returns:
             A loss tensor
@@ -171,14 +171,14 @@ class LinkNet(Sequential, NestedObject):
             mask = np.ones((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            if batch_polys[batch_idx] == to_masks[batch_idx] == []:
+            if batch_polys[batch_idx] == batch_flags[batch_idx] == []:
                 # Empty image, full masked
                 mask = np.zeros((h, w), dtype=np.float32)
-            for poly, to_mask in zip(batch_polys[batch_idx], to_masks[batch_idx]):
+            for poly, flag in zip(batch_polys[batch_idx], batch_flags[batch_idx]):
                 # Convert polygon to absolute polygon and to np array
                 poly = [[int(w * x), int(h * y)] for [x, y] in poly]
                 poly = np.array(poly)
-                if to_mask is True:
+                if flag is True:
                     cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
                     continue
                 height = max(poly[:, 1]) - min(poly[:, 1])
