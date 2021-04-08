@@ -43,6 +43,7 @@ class FUNSD(VisionDataset):
 
         super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
         self.input_size = input_size
+        self.train = train
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
@@ -63,7 +64,7 @@ class FUNSD(VisionDataset):
             self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
 
     def extra_repr(self) -> str:
-        return f"train={self.train}"
+        return f"train={self.train}, input_size={self.input_size}"
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]

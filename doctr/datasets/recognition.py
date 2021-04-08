@@ -54,6 +54,9 @@ class RecognitionDataset(AbstractDataset):
 
         return img, label
 
+    def extra_repr(self) -> str:
+        return f"input_size={self.input_size}"
+
     @staticmethod
     def collate_fn(samples):
 

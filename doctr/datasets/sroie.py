@@ -45,6 +45,7 @@ class SROIE(VisionDataset):
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
         self.input_size = input_size
+        self.train = train
 
         # # List images
         self.root = os.path.join(self._root, 'images')
@@ -70,7 +71,7 @@ class SROIE(VisionDataset):
             self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
 
     def extra_repr(self) -> str:
-        return f"train={self.train}"
+        return f"train={self.train}, input_size={self.input_size}"
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]

@@ -48,6 +48,7 @@ class CORD(VisionDataset):
         # # List images
         self.root = os.path.join(self._root, 'image')
         self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
+        self.train = train
         self.input_size = input_size
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
@@ -69,7 +70,7 @@ class CORD(VisionDataset):
             self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
 
     def extra_repr(self) -> str:
-        return f"train={self.train}"
+        return f"train={self.train}, input_size={self.input_size}"
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
