@@ -70,7 +70,7 @@ def main(args):
             to_masks = [target['flags'] for target in targets]
             images = preprocessor(images)
             model_output = model(images, training=True)
-            train_loss = model.compute_loss(model_output, gts, masks)
+            train_loss = model.compute_loss(model_output, boxes, to_masks)
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
@@ -82,7 +82,7 @@ def main(args):
         images = preprocessor(images)
         # If we want to compute val loss, we need to pass training=True to have a thresh_map
         model_output = model(images, training=True)
-        val_loss = model.compute_loss(model_output, gts, masks)
+        val_loss = model.compute_loss(model_output, boxes, to_masks)
         decoded = postprocessor(model_output)
         # Compute metric
         for boxes_gt, boxes_pred in zip(boxes, decoded):
