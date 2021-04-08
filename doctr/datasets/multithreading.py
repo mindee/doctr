@@ -12,7 +12,7 @@ from typing import Callable, Any, Optional, Iterable
 __all__ = ['multithread_exec']
 
 
-def multithread_exec(func: Callable[[Any], Any], iter: Iterable[Any], threads: Optional[int] = None) -> Iterable[Any]:
+def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterable[Any]:
     """Download a file accessible via URL with mutiple retries
 
     Example::
@@ -22,7 +22,7 @@ def multithread_exec(func: Callable[[Any], Any], iter: Iterable[Any], threads: O
 
     Args:
         func: function to be executed on each element of the iterable
-        iter: iterable
+        seq: iterable
         threads: number of workers to be used for multiprocessing
 
     Returns:
@@ -32,9 +32,9 @@ def multithread_exec(func: Callable[[Any], Any], iter: Iterable[Any], threads: O
     threads = threads if isinstance(threads, int) else min(16, mp.cpu_count())
     # Single-thread
     if threads < 2:
-        results = map(func, iter)
+        results = map(func, seq)
     # Multi-threading
     else:
         with ThreadPool(threads) as tp:
-            results = tp.map(func, iter)
+            results = tp.map(func, seq)
     return results
