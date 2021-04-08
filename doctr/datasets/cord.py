@@ -7,7 +7,8 @@ import os
 import json
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
+import tensorflow as tf
 
 from doctr.documents.reader import read_img
 from .core import VisionDataset
@@ -36,8 +37,8 @@ class CORD(VisionDataset):
 
     def __init__(
         self,
-        train: bool = True,
         input_size: Tuple[int, int],
+        train: bool = True,
         **kwargs: Any,
     ) -> None:
 
@@ -47,6 +48,7 @@ class CORD(VisionDataset):
         # # List images
         self.root = os.path.join(self._root, 'image')
         self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
+        self.input_size = input_size
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
             _targets = []
@@ -79,7 +81,7 @@ class CORD(VisionDataset):
         return img, target
 
     @staticmethod
-    def collate_fn(samples):
+    def collate_fn(samples: List[Tuple[Any, ...]]) -> Tuple[Any, ...]:
 
         images, targets = zip(*samples)
         images = tf.stack(images, axis=0)

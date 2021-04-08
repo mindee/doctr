@@ -7,7 +7,8 @@ import os
 import csv
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
+import tensorflow as tf
 
 from doctr.documents.reader import read_img
 from .core import VisionDataset
@@ -36,13 +37,14 @@ class SROIE(VisionDataset):
 
     def __init__(
         self,
-        train: bool = True,
         input_size: Tuple[int, int],
+        train: bool = True,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
+        self.input_size = input_size
 
         # # List images
         self.root = os.path.join(self._root, 'images')

@@ -7,7 +7,8 @@ import os
 import json
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
+import tensorflow as tf
 
 from doctr.documents.reader import read_img
 from .core import VisionDataset
@@ -36,11 +37,12 @@ class FUNSD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        input_size: Tuple[int, int],
+        input_size: Optional[Tuple[int, int]] = None,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
+        self.input_size = input_size
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
