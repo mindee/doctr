@@ -75,12 +75,3 @@ class VisionDataset(AbstractDataset):
         # List images
         self._root = dataset_path if extract_archive else archive_path
         self.data: List[Any] = []
-
-    # @staticmethod
-    # def collate_fn(samples):
-
-    #     images, targets = zip(*samples)
-    #     images = tf.stack(images, axis=0)
-
-    #     return images, list(targets)
-
