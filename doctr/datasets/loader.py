@@ -6,7 +6,9 @@
 import math
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional
+
+from .multithreading import multithread_exec
 
 __all__ = ["DataLoader"]
 
@@ -43,6 +45,7 @@ class DataLoader:
         shuffle: whether the samples should be shuffled before passing it to the iterator
         batch_size: number of elements in each batch
         drop_last: if `True`, drops the last batch if it isn't full
+        workers: number of workers to use for data loading
     """
 
     def __init__(
@@ -51,6 +54,7 @@ class DataLoader:
         shuffle: bool = True,
         batch_size: int = 1,
         drop_last: bool = False,
+        workers: Optional[int] = None,
     ) -> None:
         self.dataset = dataset
         self.shuffle = shuffle
@@ -58,6 +62,7 @@ class DataLoader:
         nb = len(self.dataset) / batch_size
         self.num_batches = math.floor(nb) if drop_last else math.ceil(nb)
         self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
+        self.workers = workers
         self.reset()
 
     def reset(self) -> None:
@@ -77,7 +82,7 @@ class DataLoader:
             idx = self._num_yielded * self.batch_size
             indices = self.indices[idx: min(len(self.dataset), idx + self.batch_size)]
 
-            samples = map(self.dataset.__getitem__, indices)
+            samples = multithread_exec(self.dataset.__getitem__, indices, threads=self.workers)
 
             batch_data = self.collate_fn(samples)
 
