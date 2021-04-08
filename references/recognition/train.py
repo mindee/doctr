@@ -117,7 +117,8 @@ def main(args):
 
         # Validation loop at the end of each epoch
         loss_val = []
-        for x_batch_val, y_batch_val in val_dataset:
+        val_iter = iter(val_loader)
+        for x_batch_val, y_batch_val in val_iter:
             val_loss = test_step(x_batch_val, y_batch_val)
             loss_val.append(np.mean(val_loss))
         mean_loss = sum(loss_val) / len(loss_val)
