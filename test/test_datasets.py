@@ -1,5 +1,7 @@
 import pytest
 import numpy as np
+import tensorflow as tf
+
 from doctr import datasets
 
 
@@ -24,9 +26,9 @@ def test_visiondataset():
         ['CORD', False, [512, 512], 100],
     ],
 )
-def test_dataset(dataset_name, train, size):
+def test_dataset(dataset_name, train, input_size, size):
 
-    ds = datasets.__dict__[dataset_name](train=train, download=True)
+    ds = datasets.__dict__[dataset_name](train=train, download=True, input_size=input_size)
 
     assert len(ds) == size
     assert repr(ds) == f"{dataset_name}(train={train}, input_size={input_size})"
