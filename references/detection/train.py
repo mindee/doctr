@@ -105,7 +105,8 @@ def main(args):
     for _ in range(args.epochs):
         train_iter = iter(train_loader)
         # Iterate over the batches of the dataset
-        for batch_step, batch in enumerate(train_iter):
+        for batch_step in range(train_loader.num_batches):
+            batch = next(train_iter)
             train_loss = train_step(batch)
             # Update steps
             step.assign_add(args.batch_size)

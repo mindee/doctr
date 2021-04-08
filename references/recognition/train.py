@@ -12,25 +12,25 @@ from collections import deque
 
 from doctr.models import recognition, RecognitionPreProcessor
 from doctr.utils import metrics
-from doctr.datasets import RecognitionDataGenerator, VOCABS
+from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
 
 
 def main(args):
 
     # Load both train and val data generators
-    train_dataset = RecognitionDataGenerator(
+    train_set = RecognitionDataGenerator(
         input_size=(args.input_size, 4 * args.input_size),
-        batch_size=args.batch_size,
         img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels.json')
     )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True)
 
-    val_dataset = RecognitionDataGenerator(
+    val_set = RecognitionDataGenerator(
         input_size=(args.input_size, 4 * args.input_size),
-        batch_size=args.batch_size,
         img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels.json')
     )
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False)
 
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
@@ -98,8 +98,10 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
+        train_iter = iter(train_loader)
         # Iterate over the batches of the dataset
-        for batch_step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+        for batch_step in range(train_loader.num_batches):
+            x_batch_train, y_batch_train = next(train_iter)
             train_loss = train_step(x_batch_train, y_batch_train)
             # Update steps
             step.assign_add(args.batch_size)
