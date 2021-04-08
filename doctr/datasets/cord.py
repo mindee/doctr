@@ -47,7 +47,7 @@ class CORD(VisionDataset):
 
         # # List images
         self.root = os.path.join(self._root, 'image')
-        self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
         self.train = train
         self.input_size = input_size
         for img_path in os.listdir(self.root):
@@ -82,7 +82,7 @@ class CORD(VisionDataset):
         return img, target
 
     @staticmethod
-    def collate_fn(samples: List[Tuple[Any, ...]]) -> Tuple[Any, ...]:
+    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
 
         images, targets = zip(*samples)
         images = tf.stack(images, axis=0)

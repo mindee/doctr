@@ -33,7 +33,7 @@ class RecognitionDataset(AbstractDataset):
         self.input_size = input_size
         self.root = img_folder
 
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[str, str]] = []
         with open(labels_path) as f:
             labels = json.load(f)
         for img_path in os.listdir(self.root):
@@ -45,7 +45,7 @@ class RecognitionDataset(AbstractDataset):
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, List[str]]:
+    ) -> Tuple[tf.Tensor, str]:
 
         img_name, label = self.data[index]
         img = tf.io.read_file(os.path.join(self.root, img_name))
@@ -58,7 +58,7 @@ class RecognitionDataset(AbstractDataset):
         return f"input_size={self.input_size}"
 
     @staticmethod
-    def collate_fn(samples):
+    def collate_fn(samples: List[Tuple[tf.Tensor, str]]) -> Tuple[tf.Tensor, List[str]]:
 
         images, labels = zip(*samples)
         images = tf.stack(images, axis=0)

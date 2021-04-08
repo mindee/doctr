@@ -49,7 +49,7 @@ class SROIE(VisionDataset):
 
         # # List images
         self.root = os.path.join(self._root, 'images')
-        self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
             _targets = []
@@ -83,7 +83,7 @@ class SROIE(VisionDataset):
         return img, target
 
     @staticmethod
-    def collate_fn(samples):
+    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
 
         images, targets = zip(*samples)
         images = tf.stack(images, axis=0)
