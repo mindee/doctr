@@ -61,7 +61,9 @@ class DetectionDataset(AbstractDataset):
         return f"input_size={self.input_size}"
 
     @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, np.ndarray]]]) -> Tuple[tf.Tensor, List[Dict[str, np.ndarray]]]:
+    def collate_fn(
+        samples: List[Tuple[tf.Tensor, Dict[str, np.ndarray]]]
+    ) -> Tuple[tf.Tensor, List[Dict[str, np.ndarray]]]:
 
         images, targets = zip(*samples)
         images = tf.stack(images, axis=0)
