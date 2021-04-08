@@ -22,8 +22,8 @@ def test_visiondataset():
         ['FUNSD', False, [512, 512], 50],
         ['SROIE', True, [512, 512], 626],
         ['SROIE', False, [512, 512], 360],
-        # ['CORD', True, [512, 512], 800],
-        # ['CORD', False, [512, 512], 100],
+        ['CORD', True, [512, 512], 800],
+        ['CORD', False, [512, 512], 100],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size):
