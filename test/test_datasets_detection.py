@@ -4,6 +4,7 @@ import json
 import numpy as np
 
 from doctr.datasets.detection import DetectionDataset
+from doctr.datasets import DataLoader
 
 
 @pytest.fixture(scope="function")
@@ -23,8 +24,10 @@ def mock_detection_label(tmpdir_factory):
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):
 
+    input_size = (1024, 1024)
+
     ds = DetectionDataset(
-        input_size=(1024, 1024),
+        input_size=input_size,
         img_folder=mock_image_folder,
         labels_path=mock_detection_label
     )
@@ -32,7 +35,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert ds.__len__() == 5
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
-    assert img.shape[:2] == (1024, 1024)
+    assert img.shape[:2] == input_size
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'] >= 0, target['boxes'] <= 1))
@@ -41,3 +44,8 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert isinstance(target['flags'], np.ndarray) and target['flags'].dtype == np.bool
     # Cardinality consistency
     assert target['boxes'].shape[0] == target['flags'].shape[0]
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

@@ -22,8 +22,8 @@ def test_visiondataset():
         ['FUNSD', False, [512, 512], 50],
         ['SROIE', True, [512, 512], 626],
         ['SROIE', False, [512, 512], 360],
-        ['CORD', True, [512, 512], 800],
-        ['CORD', False, [512, 512], 100],
+        # ['CORD', True, [512, 512], 800],
+        # ['CORD', False, [512, 512], 100],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size):
@@ -35,3 +35,8 @@ def test_dataset(dataset_name, train, input_size, size):
     img, target = ds[0]
     assert isinstance(img, tf.Tensor) and img.shape == (*input_size, 3)
     assert isinstance(target, dict)
+
+    loader = datasets.DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
