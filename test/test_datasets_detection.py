@@ -30,14 +30,14 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     )
 
     assert ds.__len__() == 5
-    img, boxes, flags = ds[0]
+    img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape[:2] == (1024, 1024)
     # Bounding boxes
-    assert isinstance(boxes, np.ndarray) and boxes.dtype == np.float32
-    assert np.all(np.logical_and(boxes >= 0, boxes <= 1))
-    assert boxes.shape[1] == 4
+    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
+    assert np.all(np.logical_and(target['boxes'] >= 0, target['boxes'] <= 1))
+    assert target['boxes'].shape[1] == 4
     # Flags
-    assert isinstance(flags, np.ndarray) and flags.dtype == np.bool
+    assert isinstance(target['flags'], np.ndarray) and target['flags'].dtype == np.bool
     # Cardinality consistency
-    assert boxes.shape[0] == flags.shape[0]
+    assert target['boxes'].shape[0] == target['flags'].shape[0]
