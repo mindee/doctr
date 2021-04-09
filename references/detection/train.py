@@ -22,14 +22,14 @@ def main(args):
         img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels')
     )
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
 
     val_set = DetectionDataset(
         input_size=(args.input_size, args.input_size),
         img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels')
     )
-    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False)
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
 
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
@@ -136,12 +136,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR train text-detection model',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    parser.add_argument('data_path', type=str, help='path to data folder')
     parser.add_argument('model', type=str, help='text-detection model to train')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
     parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('--data_path', type=str, help='path to data folder')
+    parser.add_argument('--workers, -j', type=int, default=4, help='number of workers used for dataloading')
     args = parser.parse_args()
 
     return args
