@@ -144,6 +144,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     "arch_name",
     [
         "db_resnet50",
+        "linknet",
     ],
 )
 def test_detection_zoo(arch_name):
@@ -185,3 +186,16 @@ def test_compute_detection_loss(arch_name):
         batch_flags=flags,
     )
     assert isinstance(loss, tf.Tensor)
+
+
+def test_linknet_postprocessor():
+    postprocessor = detection.LinkNetPostProcessor()
+    mock_batch = dict(proba_map=tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1))
+    out = postprocessor(mock_batch)
+    # Batch composition
+    assert isinstance(out, list)
+    assert len(out) == 2
+    assert all(isinstance(sample, np.ndarray) for sample in out)
+    assert all(sample.shape[1] == 5 for sample in out)
+    # Relative coords
+    assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)

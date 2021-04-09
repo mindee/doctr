@@ -73,7 +73,8 @@ class DBPostProcessor(DetectionPostProcessor):
         """Compute the confidence score for a polygon : mean of the p values on the polygon
 
         Args:
-            pred (np.ndarray): p map returned by the model
+            pred: p map returned by the model
+            points: array of x, y coordinates
 
         Returns:
             polygon objectness
@@ -123,7 +124,7 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-    ) -> List[List[float]]:
+    ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
         Args:
@@ -131,7 +132,7 @@ class DBPostProcessor(DetectionPostProcessor):
             bitmap: Bitmap map computed from pred (binarized)
 
         Returns:
-            list of boxes for the bitmap, each box is a 5-element list
+            np tensor boxes for the bitmap, each box is a 5-element list
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
@@ -164,7 +165,7 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         x: Dict[str, tf.Tensor],
     ) -> List[np.ndarray]:
-        """Performs postprocessing for a list of model outputs
+        """Performs postprocessing for a dict of model outputs
 
         Args:
             x: dictionary of the model output
