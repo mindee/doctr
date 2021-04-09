@@ -274,7 +274,8 @@
         <span class="sd">&quot;&quot;&quot;Compute the confidence score for a polygon : mean of the p values on the polygon</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            pred (np.ndarray): p map returned by the model</span>
+<span class="sd">            pred: p map returned by the model</span>
+<span class="sd">            points: array of x, y coordinates</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            polygon objectness</span>
@@ -324,7 +325,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">bitmap</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute boxes from a bitmap/pred_map</span>
 
 <span class="sd">        Args:</span>
@@ -332,7 +333,7 @@
 <span class="sd">            bitmap: Bitmap map computed from pred (binarized)</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            list of boxes for the bitmap, each box is a 5-element list</span>
+<span class="sd">            np tensor boxes for the bitmap, each box is a 5-element list</span>
 <span class="sd">                containing x, y, w, h, score for the box</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">bitmap</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -365,7 +366,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Performs postprocessing for a list of model outputs</span>
+        <span class="sd">&quot;&quot;&quot;Performs postprocessing for a dict of model outputs</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: dictionary of the model output</span>
