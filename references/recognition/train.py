@@ -60,7 +60,7 @@ def main(args):
 
     # Postprocessor to decode output (to feed metric during val step)
     postprocessor = recognition.postprocessor
-    
+
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     train_log_dir = 'log/' + current_time + '/train'
