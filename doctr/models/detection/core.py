@@ -6,6 +6,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
+import cv2
 from typing import Union, List, Tuple, Any, Optional, Dict
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
@@ -85,22 +86,76 @@ class DetectionPostProcessor(NestedObject):
     def __init__(
         self,
         min_size_box: int = 5,
-        max_candidates: int = 100,
         box_thresh: float = 0.5,
+        bin_thresh: float = 0.5
     ) -> None:
 
         self.min_size_box = min_size_box
-        self.max_candidates = max_candidates
         self.box_thresh = box_thresh
+        self.bin_thresh = bin_thresh
 
     def extra_repr(self) -> str:
         return f"box_thresh={self.box_thresh}, max_candidates={self.max_candidates}"
 
+    @staticmethod
+    def box_score(
+        pred: np.ndarray,
+        points: np.ndarray
+    ) -> float:
+        """Compute the confidence score for a polygon : mean of the p values on the polygon
+
+        Args:
+            pred (np.ndarray): p map returned by the model
+
+        Returns:
+            polygon objectness
+        """
+        h, w = pred.shape[:2]
+        xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
+        xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
+        ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
+        ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
+
+        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+
+    def bitmap_to_boxes(
+        self,
+        pred: np.ndarray,
+        bitmap: np.ndarray,
+    ) -> List[List[float]]:
+        raise NotImplementedError
+
     def __call__(
         self,
-        raw_pred: List[tf.Tensor],
-    ) -> List[List[np.ndarray]]:
-        raise NotImplementedError
+        x: Dict[str, tf.Tensor],
+    ) -> List[np.ndarray]:
+        """Performs postprocessing for a list of model outputs
+
+        Args:
+            x: dictionary of the model output
+
+        returns:
+            list of N tensors (for each input sample), with each tensor of shape (*, 5).
+        """
+        p = x["proba_map"]
+        p = tf.squeeze(p, axis=-1)  # remove last dim
+        bitmap = tf.cast(p > self.bin_thresh, tf.float32)
+
+        p = tf.unstack(p, axis=0)
+        bitmap = tf.unstack(bitmap, axis=0)
+
+        boxes_batch = []
+
+        for p_, bitmap_ in zip(p, bitmap):
+            p_ = p_.numpy()
+            bitmap_ = bitmap_.numpy()
+            # perform opening (erosion + dilatation)
+            kernel = np.ones((3, 3), np.uint8)
+            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
+            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
+            boxes_batch.append(boxes)
+
+        return boxes_batch
 
 
 class DetectionPredictor(NestedObject):
