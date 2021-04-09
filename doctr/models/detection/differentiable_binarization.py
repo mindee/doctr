@@ -59,32 +59,11 @@ class DBPostProcessor(DetectionPostProcessor):
 
         super().__init__(
             min_size_box,
-            max_candidates,
-            box_thresh
+            box_thresh,
+            bin_thresh
         )
         self.unclip_ratio = unclip_ratio
-        self.bin_thresh = bin_thresh
-
-    @staticmethod
-    def box_score(
-        pred: np.ndarray,
-        points: np.ndarray
-    ) -> float:
-        """Compute the confidence score for a polygon : mean of the p values on the polygon
-
-        Args:
-            pred (np.ndarray): p map returned by the model
-
-        Returns:
-            polygon objectness
-        """
-        h, w = pred.shape[:2]
-        xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
-        xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
-        ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
-        ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
-
-        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+        self.max_candidates = max_candidates
 
     def polygon_to_box(
         self,
@@ -159,38 +138,6 @@ class DBPostProcessor(DetectionPostProcessor):
             xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
             boxes.append([xmin, ymin, xmax, ymax, score])
         return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
-
-    def __call__(
-        self,
-        x: Dict[str, tf.Tensor],
-    ) -> List[np.ndarray]:
-        """Performs postprocessing for a list of model outputs
-
-        Args:
-            x: dictionary of the model output
-
-        returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5).
-        """
-        p = x["proba_map"]
-        p = tf.squeeze(p, axis=-1)  # remove last dim
-        bitmap = tf.cast(p > self.bin_thresh, tf.float32)
-
-        p = tf.unstack(p, axis=0)
-        bitmap = tf.unstack(bitmap, axis=0)
-
-        boxes_batch = []
-
-        for p_, bitmap_ in zip(p, bitmap):
-            p_ = p_.numpy()
-            bitmap_ = bitmap_.numpy()
-            # perform opening (erosion + dilatation)
-            kernel = np.ones((3, 3), np.uint8)
-            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
-            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-            boxes_batch.append(boxes)
-
-        return boxes_batch
 
 
 class FeaturePyramidNetwork(layers.Layer, NestedObject):
@@ -308,6 +255,8 @@ class DBNet(DetectionModel, NestedObject):
                 layers.Activation('sigmoid'),
             ]
         )
+
+        self.postprocessor = DBPostProcessor()
 
     @staticmethod
     def compute_distance(

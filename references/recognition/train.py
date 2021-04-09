@@ -59,11 +59,8 @@ def main(args):
     )
 
     # Postprocessor to decode output (to feed metric during val step)
-    if args.postprocessor == 'sar':
-        postprocessor = recognition.SARPostProcessor(vocab=VOCABS["french"])
-    else:
-        postprocessor = recognition.CTCPostProcessor(vocab=VOCABS["french"])
-
+    postprocessor = recognition.postprocessor
+    
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     train_log_dir = 'log/' + current_time + '/train'
