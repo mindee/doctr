@@ -36,9 +36,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """Implements a post processor for LinkNet model.
 
     Args:
-        unclip ratio: ratio used to unshrink polygons
         min_size_box: minimal length (pix) to keep a box
-        max_candidates: maximum boxes to consider in a single page
         box_thresh: minimal objectness score to consider a box
         bin_thresh: threshold used to binzarized p_map at inference time
 
