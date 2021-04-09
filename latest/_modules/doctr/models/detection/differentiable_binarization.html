@@ -363,17 +363,18 @@
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Performs postprocessing for a list of model outputs</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            x: raw output of the model, of shape (N, H, W, 1)</span>
+<span class="sd">            x: dictionary of the model output</span>
 
 <span class="sd">        returns:</span>
 <span class="sd">            list of N tensors (for each input sample), with each tensor of shape (*, 5).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># remove last dim</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;proba_map&quot;</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># remove last dim</span>
         <span class="n">bitmap</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">p</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_thresh</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
         <span class="n">p</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -604,24 +605,31 @@
             <span class="n">canvas</span><span class="p">[</span><span class="n">ymin_valid</span><span class="p">:</span><span class="n">ymax_valid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xmin_valid</span><span class="p">:</span><span class="n">xmax_valid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">compute_target</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">out_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">model_output</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
         <span class="n">batch_polys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]],</span>
-        <span class="n">to_masks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Compute a batch of gts, masks, thresh_gts, thresh_masks from a batch of images,</span>
-<span class="sd">        a list of boxes for each image and a list of masks for each image.</span>
+        <span class="n">batch_flags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes</span>
+<span class="sd">        and a list of masks for each image. From there it computes the loss with the model output</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            out_shape: shape N x H x W x C of the model output to get batch_size, h and w</span>
-<span class="sd">            polys: list of boxes for each image of the batch</span>
-<span class="sd">            to_masks: list of boxes to mask for each image of the batch</span>
+<span class="sd">            model_output: dictionnary containing the maps outputed by the model:</span>
+<span class="sd">                proba_map, binary_map and thresh_map, shapes: Nx H x W x C</span>
+<span class="sd">            batch_polys: list of boxes for each image of the batch</span>
+<span class="sd">            batch_flags: list of boxes to mask for each image of the batch</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            a batch of gts, masks, thresh_gts, thresh_masks</span>
+<span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">batch_size</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">out_shape</span>
+        <span class="c1"># Load model outputs</span>
+        <span class="n">proba_map</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;proba_map&quot;</span><span class="p">]</span>
+        <span class="n">binary_map</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;binary_map&quot;</span><span class="p">]</span>
+        <span class="n">thresh_map</span> <span class="o">=</span> <span class="n">model_output</span><span class="p">[</span><span class="s2">&quot;thresh_map&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Compute gts and masks</span>
+        <span class="n">batch_size</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">proba_map</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">batch_gts</span><span class="p">,</span> <span class="n">batch_masks</span><span class="p">,</span> <span class="n">batch_thresh_gts</span><span class="p">,</span> <span class="n">batch_thresh_masks</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">batch_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
             <span class="c1"># Initialize mask and gt</span>
@@ -631,14 +639,14 @@
             <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
             <span class="c1"># Draw each polygon on gt</span>
-            <span class="k">if</span> <span class="n">batch_polys</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">to_masks</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">if</span> <span class="n">batch_polys</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">batch_flags</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span> <span class="o">==</span> <span class="p">[]:</span>
                 <span class="c1"># Empty image, full masked</span>
                 <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">poly</span><span class="p">,</span> <span class="n">to_mask</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">batch_polys</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">],</span> <span class="n">to_masks</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">poly</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">batch_polys</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">],</span> <span class="n">batch_flags</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]):</span>
                 <span class="c1"># Convert polygon to absolute polygon and to np array</span>
                 <span class="n">poly</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">y</span><span class="p">)]</span> <span class="k">for</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="ow">in</span> <span class="n">poly</span><span class="p">]</span>
                 <span class="n">poly</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">to_mask</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">flag</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
                     <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">poly</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="mi">0</span><span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">height</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">poly</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">poly</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
@@ -682,65 +690,19 @@
             <span class="n">batch_thresh_masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thresh_masks</span><span class="p">)</span>
 
         <span class="c1"># Stack</span>
-        <span class="n">gts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_gts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">masks</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_masks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">thresh_gts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_thresh_gts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">thresh_masks</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_thresh_masks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">gt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_gts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_masks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">thresh_gt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_thresh_gts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">batch_thresh_masks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">gts</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">thresh_gts</span><span class="p">,</span> <span class="n">thresh_masks</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">compute_approx_binmap</span><span class="p">(</span>
-        <span class="n">p</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Compute approximate binary map as described in paper,</span>
-<span class="sd">        from threshold map t and probability map p</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            p (tf.Tensor): probability map</span>
-<span class="sd">            t (tf.Tensor): threshold map</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            a tf.Tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">50.</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">t</span><span class="p">)))</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
-        <span class="n">proba_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">binary_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">thresh_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">gt</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">mask</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">thresh_gt</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">thresh_mask</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Implements DB loss: weighted sum of balanced BCE loss for probability head, Dice loss</span>
-<span class="sd">        for approximated binary head and L1 loss for threshold head</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            proba_map: output of the model (prob_map), shape (N, H, W, 1)</span>
-<span class="sd">            binary_map: output of the model (approxbin_map), shape (N, H, W, 1)</span>
-<span class="sd">            thresh_map: output of the model (thresh_map), shape (N, H, W, 1)</span>
-<span class="sd">            gt: ground-truth text regions , shape (N, H, W)</span>
-<span class="sd">            mask: text regions to mask, shape (N, H, W)</span>
-<span class="sd">            thresh_gt: ground-truth threshold map, shape (N, H, W)</span>
-<span class="sd">            thresh_mask: threhsold map areas to mask, shape (N, H, W)</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            DB loss</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Compute balanced BCE loss for proba_map</span>
         <span class="n">negative_ratio</span> <span class="o">=</span> <span class="mf">3.</span>
         <span class="n">bce_scale</span> <span class="o">=</span> <span class="mf">5.</span>
-        <span class="n">proba_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">proba_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">positive_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">gt</span> <span class="o">*</span> <span class="n">mask</span><span class="p">)</span>
         <span class="n">negative_mask</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">gt</span><span class="p">)</span> <span class="o">*</span> <span class="n">mask</span><span class="p">)</span>
         <span class="n">positive_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">positive_mask</span><span class="p">)</span>
         <span class="n">negative_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">negative_mask</span><span class="p">),</span> <span class="n">positive_count</span> <span class="o">*</span> <span class="n">negative_ratio</span><span class="p">])</span>
         <span class="n">gt_exp</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">proba_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">proba_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">binary_crossentropy</span><span class="p">(</span><span class="n">gt_exp</span><span class="p">,</span> <span class="n">proba_map</span><span class="p">)</span>
         <span class="n">positive_loss</span> <span class="o">=</span> <span class="n">bce_loss</span> <span class="o">*</span> <span class="n">positive_mask</span>
         <span class="n">negative_loss</span> <span class="o">=</span> <span class="n">bce_loss</span> <span class="o">*</span> <span class="n">negative_mask</span>
@@ -769,23 +731,38 @@
 
         <span class="k">return</span> <span class="n">l1_scale</span> <span class="o">*</span> <span class="n">l1_loss</span> <span class="o">+</span> <span class="n">bce_scale</span> <span class="o">*</span> <span class="n">balanced_bce_loss</span> <span class="o">+</span> <span class="n">dice_loss</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">compute_binary_map</span><span class="p">(</span>
+        <span class="n">p</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute approximate binary map as described in paper,</span>
+<span class="sd">        from threshold map t and probability map p</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p (tf.Tensor): probability map</span>
+<span class="sd">            t (tf.Tensor): threshold map</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a tf.Tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">50.</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">t</span><span class="p">)))</span>
+
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 
         <span class="n">feat_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">feat_concat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="p">(</span><span class="n">feat_maps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">prob_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">proba_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">thresh_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">approx_binmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_approx_binmap</span><span class="p">(</span><span class="n">prob_map</span><span class="p">,</span> <span class="n">thresh_map</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">prob_map</span><span class="p">,</span> <span class="n">thresh_map</span><span class="p">,</span> <span class="n">approx_binmap</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">prob_map</span>
+            <span class="n">binary_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_binary_map</span><span class="p">(</span><span class="n">proba_map</span><span class="p">,</span> <span class="n">thresh_map</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">proba_map</span><span class="o">=</span><span class="n">proba_map</span><span class="p">,</span> <span class="n">thresh_map</span><span class="o">=</span><span class="n">thresh_map</span><span class="p">,</span> <span class="n">binary_map</span><span class="o">=</span><span class="n">binary_map</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">proba_map</span><span class="o">=</span><span class="n">proba_map</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_db_resnet</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DBNet</span><span class="p">:</span>
