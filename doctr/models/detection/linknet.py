@@ -47,9 +47,11 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         bin_thresh: float = 0.15,
         box_thresh: float = 0.1,
     ) -> None:
-        self.min_size_box = min_size_box
-        self.bin_thresh = bin_thresh
-        self.box_thresh = box_thresh
+        super().__init__(
+            min_size_box,
+            box_thresh,
+            bin_thresh
+        )
 
     @staticmethod
     def box_score(
