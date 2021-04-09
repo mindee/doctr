@@ -208,13 +208,13 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">backbones</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CRNN&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_resnet31&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CRNN&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_resnet31&#39;</span><span class="p">,</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -238,6 +238,74 @@
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/crnn_resnet31-69ab71db.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">CTCPostProcessor</span><span class="p">(</span><span class="n">RecognitionPostProcessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Postprocess raw prediction of the model (logits) to a list of words using CTC decoding</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
+<span class="sd">        ignore_case: if True, ignore case of letters</span>
+<span class="sd">        ignore_accents: if True, ignore accents of letters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">ctc_decoder</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">logits</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decode logits with CTC decoder from keras backend</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            decoded logits, shape BATCH_SIZE X SEQ_LEN</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># computing prediction with ctc decoder</span>
+        <span class="n">_prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ctc_greedy_decoder</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])),</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">merge_repeated</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">_prediction</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">prediction</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">logits</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs decoding of raw output with CTC and decoding of CTC predictions</span>
+<span class="sd">        with label_to_idx mapping dictionnary</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of decoded words of length BATCH_SIZE</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># decode ctc for ctc models</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctc_decoder</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+
+        <span class="n">_decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">reduce_join</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">,</span> <span class="n">predictions</span><span class="p">),</span>
+            <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">_decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">_decoded_strings_pred</span><span class="p">,</span> <span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">)</span>
+        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">_decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;not valid&#39;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">words_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">())]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_case</span><span class="p">:</span>
+            <span class="n">words_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words_list</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_accents</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+        <span class="k">return</span> <span class="n">words_list</span>
 
 
 <span class="k">class</span> <span class="nc">CRNN</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">):</span>
@@ -272,6 +340,8 @@
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">CTCPostProcessor</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
