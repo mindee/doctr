@@ -54,7 +54,7 @@ def main(args):
     )
 
     # Postprocessor to decode output (to feed metric during val step with boxes)
-    postprocessor = detection.DBPostProcessor()
+    postprocessor = model.postprocessor
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
