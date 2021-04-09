@@ -102,7 +102,7 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-    ) -> List[List[float]]:
+    ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
         Args:
@@ -110,7 +110,7 @@ class DBPostProcessor(DetectionPostProcessor):
             bitmap: Bitmap map computed from pred (binarized)
 
         Returns:
-            list of boxes for the bitmap, each box is a 5-element list
+            np tensor boxes for the bitmap, each box is a 5-element list
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]

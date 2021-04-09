@@ -12,11 +12,12 @@ import cv2
 from tensorflow.keras import layers, Sequential
 from typing import Dict, Any, Tuple, Optional, List
 
+from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from ...utils.repr import NestedObject
 
-__all__ = ['LinkNet', 'linknet']
+__all__ = ['LinkNet', 'linknet', 'LinkNetPostProcessor']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -25,10 +26,117 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.264, 0.2749, 0.287),
         'out_chan': 1,
         'input_shape': (1024, 1024, 3),
-        'post_processor': None,
+        'post_processor': 'LinkNetPostProcessor',
         'url': None,
     },
 }
+
+
+class LinkNetPostProcessor(DetectionPostProcessor):
+    """Implements a post processor for LinkNet model.
+
+    Args:
+        min_size_box: minimal length (pix) to keep a box
+        box_thresh: minimal objectness score to consider a box
+        bin_thresh: threshold used to binzarized p_map at inference time
+
+    """
+    def __init__(
+        self,
+        min_size_box: int = 3,
+        bin_thresh: float = 0.15,
+        box_thresh: float = 0.1,
+    ) -> None:
+        self.min_size_box = min_size_box
+        self.bin_thresh = bin_thresh
+        self.box_thresh = box_thresh
+
+    @staticmethod
+    def box_score(
+        pred: np.ndarray,
+        points: np.ndarray
+    ) -> float:
+        """Compute the confidence score for a polygon : mean of the p values on the polygon
+
+        Args:
+            pred (np.ndarray): p map returned by the model
+            points: array of x, y coordinates
+
+        Returns:
+            polygon objectness
+        """
+        h, w = pred.shape[:2]
+        xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
+        xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
+        ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
+        ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
+
+        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+
+    def bitmap_to_boxes(
+        self,
+        pred: np.ndarray,
+        bitmap: np.ndarray,
+    ) -> np.ndarray:
+        """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
+
+        Args:
+            pred: Pred map from differentiable linknet output
+            bitmap: Bitmap map computed from pred (binarized)
+
+        Returns:
+            np tensor boxes for the bitmap, each box is a 5-element list
+                containing x, y, w, h, score for the box
+        """
+        label_num, labelimage = cv2.connectedComponents(bitmap.astype(np.uint8), connectivity=4)
+        height, width = bitmap.shape[:2]
+        boxes = []
+        for label in range(1, label_num + 1):
+            points = np.array(np.where(labelimage == label)[::-1]).T
+            if points.shape[0] < 4:  # remove polygons with 3 points or less
+                continue
+            score = self.box_score(pred, points.reshape(-1, 2))
+            if self.box_thresh > score:   # remove polygons with a weak objectness
+                continue
+            x, y, w, h = cv2.boundingRect(points)
+            if min(w, h) < self.min_size_box:  # filter too small boxes
+                continue
+            # compute relative polygon to get rid of img shape
+            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+            boxes.append([xmin, ymin, xmax, ymax, score])
+        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+
+    def __call__(
+        self,
+        x: Dict[str, tf.Tensor],
+    ) -> List[np.ndarray]:
+        """Performs postprocessing for a dict of model outputs
+
+        Args:
+            x: dictionary of the model output
+
+        returns:
+            list of N tensors (for each input sample), with each tensor of shape (*, 5).
+        """
+        p = x["proba_map"]
+        p = tf.squeeze(p, axis=-1)  # remove last dim
+        bitmap = tf.cast(p > self.bin_thresh, tf.float32)
+
+        p = tf.unstack(p, axis=0)
+        bitmap = tf.unstack(bitmap, axis=0)
+
+        boxes_batch = []
+
+        for p_, bitmap_ in zip(p, bitmap):
+            p_ = p_.numpy()
+            bitmap_ = bitmap_.numpy()
+            # perform opening (erosion + dilatation)
+            kernel = np.ones((3, 3), np.uint8)
+            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
+            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
+            boxes_batch.append(boxes)
+
+        return boxes_batch
 
 
 class DecoderBlock(Sequential):
@@ -96,7 +204,7 @@ class LinkNetPyramid(layers.Layer, NestedObject):
         return y_1
 
 
-class LinkNet(Sequential, NestedObject):
+class LinkNet(DetectionModel, NestedObject):
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
@@ -110,6 +218,7 @@ class LinkNet(Sequential, NestedObject):
         input_shape: Tuple[int, int, int] = (512, 512, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
+        super().__init__(cfg=cfg)
         _layers = []
         _layers.extend(conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape))
         _layers.append(layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'))
@@ -138,8 +247,7 @@ class LinkNet(Sequential, NestedObject):
             )
         )
         _layers.append(layers.Activation('sigmoid'))
-        super().__init__(_layers)
-
+        self._layers = _layers
         self.min_size_box = 3
 
     def compute_loss(
