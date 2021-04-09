@@ -63,17 +63,14 @@ def main(args):
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     val_summary_writer = tf.summary.create_file_writer(val_log_dir)
 
-    output_shape = (args.batch_size, args.input_size, args.input_size, 3)
-
     def train_step(x):
         with tf.GradientTape() as tape:
             images, targets = x
             boxes = [target['boxes'] for target in targets]
-            to_masks = [target['flags'] for target in targets]
+            flags = [target['flags'] for target in targets]
             images = preprocessor(images)
-            [proba_map, thresh_map, bin_map] = model(images, training=True)
-            gts, masks, thresh_gts, thresh_masks = model.compute_target(output_shape, boxes, to_masks)
-            train_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
+            model_output = model(images, training=True)
+            train_loss = model.compute_loss(model_output, boxes, flags)
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
         return train_loss
@@ -81,13 +78,12 @@ def main(args):
     def test_step(x):
         images, targets = x
         boxes = [target['boxes'] for target in targets]
-        to_masks = [target['flags'] for target in targets]
+        flags = [target['flags'] for target in targets]
         images = preprocessor(images)
         # If we want to compute val loss, we need to pass training=True to have a thresh_map
-        [proba_map, thresh_map, bin_map] = model(images, training=True)
-        gts, masks, thresh_gts, thresh_masks = model.compute_target(output_shape, boxes, to_masks)
-        val_loss = model.compute_loss(proba_map, bin_map, thresh_map, gts, masks, thresh_gts, thresh_masks)
-        decoded = postprocessor(proba_map)
+        model_output = model(images, training=True)
+        val_loss = model.compute_loss(model_output, boxes, flags)
+        decoded = postprocessor(model_output)
         # Compute metric
         for boxes_gt, boxes_pred in zip(boxes, decoded):
             boxes_pred = np.array(boxes_pred)[:, :-1]  # Remove scores
@@ -137,10 +133,10 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR train text-recognition model',
+    parser = argparse.ArgumentParser(description='DocTR train text-detection model',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('model', type=str, help='text-detection model to train')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
