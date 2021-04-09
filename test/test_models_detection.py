@@ -37,7 +37,7 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
 
 def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor()
-    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
+    mock_batch = dict(proba_map=tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1))
     out = postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
@@ -85,11 +85,13 @@ def test_db_resnet50_training_mode():
     dbinput = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     # test training model
     dboutput_train = model(dbinput, training=True)
-    assert isinstance(dboutput_train, tuple)
+    assert isinstance(dboutput_train, dict)
     assert len(dboutput_train) == 3
-    assert all(np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train)
+    assert all(
+        np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train.values()
+    )
     # batch size
-    assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train)
+    assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train.values())
 
 
 @pytest.mark.parametrize(
@@ -107,8 +109,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     # test prediction model
     out = model(input_tensor)
-    assert isinstance(out, tf.Tensor)
-    out = out.numpy()
+    assert isinstance(out, dict)
+    out = out["proba_map"].numpy()
     assert out.shape == (batch_size, *output_size)
     if out_prob:
         assert np.all(np.logical_and(out >= 0, out <= 1))
@@ -160,36 +162,26 @@ def test_detection_zoo_error():
         _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
 
 
-@pytest.fixture(scope="function")
-def test_compute_target_db():
-    batch_size = 3
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "db_resnet50",
+        "linknet"
+    ],
+)
+def test_compute_detection_loss(arch_name):
     polys = [
         [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
         [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
         []
     ]
-    to_masks = [[True, False], [True, False], []]
-    dbnet = detection.db_resnet50()
-    gts, masks, thresh_gts, thresh_masks = dbnet.compute_target(
-        out_shape=(batch_size, 1024, 1024, 3),
+    flags = [[True, False], [True, False], []]
+    model = detection.__dict__[arch_name](pretrained=True)
+    model_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
+    output = model(model_input, training=True)
+    loss = model.compute_loss(
+        model_output=output,
         batch_polys=polys,
-        to_masks=to_masks,
+        batch_flags=flags,
     )
-    assert isinstance(gts, tf.Tensor)
-    assert isinstance(masks, tf.Tensor)
-    assert isinstance(thresh_gts, tf.Tensor)
-    assert isinstance(thresh_masks, tf.Tensor)
-    assert gts.shape[0] == masks.shape[0] == thresh_gts.shape[0] == thresh_masks.shape[0] == batch_size
-    assert gts.shape[1] == masks.shape[1] == thresh_gts.shape[1] == thresh_masks.shape[1] == 1024
-    assert gts.shape[2] == masks.shape[2] == thresh_gts.shape[2] == thresh_masks.shape[2] == 1024
-
-    return gts, masks, thresh_gts, thresh_masks
-
-
-def test_compute_loss_db(test_compute_target_db):
-    model = detection.db_resnet50(pretrained=False)
-    db_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
-    gt, mask, thresh_gt, thresh_mask = test_compute_target_db
-    proba_map, thresh_map, binary_map = model(db_input, training=True)
-    loss = model.compute_loss(proba_map, binary_map, thresh_map, gt, mask, thresh_gt, thresh_mask)
     assert isinstance(loss, tf.Tensor)
