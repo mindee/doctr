@@ -13,7 +13,7 @@ __all__ = ['multithread_exec']
 
 
 def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterable[Any]:
-    """Download a file accessible via URL with mutiple retries
+    """Execute a given function in parallel for each element of a given sequence
 
     Example::
         >>> from doctr.datasets.multithreading import multithread_exec
