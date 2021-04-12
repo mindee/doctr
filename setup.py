@@ -47,6 +47,7 @@ requirements = [
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
     "rapidfuzz>=1.0.0",
+    "albumentations>=0.5.2",
 ]
 
 setup(
