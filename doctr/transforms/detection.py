@@ -89,8 +89,10 @@ def non_geometric_transform(
     # EXPOSURE
     exposure = []
     exposure.append(A.RandomBrightnessContrast(p=.5))  # Randomly change brightness and constrast
-    exposure.append(A.RandomShadow(shadow_roi=(0, 0, 1, 1), shadow_dimension=3, p=.5))  # Randomly shadow a part of the image
-    exposure.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 1), src_radius=70, p=.5))  # Randomly add a sunflare on the image
+    # Randomly shadow a part of the image
+    exposure.append(A.RandomShadow(shadow_roi=(0, 0, 1, 1), shadow_dimension=3, p=.5))
+    # Randomly add a sunflare on the image
+    exposure.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 1), src_radius=70, p=.5))
     exposure = A.OneOf(exposure, p=.3)  # Randomly choose one of the exposure transformations
 
     # BLUR
