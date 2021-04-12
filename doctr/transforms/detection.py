@@ -51,7 +51,7 @@ def geometric_transform(
 
     # RESIZE
     h, w, _ = image.shape
-    h_ratio, w_ratio = (np.random.uniform(0.75, 1.25), np.random.uniform(0.75, 1.25))
+    h_ratio, w_ratio = (np.random.uniform(0.85, 1.15), np.random.uniform(0.85, 1.15))
     # Randomly change the aspect ratio
     resize = A.Resize(height=int(h_ratio * h), width=int(w_ratio * w), p=0.5, interpolation=inter)
 
@@ -79,8 +79,8 @@ def non_geometric_transform(
 
     # COLOR
     color = []
-    # Randomly shift each channel
-    color.append(A.RGBShift(p=.5, r_shift_limit=30, g_shift_limit=30, b_shift_limit=30))
+    # Randomly shift each channel to recolorize image
+    color.append(A.RGBShift(p=.5, r_shift_limit=150, g_shift_limit=150, b_shift_limit=150))
     color.append(A.RandomGamma(p=.5))  # Randomly power the image (default between 0.8 and 1.2)
     color.append(A.ToGray(p=.5))  # Randomly Convert to grayscale
     color.append(A.CLAHE(p=.5))  # Randomly apply Contrast Limited Adaptive Histogram Equalization
@@ -89,9 +89,9 @@ def non_geometric_transform(
     # EXPOSURE
     exposure = []
     exposure.append(A.RandomBrightnessContrast(p=.5))  # Randomly change brightness and constrast
-    exposure.append(A.RandomShadow(shadow_roi=(0, 0, 1, 1), p=.5))  # Randomly shadow a part of the image
-    exposure.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 1), p=.5))  # Randomly add a sunflare on the image
-    exposure = A.OneOf(exposure, p=.5)  # Randomly choose one of the exposure transformations
+    exposure.append(A.RandomShadow(shadow_roi=(0, 0, 1, 1), shadow_dimension=3, p=.5))  # Randomly shadow a part of the image
+    exposure.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 1), src_radius=70, p=.5))  # Randomly add a sunflare on the image
+    exposure = A.OneOf(exposure, p=.3)  # Randomly choose one of the exposure transformations
 
     # BLUR
     blur = []
@@ -101,12 +101,12 @@ def non_geometric_transform(
 
     # NOISE
     noise = []
-    noise.append(A.GaussNoise(p=.2))  # Randomly applies gaussian noise
-    noise.append(A.ISONoise(p=.2, intensity=[.1, 1.]))  # Randomly applies camera sensor noise
+    noise.append(A.GaussNoise(p=.5))  # Randomly applies gaussian noise
+    noise.append(A.ISONoise(p=.5, intensity=[.1, 1.]))  # Randomly applies camera sensor noise
     noise = A.OneOf(noise, p=.5)  # Randomly choose one of the noise transformations
 
     # compose blur + color + exposure + noise and apply to image
-    aug = A.Compose([blur, color, exposure, noise], p=.7)
+    aug = A.Compose([blur, color, exposure, noise], p=1)
     augmented = aug(image=image)
     image = augmented["image"]
 
