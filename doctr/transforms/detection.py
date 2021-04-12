@@ -1,17 +1,23 @@
+# Copyright (C) 2021, Mindee.
+
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+
 import numpy as np
 import random
-import imgaug.augmenters as iaa
 import cv2
-from ocr_tools.degraders import degraders
 import albumentations as A
-from ocr_tools.degraders.iaa_augmentations import augment_image_and_mask
-​
-​
-def geometric_pipeline(
+from typing import Tuple
+
+
+__all__ = ['geometric_transform', 'non_geometric_transform']
+
+
+def geometric_transform(
     image: np.array,
     mask: np.array
-    ) -> Tuple[np.array, np.array]:
-    """Applies a pipeline of geometric transformation to an image and it mask
+) -> Tuple[np.array, np.array]:
+    """Applies a pipeline of geometric transformation to an image the corresponding mask.
 ​
 ​    Args:
         image : np.array, input image
@@ -19,57 +25,50 @@ def geometric_pipeline(
 ​
     Returns:
         A tuple of transformed image and mask
+
     """
 
-    geometric_augmentation = []
-​
-    # # distortions
-    distortions = [A.OpticalDistortion(p=1.0, distort_limit=0.05, shift_limit=0.05),
-                   A.ElasticTransform(p=1.0, alpha=12, sigma=50, alpha_affine=12, border_mode=cv2.BORDER_CONSTANT)]
-    geometric_augmentation.append(A.OneOf(distortions, p=0.25))
-​
-    # rotate
-    rotate = A.ShiftScaleRotate(p=0.25, scale_limit=0., rotate_limit=(-5, 5), border_mode=cv2.BORDER_CONSTANT,
-                                mask_value=0)
-    geometric_augmentation.append(rotate)
-​
-    geometric_augmentation = A.Compose(geometric_augmentation)
-    augmented = geometric_augmentation(image=image, mask=mask)
-    image = augmented["image"]
-    mask = augmented["mask"]
-​
-    # iaa affine and piecewise affine
-    iaa_piecewise_affine = iaa.PiecewiseAffine(scale=(0.02, 0.04), nb_rows=(2, 3), nb_cols=(2, 3), order=1)
-    iaa_affine = iaa.Affine(shear=(0, 5))
-    iaa_aug = iaa.SomeOf((0, 1), [iaa_piecewise_affine, iaa_affine])
-    image, mask = augment_image_and_mask(iaa_aug, image, mask)
-​
-    # scale and AR
-    interpolations = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, ]
-    interpolation = random.choice(interpolations)
-    scale = A.RandomScale(scale_limit=(-0.25, 0.25), p=0.5, interpolation=interpolation)
-    h, w, _ = image.shape
-    h_percentage, w_percentage = (
-        np.random.uniform(0.75, 1.25),
-        np.random.uniform(0.75, 1.25),
+    # DISTORTION
+    distortion = []
+    # Randomly apply perspective to the input image
+    # distortion.append(A.Perspective(scale=(0.05, 0.1), p=0.5, mask_pad_val=0))
+    # Randomly  apply elastic transformation (Simard 2003)
+    distortion.append(
+        A.ElasticTransform(
+            p=.5, alpha=12, sigma=50, alpha_affine=12, border_mode=cv2.BORDER_CONSTANT, mask_value=0
+        )
     )
-    interpolation = random.choice(interpolations)
-    aspect_ratio = A.Resize(height=int(h_percentage * h),
-                            width=int(w_percentage * w), p=0.5,
-                            interpolation=interpolation)
-​
-    aug = A.OneOf([scale, aspect_ratio])
+    distortion = A.OneOf(distortion, p=.5)
+
+    inter_styles = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA]
+    inter = random.choice(inter_styles)
+
+    # ROTATION, SCALE, SHIFT
+    # Randomly apply affine transforms: translate, scale and rotate the input.
+    rotation = A.ShiftScaleRotate(
+        p=0.25, scale_limit=.25, rotate_limit=5, border_mode=cv2.BORDER_CONSTANT, mask_value=0, interpolation=inter
+    )
+
+    # RESIZE
+    h, w, _ = image.shape
+    h_ratio, w_ratio = (np.random.uniform(0.75, 1.25), np.random.uniform(0.75, 1.25))
+    # Randomly change the aspect ratio
+    resize = A.Resize(height=int(h_ratio * h), width=int(w_ratio * w), p=0.5, interpolation=inter)
+
+    # Compose distortion + rotation/shift/scale + resize and apply to image and mask
+    aug = A.Compose([distortion, rotation, resize], p=.7)
     augmented = aug(image=image, mask=mask)
     image = augmented["image"]
     mask = augmented["mask"]
+
     return image, mask
-​
-​
-def non_geometric_pipeline(
+
+
+def non_geometric_transform(
     image: np.array,
-    ) -> np.array:
+) -> np.array:
     """Applies a pipeline of non geometric transformation to an image.
-    Transformations are pixel_wise, and thus can be applied to image only.
+    Transformations are pixel-wise, and thus can be applied to image only.
 ​
 ​    Args:
         image : np.array, input image
@@ -77,40 +76,38 @@ def non_geometric_pipeline(
     Returns:
         image: np.array, augmented image
     """
-     
+
     # COLOR
     color = []
-    color.append(A.RGBShift(p=0.5, r_shift_limit=30, g_shift_limit=30, b_shift_limit=30))
-    color.append(A.RandomGamma(p=0.5, gamma_limit=(80, 120)))
-    color.append(A.ToGray(p=0.5))
-    color.append(A.CLAHE(p=0.5))
-    color = A.OneOf(color, p=0.5)
-​      
+    # Randomly shift each channel
+    color.append(A.RGBShift(p=.5, r_shift_limit=30, g_shift_limit=30, b_shift_limit=30))
+    color.append(A.RandomGamma(p=.5))  # Randomly power the image (default between 0.8 and 1.2)
+    color.append(A.ToGray(p=.5))  # Randomly Convert to grayscale
+    color.append(A.CLAHE(p=.5))  # Randomly apply Contrast Limited Adaptive Histogram Equalization
+    color = A.OneOf(color, p=.5)  # Randomly choose one of the color transformations
+
     # EXPOSURE
     exposure = []
-    exposure.append(A.RandomBrightnessContrast())
-    exposure.append(A.RandomShadow())
-    exposure.append(A.RandomSunFlare())
-    exposure.append(A.RandomToneCurve())
-    color_alt = A.OneOf(exposure, p=0.5)
+    exposure.append(A.RandomBrightnessContrast(p=.5))  # Randomly change brightness and constrast
+    exposure.append(A.RandomShadow(shadow_roi=(0, 0, 1, 1), p=.5))  # Randomly shadow a part of the image
+    exposure.append(A.RandomSunFlare(flare_roi=(0, 0, 1, 1), p=.5))  # Randomly add a sunflare on the image
+    exposure = A.OneOf(exposure, p=.5)  # Randomly choose one of the exposure transformations
 
-
-    # BLUR (motion, focal...)
+    # BLUR
     blur = []
-    blur.append(A.GaussianBlur(p=1., blur_limit=3))
-    blur.append(A.MotionBlur(p=1., blur_limit=3))
-    blur = A.OneOf(p=0.25, transforms=blur)
-​
+    blur.append(A.GaussianBlur(blur_limit=3, p=.5))  # Randomly blur the image with a gaussian filter
+    blur.append(A.MotionBlur(blur_limit=3, p=.5))  # Randomly blur the image with a motion style
+    blur = A.OneOf(blur, p=.25)  # Randomly choose one of the blurring transformations
+
     # NOISE
     noise = []
-    noise.append(A.GaussNoise())
-    noise.append(A.ISONoise(p=0.1, intensity=[0.1, 1.0]))
-    noise = A.OneOf(noise, p=1)
-​
+    noise.append(A.GaussNoise(p=.2))  # Randomly applies gaussian noise
+    noise.append(A.ISONoise(p=.2, intensity=[.1, 1.]))  # Randomly applies camera sensor noise
+    noise = A.OneOf(noise, p=.5)  # Randomly choose one of the noise transformations
+
     # compose blur + color + exposure + noise and apply to image
-    aug = A.Compose([blur, color, exposure, noise], p=0.7)
+    aug = A.Compose([blur, color, exposure, noise], p=.7)
     augmented = aug(image=image)
     image = augmented["image"]
 
     return image
-​
