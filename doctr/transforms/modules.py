@@ -13,6 +13,17 @@ __all__ = ['Compose', 'Resize']
 
 
 class Compose(NestedObject):
+    """Implements a wrapper that will apply transformations sequentially
+
+    Example::
+        >>> from doctr.transforms import Compose, Resize
+        >>> import tensorflow as tf
+        >>> transfos = Compose([Resize((32, 32))])
+        >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        transforms: list of transformation modules
+    """
 
     _children_names: List[str] = ['transforms']
 
@@ -27,6 +38,18 @@ class Compose(NestedObject):
 
 
 class Resize(NestedObject):
+    """Resizes a tensor to a target size
+
+    Example::
+        >>> from doctr.transforms import Resize
+        >>> import tensorflow as tf
+        >>> transfo = Resize((32, 32))
+        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        output_size: expected output size
+        method: interpolation method
+    """
     def __init__(self, output_size: Tuple[int, int], method: str = 'bilinear') -> None:
         self.output_size = output_size
         self.method = method
