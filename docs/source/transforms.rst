@@ -11,6 +11,8 @@ Supported transformations
 Here are all transformations that are available through DocTR:
 
 .. autoclass:: Resize
+.. autoclass:: Normalize
+.. autoclass:: LambdaTransformation
 
 
 Composing several consecutive transformations
