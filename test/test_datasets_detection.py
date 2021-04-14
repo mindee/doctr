@@ -5,6 +5,7 @@ import numpy as np
 
 from doctr.datasets.detection import DetectionDataset
 from doctr.datasets import DataLoader
+from doctr.transforms import Resize
 
 
 @pytest.fixture(scope="function")
@@ -27,9 +28,9 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     input_size = (1024, 1024)
 
     ds = DetectionDataset(
-        input_size=input_size,
         img_folder=mock_image_folder,
-        labels_path=mock_detection_label
+        labels_path=mock_detection_label,
+        sample_transforms=Resize(input_size),
     )
 
     assert ds.__len__() == 5
