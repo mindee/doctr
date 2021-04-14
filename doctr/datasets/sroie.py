@@ -7,7 +7,7 @@ import os
 import csv
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from doctr.documents.reader import read_img
@@ -27,6 +27,7 @@ class SROIE(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
+        sample_transforms: composable transformations that will be applied to each image
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -37,14 +38,14 @@ class SROIE(VisionDataset):
 
     def __init__(
         self,
-        input_size: Tuple[int, int],
         train: bool = True,
+        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
-        self.input_size = input_size
+        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
         self.train = train
 
         # # List images
@@ -71,14 +72,14 @@ class SROIE(VisionDataset):
             self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
 
     def extra_repr(self) -> str:
-        return f"train={self.train}, input_size={self.input_size}"
+        return f"train={self.train}"
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
         # Read image
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
-        img = tf.image.resize(img, self.input_size, method='bilinear')
+        img = self.sample_transforms(img)
 
         return img, target
 

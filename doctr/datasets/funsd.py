@@ -7,7 +7,7 @@ import os
 import json
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from doctr.documents.reader import read_img
@@ -27,6 +27,7 @@ class FUNSD(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
+        sample_transforms: composable transformations that will be applied to each image
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -37,13 +38,13 @@ class FUNSD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        input_size: Optional[Tuple[int, int]] = None,
+        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
-        self.input_size = input_size
         self.train = train
+        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
@@ -64,14 +65,14 @@ class FUNSD(VisionDataset):
             self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
 
     def extra_repr(self) -> str:
-        return f"train={self.train}, input_size={self.input_size}"
+        return f"train={self.train}"
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
         # Read image
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
-        img = tf.image.resize(img, self.input_size, method='bilinear')
+        img = self.sample_transforms(img)
 
         return img, target
 

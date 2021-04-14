@@ -7,7 +7,7 @@ import os
 import json
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from doctr.documents.reader import read_img
@@ -27,6 +27,7 @@ class CORD(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
+        sample_transforms: composable transformations that will be applied to each image
         **kwargs: keyword arguments from `VisionDataset`.
     """
     TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip',
@@ -37,8 +38,8 @@ class CORD(VisionDataset):
 
     def __init__(
         self,
-        input_size: Tuple[int, int],
         train: bool = True,
+        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
         **kwargs: Any,
     ) -> None:
 
@@ -49,7 +50,7 @@ class CORD(VisionDataset):
         self.root = os.path.join(self._root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         self.train = train
-        self.input_size = input_size
+        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
             _targets = []
@@ -70,14 +71,14 @@ class CORD(VisionDataset):
             self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
 
     def extra_repr(self) -> str:
-        return f"train={self.train}, input_size={self.input_size}"
+        return f"train={self.train}"
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
         # Read image
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
-        img = tf.image.resize(img, self.input_size, method='bilinear')
+        img = self.sample_transforms(img)
 
         return img, target
 
