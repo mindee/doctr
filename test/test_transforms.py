@@ -7,11 +7,19 @@ from doctr import transforms as T
 def test_resize():
     output_size = (32, 32)
     transfo = T.Resize(output_size)
-    input_t = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
+    input_t = tf.cast(tf.fill([64, 64, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
 
+    assert tf.reduce_all(out == 1)
     assert out.shape[:2] == output_size
     assert repr(transfo) == f"Resize(output_size={output_size}, method='bilinear')"
+
+    transfo = T.Resize(output_size, preserve_aspect_ratio=True)
+    input_t = tf.cast(tf.fill([32, 64, 3], 1), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert not tf.reduce_all(out == 1)
+    assert out.shape[:2] == output_size
 
 
 def test_compose():

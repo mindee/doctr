@@ -49,16 +49,25 @@ class Resize(NestedObject):
     Args:
         output_size: expected output size
         method: interpolation method
+        preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros
     """
-    def __init__(self, output_size: Tuple[int, int], method: str = 'bilinear') -> None:
+    def __init__(
+        self,
+        output_size: Tuple[int, int],
+        method: str = 'bilinear',
+        preserve_aspect_ratio: bool = False,
+    ) -> None:
         self.output_size = output_size
         self.method = method
+        self.preserve_aspect_ratio = preserve_aspect_ratio
 
     def extra_repr(self) -> str:
         return f"output_size={self.output_size}, method='{self.method}'"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        img = tf.image.resize(img, self.output_size, method=self.method)
+        img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
+        if self.preserve_aspect_ratio:
+            img = tf.image.pad_to_bounding_box(img, 0, 0, *self.output_size)
         return img
 
 
