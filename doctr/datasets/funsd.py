@@ -44,7 +44,7 @@ class FUNSD(VisionDataset):
 
         super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
         self.train = train
-        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
