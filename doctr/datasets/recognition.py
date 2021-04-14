@@ -18,25 +18,25 @@ class RecognitionDataset(AbstractDataset):
 
     Example::
         >>> from doctr.datasets import RecognitionDataset
-        >>> train_set = RecognitionDataset(img_folder=True, label_path="/path/to/labels.json")
+        >>> train_set = RecognitionDataset(img_folder=True, labels_path="/path/to/labels.json")
         >>> img, target = train_set[0]
 
     Args:
         img_folder: path to the images folder
-        label_path: pathe to the json file containing all labels (character sequences)
+        labels_path: pathe to the json file containing all labels (character sequences)
         sample_transforms: composable transformations that will be applied to each image
     """
     def __init__(
         self,
         img_folder: str,
-        label_path: str,
+        labels_path: str,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
     ) -> None:
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         self.root = img_folder
 
         self.data: List[Tuple[str, str]] = []
-        with open(label_path) as f:
+        with open(labels_path) as f:
             labels = json.load(f)
         for img_path in os.listdir(self.root):
             label = labels.get(img_path)
