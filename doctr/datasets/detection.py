@@ -34,7 +34,7 @@ class DetectionDataset(AbstractDataset):
         label_folder: str,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
     ) -> None:
-        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         self.root = img_folder
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []

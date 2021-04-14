@@ -50,7 +50,7 @@ class CORD(VisionDataset):
         self.root = os.path.join(self._root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         self.train = train
-        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
             _targets = []

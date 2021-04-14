@@ -45,7 +45,7 @@ class SROIE(VisionDataset):
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
-        self.sample_transforms = lambda x: x if sample_transforms is None else sample_transforms
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         self.train = train
 
         # # List images
