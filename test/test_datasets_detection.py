@@ -29,7 +29,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     ds = DetectionDataset(
         img_folder=mock_image_folder,
-        labels_path=mock_detection_label,
+        label_folder=mock_detection_label,
         sample_transforms=Resize(input_size),
     )
 
