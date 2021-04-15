@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from doctr import datasets
+from doctr.transforms import Resize
 
 
 def test_visiondataset():
@@ -28,10 +29,10 @@ def test_visiondataset():
 )
 def test_dataset(dataset_name, train, input_size, size):
 
-    ds = datasets.__dict__[dataset_name](train=train, download=True, input_size=input_size)
+    ds = datasets.__dict__[dataset_name](train=train, download=True, sample_transforms=Resize(input_size))
 
     assert len(ds) == size
-    assert repr(ds) == f"{dataset_name}(train={train}, input_size={input_size})"
+    assert repr(ds) == f"{dataset_name}(train={train})"
     img, target = ds[0]
     assert isinstance(img, tf.Tensor) and img.shape == (*input_size, 3)
     assert isinstance(target, dict)

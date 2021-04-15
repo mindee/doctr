@@ -8,7 +8,7 @@ import json
 import math
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional, Callable
 
 from .core import AbstractDataset
 
@@ -16,18 +16,30 @@ __all__ = ["DetectionDataset"]
 
 
 class DetectionDataset(AbstractDataset):
+    """Implements a text detection dataset
+
+    Example::
+        >>> from doctr.datasets import DetectionDataset
+        >>> train_set = DetectionDataset(img_folder=True, label_folder="/path/to/label_folder")
+        >>> img, target = train_set[0]
+
+    Args:
+        img_folder: folder with all the images of the dataset
+        label_folder: folder with all the corresponding labels (stem needs to be identical)
+        sample_transforms: composable transformations that will be applied to each image
+    """
     def __init__(
         self,
         img_folder: str,
-        labels_path: str,
-        input_size: Tuple[int, int],
+        label_folder: str,
+        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
     ) -> None:
-        self.input_size = input_size
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         self.root = img_folder
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
-            with open(os.path.join(labels_path, img_path + '.json'), 'rb') as f:
+            with open(os.path.join(label_folder, img_path + '.json'), 'rb') as f:
                 boxes = json.load(f)
 
             bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
@@ -47,7 +59,7 @@ class DetectionDataset(AbstractDataset):
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
         h, w = img.shape[:2]
-        img = tf.image.resize(img, self.input_size, method='bilinear')
+        img = self.sample_transforms(img)
 
         # Boxes
         boxes = target['boxes']
@@ -56,9 +68,6 @@ class DetectionDataset(AbstractDataset):
         target['boxes'] = boxes
 
         return img, target
-
-    def extra_repr(self) -> str:
-        return f"input_size={self.input_size}"
 
     @staticmethod
     def collate_fn(
