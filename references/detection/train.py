@@ -12,22 +12,23 @@ from collections import deque
 from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import DetectionDataset, DataLoader
+from doctr.transforms import Resize
 
 
 def main(args):
 
     # Load both train and val data generators
     train_set = DetectionDataset(
-        input_size=(args.input_size, args.input_size),
         img_folder=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'train_labels')
+        labels_path=os.path.join(args.data_path, 'train_labels'),
+        sample_transforms=Resize((args.input_size, args.input_size)),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
 
     val_set = DetectionDataset(
-        input_size=(args.input_size, args.input_size),
         img_folder=os.path.join(args.data_path, 'val'),
-        labels_path=os.path.join(args.data_path, 'val_labels')
+        labels_path=os.path.join(args.data_path, 'val_labels'),
+        sample_transforms=Resize((args.input_size, args.input_size)),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
 

@@ -22,7 +22,7 @@ import doctr
 master_doc = 'index'
 project = 'doctr'
 copyright = '2021, Mindee'
-author = 'François-Guillaume Fernandez, Charles Gaillard, Mohamed Biaz'
+author = 'François-Guillaume Fernandez, Charles Gaillard'
 
 # The full version, including alpha/beta/rc tags
 version = doctr.__version__

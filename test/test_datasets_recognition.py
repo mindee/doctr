@@ -5,6 +5,7 @@ import numpy as np
 
 from doctr.datasets import RecognitionDataset
 from doctr.datasets import DataLoader
+from doctr.transforms import Resize
 
 
 @pytest.fixture(scope="function")
@@ -25,9 +26,9 @@ def mock_recognition_label(tmpdir_factory):
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     input_size = (32, 128)
     ds = RecognitionDataset(
-        input_size=input_size,
         img_folder=mock_image_folder,
-        labels_path=mock_recognition_label
+        labels_path=mock_recognition_label,
+        sample_transforms=Resize(input_size),
     )
     assert ds.__len__() == 5
     image, label = ds[0]
