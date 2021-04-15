@@ -134,6 +134,11 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#composing-several-consecutive-transformations">Composing several consecutive transformations</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
@@ -231,7 +236,7 @@ can be a significant save of time.</p>
 <p>Here are all datasets that are available through DocTR:</p>
 <dl class="py class">
 <dt id="doctr.datasets.FUNSD">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">FUNSD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">input_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">FUNSD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Permalink to this definition">¶</a></dt>
 <dd><p>FUNSD dataset from <a class="reference external" href="https://arxiv.org/pdf/1905.13538.pdf">“FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">FUNSD</span>
@@ -245,6 +250,7 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -253,7 +259,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.SROIE">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SROIE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_size</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SROIE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Permalink to this definition">¶</a></dt>
 <dd><p>SROIE dataset from <a class="reference external" href="https://arxiv.org/pdf/2103.10213.pdf">“ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SROIE</span>
@@ -267,6 +273,7 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -275,7 +282,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.CORD">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CORD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_size</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CORD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Permalink to this definition">¶</a></dt>
 <dd><p>CORD dataset from <a class="reference external" href="https://openreview.net/pdf?id=SJl3z659UH">“CORD: A Consolidated Receipt Dataset forPost-OCR Parsing”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
@@ -289,6 +296,7 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>

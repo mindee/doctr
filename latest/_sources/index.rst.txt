@@ -19,6 +19,7 @@ DocTR provides an easy and powerful way to extract valuable information from you
    datasets
    documents
    models
+   transforms
    utils
 
 

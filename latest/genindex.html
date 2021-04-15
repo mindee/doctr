@@ -131,6 +131,11 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#composing-several-consecutive-transformations">Composing several consecutive transformations</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
@@ -210,6 +215,7 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#Q"><strong>Q</strong></a>
@@ -238,12 +244,14 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#doctr.models.export.convert_to_fp16">convert_to_fp16() (in module doctr.models.export)</a>
+      <li><a href="transforms.html#doctr.transforms.Compose">Compose (class in doctr.transforms)</a>
 </li>
-      <li><a href="models.html#doctr.models.export.convert_to_tflite">convert_to_tflite() (in module doctr.models.export)</a>
+      <li><a href="models.html#doctr.models.export.convert_to_fp16">convert_to_fp16() (in module doctr.models.export)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#doctr.models.export.convert_to_tflite">convert_to_tflite() (in module doctr.models.export)</a>
+</li>
       <li><a href="datasets.html#doctr.datasets.CORD">CORD (class in doctr.datasets)</a>
 </li>
       <li><a href="models.html#doctr.models.recognition.crnn_vgg16_bn">crnn_vgg16_bn() (in module doctr.models.recognition)</a>
@@ -305,6 +313,8 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transforms.html#doctr.transforms.LambdaTransformation">LambdaTransformation (class in doctr.transforms)</a>
+</li>
       <li><a href="documents.html#doctr.documents.Line">Line (class in doctr.documents)</a>
 </li>
   </ul></td>
@@ -326,6 +336,14 @@
         <li><a href="index.html#module-doctr">doctr</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transforms.html#doctr.transforms.Normalize">Normalize (class in doctr.transforms)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -362,11 +380,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="documents.html#doctr.documents.read_img">read_img() (in module doctr.documents)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="documents.html#doctr.documents.read_pdf">read_pdf() (in module doctr.documents)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.recognition_predictor">recognition_predictor() (in module doctr.models.recognition)</a>
+</li>
+      <li><a href="transforms.html#doctr.transforms.Resize">Resize (class in doctr.transforms)</a>
 </li>
   </ul></td>
 </tr></table>
