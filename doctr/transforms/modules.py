@@ -141,8 +141,8 @@ class ToGray(NestedObject):
 
 
 class InvertColorize(NestedObject):
-    """Applies the following tranformation to a tensor (imageor batch of images):
-    convert to greyscale, colorize (shift 0-values randomly), and then invert colors
+    """Applies the following tranformation to a tensor (image or batch of images):
+    convert to grayscale, colorize (shift 0-values randomly), and then invert colors
 
     Example::
         >>> from doctr.transforms import Normalize
