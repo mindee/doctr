@@ -141,8 +141,8 @@ class ToGray(NestedObject):
 
 
 class InvertColorize(NestedObject):
-    """Applies the following tranformation to a batch of images: convert to greyscale, colorize
-    (shift 0-values randomly), and then invert colors
+    """Applies the following tranformation to a tensor (imageor batch of images):
+    convert to greyscale, colorize (shift 0-values randomly), and then invert colors
 
     Example::
         >>> from doctr.transforms import Normalize
@@ -264,7 +264,7 @@ class Hue(NestedObject):
     Args:
         delta: offset to add to each value. Can be negative to darken pictures.
     """
-    def __init__(self, delta: float = 0.8) -> None:
+    def __init__(self, delta: float = 0.3) -> None:
         self.delta = delta
 
     def extra_repr(self) -> str:
@@ -299,13 +299,13 @@ class Gamma(NestedObject):
 
 
 class JpegQuality(NestedObject):
-    """Adjust jpeg quality of a tensor (batch of images or image)
+    """Adjust jpeg quality of a 3 dimensional RGB image
 
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = JpegQuality()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         quality: int between [0, 100], 100 = perfect, 0 = very degraded
