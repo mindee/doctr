@@ -12,6 +12,7 @@ __all__ = ["detection_predictor"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {'model': 'db_resnet50', 'post_processor': 'DBPostProcessor'},
+    'linknet': {'model': 'linknet', 'post_processor': 'LinkNetPostProcessor'},
 }
 
 

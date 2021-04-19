@@ -38,8 +38,8 @@ class NestedObject:
                 if isinstance(child, list) and len(child) > 0:
                     child_str = ",\n".join([repr(subchild) for subchild in child])
                     if len(child) > 1:
-                        child_str = _addindent(f"\n{child_str},", 2)
-                    child_str = f"[{child_str}\n]"
+                        child_str = _addindent(f"\n{child_str},", 2) + '\n'
+                    child_str = f"[{child_str}]"
                 else:
                     child_str = repr(child)
                 child_str = _addindent(child_str, 2)

@@ -31,7 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'post_processor': 'DBPostProcessor',
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/db_resnet50-091c08a5.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.1/db_resnet50-98ba765d.zip',
     },
 }
 
@@ -59,32 +59,11 @@ class DBPostProcessor(DetectionPostProcessor):
 
         super().__init__(
             min_size_box,
-            max_candidates,
-            box_thresh
+            box_thresh,
+            bin_thresh
         )
         self.unclip_ratio = unclip_ratio
-        self.bin_thresh = bin_thresh
-
-    @staticmethod
-    def box_score(
-        pred: np.ndarray,
-        points: np.ndarray
-    ) -> float:
-        """Compute the confidence score for a polygon : mean of the p values on the polygon
-
-        Args:
-            pred (np.ndarray): p map returned by the model
-
-        Returns:
-            polygon objectness
-        """
-        h, w = pred.shape[:2]
-        xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
-        xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
-        ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
-        ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
-
-        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+        self.max_candidates = max_candidates
 
     def polygon_to_box(
         self,
@@ -123,7 +102,7 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-    ) -> List[List[float]]:
+    ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
         Args:
@@ -131,7 +110,7 @@ class DBPostProcessor(DetectionPostProcessor):
             bitmap: Bitmap map computed from pred (binarized)
 
         Returns:
-            list of boxes for the bitmap, each box is a 5-element list
+            np tensor boxes for the bitmap, each box is a 5-element list
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
@@ -159,34 +138,6 @@ class DBPostProcessor(DetectionPostProcessor):
             xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
             boxes.append([xmin, ymin, xmax, ymax, score])
         return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
-
-    def __call__(
-        self,
-        x: tf.Tensor,
-    ) -> List[np.ndarray]:
-        """Performs postprocessing for a list of model outputs
-
-        Args:
-            x: raw output of the model, of shape (N, H, W, 1)
-
-        returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5).
-        """
-        p = tf.squeeze(x, axis=-1)  # remove last dim
-        bitmap = tf.cast(p > self.bin_thresh, tf.float32)
-
-        p = tf.unstack(p, axis=0)
-        bitmap = tf.unstack(bitmap, axis=0)
-
-        boxes_batch = []
-
-        for p_, bitmap_ in zip(p, bitmap):
-            p_ = p_.numpy()
-            bitmap_ = bitmap_.numpy()
-            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-            boxes_batch.append(boxes)
-
-        return boxes_batch
 
 
 class FeaturePyramidNetwork(layers.Layer, NestedObject):
@@ -305,6 +256,8 @@ class DBNet(DetectionModel, NestedObject):
             ]
         )
 
+        self.postprocessor = DBPostProcessor()
+
     @staticmethod
     def compute_distance(
         xs: np.array,
@@ -400,24 +353,31 @@ class DBNet(DetectionModel, NestedObject):
             canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1]
         )
 
-    def compute_target(
+    def compute_loss(
         self,
-        out_shape: Tuple[int, int, int, int],
+        model_output: Dict[str, tf.Tensor],
         batch_polys: List[List[List[List[float]]]],
-        to_masks: List[List[bool]]
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a batch of images,
-        a list of boxes for each image and a list of masks for each image.
+        batch_flags: List[List[bool]]
+    ) -> tf.Tensor:
+        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
+        and a list of masks for each image. From there it computes the loss with the model output
 
         Args:
-            out_shape: shape N x H x W x C of the model output to get batch_size, h and w
-            polys: list of boxes for each image of the batch
-            to_masks: list of boxes to mask for each image of the batch
+            model_output: dictionnary containing the maps outputed by the model:
+                proba_map, binary_map and thresh_map, shapes: Nx H x W x C
+            batch_polys: list of boxes for each image of the batch
+            batch_flags: list of boxes to mask for each image of the batch
 
         Returns:
-            a batch of gts, masks, thresh_gts, thresh_masks
+            A loss tensor
         """
-        batch_size, h, w, _ = out_shape
+        # Load model outputs
+        proba_map = model_output["proba_map"]
+        binary_map = model_output["binary_map"]
+        thresh_map = model_output["thresh_map"]
+
+        # Compute gts and masks
+        batch_size, h, w, _ = proba_map.shape
         batch_gts, batch_masks, batch_thresh_gts, batch_thresh_masks = [], [], [], []
         for batch_idx in range(batch_size):
             # Initialize mask and gt
@@ -427,14 +387,14 @@ class DBNet(DetectionModel, NestedObject):
             thresh_mask = np.zeros((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            if batch_polys[batch_idx] == to_masks[batch_idx] == []:
+            if batch_polys[batch_idx] == batch_flags[batch_idx] == []:
                 # Empty image, full masked
                 mask = np.zeros((h, w), dtype=np.float32)
-            for poly, to_mask in zip(batch_polys[batch_idx], to_masks[batch_idx]):
+            for poly, flag in zip(batch_polys[batch_idx], batch_flags[batch_idx]):
                 # Convert polygon to absolute polygon and to np array
                 poly = [[int(w * x), int(h * y)] for [x, y] in poly]
                 poly = np.array(poly)
-                if to_mask is True:
+                if flag is True:
                     cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
                     continue
                 height = max(poly[:, 1]) - min(poly[:, 1])
@@ -478,65 +438,19 @@ class DBNet(DetectionModel, NestedObject):
             batch_thresh_masks.append(thresh_masks)
 
         # Stack
-        gts = tf.stack(batch_gts, axis=0)
-        masks = tf.stack(batch_masks, axis=0)
-        thresh_gts = tf.stack(batch_thresh_gts, axis=0)
-        thresh_masks = tf.stack(batch_thresh_masks, axis=0)
+        gt = tf.stack(batch_gts, axis=0)
+        mask = tf.stack(batch_masks, axis=0)
+        thresh_gt = tf.stack(batch_thresh_gts, axis=0)
+        thresh_mask = tf.stack(batch_thresh_masks, axis=0)
 
-        return gts, masks, thresh_gts, thresh_masks
-
-    @staticmethod
-    def compute_approx_binmap(
-        p: tf.Tensor,
-        t: tf.Tensor
-    ) -> tf.Tensor:
-        """Compute approximate binary map as described in paper,
-        from threshold map t and probability map p
-
-        Args:
-            p (tf.Tensor): probability map
-            t (tf.Tensor): threshold map
-
-        Returns:
-            a tf.Tensor
-        """
-        return 1 / (1 + tf.exp(-50. * (p - t)))
-
-    @staticmethod
-    def compute_loss(
-        proba_map: tf.Tensor,
-        binary_map: tf.Tensor,
-        thresh_map: tf.Tensor,
-        gt: tf.Tensor,
-        mask: tf.Tensor,
-        thresh_gt: tf.Tensor,
-        thresh_mask: tf.Tensor
-    ) -> tf.Tensor:
-        """Implements DB loss: weighted sum of balanced BCE loss for probability head, Dice loss
-        for approximated binary head and L1 loss for threshold head
-
-        Args:
-            proba_map: output of the model (prob_map), shape (N, H, W, 1)
-            binary_map: output of the model (approxbin_map), shape (N, H, W, 1)
-            thresh_map: output of the model (thresh_map), shape (N, H, W, 1)
-            gt: ground-truth text regions , shape (N, H, W)
-            mask: text regions to mask, shape (N, H, W)
-            thresh_gt: ground-truth threshold map, shape (N, H, W)
-            thresh_mask: threhsold map areas to mask, shape (N, H, W)
-
-        Returns:
-            DB loss
-        """
         # Compute balanced BCE loss for proba_map
         negative_ratio = 3.
         bce_scale = 5.
-        proba_map = tf.squeeze(proba_map, axis=[-1])
         positive_mask = (gt * mask)
         negative_mask = ((1 - gt) * mask)
         positive_count = tf.math.reduce_sum(positive_mask)
         negative_count = tf.math.reduce_min([tf.math.reduce_sum(negative_mask), positive_count * negative_ratio])
         gt_exp = tf.expand_dims(gt, axis=-1)
-        proba_map = tf.expand_dims(proba_map, axis=-1)
         bce_loss = tf.keras.losses.binary_crossentropy(gt_exp, proba_map)
         positive_loss = bce_loss * positive_mask
         negative_loss = bce_loss * negative_mask
@@ -565,23 +479,38 @@ class DBNet(DetectionModel, NestedObject):
 
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
+    @staticmethod
+    def compute_binary_map(
+        p: tf.Tensor,
+        t: tf.Tensor
+    ) -> tf.Tensor:
+        """Compute approximate binary map as described in paper,
+        from threshold map t and probability map p
+
+        Args:
+            p (tf.Tensor): probability map
+            t (tf.Tensor): threshold map
+
+        Returns:
+            a tf.Tensor
+        """
+        return 1 / (1 + tf.exp(-50. * (p - t)))
+
     def call(
         self,
         x: tf.Tensor,
         **kwargs: Any,
-    ) -> Union[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
+    ) -> Dict[str, tf.Tensor]:
 
         feat_maps = self.feat_extractor(x, **kwargs)
         feat_concat = self.fpn(feat_maps, **kwargs)
-        prob_map = self.probability_head(feat_concat, **kwargs)
+        proba_map = self.probability_head(feat_concat, **kwargs)
 
         if kwargs.get('training', False):
             thresh_map = self.threshold_head(feat_concat, **kwargs)
-            approx_binmap = self.compute_approx_binmap(prob_map, thresh_map)
-            return prob_map, thresh_map, approx_binmap
-
-        else:
-            return prob_map
+            binary_map = self.compute_binary_map(proba_map, thresh_map)
+            return dict(proba_map=proba_map, thresh_map=thresh_map, binary_map=binary_map)
+        return dict(proba_map=proba_map)
 
 
 def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:

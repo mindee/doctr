@@ -20,6 +20,14 @@ Here are all datasets that are available through DocTR:
 
 .. autoclass:: FUNSD
 .. autoclass:: SROIE
+.. autoclass:: CORD
+
+
+Data Loading
+------------
+Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in DocTR.
+
+.. autoclass:: doctr.datasets.loader.DataLoader
 
 
 Supported Vocabs

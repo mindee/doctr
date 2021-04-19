@@ -7,14 +7,17 @@
 
 from copy import deepcopy
 import tensorflow as tf
+import numpy as np
+import cv2
 from tensorflow.keras import layers, Sequential
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional, List
 
+from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from ...utils.repr import NestedObject
 
-__all__ = ['LinkNet', 'linknet']
+__all__ = ['LinkNet', 'linknet', 'LinkNetPostProcessor']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -23,10 +26,65 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.264, 0.2749, 0.287),
         'out_chan': 1,
         'input_shape': (1024, 1024, 3),
-        'post_processor': None,
+        'post_processor': 'LinkNetPostProcessor',
         'url': None,
     },
 }
+
+
+class LinkNetPostProcessor(DetectionPostProcessor):
+    """Implements a post processor for LinkNet model.
+
+    Args:
+        min_size_box: minimal length (pix) to keep a box
+        box_thresh: minimal objectness score to consider a box
+        bin_thresh: threshold used to binzarized p_map at inference time
+
+    """
+    def __init__(
+        self,
+        min_size_box: int = 3,
+        bin_thresh: float = 0.15,
+        box_thresh: float = 0.1,
+    ) -> None:
+        super().__init__(
+            min_size_box,
+            box_thresh,
+            bin_thresh
+        )
+
+    def bitmap_to_boxes(
+        self,
+        pred: np.ndarray,
+        bitmap: np.ndarray,
+    ) -> np.ndarray:
+        """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
+
+        Args:
+            pred: Pred map from differentiable linknet output
+            bitmap: Bitmap map computed from pred (binarized)
+
+        Returns:
+            np tensor boxes for the bitmap, each box is a 5-element list
+                containing x, y, w, h, score for the box
+        """
+        label_num, labelimage = cv2.connectedComponents(bitmap.astype(np.uint8), connectivity=4)
+        height, width = bitmap.shape[:2]
+        boxes = []
+        for label in range(1, label_num + 1):
+            points = np.array(np.where(labelimage == label)[::-1]).T
+            if points.shape[0] < 4:  # remove polygons with 3 points or less
+                continue
+            score = self.box_score(pred, points.reshape(-1, 2))
+            if self.box_thresh > score:   # remove polygons with a weak objectness
+                continue
+            x, y, w, h = cv2.boundingRect(points)
+            if min(w, h) < self.min_size_box:  # filter too small boxes
+                continue
+            # compute relative polygon to get rid of img shape
+            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+            boxes.append([xmin, ymin, xmax, ymax, score])
+        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
 class DecoderBlock(Sequential):
@@ -94,7 +152,7 @@ class LinkNetPyramid(layers.Layer, NestedObject):
         return y_1
 
 
-class LinkNet(Sequential, NestedObject):
+class LinkNet(DetectionModel, NestedObject):
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
@@ -108,6 +166,7 @@ class LinkNet(Sequential, NestedObject):
         input_shape: Tuple[int, int, int] = (512, 512, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
+        super().__init__(cfg=cfg)
         _layers = []
         _layers.extend(conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape))
         _layers.append(layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'))
@@ -135,7 +194,82 @@ class LinkNet(Sequential, NestedObject):
                 kernel_initializer='he_normal'
             )
         )
-        super().__init__(_layers)
+        _layers.append(layers.Activation('sigmoid'))
+        self._layers = _layers
+        self.min_size_box = 3
+
+    def compute_loss(
+        self,
+        model_output: Dict[str, tf.Tensor],
+        batch_polys: List[List[List[List[float]]]],
+        batch_flags: List[List[bool]]
+    ) -> tf.Tensor:
+        """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
+        Then, it computes the loss function with proba_map, gts and masks
+
+        Args:
+            model_output: dictionary containing the output of the model, proba_map, shape: N x H x W x C
+            batch_polys: list of boxes for each image of the batch
+            batch_flags: list of boxes to mask for each image of the batch
+
+        Returns:
+            A loss tensor
+        """
+        # Get model output
+        proba_map = model_output["proba_map"]
+        batch_size, h, w, _ = proba_map.shape
+
+        # Compute masks and gts
+        batch_gts, batch_masks = [], []
+        for batch_idx in range(batch_size):
+            # Initialize mask and gt
+            gt = np.zeros((h, w), dtype=np.float32)
+            mask = np.ones((h, w), dtype=np.float32)
+
+            # Draw each polygon on gt
+            if batch_polys[batch_idx] == batch_flags[batch_idx] == []:
+                # Empty image, full masked
+                mask = np.zeros((h, w), dtype=np.float32)
+            for poly, flag in zip(batch_polys[batch_idx], batch_flags[batch_idx]):
+                # Convert polygon to absolute polygon and to np array
+                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
+                poly = np.array(poly)
+                if flag is True:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                height = max(poly[:, 1]) - min(poly[:, 1])
+                width = max(poly[:, 0]) - min(poly[:, 0])
+                if min(height, width) < self.min_size_box:
+                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    continue
+                # Fill polygon with 1
+                cv2.fillPoly(gt, [poly.astype(np.int32)], 1)
+
+            # Cast
+            gts = tf.convert_to_tensor(gt, tf.float32)
+            masks = tf.convert_to_tensor(mask, tf.float32)
+
+            # Batch
+            batch_gts.append(gts)
+            batch_masks.append(masks)
+
+        # Stack
+        gts = tf.stack(batch_gts, axis=0)
+        masks = tf.stack(batch_masks, axis=0)
+
+        proba_map = tf.squeeze(proba_map, axis=[-1])
+
+        # Compute BCE loss
+        bce_loss = tf.keras.losses.binary_crossentropy(gts * mask, proba_map * masks)
+
+        return bce_loss
+
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
+    ) -> Dict[str, tf.Tensor]:
+        return dict(proba_map=Sequential(self._layers)(x))
 
 
 def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> LinkNet:

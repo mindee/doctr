@@ -7,7 +7,8 @@ import os
 import csv
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional, Callable
+import tensorflow as tf
 
 from doctr.documents.reader import read_img
 from .core import VisionDataset
@@ -26,6 +27,7 @@ class SROIE(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
+        sample_transforms: composable transformations that will be applied to each image
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -37,15 +39,18 @@ class SROIE(VisionDataset):
     def __init__(
         self,
         train: bool = True,
+        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        self.train = train
 
         # # List images
         self.root = os.path.join(self._root, 'images')
-        self.data: List[Tuple[str, List[Dict[str, Any]]]] = []
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
             _targets = []
@@ -64,11 +69,24 @@ class SROIE(VisionDataset):
 
             text_targets, box_targets = zip(*_targets)
 
-            self.data.append((img_path, dict(boxes=box_targets, labels=text_targets)))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
 
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
-        img_path, target = self.data[index]
+    def extra_repr(self) -> str:
+        return f"train={self.train}"
+
+    def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
+        img_name, target = self.data[index]
         # Read image
-        img = read_img(os.path.join(self.root, img_path))
+        img = tf.io.read_file(os.path.join(self.root, img_name))
+        img = tf.image.decode_jpeg(img, channels=3)
+        img = self.sample_transforms(img)
 
         return img, target
+
+    @staticmethod
+    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
+
+        images, targets = zip(*samples)
+        images = tf.stack(images, axis=0)
+
+        return images, list(targets)

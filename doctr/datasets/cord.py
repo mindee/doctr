@@ -13,16 +13,16 @@ import tensorflow as tf
 from doctr.documents.reader import read_img
 from .core import VisionDataset
 
-__all__ = ['FUNSD']
+__all__ = ['CORD']
 
 
-class FUNSD(VisionDataset):
-    """FUNSD dataset from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents"
-    <https://arxiv.org/pdf/1905.13538.pdf>`_.
+class CORD(VisionDataset):
+    """CORD dataset from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing"
+    <https://openreview.net/pdf?id=SJl3z659UH>`_.
 
     Example::
-        >>> from doctr.datasets import FUNSD
-        >>> train_set = FUNSD(train=True, download=True)
+        >>> from doctr.datasets import CORD
+        >>> train_set = CORD(train=True, download=True)
         >>> img, target = train_set[0]
 
     Args:
@@ -30,10 +30,11 @@ class FUNSD(VisionDataset):
         sample_transforms: composable transformations that will be applied to each image
         **kwargs: keyword arguments from `VisionDataset`.
     """
+    TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip',
+             '45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8')
 
-    URL = 'https://guillaumejaume.github.io/FUNSD/dataset.zip'
-    SHA256 = 'c31735649e4f441bcbb4fd0f379574f7520b42286e80b01d80b445649d54761f'
-    FILE_NAME = 'funsd.zip'
+    TEST = ('https://github.com/mindee/doctr/releases/download/v0.1.1/cord_test.zip',
+            '8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58')
 
     def __init__(
         self,
@@ -42,23 +43,28 @@ class FUNSD(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
-        self.train = train
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
-
-        # Use the subset
-        subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
+        url, sha256 = self.TRAIN if train else self.TEST
+        super().__init__(url, None, sha256, True, **kwargs)
 
         # # List images
-        self.root = os.path.join(self._root, subfolder, 'images')
+        self.root = os.path.join(self._root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.train = train
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         for img_path in os.listdir(self.root):
             stem = Path(img_path).stem
-            with open(os.path.join(self._root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
-                data = json.load(f)
-
-            _targets = [(word['text'], word['box']) for block in data['form']
-                        for word in block['words'] if len(word['text']) > 0]
+            _targets = []
+            with open(os.path.join(self._root, 'json', f"{stem}.json"), 'rb') as f:
+                label = json.load(f)
+                for line in label["valid_line"]:
+                    for word in line["words"]:
+                        x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
+                        y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
+                        # Reduce 8 coords to 4
+                        left, right = min(x), max(x)
+                        top, bot = min(y), max(y)
+                        if len(word["text"]) > 0:
+                            _targets.append((word["text"], [left, top, right, bot]))
 
             text_targets, box_targets = zip(*_targets)
 

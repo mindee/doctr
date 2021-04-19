@@ -217,6 +217,8 @@ class SAR(RecognitionModel):
             input_shape=[self.feat_extractor.output_shape, self.encoder.output_shape]
         )
 
+        self.postprocessor = SARPostProcessor(vocab=vocab)
+
     @staticmethod
     def compute_loss(
         gt: tf.Tensor,
