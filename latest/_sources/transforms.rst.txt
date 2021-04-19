@@ -13,6 +13,14 @@ Here are all transformations that are available through DocTR:
 .. autoclass:: Resize
 .. autoclass:: Normalize
 .. autoclass:: LambdaTransformation
+.. autoclass:: ToGray
+.. autoclass:: InvertColorize
+.. autoclass:: Brightness
+.. autoclass:: Contrast
+.. autoclass:: Saturation
+.. autoclass:: Hue
+.. autoclass:: Gamma
+.. autoclass:: JpegQuality
 
 
 Composing several consecutive transformations

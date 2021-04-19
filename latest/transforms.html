@@ -5,7 +5,7 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
@@ -277,6 +277,161 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>fn</strong> – the function to be applied to the input tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.ToGray">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ToGray</code><a class="reference internal" href="_modules/doctr/transforms/modules.html#ToGray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ToGray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">ToGray</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Args:</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.InvertColorize">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">InvertColorize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_val</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.6</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#InvertColorize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.InvertColorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies the following tranformation to a tensor (image or batch of images):
+convert to grayscale, colorize (shift 0-values randomly), and then invert colors</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">InvertColorize</span><span class="p">(</span><span class="n">min_val</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>min_val</strong> – range [min_val, 1] to colorize RGB pixels</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.Brightness">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Brightness</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Brightness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Brightness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust brightness of a tensor (batch of images or image) by adding delta
+to all pixels</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">Brightness</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>delta</strong> – offset to add to each value. Can be negative to darken pictures.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.Contrast">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Contrast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">contrast_factor</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Contrast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Contrast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust contrast of a tensor (batch of images or image) by adjusting
+each pixel: (img - mean) * contrast_factor + mean.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">Contrast</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>contrast_factor</strong> – multiplicative factor to use to augment (if &gt; 1) or reduce (if &lt; 1) contrast</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.Saturation">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Saturation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">saturation_factor</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Saturation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Saturation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust saturation of a tensor (batch of images or image) by converting to HSV and
+increasing saturation by a factor.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">Saturation</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>saturation_factor</strong> – multiplicative factor to use to augment (if &gt; 1) or reduce (if &lt; 1) saturation</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.Hue">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Hue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Hue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Hue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust hue of a tensor (batch of images or image) by converting to HSV and adding delta</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">Hue</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>delta</strong> – offset to add to each value. Can be negative to darken pictures.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.Gamma">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Gamma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.8</span></em>, <em class="sig-param"><span class="n">gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Gamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Gamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs gamma correction for a tensor (batch of images or image)</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">Gamma</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gamma</strong> – non-negative real number</p></li>
+<li><p><strong>gain</strong> – constant multiplier</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.JpegQuality">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">JpegQuality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">60</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#JpegQuality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.JpegQuality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust jpeg quality of a 3 dimensional RGB image</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">JpegQuality</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>quality</strong> – int between [0, 100], 100 = perfect, 0 = very degraded</p>
 </dd>
 </dl>
 </dd></dl>
