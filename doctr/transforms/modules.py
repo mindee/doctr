@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import random
 import tensorflow as tf
 from typing import List, Any, Tuple, Callable
 
@@ -127,16 +128,18 @@ class ToGray(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-
+        p: probability to apply transformation
     """
-    def __init__(self) -> None:
-        pass
+    def __init__(self, p: float = .5) -> None:
+        self.p = p
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        grey = tf.image.rgb_to_grayscale(img)
-        # Retrieve last dimension
-        grey = tf.repeat(grey, repeats=3, axis=-1)
-        return grey
+        if random.random() < self.p:
+            grey = tf.image.rgb_to_grayscale(img)
+            # Retrieve last dimension
+            grey = tf.repeat(grey, repeats=3, axis=-1)
+            return grey
+        return img
 
 
 class InvertColorize(NestedObject):
@@ -151,28 +154,31 @@ class InvertColorize(NestedObject):
 
     Args:
         min_val: range [min_val, 1] to colorize RGB pixels
-
+        p: probability to apply transformation
     """
-    def __init__(self, min_val: float = 0.6) -> None:
+    def __init__(self, min_val: float = 0.6, p: float = .5) -> None:
         self.min_val = min_val
-        self.togray = ToGray()
+        self.togray = ToGray(p=1.)
+        self.p = p
 
     def extra_repr(self) -> str:
         return f"min_val={self.min_val}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        gray = self.togray(img)  # Convert to gray
-        # Random RGB shifts
-        shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
-        rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
-        colorized = tf.multiply(gray, rgb_shift)
-        # Invert values
-        inverted = tf.ones_like(colorized) - colorized
-        return inverted
+        if random.random() < self.p:
+            gray = self.togray(img)  # Convert to gray
+            # Random RGB shifts
+            shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
+            rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
+            colorized = tf.multiply(gray, rgb_shift)
+            # Invert values
+            inverted = tf.ones_like(colorized) - colorized
+            return inverted
+        return img
 
 
 class Brightness(NestedObject):
-    """Adjust brightness of a tensor (batch of images or image) by adding delta
+    """Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
     to all pixels
 
     Example:
@@ -182,20 +188,24 @@ class Brightness(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        delta: offset to add to each value. Can be negative to darken pictures.
+        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
+        p: probability to apply transformation
     """
-    def __init__(self, delta: float = 0.3) -> None:
-        self.delta = delta
+    def __init__(self, max_delta: float = 0.3, p: float = .5) -> None:
+        self.max_delta = max_delta
+        self.p = p
 
     def extra_repr(self) -> str:
-        return f"delta={self.delta}"
+        return f"max_delta={self.max_delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.adjust_brightness(img, delta=self.delta)
+        if random.random() < self.p:
+            return tf.image.random_brightness(img, max_delta=self.max_delta)
+        return img
 
 
 class Contrast(NestedObject):
-    """Adjust contrast of a tensor (batch of images or image) by adjusting
+    """Randomly adjust contrast of a tensor (batch of images or image) by adjusting
     each pixel: (img - mean) * contrast_factor + mean.
 
     Example:
@@ -205,20 +215,26 @@ class Contrast(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        contrast_factor: multiplicative factor to use to augment (if > 1) or reduce (if < 1) contrast
+        lower: lower bound to pick multiplicative factor (should be < 1 to reduce contrast)
+        upper: upper bound to pick multiplicative factor (should be > 1 to augment contrast)
+        p: probability to apply transformation
     """
-    def __init__(self, contrast_factor: float = 1.3) -> None:
-        self.contrast_factor = contrast_factor
+    def __init__(self, lower: float = .7, upper: float = 1.3, p: float = .5) -> None:
+        self.lower = lower
+        self.upper = upper
+        self.p = p
 
     def extra_repr(self) -> str:
-        return f"contrast_factor={self.contrast_factor}"
+        return f"lower={self.lower}, upper={self.upper}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.adjust_contrast(img, contrast_factor=self.contrast_factor)
+        if random.random() < self.p:
+            return tf.image.random_contrast(img, lower=self.lower, upper=self.upper)
+        return img
 
 
 class Saturation(NestedObject):
-    """Adjust saturation of a tensor (batch of images or image) by converting to HSV and
+    """Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and
     increasing saturation by a factor.
 
     Example:
@@ -228,20 +244,26 @@ class Saturation(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        saturation_factor: multiplicative factor to use to augment (if > 1) or reduce (if < 1) saturation
+        lower: lower bound to pick multiplicative factor (should be < 1 to reduce saturation)
+        upper: upper bound to pick multiplicative factor (should be > 1 to augment saturation)
+        p: probability to apply transformation
     """
-    def __init__(self, saturation_factor: float = 1.5) -> None:
-        self.saturation_factor = saturation_factor
+    def __init__(self, lower: float = .5, upper: float = 1.5, p: float = .5) -> None:
+        self.lower = lower
+        self.upper = upper
+        self.p = p
 
     def extra_repr(self) -> str:
-        return f"saturation_factor={self.saturation_factor}"
+        return f"lower={self.lower}, upper={self.upper}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.adjust_saturation(img, saturation_factor=self.saturation_factor)
+        if random.random() < self.p:
+            return tf.image.random_saturation(img, lower=self.lower, upper=self.upper)
+        return img
 
 
 class Hue(NestedObject):
-    """Adjust hue of a tensor (batch of images or image) by converting to HSV and adding delta
+    """Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta
 
     Example::
         >>> from doctr.transforms import Normalize
@@ -250,20 +272,24 @@ class Hue(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        delta: offset to add to each value. Can be negative to darken pictures.
+        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
+        p: probability to apply transformation
     """
-    def __init__(self, delta: float = 0.3) -> None:
-        self.delta = delta
+    def __init__(self, max_delta: float = 0.3, p: float = .5) -> None:
+        self.max_delta = max_delta
+        self.p = p
 
     def extra_repr(self) -> str:
-        return f"delta={self.delta}"
+        return f"max_delta={self.max_delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.adjust_hue(img, delta=self.delta)
+        if random.random() < self.p:
+            return tf.image.random_hue(img, max_delta=self.max_delta)
+        return img
 
 
 class Gamma(NestedObject):
-    """Performs gamma correction for a tensor (batch of images or image)
+    """randomly performs gamma correction for a tensor (batch of images or image)
 
     Example:
         >>> from doctr.transforms import Normalize
@@ -272,22 +298,40 @@ class Gamma(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        gamma: non-negative real number
-        gain: constant multiplier
+        min_gamma: non-negative real number, lower bound for gamma param
+        max_gamma: non-negative real number, upper bound for gamma
+        min_gain: lower bound for constant multiplier
+        max_gain: upper bound for constant multiplier
+        p: probability to apply transformation
     """
-    def __init__(self, gamma: float = 0.8, gain: float = 1.5) -> None:
-        self.gamma = gamma
-        self.gain = gain
+    def __init__(
+        self,
+        min_gamma: float = 0.5,
+        max_gamma: float = 1.5,
+        min_gain: float = 0.8,
+        max_gain: float = 1.2,
+        p: float = .5,
+    ) -> None:
+        self.min_gamma = min_gamma
+        self.max_gamma = max_gamma
+        self.min_gain = min_gain
+        self.max_gain = max_gain
+        self.p = p
 
     def extra_repr(self) -> str:
-        return f"gamma={self.gamma}, gain={self.gain}"
+        return f"""gamma_range=({self.min_gamma}, {self.max_gamma}),
+                 gain_range=({self.min_gain}, {self.max_gain})"""
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.adjust_gamma(img, gamma=self.gamma, gain=self.gain)
+        if random.random() < self.p:
+            gamma = random.uniform(self.min_gamma, self.max_gamma)
+            gain = random.uniform(self.min_gain, self.max_gain)
+            return tf.image.adjust_gamma(img, gamma=gamma, gain=gain)
+        return img
 
 
 class JpegQuality(NestedObject):
-    """Adjust jpeg quality of a 3 dimensional RGB image
+    """Randomly adjust jpeg quality of a 3 dimensional RGB image
 
     Example::
         >>> from doctr.transforms import Normalize
@@ -296,13 +340,19 @@ class JpegQuality(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
-        quality: int between [0, 100], 100 = perfect, 0 = very degraded
+        min_quality: int between [0, 100], quality will be picked in [min_quality, 100]
+        p: probability to apply transformation
     """
-    def __init__(self, quality: int = 60) -> None:
-        self.quality = quality
+    def __init__(self, min_quality: int = 60, p: float = .5) -> None:
+        self.min_quality = min_quality
+        self.p = p
 
     def extra_repr(self) -> str:
-        return f"quality={self.quality}"
+        return f"min_quality={self.min_quality}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.adjust_jpeg_quality(img, jpeg_quality=self.quality)
+        if random.random() < self.p:
+            return tf.image.random_jpeg_quality(
+                img, min_jpeg_quality=self.min_quality, max_jpeg_quality=100
+            )
+        return img
