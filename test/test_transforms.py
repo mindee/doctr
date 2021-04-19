@@ -59,3 +59,91 @@ def test_lambatransformation():
     out = transfo(input_t)
 
     assert tf.reduce_all(out == 0.5)
+
+
+def test_togray():
+
+    transfo = T.ToGray()
+    r = tf.fill([8, 32, 32, 1], 0.2)
+    g = tf.fill([8, 32, 32, 1], 0.6)
+    b = tf.fill([8, 32, 32, 1], 0.7)
+    input_t = tf.cast(tf.concat([r, g, b], axis=-1), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert tf.reduce_all(out <= .51)
+    assert tf.reduce_all(out >= .49)
+
+
+@pytest.mark.parametrize(
+    "rgb_min",
+    [
+        0.2,
+        0.4,
+        0.6,
+    ],
+)
+def test_invert_colorize(rgb_min):
+
+    transfo = T.InvertColorize(min_val=rgb_min)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 1), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert tf.reduce_all(out <= 1 - rgb_min)
+    assert tf.reduce_all(out >= 0)
+
+
+def test_brightness():
+
+    transfo = T.Brightness(delta=.3)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert tf.reduce_all(out == .8)
+
+
+def test_contrast():
+
+    transfo = T.Contrast(contrast_factor=1.3)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert tf.reduce_all(out == .5)
+
+
+def test_saturation():
+
+    transfo = T.Saturation(saturation_factor=1.5)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    input_t = tf.image.hsv_to_rgb(input_t)
+    out = transfo(input_t)
+    hsv = tf.image.rgb_to_hsv(out)
+
+    assert tf.reduce_all(hsv[:, :, :, 1] == .75)
+
+
+def test_hue():
+
+    transfo = T.Hue(delta=.2)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    input_t = tf.image.hsv_to_rgb(input_t)
+    out = transfo(input_t)
+    hsv = tf.image.rgb_to_hsv(out)
+
+    assert tf.reduce_all(hsv[:, :, :, 0] == .7)
+
+
+def test_gamma():
+
+    transfo = T.Gamma(gamma=2., gain=2)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert tf.reduce_all(out == 8.)
+
+
+def test_jpegquality():
+
+    transfo = T.JpegQuality(quality=50)
+    input_t = tf.cast(tf.fill([32, 32, 3], 1), dtype=tf.float32)
+    out = transfo(input_t)
+    assert out.shape == input_t.shape
