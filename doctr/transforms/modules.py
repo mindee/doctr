@@ -135,7 +135,7 @@ class ToGray(NestedObject):
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         grey = tf.image.rgb_to_grayscale(img)
         # Retrieve last dimension
-        grey = tf.concat([grey, grey, grey], axis=-1)
+        grey = tf.repeat(grey, repeats=3, axis=-1)
         return grey
 
 
@@ -146,36 +146,25 @@ class InvertColorize(NestedObject):
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
-        >>> transfo = InvertColorize(r_min=0.8, g_min=0.8, b_min=0.8)
+        >>> transfo = InvertColorize(min_val=0.6)
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        r_min: range [r_min, 1] to colorize pixels to red (0 convert all original white pixels to red)
-        g_min: range [g_min, 1] to colorize pixels to green (0 convert all original white pixels to green)
-        b_min: range [b_min, 1] to colorize pixels to blue (0 convert all original white pixels to blue)
+        min_val: range [min_val, 1] to colorize RGB pixels
+
     """
-    def __init__(self, r_min: float = 0.6, g_min: float = 0.6, b_min: float = 0.6) -> None:
-        self.r_min = r_min
-        self.g_min = g_min
-        self.b_min = b_min
+    def __init__(self, min_val: float = 0.6) -> None:
+        self.min_val = min_val
         self.togray = ToGray()
 
     def extra_repr(self) -> str:
-        return f"r_min={self.r_min}, g_max={self.g_min}, b_min={self.b_min}"
+        return f"min_val={self.min_val}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         gray = self.togray(img)  # Convert to gray
         # Random RGB shifts
-        if len(img.shape) == 4:
-            batch_size = img.shape[0]
-            r_shift = tf.random.uniform(shape=[batch_size, 1, 1], minval=self.r_min, maxval=1)
-            g_shift = tf.random.uniform(shape=[batch_size, 1, 1], minval=self.g_min, maxval=1)
-            b_shift = tf.random.uniform(shape=[batch_size, 1, 1], minval=self.b_min, maxval=1)
-        else:  # No batch dim
-            r_shift = tf.random.uniform(shape=[1, 1], minval=self.r_min, maxval=1)
-            g_shift = tf.random.uniform(shape=[1, 1], minval=self.g_min, maxval=1)
-            b_shift = tf.random.uniform(shape=[1, 1], minval=self.b_min, maxval=1)
-        rgb_shift = tf.stack([r_shift, g_shift, b_shift], axis=-1)
+        shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
+        rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
         colorized = tf.multiply(gray, rgb_shift)
         # Invert values
         inverted = tf.ones_like(colorized) - colorized
