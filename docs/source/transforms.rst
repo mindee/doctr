@@ -20,7 +20,7 @@ Here are all transformations that are available through DocTR:
 .. autoclass:: Saturation
 .. autoclass:: Hue
 .. autoclass:: Gamma
-.. autoclass:: jpegQuality
+.. autoclass:: JpegQuality
 
 
 Composing several consecutive transformations
