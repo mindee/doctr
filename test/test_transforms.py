@@ -103,7 +103,7 @@ def test_brightness():
 
 
 def test_contrast():
-    transfo = T.Contrast(lower=0.4, upper=.6)
+    transfo = T.Contrast(delta=.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -112,7 +112,7 @@ def test_contrast():
 
 def test_saturation():
 
-    transfo = T.Saturation(lower=0.8, upper=1.2)
+    transfo = T.Saturation(delta=.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
@@ -155,7 +155,7 @@ def test_jpegquality():
 def test_oneof():
     transfos = [
         T.Gamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.),
-        T.Contrast(lower=0.4, upper=.6)
+        T.Contrast(delta=.2)
     ]
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
     out = T.OneOf(transfos)(input_t)

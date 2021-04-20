@@ -205,18 +205,16 @@ class Contrast(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        lower: lower bound to pick multiplicative factor (should be < 1 to reduce contrast)
-        upper: upper bound to pick multiplicative factor (should be > 1 to augment contrast)
+        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor<1)
     """
-    def __init__(self, lower: float = .7, upper: float = 1.3) -> None:
-        self.lower = lower
-        self.upper = upper
+    def __init__(self, delta: float = .3) -> None:
+        self.delta = delta
 
     def extra_repr(self) -> str:
-        return f"lower={self.lower}, upper={self.upper}"
+        return f"delta={self.delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_contrast(img, lower=self.lower, upper=self.upper)
+        return tf.image.random_contrast(img, lower=1 - self.delta, upper=1 + self.delta)
 
 
 class Saturation(NestedObject):
@@ -230,18 +228,16 @@ class Saturation(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        lower: lower bound to pick multiplicative factor (should be < 1 to reduce saturation)
-        upper: upper bound to pick multiplicative factor (should be > 1 to augment saturation)
+        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor<1)
     """
-    def __init__(self, lower: float = .5, upper: float = 1.5) -> None:
-        self.lower = lower
-        self.upper = upper
+    def __init__(self, delta: float = .5) -> None:
+        self.delta = delta
 
     def extra_repr(self) -> str:
-        return f"lower={self.lower}, upper={self.upper}"
+        return f"delta={self.delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_saturation(img, lower=self.lower, upper=self.upper)
+        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 + self.delta)
 
 
 class Hue(NestedObject):
