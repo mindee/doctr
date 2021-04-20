@@ -256,13 +256,15 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <td><p>0.817</p></td>
 <td><p>0.745</p></td>
 <td><p>0.875</p></td>
-<td></td>
+<td><p>2.1</p></td>
 </tr>
 </tbody>
 </table>
 <p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
+<p>FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 1024, 1024, 3]).
+We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.</p>
 <section id="pre-processing-for-detection">
 <h3>Pre-processing for detection<a class="headerlink" href="#pre-processing-for-detection" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for detection is the following:</p>
@@ -388,27 +390,29 @@ Explanations about the metrics being used are available in <a class="reference i
 <td></td>
 <td><p>0.860</p></td>
 <td><p>0.913</p></td>
-<td></td>
+<td><p>12.8</p></td>
 </tr>
 <tr class="row-odd"><td><p>sar_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td></td>
 <td><p>0.862</p></td>
 <td><p>0.917</p></td>
-<td></td>
+<td><p>3.3</p></td>
 </tr>
 <tr class="row-even"><td><p>sar_resnet31</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td></td>
 <td><p><strong>0.863</strong></p></td>
 <td><p><strong>0.921</strong></p></td>
-<td></td>
+<td><p>2.7</p></td>
 </tr>
 </tbody>
 </table>
 <p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
+<p>FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 32, 128, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 32, 128, 3]).
+We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.</p>
 <section id="pre-processing-for-recognition">
 <h3>Pre-processing for recognition<a class="headerlink" href="#pre-processing-for-recognition" title="Permalink to this headline">¶</a></h3>
 <p>In DocTR, the pre-processing scheme for recognition is the following:</p>
@@ -537,20 +541,20 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <p>Predictors that localize and identify text elements in images</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 24%" />
-<col style="width: 14%" />
+<col style="width: 22%" />
+<col style="width: 13%" />
 <col style="width: 11%" />
-<col style="width: 10%" />
-<col style="width: 12%" />
-<col style="width: 10%" />
-<col style="width: 12%" />
+<col style="width: 9%" />
+<col style="width: 11%" />
+<col style="width: 7%" />
+<col style="width: 9%" />
+<col style="width: 11%" />
 <col style="width: 7%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head" colspan="3"></th>
-<th class="head" colspan="2"><p>FUNSD</p></th>
-<th class="head" colspan="2"><p>CORD</p></th>
-<th class="head"></th>
+<th class="head" colspan="3"><p>FUNSD</p></th>
+<th class="head" colspan="3"><p>CORD</p></th>
 </tr>
 </thead>
 <tbody>
@@ -559,6 +563,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <td><p><strong># params</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
+<td><p><strong>FPS</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
 <td><p><strong>FPS</strong></p></td>
@@ -568,51 +573,57 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <td></td>
 <td><p>0.629</p></td>
 <td><p>0.701</p></td>
+<td><p>0.85</p></td>
 <td><p>0.664</p></td>
 <td><p>0.780</p></td>
-<td></td>
+<td><p>1.6</p></td>
 </tr>
 <tr class="row-even"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
 <td><p>0.630</p></td>
 <td><p>0.702</p></td>
+<td><p>0.49</p></td>
 <td><p>0.666</p></td>
 <td><p>0.783</p></td>
-<td></td>
+<td><p>1.0</p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td></td>
 <td><p>0.640</p></td>
 <td><p>0.713</p></td>
+<td><p>0.27</p></td>
 <td><p>0.672</p></td>
 <td><p><strong>0.789</strong></p></td>
-<td></td>
+<td><p>0.83</p></td>
 </tr>
 <tr class="row-even"><td><p>Gvision text detection</p></td>
-<td></td>
+<td><p>NA</p></td>
 <td></td>
 <td><p>0.595</p></td>
 <td><p>0.625</p></td>
+<td></td>
 <td><p>0.753</p></td>
 <td><p>0.700</p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
-<td></td>
+<td><p>NA</p></td>
 <td></td>
 <td><p>0.640</p></td>
 <td><p>0.533</p></td>
+<td></td>
 <td><p>0.689</p></td>
 <td><p>0.611</p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p>aws textract</p></td>
-<td></td>
+<td><p>NA</p></td>
 <td></td>
 <td><p><strong>0.781</strong></p></td>
 <td><p><strong>0.830</strong></p></td>
+<td></td>
 <td><p><strong>0.875</strong></p></td>
 <td><p>0.660</p></td>
 <td></td>
@@ -622,6 +633,8 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
+<p>FPS (Frames per second) is computed this way: we instantiate the predictor, we warm-up the model and then we measure the average speed of the end-to-end predictor on the datasets, with a batch size of 1.
+We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.</p>
 <section id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">¶</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>
