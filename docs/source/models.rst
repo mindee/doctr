@@ -22,13 +22,17 @@ Localizing text elements in images
 +==================+=================+==============+============+===============+============+===============+=========+
 | **Architecture** | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
 +------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_resnet50      | (1024, 1024, 3) |              |   0.733    |     0.817     |   0.745    |     0.875     |         |
+| db_resnet50      | (1024, 1024, 3) |              |   0.733    |     0.817     |   0.745    |     0.875     |   2.1   |
 +------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
 All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
+
+FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes
+[1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes
+[1, 1024, 1024, 3]).
 
 Pre-processing for detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -78,25 +82,28 @@ Identifying strings in images
      -
      - 0.860
      - 0.913
-     -
+     - 12.8
    * - sar_vgg16_bn
      - (32, 128, 3)
      -
      - 0.862
      - 0.917
-     -
+     - 3.3
    * - sar_resnet31
      - (32, 128, 3)
      -
      - **0.863**
      - **0.921**
-     -
+     - 2.7
 
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
+FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes
+[1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes
+[1, 1024, 1024, 3]).
 
 Pre-processing for recognition
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
