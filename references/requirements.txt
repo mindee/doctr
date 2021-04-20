@@ -1,0 +1,2 @@
+doctr
+fastprogress>=0.1.21
