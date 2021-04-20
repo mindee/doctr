@@ -30,9 +30,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes
-[1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes
-[1, 1024, 1024, 3]).
+FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes [1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes [1, 1024, 1024, 3]).
 
 Pre-processing for detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -101,9 +99,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes
-[1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes
-[1, 1024, 1024, 3]).
+FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes [1, 32, 128, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes [1, 32, 128, 3]).
 
 Pre-processing for recognition
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -138,29 +134,30 @@ End-to-End OCR
 --------------
 Predictors that localize and identify text elements in images
 
-+--------------------------------------------------------------+----------------------------+----------------------------+---------+
-|                                                              |        FUNSD               |        CORD                |         |
-+=============================+=================+==============+============+===============+============+===============+=========+
-|      **Architecture**       | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_resnet50 + crnn_vgg16_bn | (1024, 1024, 3) |              |   0.629    |     0.701     |    0.664   |     0.780     |         |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_resnet50 + sar_vgg16_bn  | (1024, 1024, 3) |              |   0.630    |     0.702     |    0.666   |     0.783     |         |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_resnet50 + sar_resnet31  | (1024, 1024, 3) |              |   0.640    |     0.713     |    0.672   |   **0.789**   |         |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| Gvision text detection      |                 |              |   0.595    |     0.625     |    0.753   |     0.700     |         |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| Gvision doc. text detection |                 |              |   0.640    |     0.533     |    0.689   |     0.611     |         |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| aws textract                |                 |              | **0.781**  |   **0.830**   |  **0.875** |     0.660     |         |
-+-----------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
++--------------------------------------------------------------+--------------------------------------+--------------------------------------+
+|                                                              |                  FUNSD               |                  CORD                |
++=============================+=================+==============+============+===============+=========+============+===============+=========+
+|      **Architecture**       | **Input shape** | **# params** | **Recall** | **Precision** | **FPS** | **Recall** | **Precision** | **FPS** |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + crnn_vgg16_bn | (1024, 1024, 3) |              |   0.629    |     0.701     |  0.85   |    0.664   |     0.780     |   1.6   |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + sar_vgg16_bn  | (1024, 1024, 3) |              |   0.630    |     0.702     |  0.49   |    0.666   |     0.783     |   1.0   |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + sar_resnet31  | (1024, 1024, 3) |              |   0.640    |     0.713     |  0.27   |    0.672   |   **0.789**   |  0.83   |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
+| Gvision text detection      |        NA       |              |   0.595    |     0.625     |         |    0.753   |     0.700     |         |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
+| Gvision doc. text detection |        NA       |              |   0.640    |     0.533     |         |    0.689   |     0.611     |         |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
+| aws textract                |        NA       |              | **0.781**  |   **0.830**   |         |  **0.875** |     0.660     |         |
++-----------------------------+-----------------+--------------+------------+---------------+---------+------------+---------------+---------+
 
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
+FPS (Frames per second) is computed this way: we instantiate the predictor, we warm-up the model and then we measure the average speed of the end-to-end predictor on the datasets, with a batch size of 1.
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
