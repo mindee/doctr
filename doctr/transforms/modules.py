@@ -354,7 +354,7 @@ class OneOf(NestedObject):
 
 
 class RandomApply(NestedObject):
-    """Apply with a probability p the input trasnformation
+    """Apply with a probability p the input transformation
 
     Example::
         >>> from doctr.transforms import Normalize
