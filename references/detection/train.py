@@ -27,14 +27,14 @@ def main(args):
     # Load both train and val data generators
     train_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'train_labels'),
+        label_folder=os.path.join(args.data_path, 'train_labels'),
         sample_transforms=Resize((args.input_size, args.input_size)),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
 
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
-        labels_path=os.path.join(args.data_path, 'val_labels'),
+        label_folder=os.path.join(args.data_path, 'val_labels'),
         sample_transforms=Resize((args.input_size, args.input_size)),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
