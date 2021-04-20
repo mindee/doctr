@@ -8,6 +8,11 @@ import datetime
 import numpy as np
 import tensorflow as tf
 from collections import deque
+from fastprogress.fastprogress import master_bar, progress_bar
+
+gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+if any(gpu_devices):
+    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
@@ -16,6 +21,8 @@ from doctr.transforms import Resize
 
 
 def main(args):
+
+    print(args)
 
     # Load both train and val data generators
     train_set = DetectionDataset(
@@ -33,7 +40,7 @@ def main(args):
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
 
     # Optimizer
-    optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate, clipnorm=5)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, clipnorm=5)
 
     # Load doctr model
     model = detection.__dict__[args.model](pretrained=False, input_shape=(args.input_size, args.input_size, 3))
@@ -64,71 +71,73 @@ def main(args):
     train_summary_writer = tf.summary.create_file_writer(train_log_dir)
     val_summary_writer = tf.summary.create_file_writer(val_log_dir)
 
-    def train_step(x):
-        with tf.GradientTape() as tape:
-            images, targets = x
-            boxes = [target['boxes'] for target in targets]
-            flags = [target['flags'] for target in targets]
-            images = preprocessor(images)
-            model_output = model(images, training=True)
-            train_loss = model.compute_loss(model_output, boxes, flags)
-        grads = tape.gradient(train_loss, model.trainable_weights)
-        optimizer.apply_gradients(zip(grads, model.trainable_weights))
-        return train_loss
-
-    def test_step(x):
-        images, targets = x
-        boxes = [target['boxes'] for target in targets]
-        flags = [target['flags'] for target in targets]
-        images = preprocessor(images)
-        # If we want to compute val loss, we need to pass training=True to have a thresh_map
-        model_output = model(images, training=True)
-        val_loss = model.compute_loss(model_output, boxes, flags)
-        decoded = postprocessor(model_output)
-        # Compute metric
-        for boxes_gt, boxes_pred in zip(boxes, decoded):
-            boxes_pred = np.array(boxes_pred)[:, :-1]  # Remove scores
-            boxes_gt = np.array([[
-                np.array(box).min(axis=0), np.array(box).min(axis=1),
-                np.array(box).max(axis=0), np.array(box).max(axis=1)
-            ] for box in boxes_gt])  # From a list of [x, y] coords to xmin, ymin, xmax, ymax format
-            val_metric.update(gts=boxes_gt, preds=boxes_pred)
-        return val_loss
-
     # Create loss queue
     loss_q = deque(maxlen=100)
+    min_loss = np.inf
 
     # Training loop
-    for _ in range(args.epochs):
+    mb = master_bar(range(args.epochs))
+    for epoch in mb:
         train_iter = iter(train_loader)
         # Iterate over the batches of the dataset
-        for batch_step in range(train_loader.num_batches):
-            batch = next(train_iter)
-            train_loss = train_step(batch)
+        for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
+            images, targets = next(train_iter)
+
+            with tf.GradientTape() as tape:
+                boxes = [target['boxes'] for target in targets]
+                flags = [target['flags'] for target in targets]
+                images = preprocessor(images)
+                model_output = model(images, training=True)
+                train_loss = model.compute_loss(model_output, boxes, flags)
+            grads = tape.gradient(train_loss, model.trainable_weights)
+            optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+            mb.child.comment = f'Training loss: {train_loss.numpy():.6}'
             # Update steps
             step.assign_add(args.batch_size)
             # Add loss to queue
             loss_q.append(np.mean(train_loss))
             # Log loss and save weights every 100 batch step
             if batch_step % 100 == 0:
-                model.save_weights('./checkpointsdet/weights')
                 # Compute loss
                 loss = sum(loss_q) / len(loss_q)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', loss, step=step)
 
         # Validation loop at the end of each epoch
-        loss_val = []
+        val_loss, batch_cnt = 0, 0
         val_iter = iter(val_loader)
-        for batch in val_iter:
-            val_loss = test_step(batch)
-            loss_val.append(np.mean(val_loss))
-        mean_loss = sum(loss_val) / len(loss_val)
-        #tensorboard
+        for images, targets in val_iter:
+            boxes = [target['boxes'] for target in targets]
+            flags = [target['flags'] for target in targets]
+            images = preprocessor(images)
+            # If we want to compute val loss, we need to pass training=True to have a thresh_map
+            model_output = model(images, training=True)
+            val_loss = model.compute_loss(model_output, boxes, flags)
+            decoded = postprocessor(model_output)
+            # Compute metric
+            for boxes_gt, boxes_pred in zip(boxes, decoded):
+                boxes_pred = np.array(boxes_pred)[:, :-1]  # Remove scores
+                boxes_gt = np.array([[
+                    np.array(box).min(axis=0), np.array(box).min(axis=1),
+                    np.array(box).max(axis=0), np.array(box).max(axis=1)
+                ] for box in boxes_gt])  # From a list of [x, y] coords to xmin, ymin, xmax, ymax format
+                val_metric.update(gts=boxes_gt, preds=boxes_pred)
+
+            val_loss += test_step(batch).numpy()
+            batch_cnt += 1
+        val_loss /= batch_cnt
+        exact_match = val_metric.result()
+        if val_loss < min_loss:
+            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            model.save_weights('./checkpointsdet/weights')
+            min_loss = val_loss
+        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {exact_match:.2%})")
+        # Tensorboard
         with val_summary_writer.as_default():
-            tf.summary.scalar('loss', mean_loss, step=step)
-            tf.summary.scalar('exact_match', val_metric.result(), step=step)
-        #reset val metric
+            tf.summary.scalar('loss', val_loss, step=step)
+            tf.summary.scalar('exact_match', exact_match, step=step)
+        # Reset val metric
         val_metric.reset()
 
 
@@ -142,7 +151,7 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
+    parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--workers, -j', type=int, default=4, help='number of workers used for dataloading')
     args = parser.parse_args()
 
