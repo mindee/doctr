@@ -11,7 +11,7 @@ from doctr.utils.repr import NestedObject
 
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'InvertColorize',
-           'Brightness', 'Contrast', 'Saturation', 'Hue', 'Gamma', 'JpegQuality']
+           'Brightness', 'Contrast', 'Saturation', 'Hue', 'Gamma', 'JpegQuality', 'OneOf', 'RandomApply']
 
 
 class Compose(NestedObject):
@@ -128,18 +128,15 @@ class ToGray(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
-        p: probability to apply transformation
     """
-    def __init__(self, p: float = .5) -> None:
-        self.p = p
+    def __init__(self) -> None:
+        pass
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            grey = tf.image.rgb_to_grayscale(img)
-            # Retrieve last dimension
-            grey = tf.repeat(grey, repeats=3, axis=-1)
-            return grey
-        return img
+        grey = tf.image.rgb_to_grayscale(img)
+        # Retrieve last dimension
+        grey = tf.repeat(grey, repeats=3, axis=-1)
+        return grey
 
 
 class InvertColorize(NestedObject):
@@ -154,27 +151,23 @@ class InvertColorize(NestedObject):
 
     Args:
         min_val: range [min_val, 1] to colorize RGB pixels
-        p: probability to apply transformation
     """
-    def __init__(self, min_val: float = 0.6, p: float = .5) -> None:
+    def __init__(self, min_val: float = 0.6) -> None:
         self.min_val = min_val
-        self.togray = ToGray(p=1.)
-        self.p = p
+        self.togray = ToGray()
 
     def extra_repr(self) -> str:
         return f"min_val={self.min_val}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            gray = self.togray(img)  # Convert to gray
-            # Random RGB shifts
-            shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
-            rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
-            colorized = tf.multiply(gray, rgb_shift)
-            # Invert values
-            inverted = tf.ones_like(colorized) - colorized
-            return inverted
-        return img
+        gray = self.togray(img)  # Convert to gray
+        # Random RGB shifts
+        shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
+        rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
+        colorized = tf.multiply(gray, rgb_shift)
+        # Invert values
+        inverted = tf.ones_like(colorized) - colorized
+        return inverted
 
 
 class Brightness(NestedObject):
@@ -191,17 +184,14 @@ class Brightness(NestedObject):
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
         p: probability to apply transformation
     """
-    def __init__(self, max_delta: float = 0.3, p: float = .5) -> None:
+    def __init__(self, max_delta: float = 0.3) -> None:
         self.max_delta = max_delta
-        self.p = p
 
     def extra_repr(self) -> str:
         return f"max_delta={self.max_delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            return tf.image.random_brightness(img, max_delta=self.max_delta)
-        return img
+        return tf.image.random_brightness(img, max_delta=self.max_delta)
 
 
 class Contrast(NestedObject):
@@ -217,20 +207,16 @@ class Contrast(NestedObject):
     Args:
         lower: lower bound to pick multiplicative factor (should be < 1 to reduce contrast)
         upper: upper bound to pick multiplicative factor (should be > 1 to augment contrast)
-        p: probability to apply transformation
     """
-    def __init__(self, lower: float = .7, upper: float = 1.3, p: float = .5) -> None:
+    def __init__(self, lower: float = .7, upper: float = 1.3) -> None:
         self.lower = lower
         self.upper = upper
-        self.p = p
 
     def extra_repr(self) -> str:
         return f"lower={self.lower}, upper={self.upper}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            return tf.image.random_contrast(img, lower=self.lower, upper=self.upper)
-        return img
+        return tf.image.random_contrast(img, lower=self.lower, upper=self.upper)
 
 
 class Saturation(NestedObject):
@@ -246,20 +232,16 @@ class Saturation(NestedObject):
     Args:
         lower: lower bound to pick multiplicative factor (should be < 1 to reduce saturation)
         upper: upper bound to pick multiplicative factor (should be > 1 to augment saturation)
-        p: probability to apply transformation
     """
-    def __init__(self, lower: float = .5, upper: float = 1.5, p: float = .5) -> None:
+    def __init__(self, lower: float = .5, upper: float = 1.5) -> None:
         self.lower = lower
         self.upper = upper
-        self.p = p
 
     def extra_repr(self) -> str:
         return f"lower={self.lower}, upper={self.upper}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            return tf.image.random_saturation(img, lower=self.lower, upper=self.upper)
-        return img
+        return tf.image.random_saturation(img, lower=self.lower, upper=self.upper)
 
 
 class Hue(NestedObject):
@@ -273,19 +255,15 @@ class Hue(NestedObject):
 
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
-        p: probability to apply transformation
     """
-    def __init__(self, max_delta: float = 0.3, p: float = .5) -> None:
+    def __init__(self, max_delta: float = 0.3) -> None:
         self.max_delta = max_delta
-        self.p = p
 
     def extra_repr(self) -> str:
         return f"max_delta={self.max_delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            return tf.image.random_hue(img, max_delta=self.max_delta)
-        return img
+        return tf.image.random_hue(img, max_delta=self.max_delta)
 
 
 class Gamma(NestedObject):
@@ -302,7 +280,6 @@ class Gamma(NestedObject):
         max_gamma: non-negative real number, upper bound for gamma
         min_gain: lower bound for constant multiplier
         max_gain: upper bound for constant multiplier
-        p: probability to apply transformation
     """
     def __init__(
         self,
@@ -310,24 +287,20 @@ class Gamma(NestedObject):
         max_gamma: float = 1.5,
         min_gain: float = 0.8,
         max_gain: float = 1.2,
-        p: float = .5,
     ) -> None:
         self.min_gamma = min_gamma
         self.max_gamma = max_gamma
         self.min_gain = min_gain
         self.max_gain = max_gain
-        self.p = p
 
     def extra_repr(self) -> str:
         return f"""gamma_range=({self.min_gamma}, {self.max_gamma}),
                  gain_range=({self.min_gain}, {self.max_gain})"""
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        if random.random() < self.p:
-            gamma = random.uniform(self.min_gamma, self.max_gamma)
-            gain = random.uniform(self.min_gain, self.max_gain)
-            return tf.image.adjust_gamma(img, gamma=gamma, gain=gain)
-        return img
+        gamma = random.uniform(self.min_gamma, self.max_gamma)
+        gain = random.uniform(self.min_gain, self.max_gain)
+        return tf.image.adjust_gamma(img, gamma=gamma, gain=gain)
 
 
 class JpegQuality(NestedObject):
@@ -341,18 +314,66 @@ class JpegQuality(NestedObject):
 
     Args:
         min_quality: int between [0, 100], quality will be picked in [min_quality, 100]
-        p: probability to apply transformation
     """
-    def __init__(self, min_quality: int = 60, p: float = .5) -> None:
+    def __init__(self, min_quality: int = 60) -> None:
         self.min_quality = min_quality
-        self.p = p
 
     def extra_repr(self) -> str:
         return f"min_quality={self.min_quality}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        return tf.image.random_jpeg_quality(
+            img, min_jpeg_quality=self.min_quality, max_jpeg_quality=100
+        )
+
+
+class OneOf(NestedObject):
+    """Randomly apply one of the input transformations
+
+    Example::
+        >>> from doctr.transforms import Normalize
+        >>> import tensorflow as tf
+        >>> transfo_list = [JpegQuality(), Gamma()]
+        >>> transfo = OneOf(transfo_list)
+        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        transforms: list of transformations, one only will be picked
+    """
+
+    _children_names: List[str] = ['transforms']
+
+    def __init__(self, transforms: List[NestedObject]) -> None:
+        self.transforms = transforms
+
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        # Pick transformation
+        transfo = self.transforms[int(random.random() * len(self.transforms))]
+        # Apply
+        return transfo(img)
+
+
+class RandomApply(NestedObject):
+    """Apply with a probability p the input trasnformation
+
+    Example::
+        >>> from doctr.transforms import Normalize
+        >>> import tensorflow as tf
+        >>> transfo = RandomApply(Gamma(), p=.5)
+        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        transform: transformation to apply
+        p: probability to apply
+    """
+    def __init__(self, transform: NestedObject, p: float = .5) -> None:
+        self.transform = transform
+        self.p = p
+
+    def extra_repr(self) -> str:
+        return f"transform={self.transform}, p={self.p}"
+
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
         if random.random() < self.p:
-            return tf.image.random_jpeg_quality(
-                img, min_jpeg_quality=self.min_quality, max_jpeg_quality=100
-            )
+            return self.transform(img)
         return img

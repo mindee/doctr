@@ -63,7 +63,7 @@ def test_lambatransformation():
 
 def test_togray():
 
-    transfo = T.ToGray(p=1.)
+    transfo = T.ToGray()
     r = tf.fill([8, 32, 32, 1], 0.2)
     g = tf.fill([8, 32, 32, 1], 0.6)
     b = tf.fill([8, 32, 32, 1], 0.7)
@@ -84,7 +84,7 @@ def test_togray():
 )
 def test_invert_colorize(rgb_min):
 
-    transfo = T.InvertColorize(min_val=rgb_min, p=1.)
+    transfo = T.InvertColorize(min_val=rgb_min)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -94,7 +94,7 @@ def test_invert_colorize(rgb_min):
 
 def test_brightness():
 
-    transfo = T.Brightness(max_delta=.1, p=1.)
+    transfo = T.Brightness(max_delta=.1)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -103,8 +103,7 @@ def test_brightness():
 
 
 def test_contrast():
-
-    transfo = T.Contrast(lower=0.4, upper=.6, p=1.)
+    transfo = T.Contrast(lower=0.4, upper=.6)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -113,7 +112,7 @@ def test_contrast():
 
 def test_saturation():
 
-    transfo = T.Saturation(lower=0.8, upper=1.2, p=1.)
+    transfo = T.Saturation(lower=0.8, upper=1.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
@@ -125,7 +124,7 @@ def test_saturation():
 
 def test_hue():
 
-    transfo = T.Hue(max_delta=.2, p=1.)
+    transfo = T.Hue(max_delta=.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
@@ -137,7 +136,7 @@ def test_hue():
 
 def test_gamma():
 
-    transfo = T.Gamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1., p=1.)
+    transfo = T.Gamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -147,7 +146,25 @@ def test_gamma():
 
 def test_jpegquality():
 
-    transfo = T.JpegQuality(min_quality=50, p=1.)
+    transfo = T.JpegQuality(min_quality=50)
     input_t = tf.cast(tf.fill([32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
     assert out.shape == input_t.shape
+
+
+def test_oneof():
+    transfos = [
+        T.Gamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.),
+        T.Contrast(lower=0.4, upper=.6)
+    ]
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
+    out = T.OneOf(transfos)(input_t)
+    assert ((tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.)) or tf.reduce_all(out == 2.))
+
+
+def test_randomapply():
+
+    transfo = T.Gamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
+    out = T.RandomApply(transfo, p=1.)(input_t)
+    assert (tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.))
