@@ -30,7 +30,8 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes [1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes [1, 1024, 1024, 3]).
+FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 1024, 1024, 3]).
+We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.
 
 Pre-processing for detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -99,7 +100,8 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shapes [1, 32, 128, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shapes [1, 32, 128, 3]).
+FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 32, 128, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 32, 128, 3]).
+We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.
 
 Pre-processing for recognition
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -158,6 +160,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
 FPS (Frames per second) is computed this way: we instantiate the predictor, we warm-up the model and then we measure the average speed of the end-to-end predictor on the datasets, with a batch size of 1.
+We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
