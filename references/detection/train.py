@@ -4,6 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 import datetime
 import numpy as np
 import tensorflow as tf
@@ -71,7 +74,7 @@ def main(args):
     log_dir = Path('logs', exp_name)
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    tb_writer = tf.summary.create_file_writer(log_dir)
+    tb_writer = tf.summary.create_file_writer(str(log_dir))
 
     # Create loss queue
     loss_q = deque(maxlen=100)
