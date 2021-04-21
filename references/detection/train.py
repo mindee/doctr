@@ -8,6 +8,7 @@ import datetime
 import numpy as np
 import tensorflow as tf
 from collections import deque
+from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
@@ -66,10 +67,11 @@ def main(args):
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    train_log_dir = 'log/' + current_time + '/train'
-    val_log_dir = 'log/' + current_time + '/val'
-    train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-    val_summary_writer = tf.summary.create_file_writer(val_log_dir)
+    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    log_dir = Path('logs', exp_name)
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    tb_writer = tf.summary.create_file_writer(log_dir)
 
     # Create loss queue
     loss_q = deque(maxlen=100)
@@ -101,8 +103,8 @@ def main(args):
             if batch_step % 100 == 0:
                 # Compute loss
                 loss = sum(loss_q) / len(loss_q)
-                with train_summary_writer.as_default():
-                    tf.summary.scalar('loss', loss, step=step)
+                with tb_writer.as_default():
+                    tf.summary.scalar('train_loss', loss, step=step)
 
         # Validation loop at the end of each epoch
         val_loss, batch_cnt = 0, 0
@@ -130,12 +132,12 @@ def main(args):
         exact_match = val_metric.result()
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights('./checkpointsdet/weights')
+            model.save_weights('./{exp_name}/weights')
             min_loss = val_loss
         mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {exact_match:.2%})")
         # Tensorboard
-        with val_summary_writer.as_default():
-            tf.summary.scalar('loss', val_loss, step=step)
+        with tb_writer.as_default():
+            tf.summary.scalar('val_loss', val_loss, step=step)
             tf.summary.scalar('exact_match', exact_match, step=step)
         # Reset val metric
         val_metric.reset()
@@ -148,6 +150,7 @@ def parse_args():
 
     parser.add_argument('data_path', type=str, help='path to data folder')
     parser.add_argument('model', type=str, help='text-detection model to train')
+    parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
