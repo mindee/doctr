@@ -7,7 +7,8 @@ The sample training script was made to train text detection model with doctr
 First, you need to install doctr (with pip, for instance)
 
 ```shell
-pip install python-doctr
+pip install -e . --upgrade
+pip install -r references/requirements.txt
 ```
 
 Then, to run the script execute the following command

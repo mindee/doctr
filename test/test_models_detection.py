@@ -171,10 +171,10 @@ def test_detection_zoo_error():
     ],
 )
 def test_compute_detection_loss(arch_name):
-    polys = [
-        [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
-        [[[0.03, 0.02], [0.03, 0.03], [0.04, 0.01], [0.04, 0.03]], [[0.3, 0.2], [0.3, 0.3], [0.3, 0.1], [0.4, 0.3]]],
-        []
+    boxes = [
+        np.array([[0.003, 0.002, 0.04, 0.03], [0.3, 0.1, 0.4, 0.3]]),
+        np.array([[0.003, 0.002, 0.04, 0.03], [0.3, 0.1, 0.4, 0.3]]),
+        np.zeros((0, 4)),
     ]
     flags = [[True, False], [True, False], []]
     model = detection.__dict__[arch_name](pretrained=True)
@@ -182,7 +182,7 @@ def test_compute_detection_loss(arch_name):
     output = model(model_input, training=True)
     loss = model.compute_loss(
         model_output=output,
-        batch_polys=polys,
+        batch_boxes=boxes,
         batch_flags=flags,
     )
     assert isinstance(loss, tf.Tensor)
