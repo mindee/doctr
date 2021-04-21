@@ -94,7 +94,7 @@ def test_invert_colorize(rgb_min):
 
 def test_brightness():
 
-    transfo = T.Brightness(max_delta=.1)
+    transfo = T.RandomBrightness(max_delta=.1)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -103,7 +103,7 @@ def test_brightness():
 
 
 def test_contrast():
-    transfo = T.Contrast(delta=.2)
+    transfo = T.RandomContrast(delta=.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     out = transfo(input_t)
 
@@ -112,7 +112,7 @@ def test_contrast():
 
 def test_saturation():
 
-    transfo = T.Saturation(delta=.2)
+    transfo = T.RandomSaturation(delta=.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
@@ -124,7 +124,7 @@ def test_saturation():
 
 def test_hue():
 
-    transfo = T.Hue(max_delta=.2)
+    transfo = T.RandomHue(max_delta=.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
@@ -146,7 +146,7 @@ def test_gamma():
 
 def test_jpegquality():
 
-    transfo = T.JpegQuality(min_quality=50)
+    transfo = T.RandomJpegQuality(min_quality=50)
     input_t = tf.cast(tf.fill([32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
     assert out.shape == input_t.shape
@@ -155,7 +155,7 @@ def test_jpegquality():
 def test_oneof():
     transfos = [
         T.Gamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.),
-        T.Contrast(delta=.2)
+        T.RandomContrast(delta=.2)
     ]
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
     out = T.OneOf(transfos)(input_t)
