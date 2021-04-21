@@ -48,6 +48,9 @@ def main(args):
 
     # Load doctr model
     model = detection.__dict__[args.model](pretrained=False, input_shape=(args.input_size, args.input_size, 3))
+    # Resume weights
+    if isinstance(args.resume, str):
+        model.load_weights(args.resume)
 
     # Tf variable to log steps
     step = tf.Variable(0, dtype="int64")
@@ -159,6 +162,7 @@ def parse_args():
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     args = parser.parse_args()
 
     return args
