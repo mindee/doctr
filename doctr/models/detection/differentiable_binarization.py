@@ -397,6 +397,8 @@ class DBNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= h
             abs_boxes = abs_boxes.astype(np.int32)
 
+            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+
             polys = np.stack([
                 abs_boxes[:, [0, 1]],
                 abs_boxes[:, [0, 3]],
@@ -404,14 +406,12 @@ class DBNet(DetectionModel, NestedObject):
                 abs_boxes[:, [2, 3]],
             ], axis=1)
 
-            for poly, flag in zip(polys, batch_flags[batch_idx]):
+            for box, box_size, poly, flag in zip(abs_boxes, boxes_size, polys, batch_flags[batch_idx]):
                 if flag is True:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
-                height = max(poly[:, 1]) - min(poly[:, 1])
-                width = max(poly[:, 0]) - min(poly[:, 0])
-                if min(height, width) < self.min_size_box:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                if box_size < self.min_size_box:
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
 
                 # Negative shrink for gt, as described in paper
@@ -424,11 +424,11 @@ class DBNet(DetectionModel, NestedObject):
 
                 # Draw polygon on gt if it is valid
                 if len(shrinked) == 0:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
                 shrinked = np.array(shrinked[0]).reshape(-1, 2)
                 if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
                 cv2.fillPoly(gt, [shrinked.astype(np.int32)], 1)
 
