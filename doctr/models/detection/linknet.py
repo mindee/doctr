@@ -227,7 +227,7 @@ class LinkNet(DetectionModel, NestedObject):
             mask = np.ones((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            if batch_boxes[batch_idx] == batch_flags[batch_idx] == []:
+            if batch_boxes[batch_idx].shape[0] == 0:
                 # Empty image, full masked
                 mask = np.zeros((h, w), dtype=np.float32)
 
