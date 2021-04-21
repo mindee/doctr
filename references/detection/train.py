@@ -118,30 +118,30 @@ def main(args):
             images = preprocessor(images)
             # If we want to compute val loss, we need to pass training=True to have a thresh_map
             model_output = model(images, training=True)
-            val_loss = model.compute_loss(model_output, boxes, flags)
+            loss = model.compute_loss(model_output, boxes, flags)
             decoded = postprocessor(model_output)
             # Compute metric
             for boxes_gt, boxes_pred in zip(boxes, decoded):
                 boxes_pred = np.array(boxes_pred)[:, :-1]  # Remove scores
-                boxes_gt = np.array([[
-                    np.array(box).min(axis=0), np.array(box).min(axis=1),
-                    np.array(box).max(axis=0), np.array(box).max(axis=1)
-                ] for box in boxes_gt])  # From a list of [x, y] coords to xmin, ymin, xmax, ymax format
                 val_metric.update(gts=boxes_gt, preds=boxes_pred)
 
-            val_loss += test_step(batch).numpy()
+            val_loss += loss.numpy()
             batch_cnt += 1
+
         val_loss /= batch_cnt
-        exact_match = val_metric.result()
+        recall, precision, mean_iou = val_metric.summary()
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights('./{exp_name}/weights')
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {exact_match:.2%})")
+        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+                 f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
         # Tensorboard
         with tb_writer.as_default():
             tf.summary.scalar('val_loss', val_loss, step=step)
-            tf.summary.scalar('exact_match', exact_match, step=step)
+            tf.summary.scalar('recall', recall, step=step)
+            tf.summary.scalar('precision', precision, step=step)
+            tf.summary.scalar('mean_iou', mean_iou, step=step)
         # Reset val metric
         val_metric.reset()
 
