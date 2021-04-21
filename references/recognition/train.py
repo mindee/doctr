@@ -22,7 +22,7 @@ if any(gpu_devices):
 from doctr.models import recognition, RecognitionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
-from doctr.transforms import Resize
+from doctr import transforms as T
 
 
 def main(args):
@@ -31,14 +31,22 @@ def main(args):
     train_set = RecognitionDataset(
         img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels.json'),
-        sample_transforms=Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
+        sample_transforms=T.Compose([
+            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
+            # Augmentations
+            T.RandomApply(T.InvertColorize(), .2),
+            T.RandomJpegQuality(60),
+            T.RandomSaturation(.3),
+            T.RandomContrast(.3),
+            T.RandomBrightness(0.3),
+        ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
 
     val_set = RecognitionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels.json'),
-        sample_transforms=Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
+        sample_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
 
@@ -93,6 +101,7 @@ def main(args):
         # Iterate over the batches of the dataset
         for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
             images, targets = next(train_iter)
+
             with tf.GradientTape() as tape:
                 images = preprocessor(images)
                 encoded_gts, seq_len = model.compute_target(targets)
