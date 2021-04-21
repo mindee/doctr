@@ -21,7 +21,7 @@ if any(gpu_devices):
 from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import DetectionDataset, DataLoader
-from doctr.transforms import Resize
+from doctr import transforms as T
 
 
 def main(args):
@@ -32,14 +32,22 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'train'),
         label_folder=os.path.join(args.data_path, 'train_labels'),
-        sample_transforms=Resize((args.input_size, args.input_size)),
+        sample_transforms=T.Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Augmentations
+            T.RandomApply(T.InvertColorize(), .2),
+            T.RandomJpegQuality(60),
+            T.RandomSaturation(.3),
+            T.RandomContrast(.3),
+            T.RandomBrightness(0.3),
+        ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
 
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         label_folder=os.path.join(args.data_path, 'val_labels'),
-        sample_transforms=Resize((args.input_size, args.input_size)),
+        sample_transforms=T.Resize((args.input_size, args.input_size)),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
 
