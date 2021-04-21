@@ -201,7 +201,7 @@ class LinkNet(DetectionModel, NestedObject):
     def compute_loss(
         self,
         model_output: Dict[str, tf.Tensor],
-        batch_polys: List[List[List[List[float]]]],
+        batch_boxes: List[np.array],
         batch_flags: List[List[bool]]
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
@@ -209,7 +209,7 @@ class LinkNet(DetectionModel, NestedObject):
 
         Args:
             model_output: dictionary containing the output of the model, proba_map, shape: N x H x W x C
-            batch_polys: list of boxes for each image of the batch
+            batch_boxes: list of boxes for each image of the batch
             batch_flags: list of boxes to mask for each image of the batch
 
         Returns:
@@ -227,23 +227,27 @@ class LinkNet(DetectionModel, NestedObject):
             mask = np.ones((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            if batch_polys[batch_idx] == batch_flags[batch_idx] == []:
+            if batch_boxes[batch_idx] == batch_flags[batch_idx] == []:
                 # Empty image, full masked
                 mask = np.zeros((h, w), dtype=np.float32)
-            for poly, flag in zip(batch_polys[batch_idx], batch_flags[batch_idx]):
-                # Convert polygon to absolute polygon and to np array
-                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
-                poly = np.array(poly)
+
+            # Absolute bounding boxes
+            abs_boxes = batch_boxes[batch_idx].copy()
+            abs_boxes[:, [0, 2]] *= w
+            abs_boxes[:, [1, 3]] *= h
+            abs_boxes = abs_boxes.astype(np.int32)
+
+            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+
+            for box, box_size, flag in zip(abs_boxes, boxes_size, batch_flags[batch_idx]):
                 if flag is True:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
-                height = max(poly[:, 1]) - min(poly[:, 1])
-                width = max(poly[:, 0]) - min(poly[:, 0])
-                if min(height, width) < self.min_size_box:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                if box_size < self.min_size_box:
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
                 # Fill polygon with 1
-                cv2.fillPoly(gt, [poly.astype(np.int32)], 1)
+                gt[box[1]: box[3] + 1, box[0]: box[2] + 1] = 1
 
             # Cast
             gts = tf.convert_to_tensor(gt, tf.float32)

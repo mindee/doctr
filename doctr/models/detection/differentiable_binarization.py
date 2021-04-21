@@ -356,8 +356,8 @@ class DBNet(DetectionModel, NestedObject):
     def compute_loss(
         self,
         model_output: Dict[str, tf.Tensor],
-        batch_polys: List[List[List[List[float]]]],
-        batch_flags: List[List[bool]]
+        batch_boxes: List[np.array],
+        batch_flags: List[np.array]
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -365,7 +365,7 @@ class DBNet(DetectionModel, NestedObject):
         Args:
             model_output: dictionnary containing the maps outputed by the model:
                 proba_map, binary_map and thresh_map, shapes: Nx H x W x C
-            batch_polys: list of boxes for each image of the batch
+            batch_boxes: list of boxes for each image of the batch
             batch_flags: list of boxes to mask for each image of the batch
 
         Returns:
@@ -387,20 +387,31 @@ class DBNet(DetectionModel, NestedObject):
             thresh_mask = np.zeros((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            if batch_polys[batch_idx] == batch_flags[batch_idx] == []:
+            if batch_boxes[batch_idx] == batch_flags[batch_idx] == []:
                 # Empty image, full masked
                 mask = np.zeros((h, w), dtype=np.float32)
-            for poly, flag in zip(batch_polys[batch_idx], batch_flags[batch_idx]):
-                # Convert polygon to absolute polygon and to np array
-                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
-                poly = np.array(poly)
+
+            # Absolute bounding boxes
+            abs_boxes = batch_boxes[batch_idx].copy()
+            abs_boxes[:, [0, 2]] *= w
+            abs_boxes[:, [1, 3]] *= h
+            abs_boxes = abs_boxes.astype(np.int32)
+
+            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+
+            polys = np.stack([
+                abs_boxes[:, [0, 1]],
+                abs_boxes[:, [0, 3]],
+                abs_boxes[:, [2, 1]],
+                abs_boxes[:, [2, 3]],
+            ], axis=1)
+
+            for box, box_size, poly, flag in zip(abs_boxes, boxes_size, polys, batch_flags[batch_idx]):
                 if flag is True:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
-                height = max(poly[:, 1]) - min(poly[:, 1])
-                width = max(poly[:, 0]) - min(poly[:, 0])
-                if min(height, width) < self.min_size_box:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                if box_size < self.min_size_box:
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
 
                 # Negative shrink for gt, as described in paper
@@ -413,11 +424,11 @@ class DBNet(DetectionModel, NestedObject):
 
                 # Draw polygon on gt if it is valid
                 if len(shrinked) == 0:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
                 shrinked = np.array(shrinked[0]).reshape(-1, 2)
                 if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                    cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
+                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
                     continue
                 cv2.fillPoly(gt, [shrinked.astype(np.int32)], 1)
 
