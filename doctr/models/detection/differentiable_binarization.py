@@ -356,8 +356,8 @@ class DBNet(DetectionModel, NestedObject):
     def compute_loss(
         self,
         model_output: Dict[str, tf.Tensor],
-        batch_polys: List[List[List[List[float]]]],
-        batch_flags: List[List[bool]]
+        batch_boxes: List[np.array],
+        batch_flags: List[np.array]
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -365,7 +365,7 @@ class DBNet(DetectionModel, NestedObject):
         Args:
             model_output: dictionnary containing the maps outputed by the model:
                 proba_map, binary_map and thresh_map, shapes: Nx H x W x C
-            batch_polys: list of boxes for each image of the batch
+            batch_boxes: list of boxes for each image of the batch
             batch_flags: list of boxes to mask for each image of the batch
 
         Returns:
@@ -387,13 +387,24 @@ class DBNet(DetectionModel, NestedObject):
             thresh_mask = np.zeros((h, w), dtype=np.float32)
 
             # Draw each polygon on gt
-            if batch_polys[batch_idx] == batch_flags[batch_idx] == []:
+            if batch_boxes[batch_idx] == batch_flags[batch_idx] == []:
                 # Empty image, full masked
                 mask = np.zeros((h, w), dtype=np.float32)
-            for poly, flag in zip(batch_polys[batch_idx], batch_flags[batch_idx]):
-                # Convert polygon to absolute polygon and to np array
-                poly = [[int(w * x), int(h * y)] for [x, y] in poly]
-                poly = np.array(poly)
+
+            # Absolute bounding boxes
+            abs_boxes = batch_boxes[batch_idx].copy()
+            abs_boxes[:, [0, 2]] *= w
+            abs_boxes[:, [1, 3]] *= h
+            abs_boxes = abs_boxes.astype(np.int32)
+
+            polys = np.stack([
+                abs_boxes[:, [0, 1]],
+                abs_boxes[:, [0, 3]],
+                abs_boxes[:, [2, 1]],
+                abs_boxes[:, [2, 3]],
+            ], axis=1)
+
+            for poly, flag in zip(polys, batch_flags[batch_idx]):
                 if flag is True:
                     cv2.fillPoly(mask, poly.astype(np.int32)[np.newaxis, :, :], 0)
                     continue
