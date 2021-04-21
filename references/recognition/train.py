@@ -75,7 +75,6 @@ def main(args):
     postprocessor = model.postprocessor
 
     # Tensorboard to monitor training
-    # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
     log_dir = Path('logs', exp_name)
