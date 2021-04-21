@@ -52,6 +52,7 @@ class RecognitionDataset(AbstractDataset):
         img_name, label = self.data[index]
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
+        img /= 255
         img = self.sample_transforms(img)
 
         return img, label
