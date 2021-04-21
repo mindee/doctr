@@ -593,7 +593,7 @@
             <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
             <span class="c1"># Draw each polygon on gt</span>
-            <span class="k">if</span> <span class="n">batch_boxes</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">batch_flags</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span> <span class="o">==</span> <span class="p">[]:</span>
+            <span class="k">if</span> <span class="n">batch_boxes</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># Empty image, full masked</span>
                 <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
