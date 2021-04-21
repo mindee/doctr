@@ -132,7 +132,7 @@ def main(args):
         recall, precision, mean_iou = val_metric.summary()
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights('./{exp_name}/weights')
+            model.save_weights(f'./{exp_name}/weights')
             min_loss = val_loss
         mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                  f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
