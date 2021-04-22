@@ -62,12 +62,11 @@ class DetectionDataset(AbstractDataset):
         img = self.sample_transforms(img)
 
         # Boxes
-        boxes = target['boxes']
+        boxes = target['boxes'].copy()
         boxes[..., [0, 2]] /= w
         boxes[..., [1, 3]] /= h
-        target['boxes'] = boxes
 
-        return img, target
+        return img, dict(boxes=boxes, flags=target['flags'])
 
     @staticmethod
     def collate_fn(
