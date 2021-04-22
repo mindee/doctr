@@ -85,7 +85,7 @@ def test_togray():
 )
 def test_invert_colorize(rgb_min):
 
-    transfo = T.InvertColorize(min_val=rgb_min)
+    transfo = T.ColorInversion(min_val=rgb_min)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
     assert tf.reduce_all(out <= 1 - rgb_min)
