@@ -8,7 +8,6 @@ import tensorflow as tf
 from typing import List, Any, Tuple, Callable
 
 from doctr.utils.repr import NestedObject
-from . import functional as F
 
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'InvertColorize',
@@ -130,7 +129,7 @@ class ToGray(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return F.to_gray(img)
+        return tf.image.rgb_to_grayscale(img)
 
 
 class InvertColorize(NestedObject):
@@ -153,14 +152,18 @@ class InvertColorize(NestedObject):
         return f"min_val={self.min_val}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        gray = F.to_gray(img)  # Convert to gray
-        # Random RGB shifts
+        out = tf.image.rgb_to_grayscale(img)  # Convert to gray
+        # Random RGB shift
         shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
         rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
-        colorized = tf.multiply(gray, rgb_shift)
-        # Invert values
-        inverted = tf.ones_like(colorized) - colorized
-        return inverted
+        # Inverse the color
+        if out.dtype == tf.uint8:
+            out = tf.cast(tf.cast(out, dtype=tf.float32) * rgb_shift, dtype=tf.uint8)
+        else:
+            out *= rgb_shift
+        # Inverse the color
+        out = 255 - out if out.dtype == tf.uint8 else 1 - out
+        return out
 
 
 class RandomBrightness(NestedObject):
