@@ -14,7 +14,7 @@ Here are all transformations that are available through DocTR:
 .. autoclass:: Normalize
 .. autoclass:: LambdaTransformation
 .. autoclass:: ToGray
-.. autoclass:: InvertColorize
+.. autoclass:: ColorInversion
 .. autoclass:: RandomBrightness
 .. autoclass:: RandomContrast
 .. autoclass:: RandomSaturation
