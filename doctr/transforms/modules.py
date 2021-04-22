@@ -11,7 +11,7 @@ from doctr.utils.repr import NestedObject
 from . import functional as F
 
 
-__all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'InvertColorize',
+__all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'ColorInversion',
            'RandomBrightness', 'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality',
            'OneOf', 'RandomApply']
 
