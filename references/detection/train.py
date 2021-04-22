@@ -21,7 +21,7 @@ if any(gpu_devices):
 from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import DetectionDataset, DataLoader
-from doctr.transforms import Resize
+from doctr import transforms as T
 
 
 def main(args):
@@ -32,16 +32,32 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'train'),
         label_folder=os.path.join(args.data_path, 'train_labels'),
-        sample_transforms=Resize((args.input_size, args.input_size)),
+        sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
+            T.Resize((args.input_size, args.input_size)),
+            # Augmentations
+            T.RandomApply(T.ColorInversion(), .2),
+            T.RandomJpegQuality(60),
+            T.RandomSaturation(.3),
+            T.RandomContrast(.3),
+            T.RandomBrightness(0.3),
+        ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
 
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         label_folder=os.path.join(args.data_path, 'val_labels'),
-        sample_transforms=Resize((args.input_size, args.input_size)),
+        sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
+            T.Resize((args.input_size, args.input_size)),
+        ])
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
+
+    batch_transforms = T.Compose([
+        T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
+    ])
 
     # Optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, clipnorm=5)
@@ -57,16 +73,6 @@ def main(args):
 
     # Metrics
     val_metric = metrics.LocalizationConfusion()
-
-    # Preprocessor to normalize
-    MEAN_RGB = (0.798, 0.785, 0.772)
-    STD_RGB = (0.264, 0.2749, 0.287)
-    preprocessor = DetectionPreProcessor(
-        output_size=(args.input_size, args.input_size),
-        batch_size=args.batch_size,
-        mean=MEAN_RGB,
-        std=STD_RGB
-    )
 
     # Postprocessor to decode output (to feed metric during val step with boxes)
     postprocessor = model.postprocessor
@@ -91,10 +97,11 @@ def main(args):
         for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
             images, targets = next(train_iter)
 
+            boxes = [target['boxes'] for target in targets]
+            flags = [target['flags'] for target in targets]
+            images = batch_transforms(images)
+
             with tf.GradientTape() as tape:
-                boxes = [target['boxes'] for target in targets]
-                flags = [target['flags'] for target in targets]
-                images = preprocessor(images)
                 model_output = model(images, training=True)
                 train_loss = model.compute_loss(model_output, boxes, flags)
             grads = tape.gradient(train_loss, model.trainable_weights)
@@ -118,7 +125,7 @@ def main(args):
         for images, targets in val_iter:
             boxes = [target['boxes'] for target in targets]
             flags = [target['flags'] for target in targets]
-            images = preprocessor(images)
+            images = batch_transforms(images)
             # If we want to compute val loss, we need to pass training=True to have a thresh_map
             model_output = model(images, training=True)
             loss = model.compute_loss(model_output, boxes, flags)
