@@ -194,10 +194,12 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="s1">&#39;Resize&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="s1">&#39;LambdaTransformation&#39;</span><span class="p">,</span> <span class="s1">&#39;ToGray&#39;</span><span class="p">,</span> <span class="s1">&#39;InvertColorize&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;Brightness&#39;</span><span class="p">,</span> <span class="s1">&#39;Contrast&#39;</span><span class="p">,</span> <span class="s1">&#39;Saturation&#39;</span><span class="p">,</span> <span class="s1">&#39;Hue&#39;</span><span class="p">,</span> <span class="s1">&#39;Gamma&#39;</span><span class="p">,</span> <span class="s1">&#39;JpegQuality&#39;</span><span class="p">,</span> <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="s1">&#39;Resize&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="s1">&#39;LambdaTransformation&#39;</span><span class="p">,</span> <span class="s1">&#39;ToGray&#39;</span><span class="p">,</span> <span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;RandomBrightness&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomContrast&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomSaturation&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomHue&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomGamma&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomJpegQuality&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -312,27 +314,19 @@
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
 <span class="sd">        &gt;&gt;&gt; transfo = ToGray()</span>
 <span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
-
-<span class="sd">    Args:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">pass</span>
-
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="n">grey</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">rgb_to_grayscale</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
-        <span class="c1"># Retrieve last dimension</span>
-        <span class="n">grey</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">grey</span><span class="p">,</span> <span class="n">repeats</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">grey</span></div>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">rgb_to_grayscale</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="InvertColorize"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.InvertColorize">[docs]</a><span class="k">class</span> <span class="nc">InvertColorize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
 <span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = InvertColorize(min_val=0.6)</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
 <span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
@@ -340,23 +334,15 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="n">min_val</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">togray</span> <span class="o">=</span> <span class="n">ToGray</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;min_val=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="n">gray</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">togray</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>  <span class="c1"># Convert to gray</span>
-        <span class="c1"># Random RGB shifts</span>
-        <span class="n">shift_shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="n">img</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-        <span class="n">rgb_shift</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">shift_shape</span><span class="p">,</span> <span class="n">minval</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">colorized</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">gray</span><span class="p">,</span> <span class="n">rgb_shift</span><span class="p">)</span>
-        <span class="c1"># Invert values</span>
-        <span class="n">inverted</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">colorized</span><span class="p">)</span> <span class="o">-</span> <span class="n">colorized</span>
-        <span class="k">return</span> <span class="n">inverted</span></div>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">invert_colors</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Brightness"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Brightness">[docs]</a><span class="k">class</span> <span class="nc">Brightness</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomBrightness"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomBrightness">[docs]</a><span class="k">class</span> <span class="nc">RandomBrightness</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust brightness of a tensor (batch of images or image) by adding a delta</span>
 <span class="sd">    to all pixels</span>
 
@@ -380,7 +366,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_brightness</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">max_delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Contrast"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Contrast">[docs]</a><span class="k">class</span> <span class="nc">Contrast</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomContrast"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomContrast">[docs]</a><span class="k">class</span> <span class="nc">RandomContrast</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust contrast of a tensor (batch of images or image) by adjusting</span>
 <span class="sd">    each pixel: (img - mean) * contrast_factor + mean.</span>
 
@@ -403,7 +389,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_contrast</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Saturation"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Saturation">[docs]</a><span class="k">class</span> <span class="nc">Saturation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomSaturation"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomSaturation">[docs]</a><span class="k">class</span> <span class="nc">RandomSaturation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and</span>
 <span class="sd">    increasing saturation by a factor.</span>
 
@@ -426,7 +412,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_saturation</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Hue"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Hue">[docs]</a><span class="k">class</span> <span class="nc">Hue</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomHue"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomHue">[docs]</a><span class="k">class</span> <span class="nc">RandomHue</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta</span>
 
 <span class="sd">    Example::</span>
@@ -448,7 +434,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_hue</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">max_delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Gamma"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Gamma">[docs]</a><span class="k">class</span> <span class="nc">Gamma</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomGamma"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomGamma">[docs]</a><span class="k">class</span> <span class="nc">RandomGamma</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;randomly performs gamma correction for a tensor (batch of images or image)</span>
 
 <span class="sd">    Example:</span>
@@ -485,7 +471,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">adjust_gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="n">gain</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="JpegQuality"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.JpegQuality">[docs]</a><span class="k">class</span> <span class="nc">JpegQuality</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomJpegQuality"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomJpegQuality">[docs]</a><span class="k">class</span> <span class="nc">RandomJpegQuality</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust jpeg quality of a 3 dimensional RGB image</span>
 
 <span class="sd">    Example::</span>
@@ -509,14 +495,13 @@
         <span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo_list = [JpegQuality(), Gamma()]</span>
-<span class="sd">        &gt;&gt;&gt; transfo = OneOf(transfo_list)</span>
+<span class="sd">        &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
 <span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
@@ -532,10 +517,10 @@
         <span class="c1"># Pick transformation</span>
         <span class="n">transfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">))]</span>
         <span class="c1"># Apply</span>
-        <span class="k">return</span> <span class="n">transfo</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">transfo</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
 
 <span class="sd">    Example::</span>
@@ -558,7 +543,7 @@
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">img</span>
+        <span class="k">return</span> <span class="n">img</span></div>
 </pre></div>
 
            </div>

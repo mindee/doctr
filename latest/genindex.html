@@ -133,7 +133,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="transforms.html#supported-transformations">Supported transformations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transforms.html#composing-several-consecutive-transformations">Composing several consecutive transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#composing-transformations">Composing transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
@@ -213,10 +213,6 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
- | <a href="#G"><strong>G</strong></a>
- | <a href="#H"><strong>H</strong></a>
- | <a href="#I"><strong>I</strong></a>
- | <a href="#J"><strong>J</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
@@ -244,18 +240,14 @@
       <li><a href="documents.html#doctr.documents.Block">Block (class in doctr.documents)</a>
 </li>
   </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.Brightness">Brightness (class in doctr.transforms)</a>
-</li>
-  </ul></td>
 </tr></table>
 
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.Compose">Compose (class in doctr.transforms)</a>
+      <li><a href="transforms.html#doctr.transforms.ColorInversion">ColorInversion (class in doctr.transforms)</a>
 </li>
-      <li><a href="transforms.html#doctr.transforms.Contrast">Contrast (class in doctr.transforms)</a>
+      <li><a href="transforms.html#doctr.transforms.Compose">Compose (class in doctr.transforms)</a>
 </li>
       <li><a href="models.html#doctr.models.export.convert_to_fp16">convert_to_fp16() (in module doctr.models.export)</a>
 </li>
@@ -321,38 +313,6 @@
   </ul></td>
 </tr></table>
 
-<h2 id="G">G</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.Gamma">Gamma (class in doctr.transforms)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="H">H</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.Hue">Hue (class in doctr.transforms)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="I">I</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.InvertColorize">InvertColorize (class in doctr.transforms)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="J">J</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.JpegQuality">JpegQuality (class in doctr.transforms)</a>
-</li>
-  </ul></td>
-</tr></table>
-
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -399,6 +359,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#doctr.utils.metrics.OCRMetric">OCRMetric (class in doctr.utils.metrics)</a>
 </li>
+      <li><a href="transforms.html#doctr.transforms.OneOf">OneOf (class in doctr.transforms)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -421,12 +383,26 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transforms.html#doctr.transforms.RandomApply">RandomApply (class in doctr.transforms)</a>
+</li>
+      <li><a href="transforms.html#doctr.transforms.RandomBrightness">RandomBrightness (class in doctr.transforms)</a>
+</li>
+      <li><a href="transforms.html#doctr.transforms.RandomContrast">RandomContrast (class in doctr.transforms)</a>
+</li>
+      <li><a href="transforms.html#doctr.transforms.RandomGamma">RandomGamma (class in doctr.transforms)</a>
+</li>
+      <li><a href="transforms.html#doctr.transforms.RandomHue">RandomHue (class in doctr.transforms)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transforms.html#doctr.transforms.RandomJpegQuality">RandomJpegQuality (class in doctr.transforms)</a>
+</li>
+      <li><a href="transforms.html#doctr.transforms.RandomSaturation">RandomSaturation (class in doctr.transforms)</a>
+</li>
       <li><a href="documents.html#doctr.documents.read_img">read_img() (in module doctr.documents)</a>
 </li>
       <li><a href="documents.html#doctr.documents.read_pdf">read_pdf() (in module doctr.documents)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.recognition_predictor">recognition_predictor() (in module doctr.models.recognition)</a>
 </li>
       <li><a href="transforms.html#doctr.transforms.Resize">Resize (class in doctr.transforms)</a>
@@ -439,11 +415,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.sar_resnet31">sar_resnet31() (in module doctr.models.recognition)</a>
 </li>
-      <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transforms.html#doctr.transforms.Saturation">Saturation (class in doctr.transforms)</a>
+      <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
 </li>
       <li><a href="datasets.html#doctr.datasets.SROIE">SROIE (class in doctr.datasets)</a>
 </li>
