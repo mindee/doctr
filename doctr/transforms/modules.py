@@ -8,10 +8,12 @@ import tensorflow as tf
 from typing import List, Any, Tuple, Callable
 
 from doctr.utils.repr import NestedObject
+from . import functional as F
 
 
-__all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'InvertColorize',
-           'Brightness', 'Contrast', 'Saturation', 'Hue', 'Gamma', 'JpegQuality', 'OneOf', 'RandomApply']
+__all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'ColorInversion',
+           'RandomBrightness', 'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality',
+           'OneOf', 'RandomApply']
 
 
 class Compose(NestedObject):
@@ -126,27 +128,19 @@ class ToGray(NestedObject):
         >>> import tensorflow as tf
         >>> transfo = ToGray()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
-    Args:
     """
-    def __init__(self) -> None:
-        pass
-
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        grey = tf.image.rgb_to_grayscale(img)
-        # Retrieve last dimension
-        grey = tf.repeat(grey, repeats=3, axis=-1)
-        return grey
+        return tf.image.rgb_to_grayscale(img)
 
 
-class InvertColorize(NestedObject):
+class ColorInversion(NestedObject):
     """Applies the following tranformation to a tensor (image or batch of images):
     convert to grayscale, colorize (shift 0-values randomly), and then invert colors
 
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
-        >>> transfo = InvertColorize(min_val=0.6)
+        >>> transfo = ColorInversion(min_val=0.6)
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
@@ -154,23 +148,15 @@ class InvertColorize(NestedObject):
     """
     def __init__(self, min_val: float = 0.6) -> None:
         self.min_val = min_val
-        self.togray = ToGray()
 
     def extra_repr(self) -> str:
         return f"min_val={self.min_val}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        gray = self.togray(img)  # Convert to gray
-        # Random RGB shifts
-        shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
-        rgb_shift = tf.random.uniform(shape=shift_shape, minval=self.min_val, maxval=1)
-        colorized = tf.multiply(gray, rgb_shift)
-        # Invert values
-        inverted = tf.ones_like(colorized) - colorized
-        return inverted
+        return F.invert_colors(img, self.min_val)
 
 
-class Brightness(NestedObject):
+class RandomBrightness(NestedObject):
     """Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
     to all pixels
 
@@ -194,7 +180,7 @@ class Brightness(NestedObject):
         return tf.image.random_brightness(img, max_delta=self.max_delta)
 
 
-class Contrast(NestedObject):
+class RandomContrast(NestedObject):
     """Randomly adjust contrast of a tensor (batch of images or image) by adjusting
     each pixel: (img - mean) * contrast_factor + mean.
 
@@ -217,7 +203,7 @@ class Contrast(NestedObject):
         return tf.image.random_contrast(img, lower=1 - self.delta, upper=1 + self.delta)
 
 
-class Saturation(NestedObject):
+class RandomSaturation(NestedObject):
     """Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and
     increasing saturation by a factor.
 
@@ -240,7 +226,7 @@ class Saturation(NestedObject):
         return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 + self.delta)
 
 
-class Hue(NestedObject):
+class RandomHue(NestedObject):
     """Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta
 
     Example::
@@ -262,7 +248,7 @@ class Hue(NestedObject):
         return tf.image.random_hue(img, max_delta=self.max_delta)
 
 
-class Gamma(NestedObject):
+class RandomGamma(NestedObject):
     """randomly performs gamma correction for a tensor (batch of images or image)
 
     Example:
@@ -299,7 +285,7 @@ class Gamma(NestedObject):
         return tf.image.adjust_gamma(img, gamma=gamma, gain=gain)
 
 
-class JpegQuality(NestedObject):
+class RandomJpegQuality(NestedObject):
     """Randomly adjust jpeg quality of a 3 dimensional RGB image
 
     Example::
@@ -329,8 +315,7 @@ class OneOf(NestedObject):
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
-        >>> transfo_list = [JpegQuality(), Gamma()]
-        >>> transfo = OneOf(transfo_list)
+        >>> transfo = OneOf([JpegQuality(), Gamma()])
         >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
