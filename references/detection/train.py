@@ -165,7 +165,7 @@ def parse_args():
     parser.add_argument('model', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
-    parser.add_argument('--batch_size', type=int, default=2, help='batch size for training')
+    parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
