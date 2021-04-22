@@ -12,7 +12,7 @@ from . import functional as F
 
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'InvertColorize',
-           'RandomBrightness', 'RandomContrast', 'RandomSaturation', 'RandomHue', 'Gamma', 'RandomJpegQuality',
+           'RandomBrightness', 'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality',
            'OneOf', 'RandomApply']
 
 
@@ -255,7 +255,7 @@ class RandomHue(NestedObject):
         return tf.image.random_hue(img, max_delta=self.max_delta)
 
 
-class Gamma(NestedObject):
+class RandomGamma(NestedObject):
     """randomly performs gamma correction for a tensor (batch of images or image)
 
     Example:
@@ -322,8 +322,7 @@ class OneOf(NestedObject):
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
-        >>> transfo_list = [JpegQuality(), Gamma()]
-        >>> transfo = OneOf(transfo_list)
+        >>> transfo = OneOf([JpegQuality(), Gamma()])
         >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
