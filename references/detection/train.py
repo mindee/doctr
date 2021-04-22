@@ -99,10 +99,11 @@ def main(args):
         for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
             images, targets = next(train_iter)
 
+            boxes = [target['boxes'] for target in targets]
+            flags = [target['flags'] for target in targets]
+            images = preprocessor(images)
+
             with tf.GradientTape() as tape:
-                boxes = [target['boxes'] for target in targets]
-                flags = [target['flags'] for target in targets]
-                images = preprocessor(images)
                 model_output = model(images, training=True)
                 train_loss = model.compute_loss(model_output, boxes, flags)
             grads = tape.gradient(train_loss, model.trainable_weights)

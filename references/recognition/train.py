@@ -102,9 +102,10 @@ def main(args):
         for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
             images, targets = next(train_iter)
 
+            images = preprocessor(images)
+            encoded_gts, seq_len = model.compute_target(targets)
+
             with tf.GradientTape() as tape:
-                images = preprocessor(images)
-                encoded_gts, seq_len = model.compute_target(targets)
                 if args.teacher_forcing is True:
                     train_logits = model(images, encoded_gts, training=True)
                 else:
