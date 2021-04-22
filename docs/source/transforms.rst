@@ -15,16 +15,18 @@ Here are all transformations that are available through DocTR:
 .. autoclass:: LambdaTransformation
 .. autoclass:: ToGray
 .. autoclass:: InvertColorize
-.. autoclass:: Brightness
-.. autoclass:: Contrast
-.. autoclass:: Saturation
-.. autoclass:: Hue
-.. autoclass:: Gamma
-.. autoclass:: JpegQuality
+.. autoclass:: RandomBrightness
+.. autoclass:: RandomContrast
+.. autoclass:: RandomSaturation
+.. autoclass:: RandomHue
+.. autoclass:: RandomGamma
+.. autoclass:: RandomJpegQuality
 
 
-Composing several consecutive transformations
+Composing transformations
 ---------------------------------------------
 It is common to require several transformations to be performed consecutively.
 
 .. autoclass:: Compose
+.. autoclass:: OneOf
+.. autoclass:: RandomApply
