@@ -32,6 +32,7 @@ def main(args):
         img_folder=os.path.join(args.data_path, 'train'),
         labels_path=os.path.join(args.data_path, 'train_labels.json'),
         sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
             # Augmentations
             T.RandomApply(T.InvertColorize(), .2),
@@ -69,15 +70,10 @@ def main(args):
     # Metrics
     val_metric = metrics.ExactMatch()
 
-    # Preprocessor to normalize
-    MEAN_RGB = (0.694, 0.695, 0.693)
-    STD_RGB = (0.299, 0.296, 0.301)
-    preprocessor = RecognitionPreProcessor(
-        output_size=(args.input_size, 4 * args.input_size),
-        batch_size=args.batch_size,
-        mean=MEAN_RGB,
-        std=STD_RGB
-    )
+    batch_transforms = T.Compose([
+        T.LambdaTransformation(lambda x: x / 255),
+        T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
+    ])
 
     # Postprocessor to decode output (to feed metric during val step)
     postprocessor = model.postprocessor
@@ -102,7 +98,7 @@ def main(args):
         for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
             images, targets = next(train_iter)
 
-            images = preprocessor(images)
+            images = batch_transforms(images)
             encoded_gts, seq_len = model.compute_target(targets)
 
             with tf.GradientTape() as tape:
@@ -131,7 +127,7 @@ def main(args):
         val_loss, batch_cnt = 0, 0
         val_iter = iter(val_loader)
         for images, targets in val_iter:
-            images = preprocessor(images)
+            images = batch_transforms(images)
             val_logits = model(images, training=False)
             encoded_gts, seq_len = model.compute_target(targets)
             loss = model.compute_loss(encoded_gts, val_logits, seq_len)

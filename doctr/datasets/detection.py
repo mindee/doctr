@@ -58,7 +58,6 @@ class DetectionDataset(AbstractDataset):
         img_name, target = self.data[index]
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
-        img /= 255
         h, w = img.shape[:2]
         img = self.sample_transforms(img)
 
