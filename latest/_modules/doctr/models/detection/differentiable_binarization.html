@@ -608,8 +608,8 @@
             <span class="n">polys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span>
                 <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
                 <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span>
-                <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
                 <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span>
+                <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
             <span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">box</span><span class="p">,</span> <span class="n">box_size</span><span class="p">,</span> <span class="n">poly</span><span class="p">,</span> <span class="n">flag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">abs_boxes</span><span class="p">,</span> <span class="n">boxes_size</span><span class="p">,</span> <span class="n">polys</span><span class="p">,</span> <span class="n">batch_flags</span><span class="p">[</span><span class="n">batch_idx</span><span class="p">]):</span>
