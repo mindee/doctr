@@ -402,8 +402,8 @@ class DBNet(DetectionModel, NestedObject):
             polys = np.stack([
                 abs_boxes[:, [0, 1]],
                 abs_boxes[:, [0, 3]],
-                abs_boxes[:, [2, 1]],
                 abs_boxes[:, [2, 3]],
+                abs_boxes[:, [2, 1]],
             ], axis=1)
 
             for box, box_size, poly, flag in zip(abs_boxes, boxes_size, polys, batch_flags[batch_idx]):
