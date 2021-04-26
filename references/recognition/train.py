@@ -47,7 +47,10 @@ def main(args):
     val_set = RecognitionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         labels_path=os.path.join(args.data_path, 'val_labels.json'),
-        sample_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
+        sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
+            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
+        ]),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
 
