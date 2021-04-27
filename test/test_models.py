@@ -67,7 +67,7 @@ def test_documentbuilder():
     assert len(out.pages[0].blocks) == 0
 
     # Repr
-    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, paragraph_break=0.15)"
+    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, paragraph_break=0.035)"
 
 
 @pytest.mark.parametrize(
@@ -76,7 +76,7 @@ def test_documentbuilder():
         [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0]],  # vertical
         [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0]],  # diagonal
         [[[0, 0.5, 0.1, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [0, 1, 2]],  # same line, 2p
-        [[[0, 0.5, 0.1, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2]],  # ~same line
+        [[[0, 0.5, 0.1, 0.6], [0.2, 0.49, 0.35, 0.59], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2]],  # ~same line
         [[[0, 0.3, 0.4, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
         [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
     ],
@@ -88,20 +88,20 @@ def test_sort_boxes(input_boxes, sorted_idxs):
 
 
 @pytest.mark.parametrize(
-    "input_boxes, sorted_idxs, lines",
+    "input_boxes, lines",
     [
-        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0], [[2], [1], [0]]],  # vertical
-        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0], [[2], [1], [0]]],  # diagonal
-        [[[0, 0.5, 0.1, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [0, 1, 2], [[0, 1], [2]]],  # same line, 2p
-        [[[0, 0.5, 0.1, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2], [[0, 1], [2]]],  # ~same line
-        [[[0, 0.3, 0.4, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2], [[0, 1], [2]]],  # 2 lines
-        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2], [[0], [1], [2]]],  # 2 lines
+        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [[2], [1], [0]]],  # vertical
+        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [[2], [1], [0]]],  # diagonal
+        [[[0, 0.5, 0.14, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [[0, 1], [2]]],  # same line, 2p
+        [[[0, 0.5, 0.18, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [[0, 1], [2]]],  # ~same line
+        [[[0, 0.3, 0.48, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [[0, 1], [2]]],  # 2 lines
+        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [[0], [1], [2]]],  # 2 lines
     ],
 )
-def test_resolve_lines(input_boxes, sorted_idxs, lines):
+def test_resolve_lines(input_boxes, lines):
 
     doc_builder = models.DocumentBuilder()
-    assert doc_builder._resolve_lines(np.asarray(input_boxes), np.asarray(sorted_idxs)) == lines
+    assert doc_builder._resolve_lines(np.asarray(input_boxes)) == lines
 
 
 def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
