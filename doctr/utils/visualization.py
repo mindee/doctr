@@ -57,7 +57,7 @@ def create_rect_patch(
 def visualize_page(
     page: Dict[str, Any],
     image: np.ndarray,
-    words_only: bool = True,
+    words_only: bool = False,
     scale: float = 10,
     interactive: bool = True,
     add_labels: bool = True,
@@ -110,21 +110,21 @@ def visualize_page(
                 if interactive:
                     artists.append(rect)
 
-            for word in line['words']:
-                rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
-                                         page['dimensions'], (0, 0, 1), **kwargs)
-                ax.add_patch(rect)
-                if interactive:
-                    artists.append(rect)
-                elif add_labels:
-                    ax.text(
-                        int(page['dimensions'][1] * word['geometry'][0][0]),
-                        int(page['dimensions'][0] * word['geometry'][0][1]),
-                        word['value'],
-                        size=10,
-                        alpha=0.5,
-                        color=(0, 0, 1),
-                    )
+            # for word in line['words']:
+            #     rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
+            #                              page['dimensions'], (0, 0, 1), **kwargs)
+            #     ax.add_patch(rect)
+            #     if interactive:
+            #         artists.append(rect)
+            #     elif add_labels:
+            #         ax.text(
+            #             int(page['dimensions'][1] * word['geometry'][0][0]),
+            #             int(page['dimensions'][0] * word['geometry'][0][1]),
+            #             word['value'],
+            #             size=10,
+            #             alpha=0.5,
+            #             color=(0, 0, 1),
+            #         )
 
         if not words_only:
             for artefact in block['artefacts']:

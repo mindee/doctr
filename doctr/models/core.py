@@ -69,9 +69,9 @@ class DocumentBuilder(NestedObject):
 
     def __init__(
         self,
-        resolve_lines: bool = False,
+        resolve_lines: bool = True,
         resolve_blocks: bool = False,
-        paragraph_break: float = 0.15
+        paragraph_break: float = 0.035
     ) -> None:
 
         self.resolve_lines = resolve_lines
@@ -91,43 +91,82 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
-
         return (boxes[:, 0] + boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
-    def _resolve_lines(self, boxes: np.ndarray, idxs: np.ndarray) -> List[List[int]]:
-        """Uses ordered boxes to group them in lines
+    def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
+        """Split a line in sub_lines
 
         Args:
             boxes: bounding boxes of shape (N, 4)
-            idxs: indices of ordered boxes of shape (N,)
+            words: list of indexes for the words of the line
+
+        Returns:
+            A list of (sub-)lines computed from the original line (words)
+        """
+        lines = []
+        # Sort words horizontally
+        words = [words[j] for j in np.argsort([boxes[i, 0] for i in words]).tolist()]
+        # Eventually split line horizontally
+        if len(words) < 2:
+            lines.append(words)
+        else:
+            sub_line = [words[0]]
+            for i in words[1:]:
+                horiz_break = True
+
+                prev_box = boxes[sub_line[-1]]
+                # If distance between boxes is lower than paragraph break, same sub-line
+                if (boxes[i, 0] - prev_box[2]) < self.paragraph_break:
+                    horiz_break = False
+
+                if horiz_break:
+                    lines.append(sub_line)
+                    sub_line = []
+
+                sub_line.append(i)
+            lines.append(sub_line)
+
+        return lines
+
+    def _resolve_lines(self, boxes: np.ndarray) -> List[List[int]]:
+        """Order boxes to group them in lines
+
+        Args:
+            boxes: bounding boxes of shape (N, 4)
 
         Returns:
             nested list of box indices
         """
+        # Compute median for boxes heights
+        y_med = np.median(boxes[:, 3] - boxes[:, 1])
+        # Sort boxes
+        idxs = (boxes[:, 0] + 2 * boxes[:, 3] / y_med).argsort()
 
-        # Try to arrange them in lines
         lines = []
-        # Add the first word anyway
-        words: List[int] = [idxs[0]]
+        words = [idxs[0]]  # Assign the top-left word to the first line
+        # Define a mean y-center for the line
+        y_center_sum = boxes[idxs[0]][[1, 3]].mean()
+
         for idx in idxs[1:]:
-            line_break = True
+            vert_break = True
 
-            prev_box = boxes[words[-1]]
-            # Reduced vertical diff
-            if boxes[idx, 1] < prev_box[[1, 3]].mean():
-                # Words horizontally ordered and close
-                if (boxes[idx, 0] - prev_box[2]) < self.paragraph_break:
-                    line_break = False
+            # If y-center of the box is close enough to mean y-center of the line, same line
+            if abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words)) < y_med / 2:
+                vert_break = False
 
-            if line_break:
-                lines.append(words)
+            if vert_break:
+                # Compute sub-lines (horizontal split)
+                lines.extend(self._resolve_sub_lines(boxes, words))
                 words = []
+                y_center_sum = 0
 
             words.append(idx)
+            y_center_sum += boxes[idx][[1, 3]].mean()
 
-        # Use the remaining words to form the last line
+        # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
-            lines.append(words)
+            # Compute sub-lines (horizontal split)
+            lines.extend(self._resolve_sub_lines(boxes, words))
 
         return lines
 
@@ -148,15 +187,12 @@ class DocumentBuilder(NestedObject):
         if boxes.shape[0] == 0:
             return []
 
-        # Sort bounding boxes from top to bottom, left to right
-        idxs = self._sort_boxes(boxes[:, :4])
-
         # Decide whether we try to form lines
         if self.resolve_lines:
-            lines = self._resolve_lines(boxes[:, :4], idxs)
+            lines = self._resolve_lines(boxes[:, :4])
         else:
-            # One line for all words
-            lines = [idxs]
+            # Sort bounding boxes, one line for all boxes
+            lines = [self._sort_boxes(boxes[:, :4])]
 
         # No automatic line grouping yet --> 1 block for all lines
         blocks = [
