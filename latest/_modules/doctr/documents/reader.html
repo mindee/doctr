@@ -213,9 +213,10 @@
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">fitz</span>
+<span class="kn">from</span> <span class="nn">weasyprint</span> <span class="kn">import</span> <span class="n">HTML</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">,</span> <span class="s1">&#39;DocumentFile&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">,</span> <span class="s1">&#39;read_html&#39;</span><span class="p">,</span> <span class="s1">&#39;DocumentFile&#39;</span><span class="p">]</span>
 
 
 <span class="n">AbstractPath</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
@@ -324,6 +325,22 @@
     <span class="k">return</span> <span class="n">img</span>
 
 
+<div class="viewcode-block" id="read_html"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_html">[docs]</a><span class="k">def</span> <span class="nf">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.documents import read_html</span>
+<span class="sd">        &gt;&gt;&gt; doc = read_html(&quot;https://www.yoursite.com&quot;)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        url: URL of the target web page</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        decoded PDF file as a bytes stream</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write_pdf</span><span class="p">()</span></div>
+
+
 <div class="viewcode-block" id="DocumentFile"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile">[docs]</a><span class="k">class</span> <span class="nc">DocumentFile</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Read a document from multiple extensions&quot;&quot;&quot;</span>
 
@@ -358,7 +375,24 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
             <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="p">[</span><span class="n">read_img</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="p">[</span><span class="n">read_img</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DocumentFile.from_url"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile.from_url">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Interpret a web page as a PDF document</span>
+
+<span class="sd">        Example::</span>
+<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">            &gt;&gt;&gt; doc = DocumentFile.from_url(&quot;https://www.yoursite.com&quot;)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            url: the URL of the target web page</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pdf_stream</span> <span class="o">=</span> <span class="n">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">pdf_stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
