@@ -69,7 +69,7 @@ class DocumentBuilder(NestedObject):
 
     def __init__(
         self,
-        resolve_lines: bool = True,
+        resolve_lines: bool = False,
         resolve_blocks: bool = False,
         paragraph_break: float = 0.035
     ) -> None:
@@ -91,7 +91,7 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
-        return (boxes[:, 0] + boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
+        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
         """Split a line in sub_lines
