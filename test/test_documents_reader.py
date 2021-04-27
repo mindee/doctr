@@ -78,9 +78,19 @@ def test_read_img(tmpdir_factory, mock_image_stream, mock_pdf):
     assert resized_page.shape[:2] == target_size
 
 
+def test_read_html():
+    url = "https://www.google.com"
+    pdf_stream = reader.read_html(url)
+    assert isinstance(pdf_stream, bytes)
+
+
 def test_document_file(mock_pdf, mock_image_stream, mock_image_folder):
     pages = reader.DocumentFile.from_pdf(mock_pdf)
     _check_doc_content(pages, 8)
 
     pages = reader.DocumentFile.from_images(mock_image_stream)
+    _check_doc_content(pages, 1)
+
+    url = "https://www.google.com"
+    pages = reader.DocumentFile.from_url(url)
     _check_doc_content(pages, 1)

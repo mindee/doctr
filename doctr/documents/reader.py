@@ -7,9 +7,10 @@ import numpy as np
 import cv2
 from pathlib import Path
 import fitz
+from weasyprint import HTML
 from typing import List, Tuple, Optional, Any, Union, Sequence
 
-__all__ = ['read_pdf', 'read_img', 'DocumentFile']
+__all__ = ['read_pdf', 'read_img', 'read_html', 'DocumentFile']
 
 
 AbstractPath = Union[str, Path]
@@ -118,6 +119,22 @@ def convert_page_to_numpy(
     return img
 
 
+def read_html(url: str, **kwargs: Any) -> bytes:
+    """Read a PDF file and convert it into an image in numpy format
+
+    Example::
+        >>> from doctr.documents import read_html
+        >>> doc = read_html("https://www.yoursite.com")
+
+    Args:
+        url: URL of the target web page
+    Returns:
+        decoded PDF file as a bytes stream
+    """
+
+    return HTML(url, **kwargs).write_pdf()
+
+
 class DocumentFile:
     """Read a document from multiple extensions"""
 
@@ -153,3 +170,20 @@ class DocumentFile:
             files = [files]
 
         return [read_img(file, **kwargs) for file in files]
+
+    @classmethod
+    def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
+        """Interpret a web page as a PDF document
+
+        Example::
+            >>> from doctr.documents import DocumentFile
+            >>> doc = DocumentFile.from_url("https://www.yoursite.com")
+
+        Args:
+            url: the URL of the target web page
+        Returns:
+            the list of pages decoded as numpy ndarray of shape H x W x 3
+        """
+        pdf_stream = read_html(url)
+
+        return cls.from_pdf(pdf_stream, **kwargs)
