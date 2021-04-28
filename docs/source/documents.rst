@@ -65,13 +65,14 @@ High-performance file reading and conversion to processable structured data.
 
 .. autofunction:: read_html
 
+
 .. autoclass:: DocumentFile
 
    .. automethod:: from_pdf
 
-   .. automethod:: from_images
-
    .. automethod:: from_url
+
+   .. automethod:: from_images
 
 .. autoclass:: PDF
 
