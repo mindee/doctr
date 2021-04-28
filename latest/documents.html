@@ -338,7 +338,7 @@ all lines and artefacts in it.</p></li>
 <p>High-performance file reading and conversion to processable structured data.</p>
 <dl class="py function">
 <dt id="doctr.documents.read_pdf">
-<code class="sig-prename descclassname">doctr.documents.</code><code class="sig-name descname">read_pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#read_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.read_pdf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.documents.</code><code class="sig-name descname">read_pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; fitz.fitz.Document<a class="reference internal" href="_modules/doctr/documents/reader.html#read_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.read_pdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a PDF file and convert it into an image in numpy format</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">read_pdf</span>
@@ -409,8 +409,8 @@ all lines and artefacts in it.</p></li>
 <dd><p>Read a document from multiple extensions</p>
 <dl class="py method">
 <dt id="doctr.documents.DocumentFile.from_pdf">
-<em class="property">classmethod </em><code class="sig-name descname">from_pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#DocumentFile.from_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.DocumentFile.from_pdf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read a PDF file and convert it into an image in numpy format</p>
+<em class="property">classmethod </em><code class="sig-name descname">from_pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; doctr.documents.reader.PDF<a class="reference internal" href="_modules/doctr/documents/reader.html#DocumentFile.from_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.DocumentFile.from_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a PDF file</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span>
@@ -423,35 +423,14 @@ all lines and artefacts in it.</p></li>
 <dd class="field-odd"><p><strong>file</strong> – the path to the PDF file or a binary stream</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="doctr.documents.DocumentFile.from_images">
-<em class="property">classmethod </em><code class="sig-name descname">from_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">files</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span><span class="p">]</span><span class="p">, </span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#DocumentFile.from_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.DocumentFile.from_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read an image file (or a collection of image files) and convert it into an image in numpy format</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s2">&quot;path/to/your/page1.png&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/your/page2.png&quot;</span><span class="p">])</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>files</strong> – the path to the image file or a binary stream, or a collection of those</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
+<dd class="field-even"><p>a PDF document</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="doctr.documents.DocumentFile.from_url">
-<em class="property">classmethod </em><code class="sig-name descname">from_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#DocumentFile.from_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.DocumentFile.from_url" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_url</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; doctr.documents.reader.PDF<a class="reference internal" href="_modules/doctr/documents/reader.html#DocumentFile.from_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.DocumentFile.from_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpret a web page as a PDF document</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
@@ -463,6 +442,27 @@ all lines and artefacts in it.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>url</strong> – the URL of the target web page</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a PDF document</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="doctr.documents.DocumentFile.from_images">
+<em class="property">classmethod </em><code class="sig-name descname">from_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">files</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span><span class="p">]</span><span class="p">, </span>str<span class="p">, </span>pathlib.Path<span class="p">, </span>bytes<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#DocumentFile.from_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.DocumentFile.from_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read an image file (or a collection of image files) and convert it into an image in numpy format</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s2">&quot;path/to/your/page1.png&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/your/page2.png&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>files</strong> – the path to the image file or a binary stream, or a collection of those</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
