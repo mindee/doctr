@@ -5,12 +5,14 @@
 
 
 import numpy as np
+from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
+from doctr.utils.geometry import resolve_enclosing_bbox
 
 __all__ = ['OCRPredictor', 'DocumentBuilder']
 
@@ -76,8 +78,7 @@ class DocumentBuilder(NestedObject):
 
         self.resolve_lines = resolve_lines
 
-        if resolve_blocks:
-            raise NotImplementedError
+        self.resolve_blocks = resolve_blocks
 
         self.paragraph_break = paragraph_break
 
@@ -170,6 +171,57 @@ class DocumentBuilder(NestedObject):
 
         return lines
 
+    def _resolve_blocks(self, boxes: np.ndarray, lines: List[List[int]]) -> List[List[List[int]]]:
+        """Order lines to group them in blocks
+
+        Args:
+            boxes: bounding boxes of shape (N, 4)
+            lines: list of lines, each line is a list of idx
+
+        Returns:
+            nested list of box indices
+        """
+        # Resolve enclosing boxes of lines
+        _lines = [
+            [
+                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
+            ] for line in lines
+        ]
+        _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
+        box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
+
+        # Compute geometrical features of lines to clusterize
+        # Clusterizing only with box centers yield to poor results for complex documents
+        box_features = np.stack(
+            (
+                (box_lines[:, 0] + box_lines[:, 3]) / 2,
+                (box_lines[:, 1] + box_lines[:, 2]) / 2,
+                (box_lines[:, 0] + box_lines[:, 2]) / 2,
+                (box_lines[:, 1] + box_lines[:, 3]) / 2,
+                (box_lines[:, 0] + box_lines[:, 1]) / 2,
+                (box_lines[:, 2] + box_lines[:, 3]) / 2,
+                box_lines[:, 0],
+                box_lines[:, 1],
+                box_lines[:, 2],
+                box_lines[:, 3],
+            ), axis=-1
+        )
+        # Compute clusters
+        clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
+        
+        _blocks = dict()
+        # Form clusters
+        for line_idx, cluster_idx in enumerate(clusters):
+            if cluster_idx in _blocks.keys():
+                _blocks[cluster_idx].append(line_idx)
+            else:
+                _blocks[cluster_idx] = [line_idx]
+
+        # Retrieve word-box level to return a fully nested structure
+        blocks = [[lines[idx] for idx in block] for block in _blocks.values()]
+
+        return blocks
+
     def _build_blocks(self, boxes: np.ndarray, char_sequences: List[str]) -> List[Block]:
         """Gather independent words in structured blocks
 
@@ -190,11 +242,14 @@ class DocumentBuilder(NestedObject):
         # Decide whether we try to form lines
         if self.resolve_lines:
             lines = self._resolve_lines(boxes[:, :4])
+            # Decide whether we try to form blocks
+            if self.resolve_blocks:
+                blocks = self._resolve_blocks(boxes[:, :4], lines)
         else:
-            # Sort bounding boxes, one line for all boxes
+            # Sort bounding boxes, one line for all boxes, one block for the line
             lines = [self._sort_boxes(boxes[:, :4])]
+            blocks = [lines]
 
-        # No automatic line grouping yet --> 1 block for all lines
         blocks = [
             Block(
                 [Line(
@@ -204,7 +259,7 @@ class DocumentBuilder(NestedObject):
                         ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
                     ) for idx in line]
                 ) for line in lines]
-            )
+            ) for lines in blocks
         ]
 
         return blocks
