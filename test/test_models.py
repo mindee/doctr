@@ -3,13 +3,13 @@ import numpy as np
 import tensorflow as tf
 
 from doctr import models
-from doctr.documents import read_pdf, Document
+from doctr.documents import Document, DocumentFile
 from test_models_detection import test_detectionpredictor
 from test_models_recognition import test_recognitionpredictor
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
-    doc_img = read_pdf(mock_pdf)[0]
+    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
     num_crops = 2
     rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
                           for idx in range(num_crops)], dtype=np.float32)
@@ -111,7 +111,7 @@ def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredict
         test_recognitionpredictor
     )
 
-    doc = read_pdf(mock_pdf)
+    doc = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(doc)
 
     # Document
