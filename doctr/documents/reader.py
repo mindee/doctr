@@ -180,7 +180,7 @@ class PDF:
         return [self.get_page_words(idx, **kwargs) for idx in range(len(self.doc))]
 
     def get_page_artefacts(self, idx) -> List[Tuple[float, float, float, float]]:
-        return [tuple(self.doc[idx].getImageBbox(artefact[-2])) for artefact in self.doc[idx].getImageList()]
+        return [tuple(self.doc[idx].getImageBbox(artefact)) for artefact in self.doc[idx].get_images(full=True)]
 
     def get_artefacts(self) -> List[List[Tuple[float, float, float, float]]]:
         """Get the artefacts for the entire document
