@@ -245,6 +245,8 @@ class DocumentBuilder(NestedObject):
             # Decide whether we try to form blocks
             if self.resolve_blocks:
                 blocks = self._resolve_blocks(boxes[:, :4], lines)
+            else:
+                blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
             lines = [self._sort_boxes(boxes[:, :4])]
