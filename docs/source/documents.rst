@@ -72,3 +72,11 @@ High-performance file reading and conversion to processable structured data.
    .. automethod:: from_images
 
    .. automethod:: from_url
+
+.. autoclass:: PDF
+
+   .. automethod:: as_images
+
+   .. automethod:: get_words
+
+   .. automethod:: get_artefacts
