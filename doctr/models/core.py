@@ -208,7 +208,7 @@ class DocumentBuilder(NestedObject):
         )
         # Compute clusters
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
-        
+
         _blocks = dict()
         # Form clusters
         for line_idx, cluster_idx in enumerate(clusters):
