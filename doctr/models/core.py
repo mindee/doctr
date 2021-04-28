@@ -265,7 +265,8 @@ class DocumentBuilder(NestedObject):
         return blocks
 
     def extra_repr(self) -> str:
-        return f"resolve_lines={self.resolve_lines}, paragraph_break={self.paragraph_break}"
+        return (f"resolve_lines={self.resolve_lines}, resolve_blocks={self.resolve_blocks}, "
+                f"paragraph_break={self.paragraph_break}")
 
     def __call__(
         self,
