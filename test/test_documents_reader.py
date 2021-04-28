@@ -32,15 +32,15 @@ def _check_doc_content(doc_tensors, num_pages):
 
 def test_read_pdf(mock_pdf, mock_pdf_stream):
     for file in [mock_pdf, mock_pdf_stream]:
-        doc_tensors = reader.read_pdf(file)
-        _check_doc_content(doc_tensors, 8)
+        doc = reader.read_pdf(file)
+        assert isinstance(doc, fitz.Document)
 
     # Wrong input type
     with pytest.raises(TypeError):
         _ = reader.read_pdf(123)
 
 
-def test_read_img(tmpdir_factory, mock_image_stream, mock_pdf):
+def test_read_img(tmpdir_factory, mock_pdf):
 
     # Wrong input type
     with pytest.raises(TypeError):
@@ -54,19 +54,23 @@ def test_read_img(tmpdir_factory, mock_image_stream, mock_pdf):
     with pytest.raises(ValueError):
         reader.read_img(str(mock_pdf))
 
+    # From path
     url = 'https://upload.wikimedia.org/wikipedia/commons/5/55/Grace_Hopper.jpg'
     file = BytesIO(requests.get(url).content)
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_img_file.jpg"))
     with open(tmp_path, 'wb') as f:
         f.write(file.getbuffer())
 
-    page = reader.read_img(tmp_path)
+    # Path & stream
+    with open(tmp_path, 'rb') as f:
+        page_stream = reader.read_img(f.read())
 
-    # Data type
-    assert isinstance(page, np.ndarray)
-    assert page.dtype == np.uint8
-    # Shape
-    assert page.shape == (606, 517, 3)
+    for page in (reader.read_img(tmp_path), page_stream):
+        # Data type
+        assert isinstance(page, np.ndarray)
+        assert page.dtype == np.uint8
+        # Shape
+        assert page.shape == (606, 517, 3)
 
     # RGB
     bgr_page = reader.read_img(tmp_path, rgb_output=False)
@@ -84,13 +88,32 @@ def test_read_html():
     assert isinstance(pdf_stream, bytes)
 
 
-def test_document_file(mock_pdf, mock_image_stream, mock_image_folder):
-    pages = reader.DocumentFile.from_pdf(mock_pdf)
-    _check_doc_content(pages, 8)
-
+def test_document_file(mock_pdf, mock_image_stream):
     pages = reader.DocumentFile.from_images(mock_image_stream)
     _check_doc_content(pages, 1)
 
-    url = "https://www.google.com"
-    pages = reader.DocumentFile.from_url(url)
-    _check_doc_content(pages, 1)
+    assert isinstance(reader.DocumentFile.from_pdf(mock_pdf).doc, fitz.Document)
+    assert isinstance(reader.DocumentFile.from_url("https://www.google.com").doc, fitz.Document)
+
+
+def test_pdf(mock_pdf):
+
+    doc = reader.DocumentFile.from_pdf(mock_pdf)
+
+    # As images
+    pages = doc.as_images()
+    _check_doc_content(pages, 8)
+
+    # Get words
+    words = doc.get_words()
+    assert isinstance(words, list) and len(words) == 8
+    assert all(isinstance(bbox, tuple) and isinstance(value, str)
+               for page_words in words for (bbox, value) in page_words)
+    assert all(all(isinstance(coord, float) for coord in bbox) for page_words in words for (bbox, value) in page_words)
+
+    # Get artefacts
+    artefacts = doc.get_artefacts()
+    assert isinstance(artefacts, list) and len(artefacts) == 8
+    assert all(isinstance(bbox, tuple) for page_artefacts in artefacts for bbox in page_artefacts)
+    assert all(all(isinstance(coord, float) for coord in bbox)
+               for page_artefacts in artefacts for bbox in page_artefacts)

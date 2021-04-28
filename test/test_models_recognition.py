@@ -4,14 +4,14 @@ import math
 import tensorflow as tf
 
 from doctr.models import recognition
-from doctr.documents import read_pdf
+from doctr.documents import DocumentFile
 from doctr.models import extract_crops
 
 
 def test_recopreprocessor(mock_pdf):  # noqa: F811
     num_docs = 3
     batch_size = 4
-    docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
+    docs = [DocumentFile.from_pdf(mock_pdf).as_images() for _ in range(num_docs)]
     processor = recognition.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
 
@@ -101,7 +101,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
         recognition.CTCPostProcessor(mock_vocab)
     )
 
-    pages = read_pdf(mock_pdf)
+    pages = DocumentFile.from_pdf(mock_pdf).as_images()
     # Create bounding boxes
     boxes = np.array([[0, 0, 0.25, 0.25], [0.5, 0.5, 1., 1.]], dtype=np.float32)
     crops = extract_crops(pages[0], boxes)

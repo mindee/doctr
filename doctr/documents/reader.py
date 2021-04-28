@@ -15,6 +15,7 @@ __all__ = ['read_pdf', 'read_img', 'read_html', 'DocumentFile']
 
 AbstractPath = Union[str, Path]
 AbstractFile = Union[AbstractPath, bytes]
+Bbox = Tuple[float, float, float, float]
 
 
 def read_img(
@@ -58,7 +59,7 @@ def read_img(
     return img
 
 
-def read_pdf(file: AbstractFile, **kwargs: Any) -> List[np.ndarray]:
+def read_pdf(file: AbstractFile, **kwargs: Any) -> fitz.Document:
     """Read a PDF file and convert it into an image in numpy format
 
     Example::
@@ -81,7 +82,7 @@ def read_pdf(file: AbstractFile, **kwargs: Any) -> List[np.ndarray]:
         raise TypeError("unsupported object type for argument 'file'")
 
     # Read pages with fitz and convert them to numpy ndarrays
-    return [convert_page_to_numpy(page, **kwargs) for page in fitz.open(**fitz_args, filetype="pdf")]
+    return fitz.open(**fitz_args, filetype="pdf", **kwargs)
 
 
 def convert_page_to_numpy(
@@ -135,12 +136,72 @@ def read_html(url: str, **kwargs: Any) -> bytes:
     return HTML(url, **kwargs).write_pdf()
 
 
+class PDF:
+    """PDF document template
+
+    Args:
+        doc: input PDF document
+    """
+    def __init__(self, doc: fitz.Document) -> None:
+        self.doc = doc
+
+    def as_images(self, **kwargs) -> List[np.ndarray]:
+        """Convert all document pages to images
+
+        Example::
+            >>> from doctr.documents import DocumentFile
+            >>> pages = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
+
+        Args:
+            kwargs: keyword arguments of `convert_page_to_numpy`
+        Returns:
+            the list of pages decoded as numpy ndarray of shape H x W x 3
+        """
+        return [convert_page_to_numpy(page, **kwargs) for page in self.doc]
+
+    def get_page_words(self, idx, **kwargs) -> List[Tuple[Bbox, str]]:
+        """Get the annotations for all words of a given page"""
+
+        # xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx
+        return [(info[:4], info[4]) for info in self.doc[idx].getTextWords(**kwargs)]
+
+    def get_words(self, **kwargs) -> List[List[Tuple[Bbox, str]]]:
+        """Get the annotations for all words in the document
+
+        Example::
+            >>> from doctr.documents import DocumentFile
+            >>> words = DocumentFile.from_pdf("path/to/your/doc.pdf").get_words()
+
+        Args:
+            kwargs: keyword arguments of `fitz.Page.getTextWords`
+        Returns:
+            the list of pages annotations, represented as a list of tuple (bounding box, value)
+        """
+        return [self.get_page_words(idx, **kwargs) for idx in range(len(self.doc))]
+
+    def get_page_artefacts(self, idx) -> List[Tuple[float, float, float, float]]:
+        return [tuple(self.doc[idx].getImageBbox(artefact)) for artefact in self.doc[idx].get_images(full=True)]
+
+    def get_artefacts(self) -> List[List[Tuple[float, float, float, float]]]:
+        """Get the artefacts for the entire document
+
+        Example::
+            >>> from doctr.documents import DocumentFile
+            >>> artefacts = DocumentFile.from_pdf("path/to/your/doc.pdf").get_artefacts()
+
+        Returns:
+            the list of pages artefacts, represented as a list of bounding boxes
+        """
+
+        return [self.get_page_artefacts(idx) for idx in range(len(self.doc))]
+
+
 class DocumentFile:
     """Read a document from multiple extensions"""
 
     @classmethod
-    def from_pdf(cls, file: AbstractFile, **kwargs) -> List[np.ndarray]:
-        """Read a PDF file and convert it into an image in numpy format
+    def from_pdf(cls, file: AbstractFile, **kwargs) -> PDF:
+        """Read a PDF file
 
         Example::
             >>> from doctr.documents import DocumentFile
@@ -149,9 +210,28 @@ class DocumentFile:
         Args:
             file: the path to the PDF file or a binary stream
         Returns:
-            the list of pages decoded as numpy ndarray of shape H x W x 3
+            a PDF document
         """
-        return read_pdf(file, **kwargs)
+
+        doc = read_pdf(file, **kwargs)
+
+        return PDF(doc)
+
+    @classmethod
+    def from_url(cls, url: str, **kwargs) -> PDF:
+        """Interpret a web page as a PDF document
+
+        Example::
+            >>> from doctr.documents import DocumentFile
+            >>> doc = DocumentFile.from_url("https://www.yoursite.com")
+
+        Args:
+            url: the URL of the target web page
+        Returns:
+            a PDF document
+        """
+        pdf_stream = read_html(url)
+        return cls.from_pdf(pdf_stream, **kwargs)
 
     @classmethod
     def from_images(cls, files: Union[Sequence[AbstractFile], AbstractFile], **kwargs) -> List[np.ndarray]:
@@ -159,7 +239,7 @@ class DocumentFile:
 
         Example::
             >>> from doctr.documents import DocumentFile
-            >>> doc = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
+            >>> pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
 
         Args:
             files: the path to the image file or a binary stream, or a collection of those
@@ -170,20 +250,3 @@ class DocumentFile:
             files = [files]
 
         return [read_img(file, **kwargs) for file in files]
-
-    @classmethod
-    def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
-        """Interpret a web page as a PDF document
-
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> doc = DocumentFile.from_url("https://www.yoursite.com")
-
-        Args:
-            url: the URL of the target web page
-        Returns:
-            the list of pages decoded as numpy ndarray of shape H x W x 3
-        """
-        pdf_stream = read_html(url)
-
-        return cls.from_pdf(pdf_stream, **kwargs)
