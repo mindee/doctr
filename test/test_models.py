@@ -39,9 +39,6 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
 def test_documentbuilder():
 
-    with pytest.raises(NotImplementedError):
-        models.DocumentBuilder(resolve_blocks=True)
-
     words_per_page = 10
     num_pages = 2
 
@@ -58,7 +55,7 @@ def test_documentbuilder():
     assert len(out.pages[0].blocks[0].lines[0].words) == words_per_page
 
     # Resolve lines
-    doc_builder = models.DocumentBuilder(resolve_lines=True)
+    doc_builder = models.DocumentBuilder(resolve_lines=True, resolve_blocks=True)
     out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [(100, 200), (100, 200)])
 
     # No detection
@@ -67,7 +64,7 @@ def test_documentbuilder():
     assert len(out.pages[0].blocks) == 0
 
     # Repr
-    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, paragraph_break=0.035)"
+    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, resolve_blocks=True, paragraph_break=0.035)"
 
 
 @pytest.mark.parametrize(
