@@ -68,7 +68,7 @@ class CORD(VisionDataset):
 
             text_targets, box_targets = zip(*_targets)
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.int), labels=text_targets)))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
@@ -79,6 +79,8 @@ class CORD(VisionDataset):
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
         img = self.sample_transforms(img)
+        # Cast to boxes to int to avoid confusion with relative boxes
+        target['boxes'] = [[int(p) for p in box] for box in target['boxes']]
 
         return img, target
 
