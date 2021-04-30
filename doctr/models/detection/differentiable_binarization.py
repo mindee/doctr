@@ -264,6 +264,7 @@ class DBNet(DetectionModel, NestedObject):
         ys: np.array,
         a: np.array,
         b: np.array,
+        eps: float = 1e-7,
     ) -> float:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
 
@@ -280,7 +281,7 @@ class DBNet(DetectionModel, NestedObject):
         square_dist_1 = np.square(xs - a[0]) + np.square(ys - a[1])
         square_dist_2 = np.square(xs - b[0]) + np.square(ys - b[1])
         square_dist = np.square(a[0] - b[0]) + np.square(a[1] - b[1])
-        cosin = (square_dist - square_dist_1 - square_dist_2) / (2 * np.sqrt(square_dist_1 * square_dist_2))
+        cosin = (square_dist - square_dist_1 - square_dist_2) / (2 * np.sqrt(square_dist_1 * square_dist_2) + eps)
         square_sin = 1 - np.square(cosin)
         square_sin = np.nan_to_num(square_sin)
         result = np.sqrt(square_dist_1 * square_dist_2 * square_sin / square_dist)
@@ -300,7 +301,6 @@ class DBNet(DetectionModel, NestedObject):
             canvas : threshold map to fill with polygons
             mask : mask for training on threshold polygons
             shrink_ratio : 0.4, as described in the DB paper
-
         """
         if polygon.ndim != 2 or polygon.shape[1] != 2:
             raise AttributeError("polygon should be a 2 dimensional array of coords")
