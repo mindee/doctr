@@ -200,14 +200,13 @@ class LocalizationConfusion:
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
 
-        # Compute IoU
-        iou_mat = box_iou(gts, preds)
-        if iou_mat.shape[1] > 0:
+        if preds.shape[0] > 0:
+            # Compute IoU
+            iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
-
-        # Assign pairs
-        gt_indices, _ = assign_pairs(iou_mat, self.iou_thresh)
-        self.num_matches += len(gt_indices)
+            # Assign pairs
+            gt_indices, _ = assign_pairs(iou_mat, self.iou_thresh)
+            self.num_matches += len(gt_indices)
 
         # Update counts
         self.num_gts += gts.shape[0]
