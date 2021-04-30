@@ -137,9 +137,6 @@ def main(args):
     # Metrics
     val_metric = metrics.LocalizationConfusion()
 
-    # Postprocessor to decode output (to feed metric during val step with boxes)
-    postprocessor = model.postprocessor
-
     if args.test_only:
         print("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
