@@ -28,6 +28,7 @@ def main(args):
 
     print(args)
 
+    st = time.time()
     # Load both train and val data generators
     train_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'train'),
@@ -44,7 +45,9 @@ def main(args):
         ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
+    print(f"Train set loaded in {time.time() - st} ({len(train_set)} samples in {train_loader.num_batches} batches)")
 
+    st = time.time()
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         label_folder=os.path.join(args.data_path, 'val_labels'),
@@ -54,6 +57,7 @@ def main(args):
         ])
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
+    print(f"Validation set loaded in {time.time() - st} ({len(val_set)} samples in {val_loader.num_batches} batches)")
 
     batch_transforms = T.Compose([
         T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
