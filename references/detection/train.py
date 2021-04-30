@@ -70,8 +70,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         decoded = model.postprocessor(model_output)
         # Compute metric
         for boxes_gt, boxes_pred in zip(boxes, decoded):
-            boxes_pred = np.array(boxes_pred)[:, :-1]  # Remove scores
-            val_metric.update(gts=boxes_gt, preds=boxes_pred)
+            # Remove scores
+            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
         val_loss += loss.numpy()
         batch_cnt += 1
