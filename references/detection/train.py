@@ -115,7 +115,7 @@ def main(args):
         ])
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
-    print(f"Validation set loaded in {time.time() - st:.4s} ({len(val_set)} samples in "
+    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
 
     batch_transforms = T.Compose([
