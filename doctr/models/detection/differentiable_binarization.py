@@ -300,7 +300,6 @@ class DBNet(DetectionModel, NestedObject):
             canvas : threshold map to fill with polygons
             mask : mask for training on threshold polygons
             shrink_ratio : 0.4, as described in the DB paper
-
         """
         if polygon.ndim != 2 or polygon.shape[1] != 2:
             raise AttributeError("polygon should be a 2 dimensional array of coords")
