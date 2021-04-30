@@ -119,7 +119,7 @@ class DBPostProcessor(DetectionPostProcessor):
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours[:self.max_candidates]:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) <= self.min_size_box):
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < self.min_size_box):
                 continue
             epsilon = 0.01 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)  # approximate contour by a polygon

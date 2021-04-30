@@ -145,13 +145,15 @@ class DetectionPostProcessor(NestedObject):
         bitmap = tf.unstack(bitmap, axis=0)
 
         boxes_batch = []
+        # kernel for opening
+        kernel = np.ones((3, 3), np.uint8)
 
         for p_, bitmap_ in zip(p, bitmap):
             p_ = p_.numpy()
             bitmap_ = bitmap_.numpy()
-            # perform opening (erosion + dilatation)
-            kernel = np.ones((3, 3), np.uint8)
-            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
+            if p_.shape[0] > 1000:
+                # perform opening (erosion + dilatation) if input is large enough
+                bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
             boxes_batch.append(boxes)
 
