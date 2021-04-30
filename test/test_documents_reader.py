@@ -39,6 +39,10 @@ def test_read_pdf(mock_pdf, mock_pdf_stream):
     with pytest.raises(TypeError):
         _ = reader.read_pdf(123)
 
+    # Wrong path
+    with pytest.raises(FileNotFoundError):
+        _ = reader.read_pdf("my_imaginary_file.pdf")
+
 
 def test_read_img(tmpdir_factory, mock_pdf):
 
