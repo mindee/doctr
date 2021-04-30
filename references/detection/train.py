@@ -25,7 +25,7 @@ from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
@@ -162,7 +162,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
