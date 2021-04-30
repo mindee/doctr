@@ -61,15 +61,17 @@ def test_box_iou(box1, box2, iou, abs_tol):
 @pytest.mark.parametrize(
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
-        [[[0, 0, .5, .5]], [[0, 0, .5, .5]], 0.5, 1, 1, 1],  # Perfect match
-        [[[0, 0, 1, 1]], [[0, 0, .5, .5], [.6, .6, .7, .7]], 0.2, 1, 0.5, 0.125],  # Bad match
-        [[[0, 0, 1, 1]], [[0, 0, .5, .5], [.6, .6, .7, .7]], 0.5, 0, 0, 0.125],  # Bad match
+        [[[[0, 0, .5, .5]]], [[[0, 0, .5, .5]]], 0.5, 1, 1, 1],  # Perfect match
+        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.2, 1, 0.5, 0.125],  # Bad match
+        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.5, 0, 0, 0.125],  # Bad match
+        [[[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [[[0, 0, .5, .5]], None], 0.5, 0.5, 1, 1],  # No preds on 2nd sample
     ],
 )
 def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):
 
     metric = metrics.LocalizationConfusion(iou_thresh)
-    metric.update(np.asarray(gts), np.asarray(preds))
+    for _gts, _preds in zip(gts, preds):
+        metric.update(np.asarray(_gts), np.zeros((0, 4)) if _preds is None else np.asarray(_preds))
     assert metric.summary() == (recall, precision, mean_iou)
     metric.reset()
     assert metric.num_matches == metric.num_gts == metric.num_preds == 0
