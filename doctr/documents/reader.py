@@ -72,6 +72,9 @@ def read_pdf(file: AbstractFile, **kwargs: Any) -> fitz.Document:
         the list of pages decoded as numpy ndarray of shape H x W x 3
     """
 
+    if isinstance(file, (str, Path)) and not Path(file).is_file():
+        raise FileNotFoundError(f"unable to access {file}")
+
     fitz_args = {}
 
     if isinstance(file, (str, Path)):
