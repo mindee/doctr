@@ -7,6 +7,7 @@ import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+import time
 import datetime
 import numpy as np
 import tensorflow as tf
@@ -101,7 +102,8 @@ def main(args):
         ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
-    print(f"Train set loaded in {time.time() - st} ({len(train_set)} samples in {train_loader.num_batches} batches)")
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
+          f"{train_loader.num_batches} batches)")
 
     st = time.time()
     val_set = DetectionDataset(
@@ -113,7 +115,8 @@ def main(args):
         ])
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
-    print(f"Validation set loaded in {time.time() - st} ({len(val_set)} samples in {val_loader.num_batches} batches)")
+    print(f"Validation set loaded in {time.time() - st:.4s} ({len(val_set)} samples in "
+          f"{val_loader.num_batches} batches)")
 
     batch_transforms = T.Compose([
         T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
