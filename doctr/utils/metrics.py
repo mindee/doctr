@@ -202,9 +202,7 @@ class LocalizationConfusion:
 
         # Compute IoU
         iou_mat = box_iou(gts, preds)
-        if iou_mat.shape[1] == 0:
-            self.tot_iou = 0
-        else:
+        if iou_mat.shape[1] > 0:
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
         # Assign pairs
