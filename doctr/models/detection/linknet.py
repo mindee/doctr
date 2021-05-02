@@ -48,7 +48,6 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         box_thresh: float = 0.1,
     ) -> None:
         super().__init__(
-            min_size_box,
             box_thresh,
             bin_thresh
         )
@@ -70,6 +69,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         """
         label_num, labelimage = cv2.connectedComponents(bitmap.astype(np.uint8), connectivity=4)
         height, width = bitmap.shape[:2]
+        min_size_box = 1 + int(height / 512)
         boxes = []
         for label in range(1, label_num + 1):
             points = np.array(np.where(labelimage == label)[::-1]).T
@@ -79,7 +79,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
             x, y, w, h = cv2.boundingRect(points)
-            if min(w, h) < self.min_size_box:  # filter too small boxes
+            if min(w, h) < min_size_box:  # filter too small boxes
                 continue
             # compute relative polygon to get rid of img shape
             xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
