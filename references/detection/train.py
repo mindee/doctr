@@ -88,8 +88,8 @@ def main(args):
     st = time.time()
     # Load both train and val data generators
     train_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'sample_img'),
-        label_folder=os.path.join(args.data_path, 'sample_label'),
+        img_folder=os.path.join(args.data_path, 'train'),
+        label_folder=os.path.join(args.data_path, 'train_labels'),
         sample_transforms=T.Compose([
             T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
@@ -107,8 +107,8 @@ def main(args):
 
     st = time.time()
     val_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'sample_img'),
-        label_folder=os.path.join(args.data_path, 'sample_label'),
+        img_folder=os.path.join(args.data_path, 'val'),
+        label_folder=os.path.join(args.data_path, 'val_labels'),
         sample_transforms=T.Compose([
             T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
