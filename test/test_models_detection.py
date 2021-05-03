@@ -116,7 +116,6 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(np.logical_and(out >= 0, out <= 1))
 
 
-
 @pytest.fixture(scope="session")
 def test_detectionpredictor(mock_pdf):  # noqa: F811
 
