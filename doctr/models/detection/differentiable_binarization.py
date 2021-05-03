@@ -60,7 +60,7 @@ class DBPostProcessor(DetectionPostProcessor):
         super().__init__(
             min_size_box,
             box_thresh,
-            bin_thresh,
+            bin_thresh
         )
         self.unclip_ratio = unclip_ratio
         self.max_candidates = max_candidates
@@ -114,7 +114,6 @@ class DBPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
-        min_size_box = 1 + int(height / 512)
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
