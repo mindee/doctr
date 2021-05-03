@@ -126,11 +126,7 @@ def main(args):
     optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, clipnorm=5)
 
     # Load doctr model
-    model = detection.__dict__[args.model](
-        pretrained=False,
-        freeze_bckb=args.freeze_bckb,
-        input_shape=(args.input_size, args.input_size, 3)
-    )
+    model = detection.__dict__[args.model](pretrained=False, input_shape=(args.input_size, args.input_size, 3))
 
     # Resume weights
     if isinstance(args.resume, str):
