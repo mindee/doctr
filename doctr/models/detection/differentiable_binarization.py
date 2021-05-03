@@ -524,12 +524,7 @@ class DBNet(DetectionModel, NestedObject):
         return dict(proba_map=proba_map)
 
 
-def _db_resnet(
-    arch: str,
-    pretrained: bool,
-    input_shape: Tuple[int, int, int] = None,
-    **kwargs: Any
-) -> DBNet:
+def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
