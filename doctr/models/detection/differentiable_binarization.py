@@ -51,14 +51,12 @@ class DBPostProcessor(DetectionPostProcessor):
     def __init__(
         self,
         unclip_ratio: Union[float, int] = 1.5,
-        min_size_box: int = 3,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
-        bin_thresh: float = 0.15,
+        bin_thresh: float = 0.3,
     ) -> None:
 
         super().__init__(
-            min_size_box,
             box_thresh,
             bin_thresh
         )
@@ -114,12 +112,13 @@ class DBPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
+        min_size_box = 1 + int(height / 512)
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours[:self.max_candidates]:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) <= self.min_size_box):
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             epsilon = 0.01 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)  # approximate contour by a polygon
@@ -131,7 +130,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 continue
             _box = self.polygon_to_box(points)
 
-            if _box is None or _box[2] < self.min_size_box or _box[3] < self.min_size_box:  # remove to small boxes
+            if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
             x, y, w, h = _box
             # compute relative polygon to get rid of img shape
@@ -524,7 +523,13 @@ class DBNet(DetectionModel, NestedObject):
         return dict(proba_map=proba_map)
 
 
-def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+def _db_resnet(
+    arch: str,
+    pretrained: bool,
+    freeze_bckb: bool,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> DBNet:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -538,6 +543,10 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
         input_shape=_cfg['input_shape'],
         pooling=None,
     )
+
+    if freeze_bckb:
+        for layer in resnet.layers:
+            layer.trainable = False
 
     feat_extractor = IntermediateLayerGetter(
         resnet,
@@ -555,7 +564,7 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     return model
 
 
-def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
+def db_resnet50(pretrained: bool = False, freeze_bckb: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
 
@@ -573,4 +582,4 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _db_resnet('db_resnet50', pretrained, **kwargs)
+    return _db_resnet('db_resnet50', pretrained, freeze_bckb, **kwargs)
