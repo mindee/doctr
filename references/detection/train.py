@@ -127,6 +127,7 @@ def main(args):
 
     # Load doctr model
     model = detection.__dict__[args.model](pretrained=False, input_shape=(args.input_size, args.input_size, 3))
+
     # Resume weights
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
@@ -151,6 +152,10 @@ def main(args):
     log_dir.mkdir(parents=True, exist_ok=True)
 
     tb_writer = tf.summary.create_file_writer(str(log_dir))
+
+    if args.freeze_backbone:
+        for layer in model.feat_extractor.layers:
+            layer.trainable = False
 
     # Create loss queue
     loss_q = deque(maxlen=100)
@@ -193,6 +198,8 @@ def parse_args():
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
+    parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
+                        help='freeze model backbone for fine-tuning')
     args = parser.parse_args()
 
     return args
