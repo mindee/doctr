@@ -4,13 +4,13 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.models import detection
-from doctr.documents import read_pdf
+from doctr.documents import DocumentFile
 
 
 def test_detpreprocessor(mock_pdf):  # noqa: F811
     num_docs = 3
     batch_size = 4
-    docs = [read_pdf(mock_pdf) for _ in range(num_docs)]
+    docs = [DocumentFile.from_pdf(mock_pdf).as_images() for _ in range(num_docs)]
     processor = detection.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size)
     batched_docs = processor([page for doc in docs for page in doc])
 
@@ -126,7 +126,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
         detection.DBPostProcessor()
     )
 
-    pages = read_pdf(mock_pdf)
+    pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
 
     # The input PDF has 8 pages

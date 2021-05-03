@@ -48,7 +48,7 @@ def main():
     uploaded_file = st.sidebar.file_uploader("Upload files", type=['pdf', 'png', 'jpeg', 'jpg'])
     if uploaded_file is not None:
         if uploaded_file.name.endswith('.pdf'):
-            doc = DocumentFile.from_pdf(uploaded_file.read())
+            doc = DocumentFile.from_pdf(uploaded_file.read()).as_images()
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
         cols[0].image(doc[0], "First page", use_column_width=True)
@@ -74,7 +74,8 @@ def main():
 
                 # Forward the image to the model
                 processed_batches = predictor.det_predictor.pre_processor(doc)
-                seg_map = predictor.det_predictor.model(processed_batches[0])[0]
+                seg_map = predictor.det_predictor.model(processed_batches[0])["proba_map"]
+                seg_map = tf.squeeze(seg_map, axis=[0, 3])
                 seg_map = cv2.resize(seg_map.numpy(), (doc[0].shape[1], doc[0].shape[0]),
                                      interpolation=cv2.INTER_LINEAR)
                 # Plot the raw heatmap

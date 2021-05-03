@@ -34,8 +34,8 @@ def main(args):
     for dataset in (train_set, test_set):
         for page, target in tqdm(dataset):
             # GT
-            gt_boxes = np.asarray(target['boxes'])
-            gt_labels = list(target['labels'])
+            gt_boxes = target['boxes']
+            gt_labels = target['labels']
 
             # Forward
             out = model([page])

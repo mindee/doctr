@@ -41,12 +41,13 @@ requirements = [
     "scipy>=1.4.0",
     "opencv-python>=4.2",
     "tensorflow>=2.3.0",
-    "PyMuPDF>=1.16.0",
+    "PyMuPDF>=1.16.0,<1.18.11",
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
     "rapidfuzz>=1.0.0",
+    "weasyprint>=52.2",
 ]
 
 setup(

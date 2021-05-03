@@ -5,12 +5,14 @@
 
 
 import numpy as np
+from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
+from doctr.utils.geometry import resolve_enclosing_bbox
 
 __all__ = ['OCRPredictor', 'DocumentBuilder']
 
@@ -71,13 +73,12 @@ class DocumentBuilder(NestedObject):
         self,
         resolve_lines: bool = False,
         resolve_blocks: bool = False,
-        paragraph_break: float = 0.15
+        paragraph_break: float = 0.035
     ) -> None:
 
         self.resolve_lines = resolve_lines
 
-        if resolve_blocks:
-            raise NotImplementedError
+        self.resolve_blocks = resolve_blocks
 
         self.paragraph_break = paragraph_break
 
@@ -91,45 +92,135 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
+        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
-        return (boxes[:, 0] + boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
-
-    def _resolve_lines(self, boxes: np.ndarray, idxs: np.ndarray) -> List[List[int]]:
-        """Uses ordered boxes to group them in lines
+    def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
+        """Split a line in sub_lines
 
         Args:
             boxes: bounding boxes of shape (N, 4)
-            idxs: indices of ordered boxes of shape (N,)
+            words: list of indexes for the words of the line
+
+        Returns:
+            A list of (sub-)lines computed from the original line (words)
+        """
+        lines = []
+        # Sort words horizontally
+        words = [words[j] for j in np.argsort([boxes[i, 0] for i in words]).tolist()]
+        # Eventually split line horizontally
+        if len(words) < 2:
+            lines.append(words)
+        else:
+            sub_line = [words[0]]
+            for i in words[1:]:
+                horiz_break = True
+
+                prev_box = boxes[sub_line[-1]]
+                # If distance between boxes is lower than paragraph break, same sub-line
+                if (boxes[i, 0] - prev_box[2]) < self.paragraph_break:
+                    horiz_break = False
+
+                if horiz_break:
+                    lines.append(sub_line)
+                    sub_line = []
+
+                sub_line.append(i)
+            lines.append(sub_line)
+
+        return lines
+
+    def _resolve_lines(self, boxes: np.ndarray) -> List[List[int]]:
+        """Order boxes to group them in lines
+
+        Args:
+            boxes: bounding boxes of shape (N, 4)
 
         Returns:
             nested list of box indices
         """
+        # Compute median for boxes heights
+        y_med = np.median(boxes[:, 3] - boxes[:, 1])
+        # Sort boxes
+        idxs = (boxes[:, 0] + 2 * boxes[:, 3] / y_med).argsort()
 
-        # Try to arrange them in lines
         lines = []
-        # Add the first word anyway
-        words: List[int] = [idxs[0]]
+        words = [idxs[0]]  # Assign the top-left word to the first line
+        # Define a mean y-center for the line
+        y_center_sum = boxes[idxs[0]][[1, 3]].mean()
+
         for idx in idxs[1:]:
-            line_break = True
+            vert_break = True
 
-            prev_box = boxes[words[-1]]
-            # Reduced vertical diff
-            if boxes[idx, 1] < prev_box[[1, 3]].mean():
-                # Words horizontally ordered and close
-                if (boxes[idx, 0] - prev_box[2]) < self.paragraph_break:
-                    line_break = False
+            # If y-center of the box is close enough to mean y-center of the line, same line
+            if abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words)) < y_med / 2:
+                vert_break = False
 
-            if line_break:
-                lines.append(words)
+            if vert_break:
+                # Compute sub-lines (horizontal split)
+                lines.extend(self._resolve_sub_lines(boxes, words))
                 words = []
+                y_center_sum = 0
 
             words.append(idx)
+            y_center_sum += boxes[idx][[1, 3]].mean()
 
-        # Use the remaining words to form the last line
+        # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
-            lines.append(words)
+            # Compute sub-lines (horizontal split)
+            lines.extend(self._resolve_sub_lines(boxes, words))
 
         return lines
+
+    def _resolve_blocks(self, boxes: np.ndarray, lines: List[List[int]]) -> List[List[List[int]]]:
+        """Order lines to group them in blocks
+
+        Args:
+            boxes: bounding boxes of shape (N, 4)
+            lines: list of lines, each line is a list of idx
+
+        Returns:
+            nested list of box indices
+        """
+        # Resolve enclosing boxes of lines
+        _lines = [
+            [
+                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
+            ] for line in lines
+        ]
+        _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
+        box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
+
+        # Compute geometrical features of lines to clusterize
+        # Clusterizing only with box centers yield to poor results for complex documents
+        box_features = np.stack(
+            (
+                (box_lines[:, 0] + box_lines[:, 3]) / 2,
+                (box_lines[:, 1] + box_lines[:, 2]) / 2,
+                (box_lines[:, 0] + box_lines[:, 2]) / 2,
+                (box_lines[:, 1] + box_lines[:, 3]) / 2,
+                (box_lines[:, 0] + box_lines[:, 1]) / 2,
+                (box_lines[:, 2] + box_lines[:, 3]) / 2,
+                box_lines[:, 0],
+                box_lines[:, 1],
+                box_lines[:, 2],
+                box_lines[:, 3],
+            ), axis=-1
+        )
+        # Compute clusters
+        clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
+
+        _blocks = dict()
+        # Form clusters
+        for line_idx, cluster_idx in enumerate(clusters):
+            if cluster_idx in _blocks.keys():
+                _blocks[cluster_idx].append(line_idx)
+            else:
+                _blocks[cluster_idx] = [line_idx]
+
+        # Retrieve word-box level to return a fully nested structure
+        blocks = [[lines[idx] for idx in block] for block in _blocks.values()]
+
+        return blocks
 
     def _build_blocks(self, boxes: np.ndarray, char_sequences: List[str]) -> List[Block]:
         """Gather independent words in structured blocks
@@ -148,17 +239,19 @@ class DocumentBuilder(NestedObject):
         if boxes.shape[0] == 0:
             return []
 
-        # Sort bounding boxes from top to bottom, left to right
-        idxs = self._sort_boxes(boxes[:, :4])
-
         # Decide whether we try to form lines
         if self.resolve_lines:
-            lines = self._resolve_lines(boxes[:, :4], idxs)
+            lines = self._resolve_lines(boxes[:, :4])
+            # Decide whether we try to form blocks
+            if self.resolve_blocks:
+                blocks = self._resolve_blocks(boxes[:, :4], lines)
+            else:
+                blocks = [lines]
         else:
-            # One line for all words
-            lines = [idxs]
+            # Sort bounding boxes, one line for all boxes, one block for the line
+            lines = [self._sort_boxes(boxes[:, :4])]
+            blocks = [lines]
 
-        # No automatic line grouping yet --> 1 block for all lines
         blocks = [
             Block(
                 [Line(
@@ -168,13 +261,14 @@ class DocumentBuilder(NestedObject):
                         ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
                     ) for idx in line]
                 ) for line in lines]
-            )
+            ) for lines in blocks
         ]
 
         return blocks
 
     def extra_repr(self) -> str:
-        return f"resolve_lines={self.resolve_lines}, paragraph_break={self.paragraph_break}"
+        return (f"resolve_lines={self.resolve_lines}, resolve_blocks={self.resolve_blocks}, "
+                f"paragraph_break={self.paragraph_break}")
 
     def __call__(
         self,

@@ -32,9 +32,11 @@ Documents can be interpreted from PDF or images:
 ```python
 from doctr.documents import DocumentFile
 # PDF
-pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 # Image
 single_img_doc = DocumentFile.from_images("path/to/your/img.jpg")
+# Webpage
+webpage_doc = DocumentFile.from_url("https://www.yoursite.com").as_images()
 # Multiple page images
 multi_img_doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jpg"])
 ```
@@ -47,7 +49,7 @@ from doctr.models import ocr_predictor
 
 model = ocr_predictor(pretrained=True)
 # PDF
-doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 # Analyze
 result = model(doc)
 ```
