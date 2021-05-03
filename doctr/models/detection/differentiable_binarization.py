@@ -527,7 +527,6 @@ class DBNet(DetectionModel, NestedObject):
 def _db_resnet(
     arch: str,
     pretrained: bool,
-    freeze_bckb: bool,
     input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
 ) -> DBNet:
@@ -545,10 +544,6 @@ def _db_resnet(
         pooling=None,
     )
 
-    if freeze_bckb:
-        for layer in resnet.layers:
-            layer.trainable = False
-
     feat_extractor = IntermediateLayerGetter(
         resnet,
         _cfg['fpn_layers'],
@@ -565,7 +560,7 @@ def _db_resnet(
     return model
 
 
-def db_resnet50(pretrained: bool = False, freeze_bckb: bool = False, **kwargs: Any) -> DBNet:
+def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
 
@@ -583,4 +578,4 @@ def db_resnet50(pretrained: bool = False, freeze_bckb: bool = False, **kwargs: A
         text detection architecture
     """
 
-    return _db_resnet('db_resnet50', pretrained, freeze_bckb, **kwargs)
+    return _db_resnet('db_resnet50', pretrained, **kwargs)

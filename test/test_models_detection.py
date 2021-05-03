@@ -200,8 +200,3 @@ def test_linknet_postprocessor():
     assert all(sample.shape[1] == 5 for sample in out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
-
-def test_db_freezing():
-    model = detection.db_resnet50(pretrained=True, freeze_bckb=False)
-    freezed_model = detection.db_resnet50(pretrained=True, freeze_bckb=True)
-    assert len(model.trainable_weights) > len(freezed_model.trainable_weights)
