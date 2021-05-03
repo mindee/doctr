@@ -130,7 +130,7 @@ def main(args):
         pretrained=False,
         freeze_bckb=args.freeze_bckb,
         input_shape=(args.input_size, args.input_size, 3)
-        )
+    )
 
     # Resume weights
     if isinstance(args.resume, str):

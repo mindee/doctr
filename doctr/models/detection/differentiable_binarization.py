@@ -53,7 +53,7 @@ class DBPostProcessor(DetectionPostProcessor):
         unclip_ratio: Union[float, int] = 1.5,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
-        bin_thresh: float = 0.3,
+        bin_thresh: float = 0.15,
     ) -> None:
 
         super().__init__(
