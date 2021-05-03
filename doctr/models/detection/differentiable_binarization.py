@@ -51,6 +51,7 @@ class DBPostProcessor(DetectionPostProcessor):
     def __init__(
         self,
         unclip_ratio: Union[float, int] = 1.5,
+        min_size_box: int = 3,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
         bin_thresh: float = 0.15,
@@ -58,7 +59,8 @@ class DBPostProcessor(DetectionPostProcessor):
 
         super().__init__(
             box_thresh,
-            bin_thresh
+            bin_thresh,
+            min_size_box
         )
         self.unclip_ratio = unclip_ratio
         self.max_candidates = max_candidates
@@ -118,7 +120,7 @@ class DBPostProcessor(DetectionPostProcessor):
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours[:self.max_candidates]:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < self.min_size_box):
                 continue
             epsilon = 0.01 * cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, epsilon, True)  # approximate contour by a polygon
@@ -130,7 +132,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 continue
             _box = self.polygon_to_box(points)
 
-            if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
+            if _box is None or _box[2] < self.min_size_box or _box[3] < self.min_size_box:  # remove to small boxes
                 continue
             x, y, w, h = _box
             # compute relative polygon to get rid of img shape
