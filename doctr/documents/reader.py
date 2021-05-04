@@ -90,7 +90,7 @@ def read_pdf(file: AbstractFile, **kwargs: Any) -> fitz.Document:
 
 def convert_page_to_numpy(
     page: fitz.fitz.Page,
-    output_size: Optional[Tuple[int, int]] = None,
+    output_size: Optional[Tuple[int, int]] = (1024, 1024),
     rgb_output: bool = True,
 ) -> np.ndarray:
     """Convert a fitz page to a numpy-formatted image
