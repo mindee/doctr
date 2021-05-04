@@ -12,7 +12,7 @@ def test_convert_page_to_numpy(mock_pdf):
     # Check correct read
     rgb_page = reader.convert_page_to_numpy(pdf[0])
     assert isinstance(rgb_page, np.ndarray)
-    assert rgb_page.shape == (792, 612, 3)
+    assert rgb_page.shape == (1024, 1024, 3)
 
     # Check channel order
     bgr_page = reader.convert_page_to_numpy(pdf[0], rgb_output=False)
