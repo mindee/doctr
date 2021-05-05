@@ -90,14 +90,15 @@ def read_pdf(file: AbstractFile, **kwargs: Any) -> fitz.Document:
 
 def convert_page_to_numpy(
     page: fitz.fitz.Page,
-    output_size: Optional[Tuple[int, int]] = (1024, 1024),
+    output_size: Optional[Tuple[int, int]] = None,
     rgb_output: bool = True,
 ) -> np.ndarray:
     """Convert a fitz page to a numpy-formatted image
 
     Args:
         page: the page of a file read with PyMuPDF
-        output_size: the expected output size of each page in format H x W
+        output_size: the expected output size of each page in format H x W. Default goes to 840 x 595 for A4 pdf,
+        if you want to increase the resolution while preserving the original A4 aspect ratio can pass (1024, 726)
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
 
     Returns:
