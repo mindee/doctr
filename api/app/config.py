@@ -5,11 +5,12 @@
 
 import os
 import secrets
+import doctr
 
 
 PROJECT_NAME: str = 'DocTR API'
 PROJECT_DESCRIPTION: str = 'Template API for Optical Character Recognition'
-VERSION: str = "0.1.2a0"
+VERSION: str = doctr.__version__
 DEBUG: bool = os.environ.get('DEBUG', '') != 'False'
 
 SECRET_KEY: str = secrets.token_urlsafe(32)
