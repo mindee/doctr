@@ -140,6 +140,27 @@ python scripts/analyze.py path/to/your/doc.pdf
 All script arguments can be checked using `python scripts/analyze.py --help`
 
 
+### Minimal API integration
+
+Looking to integrate DocTR into your API? Here is a template to get you started with a fully working API.
+
+#### Manual setup
+Specific dependencies are required to run the API template, which you can install as follows:
+```shell
+pip install -r api/requirements.txt
+```
+You can now run your API locally:
+
+```shell
+uvicorn --reload --workers 1 --host 0.0.0.0 --port=8050 --app-dir api/ app.main:app
+```
+
+#### Docker setup
+You can run the same server on a docker container if you prefer using:
+```shell
+PORT=8050 docker-compose up -d --build
+```
+
 
 ## Contributing
 
