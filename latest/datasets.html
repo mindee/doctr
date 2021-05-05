@@ -336,9 +336,49 @@ can be a significant save of time.</p>
 
 </section>
 <section id="supported-vocabs">
-<h2>Supported Vocabs<a class="headerlink" href="#supported-vocabs" title="Permalink to this headline">¶</a></h2>
+<span id="vocabs"></span><h2>Supported Vocabs<a class="headerlink" href="#supported-vocabs" title="Permalink to this headline">¶</a></h2>
 <p>Since textual content has to be encoded properly for models to interpret them efficiently, DocTR supports multiple sets
 of vocabs.</p>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">DocTR Vocabs</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 7%" />
+<col style="width: 67%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>size</p></th>
+<th class="head"><p>characters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>digits</p></td>
+<td><p>10</p></td>
+<td><p>0123456789</p></td>
+</tr>
+<tr class="row-odd"><td><p>ascii_letters</p></td>
+<td><p>52</p></td>
+<td><p>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</p></td>
+</tr>
+<tr class="row-even"><td><p>punctuation</p></td>
+<td><p>32</p></td>
+<td><p>!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~</p></td>
+</tr>
+<tr class="row-odd"><td><p>currency</p></td>
+<td><p>5</p></td>
+<td><p>£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>latin</p></td>
+<td><p>96</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°</p></td>
+</tr>
+<tr class="row-odd"><td><p>french</p></td>
+<td><p>154</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿</p></td>
+</tr>
+</tbody>
+</table>
 <dl class="py function">
 <dt id="doctr.datasets.encode_sequences">
 <code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">encode_sequences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequences</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">vocab</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">target_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eos</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/doctr/datasets/utils.html#encode_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.encode_sequences" title="Permalink to this definition">¶</a></dt>
