@@ -92,6 +92,7 @@ def convert_page_to_numpy(
     page: fitz.fitz.Page,
     output_size: Optional[Tuple[int, int]] = None,
     rgb_output: bool = True,
+    default_scales: Tuple[float, float] = (2, 2),
 ) -> np.ndarray:
     """Convert a fitz page to a numpy-formatted image
 
@@ -100,16 +101,19 @@ def convert_page_to_numpy(
         output_size: the expected output size of each page in format H x W. Default goes to 840 x 595 for A4 pdf,
         if you want to increase the resolution while preserving the original A4 aspect ratio can pass (1024, 726)
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
+        default_scales: spatial scaling to be applied when output_size is not specified where (1, 1)
+            corresponds to 72 dpi rendering.
 
     Returns:
         the rendered image in numpy format
     """
 
-    # Default DPI (72) is unnecessarily low
-    scales = (2, 2)
     # If no output size is specified, keep the origin one
     if output_size is not None:
         scales = (output_size[1] / page.MediaBox[2], output_size[0] / page.MediaBox[3])
+    else:
+        # Default 72 DPI (scales of (1, 1)) is unnecessarily low
+        scales = default_scales
 
     transform_matrix = fitz.Matrix(*scales)
 
