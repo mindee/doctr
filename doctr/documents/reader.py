@@ -105,12 +105,13 @@ def convert_page_to_numpy(
         the rendered image in numpy format
     """
 
-    transform_matrix = None
-
+    # Default DPI (72) is unnecessarily low
+    scales = (2, 2)
     # If no output size is specified, keep the origin one
     if output_size is not None:
         scales = (output_size[1] / page.MediaBox[2], output_size[0] / page.MediaBox[3])
-        transform_matrix = fitz.Matrix(*scales)
+
+    transform_matrix = fitz.Matrix(*scales)
 
     # Generate the pixel map using the transformation matrix
     stream = page.getPixmap(matrix=transform_matrix).getImageData()
