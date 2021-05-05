@@ -470,6 +470,77 @@ all lines and artefacts in it.</p></li>
 
 </dd></dl>
 
+<dl class="py class">
+<dt id="doctr.documents.PDF">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.documents.</code><code class="sig-name descname">PDF</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">doc</span><span class="p">:</span> <span class="n">fitz.fitz.Document</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/documents/reader.html#PDF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.PDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>PDF document template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>doc</strong> – input PDF document</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="doctr.documents.PDF.as_images">
+<code class="sig-name descname">as_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#PDF.as_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.PDF.as_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert all document pages to images</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">as_images</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>convert_page_to_numpy</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="doctr.documents.PDF.get_words">
+<code class="sig-name descname">get_words</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>List<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#PDF.get_words"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.PDF.get_words" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the annotations for all words in the document</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">words</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_words</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.getTextWords</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the list of pages annotations, represented as a list of tuple (bounding box, value)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="doctr.documents.PDF.get_artefacts">
+<code class="sig-name descname">get_artefacts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>List<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/documents/reader.html#PDF.get_artefacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.documents.PDF.get_artefacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the artefacts for the entire document</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">artefacts</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_artefacts</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the list of pages artefacts, represented as a list of bounding boxes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
