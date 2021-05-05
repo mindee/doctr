@@ -10,7 +10,7 @@ import fitz
 from weasyprint import HTML
 from typing import List, Tuple, Optional, Any, Union, Sequence
 
-__all__ = ['read_pdf', 'read_img', 'read_html', 'DocumentFile']
+__all__ = ['read_pdf', 'read_img', 'read_html', 'DocumentFile', 'PDF']
 
 
 AbstractPath = Union[str, Path]
