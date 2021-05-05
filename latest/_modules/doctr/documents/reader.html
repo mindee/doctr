@@ -301,7 +301,8 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        page: the page of a file read with PyMuPDF</span>
-<span class="sd">        output_size: the expected output size of each page in format H x W</span>
+<span class="sd">        output_size: the expected output size of each page in format H x W. Default goes to 840 x 595 for A4 pdf,</span>
+<span class="sd">        if you want to increase the resolution while preserving the original A4 aspect ratio can pass (1024, 726)</span>
 <span class="sd">        rgb_output: whether the output ndarray channel order should be RGB instead of BGR.</span>
 
 <span class="sd">    Returns:</span>
