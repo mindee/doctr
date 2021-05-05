@@ -12,9 +12,3 @@ PROJECT_NAME: str = 'DocTR API'
 PROJECT_DESCRIPTION: str = 'Template API for Optical Character Recognition'
 VERSION: str = doctr.__version__
 DEBUG: bool = os.environ.get('DEBUG', '') != 'False'
-
-SECRET_KEY: str = secrets.token_urlsafe(32)
-if DEBUG:
-    # To keep the same Auth at every app loading in debug mode and not having to redo the auth.
-    debug_secret_key = "000000000000000000000000000000000000"
-    SECRET_KEY = debug_secret_key
