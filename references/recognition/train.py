@@ -135,7 +135,6 @@ def main(args):
     val_metric = metrics.ExactMatch()
 
     batch_transforms = T.Compose([
-        T.LambdaTransformation(lambda x: x / 255),
         T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
     ])
 
