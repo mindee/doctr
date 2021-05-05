@@ -32,13 +32,13 @@ Features
 |:toolbox:| Implemented models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   Detection models
-   """"""""""""""""
+Detection models
+""""""""""""""""
    * DB (Differentiable Binarization), `"Real-time Scene Text Detection with Differentiable Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_.
    * LinkNet, `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation" <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
-   Recognition models
-   """"""""""""""""""
+Recognition models
+""""""""""""""""""
    * SAR (Show, Attend and Read), `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
    * CRNN (Convolutional Recurrent Neural Network), `"An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
