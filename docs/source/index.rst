@@ -15,11 +15,11 @@ Features
 --------
 
 * |:robot:| Robust 2-stages (detection + recognition) OCR predictors fully trained
-* |:zap:| user-friendly, 3 lines of code to load a document and extract text with a predictor
-* |:rocket:| state-of-the-art performances on public document datasets, comparable with GoogleVision/AWS Textract
-* |:zap:| predictors optimized to be very fast on both CPU & GPU
+* |:zap:| User-friendly, 3 lines of code to load a document and extract text with a predictor
+* |:rocket:| State-of-the-art performances on public document datasets, comparable with GoogleVision/AWS Textract
+* |:zap:| Predictors optimized to be very fast on both CPU & GPU
 * |:bird:| Light package, small dependencies
-* |:tools:| daily maintained
+* |:tools:| Daily maintained
 * |:factory:| Easily integrable
 
 
