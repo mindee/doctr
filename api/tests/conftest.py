@@ -16,6 +16,12 @@ def mock_recognition_image(tmpdir_factory):
     return requests.get(url).content
 
 
+@pytest.fixture(scope="session")
+def mock_detection_image(tmpdir_factory):
+    url = 'https://user-images.githubusercontent.com/76527547/117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg'
+    return requests.get(url).content
+
+
 @pytest.fixture(scope="function")
 async def test_app_asyncio():
     async with AsyncClient(app=app, base_url="http://test") as ac:
