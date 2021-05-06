@@ -6,6 +6,7 @@
 import os
 import json
 import numpy as np
+from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
@@ -17,7 +18,7 @@ __all__ = ['TESTSET']
 
 
 class TESTSET(AbstractDataset):
-    """Private TESTSET, dataset contains sensible data and cannot be shared. 
+    """Private TESTSET, dataset contains sensible data and cannot be shared.
 
     Args:
         path: local path to the dataset folder. Folder must contain "labels" & "images" folder
@@ -32,24 +33,24 @@ class TESTSET(AbstractDataset):
         **kwargs: Any,
     ) -> None:
 
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms   
+        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         self.root = path
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         with open(os.path.join(self.root, 'labels/typed_word/labels.json'), 'rb') as f:
-                data = json.load(f)
-    
-        for file_dic in data:
-            img_name = os.path.join('images', file_dic["raw-archive-filepath"])
+            data = json.load(f)
 
+        for file_dic in data:
+            # Get image path
+            stem = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem
+            img_name = os.path.join('images', stem + '.jpg')
             box_targets = []
             for box in file_dic["coordinates"]:
                 xs, ys = np.asarray(box)[:, 0], np.asarray(box)[:, 1]
                 box_targets.append([min(xs), min(ys), max(xs), max(ys)])
 
             text_targets = file_dic["string"]
-
             self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=text_targets)))
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:

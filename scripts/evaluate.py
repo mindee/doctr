@@ -16,22 +16,28 @@ if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
-from doctr.datasets import FUNSD
+from doctr import datasets
 from doctr.models import ocr_predictor, extract_crops
+from typing import Optional
 
 
 def main(args):
 
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
-    train_set = FUNSD(train=True, download=True)
-    test_set = FUNSD(train=False, download=True)
+    if args.path:
+        testset = datasets.TESTSET(path=args.path)
+        sets = [testset]
+    else:
+        train_set = datasets.__dict__[args.dataset](train=True)
+        val_set = datasets.__dict__[args.dataset](train=False)
+        sets = [train_set, val_set]
 
     det_metric = LocalizationConfusion(iou_thresh=args.iou)
     reco_metric = ExactMatch()
     e2e_metric = OCRMetric(iou_thresh=args.iou)
 
-    for dataset in (train_set, test_set):
+    for dataset in sets:
         for page, target in tqdm(dataset):
             # GT
             gt_boxes = target['boxes']
@@ -52,7 +58,10 @@ def main(args):
                     for line in block.lines:
                         for word in line.words:
                             (a, b), (c, d) = word.geometry
-                            pred_boxes.append([int(a * w), int(b * h), int(c * w), int(d * h)])
+                            if gt_boxes.dtype == int:
+                                pred_boxes.append([int(a * w), int(b * h), int(c * w), int(d * h)])
+                            else:
+                                pred_boxes.append([a, b, c, d])
                             pred_labels.append(word.value)
 
             # Update the metric
@@ -78,6 +87,8 @@ def parse_args():
     parser.add_argument('detection', type=str, help='Text detection model to use for analysis')
     parser.add_argument('recognition', type=str, help='Text recognition model to use for analysis')
     parser.add_argument('--iou', type=float, default=0.5, help='IoU threshold to match a pair of boxes')
+    parser.add_argument('-dataset', type=str, default='FUNSD', help='choose a dataset: FUNSD, CORD')
+    parser.add_argument('-path', type=str, default=None, help='Only for local sets, provide the path to your TESTSET')
     args = parser.parse_args()
 
     return args
