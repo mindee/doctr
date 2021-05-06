@@ -18,7 +18,6 @@ if any(gpu_devices):
 from doctr.utils.metrics import LocalizationConfusion, ExactMatch, OCRMetric
 from doctr import datasets
 from doctr.models import ocr_predictor, extract_crops
-from typing import Optional
 
 
 def main(args):
