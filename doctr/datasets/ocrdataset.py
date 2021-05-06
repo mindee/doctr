@@ -14,11 +14,11 @@ from doctr.documents.reader import read_img, read_pdf
 from .core import AbstractDataset
 
 
-__all__ = ['TESTSET']
+__all__ = ['OCRDataset']
 
 
-class TESTSET(AbstractDataset):
-    """Private TESTSET, dataset contains sensible data and cannot be shared.
+class OCRDataset(AbstractDataset):
+    """Private OCRDataset, dataset contains sensible data and cannot be shared.
 
     Args:
         path: local path to the dataset folder. Folder must contain "labels" & "images" folder
