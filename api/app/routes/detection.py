@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from fastapi import APIRouter, UploadFile, File
+from typing import List
 
 import tensorflow as tf
 
@@ -26,4 +27,4 @@ async def text_detection(file: UploadFile = File(...)):
     """Runs DocTR text recognition model to analyze the input"""
     img = tf.io.decode_image(file.file.read())
     out = det_predictor(img[None, ...], training=False)
-    return [DetectionOut(box=box.tolist()) for box in out[0]]
+    return [DetectionOut(box=box.tolist()) for box in out[0][:, :4]]
