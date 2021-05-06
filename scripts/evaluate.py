@@ -28,8 +28,8 @@ def main(args):
         testset = datasets.TESTSET(path=args.path)
         sets = [testset]
     else:
-        train_set = datasets.__dict__[args.dataset](train=True)
-        val_set = datasets.__dict__[args.dataset](train=False)
+        train_set = datasets.__dict__[args.dataset](train=True, download=True)
+        val_set = datasets.__dict__[args.dataset](train=False, download=True)
         sets = [train_set, val_set]
 
     det_metric = LocalizationConfusion(iou_thresh=args.iou)
