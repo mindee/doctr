@@ -11,16 +11,13 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 # copy requirements file
 COPY api/requirements.txt /usr/src/app/api-requirements.txt
 COPY ./requirements.txt /tmp/requirements.txt
-COPY ./README.md /tmp/README.md
-COPY ./setup.py /tmp/setup.py
-COPY ./doctr /tmp/doctr
 
 # install dependencies
 RUN apt-get update \
     && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
     && pip install --upgrade pip setuptools wheel \
-    && pip install -e /tmp/. \
     && pip install -r /usr/src/app/api-requirements.txt \
+    && pip install -r /tmp/requirements.txt \
     && pip cache purge \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
@@ -28,3 +25,13 @@ RUN apt-get update \
 
 # copy project
 COPY api/ /usr/src/app/
+
+
+# install doctr
+COPY ./README.md /tmp/README.md
+COPY ./setup.py /tmp/setup.py
+COPY ./doctr /tmp/doctr
+
+RUN pip install -e /tmp/. \
+    && pip cache purge \
+    && rm -rf /root/.cache/pip
