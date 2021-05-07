@@ -18,33 +18,34 @@ __all__ = ['OCRDataset']
 
 
 class OCRDataset(AbstractDataset):
-    """Private OCRDataset, dataset contains sensible data and cannot be shared.
+    """Implements an OCR dataset
 
     Args:
-        path: local path to the dataset folder. Folder must contain "labels" & "images" folder
+        img_folder: local path to image folder (all jpg at the root)
+        label_file: local path to the label file
         sample_transforms: composable transformations that will be applied to each image
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
     def __init__(
         self,
-        path: str,
+        img_folder: str,
+        label_file: str,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
         **kwargs: Any,
     ) -> None:
 
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
-        self.root = path
+        self.img_folder = img_folder
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        with open(os.path.join(self.root, 'labels/typed_word/labels.json'), 'rb') as f:
+        with open(label_file, 'rb') as f:
             data = json.load(f)
 
         for file_dic in data:
             # Get image path
-            stem = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem
-            img_name = os.path.join('images', stem + '.jpg')
+            img_name = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem + '.jpg'
             box_targets = []
             for box in file_dic["coordinates"]:
                 xs, ys = np.asarray(box)[:, 0], np.asarray(box)[:, 1]
@@ -56,7 +57,7 @@ class OCRDataset(AbstractDataset):
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
         # Read image
-        img = tf.io.read_file(os.path.join(self.root, img_name))
+        img = tf.io.read_file(os.path.join(self.img_folder, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
         img = self.sample_transforms(img)
 

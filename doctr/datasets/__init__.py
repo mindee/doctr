@@ -5,5 +5,5 @@ from .cord import *
 from .loader import *
 from .detection import *
 from .recognition import *
-from .ocrdataset import *
+from .ocr import *
 from .sroie import *
