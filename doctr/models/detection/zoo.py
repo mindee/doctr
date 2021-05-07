@@ -11,8 +11,8 @@ from .. import detection
 __all__ = ["detection_predictor"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_resnet50': {'model': 'db_resnet50', 'post_processor': 'DBPostProcessor'},
-    'linknet': {'model': 'linknet', 'post_processor': 'LinkNetPostProcessor'},
+    'db_resnet50': {'model': 'db_resnet50'},
+    'linknet': {'model': 'linknet'},
 }
 
 
@@ -28,7 +28,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor
     predictor = DetectionPredictor(
         DetectionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
         _model,
-        detection.__dict__[default_cfgs[arch]['post_processor']]()
+        _model.postprocessor
     )
     return predictor
 

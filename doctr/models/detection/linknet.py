@@ -198,6 +198,8 @@ class LinkNet(DetectionModel, NestedObject):
         self._layers = _layers
         self.min_size_box = 3
 
+        self.postprocessor = LinkNetPostProcessor()
+
     def compute_loss(
         self,
         model_output: Dict[str, tf.Tensor],
