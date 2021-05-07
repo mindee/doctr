@@ -25,7 +25,7 @@ def main(args):
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     if args.path:
-        testset = datasets.OCRDataset(path=args.path)
+        testset = datasets.OCRDataset(*args.paths)
         sets = [testset]
     else:
         train_set = datasets.__dict__[args.dataset](train=True, download=True)
@@ -68,7 +68,8 @@ def main(args):
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
-    print(f"Model Evaluation (model= {args.detection} + {args.recognition}, dataset={args.dataset})")
+    print(f"Model Evaluation (model= {args.detection} + {args.recognition}, "
+          f"dataset={'OCRDataset' if args.paths else args.dataset})")
     recall, precision, mean_iou = det_metric.summary()
     print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
     acc = reco_metric.summary()
@@ -86,7 +87,7 @@ def parse_args():
     parser.add_argument('recognition', type=str, help='Text recognition model to use for analysis')
     parser.add_argument('--iou', type=float, default=0.5, help='IoU threshold to match a pair of boxes')
     parser.add_argument('--dataset', type=str, default='FUNSD', help='choose a dataset: FUNSD, CORD')
-    parser.add_argument('--path', type=str, default=None, help='Only for local sets, path to your OCRDataset')
+    parser.add_argument('--paths', type=str, default=None, help='Only for local sets, (img_folder, label_file)')
     args = parser.parse_args()
 
     return args
