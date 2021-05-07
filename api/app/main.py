@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 
 from app import config as cfg
-from app.routes import recognition, detection
+from app.routes import recognition, detection, ocr
 
 
 app = FastAPI(title=cfg.PROJECT_NAME, description=cfg.PROJECT_DESCRIPTION, debug=cfg.DEBUG, version=cfg.VERSION)
@@ -17,6 +17,7 @@ app = FastAPI(title=cfg.PROJECT_NAME, description=cfg.PROJECT_DESCRIPTION, debug
 # Routing
 app.include_router(recognition.router, prefix="/recognition", tags=["recognition"])
 app.include_router(detection.router, prefix="/detection", tags=["detection"])
+app.include_router(ocr.router, prefix="/ocr", tags=["ocr"])
 
 
 # Middleware
