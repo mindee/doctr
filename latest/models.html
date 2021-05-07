@@ -129,7 +129,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#model-export">Model export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
@@ -670,6 +674,8 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <section id="model-export">
 <h2>Model export<a class="headerlink" href="#model-export" title="Permalink to this headline">¶</a></h2>
 <p>Utility functions to make the most of document analysis models.</p>
+<section id="model-compression">
+<h3>Model compression<a class="headerlink" href="#model-compression" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
 <dt id="doctr.models.export.convert_to_tflite">
 <code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_tflite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">tensorflow.python.keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">¶</a></dt>
@@ -751,6 +757,25 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dl>
 </dd></dl>
 
+</section>
+<section id="using-savedmodel">
+<h3>Using SavedModel<a class="headerlink" href="#using-savedmodel" title="Permalink to this headline">¶</a></h3>
+<p>Additionally, models in DocTR inherit TensorFlow 2 model properties and can be exported to
+<a class="reference external" href="https://www.tensorflow.org/guide/saved_model">SavedModel</a> format as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">db_resnet50</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_t</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_t</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tf</span><span class="o">.</span><span class="n">saved_model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;path/to/your/folder/db_resnet50/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>And loaded just as easily:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">saved_model</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path/to/your/folder/db_resnet50/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 

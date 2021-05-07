@@ -179,9 +179,31 @@ Utility functions to make the most of document analysis models.
 
 .. currentmodule:: doctr.models.export
 
+Model compression
+^^^^^^^^^^^^^^^^^
 
 .. autofunction:: convert_to_tflite
 
 .. autofunction:: convert_to_fp16
 
 .. autofunction:: quantize_model
+
+Using SavedModel
+^^^^^^^^^^^^^^^^
+
+Additionally, models in DocTR inherit TensorFlow 2 model properties and can be exported to
+`SavedModel <https://www.tensorflow.org/guide/saved_model>`_ format as follows:
+
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import db_resnet50
+    >>> model = db_resnet50(pretrained=True)
+    >>> input_t = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+    >>> _ = model(input_t, training=False)
+    >>> tf.saved_model.save(model, 'path/to/your/folder/db_resnet50/')
+
+And loaded just as easily:
+
+
+    >>> import tensorflow as tf
+    >>> model = tf.saved_model.load('path/to/your/folder/db_resnet50/')
