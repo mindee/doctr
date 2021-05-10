@@ -424,7 +424,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomJpegQuality">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomJpegQuality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">60</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomJpegQuality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomJpegQuality" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomJpegQuality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">60</span></em>, <em class="sig-param"><span class="n">max_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomJpegQuality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomJpegQuality" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly adjust jpeg quality of a 3 dimensional RGB image</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -437,7 +437,10 @@ increasing saturation by a factor.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>min_quality</strong> – int between [0, 100], quality will be picked in [min_quality, 100]</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_quality</strong> – int between [0, 100]</p></li>
+<li><p><strong>max_quality</strong> – int between [0, 100]</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
