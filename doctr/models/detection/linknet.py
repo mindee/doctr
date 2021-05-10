@@ -183,7 +183,6 @@ class LinkNet(DetectionModel, NestedObject):
                 use_bias=False,
                 kernel_initializer='he_normal'
             ),
-            layers.Activation('sigmoid'),
         ])
 
         self.min_size_box = 3
