@@ -157,7 +157,6 @@ class RecognitionPredictor(NestedObject):
         self,
         pre_processor: RecognitionPreProcessor,
         model: RecognitionModel,
-        post_processor: RecognitionPostProcessor,
     ) -> None:
 
         self.pre_processor = pre_processor

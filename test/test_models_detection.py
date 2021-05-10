@@ -122,8 +122,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = detection.DetectionPredictor(
         detection.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(input_shape=(512, 512, 3)),
-        detection.DBPostProcessor()
+        detection.db_resnet50(input_shape=(512, 512, 3))
     )
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()

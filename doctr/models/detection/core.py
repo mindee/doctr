@@ -173,7 +173,6 @@ class DetectionPredictor(NestedObject):
         self,
         pre_processor: DetectionPreProcessor,
         model: DetectionModel,
-        post_processor: DetectionPostProcessor,
     ) -> None:
 
         self.pre_processor = pre_processor
