@@ -227,7 +227,7 @@ class LinkNet(DetectionModel, NestedObject):
 
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
-        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.float32)
+        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
 
         return seg_target, seg_mask
 
@@ -250,8 +250,8 @@ class LinkNet(DetectionModel, NestedObject):
 
         # Compute BCE loss
         return tf.math.reduce_mean(tf.keras.losses.binary_crossentropy(
-            seg_mask * seg_target,
-            seg_mask * tf.squeeze(out_map, axis=[-1]),
+            seg_target[seg_mask],
+            tf.squeeze(out_map, axis=[-1])[seg_mask],
             from_logits=True
         ))
 

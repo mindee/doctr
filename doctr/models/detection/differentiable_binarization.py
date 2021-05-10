@@ -292,14 +292,13 @@ class DBNet(DetectionModel, NestedObject):
         polygon: np.array,
         canvas: np.array,
         mask: np.array,
-    ) -> None:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Draw a polygon treshold map on a canvas, as described in the DB paper
 
         Args:
             polygon : array of coord., to draw the boundary of the polygon
             canvas : threshold map to fill with polygons
             mask : mask for training on threshold polygons
-            shrink_ratio : 0.4, as described in the DB paper
         """
         if polygon.ndim != 2 or polygon.shape[1] != 2:
             raise AttributeError("polygon should be a 2 dimensional array of coords")
@@ -352,49 +351,30 @@ class DBNet(DetectionModel, NestedObject):
             canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1]
         )
 
-    def compute_loss(
+        return polygon, canvas, mask
+
+    def compute_target(
         self,
-        proba_map: tf.Tensor,
-        bin_map: tf.Tensor,
-        thresh_map: tf.Tensor,
-        target: List[Dict[str, Any]]
-    ) -> tf.Tensor:
-        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
-        and a list of masks for each image. From there it computes the loss with the model output
+        target: List[Dict[str, Any]],
+        output_shape: Tuple[int, int, int],
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
 
-        Args:
-            model_output: dictionnary containing the maps outputed by the model:
-                proba_map, binary_map and thresh_map, shapes: Nx H x W x C
-            batch_boxes: list of boxes for each image of the batch
-            batch_flags: list of boxes to mask for each image of the batch
+        seg_target = np.zeros(output_shape, dtype=np.uint8)
+        seg_mask = np.ones(output_shape, dtype=np.bool)
+        thresh_target = np.zeros(output_shape, dtype=np.uint8)
+        thresh_mask = np.ones(output_shape, dtype=np.uint8)
 
-        Returns:
-            A loss tensor
-        """
-
-        batch_boxes = [t['boxes'] for t in target]
-        batch_flags = [t['flags'] for t in target]
-
-        # Compute gts and masks
-        batch_size, h, w, _ = proba_map.shape
-        batch_gts, batch_masks, batch_thresh_gts, batch_thresh_masks = [], [], [], []
-        for batch_idx in range(batch_size):
-            # Initialize mask and gt
-            gt = np.zeros((h, w), dtype=np.float32)
-            mask = np.ones((h, w), dtype=np.float32)
-            thresh_gt = np.zeros((h, w), dtype=np.float32)
-            thresh_mask = np.zeros((h, w), dtype=np.float32)
-
+        for idx, _target in enumerate(target):
             # Draw each polygon on gt
-            if batch_boxes[batch_idx].shape[0] == 0:
+            if _target['boxes'].shape[0] == 0:
                 # Empty image, full masked
-                mask = np.zeros((h, w), dtype=np.float32)
+                seg_mask[idx] = False
 
             # Absolute bounding boxes
-            abs_boxes = batch_boxes[batch_idx].copy()
-            abs_boxes[:, [0, 2]] *= w
-            abs_boxes[:, [1, 3]] *= h
-            abs_boxes = abs_boxes.astype(np.int32)
+            abs_boxes = _target['boxes'].copy()
+            abs_boxes[:, [0, 2]] *= output_shape[-1]
+            abs_boxes[:, [1, 3]] *= output_shape[-2]
+            abs_boxes = abs_boxes.round().astype(np.int32)
 
             boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
@@ -405,12 +385,14 @@ class DBNet(DetectionModel, NestedObject):
                 abs_boxes[:, [2, 1]],
             ], axis=1)
 
-            for box, box_size, poly, flag in zip(abs_boxes, boxes_size, polys, batch_flags[batch_idx]):
-                if flag is True:
-                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
+            for box, box_size, poly, is_ambiguous in zip(abs_boxes, boxes_size, polys, _target['flags']):
+                # Mask ambiguous boxes
+                if is_ambiguous:
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
+                # Mask boxes that are too small
                 if box_size < self.min_size_box:
-                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
 
                 # Negative shrink for gt, as described in paper
@@ -423,88 +405,79 @@ class DBNet(DetectionModel, NestedObject):
 
                 # Draw polygon on gt if it is valid
                 if len(shrinked) == 0:
-                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
+                    seg_mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 shrinked = np.array(shrinked[0]).reshape(-1, 2)
                 if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
+                    seg_mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                cv2.fillPoly(gt, [shrinked.astype(np.int32)], 1)
+                cv2.fillPoly(seg_target[idx], [shrinked.astype(np.int32)], 1)
 
                 # Draw on both thresh map and thresh mask
-                self.draw_thresh_map(poly, thresh_gt, thresh_mask)
-            thresh_gt = thresh_gt * (self.thresh_max - self.thresh_min) + self.thresh_min
+                poly, thresh_target[idx], thresh_mask[idx] = self.draw_thresh_map(poly, thresh_target[idx],
+                                                                                  thresh_mask[idx])
 
-            # Cast
-            gts = tf.convert_to_tensor(gt, tf.float32)
-            masks = tf.convert_to_tensor(mask, tf.float32)
-            thresh_gts = tf.convert_to_tensor(thresh_gt, tf.float32)
-            thresh_masks = tf.convert_to_tensor(thresh_mask, tf.float32)
+        thresh_target = thresh_target.astype(np.float32) * (self.thresh_max - self.thresh_min) + self.thresh_min
 
-            # Batch
-            batch_gts.append(gts)
-            batch_masks.append(masks)
-            batch_thresh_gts.append(thresh_gts)
-            batch_thresh_masks.append(thresh_masks)
+        seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
+        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+        thresh_target = tf.convert_to_tensor(thresh_target, dtype=tf.float32)
+        thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
 
-        # Stack
-        gt = tf.stack(batch_gts, axis=0)
-        mask = tf.stack(batch_masks, axis=0)
-        thresh_gt = tf.stack(batch_thresh_gts, axis=0)
-        thresh_mask = tf.stack(batch_thresh_masks, axis=0)
+        return seg_target, seg_mask, thresh_target, thresh_mask
+
+    def compute_loss(
+        self,
+        out_map: tf.Tensor,
+        thresh_map: tf.Tensor,
+        target: List[Dict[str, Any]]
+    ) -> tf.Tensor:
+        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
+        and a list of masks for each image. From there it computes the loss with the model output
+
+        Args:
+            out_map: output feature map of the model of shape (N, H, W, C)
+            thresh_map: threshold map of shape (N, H, W, C)
+            target: list of dictionary where each dict has a `boxes` and a `flags` entry
+
+        Returns:
+            A loss tensor
+        """
+
+        out_map = tf.squeeze(out_map, axis=[-1])
+        thresh_map = tf.squeeze(thresh_map, axis=[-1])
+
+        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
 
         # Compute balanced BCE loss for proba_map
-        negative_ratio = 3.
         bce_scale = 5.
-        positive_mask = (gt * mask)
-        negative_mask = ((1 - gt) * mask)
-        positive_count = tf.math.reduce_sum(positive_mask)
-        negative_count = tf.math.reduce_min([tf.math.reduce_sum(negative_mask), positive_count * negative_ratio])
-        gt_exp = tf.expand_dims(gt, axis=-1)
-        bce_loss = tf.keras.losses.binary_crossentropy(gt_exp, proba_map)
-        positive_loss = bce_loss * positive_mask
-        negative_loss = bce_loss * negative_mask
-        negative_loss, _ = tf.nn.top_k(tf.reshape(negative_loss, (-1,)), tf.cast(negative_count, tf.int32))
-        sum_losses = tf.math.reduce_sum(positive_loss) + tf.math.reduce_sum(negative_loss)
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[seg_mask], out_map[seg_mask])
+
+        neg_target = 1 - seg_target[seg_mask]
+        positive_count = tf.math.reduce_sum(seg_target[seg_mask])
+        negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3. * positive_count])
+        negative_loss = bce_loss * neg_target
+        negative_loss, _ = tf.nn.top_k(negative_loss, tf.cast(negative_count, tf.int32))
+        sum_losses = tf.math.reduce_sum(bce_loss * seg_target[seg_mask]) + tf.math.reduce_sum(negative_loss)
         balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
-        balanced_bce_loss = balanced_bce_loss
 
         # Compute dice loss for approxbin_map
-        bin_map = tf.squeeze(bin_map, axis=[-1])
-        wght = bce_loss
-        weights = (wght - tf.math.reduce_min(wght)) / (tf.math.reduce_max(wght) - tf.math.reduce_min(wght)) + 1.
-        mask = mask * weights
-        intersection = tf.math.reduce_sum(bin_map * gt * mask)
-        union = tf.math.reduce_sum(bin_map * mask) + tf.math.reduce_sum(gt * mask) + 1e-8
-        dice_loss = 1 - 2.0 * intersection / union
+        bin_map = 1 / (1 + tf.exp(-50. * (out_map - thresh_map)))
+
+        bce_min = tf.math.reduce_min(bce_loss)
+        weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.
+        inter = tf.math.reduce_sum(bin_map[seg_mask] * seg_target[seg_mask] * weights)
+        union = tf.math.reduce_sum(bin_map[seg_mask]) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
+        dice_loss = 1 - 2.0 * inter / union
 
         # Compute l1 loss for thresh_map
         l1_scale = 10.
-        thresh_map = tf.squeeze(thresh_map, axis=[-1])
-        mask_sum = tf.math.reduce_sum(thresh_mask)
-        if mask_sum == 0:
-            l1_loss = tf.constant(0.)
+        if tf.reduce_any(thresh_mask):
+            l1_loss = tf.math.reduce_mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
         else:
-            l1_loss = tf.math.reduce_sum(tf.math.abs(thresh_map - thresh_gt) * thresh_mask) / mask_sum
+            l1_loss = tf.constant(0.)
 
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
-
-    @staticmethod
-    def compute_binary_map(
-        p: tf.Tensor,
-        t: tf.Tensor
-    ) -> tf.Tensor:
-        """Compute approximate binary map as described in paper,
-        from threshold map t and probability map p
-
-        Args:
-            p (tf.Tensor): probability map
-            t (tf.Tensor): threshold map
-
-        Returns:
-            a tf.Tensor
-        """
-        return 1 / (1 + tf.exp(-50. * (p - t)))
 
     def call(
         self,
@@ -517,20 +490,19 @@ class DBNet(DetectionModel, NestedObject):
 
         feat_maps = self.feat_extractor(x, **kwargs)
         feat_concat = self.fpn(feat_maps, **kwargs)
-        proba_map = self.probability_head(feat_concat, **kwargs)
+        out_map = self.probability_head(feat_concat, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if return_model_output:
-            out["out_map"] = proba_map
+            out["out_map"] = out_map
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["boxes"] = self.postprocessor(proba_map)
+            out["boxes"] = self.postprocessor(out_map)
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
-            bin_map = self.compute_binary_map(proba_map, thresh_map)
-            loss = self.compute_loss(prob_map, bin_map, thresh_map, target)
+            loss = self.compute_loss(out_map, thresh_map, target)
             out['loss'] = loss
 
         return out
