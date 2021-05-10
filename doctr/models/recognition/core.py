@@ -107,6 +107,7 @@ class RecognitionModel(keras.Model, NestedObject):
         self,
         x: tf.Tensor,
         target: Optional[List[str]] = None,
+        return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:

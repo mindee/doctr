@@ -169,6 +169,7 @@ class CRNN(RecognitionModel):
         self,
         x: tf.Tensor,
         target: Optional[List[str]] = None,
+        return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, tf.Tensor]:
@@ -182,6 +183,9 @@ class CRNN(RecognitionModel):
         decoded_features = self.decoder(features_seq, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
+        if return_model_output:
+            out["out_map"] = decoded_features
+
         if target is None or return_preds:
             # Post-process boxes
             out["preds"] = self.postprocessor(decoded_features)
