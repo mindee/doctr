@@ -355,8 +355,7 @@ class DBNet(DetectionModel, NestedObject):
     def compute_loss(
         self,
         model_output: Dict[str, tf.Tensor],
-        batch_boxes: List[np.array],
-        batch_flags: List[np.array]
+        target: List[Dict[str, Any]]
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -372,8 +371,11 @@ class DBNet(DetectionModel, NestedObject):
         """
         # Load model outputs
         proba_map = model_output["proba_map"]
-        binary_map = model_output["binary_map"]
+        bin_map = model_output["bin_map"]
         thresh_map = model_output["thresh_map"]
+
+        batch_boxes = [t['boxes'] for t in target]
+        batch_flags = [t['flags'] for t in target]
 
         # Compute gts and masks
         batch_size, h, w, _ = proba_map.shape
@@ -470,12 +472,12 @@ class DBNet(DetectionModel, NestedObject):
         balanced_bce_loss = balanced_bce_loss
 
         # Compute dice loss for approxbin_map
-        binary_map = tf.squeeze(binary_map, axis=[-1])
+        bin_map = tf.squeeze(bin_map, axis=[-1])
         wght = bce_loss
         weights = (wght - tf.math.reduce_min(wght)) / (tf.math.reduce_max(wght) - tf.math.reduce_min(wght)) + 1.
         mask = mask * weights
-        intersection = tf.math.reduce_sum(binary_map * gt * mask)
-        union = tf.math.reduce_sum(binary_map * mask) + tf.math.reduce_sum(gt * mask) + 1e-8
+        intersection = tf.math.reduce_sum(bin_map * gt * mask)
+        union = tf.math.reduce_sum(bin_map * mask) + tf.math.reduce_sum(gt * mask) + 1e-8
         dice_loss = 1 - 2.0 * intersection / union
 
         # Compute l1 loss for thresh_map
@@ -509,6 +511,9 @@ class DBNet(DetectionModel, NestedObject):
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[Dict[str, Any]]] = None,
+        return_model_output: bool = False,
+        return_boxes: bool = False,
         **kwargs: Any,
     ) -> Dict[str, tf.Tensor]:
 
@@ -516,11 +521,22 @@ class DBNet(DetectionModel, NestedObject):
         feat_concat = self.fpn(feat_maps, **kwargs)
         proba_map = self.probability_head(feat_concat, **kwargs)
 
-        if kwargs.get('training', False):
+        out: Dict[str, tf.Tensor] = {}
+        if target is None or return_model_output:
+            out["proba_map"] = proba_map
+
+        if target is None or return_boxes:
+            # Post-process boxes
+            out["boxes"] = self.postprocessor(proba_map)
+
+        if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
-            binary_map = self.compute_binary_map(proba_map, thresh_map)
-            return dict(proba_map=proba_map, thresh_map=thresh_map, binary_map=binary_map)
-        return dict(proba_map=proba_map)
+            bin_map = self.compute_binary_map(proba_map, thresh_map)
+            maps = dict(proba_map=proba_map, thresh_map=thresh_map, bin_map=bin_map)
+            loss = self.compute_loss(maps, target)
+            out['loss'] = loss
+
+        return out
 
 
 def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:

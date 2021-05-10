@@ -203,8 +203,7 @@ class LinkNet(DetectionModel, NestedObject):
     def compute_loss(
         self,
         model_output: Dict[str, tf.Tensor],
-        batch_boxes: List[np.array],
-        batch_flags: List[List[bool]]
+        target: List[Dict[str, Any]]
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
         Then, it computes the loss function with proba_map, gts and masks
@@ -220,6 +219,9 @@ class LinkNet(DetectionModel, NestedObject):
         # Get model output
         proba_map = model_output["proba_map"]
         batch_size, h, w, _ = proba_map.shape
+
+        batch_boxes = [t['boxes'] for t in target]
+        batch_flags = [t['flags'] for t in target]
 
         # Compute masks and gts
         batch_gts, batch_masks = [], []
@@ -266,16 +268,35 @@ class LinkNet(DetectionModel, NestedObject):
         proba_map = tf.squeeze(proba_map, axis=[-1])
 
         # Compute BCE loss
-        bce_loss = tf.keras.losses.binary_crossentropy(gts * mask, proba_map * masks)
+        bce_loss = tf.math.reduce_mean(tf.keras.losses.binary_crossentropy(gts * mask, proba_map * masks))
 
         return bce_loss
 
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[Dict[str, Any]]] = None,
+        return_model_output: bool = False,
+        return_boxes: bool = False,
         **kwargs: Any,
     ) -> Dict[str, tf.Tensor]:
-        return dict(proba_map=Sequential(self._layers)(x))
+
+        proba_map = Sequential(self._layers)(x)
+
+        out: Dict[str, tf.Tensor] = {}
+        if target is None or return_model_output:
+            out["proba_map"] = proba_map
+
+        if target is None or return_boxes:
+            # Post-process boxes
+            out["boxes"] = self.postprocessor(proba_map)
+
+        if target is not None:
+            maps = dict(proba_map=proba_map)
+            loss = self.compute_loss(maps, target)
+            out['loss'] = loss
+
+        return out
 
 
 def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> LinkNet:
