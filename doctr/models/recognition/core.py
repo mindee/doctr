@@ -150,10 +150,9 @@ class RecognitionPredictor(NestedObject):
     Args:
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
-        post_processor: post process model outputs
     """
 
-    _children_names: List[str] = ['pre_processor', 'model', 'post_processor']
+    _children_names: List[str] = ['pre_processor', 'model']
 
     def __init__(
         self,
@@ -163,7 +162,6 @@ class RecognitionPredictor(NestedObject):
 
         self.pre_processor = pre_processor
         self.model = model
-        self.post_processor = self.model.postprocessor
 
     def __call__(
         self,
