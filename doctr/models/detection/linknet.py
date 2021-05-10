@@ -279,7 +279,7 @@ class LinkNet(DetectionModel, NestedObject):
         return_model_output: bool = False,
         return_boxes: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, tf.Tensor]:
+    ) -> Dict[str, Any]:
 
         proba_map = Sequential(self._layers)(x)
 

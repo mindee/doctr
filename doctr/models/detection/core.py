@@ -69,8 +69,11 @@ class DetectionModel(keras.Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[Dict[str, Any]]] = None,
+        return_model_output: bool = False,
+        return_boxes: bool = False,
         **kwargs: Any,
-    ) -> Union[List[tf.Tensor], tf.Tensor]:
+    ) -> Dict[str, Any]:
         raise NotImplementedError
 
 

@@ -515,7 +515,7 @@ class DBNet(DetectionModel, NestedObject):
         return_model_output: bool = False,
         return_boxes: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, tf.Tensor]:
+    ) -> Dict[str, Any]:
 
         feat_maps = self.feat_extractor(x, **kwargs)
         feat_concat = self.fpn(feat_maps, **kwargs)
