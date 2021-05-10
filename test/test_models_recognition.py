@@ -97,8 +97,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     batch_size = 4
     predictor = recognition.RecognitionPredictor(
         recognition.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
-        recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3)),
-        recognition.CTCPostProcessor(mock_vocab)
+        recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
     )
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
