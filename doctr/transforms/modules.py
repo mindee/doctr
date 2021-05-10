@@ -200,7 +200,7 @@ class RandomContrast(NestedObject):
         return f"delta={self.delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_contrast(img, lower=1 - self.delta, upper=1 + self.delta)
+        return tf.image.random_contrast(img, lower=1 - self.delta, upper=1 / (1 - self.delta))
 
 
 class RandomSaturation(NestedObject):
@@ -223,7 +223,7 @@ class RandomSaturation(NestedObject):
         return f"delta={self.delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 + self.delta)
+        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 / (1 - self.delta))
 
 
 class RandomHue(NestedObject):
@@ -295,17 +295,19 @@ class RandomJpegQuality(NestedObject):
         >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
-        min_quality: int between [0, 100], quality will be picked in [min_quality, 100]
+        min_quality: int between [0, 100]
+        max_quality: int between [0, 100]
     """
-    def __init__(self, min_quality: int = 60) -> None:
+    def __init__(self, min_quality: int = 60, max_quality: int = 100) -> None:
         self.min_quality = min_quality
+        self.max_quality = max_quality
 
     def extra_repr(self) -> str:
         return f"min_quality={self.min_quality}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         return tf.image.random_jpeg_quality(
-            img, min_jpeg_quality=self.min_quality, max_jpeg_quality=100
+            img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality
         )
 
 
