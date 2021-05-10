@@ -31,13 +31,10 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, 
     for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
         images, targets = next(train_iter)
 
-        boxes = [target['boxes'] for target in targets]
-        flags = [target['flags'] for target in targets]
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            model_output = model(images, training=True)
-            train_loss = model.compute_loss(model_output, boxes, flags)
+            train_loss = model(images, targets, training=True)['loss']
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
@@ -61,19 +58,14 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
     for images, targets in val_iter:
-        boxes = [target['boxes'] for target in targets]
-        flags = [target['flags'] for target in targets]
         images = batch_transforms(images)
-        # If we want to compute val loss, we need to pass training=True to have a thresh_map
-        model_output = model(images, training=True)
-        loss = model.compute_loss(model_output, boxes, flags)
-        decoded = model.postprocessor(model_output)
+        out = model(images, targets, training=False, return_boxes=True)
         # Compute metric
-        for boxes_gt, boxes_pred in zip(boxes, decoded):
+        for boxes_gt, boxes_pred in zip([t['boxes'] for t in targets], out['boxes']):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
-        val_loss += loss.numpy()
+        val_loss += out['loss'].numpy()
         batch_cnt += 1
 
     val_loss /= batch_cnt
