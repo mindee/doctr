@@ -451,7 +451,7 @@ class DBNet(DetectionModel, NestedObject):
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[seg_mask], out_map[seg_mask])
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None])[seg_mask]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = tf.math.reduce_sum(seg_target[seg_mask])
@@ -462,12 +462,12 @@ class DBNet(DetectionModel, NestedObject):
         balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
 
         # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + tf.exp(-50. * (out_map - thresh_map)))
+        bin_map = 1 / (1 + tf.exp(-50. * (out_map[seg_mask] - thresh_map[seg_mask])))
 
         bce_min = tf.math.reduce_min(bce_loss)
         weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.
-        inter = tf.math.reduce_sum(bin_map[seg_mask] * seg_target[seg_mask] * weights)
-        union = tf.math.reduce_sum(bin_map[seg_mask]) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
+        inter = tf.math.reduce_sum(bin_map * seg_target[seg_mask] * weights)
+        union = tf.math.reduce_sum(bin_map) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
         dice_loss = 1 - 2.0 * inter / union
 
         # Compute l1 loss for thresh_map
