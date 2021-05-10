@@ -10,6 +10,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import time
 import datetime
 import numpy as np
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from collections import deque
 from pathlib import Path
@@ -23,6 +24,29 @@ from doctr.models import detection, DetectionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
+
+
+def plot_samples(images, targets):
+    # Unnormalize image
+    nb_samples = 4
+    _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
+    for idx in range(nb_samples):
+        img = images[idx]
+        img *= 255
+        img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
+
+        target = np.zeros(img.shape[:2], dtype=bool)
+        boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
+        boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
+        boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
+        for box in boxes.round().astype(int):
+            target[box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+
+        axes[0][idx].imshow(img)
+        axes[0][idx].axis('off')
+        axes[1][idx].imshow(target)
+        axes[1][idx].axis('off')
+    plt.show()
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step):
@@ -104,6 +128,11 @@ def main(args):
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
+
+    if args.show_samples:
+        x, target = next(iter(train_loader))
+        plot_samples(x, target)
+        return
 
     st = time.time()
     val_set = DetectionDataset(
@@ -200,6 +229,8 @@ def parse_args():
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
                         help='freeze model backbone for fine-tuning')
+    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
+                        help='Display unormalized training samples')
     args = parser.parse_args()
 
     return args
