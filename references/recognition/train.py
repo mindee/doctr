@@ -10,7 +10,9 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import time
 import json
 import datetime
+import math
 import numpy as np
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from collections import deque
 from pathlib import Path
@@ -24,6 +26,26 @@ from doctr.models import recognition, RecognitionPreProcessor
 from doctr.utils import metrics
 from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
 from doctr import transforms as T
+
+
+def plot_samples(images, targets):
+    # Unnormalize image
+    num_samples = 12
+    num_rows = 3
+    num_cols = int(math.ceil(num_samples / num_rows))
+    _, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5))
+    for idx in range(num_samples):
+        img = images[idx]
+        img *= 255
+        img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
+
+        row_idx = idx // num_cols
+        col_idx = idx % num_cols
+
+        axes[row_idx][col_idx].imshow(img)
+        axes[row_idx][col_idx].axis('off')
+        axes[row_idx][col_idx].set_title(targets[idx])
+    plt.show()
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step, teacher_forcing=False):
@@ -101,6 +123,11 @@ def main(args):
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
+
+    if args.show_samples:
+        x, target = next(iter(train_loader))
+        plot_samples(x, target)
+        return
 
     st = time.time()
     val_set = RecognitionDataset(
@@ -194,6 +221,8 @@ def parse_args():
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
+    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
+                        help='Display unormalized training samples')
     args = parser.parse_args()
 
     return args
