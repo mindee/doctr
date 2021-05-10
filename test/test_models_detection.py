@@ -37,7 +37,7 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
 
 def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor()
-    mock_batch = dict(proba_map=tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1))
+    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
@@ -161,7 +161,7 @@ def test_detection_zoo_error():
 
 def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
-    mock_batch = dict(proba_map=tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1))
+    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
