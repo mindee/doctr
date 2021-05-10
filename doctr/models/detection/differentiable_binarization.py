@@ -241,7 +241,6 @@ class DBNet(DetectionModel, NestedObject):
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
-                layers.Activation('sigmoid'),
             ]
         )
         self.threshold_head = keras.Sequential(
@@ -251,7 +250,6 @@ class DBNet(DetectionModel, NestedObject):
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
                 layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
-                layers.Activation('sigmoid'),
             ]
         )
 
@@ -444,14 +442,14 @@ class DBNet(DetectionModel, NestedObject):
             A loss tensor
         """
 
-        out_map = tf.squeeze(out_map, axis=[-1])
-        thresh_map = tf.squeeze(thresh_map, axis=[-1])
+        prob_map = tf.math.sigmoid(tf.squeeze(out_map, axis=[-1]))
+        thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
 
         seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None])[seg_mask]
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map, from_logits=True)[seg_mask]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = tf.math.reduce_sum(seg_target[seg_mask])
@@ -462,7 +460,7 @@ class DBNet(DetectionModel, NestedObject):
         balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
 
         # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + tf.exp(-50. * (out_map[seg_mask] - thresh_map[seg_mask])))
+        bin_map = 1 / (1 + tf.exp(-50. * (prob_map[seg_mask] - thresh_map[seg_mask])))
 
         bce_min = tf.math.reduce_min(bce_loss)
         weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.
@@ -490,19 +488,22 @@ class DBNet(DetectionModel, NestedObject):
 
         feat_maps = self.feat_extractor(x, **kwargs)
         feat_concat = self.fpn(feat_maps, **kwargs)
-        out_map = self.probability_head(feat_concat, **kwargs)
+        logits = self.probability_head(feat_concat, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
+        if return_model_output or target is None or return_boxes:
+            prob_map = tf.math.sigmoid(logits)
+
         if return_model_output:
-            out["out_map"] = out_map
+            out["out_map"] = prob_map
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["boxes"] = self.postprocessor(out_map)
+            out["boxes"] = self.postprocessor(prob_map)
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
-            loss = self.compute_loss(out_map, thresh_map, target)
+            loss = self.compute_loss(logits, thresh_map, target)
             out['loss'] = loss
 
         return out
