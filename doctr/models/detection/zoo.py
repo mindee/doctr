@@ -10,12 +10,12 @@ from .. import detection
 
 __all__ = ["detection_predictor"]
 
-archs = ['db_resnet50', 'linknet']
+ARCHS = ['db_resnet50', 'linknet']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor:
 
-    if arch not in archs:
+    if arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
     # Detection
@@ -24,8 +24,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     predictor = DetectionPredictor(
         DetectionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
-        _model,
-        _model.postprocessor
+        _model
     )
     return predictor
 

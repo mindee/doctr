@@ -10,12 +10,12 @@ from .. import recognition
 
 __all__ = ["recognition_predictor"]
 
-archs = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31']
+ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
 
-    if arch not in archs:
+    if arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
     _model = recognition.__dict__[arch](pretrained=pretrained)
@@ -23,8 +23,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     predictor = RecognitionPredictor(
         RecognitionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
-        _model,
-        _model.postprocessor
+        _model
     )
 
     return predictor

@@ -178,7 +178,7 @@ class DetectionPredictor(NestedObject):
 
         self.pre_processor = pre_processor
         self.model = model
-        self.post_processor = post_processor
+        self.post_processor = self.model.postprocessor
 
     def __call__(
         self,
