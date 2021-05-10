@@ -118,11 +118,11 @@ def main(args):
             T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
-            T.RandomApply(T.ColorInversion(), .2),
+            T.RandomApply(T.ColorInversion(), .1),
             T.RandomJpegQuality(60),
             T.RandomSaturation(.3),
             T.RandomContrast(.3),
-            T.RandomBrightness(0.3),
+            T.RandomBrightness(.3),
         ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
