@@ -224,7 +224,6 @@ class LinkNet(DetectionModel, NestedObject):
                 # Fill polygon with 1
                 seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
 
-
         seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
 
@@ -266,7 +265,6 @@ class LinkNet(DetectionModel, NestedObject):
         logits = self.stem(x)
         logits = self.fpn(logits)
         logits = self.classifier(logits)
-
 
         out: Dict[str, tf.Tensor] = {}
         if return_model_output or target is None or return_boxes:
