@@ -202,7 +202,7 @@ class LinkNet(DetectionModel, NestedObject):
 
     def compute_loss(
         self,
-        model_output: Dict[str, tf.Tensor],
+        proba_map: tf.Tensor,
         target: List[Dict[str, Any]]
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
@@ -217,7 +217,6 @@ class LinkNet(DetectionModel, NestedObject):
             A loss tensor
         """
         # Get model output
-        proba_map = model_output["proba_map"]
         batch_size, h, w, _ = proba_map.shape
 
         batch_boxes = [t['boxes'] for t in target]
@@ -284,16 +283,15 @@ class LinkNet(DetectionModel, NestedObject):
         proba_map = Sequential(self._layers)(x)
 
         out: Dict[str, tf.Tensor] = {}
-        if target is None or return_model_output:
-            out["proba_map"] = proba_map
+        if return_model_output:
+            out["out_map"] = proba_map
 
         if target is None or return_boxes:
             # Post-process boxes
             out["boxes"] = self.postprocessor(proba_map)
 
         if target is not None:
-            maps = dict(proba_map=proba_map)
-            loss = self.compute_loss(maps, target)
+            loss = self.compute_loss(proba_map, target)
             out['loss'] = loss
 
         return out

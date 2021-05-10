@@ -354,7 +354,9 @@ class DBNet(DetectionModel, NestedObject):
 
     def compute_loss(
         self,
-        model_output: Dict[str, tf.Tensor],
+        proba_map: tf.Tensor,
+        bin_map: tf.Tensor,
+        thresh_map: tf.Tensor,
         target: List[Dict[str, Any]]
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
@@ -369,10 +371,6 @@ class DBNet(DetectionModel, NestedObject):
         Returns:
             A loss tensor
         """
-        # Load model outputs
-        proba_map = model_output["proba_map"]
-        bin_map = model_output["bin_map"]
-        thresh_map = model_output["thresh_map"]
 
         batch_boxes = [t['boxes'] for t in target]
         batch_flags = [t['flags'] for t in target]
@@ -522,8 +520,8 @@ class DBNet(DetectionModel, NestedObject):
         proba_map = self.probability_head(feat_concat, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
-        if target is None or return_model_output:
-            out["proba_map"] = proba_map
+        if return_model_output:
+            out["out_map"] = proba_map
 
         if target is None or return_boxes:
             # Post-process boxes
@@ -532,8 +530,7 @@ class DBNet(DetectionModel, NestedObject):
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
             bin_map = self.compute_binary_map(proba_map, thresh_map)
-            maps = dict(proba_map=proba_map, thresh_map=thresh_map, bin_map=bin_map)
-            loss = self.compute_loss(maps, target)
+            loss = self.compute_loss(prob_map, bin_map, thresh_map, target)
             out['loss'] = loss
 
         return out
