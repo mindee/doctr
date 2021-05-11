@@ -87,38 +87,26 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
-class DecoderBlock(Sequential):
-    """This class implements a Linknet decoder block as described in paper/
+def decoder_block(in_chan: int, out_chan: int) -> Sequential:
+    """Creates a LinkNet decoder block"""
 
-    Args:
-        in_chan: input channels (must be a multiple of 4)
-        out_chan: output channels
-
-    """
-    def __init__(
-        self,
-        in_chan: int,
-        out_chan: int,
-    ) -> None:
-        _layers = []
-        _layers.extend(conv_sequence(in_chan // 4, 'relu', True, kernel_size=1))
-        _layers.append(
-            layers.Conv2DTranspose(
-                filters=in_chan // 4,
-                kernel_size=3,
-                strides=2,
-                padding="same",
-                use_bias=False,
-                kernel_initializer='he_normal'
-            )
-        )
-        _layers.append(layers.BatchNormalization())
-        _layers.append(layers.Activation('relu'))
-        _layers.extend(conv_sequence(out_chan, 'relu', True, kernel_size=1))
-        super().__init__(_layers)
+    return Sequential([
+        *conv_sequence(in_chan // 4, 'relu', True, kernel_size=1),
+        layers.Conv2DTranspose(
+            filters=in_chan // 4,
+            kernel_size=3,
+            strides=2,
+            padding="same",
+            use_bias=False,
+            kernel_initializer='he_normal'
+        ),
+        layers.BatchNormalization(),
+        layers.Activation('relu'),
+        *conv_sequence(out_chan, 'relu', True, kernel_size=1),
+    ])
 
 
-class LinkNetPyramid(layers.Layer, NestedObject):
+class LinkNetFPN(layers.Layer, NestedObject):
     """LinkNet Encoder-Decoder module
 
     """
@@ -132,10 +120,10 @@ class LinkNetPyramid(layers.Layer, NestedObject):
         self.encoder_2 = ResnetStage(num_blocks=2, output_channels=128, downsample=True)
         self.encoder_3 = ResnetStage(num_blocks=2, output_channels=256, downsample=True)
         self.encoder_4 = ResnetStage(num_blocks=2, output_channels=512, downsample=True)
-        self.decoder_1 = DecoderBlock(in_chan=64, out_chan=64)
-        self.decoder_2 = DecoderBlock(in_chan=128, out_chan=64)
-        self.decoder_3 = DecoderBlock(in_chan=256, out_chan=128)
-        self.decoder_4 = DecoderBlock(in_chan=512, out_chan=256)
+        self.decoder_1 = decoder_block(in_chan=64, out_chan=64)
+        self.decoder_2 = decoder_block(in_chan=128, out_chan=64)
+        self.decoder_3 = decoder_block(in_chan=256, out_chan=128)
+        self.decoder_4 = decoder_block(in_chan=512, out_chan=256)
 
     def call(
         self,
@@ -167,11 +155,15 @@ class LinkNet(DetectionModel, NestedObject):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
-        _layers = []
-        _layers.extend(conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape))
-        _layers.append(layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'))
-        _layers.append(LinkNetPyramid())
-        _layers.append(
+
+        self.stem = Sequential([
+            *conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape),
+            layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'),
+        ])
+
+        self.fpn = LinkNetFPN()
+
+        self.classifier = Sequential([
             layers.Conv2DTranspose(
                 filters=32,
                 kernel_size=3,
@@ -179,12 +171,10 @@ class LinkNet(DetectionModel, NestedObject):
                 padding="same",
                 use_bias=False,
                 kernel_initializer='he_normal'
-            )
-        )
-        _layers.append(layers.BatchNormalization())
-        _layers.append(layers.Activation('relu'))
-        _layers.extend(conv_sequence(32, 'relu', True, strides=1, kernel_size=3))
-        _layers.append(
+            ),
+            layers.BatchNormalization(),
+            layers.Activation('relu'),
+            *conv_sequence(32, 'relu', True, strides=1, kernel_size=3),
             layers.Conv2DTranspose(
                 filters=out_chan,
                 kernel_size=2,
@@ -192,88 +182,105 @@ class LinkNet(DetectionModel, NestedObject):
                 padding="same",
                 use_bias=False,
                 kernel_initializer='he_normal'
-            )
-        )
-        _layers.append(layers.Activation('sigmoid'))
-        self._layers = _layers
+            ),
+        ])
+
         self.min_size_box = 3
+
+        self.postprocessor = LinkNetPostProcessor()
+
+    def compute_target(
+        self,
+        target: List[Dict[str, Any]],
+        output_shape: Tuple[int, int, int],
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
+
+        seg_target = np.zeros(output_shape, dtype=np.bool)
+        seg_mask = np.ones(output_shape, dtype=np.bool)
+
+        for idx, _target in enumerate(target):
+            # Draw each polygon on gt
+            if _target['boxes'].shape[0] == 0:
+                # Empty image, full masked
+                seg_mask[idx] = False
+
+            # Absolute bounding boxes
+            abs_boxes = _target['boxes'].copy()
+            abs_boxes[:, [0, 2]] *= output_shape[-1]
+            abs_boxes[:, [1, 3]] *= output_shape[-2]
+            abs_boxes = abs_boxes.round().astype(np.int32)
+
+            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+
+            for box, box_size, is_ambiguous in zip(abs_boxes, boxes_size, _target['flags']):
+                # Mask ambiguous boxes
+                if is_ambiguous:
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    continue
+                # Mask boxes that are too small
+                if box_size < self.min_size_box:
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    continue
+                # Fill polygon with 1
+                seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+
+        seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
+        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+
+        return seg_target, seg_mask
 
     def compute_loss(
         self,
-        model_output: Dict[str, tf.Tensor],
-        batch_boxes: List[np.array],
-        batch_flags: List[List[bool]]
+        out_map: tf.Tensor,
+        target: List[Dict[str, Any]]
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
         Then, it computes the loss function with proba_map, gts and masks
 
         Args:
-            model_output: dictionary containing the output of the model, proba_map, shape: N x H x W x C
-            batch_boxes: list of boxes for each image of the batch
-            batch_flags: list of boxes to mask for each image of the batch
+            out_map: output feature map of the model of shape N x H x W x 1
+            target: list of dictionary where each dict has a `boxes` and a `flags` entry
 
         Returns:
             A loss tensor
         """
-        # Get model output
-        proba_map = model_output["proba_map"]
-        batch_size, h, w, _ = proba_map.shape
-
-        # Compute masks and gts
-        batch_gts, batch_masks = [], []
-        for batch_idx in range(batch_size):
-            # Initialize mask and gt
-            gt = np.zeros((h, w), dtype=np.float32)
-            mask = np.ones((h, w), dtype=np.float32)
-
-            # Draw each polygon on gt
-            if batch_boxes[batch_idx].shape[0] == 0:
-                # Empty image, full masked
-                mask = np.zeros((h, w), dtype=np.float32)
-
-            # Absolute bounding boxes
-            abs_boxes = batch_boxes[batch_idx].copy()
-            abs_boxes[:, [0, 2]] *= w
-            abs_boxes[:, [1, 3]] *= h
-            abs_boxes = abs_boxes.astype(np.int32)
-
-            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
-
-            for box, box_size, flag in zip(abs_boxes, boxes_size, batch_flags[batch_idx]):
-                if flag is True:
-                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
-                    continue
-                if box_size < self.min_size_box:
-                    mask[box[1]: box[3] + 1, box[0]: box[2] + 1] = 0
-                    continue
-                # Fill polygon with 1
-                gt[box[1]: box[3] + 1, box[0]: box[2] + 1] = 1
-
-            # Cast
-            gts = tf.convert_to_tensor(gt, tf.float32)
-            masks = tf.convert_to_tensor(mask, tf.float32)
-
-            # Batch
-            batch_gts.append(gts)
-            batch_masks.append(masks)
-
-        # Stack
-        gts = tf.stack(batch_gts, axis=0)
-        masks = tf.stack(batch_masks, axis=0)
-
-        proba_map = tf.squeeze(proba_map, axis=[-1])
+        seg_target, seg_mask = self.compute_target(target, out_map.shape[:3])
 
         # Compute BCE loss
-        bce_loss = tf.keras.losses.binary_crossentropy(gts * mask, proba_map * masks)
-
-        return bce_loss
+        return tf.math.reduce_mean(tf.keras.losses.binary_crossentropy(
+            seg_target[seg_mask],
+            tf.squeeze(out_map, axis=[-1])[seg_mask],
+            from_logits=True
+        ))
 
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[Dict[str, Any]]] = None,
+        return_model_output: bool = False,
+        return_boxes: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, tf.Tensor]:
-        return dict(proba_map=Sequential(self._layers)(x))
+    ) -> Dict[str, Any]:
+
+        logits = self.stem(x)
+        logits = self.fpn(logits)
+        logits = self.classifier(logits)
+
+        out: Dict[str, tf.Tensor] = {}
+        if return_model_output or target is None or return_boxes:
+            prob_map = tf.math.sigmoid(logits)
+        if return_model_output:
+            out["out_map"] = prob_map
+
+        if target is None or return_boxes:
+            # Post-process boxes
+            out["boxes"] = self.postprocessor(prob_map)
+
+        if target is not None:
+            loss = self.compute_loss(logits, target)
+            out['loss'] = loss
+
+        return out
 
 
 def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> LinkNet:

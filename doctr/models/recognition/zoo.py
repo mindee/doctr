@@ -10,26 +10,20 @@ from .. import recognition
 
 __all__ = ["recognition_predictor"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
-    'crnn_vgg16_bn': {'model': 'crnn_vgg16_bn', 'post_processor': 'CTCPostProcessor'},
-    'crnn_resnet31': {'model': 'crnn_resnet31', 'post_processor': 'CTCPostProcessor'},
-    'sar_vgg16_bn': {'model': 'sar_vgg16_bn', 'post_processor': 'SARPostProcessor'},
-    'sar_resnet31': {'model': 'sar_resnet31', 'post_processor': 'SARPostProcessor'},
-}
+ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
 
-    if default_cfgs.get(arch) is None:
+    if arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
-    _model = recognition.__dict__[default_cfgs[arch]['model']](pretrained=pretrained)
+    _model = recognition.__dict__[arch](pretrained=pretrained)
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     predictor = RecognitionPredictor(
         RecognitionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
-        _model,
-        recognition.__dict__[default_cfgs[arch]['post_processor']](_model.cfg['vocab'])
+        _model
     )
 
     return predictor

@@ -106,8 +106,11 @@ class RecognitionModel(keras.Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[str]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
         **kwargs: Any,
-    ) -> tf.Tensor:
+    ) -> Dict[str, Any]:
         raise NotImplementedError
 
 
@@ -148,21 +151,18 @@ class RecognitionPredictor(NestedObject):
     Args:
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
-        post_processor: post process model outputs
     """
 
-    _children_names: List[str] = ['pre_processor', 'model', 'post_processor']
+    _children_names: List[str] = ['pre_processor', 'model']
 
     def __init__(
         self,
         pre_processor: RecognitionPreProcessor,
         model: RecognitionModel,
-        post_processor: RecognitionPostProcessor,
     ) -> None:
 
         self.pre_processor = pre_processor
         self.model = model
-        self.post_processor = post_processor
 
     def __call__(
         self,
@@ -180,9 +180,9 @@ class RecognitionPredictor(NestedObject):
             processed_batches = self.pre_processor(crops)
 
             # Forward it
-            out = [self.model(batch, **kwargs) for batch in processed_batches]
+            out = [self.model(batch, return_preds=True, **kwargs)['preds'] for batch in processed_batches]
 
             # Process outputs
-            out = [charseq for batch in out for charseq in self.post_processor(batch)]
+            out = [charseq for batch in out for charseq in batch]
 
         return out

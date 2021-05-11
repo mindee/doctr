@@ -177,3 +177,17 @@ jobs:
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
           python scripts/analyze.py sample.pdf --noblock
+
+  api-ready:
+    runs-on: ubuntu-latest
+    needs: pkg-install
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build & run docker
+        run: PORT=8002 docker-compose up -d --build
+      - name: Install dependencies in docker
+        run: |
+          PORT=8002 docker-compose exec -T web python -m pip install --upgrade pip
+          PORT=8002 docker-compose exec -T web pip install -r requirements-dev.txt
+      - name: Run docker test
+        run: PORT=8002 docker-compose exec -T web pytest .

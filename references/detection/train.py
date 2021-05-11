@@ -10,6 +10,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import time
 import datetime
 import numpy as np
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from collections import deque
 from pathlib import Path
@@ -25,19 +26,39 @@ from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
 
+def plot_samples(images, targets):
+    # Unnormalize image
+    nb_samples = 4
+    _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
+    for idx in range(nb_samples):
+        img = images[idx]
+        img *= 255
+        img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
+
+        target = np.zeros(img.shape[:2], dtype=bool)
+        boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
+        boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
+        boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
+        for box in boxes.round().astype(int):
+            target[box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+
+        axes[0][idx].imshow(img)
+        axes[0][idx].axis('off')
+        axes[1][idx].imshow(target)
+        axes[1][idx].axis('off')
+    plt.show()
+
+
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
         images, targets = next(train_iter)
 
-        boxes = [target['boxes'] for target in targets]
-        flags = [target['flags'] for target in targets]
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            model_output = model(images, training=True)
-            train_loss = model.compute_loss(model_output, boxes, flags)
+            train_loss = model(images, targets, training=True)['loss']
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
@@ -61,19 +82,14 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
     for images, targets in val_iter:
-        boxes = [target['boxes'] for target in targets]
-        flags = [target['flags'] for target in targets]
         images = batch_transforms(images)
-        # If we want to compute val loss, we need to pass training=True to have a thresh_map
-        model_output = model(images, training=True)
-        loss = model.compute_loss(model_output, boxes, flags)
-        decoded = model.postprocessor(model_output)
+        out = model(images, targets, training=False, return_boxes=True)
         # Compute metric
-        for boxes_gt, boxes_pred in zip(boxes, decoded):
+        for boxes_gt, boxes_pred in zip([t['boxes'] for t in targets], out['boxes']):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
-        val_loss += loss.numpy()
+        val_loss += out['loss'].numpy()
         batch_cnt += 1
 
     val_loss /= batch_cnt
@@ -94,16 +110,21 @@ def main(args):
             T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
-            T.RandomApply(T.ColorInversion(), .2),
+            T.RandomApply(T.ColorInversion(), .1),
             T.RandomJpegQuality(60),
             T.RandomSaturation(.3),
             T.RandomContrast(.3),
-            T.RandomBrightness(0.3),
+            T.RandomBrightness(.3),
         ]),
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
+
+    if args.show_samples:
+        x, target = next(iter(train_loader))
+        plot_samples(x, target)
+        return
 
     st = time.time()
     val_set = DetectionDataset(
@@ -200,6 +221,8 @@ def parse_args():
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
                         help='freeze model backbone for fine-tuning')
+    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
+                        help='Display unormalized training samples')
     args = parser.parse_args()
 
     return args

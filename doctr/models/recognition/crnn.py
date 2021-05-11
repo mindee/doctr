@@ -144,9 +144,8 @@ class CRNN(RecognitionModel):
 
     def compute_loss(
         self,
-        gt: tf.Tensor,
         model_output: tf.Tensor,
-        seq_len: tf.Tensor
+        target: List[str],
     ) -> tf.Tensor:
         """Compute CTC loss for the model.
 
@@ -158,6 +157,7 @@ class CRNN(RecognitionModel):
         Returns:
             The loss of the model on the batch
         """
+        gt, seq_len = self.compute_target(target)
         batch_len = model_output.shape[0]
         input_length = model_output.shape[1] * tf.ones(shape=(batch_len))
         ctc_loss = tf.nn.ctc_loss(
@@ -168,8 +168,11 @@ class CRNN(RecognitionModel):
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[str]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
         **kwargs: Any,
-    ) -> tf.Tensor:
+    ) -> Dict[str, tf.Tensor]:
 
         features = self.feat_extractor(x, **kwargs)
         # B x H x W x C --> B x W x H x C
@@ -178,7 +181,19 @@ class CRNN(RecognitionModel):
         # B x W x H x C --> B x W x H * C
         features_seq = tf.reshape(transposed_feat, shape=(-1, w, h * c))
         decoded_features = self.decoder(features_seq, **kwargs)
-        return decoded_features
+
+        out: Dict[str, tf.Tensor] = {}
+        if return_model_output:
+            out["out_map"] = decoded_features
+
+        if target is None or return_preds:
+            # Post-process boxes
+            out["preds"] = self.postprocessor(decoded_features)
+
+        if target is not None:
+            out['loss'] = self.compute_loss(decoded_features, target)
+
+        return out
 
 
 def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:

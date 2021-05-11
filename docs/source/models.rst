@@ -98,6 +98,8 @@ Identifying strings in images
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
+All these recognition models are trained with our french vocab (cf. :ref:`vocabs`).
+
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
 FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 32, 128, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 32, 128, 3]).
@@ -157,6 +159,8 @@ Predictors that localize and identify text elements in images
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
+All recognition models of predictors are trained with our french vocab (cf. :ref:`vocabs`).
+
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
 FPS (Frames per second) is computed this way: we instantiate the predictor, we warm-up the model and then we measure the average speed of the end-to-end predictor on the datasets, with a batch size of 1.
@@ -175,9 +179,31 @@ Utility functions to make the most of document analysis models.
 
 .. currentmodule:: doctr.models.export
 
+Model compression
+^^^^^^^^^^^^^^^^^
 
 .. autofunction:: convert_to_tflite
 
 .. autofunction:: convert_to_fp16
 
 .. autofunction:: quantize_model
+
+Using SavedModel
+^^^^^^^^^^^^^^^^
+
+Additionally, models in DocTR inherit TensorFlow 2 model properties and can be exported to
+`SavedModel <https://www.tensorflow.org/guide/saved_model>`_ format as follows:
+
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import db_resnet50
+    >>> model = db_resnet50(pretrained=True)
+    >>> input_t = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+    >>> _ = model(input_t, training=False)
+    >>> tf.saved_model.save(model, 'path/to/your/folder/db_resnet50/')
+
+And loaded just as easily:
+
+
+    >>> import tensorflow as tf
+    >>> model = tf.saved_model.load('path/to/your/folder/db_resnet50/')

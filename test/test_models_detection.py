@@ -37,7 +37,7 @@ def test_detpreprocessor(mock_pdf):  # noqa: F811
 
 def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor()
-    mock_batch = dict(proba_map=tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1))
+    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
@@ -79,21 +79,6 @@ def test_dbpostprocessor():
     assert isinstance(out, tuple) and len(out) == 4
 
 
-def test_db_resnet50_training_mode():
-    model = detection.db_resnet50(pretrained=False)
-    assert isinstance(model, tf.keras.Model)
-    dbinput = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
-    # test training model
-    dboutput_train = model(dbinput, training=True)
-    assert isinstance(dboutput_train, dict)
-    assert len(dboutput_train) == 3
-    assert all(
-        np.all(np.logical_and(out_map.numpy() >= 0, out_map.numpy() <= 1)) for out_map in dboutput_train.values()
-    )
-    # batch size
-    assert all(out.numpy().shape == (2, 1024, 1024, 1) for out in dboutput_train.values())
-
-
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob",
     [
@@ -102,18 +87,30 @@ def test_db_resnet50_training_mode():
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
-
     batch_size = 2
     model = detection.__dict__[arch_name](pretrained=True)
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
-    # test prediction model
-    out = model(input_tensor)
+    target = [
+        dict(boxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 1, 1]], dtype=np.float32), flags=[True, False]),
+        dict(boxes=np.array([[0, 0, 1, 1], [0.5, 0.5, 1, 1]], dtype=np.float32), flags=[True, False])
+    ]
+    # test training model
+    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True)
     assert isinstance(out, dict)
-    out = out["proba_map"].numpy()
-    assert out.shape == (batch_size, *output_size)
+    assert len(out) == 3
+    # Check proba map
+    seg_map = out['out_map'].numpy()
+    assert seg_map.shape == (batch_size, *output_size)
     if out_prob:
-        assert np.all(np.logical_and(out >= 0, out <= 1))
+        assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
+    # Check boxes
+    for boxes in out['boxes']:
+        assert boxes.shape[1] == 5
+        assert np.all(boxes[:, :2] < boxes[:, 2:4])
+        assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
+    # Check loss
+    assert isinstance(out['loss'], tf.Tensor)
 
 
 @pytest.fixture(scope="session")
@@ -122,8 +119,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = detection.DetectionPredictor(
         detection.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(input_shape=(512, 512, 3)),
-        detection.DBPostProcessor()
+        detection.db_resnet50(input_shape=(512, 512, 3))
     )
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
@@ -163,34 +159,9 @@ def test_detection_zoo_error():
         _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
 
 
-@pytest.mark.parametrize(
-    "arch_name",
-    [
-        "db_resnet50",
-        "linknet"
-    ],
-)
-def test_compute_detection_loss(arch_name):
-    boxes = [
-        np.array([[0.003, 0.002, 0.04, 0.03], [0.3, 0.1, 0.4, 0.3]]),
-        np.array([[0.003, 0.002, 0.04, 0.03], [0.3, 0.1, 0.4, 0.3]]),
-        np.zeros((0, 4)),
-    ]
-    flags = [[True, False], [True, False], []]
-    model = detection.__dict__[arch_name](pretrained=True)
-    model_input = tf.random.uniform(shape=[3, 1024, 1024, 3], minval=0, maxval=1)
-    output = model(model_input, training=True)
-    loss = model.compute_loss(
-        model_output=output,
-        batch_boxes=boxes,
-        batch_flags=flags,
-    )
-    assert isinstance(loss, tf.Tensor)
-
-
 def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
-    mock_batch = dict(proba_map=tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1))
+    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)

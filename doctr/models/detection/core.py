@@ -69,8 +69,11 @@ class DetectionModel(keras.Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
+        target: Optional[List[Dict[str, Any]]] = None,
+        return_model_output: bool = False,
+        return_boxes: bool = False,
         **kwargs: Any,
-    ) -> Union[List[tf.Tensor], tf.Tensor]:
+    ) -> Dict[str, Any]:
         raise NotImplementedError
 
 
@@ -125,7 +128,7 @@ class DetectionPostProcessor(NestedObject):
 
     def __call__(
         self,
-        x: Dict[str, tf.Tensor],
+        proba_map: tf.Tensor,
     ) -> List[np.ndarray]:
         """Performs postprocessing for a list of model outputs
 
@@ -135,19 +138,19 @@ class DetectionPostProcessor(NestedObject):
         returns:
             list of N tensors (for each input sample), with each tensor of shape (*, 5).
         """
-        p = x["proba_map"]
-        p = tf.squeeze(p, axis=-1)  # remove last dim
-        bitmap = tf.cast(p > self.bin_thresh, tf.float32)
 
-        p = tf.unstack(p, axis=0)
+        proba_map = tf.squeeze(proba_map, axis=-1)  # remove last dim
+        bitmap = tf.cast(proba_map > self.bin_thresh, tf.float32)
+
+        proba_map = tf.unstack(proba_map, axis=0)
         bitmap = tf.unstack(bitmap, axis=0)
 
         boxes_batch = []
         # Kernel for opening, empirical law for ksize
-        k_size = 1 + int(p[0].shape[0] / 512)
+        k_size = 1 + int(proba_map[0].shape[0] / 512)
         kernel = np.ones((k_size, k_size), np.uint8)
 
-        for p_, bitmap_ in zip(p, bitmap):
+        for p_, bitmap_ in zip(proba_map, bitmap):
             p_ = p_.numpy()
             bitmap_ = bitmap_.numpy()
             # perform opening (erosion + dilatation)
@@ -164,21 +167,18 @@ class DetectionPredictor(NestedObject):
     Args:
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
-        post_processor: post process model outputs
     """
 
-    _children_names: List[str] = ['pre_processor', 'model', 'post_processor']
+    _children_names: List[str] = ['pre_processor', 'model']
 
     def __init__(
         self,
         pre_processor: DetectionPreProcessor,
         model: DetectionModel,
-        post_processor: DetectionPostProcessor,
     ) -> None:
 
         self.pre_processor = pre_processor
         self.model = model
-        self.post_processor = post_processor
 
     def __call__(
         self,
@@ -191,8 +191,7 @@ class DetectionPredictor(NestedObject):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(pages)
-        out = [self.model(batch, **kwargs) for batch in processed_batches]
-        out = [self.post_processor(batch) for batch in out]
+        out = [self.model(batch, return_boxes=True, **kwargs)['boxes'] for batch in processed_batches]
         out = [boxes for batch in out for boxes in batch]
 
         return out

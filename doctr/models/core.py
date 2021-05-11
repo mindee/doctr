@@ -55,7 +55,7 @@ class OCRPredictor(NestedObject):
         char_sequences = self.reco_predictor(crops, **kwargs)
 
         # Reorganize
-        out = self.doc_builder(boxes, char_sequences, [page.shape[:2] for page in pages])
+        out = self.doc_builder(boxes, char_sequences, [tuple(page.shape[:2]) for page in pages])
 
         return out
 

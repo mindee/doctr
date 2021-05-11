@@ -10,17 +10,22 @@ from doctr.documents import reader
 def test_convert_page_to_numpy(mock_pdf):
     pdf = fitz.open(mock_pdf)
     # Check correct read
-    rgb_page = reader.convert_page_to_numpy(pdf[0])
+    rgb_page = reader.convert_page_to_numpy(pdf[0], default_scales=(1, 1))
     assert isinstance(rgb_page, np.ndarray)
     assert rgb_page.shape == (792, 612, 3)
 
     # Check channel order
-    bgr_page = reader.convert_page_to_numpy(pdf[0], rgb_output=False)
+    bgr_page = reader.convert_page_to_numpy(pdf[0], default_scales=(1, 1), rgb_output=False)
     assert np.all(bgr_page == rgb_page[..., ::-1])
 
-    # Check rescaling
+    # Check resizing
     resized_page = reader.convert_page_to_numpy(pdf[0], output_size=(396, 306))
     assert resized_page.shape == (396, 306, 3)
+
+    # Check rescaling
+    rgb_page = reader.convert_page_to_numpy(pdf[0])
+    assert isinstance(rgb_page, np.ndarray)
+    assert rgb_page.shape == (1584, 1224, 3)
 
 
 def _check_doc_content(doc_tensors, num_pages):

@@ -1,0 +1,4 @@
+fastapi==0.61.1
+uvicorn>=0.11.1
+python-multipart==0.0.5
+doctr>=0.1.1
