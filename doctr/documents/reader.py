@@ -120,7 +120,7 @@ def convert_page_to_numpy(
     # Generate the pixel map using the transformation matrix
     pixmap = page.getPixmap(matrix=transform_matrix)
     # Decode it into a numpy
-    img = np.frombuffer(stream.pixels, dtype=np.uint8).reshape(pixmap.height, pixmap.width, 3)
+    img = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(pixmap.height, pixmap.width, 3)
 
     # Switch the channel order
     if rgb_output:
