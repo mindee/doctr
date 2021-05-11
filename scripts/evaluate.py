@@ -43,9 +43,9 @@ def main(args):
             gt_labels = target['labels']
 
             # Forward
-            out = model([page])
+            out = model([page], training=False)
             crops = extract_crops(page, gt_boxes)
-            reco_out = model.reco_predictor(crops)
+            reco_out = model.reco_predictor(crops, training=False)
 
             # Unpack preds
             pred_boxes = []
