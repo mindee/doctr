@@ -10,7 +10,6 @@ from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any, Optional, List
 
 from .. import backbones
-from ...datasets import VOCABS
 from ..utils import load_pretrained_params
 from .core import RecognitionModel, RecognitionPostProcessor
 
