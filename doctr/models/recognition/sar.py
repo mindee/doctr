@@ -226,6 +226,7 @@ class SAR(RecognitionModel):
         model_output: tf.Tensor,
         gt: tf.Tensor,
         seq_len: tf.Tensor,
+        weights: Optional[List[float]],
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -234,6 +235,7 @@ class SAR(RecognitionModel):
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
+            weights: list of weights to apply to each class of the vocab.
 
         Returns:
             The loss of the model on the batch
@@ -244,6 +246,11 @@ class SAR(RecognitionModel):
         seq_len = seq_len + 1
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
+        if weights:
+            # Weight model output
+            weights.append(1.)  # Add a neutral weight for EOS symbol
+            weights = tf.cast(weights, tf.float32)
+            model_output = tf.math.multiply(model_output, weights)
         # Compute loss
         cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
         # Compute mask
@@ -259,6 +266,7 @@ class SAR(RecognitionModel):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        weights: Optional[List[float]] = None,
         **kwargs: Any,
     ) -> Dict[str, tf.Tensor]:
 
@@ -278,7 +286,7 @@ class SAR(RecognitionModel):
             out["preds"] = self.postprocessor(decoded_features)
 
         if target is not None:
-            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)
+            out['loss'] = self.compute_loss(decoded_features, gt, seq_len, weights)
 
         return out
 

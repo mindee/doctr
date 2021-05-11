@@ -10,6 +10,7 @@ from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any, Optional, List
 
 from .. import backbones
+from ...datasets import VOCABS
 from ..utils import load_pretrained_params
 from .core import RecognitionModel, RecognitionPostProcessor
 
@@ -146,13 +147,15 @@ class CRNN(RecognitionModel):
         self,
         model_output: tf.Tensor,
         target: List[str],
+        weights: Optional[List[float]],
     ) -> tf.Tensor:
         """Compute CTC loss for the model.
 
         Args:
-            gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
-            seq_len: lengths of each gt word inside the batch
+            target: list of gt targets
+            weights: list of weights to apply to each class of the dataset.
+            Must have the same length than vocab.
 
         Returns:
             The loss of the model on the batch
@@ -160,6 +163,11 @@ class CRNN(RecognitionModel):
         gt, seq_len = self.compute_target(target)
         batch_len = model_output.shape[0]
         input_length = model_output.shape[1] * tf.ones(shape=(batch_len))
+        if weights:
+            # Weight model output
+            weights.append(1.)  # Add a neutral weight for EOS symbol
+            weights = tf.cast(weights, tf.float32)
+            model_output = tf.math.multiply(model_output, weights)
         ctc_loss = tf.nn.ctc_loss(
             gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
         )
@@ -171,6 +179,7 @@ class CRNN(RecognitionModel):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        weights: Optional[List[float]] = None,
         **kwargs: Any,
     ) -> Dict[str, tf.Tensor]:
 
@@ -191,7 +200,7 @@ class CRNN(RecognitionModel):
             out["preds"] = self.postprocessor(decoded_features)
 
         if target is not None:
-            out['loss'] = self.compute_loss(decoded_features, target)
+            out['loss'] = self.compute_loss(decoded_features, target, weights)
 
         return out
 

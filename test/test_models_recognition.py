@@ -50,8 +50,8 @@ def test_recognition_models(arch_name, input_shape):
     assert isinstance(reco_model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = ["i", "am", "a", "jedi"]
-
-    out = reco_model(input_tensor, target, return_model_output=True, return_preds=True)
+    weights = [1. for _ in range(len(reco_model.vocab))]
+    out = reco_model(input_tensor, target, return_model_output=True, return_preds=True, weights=weights)
     assert isinstance(out, dict)
     assert len(out) == 3
     assert isinstance(out['preds'], list)
