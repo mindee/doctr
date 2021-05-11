@@ -118,9 +118,9 @@ def convert_page_to_numpy(
     transform_matrix = fitz.Matrix(*scales)
 
     # Generate the pixel map using the transformation matrix
-    stream = page.getPixmap(matrix=transform_matrix).getImageData()
+    pixmap = page.getPixmap(matrix=transform_matrix)
     # Decode it into a numpy
-    img = cv2.imdecode(np.frombuffer(stream, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+    img = np.frombuffer(stream.pixels, dtype=np.uint8).reshape(pixmap.height, pixmap.width, 3)
 
     # Switch the channel order
     if rgb_output:
