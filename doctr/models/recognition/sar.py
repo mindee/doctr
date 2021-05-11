@@ -131,7 +131,7 @@ class SARDecoder(layers.Layer, NestedObject):
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
-        labels: Optional[tf.Tensor] = None,
+        gt: Optional[tf.Tensor] = None,
         **kwargs: Any,
     ) -> tf.Tensor:
 
@@ -145,6 +145,8 @@ class SARDecoder(layers.Layer, NestedObject):
         # Initialize with the index of virtual START symbol (placed after <eos>)
         symbol = tf.fill(features.shape[0], self.vocab_size + 1)
         logits_list = []
+        if kwargs.get('training') and gt is None:
+            raise ValueError('Need to provide labels during training for teacher forcing')
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
             # embeded_symbol: shape (N, embedding_units)
@@ -159,7 +161,7 @@ class SARDecoder(layers.Layer, NestedObject):
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
             if kwargs.get('training'):
-                symbol = labels[:, t]
+                symbol = gt[:, t]
             else:
                 symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
@@ -219,11 +221,11 @@ class SAR(RecognitionModel):
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
 
-    @staticmethod
     def compute_loss(
-        gt: tf.Tensor,
+        self,
         model_output: tf.Tensor,
-        seq_len: tf.Tensor
+        gt: tf.Tensor,
+        seq_len: tf.Tensor,
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -254,21 +256,31 @@ class SAR(RecognitionModel):
     def call(
         self,
         x: tf.Tensor,
-        labels: Optional[tf.sparse.SparseTensor] = None,
+        target: Optional[List[str]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
         **kwargs: Any,
-    ) -> tf.Tensor:
+    ) -> Dict[str, tf.Tensor]:
 
         features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
-        if kwargs.get('training'):
-            if labels is None:
-                raise ValueError('Need to provide labels during training for teacher forcing')
-            decoded = self.decoder(features, encoded, labels, **kwargs)
-        else:
-            decoded = self.decoder(features, encoded, **kwargs)
+        if target is not None:
+            gt, seq_len = self.compute_target(target)
+        decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
 
-        return decoded
+        out: Dict[str, tf.Tensor] = {}
+        if return_model_output:
+            out["out_map"] = decoded_features
+
+        if target is None or return_preds:
+            # Post-process boxes
+            out["preds"] = self.postprocessor(decoded_features)
+
+        if target is not None:
+            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)
+
+        return out
 
 
 class SARPostProcessor(RecognitionPostProcessor):

@@ -48,21 +48,16 @@ def plot_samples(images, targets):
     plt.show()
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step, teacher_forcing=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
         images, targets = next(train_iter)
 
         images = batch_transforms(images)
-        encoded_gts, seq_len = model.compute_target(targets)
 
         with tf.GradientTape() as tape:
-            if teacher_forcing:
-                train_logits = model(images, encoded_gts, training=True)
-            else:
-                train_logits = model(images, training=True)
-            train_loss = model.compute_loss(encoded_gts, train_logits, seq_len)
+            train_loss = model(images, targets, training=True)['loss']
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
@@ -87,14 +82,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        val_logits = model(images, training=False)
-        encoded_gts, seq_len = model.compute_target(targets)
-        loss = model.compute_loss(encoded_gts, val_logits, seq_len)
-        decoded = model.postprocessor(val_logits)
+        out = model(images, targets, return_preds=True, training=False)
         # Compute metric
-        val_metric.update(targets, decoded)
+        val_metric.update(targets, out['preds'])
 
-        val_loss += loss.numpy().mean()
+        val_loss += out['loss'].numpy().mean()
         batch_cnt += 1
 
     val_loss /= batch_cnt
@@ -186,8 +178,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer,
-                      loss_q, mb, tb_writer, step, args.teacher_forcing)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match = evaluate(model, val_loader, batch_transforms, val_metric)
@@ -216,8 +207,6 @@ def parse_args():
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument("--teacher_forcing", dest="teacher_forcing",
-                        help="enables teacher forcing during training", action="store_true")
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
