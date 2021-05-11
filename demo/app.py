@@ -74,7 +74,8 @@ def main():
 
                 # Forward the image to the model
                 processed_batches = predictor.det_predictor.pre_processor(doc)
-                seg_map = predictor.det_predictor.model(processed_batches[0])["proba_map"]
+                out = predictor.det_predictor.model(processed_batches[0], return_model_output=True, training=False)
+                seg_map = out["out_map"]
                 seg_map = tf.squeeze(seg_map, axis=[0, 3])
                 seg_map = cv2.resize(seg_map.numpy(), (doc[0].shape[1], doc[0].shape[0]),
                                      interpolation=cv2.INTER_LINEAR)
@@ -85,7 +86,7 @@ def main():
                 cols[1].pyplot(fig)
 
                 # OCR
-                out = predictor(doc)
+                out = predictor(doc, training=False)
                 fig = visualize_page(out.pages[0].export(), doc[0], interactive=False)
                 cols[-1].pyplot(fig)
 

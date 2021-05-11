@@ -26,7 +26,7 @@ def main(args):
     else:
         doc = DocumentFile.from_images(args.path)
 
-    out = model(doc)
+    out = model(doc, training=False)
 
     for page, img in zip(out.pages, doc):
         page.show(img, block=not args.noblock, interactive=not args.static)
