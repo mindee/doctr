@@ -33,5 +33,6 @@ cp source/conf.py _conf.py
 git fetch --all --tags --unshallow
 deploy_doc "" latest
 deploy_doc "571af3dc" v0.1.0
-deploy_doc "6248b0bd" # v0.1.1 Latest stable release
+deploy_doc "6248b0bd" v0.1.1
+deploy_doc "650c4ad4" # v0.2.0 Latest stable release
 rm -rf _build _static
