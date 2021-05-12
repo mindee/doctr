@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview: module code &mdash; doctr 0.1.2a0-git documentation</title>
+  <title>Overview: module code &mdash; doctr 0.2.1a0-git documentation</title>
   
 
   
@@ -80,23 +80,30 @@
               
             
             
-              <p><span class="caption-text">Getting Started</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
-<p><span class="caption-text">Package Documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../documents.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../documents.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../documents.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../documents.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../documents.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../documents.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../documents.html#document">Document</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
@@ -119,7 +126,16 @@
 <li class="toctree-l3"><a class="reference internal" href="../models.html#two-stage-approaches">Two-stage approaches</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#model-export">Model export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../transforms.html#composing-transformations">Composing transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../utils.html">doctr.utils</a><ul>
@@ -188,17 +204,23 @@
            <div itemprop="articleBody">
             
   <h1>All modules for which code is available</h1>
-<ul><li><a href="doctr/datasets/core.html">doctr.datasets.core</a></li>
+<ul><li><a href="doctr/datasets/cord.html">doctr.datasets.cord</a></li>
+<li><a href="doctr/datasets/core.html">doctr.datasets.core</a></li>
 <li><a href="doctr/datasets/funsd.html">doctr.datasets.funsd</a></li>
+<li><a href="doctr/datasets/loader.html">doctr.datasets.loader</a></li>
+<li><a href="doctr/datasets/sroie.html">doctr.datasets.sroie</a></li>
+<li><a href="doctr/datasets/utils.html">doctr.datasets.utils</a></li>
 <li><a href="doctr/documents/elements.html">doctr.documents.elements</a></li>
 <li><a href="doctr/documents/reader.html">doctr.documents.reader</a></li>
 <li><a href="doctr/models/detection/differentiable_binarization.html">doctr.models.detection.differentiable_binarization</a></li>
+<li><a href="doctr/models/detection/linknet.html">doctr.models.detection.linknet</a></li>
 <li><a href="doctr/models/detection/zoo.html">doctr.models.detection.zoo</a></li>
 <li><a href="doctr/models/export.html">doctr.models.export</a></li>
 <li><a href="doctr/models/recognition/crnn.html">doctr.models.recognition.crnn</a></li>
 <li><a href="doctr/models/recognition/sar.html">doctr.models.recognition.sar</a></li>
 <li><a href="doctr/models/recognition/zoo.html">doctr.models.recognition.zoo</a></li>
 <li><a href="doctr/models/zoo.html">doctr.models.zoo</a></li>
+<li><a href="doctr/transforms/modules.html">doctr.transforms.modules</a></li>
 <li><a href="doctr/utils/metrics.html">doctr.utils.metrics</a></li>
 <li><a href="doctr/utils/visualization.html">doctr.utils.visualization</a></li>
 </ul>

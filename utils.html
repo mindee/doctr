@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.utils &mdash; doctr 0.1.2a0-git documentation</title>
+  <title>doctr.utils &mdash; doctr 0.2.1a0-git documentation</title>
   
 
   
@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="doctr.models" href="models.html" /> 
+    <link rel="prev" title="doctr.transforms" href="transforms.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,23 +82,30 @@
               
             
             
-              <p><span class="caption-text">Getting Started</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
-<p><span class="caption-text">Package Documentation</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#document">Document</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
@@ -121,7 +128,16 @@
 <li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#composing-transformations">Composing transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.utils</a><ul>
@@ -201,7 +217,7 @@
 <p>Easy-to-use functions to make sense of your model’s predictions.</p>
 <dl class="py function">
 <dt id="doctr.utils.visualization.visualize_page">
-<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">scale</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">add_labels</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.figure.Figure<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize a full page with predicted blocks, lines and words</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -223,6 +239,7 @@
 <li><p><strong>page</strong> – the exported Page of a Document</p></li>
 <li><p><strong>image</strong> – np array of the page, needs to have the same shape than page[‘dimensions’]</p></li>
 <li><p><strong>words_only</strong> – whether only words should be displayed</p></li>
+<li><p><strong>scale</strong> – figsize of the largest windows side</p></li>
 </ul>
 </dd>
 </dl>
@@ -367,7 +384,7 @@ h_{B,L}(b, l) = \left\{
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="models.html" class="btn btn-neutral float-left" title="doctr.models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="transforms.html" class="btn btn-neutral float-left" title="doctr.transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
