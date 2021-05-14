@@ -1,4 +1,3 @@
-import pytest
 import os
 from doctr.models.artefacts import FaceDetector
 from doctr.documents import DocumentFile
