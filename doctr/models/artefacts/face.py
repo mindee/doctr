@@ -25,6 +25,8 @@ class FaceDetector(NestedObject):
         n_faces: int = 1,
     ) -> None:
         self.n_faces = n_faces
+        # Instantiate classifier
+        self.detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
     def extra_repr(self) -> str:
         return f"n_faces={self.n_faces}"
@@ -43,9 +45,8 @@ class FaceDetector(NestedObject):
         """
         height, width = img.shape[:2]
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # Instantiate classifier
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        faces = face_cascade.detectMultiScale(gray, 1.5, 3)
+
+        faces = self.detector.detectMultiScale(gray, 1.5, 3)
         # If faces are detected, keep only the biggest ones
         rel_faces = []
         if len(faces) > 0:
