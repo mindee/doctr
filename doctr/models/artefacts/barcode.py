@@ -29,8 +29,8 @@ class BarCodeDetector:
         """
         # get image size and define parameters
         height, width = img.shape[:2]
-        k = (1 + int(w / 512)) * 10  # spatial extension of kernels, 512 -> 20, 1024 -> 30, ...
-        min_w = int(w / 6)  # minimal size of a possible barcode: 1/6 of the page width
+        k = (1 + int(width / 512)) * 10  # spatial extension of kernels, 512 -> 20, 1024 -> 30, ...
+        min_w = int(width / 6)  # minimal size of a possible barcode: 1/6 of the page width
 
         # Detect edges
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
