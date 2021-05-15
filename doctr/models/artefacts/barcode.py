@@ -25,10 +25,10 @@ class BarCodeDetector:
             img: np image
 
         Returns:
-            A list of tuples: [(xmin, ymin, xmax, ymax), ...] containing barcodes coordinates
+            A list of tuples: [(xmin, ymin, xmax, ymax), ...] containing barcodes rel. coordinates
         """
         # get image size and define parameters
-        h, w = img.shape[:2]
+        height, width = img.shape[:2]
         k = (1 + int(w / 512)) * 10  # spatial extension of kernels, 512 -> 20, 1024 -> 30, ...
         min_w = int(w / 6)  # minimal size of a possible barcode: 1/6 of the page width
 
@@ -57,6 +57,6 @@ class BarCodeDetector:
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             if w >= min_w:
-                barcodes.append((x, y, x + w, y + h))
+                barcodes.append((x / width, y / height, (x + w) / width, (y + h) / height))
 
         return barcodes
