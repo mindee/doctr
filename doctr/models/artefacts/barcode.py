@@ -14,7 +14,21 @@ class BarCodeDetector:
 
     """ Implements a Bar-code detector.
     For now, only horizontal (or with a small angle) bar-codes are supported
+
+    Args:
+        min_size: minimum relative size of a barcode on the page
+        canny_minval: lower bound for canny hysteresis
+        canny_maxval: upper-bound for canny hysteresis
     """
+    def __init__(
+        self,
+        min_size: float = 1 / 6,
+        canny_minval: int = 50,
+        canny_maxval: int = 150
+    ) -> None:
+        self.min_size = min_size
+        self.canny_minval = canny_minval
+        self.canny_maxval = canny_maxval
 
     def __call__(
         self,
@@ -30,11 +44,11 @@ class BarCodeDetector:
         # get image size and define parameters
         height, width = img.shape[:2]
         k = (1 + int(width / 512)) * 10  # spatial extension of kernels, 512 -> 20, 1024 -> 30, ...
-        min_w = int(width / 6)  # minimal size of a possible barcode: 1/6 of the page width
+        min_w = int(width * self.min_size)  # minimal size of a possible barcode
 
         # Detect edges
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+        edges = cv2.Canny(gray, self.canny_minval, self.canny_maxval, apertureSize=3)
 
         # Horizontal dilation to aggregate bars of the potential barcode
         # without aggregating text lines of the page vertically
