@@ -27,7 +27,7 @@ class QRCodeDetector(cv2.QRCodeDetector):
         Returns:
             A tuple: ((xmin, ymin, xmax, ymax), prediction) or None
         """
-        decodedText, points, _ = self.detector.detectAndDecode(img)
+        decodedText, points, _ = self.detectAndDecode(img)
 
         if points is None:
             return None
