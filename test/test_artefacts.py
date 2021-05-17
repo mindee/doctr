@@ -9,8 +9,6 @@ def test_qr_code_detector(mock_image_folder):
         image = DocumentFile.from_images(os.path.join(mock_image_folder, img))[0]
         barcode = detector(image)
         assert len(barcode) == 0
-from doctr.models.artefacts import FaceDetector
-from doctr.documents import DocumentFile
 
 
 def test_face_detector(mock_image_folder):
