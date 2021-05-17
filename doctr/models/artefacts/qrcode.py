@@ -10,16 +10,11 @@ from typing import Tuple, Optional
 __all__ = ['QRCodeDetector']
 
 
-class QRCodeDetector:
+class QRCodeDetector(cv2.QRCodeDetector):
 
     """ Implements a QR-code detector.
     Based on open CV QRCodeDetector. Returns both localization and decoded text.
     """
-
-    def __init__(
-        self,
-    ) -> None:
-        self.detector = cv2.QRCodeDetector()
 
     def __call__(
         self,
