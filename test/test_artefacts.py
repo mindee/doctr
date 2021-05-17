@@ -10,6 +10,7 @@ def test_qr_code_detector(mock_image_folder):
         qrcode = detector(image)
         assert qrcode is None
 
+
 def test_bar_code_detector(mock_image_folder):
     detector = BarCodeDetector()
     for img in os.listdir(mock_image_folder):
