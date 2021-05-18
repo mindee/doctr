@@ -8,20 +8,11 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
-        config:
-        - {
-            name: "build - macOS",
-            os: macos-latest
-          }
-          {
-            name: "build - Windows",
-            os: windows-latest
-          }
+        os: [macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.7
