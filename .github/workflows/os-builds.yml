@@ -7,14 +7,12 @@ on:
     branches: main
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
+  build-macos:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: brew install cairo
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
         with:
@@ -33,14 +31,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e . --upgrade
+      - name: Run analysis script
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
+          python scripts/analyze.py sample.pdf --noblock
 
-  doc-analysis:
-    runs-on: ${{ matrix.os }}
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
+  build-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.7
@@ -63,5 +60,5 @@ jobs:
           pip install -e . --upgrade
       - name: Run analysis script
         run: |
-          wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
+          curl.exe https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf -o sample.pdf
           python scripts/analyze.py sample.pdf --noblock
