@@ -40,10 +40,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install prerequisites
-        run: |
-          curl.exe https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2021-04-29/gtk3-runtime-3.24.29-2021-04-29-ts-win64.exe -o gtk.exe
-          cmd /K "gtk.exe"
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
         with:
@@ -62,7 +58,3 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e . --upgrade
-      - name: Run analysis script
-        run: |
-          curl.exe https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf -o sample.pdf
-          python scripts/analyze.py sample.pdf --noblock
