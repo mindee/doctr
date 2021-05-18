@@ -298,24 +298,22 @@ class OCRMetric:
     ) -> None:
 
         # Compute IoU
-        iou_mat = box_iou(gt_boxes, pred_boxes)
-        if iou_mat.shape[1] == 0:
-            self.tot_iou = 0
-        else:
+        if pred_boxes.shape[0] > 0:
+            iou_mat = box_iou(gt_boxes, pred_boxes)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
-        # Assign pairs
-        gt_indices, preds_indices = assign_pairs(iou_mat, self.iou_thresh)
+            # Assign pairs
+            gt_indices, preds_indices = assign_pairs(iou_mat, self.iou_thresh)
 
-        # Compare sequences
-        for gt_idx, pred_idx in zip(gt_indices, preds_indices):
-            dist = levenshtein(gt_labels[gt_idx], pred_labels[pred_idx])
-            self.tot_dist += dist
-            if dist <= self.max_dist:
-                self.num_reco_matches += 1
+            # Compare sequences
+            for gt_idx, pred_idx in zip(gt_indices, preds_indices):
+                dist = levenshtein(gt_labels[gt_idx], pred_labels[pred_idx])
+                self.tot_dist += dist
+                if dist <= self.max_dist:
+                    self.num_reco_matches += 1
 
-        # Update counts
-        self.num_det_matches = len(gt_indices)
+            # Update counts
+            self.num_det_matches = len(gt_indices)
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
