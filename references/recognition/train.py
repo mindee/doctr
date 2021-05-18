@@ -103,9 +103,9 @@ def main(args):
         labels_path=os.path.join(args.data_path, 'train_labels.json'),
         sample_transforms=T.Compose([
             T.LambdaTransformation(lambda x: x / 255),
-            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
-            # Augmentations
             T.RandomApply(T.ColorInversion(), .1),
+            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+            # Augmentations
             T.RandomJpegQuality(60),
             T.RandomSaturation(.3),
             T.RandomContrast(.3),
@@ -127,7 +127,7 @@ def main(args):
         labels_path=os.path.join(args.data_path, 'val_labels.json'),
         sample_transforms=T.Compose([
             T.LambdaTransformation(lambda x: x / 255),
-            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=False),
+            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
         ]),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
