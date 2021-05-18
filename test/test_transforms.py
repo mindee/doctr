@@ -22,6 +22,13 @@ def test_resize():
     assert not tf.reduce_all(out == 1)
     assert out.shape[:2] == output_size
 
+    # Inverse aspect ratio
+    input_t = tf.cast(tf.fill([64, 32, 3], 1), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert not tf.reduce_all(out == 1)
+    assert out.shape[:2] == output_size
+
 
 def test_compose():
 
