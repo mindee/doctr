@@ -33,6 +33,34 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e . --upgrade
+
+  doc-analysis:
+    runs-on: ${{ matrix.os }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ hashFiles('requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ hashFiles('requirements.txt') }}-
+            ${{ runner.os }}-pkg-deps-
+            ${{ runner.os }}-
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . --upgrade
       - name: Run analysis script
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
