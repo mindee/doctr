@@ -71,7 +71,12 @@ class Resize(NestedObject):
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
         if self.preserve_aspect_ratio:
-            img = tf.image.pad_to_bounding_box(img, 0, 0, *self.output_size)
+            # pad width
+            if self.output_size[0] == img.shape[0]:
+                offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
+            else:
+                offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+            img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
         return img
 
 
