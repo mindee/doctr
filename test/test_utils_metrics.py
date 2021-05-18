@@ -78,18 +78,42 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
 
 
 @pytest.mark.parametrize(
-    "gts_vert, preds_vert, gts_texts, preds_texts, iou_thresh, max_dist, recall, precision, mean_iou, mean_distance",
+    "gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, max_dist, recall, precision, mean_iou, mean_distance",
     [
-        [[[0, 0, .5, .5]], [[0, 0, .5, .5]], ["elephant"], ["elephant"], 0.5, 0, 1, 1, 1, 0],  # Perfect match
-        [[[0, 0, .5, .5]], [[0, 0, .5, .5]], ["elefant"], ["elephant"], 0.5, 1, 0, 0, 1, 2],  # Bad match
-        [[[0, 0, 1, 1]], [[0, 0, .5, .5], [.6, .6, .7, .7]], ["home"], ["hom"], 0.2, 1, 1, 0.5, 0.125, 1],  # Good match
+        [  # Perfect match
+            [[[0, 0, .5, .5]]], [["elephant"]],
+            [[[0, 0, .5, .5]]], [["elephant"]],
+            0.5, 0, 1, 1, 1, 0
+        ],
+        [  # Bad match
+            [[[0, 0, .5, .5]]], [["elefant"]],
+            [[[0, 0, .5, .5]]], [["elephant"]],
+            0.5, 1, 0, 0, 1, 2
+        ],
+        [  # Good match
+            [[[0, 0, 1, 1]]], [["home"]],
+            [[[0, 0, .5, .5], [.6, .6, .7, .7]]], [["hom", "e"]],
+            0.2, 1, 1, 0.5, 0.125, 1
+        ],
+        [  # No preds on 2nd sample
+            [[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [["elephant"], ["elephant"]],
+            [[[0, 0, .5, .5]], None], [["elephant"], []],
+            0.5, 0, 0.5, 1, 1, 0
+        ],
     ],
 )
 def test_ocr_metric(
-    gts_vert, preds_vert, gts_texts, preds_texts, iou_thresh, max_dist, recall, precision, mean_iou, mean_distance
+    gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, max_dist, recall, precision, mean_iou, mean_distance
 ):
     metric = metrics.OCRMetric(iou_thresh, max_dist)
-    metric.update(np.asarray(gts_vert), np.asarray(preds_vert), gts_texts, preds_texts)
+    for _gboxes, _gwords, _pboxes, _pwords in zip(gt_boxes, gt_words, pred_boxes, pred_words):
+        metric.update(
+            np.asarray(_gboxes),
+            np.zeros((0, 4)) if _pboxes is None else np.asarray(_pboxes),
+            _gwords,
+            _pwords
+        )
     assert metric.summary() == (recall, precision, mean_iou, mean_distance)
     metric.reset()
     assert metric.num_reco_matches == metric.num_det_matches == metric.num_gts == metric.num_preds == 0
+    assert metric.tot_iou == metric.tot_dist == 0.
