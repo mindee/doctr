@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
-        run: brew install cairo
+        run: brew install cairo pango gdk-pixbuf libffi
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
         with:
@@ -40,6 +40,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Install prerequisites
+        run: |
+          curl.exe https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2021-04-29/gtk3-runtime-3.24.29-2021-04-29-ts-win64.exe -o gtk.exe
+          gtk.exe
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
         with:
