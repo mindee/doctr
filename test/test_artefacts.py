@@ -5,6 +5,6 @@ import numpy as np
 
 def test_qr_code_detector(mock_image_folder):
     detector = QRCodeDetector()
-    image = np.random.random_sample((512, 512))
+    image = np.random.random_sample((512, 512, 3))
     qrcode = detector(image)
     assert qrcode is None
