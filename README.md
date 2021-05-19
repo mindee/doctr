@@ -86,6 +86,14 @@ git clone https://github.com/mindee/doctr.git
 pip install -e doctr/.
 ```
 
+Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
+For MacOS users, you can install them as follows:
+```shell
+brew install cairo pango gdk-pixbuf libffi
+```
+
+For Windows users, those dependencies are included in GTK. You can find the latest installer over [here](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).
+
 
 ## Models architectures
 Credits where it's due: this repository is implementing, among others, architectures from published research papers.
