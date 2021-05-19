@@ -47,6 +47,11 @@ class OCRDataset(AbstractDataset):
             # Get image path
             img_name = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem + '.jpg'
             box_targets = []
+            # handle empty images
+            if (len(file_dic["coordinates"]) == 0 or
+               (len(file_dic["coordinates"]) == 1 and file_dic["coordinates"][0] == "N/A")):
+                self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=[])))
+                continue
             for box in file_dic["coordinates"]:
                 xs, ys = np.asarray(box)[:, 0], np.asarray(box)[:, 1]
                 box_targets.append([min(xs), min(ys), max(xs), max(ys)])
