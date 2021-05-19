@@ -8,7 +8,6 @@ def test_qr_code_detector(mock_image_folder):
     detector = QRCodeDetector()
     for img in os.listdir(mock_image_folder):
         image = DocumentFile.from_images(os.path.join(mock_image_folder, img))[0]
-        image = cv2.resize(image, (256, 256))
         qrcode = detector(image)
         assert qrcode is None
 
