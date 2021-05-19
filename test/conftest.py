@@ -30,7 +30,7 @@ def mock_pdf(mock_pdf_stream, tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_image_stream():
-    url = "https://www.starwarsnewsnet.com/wp-content/uploads/2020/11/The-Mandalorian-Grogu-Raises-His-Hands-In-The-Air-Like-He-Doesnt-Care.png"
+    url = "https://miro.medium.com/max/3349/1*mk1-6aYaf_Bes1E3Imhc0A.jpeg"
     return requests.get(url).content
 
 
