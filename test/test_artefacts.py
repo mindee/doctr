@@ -1,5 +1,4 @@
 import os
-import cv2
 from doctr.models.artefacts import BarCodeDetector, FaceDetector, QRCodeDetector
 from doctr.documents import DocumentFile
 
