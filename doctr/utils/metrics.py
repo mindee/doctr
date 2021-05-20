@@ -92,7 +92,7 @@ class TextMatch:
         """Computes the aggregated metrics
 
         Returns:
-            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode 
+            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode
             counterpart and its lower-case unidecode counterpart
         """
         if self.total == 0:
