@@ -90,8 +90,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         batch_cnt += 1
 
     val_loss /= batch_cnt
-    exact_match, _, _, partial_match = val_metric.summary()
-    return val_loss, exact_match, partial_match
+    result = val_metric.summary()
+    return val_loss, result['raw'], result['unicase']
 
 
 def main(args):

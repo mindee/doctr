@@ -32,9 +32,9 @@ def main(args):
         val_set = datasets.__dict__[args.dataset](train=False, download=True)
         sets = [train_set, val_set]
 
-    det_metric = LocalizationConfusion()
+    det_metric = LocalizationConfusion(iou_thresh=args.iou)
     reco_metric = TextMatch()
-    e2e_metric = OCRMetric()
+    e2e_metric = OCRMetric(iou_thresh=args.iou)
 
     for dataset in sets:
         for page, target in tqdm(dataset):
@@ -70,13 +70,13 @@ def main(args):
     # Unpack aggregated metrics
     print(f"Model Evaluation (model= {args.detection} + {args.recognition}, "
           f"dataset={'OCRDataset' if args.img_folder else args.dataset})")
-    recall, precision, mean_iou = det_metric.summary(iou_thresh=args.iou)
+    recall, precision, mean_iou = det_metric.summary()
     print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
     acc = reco_metric.summary()
-    print(f"Text Recognition - Accuracy: {acc["raw"]:.2%} (unicase: {acc["unicase"]:.2%})")
-    recall, precision, mean_iou, _ = e2e_metric.summary(iou_thresh=args.iou)
-    print(f"OCR - Recall: {recall["raw"]:.2%} (unicase: {recall["unicase"]:.2%}), "
-          f"Precision: {precision["raw"]:.2%} (unicase: {precision["unicase"]:.2%}), Mean IoU: {mean_iou:.2%}")
+    print(f"Text Recognition - Accuracy: {acc['raw']:.2%} (unicase: {acc['unicase']:.2%})")
+    recall, precision, mean_iou, _ = e2e_metric.summary()
+    print(f"OCR - Recall: {recall['raw']:.2%} (unicase: {recall['unicase']:.2%}), "
+          f"Precision: {precision['raw']:.2%} (unicase: {precision['unicase']:.2%}), Mean IoU: {mean_iou:.2%}")
 
 
 def parse_args():
