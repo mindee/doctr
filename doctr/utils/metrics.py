@@ -89,7 +89,12 @@ class TextMatch:
         self.total += len(gt)
 
     def summary(self) -> Dict[str, float]:
-        """Computes the aggregated metrics"""
+        """Computes the aggregated metrics
+
+        Returns:
+            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode 
+            counterpart and its lower-case unidecode counterpart
+        """
         if self.total == 0:
             raise AssertionError("you need to update the metric before getting the summary")
 
@@ -194,6 +199,11 @@ class LocalizationConfusion:
         self.num_preds += preds.shape[0]
 
     def summary(self) -> Tuple[float, float, float]:
+        """Computes the aggregated metrics
+
+        Returns:
+            a tuple with the recall, precision and meanIoU scores
+        """
 
         # Recall
         recall = self.matches / self.num_gts if self.num_gts > 0 else None
@@ -290,6 +300,11 @@ class OCRMetric:
         self.num_preds += pred_boxes.shape[0]
 
     def summary(self) -> Tuple[Dict[str, float], Dict[str, float], float]:
+        """Computes the aggregated metrics
+
+        Returns:
+            a tuple with the recall & precision for each string comparison flexibility and the mean IoU
+        """
 
         # Recall
         recall = dict(
