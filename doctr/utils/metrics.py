@@ -166,12 +166,16 @@ class LocalizationConfusion:
     Example::
         >>> import numpy as np
         >>> from doctr.utils import LocalizationConfusion
-        >>> metric = LocalizationConfusion()
+        >>> metric = LocalizationConfusion(iou_thresh=0.5)
         >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))
-        >>> metric.summary(iou_thresh=0.5)
+        >>> metric.summary()
+
+    Args:
+        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self) -> None:
+    def __init__(self, iou_thresh: float = 0.5) -> None:
+        self.iou_thresh = iou_thresh
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
@@ -183,21 +187,19 @@ class LocalizationConfusion:
 
             # Assign pairs
             gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
-            self.ious.extend(iou_mat[gt_indices, pred_indices].tolist())
+            self.matches += int((iou_mat[gt_indices, pred_indices] >= self.iou_thresh).sum())
 
         # Update counts
         self.num_gts += gts.shape[0]
         self.num_preds += preds.shape[0]
 
-    def summary(self, iou_thresh: float = 0.5) -> Tuple[float, float, float]:
-
-        matches = sum(iou >= iou_thresh for iou in self.ious)
+    def summary(self) -> Tuple[float, float, float]:
 
         # Recall
-        recall = matches / self.num_gts if self.num_gts > 0 else None
+        recall = self.matches / self.num_gts if self.num_gts > 0 else None
 
         # Precision
-        precision = matches / self.num_preds if self.num_preds > 0 else None
+        precision = self.matches / self.num_preds if self.num_preds > 0 else None
 
         # mean IoU
         mean_iou = self.tot_iou / self.num_preds if self.num_preds > 0 else None
@@ -207,8 +209,8 @@ class LocalizationConfusion:
     def reset(self) -> None:
         self.num_gts = 0
         self.num_preds = 0
+        self.matches = 0
         self.tot_iou = 0.
-        self.ious = []
 
 
 class OCRMetric:
@@ -247,9 +249,13 @@ class OCRMetric:
         >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
         ['hello'], ['hello', 'world'])
         >>> metric.summary()
+
+    Args:
+        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self) -> None:
+    def __init__(self, iou_thresh: float = 0.5) -> None:
+        self.iou_thresh = iou_thresh
         self.reset()
 
     def update(
@@ -271,43 +277,34 @@ class OCRMetric:
 
             # Assign pairs
             gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
-            self.ious.extend(iou_mat[gt_indices, pred_indices].tolist())
-            self.text_matches.extend([
-                string_match(gt_labels[gt_idx], pred_labels[pred_idx])
-                for gt_idx, pred_idx in zip(gt_indices, pred_indices)
-            ])
+            is_kept = iou_mat[gt_indices, pred_indices] >= self.iou_thresh
+            # String comparison
+            for gt_idx, pred_idx in zip(gt_indices[is_kept], pred_indices[is_kept]):
+                _raw, _caseless, _unidecode, _unicase = string_match(gt_labels[gt_idx], pred_labels[pred_idx])
+                self.raw_matches += int(_raw)
+                self.caseless_matches += int(_caseless)
+                self.unidecode_matches += int(_unidecode)
+                self.unicase_matches += int(_unicase)
 
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
-    def summary(self, iou_thresh: float = 0.5) -> Tuple[Dict[str, float], Dict[str, float], float]:
-
-        raw_matches = 0
-        caseless_matches = 0
-        unidecode_matches = 0
-        unicase_matches = 0
-
-        for iou, (_raw, _caseless, _unidecode, _unicase) in zip(self.ious, self.text_matches):
-            if iou >= iou_thresh:
-                raw_matches += int(_raw)
-                caseless_matches += int(_caseless)
-                unidecode_matches += int(_unidecode)
-                unicase_matches += int(_unicase)
+    def summary(self) -> Tuple[Dict[str, float], Dict[str, float], float]:
 
         # Recall
         recall = dict(
-            raw=raw_matches / self.num_gts if self.num_gts > 0 else None,
-            caseless=caseless_matches / self.num_gts if self.num_gts > 0 else None,
-            unidecode=unidecode_matches / self.num_gts if self.num_gts > 0 else None,
-            unicase=unicase_matches / self.num_gts if self.num_gts > 0 else None,
+            raw=self.raw_matches / self.num_gts if self.num_gts > 0 else None,
+            caseless=self.caseless_matches / self.num_gts if self.num_gts > 0 else None,
+            unidecode=self.unidecode_matches / self.num_gts if self.num_gts > 0 else None,
+            unicase=self.unicase_matches / self.num_gts if self.num_gts > 0 else None,
         )
 
         # Precision
         precision = dict(
-            raw=raw_matches / self.num_preds if self.num_preds > 0 else None,
-            caseless=caseless_matches / self.num_preds if self.num_preds > 0 else None,
-            unidecode=unidecode_matches / self.num_preds if self.num_preds > 0 else None,
-            unicase=unicase_matches / self.num_preds if self.num_preds > 0 else None,
+            raw=self.raw_matches / self.num_preds if self.num_preds > 0 else None,
+            caseless=self.caseless_matches / self.num_preds if self.num_preds > 0 else None,
+            unidecode=self.unidecode_matches / self.num_preds if self.num_preds > 0 else None,
+            unicase=self.unicase_matches / self.num_preds if self.num_preds > 0 else None,
         )
 
         # mean IoU (overall detected boxes)
@@ -319,5 +316,7 @@ class OCRMetric:
         self.num_gts = 0
         self.num_preds = 0
         self.tot_iou = 0.
-        self.ious = []
-        self.text_matches = []
+        self.raw_matches = 0
+        self.caseless_matches = 0
+        self.unidecode_matches = 0
+        self.unicase_matches = 0
