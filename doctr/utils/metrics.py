@@ -4,21 +4,42 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-from rapidfuzz.string_metric import levenshtein
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
 
-__all__ = ['ExactMatch', 'box_iou', 'assign_pairs', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'LocalizationConfusion', 'OCRMetric']
 
 
-class ExactMatch:
+def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
+    """Perform string comparison with multiple levels of tolerance
+
+    Args:
+        word1: a string
+        word2: another string
+
+    Returns:
+        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their
+            unidecode counterparts and their lower-case unidecode counterparts match
+    """
+    raw_match = (word1 == word2)
+    caseless_match = (word1.lower() == word2.lower())
+    unidecode_match = (unidecode(word1) == unidecode(word2))
+
+    # Warning: the order is important here otherwise the pair ("EUR", "€") cannot be matched
+    unicase_match = (unidecode(word1).lower() == unidecode(word2).lower())
+
+    return raw_match, caseless_match, unidecode_match, unicase_match
+
+
+class TextMatch:
     """Implements exact match metric (word-level accuracy) for recognition task.
 
     The aggregated metric is computed as follows:
 
     .. math::
         \\forall X, Y \\in \\mathcal{W}^N,
-        ExactMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)
+        TextMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)
 
     with the indicator function :math:`f_{a}` defined as:
 
@@ -35,37 +56,14 @@ class ExactMatch:
     :math:`N` is a strictly positive integer.
 
     Example::
-        >>> from doctr.utils import ExactMatch
-        >>> metric = ExactMatch()
+        >>> from doctr.utils import TextMatch
+        >>> metric = TextMatch()
         >>> metric.update(['Hello', 'world'], ['hello', 'world'])
         >>> metric.summary()
+    """
 
-    Args:
-        ignore_case: if true, ignore letter case when computing metric
-        ignore_accents: if true, ignore accents errors when computing metrics"""
-
-    def __init__(
-        self,
-        ignore_case: bool = False,
-        ignore_accents: bool = False,
-    ) -> None:
-
-        self.matches = 0
-        self.total = 0
-        self.ignore_case = ignore_case
-        self.ignore_accents = ignore_accents
-
-    @staticmethod
-    def remove_accent(input_string: str) -> str:
-        """Removes all accents (¨^çéè...) from input_string
-
-        Args:
-            input_string: character sequence with accents
-
-        Returns:
-            character sequence without accents"""
-
-        raise NotImplementedError
+    def __init__(self) -> None:
+        self.reset()
 
     def update(
         self,
@@ -81,31 +79,32 @@ class ExactMatch:
         if len(gt) != len(pred):
             raise AssertionError("prediction size does not match with ground-truth labels size")
 
-        for pred_word, gt_word in zip(pred, gt):
-            if self.ignore_accents:
-                gt_word = self.remove_accent(gt_word)
-                pred_word = self.remove_accent(pred_word)
-
-            if self.ignore_case:
-                gt_word = gt_word.lower()
-                pred_word = pred_word.lower()
-
-            if pred_word == gt_word:
-                self.matches += 1
+        for gt_word, pred_word in zip(gt, pred):
+            _raw, _caseless, _unidecode, _unicase = string_match(gt_word, pred_word)
+            self.raw += int(_raw)
+            self.caseless += int(_caseless)
+            self.unidecode += int(_unidecode)
+            self.unicase += int(_unicase)
 
         self.total += len(gt)
 
-    def summary(self) -> float:
-        """Computes the aggregated evaluation
-
-        Returns:
-            metric result"""
+    def summary(self) -> Dict[str, float]:
+        """Computes the aggregated metrics"""
         if self.total == 0:
             raise AssertionError("you need to update the metric before getting the summary")
-        return self.matches / self.total
+
+        return dict(
+            raw=self.raw / self.total,
+            caseless=self.caseless / self.total,
+            unidecode=self.unidecode / self.total,
+            unicase=self.unicase / self.total,
+        )
 
     def reset(self) -> None:
-        self.matches = 0
+        self.raw = 0
+        self.caseless = 0
+        self.unidecode = 0
+        self.unicase = 0
         self.total = 0
 
 
@@ -138,21 +137,6 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
-def assign_pairs(score_mat: np.ndarray, score_threshold: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
-    """Assigns candidates by maximizing the score of all pairs
-
-    Args:
-        score_mat: score matrix
-        score_threshold: minimum score to validate an assignment
-    Returns:
-        a tuple of two lists: the list of assigned row candidates indices, and the list of their column counterparts
-    """
-
-    row_ind, col_ind = linear_sum_assignment(-score_mat)
-    is_kept = score_mat[row_ind, col_ind] >= score_threshold
-    return row_ind[is_kept], col_ind[is_kept]
-
-
 class LocalizationConfusion:
     """Implements common confusion metrics and mean IoU for localization evaluation.
 
@@ -182,21 +166,13 @@ class LocalizationConfusion:
     Example::
         >>> import numpy as np
         >>> from doctr.utils import LocalizationConfusion
-        >>> metric = LocalizationConfusion(iou_thresh=0.5)
+        >>> metric = LocalizationConfusion()
         >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))
-        >>> metric.summary()
-
-    Args:
-        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        >>> metric.summary(iou_thresh=0.5)
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
-
-        self.iou_thresh = iou_thresh
-        self.num_gts = 0
-        self.num_preds = 0
-        self.num_matches = 0
-        self.tot_iou = 0.
+    def __init__(self) -> None:
+        self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
 
@@ -204,32 +180,35 @@ class LocalizationConfusion:
             # Compute IoU
             iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
+
             # Assign pairs
-            gt_indices, _ = assign_pairs(iou_mat, self.iou_thresh)
-            self.num_matches += len(gt_indices)
+            gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
+            self.ious.extend(iou_mat[gt_indices, pred_indices].tolist())
 
         # Update counts
         self.num_gts += gts.shape[0]
         self.num_preds += preds.shape[0]
 
-    def summary(self) -> Tuple[float, float, float]:
+    def summary(self, iou_thresh: float = 0.5) -> Tuple[float, float, float]:
+
+        matches = sum(iou >= iou_thresh for iou in self.ious)
 
         # Recall
-        recall = self.num_matches / self.num_gts
+        recall = matches / self.num_gts if self.num_gts > 0 else None
 
         # Precision
-        precision = self.num_matches / self.num_preds
+        precision = matches / self.num_preds if self.num_preds > 0 else None
 
         # mean IoU
-        mean_iou = self.tot_iou / self.num_preds
+        mean_iou = self.tot_iou / self.num_preds if self.num_preds > 0 else None
 
         return recall, precision, mean_iou
 
     def reset(self) -> None:
         self.num_gts = 0
         self.num_preds = 0
-        self.num_matches = 0
         self.tot_iou = 0.
+        self.ious = []
 
 
 class OCRMetric:
@@ -268,26 +247,10 @@ class OCRMetric:
         >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
         ['hello'], ['hello', 'world'])
         >>> metric.summary()
-
-    Args:
-        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
-        max_dist: maximum Levenshtein distance between 2 sequence to consider a match
     """
 
-    def __init__(
-        self,
-        iou_thresh: float = 0.5,
-        max_dist: int = 0
-    ) -> None:
-
-        self.iou_thresh = iou_thresh
-        self.max_dist = max_dist
-        self.num_gts = 0
-        self.num_preds = 0
-        self.num_det_matches = 0
-        self.num_reco_matches = 0
-        self.tot_iou = 0.
-        self.tot_dist = 0
+    def __init__(self) -> None:
+        self.reset()
 
     def update(
         self,
@@ -297,46 +260,64 @@ class OCRMetric:
         pred_labels: List[str],
     ) -> None:
 
+        if gt_boxes.shape[0] != len(gt_labels) or pred_boxes.shape[0] != len(pred_labels):
+            raise AssertionError("there should be the same number of boxes and string both for the ground truth "
+                                 "and the predictions")
+
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             iou_mat = box_iou(gt_boxes, pred_boxes)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs
-            gt_indices, preds_indices = assign_pairs(iou_mat, self.iou_thresh)
+            gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
+            self.ious.extend(iou_mat[gt_indices, pred_indices].tolist())
+            self.text_matches.extend([
+                string_match(gt_labels[gt_idx], pred_labels[pred_idx])
+                for gt_idx, pred_idx in zip(gt_indices, pred_indices)
+            ])
 
-            # Compare sequences
-            for gt_idx, pred_idx in zip(gt_indices, preds_indices):
-                dist = levenshtein(gt_labels[gt_idx], pred_labels[pred_idx])
-                self.tot_dist += dist
-                if dist <= self.max_dist:
-                    self.num_reco_matches += 1
-
-            # Update counts
-            self.num_det_matches = len(gt_indices)
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
-    def summary(self) -> Tuple[float, float, float, float]:
+    def summary(self, iou_thresh: float = 0.5) -> Tuple[Dict[str, float], Dict[str, float], float]:
+
+        raw_matches = 0
+        caseless_matches = 0
+        unidecode_matches = 0
+        unicase_matches = 0
+
+        for iou, (_raw, _caseless, _unidecode, _unicase) in zip(self.ious, self.text_matches):
+            if iou >= iou_thresh:
+                raw_matches += int(_raw)
+                caseless_matches += int(_caseless)
+                unidecode_matches += int(_unidecode)
+                unicase_matches += int(_unicase)
 
         # Recall
-        recall = self.num_reco_matches / self.num_gts
+        recall = dict(
+            raw=raw_matches / self.num_gts if self.num_gts > 0 else None,
+            caseless=caseless_matches / self.num_gts if self.num_gts > 0 else None,
+            unidecode=unidecode_matches / self.num_gts if self.num_gts > 0 else None,
+            unicase=unicase_matches / self.num_gts if self.num_gts > 0 else None,
+        )
 
         # Precision
-        precision = self.num_reco_matches / self.num_preds
+        precision = dict(
+            raw=raw_matches / self.num_preds if self.num_preds > 0 else None,
+            caseless=caseless_matches / self.num_preds if self.num_preds > 0 else None,
+            unidecode=unidecode_matches / self.num_preds if self.num_preds > 0 else None,
+            unicase=unicase_matches / self.num_preds if self.num_preds > 0 else None,
+        )
 
         # mean IoU (overall detected boxes)
-        mean_iou = self.tot_iou / self.num_preds
+        mean_iou = self.tot_iou / self.num_preds if self.num_preds > 0 else None
 
-        # mean distance (overall detection-matching boxes)
-        mean_distance = self.tot_dist / self.num_det_matches
-
-        return recall, precision, mean_iou, mean_distance
+        return recall, precision, mean_iou
 
     def reset(self) -> None:
         self.num_gts = 0
         self.num_preds = 0
-        self.num_det_matches = 0
-        self.num_reco_matches = 0
         self.tot_iou = 0.
-        self.tot_dist = 0
+        self.ious = []
+        self.text_matches = []
