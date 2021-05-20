@@ -33,9 +33,9 @@ def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
 
 
 class TextMatch:
-    """Implements exact match metric (word-level accuracy) for recognition task.
+    """Implements text match metric (word-level accuracy) for recognition task.
 
-    The aggregated metric is computed as follows:
+    The raw aggregated metric is computed as follows:
 
     .. math::
         \\forall X, Y \\in \\mathcal{W}^N,
