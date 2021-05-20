@@ -5,7 +5,8 @@
 
 import pytest
 import numpy as np
-from doctr.utils.metrics import box_iou, assign_pairs
+from scipy.optimize import linear_sum_assignment
+from doctr.utils.metrics import box_iou
 
 
 @pytest.mark.asyncio
@@ -23,5 +24,6 @@ async def test_text_detection(test_app_asyncio, mock_detection_image):
     assert isinstance(json_response, list) and len(json_response) == gt_boxes.shape[0]
     pred_boxes = np.array([elt['box'] for elt in json_response])
     iou_mat = box_iou(gt_boxes, pred_boxes)
-    gt_idxs, _ = assign_pairs(iou_mat, 0.8)
-    assert gt_idxs.shape[0] == gt_boxes.shape[0]
+    gt_idxs, pred_idxs = linear_sum_assignment(-iou_mat)
+    is_kept = iou_mat[gt_idxs, pred_idxs] >= 0.8
+    assert gt_idxs[is_kept].shape[0] == gt_boxes.shape[0]
