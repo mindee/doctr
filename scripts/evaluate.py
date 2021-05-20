@@ -74,7 +74,7 @@ def main(args):
     print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
     acc = reco_metric.summary()
     print(f"Text Recognition - Accuracy: {acc['raw']:.2%} (unicase: {acc['unicase']:.2%})")
-    recall, precision, mean_iou, _ = e2e_metric.summary()
+    recall, precision, mean_iou = e2e_metric.summary()
     print(f"OCR - Recall: {recall['raw']:.2%} (unicase: {recall['unicase']:.2%}), "
           f"Precision: {precision['raw']:.2%} (unicase: {precision['unicase']:.2%}), Mean IoU: {mean_iou:.2%}")
 
