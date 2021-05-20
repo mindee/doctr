@@ -120,12 +120,10 @@ class DBPostProcessor(DetectionPostProcessor):
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            epsilon = 0.01 * cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, epsilon, True)  # approximate contour by a polygon
-            points = approx.reshape((-1, 2))  # get polygon points
-            if points.shape[0] < 4:  # remove polygons with 3 points or less
-                continue
-            score = self.box_score(pred, points.reshape(-1, 2))
+            x, y, w, h = cv2.boundingRect(contour)
+            points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+            # Compute objectness
+            score = self.box_score(pred, points)
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
             _box = self.polygon_to_box(points)
