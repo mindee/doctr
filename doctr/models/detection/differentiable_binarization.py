@@ -5,7 +5,6 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from os import wait
 import cv2
 from copy import deepcopy
 import numpy as np
