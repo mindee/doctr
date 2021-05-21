@@ -23,7 +23,7 @@ if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 from doctr.models import recognition, RecognitionPreProcessor
-from doctr.utils import metrics
+from doctr.utils.metrics import TextMatch
 from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
 from doctr import transforms as T
 
@@ -90,8 +90,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         batch_cnt += 1
 
     val_loss /= batch_cnt
-    exact_match = val_metric.summary()
-    return val_loss, exact_match
+    result = val_metric.summary()
+    return val_loss, result['raw'], result['unicase']
 
 
 def main(args):
@@ -151,7 +151,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = metrics.ExactMatch()
+    val_metric = TextMatch()
 
     batch_transforms = T.Compose([
         T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
@@ -181,16 +181,18 @@ def main(args):
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step)
 
         # Validation loop at the end of each epoch
-        val_loss, exact_match = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(f'./{exp_name}/weights')
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {exact_match:.2%})")
+        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+                 f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         # Tensorboard
         with tb_writer.as_default():
             tf.summary.scalar('val_loss', val_loss, step=step)
             tf.summary.scalar('exact_match', exact_match, step=step)
+            tf.summary.scalar('partial_match', exact_match, step=step)
         #reset val metric
         val_metric.reset()
 
