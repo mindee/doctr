@@ -58,6 +58,7 @@ def visualize_page(
     page: Dict[str, Any],
     image: np.ndarray,
     words_only: bool = True,
+    display_artefacts: bool = True,
     scale: float = 10,
     interactive: bool = True,
     add_labels: bool = True,
@@ -80,7 +81,10 @@ def visualize_page(
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
+        display_artefacts: whether artefacts should be displayed
         scale: figsize of the largest windows side
+        interactive: whether the plot should be interactive
+        add_labels: for static plot, adds text labels on top of bounding box
     """
     # Get proper scale and aspect ratio
     h, w = image.shape[:2]
@@ -126,7 +130,7 @@ def visualize_page(
                         color=(0, 0, 1),
                     )
 
-        if not words_only:
+        if display_artefacts:
             for artefact in block['artefacts']:
                 rect = create_rect_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5),
                                          linewidth=1, **kwargs)
