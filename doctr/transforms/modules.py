@@ -54,16 +54,19 @@ class Resize(NestedObject):
         output_size: expected output size
         method: interpolation method
         preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros
+        symmetric_pad: if `True` while preserving aspect ratio, the padding will be done symmetrically
     """
     def __init__(
         self,
         output_size: Tuple[int, int],
         method: str = 'bilinear',
         preserve_aspect_ratio: bool = False,
+        symmetric_pad: bool = False,
     ) -> None:
         self.output_size = output_size
         self.method = method
         self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.symmetric_pad = symmetric_pad
 
     def extra_repr(self) -> str:
         return f"output_size={self.output_size}, method='{self.method}'"
@@ -72,7 +75,9 @@ class Resize(NestedObject):
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
         if self.preserve_aspect_ratio:
             # pad width
-            if self.output_size[0] == img.shape[0]:
+            if not self.symmetric_pad:
+                offset = (0, 0)
+            elif self.output_size[0] == img.shape[0]:
                 offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
             else:
                 offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
