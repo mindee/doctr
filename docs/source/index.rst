@@ -11,8 +11,8 @@ DocTR provides an easy and powerful way to extract valuable information from you
 Welcome to the documentation of `DocTR <https://github.com/mindee/doctr>`_!
 
 
-Features
---------
+Main Features
+-------------
 
 * |:robot:| Robust 2-stage (detection + recognition) OCR predictors fully trained
 * |:zap:| User-friendly, 3 lines of code to load a document and extract text with a predictor
@@ -68,7 +68,7 @@ Getting Started
 
 .. toctree::
    :maxdepth: 2
-   :caption: API Reference
+   :caption: Package Reference
 
    datasets
    documents
