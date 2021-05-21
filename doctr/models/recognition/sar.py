@@ -185,7 +185,7 @@ class SAR(RecognitionModel):
 
     """
 
-    _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder']
+    _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder', 'postprocessor']
 
     def __init__(
         self,

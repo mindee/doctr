@@ -209,7 +209,7 @@ class DBNet(DetectionModel, NestedObject):
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
 
-    _children_names = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head']
+    _children_names: List[str] = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head', 'postprocessor']
 
     def __init__(
         self,

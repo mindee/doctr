@@ -5,9 +5,10 @@
 
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Any
 
 from doctr.utils.repr import NestedObject
+from doctr.transforms import Normalize, Resize, LambdaTransformation, Compose
 
 
 __all__ = ['PreProcessor']
@@ -25,40 +26,24 @@ class PreProcessor(NestedObject):
 
     """
 
+    _children_names: List[str] = ['resize', 'normalize']
+
     def __init__(
         self,
         output_size: Tuple[int, int],
         batch_size: int,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
-        interpolation: str = 'bilinear'
+        **kwargs: Any,
     ) -> None:
 
-        self.output_size = output_size
-        self.mean = tf.cast(mean, dtype=tf.float32)
-        self.std = tf.cast(std, dtype=tf.float32)
         self.batch_size = batch_size
-        self.interpolation = interpolation
-
-    def resize(
-        self,
-        x: tf.Tensor
-    ) -> tf.Tensor:
-        raise NotImplementedError
-
-    def normalize(
-        self,
-        x: tf.Tensor
-    ) -> tf.Tensor:
-        """Takes a tensor and moves it to [-1, 1] range
-
-        Args:
-            x: tensor ro normalize
-        Returns:
-            normalized tensor encoded in float32
-        """
-        # Re-center and scale the distribution to [-1, 1]
-        return tf.cast(x, tf.float32) / (self.std * 255) - (self.mean / self.std)
+        self.resize = Resize(output_size, **kwargs)
+        # Perform the division by 255 at the same time
+        self.normalize = Compose([
+            LambdaTransformation(lambda x: x / 255),
+            Normalize(mean, std),
+        ])
 
     def batch_inputs(
         self,
@@ -82,9 +67,6 @@ class PreProcessor(NestedObject):
             b_images.append(tf.stack(x[int(num_batches) * self.batch_size:], axis=0))
         return b_images
 
-    def extra_repr(self) -> str:
-        return f"output_size={self.output_size}, mean={self.mean}, std={self.std}"
-
     def __call__(
         self,
         x: Union[tf.Tensor, List[np.ndarray]]
@@ -99,8 +81,8 @@ class PreProcessor(NestedObject):
         # Check input type
         if isinstance(x, tf.Tensor):
             # Tf tensor from data loader: check if tensor size is output_size
-            if x.shape[1] != self.output_size[0] or x.shape[2] != self.output_size[1]:
-                x = tf.image.resize(x, self.output_size, method=self.interpolation)
+            if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
+                x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
             processed_batches = [x]
         elif isinstance(x, list):
             # convert images to tf

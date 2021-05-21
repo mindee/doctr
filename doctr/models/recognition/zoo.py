@@ -4,7 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Dict, Any
-from .core import RecognitionPredictor, RecognitionPreProcessor
+
+from .core import RecognitionPredictor
+from ..preprocessor import PreProcessor
 from .. import recognition
 
 
@@ -21,8 +23,9 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     _model = recognition.__dict__[arch](pretrained=pretrained)
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
+    kwargs['batch_size'] = kwargs.get('batch_size', 32)
     predictor = RecognitionPredictor(
-        RecognitionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
+        PreProcessor(_model.cfg['input_shape'][:2], preserve_aspect_ratio=True,  **kwargs),
         _model
     )
 
