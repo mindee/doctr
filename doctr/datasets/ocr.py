@@ -47,15 +47,16 @@ class OCRDataset(AbstractDataset):
             img_name = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem + '.jpg'
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
-            box_targets = []
+
             # handle empty images
             if (len(file_dic["coordinates"]) == 0 or
                (len(file_dic["coordinates"]) == 1 and file_dic["coordinates"][0] == "N/A")):
-                self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=[])))
+                self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np.float32), labels=[])))
                 continue
             is_valid: List[bool] = []
+            box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
-                xs, ys = np.asarray(box)[:, 0], np.asarray(box)[:, 1]
+                xs, ys = zip(*box)
                 box = [min(xs), min(ys), max(xs), max(ys)]
                 if box[0] < box[2] and box[1] < box[3]:
                     box_targets.append(box)
@@ -64,7 +65,7 @@ class OCRDataset(AbstractDataset):
                     is_valid.append(False)
 
             text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
-            self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=text_targets)))
+            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
 
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
