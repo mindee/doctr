@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import math
 import tensorflow as tf
 
 from doctr.models import recognition, PreProcessor

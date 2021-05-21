@@ -49,7 +49,7 @@ class CORD(VisionDataset):
         self.root = os.path.join(self._root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         self.train = train
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        self.sample_transforms = sample_transforms
         for img_path in os.listdir(self.root):
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
@@ -73,20 +73,3 @@ class CORD(VisionDataset):
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
-
-    def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
-        img_name, target = self.data[index]
-        # Read image
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
-        img = self.sample_transforms(img)
-
-        return img, target
-
-    @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
-
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(targets)

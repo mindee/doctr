@@ -1,8 +1,12 @@
 import pytest
 import json
+import numpy as np
+import tensorflow as tf
 from io import BytesIO
 
 from doctr import datasets
+from doctr.datasets import DataLoader
+from doctr.transforms import Resize
 
 
 @pytest.fixture(scope="function")
@@ -50,5 +54,27 @@ def mock_ocrdataset(tmpdir_factory, mock_image_stream):
 
 
 def test_ocrdataset(mock_ocrdataset):
-    ds = datasets.OCRDataset(*mock_ocrdataset)
+
+    input_size = (512, 512)
+
+    ds = datasets.OCRDataset(
+        *mock_ocrdataset,
+        sample_transforms=Resize(input_size),
+    )
     assert len(ds) == 5
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    # Bounding boxes
+    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
+    assert np.all(np.logical_and(target['boxes'] >= 0, target['boxes'] <= 1))
+    assert target['boxes'].shape[1] == 4
+    # Flags
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    # Cardinality consistency
+    assert target['boxes'].shape[0] == len(target['labels'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

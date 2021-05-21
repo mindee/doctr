@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import cv2
-from typing import Union, List, Tuple, Any, Optional, Dict
+from typing import List, Tuple, Any, Optional, Dict
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 

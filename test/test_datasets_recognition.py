@@ -1,7 +1,6 @@
 import tensorflow as tf
 import pytest
 import json
-import numpy as np
 
 from doctr.datasets import RecognitionDataset
 from doctr.datasets import DataLoader
