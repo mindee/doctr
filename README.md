@@ -169,6 +169,20 @@ You can run the same server on a docker container if you prefer using:
 PORT=8050 docker-compose up -d --build
 ```
 
+## Citation
+
+If you wish to cite this project, feel free to use this [BibTeX](http://www.bibtex.org/) reference:
+
+```bibtex
+@misc{doctr2021,
+    title={DocTR: Document Text Recognition},
+    author={François-Guillaume Fernandez, Charles Gaillard},
+    year={2021},
+    publisher = {GitHub},
+    howpublished = {\url{https://github.com/mindee/doctr}}
+}
+```
+
 
 ## Contributing
 
