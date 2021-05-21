@@ -39,6 +39,8 @@ class DetectionDataset(AbstractDataset):
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
+            if not os.path.exists(os.path.join(self.root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             with open(os.path.join(label_folder, img_path + '.json'), 'rb') as f:
                 boxes = json.load(f)
 

@@ -22,10 +22,13 @@ from doctr.models import ocr_predictor, extract_crops
 
 def main(args):
 
-    model = ocr_predictor(args.detection, args.recognition, pretrained=True)
+    predictor = ocr_predictor(args.detection, args.recognition, pretrained=True, reco_bs=args.batch_size)
 
     if args.img_folder and args.label_file:
-        testset = datasets.OCRDataset(img_folder=args.img_folder, label_file=args.label_file)
+        testset = datasets.OCRDataset(
+            img_folder=args.img_folder,
+            label_file=args.label_file,
+        )
         sets = [testset]
     else:
         train_set = datasets.__dict__[args.dataset](train=True, download=True)
@@ -43,9 +46,9 @@ def main(args):
             gt_labels = target['labels']
 
             # Forward
-            out = model([page], training=False)
+            out = predictor(page[None, ...], training=False)
             crops = extract_crops(page, gt_boxes)
-            reco_out = model.reco_predictor(crops, training=False)
+            reco_out = predictor.reco_predictor(crops, training=False)
 
             # Unpack preds
             pred_boxes = []
@@ -90,6 +93,7 @@ def parse_args():
     parser.add_argument('--dataset', type=str, default='FUNSD', help='choose a dataset: FUNSD, CORD')
     parser.add_argument('--img_folder', type=str, default=None, help='Only for local sets, path to images')
     parser.add_argument('--label_file', type=str, default=None, help='Only for local sets, path to labels')
+    parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for recognition')
     args = parser.parse_args()
 
     return args

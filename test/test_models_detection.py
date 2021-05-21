@@ -3,36 +3,8 @@ import math
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import detection
+from doctr.models import detection, PreProcessor
 from doctr.documents import DocumentFile
-
-
-def test_detpreprocessor(mock_pdf):  # noqa: F811
-    num_docs = 3
-    batch_size = 4
-    docs = [DocumentFile.from_pdf(mock_pdf).as_images() for _ in range(num_docs)]
-    processor = detection.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size)
-    batched_docs = processor([page for doc in docs for page in doc])
-
-    # Number of batches
-    assert len(batched_docs) == math.ceil(8 * num_docs / batch_size)
-    # Total number of samples
-    assert sum(batch.shape[0] for batch in batched_docs) == 8 * num_docs
-    # Batch size
-    assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
-    assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
-    # Data type
-    assert all(batch.dtype == tf.float32 for batch in batched_docs)
-    # Image size
-    assert all(batch.shape[1:] == (512, 512, 3) for batch in batched_docs)
-    # Test with non-full last batch
-    batch_size = 16
-    processor = detection.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size)
-    batched_docs = processor([page for doc in docs for page in doc])
-    assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
-
-    # Repr
-    assert repr(processor) == 'DetectionPreProcessor(output_size=(512, 512), mean=[0.5 0.5 0.5], std=[1. 1. 1.])'
 
 
 def test_dbpostprocessor():
@@ -118,7 +90,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = detection.DetectionPredictor(
-        detection.DetectionPreProcessor(output_size=(512, 512), batch_size=batch_size),
+        PreProcessor(output_size=(512, 512), batch_size=batch_size),
         detection.db_resnet50(input_shape=(512, 512, 3))
     )
 

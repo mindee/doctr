@@ -31,7 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'post_processor': 'DBPostProcessor',
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.1/db_resnet50-98ba765d.zip',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
     },
 }
 
@@ -209,7 +209,7 @@ class DBNet(DetectionModel, NestedObject):
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
 
-    _children_names = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head']
+    _children_names: List[str] = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head', 'postprocessor']
 
     def __init__(
         self,

@@ -148,6 +148,8 @@ class LinkNet(DetectionModel, NestedObject):
         out_chan: number of channels for the output
     """
 
+    _children_names: List[str] = ['stem', 'fpn', 'classifier', 'postprocessor']
+
     def __init__(
         self,
         out_chan: int = 1,

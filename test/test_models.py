@@ -1,4 +1,5 @@
 import pytest
+import math
 import numpy as np
 import tensorflow as tf
 
@@ -137,7 +138,7 @@ def test_zoo_models(det_arch, reco_arch):
     assert isinstance(predictor, models.OCRPredictor)
 
 
-def test_preprocessor():
+def test_preprocessor(mock_pdf):
     preprocessor = models.PreProcessor(output_size=(1024, 1024), batch_size=2)
     input_tensor = tf.random.uniform(shape=[2, 512, 512, 3], minval=0, maxval=1)
     preprocessed = preprocessor(input_tensor)
@@ -145,3 +146,38 @@ def test_preprocessor():
     for batch in preprocessed:
         assert batch.shape[0] == 2
         assert batch.shape[1] == batch.shape[2] == 1024
+
+    with pytest.raises(AssertionError):
+        _ = preprocessor(np.random.rand(1024, 1024, 3))
+
+    num_docs = 3
+    batch_size = 4
+    docs = [DocumentFile.from_pdf(mock_pdf).as_images() for _ in range(num_docs)]
+    processor = models.PreProcessor(output_size=(512, 512), batch_size=batch_size)
+    batched_docs = processor([page for doc in docs for page in doc])
+
+    # Number of batches
+    assert len(batched_docs) == math.ceil(8 * num_docs / batch_size)
+    # Total number of samples
+    assert sum(batch.shape[0] for batch in batched_docs) == 8 * num_docs
+    # Batch size
+    assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
+    assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
+    # Data type
+    assert all(batch.dtype == tf.float32 for batch in batched_docs)
+    # Image size
+    assert all(batch.shape[1:] == (512, 512, 3) for batch in batched_docs)
+    # Test with non-full last batch
+    batch_size = 16
+    processor = models.PreProcessor(output_size=(512, 512), batch_size=batch_size)
+    batched_docs = processor([page for doc in docs for page in doc])
+    assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
+
+    # Repr
+    assert len(repr(processor).split('\n')) == 9
+
+    # Assymetric
+    processor = models.PreProcessor(output_size=(256, 128), batch_size=batch_size, preserve_aspect_ratio=True)
+    batched_docs = processor([page for doc in docs for page in doc])
+    # Image size
+    assert all(batch.shape[1:] == (256, 128, 3) for batch in batched_docs)

@@ -4,7 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Dict, Any
-from .core import DetectionPredictor, DetectionPreProcessor
+
+from .core import DetectionPredictor
+from ..preprocessor import PreProcessor
 from .. import detection
 
 
@@ -22,8 +24,9 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor
     _model = detection.__dict__[arch](pretrained=pretrained)
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
+    kwargs['batch_size'] = kwargs.get('batch_size', 1)
     predictor = DetectionPredictor(
-        DetectionPreProcessor(output_size=_model.cfg['input_shape'][:2], **kwargs),
+        PreProcessor(_model.cfg['input_shape'][:2], **kwargs),
         _model
     )
     return predictor

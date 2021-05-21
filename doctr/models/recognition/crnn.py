@@ -117,6 +117,9 @@ class CRNN(RecognitionModel):
         rnn_units: number of units in the LSTM layers
         cfg: configuration dictionary
     """
+
+    _children_names: List[str] = ['feat_extractor', 'decoder', 'postprocessor']
+
     def __init__(
         self,
         feature_extractor: tf.keras.Model,
