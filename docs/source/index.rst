@@ -58,18 +58,19 @@ Getting Started
    installing
 
 
-Contents
---------
+.. toctree::
+   :maxdepth: 2
+   :caption: Notes
+
+   changelog
+
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: API Reference
 
    datasets
    documents
    models
    transforms
    utils
-
-
-.. automodule:: doctr
-   :members:
