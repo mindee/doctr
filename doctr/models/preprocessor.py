@@ -97,7 +97,12 @@ class PreProcessor(NestedObject):
             list of page batches
         """
         # Check input type
-        if isinstance(x, list):
+        if isinstance(x, tf.Tensor):
+            # Tf tensor from data loader: check if tensor size is output_size
+            if x.shape[1] != self.output_size[0] or x.shape[2] != self.output_size[1]:
+                x = tf.image.resize(x, self.output_size, method=self.interpolation)
+            processed_batches = [x]
+        elif isinstance(x, list):
             # convert images to tf
             tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
             # Resize (and eventually pad) the inputs
@@ -105,10 +110,7 @@ class PreProcessor(NestedObject):
             # Batch them
             processed_batches = self.batch_inputs(images)
         else:
-            # Tf tensor from data loader: check if tensor size is output_size
-            if x.shape[1] != self.output_size[0] or x.shape[2] != self.output_size[1]:
-                x = tf.image.resize(x, self.output_size, method=self.interpolation)
-            processed_batches = [x]
+            raise AssertionError("invalid input type")
         # Normalize
         processed_batches = [self.normalize(b) for b in processed_batches]
 
