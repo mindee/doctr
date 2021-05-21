@@ -145,3 +145,6 @@ def test_preprocessor():
     for batch in preprocessed:
         assert batch.shape[0] == 2
         assert batch.shape[1] == batch.shape[2] == 1024
+
+    with pytest.raises(AssertionError):
+        _ = predictor(np.random.rand(1024, 1024, 3))
