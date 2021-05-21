@@ -62,7 +62,7 @@ class CORD(VisionDataset):
                     for word in line["words"]:
                         pt1, pt2 = [word["quad"]["x1"], word["quad"]["y1"]], [word["quad"]["x2"], word["quad"]["y2"]]
                         pt3, pt4 = [word["quad"]["x3"], word["quad"]["y3"]], [word["quad"]["x4"], word["quad"]["y4"]]
-                        pts = [pt1, pt2, pt3, pt4]
+                        pts = np.asarray([pt1, pt2, pt3, pt4], dtype=np.float32)
                         if len(word["text"]) > 0:
                             (x, y), (w, h), alpha = cv2.minAreaRect(pts)
                             _targets.append((word["text"], [x, y, w, h, alpha]))

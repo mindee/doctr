@@ -27,6 +27,6 @@ def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
 
 
 def resolve_enclosing_bbox(bboxes: List[BoundingBox]) -> BoundingBox:
-    pts = [pt for pt in bbox_to_polygon(bbox) for bbox in bboxes]
+    pts = [pt for bbox in bboxes for pt in bbox_to_polygon(bbox) ]
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
     return (x, y, w, h, alpha)

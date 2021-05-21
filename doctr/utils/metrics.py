@@ -128,8 +128,10 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
-        pts1 = [[cv2.boxPoints((x, y), (w, h), alpha)] for [x, y, w, h, alpha] in list(boxes_1)]
-        pts2 = [[cv2.boxPoints((x, y), (w, h), alpha)] for [x, y, w, h, alpha] in list(boxes_1)]
+        _pts1 = [cv2.boxPoints(((x, y), (w, h), alpha)) for [x, y, w, h, alpha] in list(boxes_1)]
+        _pts2 = [cv2.boxPoints(((x, y), (w, h), alpha)) for [x, y, w, h, alpha] in list(boxes_2)]
+        pts1 = [[(x, y) for [x, y] in list(pt)] for pt in _pts1]
+        pts2 = [[(x, y) for [x, y] in list(pt)] for pt in _pts2]
         polys1 = [Polygon(pt) for pt in pts1]
         polys2 = [Polygon(pt) for pt in pts2]
         for i, j in zip(range(boxes_1.shape[0]), range(boxes_2.shape[0])):

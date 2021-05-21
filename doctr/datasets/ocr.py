@@ -57,7 +57,7 @@ class OCRDataset(AbstractDataset):
             is_valid: List[bool] = []
             box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
-                (x, y), (w, h), alpha = cv2.minAreaRect(box)
+                (x, y), (w, h), alpha = cv2.minAreaRect(np.asarray(box, dtype=np.float32))
                 box_targets.append([x, y, w, h, alpha])
 
             text_targets = file_dic["string"]

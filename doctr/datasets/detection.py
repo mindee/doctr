@@ -50,7 +50,7 @@ class DetectionDataset(AbstractDataset):
             for bbox in bboxes:
                 (x, y), (w, h), alpha = cv2.minAreaRect(bbox)
                 _boxes.append([x, y, w, h, alpha])
-            boxes = np.sarray(_boxes)
+            boxes = np.asarray(_boxes)
 
             is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
 
