@@ -236,7 +236,7 @@ class RandomSaturation(NestedObject):
         return f"delta={self.delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 / (1 - self.delta))
+        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 + self.delta)
 
 
 class RandomHue(NestedObject):
