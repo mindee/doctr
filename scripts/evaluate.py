@@ -51,15 +51,17 @@ def main(args):
             pred_boxes = []
             pred_labels = []
             for page in out.pages:
-                h, w = page.dimensions
+                height, width = page.dimensions
                 for block in page.blocks:
                     for line in block.lines:
                         for word in line.words:
-                            (a, b), (c, d) = word.geometry
+                            x, y, w, h, alpha = word.geometry
                             if gt_boxes.dtype == int:
-                                pred_boxes.append([int(a * w), int(b * h), int(c * w), int(d * h)])
+                                pred_boxes.append(
+                                    [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
+                                )
                             else:
-                                pred_boxes.append([a, b, c, d])
+                                pred_boxes.append([x, y, w, h, alpha])
                             pred_labels.append(word.value)
 
             # Update the metric
