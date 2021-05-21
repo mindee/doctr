@@ -91,7 +91,7 @@ def read_pdf(file: AbstractFile, **kwargs: Any) -> fitz.Document:
 def convert_page_to_numpy(
     page: fitz.fitz.Page,
     output_size: Optional[Tuple[int, int]] = None,
-    rgb_output: bool = True,
+    bgr_output: bool = False,
     default_scales: Tuple[float, float] = (2, 2),
 ) -> np.ndarray:
     """Convert a fitz page to a numpy-formatted image
@@ -123,8 +123,8 @@ def convert_page_to_numpy(
     img = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(pixmap.height, pixmap.width, 3)
 
     # Switch the channel order
-    if rgb_output:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    if bgr_output:
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
     return img
 

@@ -15,7 +15,7 @@ def test_convert_page_to_numpy(mock_pdf):
     assert rgb_page.shape == (792, 612, 3)
 
     # Check channel order
-    bgr_page = reader.convert_page_to_numpy(pdf[0], default_scales=(1, 1), rgb_output=False)
+    bgr_page = reader.convert_page_to_numpy(pdf[0], default_scales=(1, 1), bgr_output=True)
     assert np.all(bgr_page == rgb_page[..., ::-1])
 
     # Check resizing

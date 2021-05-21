@@ -76,7 +76,7 @@ def main():
                 processed_batches = predictor.det_predictor.pre_processor(doc)
                 out = predictor.det_predictor.model(processed_batches[0], return_model_output=True, training=False)
                 seg_map = out["out_map"]
-                seg_map = tf.squeeze(seg_map, axis=[0, 3])
+                seg_map = tf.squeeze(seg_map[0, ...], axis=[2])
                 seg_map = cv2.resize(seg_map.numpy(), (doc[0].shape[1], doc[0].shape[0]),
                                      interpolation=cv2.INTER_LINEAR)
                 # Plot the raw heatmap
