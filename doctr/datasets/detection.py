@@ -33,7 +33,7 @@ class DetectionDataset(AbstractDataset):
         label_folder: str,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
     ) -> None:
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        self.sample_transforms = sample_transforms
         self.root = img_folder
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
@@ -60,7 +60,8 @@ class DetectionDataset(AbstractDataset):
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
         h, w = img.shape[:2]
-        img = self.sample_transforms(img)
+        if self.sample_transforms is not None:
+            img = self.sample_transforms(img)
 
         # Boxes
         boxes = target['boxes'].copy()
@@ -68,13 +69,3 @@ class DetectionDataset(AbstractDataset):
         boxes[..., [1, 3]] /= h
 
         return img, dict(boxes=boxes, flags=target['flags'])
-
-    @staticmethod
-    def collate_fn(
-        samples: List[Tuple[tf.Tensor, Dict[str, np.ndarray]]]
-    ) -> Tuple[tf.Tensor, List[Dict[str, np.ndarray]]]:
-
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(targets)

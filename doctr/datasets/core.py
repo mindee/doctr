@@ -6,7 +6,8 @@
 import os
 from pathlib import Path
 from zipfile import ZipFile
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Tuple
+import tensorflow as tf
 
 from doctr.models.utils import download_from_url
 
@@ -21,14 +22,33 @@ class AbstractDataset:
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, index: int) -> Any:
-        raise NotImplementedError
+    def __getitem__(
+        self,
+        index: int
+    ) -> Tuple[tf.Tensor, Any]:
+
+        img_name, target = self.data[index]
+        # Read image
+        img = tf.io.read_file(os.path.join(self.root, img_name))
+        img = tf.image.decode_jpeg(img, channels=3)
+        if self.sample_transforms is not None:
+            img = self.sample_transforms(img)
+
+        return img, target
 
     def extra_repr(self) -> str:
         return ""
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.extra_repr()})"
+
+    @staticmethod
+    def collate_fn(samples: List[Tuple[tf.Tensor, Any]]) -> Tuple[tf.Tensor, List[Any]]:
+
+        images, targets = zip(*samples)
+        images = tf.stack(images, axis=0)
+
+        return images, list(targets)
 
 
 class VisionDataset(AbstractDataset):

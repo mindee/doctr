@@ -34,7 +34,7 @@ class OCRDataset(AbstractDataset):
         **kwargs: Any,
     ) -> None:
 
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        self.sample_transforms = sample_transforms
         self.root = img_folder
 
         # List images
@@ -66,20 +66,3 @@ class OCRDataset(AbstractDataset):
 
             text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
             self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
-
-    def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
-        img_name, target = self.data[index]
-        # Read image
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
-        img = self.sample_transforms(img)
-
-        return img, target
-
-    @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
-
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(targets)
