@@ -58,7 +58,7 @@ class PreProcessor(NestedObject):
             normalized tensor encoded in float32
         """
         # Re-center and scale the distribution to [-1, 1]
-        return tf.cast(x, tf.float32) * (self.std / 255) - (self.mean / self.std)
+        return tf.cast(x, tf.float32) / (self.std * 255) - (self.mean / self.std)
 
     def batch_inputs(
         self,
