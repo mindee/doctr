@@ -1,6 +1,5 @@
 import pytest
 import sys
-import tensorflow as tf
 from tensorflow.keras import layers, Sequential
 
 from doctr.models import export

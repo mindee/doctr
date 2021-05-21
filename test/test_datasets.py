@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 import tensorflow as tf
 
 from doctr import datasets

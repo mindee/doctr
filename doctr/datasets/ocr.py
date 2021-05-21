@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
-from doctr.documents.reader import read_img, read_pdf
 from .core import AbstractDataset
 
 

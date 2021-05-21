@@ -8,7 +8,6 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
-import json
 import datetime
 import math
 import numpy as np
@@ -22,7 +21,7 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from doctr.models import recognition, RecognitionPreProcessor
+from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
 from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
 from doctr import transforms as T

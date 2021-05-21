@@ -5,7 +5,6 @@
 
 import os
 import json
-import math
 import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Callable
