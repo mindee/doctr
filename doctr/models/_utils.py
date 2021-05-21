@@ -39,7 +39,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
         x, y, w, h, alpha = box
         src_pts = cv2.boxPoints(((x, y), (w, h), alpha))
         # Preserve size
-        dst_pts = np.array([[0, h-1], [0, 0], [w-1, 0], [w-1, h-1]], dtype=np.float32)
+        dst_pts = np.array([[0, h - 1], [0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=np.float32)
         # The transformation matrix
         M = cv2.getPerspectiveTransform(src_pts, dst_pts)
         # Warp the rotated rectangle

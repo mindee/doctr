@@ -62,7 +62,9 @@ class FUNSD(VisionDataset):
             text_targets, _box_targets = zip(*_targets)
             # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
             box_targets = [
-                [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0] for box in _box_targets
+                [
+                    (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                ] for box in _box_targets
             ]
 
             self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.int), labels=text_targets)))
