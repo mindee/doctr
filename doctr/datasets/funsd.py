@@ -52,8 +52,8 @@ class FUNSD(VisionDataset):
         self.root = os.path.join(self._root, subfolder, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
-            if not os.path.exists(os.path.join(self.root, img_name)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+            if not os.path.exists(os.path.join(self.root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             stem = Path(img_path).stem
             with open(os.path.join(self._root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
                 data = json.load(f)
