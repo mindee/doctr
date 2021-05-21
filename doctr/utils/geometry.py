@@ -21,12 +21,12 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
 
 
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
-    cnt = np.array(polygon).reshape((-1, 1, 2)).astype(np.int32)
+    cnt = np.array(polygon).reshape((-1, 1, 2)).astype(np.float32)
     ((x, y), (w, h), alpha) = cv2.minAreaRect(cnt)
     return (x, y, w, h, alpha)
 
 
 def resolve_enclosing_bbox(bboxes: List[BoundingBox]) -> BoundingBox:
-    pts = [pt for bbox in bboxes for pt in bbox_to_polygon(bbox) ]
+    pts = np.asarray([pt for bbox in bboxes for pt in bbox_to_polygon(bbox)], np.float32)
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
     return (x, y, w, h, alpha)

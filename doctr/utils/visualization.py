@@ -39,10 +39,10 @@ def create_rect_patch(
         a rectangular Patch
     """
     height, width = page_dimensions
-    (x, y, w, h, alpha) = geometry
+    (x, y, w, h, a) = geometry
     x, w = x * width, w * width
     y, h = y * height, h * height
-    points = cv2.boxPoints(((x, y), (w, h), alpha))
+    points = cv2.boxPoints(((x, y), (w, h), a))
     rect = patches.Polygon(
         points,
         fill=fill,
@@ -122,8 +122,8 @@ def visualize_page(
                     artists.append(rect)
                 elif add_labels:
                     ax.text(
-                        int(page['dimensions'][1] * word['geometry'][0][0]),
-                        int(page['dimensions'][0] * word['geometry'][0][1]),
+                        int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
+                        int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2)),
                         word['value'],
                         size=10,
                         alpha=0.5,

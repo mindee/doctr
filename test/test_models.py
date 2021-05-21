@@ -10,12 +10,12 @@ from doctr.documents import Document, DocumentFile
 def test_extract_crops(mock_pdf):  # noqa: F811
     doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
     num_crops = 2
-    rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
+    rel_boxes = np.array([[idx / num_crops, idx / num_crops, .1, .1, 0]
                           for idx in range(num_crops)], dtype=np.float32)
     abs_boxes = np.array([[int(idx * doc_img.shape[1] / num_crops),
                            int(idx * doc_img.shape[0]) / num_crops,
-                           int((idx + 1) * doc_img.shape[1] / num_crops),
-                           int((idx + 1) * doc_img.shape[0] / num_crops)]
+                           int(.1 * doc_img.shape[1]),
+                           int(.1 * doc_img.shape[0]), 0]
                           for idx in range(num_crops)], dtype=np.float32)
 
     with pytest.raises(AssertionError):
@@ -30,10 +30,10 @@ def test_extract_crops(mock_pdf):  # noqa: F811
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # Identity
-    assert np.all(doc_img == models.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32))[0])
+    assert np.all(doc_img == models.extract_crops(doc_img, np.array([[0, 0, 1, 1, 0]], dtype=np.float32))[0])
 
     # No box
-    assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
+    assert models.extract_crops(doc_img, np.zeros((0, 5))) == []
 
 
 def test_documentbuilder():
@@ -43,7 +43,7 @@ def test_documentbuilder():
 
     # Don't resolve lines
     doc_builder = models.DocumentBuilder()
-    boxes = np.random.rand(words_per_page, 5)
+    boxes = np.random.rand(words_per_page, 6)
     boxes[:2] *= boxes[2:4]
 
     out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [(100, 200), (100, 200)])

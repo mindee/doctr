@@ -67,8 +67,8 @@ def test_ocrdataset(mock_ocrdataset):
     assert img.shape[:2] == input_size
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
-    assert np.all(np.logical_and(target['boxes'] >= 0, target['boxes'] <= 1))
-    assert target['boxes'].shape[1] == 4
+    assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
+    assert target['boxes'].shape[1] == 5
     # Flags
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     # Cardinality consistency

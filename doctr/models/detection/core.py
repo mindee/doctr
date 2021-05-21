@@ -70,8 +70,8 @@ class DetectionPostProcessor(NestedObject):
             polygon objectness
         """
         h, w = pred.shape[:2]
-        mask = np.zeros((h, w))
-        cv2.fillPoly(mask, [points], 1.0)
+        mask = np.zeros((h, w), np.int32)
+        cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
         return (pred * mask).mean()
 
     def bitmap_to_boxes(

@@ -14,7 +14,7 @@ def test_dbpostprocessor():
     assert isinstance(out, list)
     assert len(out) == 2
     assert all(isinstance(sample, np.ndarray) for sample in out)
-    assert all(sample.shape[1] == 5 for sample in out)
+    assert all(sample.shape[1] == 6 for sample in out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
     # Repr
@@ -47,7 +47,7 @@ def test_dbpostprocessor():
         [909, 569],
         [934, 562]], dtype=np.int32)
     out = postprocessor.polygon_to_box(issue_points)
-    assert isinstance(out, tuple) and len(out) == 4
+    assert isinstance(out, tuple) and len(out) == 5
 
 
 @pytest.mark.parametrize(
@@ -77,7 +77,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
     for boxes in out['boxes']:
-        assert boxes.shape[1] == 5
+        assert boxes.shape[1] == 6
         assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
@@ -122,7 +122,7 @@ def test_detection_zoo(arch_name):
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list)
-    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
+    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 6 for boxes in out)
 
 
 def test_detection_zoo_error():
@@ -138,6 +138,6 @@ def test_linknet_postprocessor():
     assert isinstance(out, list)
     assert len(out) == 2
     assert all(isinstance(sample, np.ndarray) for sample in out)
-    assert all(sample.shape[1] == 5 for sample in out)
+    assert all(sample.shape[1] == 6 for sample in out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)

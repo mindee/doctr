@@ -44,17 +44,17 @@ class DetectionDataset(AbstractDataset):
             with open(os.path.join(label_folder, img_path + '.json'), 'rb') as f:
                 boxes = json.load(f)
 
-            bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
+            _bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
             # Switch to rotated rects
             _boxes = []
-            for bbox in bboxes:
+            for bbox in _bboxes:
                 (x, y), (w, h), alpha = cv2.minAreaRect(bbox)
                 _boxes.append([x, y, w, h, alpha])
-            boxes = np.asarray(_boxes)
+            bboxes = np.asarray(_boxes, dtype=np.float32)
 
             is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
 
-            self.data.append((img_path, dict(boxes=boxes, flags=np.asarray(is_ambiguous))))
+            self.data.append((img_path, dict(boxes=bboxes, flags=np.asarray(is_ambiguous))))
 
     def __getitem__(
         self,
