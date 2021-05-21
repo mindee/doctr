@@ -7,6 +7,6 @@ from typing import Tuple, List
 
 __all__ = ['Point2D', 'BoundingBox', 'Polygon4P']
 
-Point2D = List[float, float]
+Point2D = List[float]
 BoundingBox = Tuple[float, float, float, float]
-Polygon4P = List[Point2D, Point2D, Point2D, Point2D]
+Polygon4P = List[Point2D]
