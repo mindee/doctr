@@ -4,13 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+import cv2
 import json
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
-from doctr.documents.reader import read_img, read_pdf
 from .core import AbstractDataset
 
 
@@ -35,8 +35,8 @@ class OCRDataset(AbstractDataset):
         **kwargs: Any,
     ) -> None:
 
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
-        self.img_folder = img_folder
+        self.sample_transforms = sample_transforms
+        self.root = img_folder
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
@@ -46,32 +46,19 @@ class OCRDataset(AbstractDataset):
         for file_dic in data:
             # Get image path
             img_name = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem + '.jpg'
-            box_targets = []
+            if not os.path.exists(os.path.join(self.root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+
             # handle empty images
             if (len(file_dic["coordinates"]) == 0 or
                (len(file_dic["coordinates"]) == 1 and file_dic["coordinates"][0] == "N/A")):
-                self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=[])))
+                self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np.float32), labels=[])))
                 continue
+            is_valid: List[bool] = []
+            box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
                 (x, y), (w, h), alpha = cv2.minAreaRect(box)
                 box_targets.append([x, y, w, h, alpha])
 
             text_targets = file_dic["string"]
-            self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=text_targets)))
-
-    def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
-        img_name, target = self.data[index]
-        # Read image
-        img = tf.io.read_file(os.path.join(self.img_folder, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
-        img = self.sample_transforms(img)
-
-        return img, target
-
-    @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
-
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(targets)
+            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))

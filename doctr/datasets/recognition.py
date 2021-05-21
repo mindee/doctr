@@ -6,7 +6,7 @@
 import os
 import json
 import tensorflow as tf
-from typing import Tuple, List, Dict, Any, Optional, Callable
+from typing import Tuple, List, Any, Optional, Callable
 
 from .core import AbstractDataset
 
@@ -39,27 +39,9 @@ class RecognitionDataset(AbstractDataset):
         with open(labels_path) as f:
             labels = json.load(f)
         for img_path in os.listdir(self.root):
+            if not os.path.exists(os.path.join(self.root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             label = labels.get(img_path)
             if not isinstance(label, str):
                 raise KeyError("Image is not in referenced in label file")
             self.data.append((img_path, label))
-
-    def __getitem__(
-        self,
-        index: int
-    ) -> Tuple[tf.Tensor, str]:
-
-        img_name, label = self.data[index]
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
-        img = self.sample_transforms(img)
-
-        return img, label
-
-    @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, str]]) -> Tuple[tf.Tensor, List[str]]:
-
-        images, labels = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(labels)
