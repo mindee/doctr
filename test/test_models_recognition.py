@@ -3,36 +3,9 @@ import numpy as np
 import math
 import tensorflow as tf
 
-from doctr.models import recognition
+from doctr.models import recognition, PreProcessor
 from doctr.documents import DocumentFile
 from doctr.models import extract_crops
-
-
-def test_recopreprocessor(mock_pdf):  # noqa: F811
-    num_docs = 3
-    batch_size = 4
-    docs = [DocumentFile.from_pdf(mock_pdf).as_images() for _ in range(num_docs)]
-    processor = recognition.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
-    batched_docs = processor([page for doc in docs for page in doc])
-
-    # Number of batches
-    assert len(batched_docs) == math.ceil(8 * num_docs / batch_size)
-    # Total number of samples
-    assert sum(batch.shape[0] for batch in batched_docs) == 8 * num_docs
-    # Batch size
-    assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
-    assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
-    # Data type
-    assert all(batch.dtype == tf.float32 for batch in batched_docs)
-    # Image size
-    assert all(batch.shape[1:] == (256, 128, 3) for batch in batched_docs)
-    # Test with non-full last batch
-    batch_size = 16
-    processor = recognition.RecognitionPreProcessor(output_size=(256, 128), batch_size=batch_size)
-    batched_docs = processor([page for doc in docs for page in doc])
-    assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
-    # Repr
-    assert repr(processor) == 'RecognitionPreProcessor(output_size=(256, 128), mean=[0.5 0.5 0.5], std=[1. 1. 1.])'
 
 
 @pytest.mark.parametrize(
@@ -82,7 +55,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
     predictor = recognition.RecognitionPredictor(
-        recognition.RecognitionPreProcessor(output_size=(32, 128), batch_size=batch_size),
+        PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),
         recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
     )
 
