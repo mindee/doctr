@@ -267,6 +267,7 @@
     <span class="n">page</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">words_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">display_artefacts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">add_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -289,7 +290,10 @@
 <span class="sd">        page: the exported Page of a Document</span>
 <span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
+<span class="sd">        display_artefacts: whether artefacts should be displayed</span>
 <span class="sd">        scale: figsize of the largest windows side</span>
+<span class="sd">        interactive: whether the plot should be interactive</span>
+<span class="sd">        add_labels: for static plot, adds text labels on top of bounding box</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -335,7 +339,7 @@
                         <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                     <span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">words_only</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">display_artefacts</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;artefacts&#39;</span><span class="p">]:</span>
                 <span class="n">rect</span> <span class="o">=</span> <span class="n">create_rect_patch</span><span class="p">(</span><span class="n">artefact</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">],</span> <span class="s1">&#39;artefact&#39;</span><span class="p">,</span> <span class="n">page</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">],</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
                                          <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
