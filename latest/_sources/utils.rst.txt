@@ -23,8 +23,14 @@ Implementations of task-specific metrics to easily assess your model performance
 
 .. currentmodule:: doctr.utils.metrics
 
-.. autoclass:: ExactMatch
+.. autoclass:: TextMatch
+
+   .. automethod:: summary
 
 .. autoclass:: LocalizationConfusion
 
+   .. automethod:: summary
+
 .. autoclass:: OCRMetric
+
+   .. automethod:: summary

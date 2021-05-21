@@ -21,7 +21,7 @@ Here are all datasets that are available through DocTR:
 .. autoclass:: FUNSD
 .. autoclass:: SROIE
 .. autoclass:: CORD
-..autoclass:: OCRDataset
+.. autoclass:: OCRDataset
 
 
 Data Loading

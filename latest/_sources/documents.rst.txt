@@ -45,6 +45,8 @@ A Page is a collection of Blocks that were on the same physical page.
 
 .. autoclass:: Page
 
+   .. automethod:: show
+
 
 Document
 ^^^^^^^^
@@ -52,6 +54,8 @@ Document
 A Document is a collection of Pages.
 
 .. autoclass:: Document
+
+   .. automethod:: show
 
 
 File reading

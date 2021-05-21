@@ -213,21 +213,42 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">rapidfuzz.string_metric</span> <span class="kn">import</span> <span class="n">levenshtein</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">unidecode</span> <span class="kn">import</span> <span class="n">unidecode</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ExactMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;assign_pairs&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="ExactMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.ExactMatch">[docs]</a><span class="k">class</span> <span class="nc">ExactMatch</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements exact match metric (word-level accuracy) for recognition task.</span>
+<span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Perform string comparison with multiple levels of tolerance</span>
 
-<span class="sd">    The aggregated metric is computed as follows:</span>
+<span class="sd">    Args:</span>
+<span class="sd">        word1: a string</span>
+<span class="sd">        word2: another string</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their</span>
+<span class="sd">            unidecode counterparts and their lower-case unidecode counterparts match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">raw_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span><span class="p">)</span>
+    <span class="n">caseless_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">unidecode_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">))</span>
+
+    <span class="c1"># Warning: the order is important here otherwise the pair (&quot;EUR&quot;, &quot;€&quot;) cannot be matched</span>
+    <span class="n">unicase_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">unidecode_match</span><span class="p">,</span> <span class="n">unicase_match</span>
+
+
+<div class="viewcode-block" id="TextMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch">[docs]</a><span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Implements text match metric (word-level accuracy) for recognition task.</span>
+
+<span class="sd">    The raw aggregated metric is computed as follows:</span>
 
 <span class="sd">    .. math::</span>
 <span class="sd">        \\forall X, Y \\in \\mathcal{W}^N,</span>
-<span class="sd">        ExactMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)</span>
+<span class="sd">        TextMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)</span>
 
 <span class="sd">    with the indicator function :math:`f_{a}` defined as:</span>
 
@@ -244,37 +265,14 @@
 <span class="sd">    :math:`N` is a strictly positive integer.</span>
 
 <span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import ExactMatch</span>
-<span class="sd">        &gt;&gt;&gt; metric = ExactMatch()</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.utils import TextMatch</span>
+<span class="sd">        &gt;&gt;&gt; metric = TextMatch()</span>
 <span class="sd">        &gt;&gt;&gt; metric.update([&#39;Hello&#39;, &#39;world&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        ignore_case: if true, ignore letter case when computing metric</span>
-<span class="sd">        ignore_accents: if true, ignore accents errors when computing metrics&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">ignore_case</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">ignore_accents</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_case</span> <span class="o">=</span> <span class="n">ignore_case</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_accents</span> <span class="o">=</span> <span class="n">ignore_accents</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">remove_accent</span><span class="p">(</span><span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Removes all accents (¨^çéè...) from input_string</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            input_string: character sequence with accents</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            character sequence without accents&quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -290,31 +288,37 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;prediction size does not match with ground-truth labels size&quot;</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">pred_word</span><span class="p">,</span> <span class="n">gt_word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">gt</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_accents</span><span class="p">:</span>
-                <span class="n">gt_word</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_accent</span><span class="p">(</span><span class="n">gt_word</span><span class="p">)</span>
-                <span class="n">pred_word</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_accent</span><span class="p">(</span><span class="n">pred_word</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_case</span><span class="p">:</span>
-                <span class="n">gt_word</span> <span class="o">=</span> <span class="n">gt_word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                <span class="n">pred_word</span> <span class="o">=</span> <span class="n">pred_word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="n">pred_word</span> <span class="o">==</span> <span class="n">gt_word</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
+            <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_raw</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_caseless</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unidecode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unicase</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Computes the aggregated evaluation</span>
+<div class="viewcode-block" id="TextMatch.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            metric result&quot;&quot;&quot;</span>
+<span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode</span>
+<span class="sd">            counterpart and its lower-case unidecode counterpart</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;you need to update the metric before getting the summary&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
@@ -345,21 +349,6 @@
         <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">intersection</span> <span class="o">/</span> <span class="n">union</span>
 
     <span class="k">return</span> <span class="n">iou_mat</span>
-
-
-<span class="k">def</span> <span class="nf">assign_pairs</span><span class="p">(</span><span class="n">score_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">score_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Assigns candidates by maximizing the score of all pairs</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        score_mat: score matrix</span>
-<span class="sd">        score_threshold: minimum score to validate an assignment</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        a tuple of two lists: the list of assigned row candidates indices, and the list of their column counterparts</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">row_ind</span><span class="p">,</span> <span class="n">col_ind</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">score_mat</span><span class="p">)</span>
-    <span class="n">is_kept</span> <span class="o">=</span> <span class="n">score_mat</span><span class="p">[</span><span class="n">row_ind</span><span class="p">,</span> <span class="n">col_ind</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">score_threshold</span>
-    <span class="k">return</span> <span class="n">row_ind</span><span class="p">[</span><span class="n">is_kept</span><span class="p">],</span> <span class="n">col_ind</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
@@ -400,12 +389,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">preds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
@@ -413,31 +398,37 @@
             <span class="c1"># Compute IoU</span>
             <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
             <span class="c1"># Assign pairs</span>
-            <span class="n">gt_indices</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">assign_pairs</span><span class="p">(</span><span class="n">iou_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">)</span>
+            <span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">((</span><span class="n">iou_mat</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 
         <span class="c1"># Update counts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<div class="viewcode-block" id="LocalizationConfusion.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a tuple with the recall, precision and meanIoU scores</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Recall</span>
-        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="c1"># Precision</span>
-        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="c1"># mean IoU</span>
-        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
-        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span>
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span></div>
 
 
@@ -480,23 +471,11 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
-<span class="sd">        max_dist: maximum Levenshtein distance between 2 sequence to consider a match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="n">max_dist</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_dist</span> <span class="o">=</span> <span class="n">max_dist</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -506,49 +485,65 @@
         <span class="n">pred_labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
+        <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
+                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
+
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 
             <span class="c1"># Assign pairs</span>
-            <span class="n">gt_indices</span><span class="p">,</span> <span class="n">preds_indices</span> <span class="o">=</span> <span class="n">assign_pairs</span><span class="p">(</span><span class="n">iou_mat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span><span class="p">)</span>
+            <span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
+            <span class="n">is_kept</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span>
+            <span class="c1"># String comparison</span>
+            <span class="k">for</span> <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">],</span> <span class="n">pred_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]):</span>
+                <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_raw</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_caseless</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unidecode</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unicase</span><span class="p">)</span>
 
-            <span class="c1"># Compare sequences</span>
-            <span class="k">for</span> <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">preds_indices</span><span class="p">):</span>
-                <span class="n">dist</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">+=</span> <span class="n">dist</span>
-                <span class="k">if</span> <span class="n">dist</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dist</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="c1"># Update counts</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<div class="viewcode-block" id="OCRMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a tuple with the recall &amp; precision for each string comparison flexibility and the mean IoU</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Recall</span>
-        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># Precision</span>
-        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># mean IoU (overall detected boxes)</span>
-        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
-        <span class="c1"># mean distance (overall detection-matching boxes)</span>
-        <span class="n">mean_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span>
-
-        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span><span class="p">,</span> <span class="n">mean_distance</span>
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_det_matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_reco_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_dist</span> <span class="o">=</span> <span class="mi">0</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
 </pre></div>
 
            </div>
