@@ -52,6 +52,8 @@ class SROIE(VisionDataset):
         self.root = os.path.join(self._root, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
+            if not os.path.exists(os.path.join(self.root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
             stem = Path(img_path).stem
             _targets = []
             with open(os.path.join(self._root, 'annotations', f"{stem}.txt"), encoding='latin') as f:

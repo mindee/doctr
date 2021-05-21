@@ -36,7 +36,7 @@ class OCRDataset(AbstractDataset):
     ) -> None:
 
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
-        self.img_folder = img_folder
+        self.root = img_folder
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
@@ -46,6 +46,8 @@ class OCRDataset(AbstractDataset):
         for file_dic in data:
             # Get image path
             img_name = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem + '.jpg'
+            if not os.path.exists(os.path.join(self.root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
             box_targets = []
             # handle empty images
             if (len(file_dic["coordinates"]) == 0 or
@@ -62,7 +64,7 @@ class OCRDataset(AbstractDataset):
     def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
         img_name, target = self.data[index]
         # Read image
-        img = tf.io.read_file(os.path.join(self.img_folder, img_name))
+        img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
         img = self.sample_transforms(img)
 

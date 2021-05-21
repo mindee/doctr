@@ -51,6 +51,8 @@ class CORD(VisionDataset):
         self.train = train
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         for img_path in os.listdir(self.root):
+            if not os.path.exists(os.path.join(self.root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
             stem = Path(img_path).stem
             _targets = []
             with open(os.path.join(self._root, 'json', f"{stem}.json"), 'rb') as f:
