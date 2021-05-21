@@ -89,11 +89,13 @@ class DetectionPostProcessor(NestedObject):
     def __init__(
         self,
         box_thresh: float = 0.5,
-        bin_thresh: float = 0.5
+        bin_thresh: float = 0.5,
+        max_candidates: int = 1000
     ) -> None:
 
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
+        self.max_candidates = max_candidates
 
     def extra_repr(self) -> str:
         return f"box_thresh={self.box_thresh}, max_candidates={self.max_candidates}"
@@ -112,12 +114,9 @@ class DetectionPostProcessor(NestedObject):
             polygon objectness
         """
         h, w = pred.shape[:2]
-        xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
-        xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
-        ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
-        ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
-
-        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+        mask = np.zeros((h, w))
+        cv2.fillPoly(mask, [points], 1.0)
+        return (pred * mask).mean()
 
     def bitmap_to_boxes(
         self,

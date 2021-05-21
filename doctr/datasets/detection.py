@@ -5,7 +5,7 @@
 
 import os
 import json
-import math
+import cv2
 import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Callable
@@ -43,12 +43,16 @@ class DetectionDataset(AbstractDataset):
                 boxes = json.load(f)
 
             bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
-            # Switch to xmin, ymin, xmax, ymax
-            bboxes = np.concatenate((bboxes.min(axis=1), bboxes.max(axis=1)), axis=1)
+            # Switch to rotated rects
+            _boxes = []
+            for bbox in bboxes:
+                (x, y), (w, h), alpha = cv2.minAreaRect(bbox)
+                _boxes.append([x, y, w, h, alpha])
+            boxes = np.sarray(_boxes)
 
             is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
 
-            self.data.append((img_path, dict(boxes=bboxes, flags=np.asarray(is_ambiguous))))
+            self.data.append((img_path, dict(boxes=boxes, flags=np.asarray(is_ambiguous))))
 
     def __getitem__(
         self,

@@ -4,6 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
+from shapely.geometry import Polygon
+import cv2
 from typing import List, Tuple, Dict
 from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
@@ -117,9 +119,8 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     """Compute the IoU between two sets of bounding boxes
 
     Args:
-        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
-        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
-
+        boxes_1: bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
+        boxes_2: bounding boxes of shape (M, 5) in format (x, y, w, h, alpha)
     Returns:
         the IoU matrix of shape (N, M)
     """
@@ -127,17 +128,12 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
-        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
-        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
-
-        left = np.maximum(l1, l2.T)
-        top = np.maximum(t1, t2.T)
-        right = np.minimum(r1, r2.T)
-        bot = np.minimum(b1, b2.T)
-
-        intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
-        union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
-        iou_mat = intersection / union
+        pts1 = [[cv2.boxPoints((x, y), (w, h), alpha)] for [x, y, w, h, alpha] in list(boxes_1)]
+        pts2 = [[cv2.boxPoints((x, y), (w, h), alpha)] for [x, y, w, h, alpha] in list(boxes_1)]
+        polys1 = [Polygon(pt) for pt in pts1]
+        polys2 = [Polygon(pt) for pt in pts2]
+        for i, j in zip(range(boxes_1.shape[0]), range(boxes_2.shape[0])):
+            iou_mat[i, j] = polys1[i].intersection(polys2[j]).area / polys1[i].union(polys2[j]).area
 
     return iou_mat
 

@@ -53,8 +53,8 @@ class OCRDataset(AbstractDataset):
                 self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=[])))
                 continue
             for box in file_dic["coordinates"]:
-                xs, ys = np.asarray(box)[:, 0], np.asarray(box)[:, 1]
-                box_targets.append([min(xs), min(ys), max(xs), max(ys)])
+                (x, y), (w, h), alpha = cv2.minAreaRect(box)
+                box_targets.append([x, y, w, h, alpha])
 
             text_targets = file_dic["string"]
             self.data.append((img_name, dict(boxes=np.asarray(box_targets), labels=text_targets)))

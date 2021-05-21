@@ -58,22 +58,22 @@ class DBPostProcessor(DetectionPostProcessor):
 
         super().__init__(
             box_thresh,
-            bin_thresh
+            bin_thresh,
+            max_candidates
         )
         self.unclip_ratio = unclip_ratio
-        self.max_candidates = max_candidates
 
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Optional[Tuple[int, int, int, int]]:
-        """Expand a polygon (points) by a factor unclip_ratio, and returns a 4-points box
+    ) -> Optional[Tuple[int, int, int, int, float]]:
+        """Expand a polygon (points) by a factor unclip_ratio, and returns a rotated box: x, y, w, h, alpha
 
         Args:
             points: The first parameter.
 
         Returns:
-            a box in absolute coordinates (x, y, w, h)
+            a box in absolute coordinates (x, y, w, h, alpha)
         """
         poly = Polygon(points)
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
@@ -93,8 +93,8 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
-        return x, y, w, h
+        ((x, y), (w, h), alpha) = cv2.minAreaRect(expanded_points)
+        return x, y, w, h, alpha
 
     def bitmap_to_boxes(
         self,
@@ -120,8 +120,8 @@ class DBPostProcessor(DetectionPostProcessor):
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            x, y, w, h = cv2.boundingRect(contour)
-            points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+            rect = cv2.minAreaRect(contour)  # rotated rectangle
+            points = cv2.boxPoints(rect)  # points
             # Compute objectness
             score = self.box_score(pred, points)
             if self.box_thresh > score:   # remove polygons with a weak objectness
@@ -130,11 +130,11 @@ class DBPostProcessor(DetectionPostProcessor):
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
-            x, y, w, h = _box
-            # compute relative polygon to get rid of img shape
-            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-            boxes.append([xmin, ymin, xmax, ymax, score])
-        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+            x, y, w, h, alpha = _box
+            # compute relative box to get rid of img shape
+            x, y, w, h = x / width, y / height, w / width, h / height
+            boxes.append([x, y, w, h, alpha, score])
+        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 6), dtype=np.float32)
 
 
 class FeaturePyramidNetwork(layers.Layer, NestedObject):

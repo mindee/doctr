@@ -43,13 +43,14 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        min_size_box: int = 3,
         bin_thresh: float = 0.15,
         box_thresh: float = 0.1,
+        max_candidates: int = 1000
     ) -> None:
         super().__init__(
             box_thresh,
-            bin_thresh
+            bin_thresh,
+            max_candidates
         )
 
     def bitmap_to_boxes(
@@ -64,27 +65,29 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             bitmap: Bitmap map computed from pred (binarized)
 
         Returns:
-            np tensor boxes for the bitmap, each box is a 5-element list
-                containing x, y, w, h, score for the box
+            np tensor boxes for the bitmap, each box is a 6-element list
+                containing x, y, w, h, alpha, score for the box
         """
-        label_num, labelimage = cv2.connectedComponents(bitmap.astype(np.uint8), connectivity=4)
         height, width = bitmap.shape[:2]
         min_size_box = 1 + int(height / 512)
         boxes = []
-        for label in range(1, label_num + 1):
-            points = np.array(np.where(labelimage == label)[::-1]).T
-            if points.shape[0] < 4:  # remove polygons with 3 points or less
+        # get contours from connected components on the bitmap
+        contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for contour in contours[:self.max_candidates]:
+            # Check whether smallest enclosing bounding box is not too small
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            score = self.box_score(pred, points.reshape(-1, 2))
+            rect = cv2.minAreaRect(contour)  # rotated rectangle
+            points = cv2.boxPoints(rect)  # points
+            # Compute objectness
+            score = self.box_score(pred, points)
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            x, y, w, h = cv2.boundingRect(points)
-            if min(w, h) < min_size_box:  # filter too small boxes
-                continue
-            # compute relative polygon to get rid of img shape
-            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-            boxes.append([xmin, ymin, xmax, ymax, score])
-        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+            (x, y), (w, h), alpha = rect
+            # compute relative box to get rid of img shape
+            x, y, w, h = x / width, y / height, w / width, h / height
+            boxes.append([x, y, w, h, alpha, score])
+        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 6), dtype=np.float32)
 
 
 def decoder_block(in_chan: int, out_chan: int) -> Sequential:

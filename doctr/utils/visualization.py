@@ -8,6 +8,7 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
 import numpy as np
+import cv2
 from typing import Tuple, List, Dict, Any
 
 from .common_types import BoundingBox
@@ -37,14 +38,13 @@ def create_rect_patch(
     Returns:
         a rectangular Patch
     """
-    h, w = page_dimensions
-    (xmin, ymin), (xmax, ymax) = geometry
-    xmin, xmax = xmin * w, xmax * w
-    ymin, ymax = ymin * h, ymax * h
-    rect = patches.Rectangle(
-        (xmin, ymin),
-        xmax - xmin,
-        ymax - ymin,
+    height, width = page_dimensions
+    (x, y, w, h, alpha) = geometry
+    x, w = x * width, w * width
+    y, h = y * height, h * height
+    points = cv2.boxPoints(((x, y), (w, h), alpha))
+    rect = patches.Polygon(
+        points,
         fill=fill,
         linewidth=linewidth,
         edgecolor=(*color, alpha),

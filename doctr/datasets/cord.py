@@ -5,6 +5,7 @@
 
 import os
 import json
+import cv2
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
@@ -57,13 +58,12 @@ class CORD(VisionDataset):
                 label = json.load(f)
                 for line in label["valid_line"]:
                     for word in line["words"]:
-                        x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
-                        y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
-                        # Reduce 8 coords to 4
-                        left, right = min(x), max(x)
-                        top, bot = min(y), max(y)
+                        pt1, pt2 = [word["quad"]["x1"], word["quad"]["y1"]], [word["quad"]["x2"], word["quad"]["y2"]]
+                        pt3, pt4 = [word["quad"]["x3"], word["quad"]["y3"]], [word["quad"]["x4"], word["quad"]["y4"]]
+                        pts = [pt1, pt2, pt3, pt4]
                         if len(word["text"]) > 0:
-                            _targets.append((word["text"], [left, top, right, bot]))
+                            (x, y), (w, h), alpha = cv2.minAreaRect(pts)
+                            _targets.append((word["text"], [x, y, w, h, alpha]))
 
             text_targets, box_targets = zip(*_targets)
 

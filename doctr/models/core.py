@@ -50,7 +50,7 @@ class OCRPredictor(NestedObject):
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images
-        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
+        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :5])]
         # Identify character sequences
         char_sequences = self.reco_predictor(crops, **kwargs)
 
@@ -87,18 +87,18 @@ class DocumentBuilder(NestedObject):
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 5)
 
         Returns:
             indices of ordered boxes of shape (N,)
         """
-        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
+        return (boxes[:, 0] + 2 * boxes[:, 1] / np.median(boxes[:, 3])).argsort()
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
         """Split a line in sub_lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 5)
             words: list of indexes for the words of the line
 
         Returns:
@@ -117,7 +117,7 @@ class DocumentBuilder(NestedObject):
 
                 prev_box = boxes[sub_line[-1]]
                 # If distance between boxes is lower than paragraph break, same sub-line
-                if (boxes[i, 0] - prev_box[2]) < self.paragraph_break:
+                if (boxes[i, 0] - prev_box[2] / 2 - (prev_box[0] + prev_box[2] / 2)) < self.paragraph_break:
                     horiz_break = False
 
                 if horiz_break:
@@ -133,26 +133,25 @@ class DocumentBuilder(NestedObject):
         """Order boxes to group them in lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 5)
 
         Returns:
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 3])
         # Sort boxes
-        idxs = (boxes[:, 0] + 2 * boxes[:, 3] / y_med).argsort()
+        idxs = (boxes[:, 0] + 2 * boxes[:, 1] / y_med).argsort()
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
-        y_center_sum = boxes[idxs[0]][[1, 3]].mean()
-
+        y_center_sum = boxes[idxs[0]][1]
         for idx in idxs[1:]:
             vert_break = True
 
             # If y-center of the box is close enough to mean y-center of the line, same line
-            if abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words)) < y_med / 2:
+            if abs(boxes[idx][1] - y_center_sum / len(words)) < y_med / 2:
                 vert_break = False
 
             if vert_break:
@@ -162,7 +161,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][[1, 3]].mean()
+            y_center_sum += boxes[idx][1]
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -175,7 +174,7 @@ class DocumentBuilder(NestedObject):
         """Order lines to group them in blocks
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 5)
             lines: list of lines, each line is a list of idx
 
         Returns:
@@ -184,11 +183,10 @@ class DocumentBuilder(NestedObject):
         # Resolve enclosing boxes of lines
         _lines = [
             [
-                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
+                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
             ] for line in lines
         ]
-        _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
-        box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
+        box_lines = [resolve_enclosing_bbox(line) for line in _lines]
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
@@ -198,12 +196,8 @@ class DocumentBuilder(NestedObject):
                 (box_lines[:, 1] + box_lines[:, 2]) / 2,
                 (box_lines[:, 0] + box_lines[:, 2]) / 2,
                 (box_lines[:, 1] + box_lines[:, 3]) / 2,
-                (box_lines[:, 0] + box_lines[:, 1]) / 2,
-                (box_lines[:, 2] + box_lines[:, 3]) / 2,
                 box_lines[:, 0],
                 box_lines[:, 1],
-                box_lines[:, 2],
-                box_lines[:, 3],
             ), axis=-1
         )
         # Compute clusters
@@ -226,7 +220,7 @@ class DocumentBuilder(NestedObject):
         """Gather independent words in structured blocks
 
         Args:
-            boxes: bounding boxes of all detected words of the page, of shape (N, 4)
+            boxes: bounding boxes of all detected words of the page, of shape (N, 6)
             char_sequences: list of all detected words of the page, of shape N
 
         Returns:
@@ -241,15 +235,15 @@ class DocumentBuilder(NestedObject):
 
         # Decide whether we try to form lines
         if self.resolve_lines:
-            lines = self._resolve_lines(boxes[:, :4])
+            lines = self._resolve_lines(boxes[:, :5])
             # Decide whether we try to form blocks
             if self.resolve_blocks:
-                blocks = self._resolve_blocks(boxes[:, :4], lines)
+                blocks = self._resolve_blocks(boxes[:, :5], lines)
             else:
                 blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(boxes[:, :4])]
+            lines = [self._sort_boxes(boxes[:, :5])]
             blocks = [lines]
 
         blocks = [
@@ -257,8 +251,8 @@ class DocumentBuilder(NestedObject):
                 [Line(
                     [Word(
                         char_sequences[idx],
-                        boxes[idx, 4],
-                        ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
+                        boxes[idx, 5],  # objectness
+                        (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
                     ) for idx in line]
                 ) for line in lines]
             ) for lines in blocks
