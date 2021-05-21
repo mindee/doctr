@@ -25,7 +25,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 32)
     predictor = RecognitionPredictor(
-        PreProcessor(_model.cfg['input_shape'][:2], preserve_aspect_ratio=True,  **kwargs),
+        PreProcessor(_model.cfg['input_shape'][:2], preserve_aspect_ratio=True, **kwargs),
         _model
     )
 
