@@ -69,7 +69,10 @@ class Resize(NestedObject):
         self.symmetric_pad = symmetric_pad
 
     def extra_repr(self) -> str:
-        return f"output_size={self.output_size}, method='{self.method}'"
+        _repr = f"output_size={self.output_size}, method='{self.method}'"
+        if self.preserve_aspect_ratio:
+            _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
+        return _repr
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
