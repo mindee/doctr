@@ -133,7 +133,11 @@ class DBPostProcessor(DetectionPostProcessor):
             # compute relative box to get rid of img shape
             x, y, w, h = x / width, y / height, w / width, h / height
             boxes.append([x, y, w, h, alpha, score])
-        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 6), dtype=np.float32)
+        if len(boxes) == 0:
+            return np.zeros((0, 6), dtype=np.float32)
+        coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
+        boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
+        return boxes
 
 
 class FeaturePyramidNetwork(layers.Layer, NestedObject):
