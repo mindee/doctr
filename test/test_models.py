@@ -5,6 +5,8 @@ import tensorflow as tf
 
 from doctr import models
 from doctr.documents import Document, DocumentFile
+from test_models_detection import test_detectionpredictor
+from test_models_recognition import test_recognitionpredictor
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
