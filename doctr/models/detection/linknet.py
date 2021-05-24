@@ -16,6 +16,7 @@ from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from ...utils.repr import NestedObject
+from doctr.utils.geometry import fit_bb
 
 __all__ = ['LinkNet', 'linknet', 'LinkNetPostProcessor']
 
@@ -77,13 +78,11 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            rect = cv2.minAreaRect(contour)  # rotated rectangle
-            points = cv2.boxPoints(rect)  # points
             # Compute objectness
-            score = self.box_score(pred, points)
+            score = self.box_score(pred, contour)
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            (x, y), (w, h), alpha = rect
+            x, y, w, h, alpha = fit_bb(contour)
             # compute relative box to get rid of img shape
             x, y, w, h = x / width, y / height, w / width, h / height
             boxes.append([x, y, w, h, alpha, score])

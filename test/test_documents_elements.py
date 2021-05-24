@@ -2,48 +2,56 @@ import numpy as np
 from doctr.documents import elements
 
 
-def _mock_words(geoms=([.1, .1, .1, .1, 0], [.3, .3, .1, .1, 12]), confidence=0.9):
+def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
-        elements.Word("hello", confidence, geoms[0]),
-        elements.Word("world", confidence, geoms[1])
+        elements.Word("hello", confidence, (
+            offset[0] + size[0] / 4, offset[1] + size[1] / 4, size[0] / 2, size[1] / 2, 0
+        )),
+        elements.Word("world", confidence, (
+            offset[0] + 3 * size[0] / 4, offset[1] + size[1] / 4, size[0] / 2, size[1] / 2, 0
+        ))
     ]
 
 
-def _mock_artefacts(geoms=([.1, .1, .1, .1, 0], [.3, .3, .1, .1, 12]), confidence=0.8):
+def _mock_artefacts(size=(1, 1), offset=(0, 0), confidence=0.8):
+    sub_size = (size[0] / 2, size[1] / 2)
     return [
-        elements.Artefact("qr_code", confidence, geoms[0]),
-        elements.Artefact("qr_code", confidence, geoms[1])
+        elements.Artefact("qr_code", confidence, (
+            offset[0] + sub_size[0] / 2, offset[1] + sub_size[1] / 2, sub_size[0], sub_size[1], 0
+        )),
+        elements.Artefact("qr_code", confidence, (
+            offset[0] + 3 * sub_size[0] / 2, offset[1] + sub_size[1] / 2, sub_size[0], sub_size[1], 0
+        )),
     ]
 
 
-def _mock_lines(geoms=(
-    ([.1, .1, .1, .1, 0], [.3, .1, .1, .1, 1]),
-    ([.1, .3, .1, .1, 0], [.3, .3, .1, .1, 3])
-    )):
+def _mock_lines(size=(1, 1), offset=(0, 0)):
+    sub_size = (size[0] / 2, size[1] / 2)
     return [
-        elements.Line(_mock_words(geoms=geoms[0])),
-        elements.Line(_mock_words(geoms=geoms[1])),
+        elements.Line(_mock_words(size=sub_size, offset=offset)),
+        elements.Line(_mock_words(size=sub_size, offset=(offset[0] + sub_size[0], offset[1] + sub_size[1]))),
     ]
 
 
-def _mock_blocks(geoms=(
-    (([.1, .1, .1, .1, 0], [.3, .1, .1, .1, 1]),
-    ([.1, .3, .1, .1, 0], [.3, .3, .1, .1, 3])),
-    ([.1, .1, .1, .1, 0], [.3, .3, .1, .1, 12])
-    )):
+def _mock_blocks(size=(1, 1), offset=(0, 0)):
+    sub_size = (size[0] / 4, size[1] / 4)
     return [
         elements.Block(
-            _mock_lines(geoms=geoms[0]),
-            _mock_artefacts(geoms=geoms[1])
-        )
+            _mock_lines(size=sub_size, offset=offset),
+            _mock_artefacts(size=sub_size, offset=(offset[0] + sub_size[0], offset[1]))
+        ),
+        elements.Block(
+            _mock_lines(size=sub_size, offset=(offset[0] + 2 * sub_size[0], offset[1] + 2 * sub_size[1])),
+            _mock_artefacts(size=sub_size, offset=(offset[0] + 3 * sub_size[0], offset[1] + 2 * sub_size[1])),
+        ),
     ]
 
 
-def _mock_pages():
+def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     return [
-        elements.Page(_mock_blocks(), 0, (300, 200),
+        elements.Page(_mock_blocks(block_size, block_offset), 0, (300, 200),
                       {"value": 0., "confidence": 1.}, {"value": "EN", "confidence": 0.8}),
-        elements.Page(_mock_blocks(), 1, (500, 1000),
+        elements.Page(_mock_blocks(block_size, block_offset), 1, (500, 1000),
                       {"value": 0.15, "confidence": 0.8}, {"value": "FR", "confidence": 0.7}),
     ]
 
@@ -51,7 +59,7 @@ def _mock_pages():
 def test_word():
     word_str = "hello"
     conf = 0.8
-    geom = (.1, .1, .1, .1, 0)
+    geom = (0, 0, 1, 1, 0)
     word = elements.Word(word_str, conf, geom)
 
     # Attribute checks
@@ -70,33 +78,33 @@ def test_word():
 
 
 def test_line():
-    geom = ([.1, .1, .1, .1, 0], [.3, .3, .1, .1, 12])
-    words = _mock_words(geoms=geom)
+    geom = ((0, 0), (0.5, 0.5))
+    words = _mock_words(size=geom[1], offset=geom[0])
     line = elements.Line(words)
 
     # Attribute checks
     assert len(line.words) == len(words)
     assert all(isinstance(w, elements.Word) for w in line.words)
-    assert line.geometry == geom
+    assert line.geometry == (0.25, 0.125, 0.5, 0.25, 0)
 
     # Render
     assert line.render() == "hello world"
 
     # Export
-    assert line.export() == {"words": [w.export() for w in words], "geometry": geom}
+    assert line.export() == {"words": [w.export() for w in words], "geometry": (0.25, 0.125, 0.5, 0.25, 0)}
 
     # Repr
     words_str = ' ' * 4 + ',\n    '.join(repr(word) for word in words) + ','
     assert line.__repr__() == f"Line(\n  (words): [\n{words_str}\n  ]\n)"
 
     # Ensure that words repr does't span on several lines when there are none
-    assert repr(elements.Line([], ((0, 0), (1, 1)))) == "Line(\n  (words): []\n)"
+    assert repr(elements.Line([], ((0, 0, 1, 1, 0)))) == "Line(\n  (words): []\n)"
 
 
 def test_artefact():
     artefact_type = "qr_code"
     conf = 0.8
-    geom = (.1, .1, .1, .1, 0)
+    geom = (0, 0, 1, 1, 0)
     artefact = elements.Artefact(artefact_type, conf, geom)
 
     # Attribute checks
@@ -115,8 +123,10 @@ def test_artefact():
 
 
 def test_block():
-    lines = _mock_lines()
-    artefacts = _mock_artefacts()
+    geom = ((0, 0), (1, 1))
+    sub_size = (geom[1][0] / 2, geom[1][0] / 2)
+    lines = _mock_lines(size=sub_size, offset=geom[0])
+    artefacts = _mock_artefacts(size=sub_size, offset=(geom[0][0] + sub_size[0], geom[0][1]))
     block = elements.Block(lines, artefacts)
 
     # Attribute checks
@@ -124,14 +134,15 @@ def test_block():
     assert len(block.artefacts) == len(artefacts)
     assert all(isinstance(w, elements.Line) for w in block.lines)
     assert all(isinstance(a, elements.Artefact) for a in block.artefacts)
-    assert block.geometry == geom
+    assert block.geometry == (0.5, 0.1875, 1.0, 0.375, 0)
 
     # Render
     assert block.render() == "hello world\nhello world"
 
     # Export
     assert block.export() == {"lines": [line.export() for line in lines],
-                              "artefacts": [artefact.export() for artefact in artefacts], "geometry": geom}
+                              "artefacts": [artefact.export() for artefact in artefacts],
+                              "geometry": (0.5, 0.1875, 1.0, 0.375, 0)}
 
 
 def test_page():

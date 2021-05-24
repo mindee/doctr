@@ -8,7 +8,7 @@ import numpy as np
 import cv2
 from .common_types import BoundingBox, Polygon4P
 
-__all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox']
+__all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'fit_bb']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -20,13 +20,20 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
     return [pt1, pt2, pt3, pt4]
 
 
+def fit_bb(pts: np.ndarray) -> BoundingBox:
+    ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
+    if alpha == 90.0:
+        # In case box is perfectly horizontal, cv2 give a 90° angle
+        # transformation 1° -> 90° to 0° -> 89°
+        return (x, y, h, w, 0)
+    return (x, y, w, h, alpha)
+
+
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
     cnt = np.array(polygon).reshape((-1, 1, 2)).astype(np.float32)
-    ((x, y), (w, h), alpha) = cv2.minAreaRect(cnt)
-    return (x, y, w, h, alpha)
+    return fit_bb(cnt)
 
 
 def resolve_enclosing_bbox(bboxes: List[BoundingBox]) -> BoundingBox:
     pts = np.asarray([pt for bbox in bboxes for pt in bbox_to_polygon(bbox)], np.float32)
-    ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
-    return (x, y, w, h, alpha)
+    return fit_bb(pts)

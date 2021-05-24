@@ -48,7 +48,7 @@ def test_box_iou(box1, box2, iou, abs_tol):
     [
         [[[[.1, .1, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]]], 0.5, 1, 1, 1],  # Perfect match
         [[[[.1, .1, .1, .1, 0]]], [[[.1, .1, .05, .05, 0], [.6, .6, .2, .2, 0]]], 0.2, 1, 0.5, 0.125],  # Bad match
-        [[[[.1, .1, .1, .1, 0]], [[.3, .3, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]], None], 0.5, 0.5, 1, 1],  # No preds on 2nd sample
+        [[[[.1, .1, .1, .1, 0]], [[.3, .3, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]], None], 0.5, 0.5, 1, 1],  # Empty
     ],
 )
 def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):

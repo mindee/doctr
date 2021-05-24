@@ -10,6 +10,7 @@ def test_polygon_to_bbox():
     target = (.1, .1, .2, .2)
     assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
 
+
 def test_resolve_enclosing_bbox():
     pred = geometry.resolve_enclosing_bbox([(.2, .2, .05, .05, 0), (.2, .2, .2, .2, 0)])[:4]
     target = (.2, .2, .2, .2)

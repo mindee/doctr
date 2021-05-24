@@ -5,12 +5,12 @@
 
 import os
 import json
-import cv2
 import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Callable
 
 from .core import AbstractDataset
+from doctr.utils.geometry import fit_bb
 
 __all__ = ["DetectionDataset"]
 
@@ -48,7 +48,7 @@ class DetectionDataset(AbstractDataset):
             # Switch to rotated rects
             _boxes = []
             for bbox in _bboxes:
-                (x, y), (w, h), alpha = cv2.minAreaRect(bbox)
+                x, y, w, h, alpha = fit_bb(bbox)
                 _boxes.append([x, y, w, h, alpha])
             bboxes = np.asarray(_boxes, dtype=np.float32)
 

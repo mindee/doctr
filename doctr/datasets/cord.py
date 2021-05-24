@@ -5,13 +5,13 @@
 
 import os
 import json
-import cv2
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from .core import VisionDataset
+from doctr.utils.geometry import fit_bb
 
 __all__ = ['CORD']
 
@@ -64,7 +64,7 @@ class CORD(VisionDataset):
                         pt3, pt4 = [word["quad"]["x3"], word["quad"]["y3"]], [word["quad"]["x4"], word["quad"]["y4"]]
                         pts = np.asarray([pt1, pt2, pt3, pt4], dtype=np.float32)
                         if len(word["text"]) > 0:
-                            (x, y), (w, h), alpha = cv2.minAreaRect(pts)
+                            x, y, w, h, alpha = fit_bb(pts)
                             _targets.append((word["text"], [x, y, w, h, alpha]))
 
             text_targets, box_targets = zip(*_targets)

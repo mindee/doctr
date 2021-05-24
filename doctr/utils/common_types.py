@@ -8,5 +8,5 @@ from typing import Tuple, List
 __all__ = ['Point2D', 'BoundingBox', 'Polygon4P']
 
 Point2D = List[float]
-BoundingBox = Tuple[float, float, float, float]
+BoundingBox = Tuple[float, float, float, float, float]
 Polygon4P = List[Point2D]

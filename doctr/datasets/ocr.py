@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-import cv2
 import json
 import numpy as np
 from pathlib import Path
@@ -12,6 +11,7 @@ from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from .core import AbstractDataset
+from doctr.utils.geometry import fit_bb
 
 
 __all__ = ['OCRDataset']
@@ -54,10 +54,9 @@ class OCRDataset(AbstractDataset):
                (len(file_dic["coordinates"]) == 1 and file_dic["coordinates"][0] == "N/A")):
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np.float32), labels=[])))
                 continue
-            is_valid: List[bool] = []
             box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
-                (x, y), (w, h), alpha = cv2.minAreaRect(np.asarray(box, dtype=np.float32))
+                x, y, w, h, alpha = fit_bb(np.asarray(box, dtype=np.float32))
                 box_targets.append([x, y, w, h, alpha])
 
             text_targets = file_dic["string"]

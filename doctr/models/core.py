@@ -183,10 +183,10 @@ class DocumentBuilder(NestedObject):
         # Resolve enclosing boxes of lines
         _lines = [
             [
-                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
+                ((boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
             ] for line in lines
         ]
-        box_lines = [resolve_enclosing_bbox(line) for line in _lines]
+        box_lines = np.asarray([resolve_enclosing_bbox(line) for line in _lines])
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents

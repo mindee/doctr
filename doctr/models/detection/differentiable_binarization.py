@@ -18,6 +18,7 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 from .core import DetectionModel, DetectionPostProcessor
 from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from doctr.utils.repr import NestedObject
+from doctr.utils.geometry import fit_bb
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -93,7 +94,7 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        ((x, y), (w, h), alpha) = cv2.minAreaRect(expanded_points)
+        x, y, w, h, alpha = fit_bb(expanded_points)
         return x, y, w, h, alpha
 
     def bitmap_to_boxes(
@@ -120,13 +121,11 @@ class DBPostProcessor(DetectionPostProcessor):
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            rect = cv2.minAreaRect(contour)  # rotated rectangle
-            points = cv2.boxPoints(rect)  # points
             # Compute objectness
-            score = self.box_score(pred, points)
+            score = self.box_score(pred, contour)
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            _box = self.polygon_to_box(points)
+            _box = self.polygon_to_box(np.squeeze(contour))
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
