@@ -5,12 +5,13 @@
 
 import numpy as np
 import cv2
-from typing import List
+import tensorflow as tf
+from typing import List, Union
 
 __all__ = ['extract_crops']
 
 
-def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
+def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
@@ -21,6 +22,8 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
     Returns:
         list of cropped images
     """
+    if isinstance(img, tf.Tensor):
+        img = img.numpy().astype(np.uint8)
 
     if boxes.shape[0] == 0:
         return []

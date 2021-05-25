@@ -134,8 +134,9 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         pts2 = [[(x, y) for [x, y] in list(pt)] for pt in _pts2]
         polys1 = [Polygon(pt) for pt in pts1]
         polys2 = [Polygon(pt) for pt in pts2]
-        for i, j in zip(range(boxes_1.shape[0]), range(boxes_2.shape[0])):
-            iou_mat[i, j] = polys1[i].intersection(polys2[j]).area / polys1[i].union(polys2[j]).area
+        for i in range(boxes_1.shape[0]):
+            for j in range(boxes_2.shape[0]):
+                iou_mat[i, j] = polys1[i].intersection(polys2[j]).area / polys1[i].union(polys2[j]).area
 
     return iou_mat
 
