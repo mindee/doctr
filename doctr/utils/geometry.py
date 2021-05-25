@@ -22,10 +22,8 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
 
 def fit_bb(pts: np.ndarray) -> BoundingBox:
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
-    if alpha == 90.0:
-        # In case box is perfectly horizontal, cv2 give a 90° angle
-        # transformation 1° -> 90° to 0° -> 89°
-        return (x, y, h, w, 0)
+    if alpha >= 45:
+        return (x, y, h, w, 90 - alpha)
     return (x, y, w, h, alpha)
 
 

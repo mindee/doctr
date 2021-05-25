@@ -72,7 +72,7 @@ class DetectionPostProcessor(NestedObject):
         h, w = pred.shape[:2]
         mask = np.zeros((h, w), np.int32)
         cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
-        return  np.sum(pred * mask) / np.count_nonzero(pred * mask)
+        return np.sum(pred * mask) / np.count_nonzero(pred * mask)
 
     def bitmap_to_boxes(
         self,

@@ -16,7 +16,7 @@ def test_dbpostprocessor():
     assert all(isinstance(sample, np.ndarray) for sample in out)
     assert all(sample.shape[1] == 6 for sample in out)
     # Relative coords
-    assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
+    assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in out)
     # Repr
     assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1, max_candidates=1000)'
     # Edge case when the expanded points of the polygon has two lists
