@@ -13,16 +13,19 @@ __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'fit_
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
     (x, y, w, h, alpha) = bbox
-    pt1 = [x + (w / 2 * np.cos(alpha)) + (h / 2 * np.sin(alpha)), y + (w / 2 * np.sin(alpha)) - (h / 2 * np.cos(alpha))]
-    pt2 = [x - (w / 2 * np.cos(alpha)) + (h / 2 * np.sin(alpha)), y - (w / 2 * np.sin(alpha)) - (h / 2 * np.cos(alpha))]
-    pt3 = [x - (w / 2 * np.cos(alpha)) - (h / 2 * np.sin(alpha)), y - (w / 2 * np.sin(alpha)) + (h / 2 * np.cos(alpha))]
-    pt4 = [x + (w / 2 * np.cos(alpha)) - (h / 2 * np.sin(alpha)), y + (w / 2 * np.sin(alpha)) + (h / 2 * np.cos(alpha))]
+    alpha = alpha * np.pi / 180
+    pt1 = [x + (w / 2 * np.cos(alpha)) - (h / 2 * np.sin(alpha)), y + (w / 2 * np.sin(alpha)) + (h / 2 * np.cos(alpha))]
+    pt2 = [x - (w / 2 * np.cos(alpha)) - (h / 2 * np.sin(alpha)), y - (w / 2 * np.sin(alpha)) + (h / 2 * np.cos(alpha))]
+    pt3 = [x - (w / 2 * np.cos(alpha)) + (h / 2 * np.sin(alpha)), y - (w / 2 * np.sin(alpha)) - (h / 2 * np.cos(alpha))]
+    pt4 = [x + (w / 2 * np.cos(alpha)) + (h / 2 * np.sin(alpha)), y + (w / 2 * np.sin(alpha)) - (h / 2 * np.cos(alpha))]
     return [pt1, pt2, pt3, pt4]
 
 
 def fit_bb(pts: np.ndarray) -> BoundingBox:
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
     if alpha >= 45:
+        # cv2.minAreaRect cover only angles between 1 and 90
+        # we need to bring symetry with respect to the horizontal axis
         return (x, y, h, w, 90 - alpha)
     return (x, y, w, h, alpha)
 

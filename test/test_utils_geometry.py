@@ -2,7 +2,7 @@ from doctr.utils import geometry
 
 
 def test_bbox_to_polygon():
-    assert geometry.bbox_to_polygon((.1, .1, .2, .2, 0)) == [[.2, 0], [0, 0], [0, .2], [.2, .2]]
+    assert geometry.bbox_to_polygon((.1, .1, .2, .2, 0)) == [[.2, .2], [0, 0.2], [0, 0], [.2, 0]]
 
 
 def test_polygon_to_bbox():
