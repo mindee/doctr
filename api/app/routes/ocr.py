@@ -18,6 +18,5 @@ async def perform_ocr(file: UploadFile = File(...)):
     """Runs DocTR OCR model to analyze the input"""
     img = decode_image(file.file.read())
     out = predictor([img], training=False)
-
-    return [OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)
+    return [OCROut(box=[*word.geometry], value=word.value)
             for word in out.pages[0].blocks[0].lines[0].words]
