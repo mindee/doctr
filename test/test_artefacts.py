@@ -3,6 +3,7 @@ import numpy as np
 from doctr.models.artefacts import BarCodeDetector, FaceDetector, QRCodeDetector
 import cv2
 
+
 def test_qr_code_detector(mock_image_folder):
     detector = QRCodeDetector()
     for img in os.listdir(mock_image_folder):
