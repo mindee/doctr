@@ -54,24 +54,37 @@ class Resize(NestedObject):
         output_size: expected output size
         method: interpolation method
         preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros
+        symmetric_pad: if `True` while preserving aspect ratio, the padding will be done symmetrically
     """
     def __init__(
         self,
         output_size: Tuple[int, int],
         method: str = 'bilinear',
         preserve_aspect_ratio: bool = False,
+        symmetric_pad: bool = False,
     ) -> None:
         self.output_size = output_size
         self.method = method
         self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.symmetric_pad = symmetric_pad
 
     def extra_repr(self) -> str:
-        return f"output_size={self.output_size}, method='{self.method}'"
+        _repr = f"output_size={self.output_size}, method='{self.method}'"
+        if self.preserve_aspect_ratio:
+            _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
+        return _repr
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
         if self.preserve_aspect_ratio:
-            img = tf.image.pad_to_bounding_box(img, 0, 0, *self.output_size)
+            # pad width
+            if not self.symmetric_pad:
+                offset = (0, 0)
+            elif self.output_size[0] == img.shape[0]:
+                offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
+            else:
+                offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+            img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
         return img
 
 
@@ -223,7 +236,7 @@ class RandomSaturation(NestedObject):
         return f"delta={self.delta}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 / (1 - self.delta))
+        return tf.image.random_saturation(img, lower=1 - self.delta, upper=1 + self.delta)
 
 
 class RandomHue(NestedObject):

@@ -6,7 +6,7 @@
 import math
 import tensorflow as tf
 import numpy as np
-from typing import List, Tuple, Dict, Any, Optional
+from typing import Dict, Any, Optional
 
 from .multithreading import multithread_exec
 

@@ -20,6 +20,23 @@ def test_resize():
     out = transfo(input_t)
 
     assert not tf.reduce_all(out == 1)
+    # Asymetric padding
+    assert tf.reduce_all(out[-1] == 0) and tf.reduce_all(out[0] == 1)
+    assert out.shape[:2] == output_size
+
+    # Symetric padding
+    transfo = T.Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
+    assert repr(transfo) == (f"Resize(output_size={output_size}, method='bilinear', "
+                             f"preserve_aspect_ratio=True, symmetric_pad=True)")
+    out = transfo(input_t)
+    # Asymetric padding
+    assert tf.reduce_all(out[-1] == 0) and tf.reduce_all(out[0] == 0)
+
+    # Inverse aspect ratio
+    input_t = tf.cast(tf.fill([64, 32, 3], 1), dtype=tf.float32)
+    out = transfo(input_t)
+
+    assert not tf.reduce_all(out == 1)
     assert out.shape[:2] == output_size
 
 

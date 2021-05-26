@@ -66,7 +66,7 @@ class BarCodeDetector:
         edges = cv2.dilate(edges, np.ones((k, 1), np.uint8))
 
         # Find contours, and keep the widest as barcodes
-        contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         barcodes = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)

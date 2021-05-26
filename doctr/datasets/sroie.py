@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
-from doctr.documents.reader import read_img
 from .core import VisionDataset
 
 __all__ = ['SROIE']
@@ -45,13 +44,15 @@ class SROIE(VisionDataset):
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        self.sample_transforms = sample_transforms
         self.train = train
 
         # # List images
         self.root = os.path.join(self._root, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
+            if not os.path.exists(os.path.join(self.root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             stem = Path(img_path).stem
             _targets = []
             with open(os.path.join(self._root, 'annotations', f"{stem}.txt"), encoding='latin') as f:
@@ -73,20 +74,3 @@ class SROIE(VisionDataset):
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
-
-    def __getitem__(self, index: int) -> Tuple[tf.Tensor, Dict[str, Any]]:
-        img_name, target = self.data[index]
-        # Read image
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
-        img = self.sample_transforms(img)
-
-        return img, target
-
-    @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Dict[str, Any]]]) -> Tuple[tf.Tensor, List[Dict[str, Any]]]:
-
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(targets)

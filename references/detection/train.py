@@ -20,8 +20,8 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from doctr.models import detection, DetectionPreProcessor
-from doctr.utils import metrics
+from doctr.models import detection
+from doctr.utils.metrics import LocalizationConfusion
 from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
@@ -157,7 +157,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = metrics.LocalizationConfusion()
+    val_metric = LocalizationConfusion()
 
     if args.test_only:
         print("Running evaluation")
