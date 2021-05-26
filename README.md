@@ -150,9 +150,9 @@ All script arguments can be checked using `python scripts/analyze.py --help`
 
 ### Minimal API integration
 
-Looking to integrate DocTR into your API? Here is a template to get you started with a fully working API.
+Looking to integrate DocTR into your API? Here is a template to get you started with a fully working API using the wonderful [FastAPI](https://github.com/tiangolo/fastapi) framework.
 
-#### Manual setup
+#### Deploy your API locally
 Specific dependencies are required to run the API template, which you can install as follows:
 ```shell
 pip install -r api/requirements.txt
@@ -160,14 +160,27 @@ pip install -r api/requirements.txt
 You can now run your API locally:
 
 ```shell
-uvicorn --reload --workers 1 --host 0.0.0.0 --port=8050 --app-dir api/ app.main:app
+uvicorn --reload --workers 1 --host 0.0.0.0 --port=8002 --app-dir api/ app.main:app
 ```
 
-#### Docker setup
-You can run the same server on a docker container if you prefer using:
+Alternatively, you can run the same server on a docker container if you prefer using:
 ```shell
-PORT=8050 docker-compose up -d --build
+PORT=8002 docker-compose up -d --build
 ```
+
+#### What you have deployed
+
+Your API should now be running locally on your port 8002. Access your automatically-built documentation at [http://localhost:8002/redoc](http://localhost:8002/redoc) and enjoy your three functional routes ("/detection", "/recognition", "/ocr"). Here is an example with Python to send a request to the OCR route:
+
+```python
+
+import requests
+import io
+with open('/path/to/your/doc.jpg', 'rb') as f:
+    data = f.read()
+response = requests.post("http://localhost:8002/ocr", files={'file': io.BytesIO(data)}).json()
+```
+
 
 ## Citation
 
