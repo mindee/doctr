@@ -9,6 +9,10 @@ Everything you need to know to contribute efficiently to the project.
 - [doctr](https://github.com/mindee/doctr/blob/main/doctr) - The actual doctr library
 - [test](https://github.com/mindee/doctr/blob/main/test) - Python unit tests
 - [docs](https://github.com/mindee/doctr/blob/main/docs) - Library documentation building
+- [scripts](https://github.com/mindee/doctr/blob/main/scripts) - Example scripts
+- [references](https://github.com/mindee/doctr/blob/main/references) - Reference training scripts
+- [demo](https://github.com/mindee/doctr/blob/main/demo) - Small demo app to showcase DocTR capabilities 
+- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy an API with DocTR
 
 
 ## Continuous Integration
