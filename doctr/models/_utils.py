@@ -39,6 +39,7 @@ def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[
 
     crops = []
     for box in _boxes:
+        box = box.astype(np.float32)
         x, y, w, h, alpha = box
         src_pts = cv2.boxPoints(((x, y), (w, h), alpha))
         # Preserve size
