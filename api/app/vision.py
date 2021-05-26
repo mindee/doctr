@@ -19,4 +19,4 @@ reco_predictor = predictor.reco_predictor
 
 def decode_image(img_bytes: bytes) -> tf.Tensor:
     """Decodes an image from bytes"""
-    return tf.io.decode_image(img_bytes)
+    return tf.io.decode_image(img_bytes, channels=3)
