@@ -39,15 +39,14 @@ def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[
 
     crops = []
     for box in _boxes:
-        box = box.astype(np.float32)
-        x, y, w, h, alpha = box
+        x, y, w, h, alpha = box.astype(np.float32)
         src_pts = cv2.boxPoints(((x, y), (w, h), alpha))
         # Preserve size
         dst_pts = np.array([[0, h - 1], [0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=np.float32)
         # The transformation matrix
         M = cv2.getPerspectiveTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
-        crop = cv2.warpPerspective(img, M, (w, h))
+        crop = cv2.warpPerspective(img, M, (int(w), int(h)))
         crops.append(crop)
 
     return crops
