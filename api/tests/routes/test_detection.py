@@ -16,7 +16,7 @@ async def test_text_detection(test_app_asyncio, mock_detection_image):
     assert response.status_code == 200
     json_response = response.json()
 
-    gt_boxes = np.array([[1240, 430, 1355, 470], [1360, 430, 1495, 470]], dtype=np.float32)
+    gt_boxes = np.array([[1297.5, 450, 115, 40, 0], [1427.5, 450, 135, 40, 0]], dtype=np.float32)
     gt_boxes[:, [0, 2]] = gt_boxes[:, [0, 2]] / 1654
     gt_boxes[:, [1, 3]] = gt_boxes[:, [1, 3]] / 2339
 
