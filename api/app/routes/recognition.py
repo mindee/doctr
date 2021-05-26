@@ -16,5 +16,5 @@ router = APIRouter()
 async def text_recognition(file: UploadFile = File(...)):
     """Runs DocTR text recognition model to analyze the input"""
     img = decode_image(file.file.read())
-    out = reco_predictor(img[None, ...], training=False)
+    out = reco_predictor([img], training=False)
     return RecognitionOut(value=out[0])
