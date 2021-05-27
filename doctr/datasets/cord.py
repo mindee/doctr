@@ -40,6 +40,7 @@ class CORD(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -60,12 +61,22 @@ class CORD(VisionDataset):
                 label = json.load(f)
                 for line in label["valid_line"]:
                     for word in line["words"]:
-                        pt1, pt2 = [word["quad"]["x1"], word["quad"]["y1"]], [word["quad"]["x2"], word["quad"]["y2"]]
-                        pt3, pt4 = [word["quad"]["x3"], word["quad"]["y3"]], [word["quad"]["x4"], word["quad"]["y4"]]
-                        pts = np.asarray([pt1, pt2, pt3, pt4], dtype=np.float32)
+                        if not rotated_bbox:
+                            x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
+                            y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
+                            # Reduce 8 coords to 4
+                            left, right = min(x), max(x)
+                            top, bot = min(y), max(y)
+                        else:
+                            pt1, pt2 = [word["quad"]["x1"], word["quad"]["y1"]], [word["quad"]["x2"], word["quad"]["y2"]]
+                            pt3, pt4 = [word["quad"]["x3"], word["quad"]["y3"]], [word["quad"]["x4"], word["quad"]["y4"]]
+                            pts = np.asarray([pt1, pt2, pt3, pt4], dtype=np.float32)
                         if len(word["text"]) > 0:
-                            x, y, w, h, alpha = fit_bb(pts)
-                            _targets.append((word["text"], [x, y, w, h, alpha]))
+                            if not rotated_bbox:
+                                _targets.append((word["text"], [left, top, right, bot]))
+                            else:
+                                x, y, w, h, alpha = fit_bb(pts)
+                                _targets.append((word["text"], [x, y, w, h, alpha]))
 
             text_targets, box_targets = zip(*_targets)
 

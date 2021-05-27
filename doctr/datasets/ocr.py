@@ -32,6 +32,7 @@ class OCRDataset(AbstractDataset):
         img_folder: str,
         label_file: str,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -54,10 +55,22 @@ class OCRDataset(AbstractDataset):
                (len(file_dic["coordinates"]) == 1 and file_dic["coordinates"][0] == "N/A")):
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np.float32), labels=[])))
                 continue
+            is_valid: List[bool] = []
             box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
-                x, y, w, h, alpha = fit_bb(np.asarray(box, dtype=np.float32))
-                box_targets.append([x, y, w, h, alpha])
-
-            text_targets = file_dic["string"]
+                if not rotated_bbox:
+                    xs, ys = zip(*box)
+                    box = [min(xs), min(ys), max(xs), max(ys)]
+                    if box[0] < box[2] and box[1] < box[3]:
+                        box_targets.append(box)
+                        is_valid.append(True)
+                    else:
+                        is_valid.append(False)
+                else:
+                    x, y, w, h, alpha = fit_bb(np.asarray(box, dtype=np.float32))
+                    box_targets.append([x, y, w, h, alpha])
+            if not rotated_bbox:
+                text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
+            else:
+                text_targets = file_dic["string"]
             self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))

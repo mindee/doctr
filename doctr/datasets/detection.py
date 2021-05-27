@@ -33,6 +33,7 @@ class DetectionDataset(AbstractDataset):
         img_folder: str,
         label_folder: str,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        rotated_bbox: bool = False,
     ) -> None:
         self.sample_transforms = sample_transforms
         self.root = img_folder
@@ -43,14 +44,18 @@ class DetectionDataset(AbstractDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             with open(os.path.join(label_folder, img_path + '.json'), 'rb') as f:
                 boxes = json.load(f)
-
-            _bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
-            # Switch to rotated rects
-            _boxes = []
-            for bbox in _bboxes:
-                x, y, w, h, alpha = fit_bb(bbox)
-                _boxes.append([x, y, w, h, alpha])
-            bboxes = np.asarray(_boxes, dtype=np.float32)
+            if not rotated_bbox:
+                bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
+                # Switch to xmin, ymin, xmax, ymax
+                bboxes = np.concatenate((bboxes.min(axis=1), bboxes.max(axis=1)), axis=1)
+            else:
+                _bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
+                # Switch to rotated rects
+                _boxes = []
+                for bbox in _bboxes:
+                    x, y, w, h, alpha = fit_bb(bbox)
+                    _boxes.append([x, y, w, h, alpha])
+                bboxes = np.asarray(_boxes, dtype=np.float32)
 
             is_ambiguous = [False] * (len(boxes["boxes_1"]) + len(boxes["boxes_2"])) + [True] * len(boxes["boxes_3"])
 

@@ -38,6 +38,7 @@ class FUNSD(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -61,13 +62,16 @@ class FUNSD(VisionDataset):
             _targets = [(word['text'], word['box']) for block in data['form']
                         for word in block['words'] if len(word['text']) > 0]
 
-            text_targets, _box_targets = zip(*_targets)
-            # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
-            box_targets = [
-                [
-                    (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
-                ] for box in _box_targets
-            ]
+            if not rotated_bbox:
+                text_targets, box_targets = zip(*_targets)
+            else:
+                text_targets, _box_targets = zip(*_targets)
+                # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
+                box_targets = [
+                    [
+                        (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                    ] for box in _box_targets
+                ]
 
             self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.int), labels=text_targets)))
 
