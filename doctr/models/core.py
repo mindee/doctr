@@ -52,10 +52,10 @@ class OCRPredictor(NestedObject):
         # Crop images
         crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
         # Identify character sequences
-        char_sequences = self.reco_predictor(crops, **kwargs)
+        word_preds = self.reco_predictor(crops, **kwargs)
 
         # Reorganize
-        out = self.doc_builder(boxes, char_sequences, [tuple(page.shape[:2]) for page in pages])
+        out = self.doc_builder(boxes, word_preds, [tuple(page.shape[:2]) for page in pages])
 
         return out
 
@@ -222,19 +222,19 @@ class DocumentBuilder(NestedObject):
 
         return blocks
 
-    def _build_blocks(self, boxes: np.ndarray, char_sequences: List[str]) -> List[Block]:
+    def _build_blocks(self, boxes: np.ndarray, word_preds: List[Tuple[str, float]]) -> List[Block]:
         """Gather independent words in structured blocks
 
         Args:
             boxes: bounding boxes of all detected words of the page, of shape (N, 4)
-            char_sequences: list of all detected words of the page, of shape N
+            word_preds: list of all detected words of the page, of shape N
 
         Returns:
             list of block elements
         """
 
-        if boxes.shape[0] != len(char_sequences):
-            raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(char_sequences)}")
+        if boxes.shape[0] != len(word_preds):
+            raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
 
         if boxes.shape[0] == 0:
             return []
@@ -256,8 +256,7 @@ class DocumentBuilder(NestedObject):
             Block(
                 [Line(
                     [Word(
-                        char_sequences[idx],
-                        boxes[idx, 4],
+                        *word_preds[idx],
                         ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
                     ) for idx in line]
                 ) for line in lines]
@@ -273,14 +272,14 @@ class DocumentBuilder(NestedObject):
     def __call__(
         self,
         boxes: List[np.ndarray],
-        char_sequences: List[str],
+        word_preds: List[Tuple[str, float]],
         page_shapes: List[Tuple[int, int]]
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
         Args:
             boxes: list of localization predictions for all words, of shape (N, 5)
-            char_sequences: list of all word values, of size N
+            word_preds: list of all word values, of size N
             page_shape: shape of each page
 
         Returns:
@@ -296,7 +295,7 @@ class DocumentBuilder(NestedObject):
                 Page(
                     self._build_blocks(
                         page_boxes,
-                        char_sequences[crop_idx: crop_idx + page_boxes.shape[0]]
+                        word_preds[crop_idx: crop_idx + page_boxes.shape[0]]
                     ),
                     page_idx,
                     page_shapes[page_idx],
