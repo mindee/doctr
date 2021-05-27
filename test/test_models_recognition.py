@@ -51,6 +51,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert repr(processor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
 
 
+@pytest.fixture(scope="session")
 def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
