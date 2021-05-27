@@ -83,7 +83,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
         if self.ignore_case:
-            words_list = [word.lower() for word in words_list]
+            word_values = [word.lower() for word in word_values]
 
         if self.ignore_accents:
             raise NotImplementedError
