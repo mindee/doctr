@@ -83,7 +83,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         images = batch_transforms(images)
         out = model(images, targets, return_preds=True, training=False)
         # Compute metric
-        val_metric.update(targets, out['preds'])
+        words, _ = zip(*out['preds'])
+        val_metric.update(targets, words)
 
         val_loss += out['loss'].numpy().mean()
         batch_cnt += 1
