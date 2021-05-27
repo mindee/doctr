@@ -113,7 +113,7 @@ class RecognitionPredictor(NestedObject):
         self,
         crops: List[np.ndarray],
         **kwargs: Any,
-    ) -> List[str]:
+    ) -> List[Tuple[str, float]]:
 
         out = []
         if len(crops) > 0:
@@ -125,9 +125,9 @@ class RecognitionPredictor(NestedObject):
             processed_batches = self.pre_processor(crops)
 
             # Forward it
-            out = [self.model(batch, return_preds=True, **kwargs)['preds'] for batch in processed_batches]
+            raw = [self.model(batch, return_preds=True, **kwargs)['preds'] for batch in processed_batches]
 
             # Process outputs
-            out = [charseq for batch in out for charseq in batch]
+            out = [charseq for batch in raw for charseq in batch]
 
         return out

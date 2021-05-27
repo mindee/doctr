@@ -260,7 +260,7 @@ class SAR(RecognitionModel):
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, tf.Tensor]:
+    ) -> Dict[str, Any]:
 
         features = self.feat_extractor(x, **kwargs)
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
@@ -295,24 +295,28 @@ class SARPostProcessor(RecognitionPostProcessor):
     def __call__(
         self,
         logits: tf.Tensor,
-    ) -> List[str]:
+    ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
-        pred = tf.math.argmax(logits, axis=2)
+        out_idxs = tf.math.argmax(logits, axis=2)
+        # N x L
+        probs = tf.gather(tf.nn.softmax(logits, axis=-1), out_idxs, axis=-1, batch_dims=2)
+        # Take the minimum confidence of the sequence
+        probs = tf.math.reduce_min(probs, axis=1)
 
         # decode raw output of the model with tf_label_to_idx
-        pred = tf.cast(pred, dtype='int32')
-        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, pred), axis=-1)
+        out_idxs = tf.cast(out_idxs, dtype='int32')
+        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        words_list = [word.decode() for word in list(decoded_strings_pred.numpy())]
+        word_values = [word.decode() for word in list(decoded_strings_pred.numpy())]
 
         if self.ignore_case:
-            words_list = [word.lower() for word in words_list]
+            word_values = [word.lower() for word in word_values]
 
         if self.ignore_accents:
             raise NotImplementedError
 
-        return words_list
+        return list(zip(word_values, probs.numpy().tolist()))
 
 
 def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:

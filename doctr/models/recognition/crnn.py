@@ -49,33 +49,10 @@ class CTCPostProcessor(RecognitionPostProcessor):
         ignore_accents: if True, ignore accents of letters
     """
 
-    def ctc_decoder(
-        self,
-        logits: tf.Tensor
-    ) -> tf.Tensor:
-        """
-        Decode logits with CTC decoder from keras backend
-
-        Args:
-            logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1
-
-        Returns:
-            decoded logits, shape BATCH_SIZE X SEQ_LEN
-        """
-        # computing prediction with ctc decoder
-        _prediction = tf.nn.ctc_greedy_decoder(
-            tf.nn.softmax(tf.transpose(logits, perm=[1, 0, 2])),
-            tf.fill(logits.shape[0], logits.shape[1]),
-            merge_repeated=True
-        )[0][0]
-        prediction = tf.sparse.to_dense(_prediction, default_value=len(self.vocab))
-
-        return prediction
-
     def __call__(
         self,
         logits: tf.Tensor
-    ) -> List[str]:
+    ) -> List[Tuple[str, float]]:
         """
         Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
@@ -87,16 +64,23 @@ class CTCPostProcessor(RecognitionPostProcessor):
             A list of decoded words of length BATCH_SIZE
 
         """
-        # decode ctc for ctc models
-        predictions = self.ctc_decoder(logits)
+        # Decode CTC
+        _decoded, _log_prob = tf.nn.ctc_beam_search_decoder(
+            tf.transpose(logits, perm=[1, 0, 2]),
+            tf.fill(logits.shape[0], logits.shape[1]),
+            beam_width=1, top_paths=1,
+        )
+        out_idxs = tf.sparse.to_dense(_decoded[0], default_value=len(self.vocab))
+        probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))
 
+        # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(self._embedding, predictions),
+            inputs=tf.nn.embedding_lookup(self._embedding, out_idxs),
             axis=-1
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        words_list = [word.decode() for word in list(decoded_strings_pred.numpy())]
+        word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
         if self.ignore_case:
             words_list = [word.lower() for word in words_list]
@@ -104,7 +88,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         if self.ignore_accents:
             raise NotImplementedError
 
-        return words_list
+        return list(zip(word_values, probs.numpy().tolist()))
 
 
 class CRNN(RecognitionModel):
@@ -175,7 +159,7 @@ class CRNN(RecognitionModel):
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, tf.Tensor]:
+    ) -> Dict[str, Any]:
 
         features = self.feat_extractor(x, **kwargs)
         # B x H x W x C --> B x W x H x C
@@ -183,18 +167,18 @@ class CRNN(RecognitionModel):
         w, h, c = transposed_feat.get_shape().as_list()[1:]
         # B x W x H x C --> B x W x H * C
         features_seq = tf.reshape(transposed_feat, shape=(-1, w, h * c))
-        decoded_features = self.decoder(features_seq, **kwargs)
+        logits = self.decoder(features_seq, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if return_model_output:
-            out["out_map"] = decoded_features
+            out["out_map"] = logits
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(decoded_features)
+            out["preds"] = self.postprocessor(logits)
 
         if target is not None:
-            out['loss'] = self.compute_loss(decoded_features, target)
+            out['loss'] = self.compute_loss(logits, target)
 
         return out
 
