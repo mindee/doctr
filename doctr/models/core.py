@@ -9,7 +9,7 @@ from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
-from ._utils import extract_crops
+from ._utils import extract_rcrops
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox
@@ -50,7 +50,7 @@ class OCRPredictor(NestedObject):
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images
-        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :5])]
+        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_rcrops(page, _boxes[:, :5])]
         # Identify character sequences
         char_sequences = self.reco_predictor(crops, **kwargs)
 
