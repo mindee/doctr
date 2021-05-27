@@ -308,13 +308,7 @@ class SARPostProcessor(RecognitionPostProcessor):
         decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        word_values = [word.decode() for word in list(decoded_strings_pred.numpy())]
-
-        if self.ignore_case:
-            word_values = [word.lower() for word in word_values]
-
-        if self.ignore_accents:
-            raise NotImplementedError
+        word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
         return list(zip(word_values, probs.numpy().tolist()))
 

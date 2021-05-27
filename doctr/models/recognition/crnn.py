@@ -82,12 +82,6 @@ class CTCPostProcessor(RecognitionPostProcessor):
         decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
-        if self.ignore_case:
-            word_values = [word.lower() for word in word_values]
-
-        if self.ignore_accents:
-            raise NotImplementedError
-
         return list(zip(word_values, probs.numpy().tolist()))
 
 

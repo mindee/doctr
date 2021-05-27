@@ -64,21 +64,15 @@ class RecognitionPostProcessor(NestedObject):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
-        ignore_case: if True, ignore case of letters
-        ignore_accents: if True, ignore accents of letters
     """
 
     def __init__(
         self,
         vocab: str,
-        ignore_case: bool = False,
-        ignore_accents: bool = False
     ) -> None:
 
         self.vocab = vocab
         self._embedding = tf.constant(list(self.vocab) + ['<eos>'], dtype=tf.string)
-        self.ignore_case = ignore_case
-        self.ignore_accents = ignore_accents
 
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"
