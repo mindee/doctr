@@ -11,6 +11,7 @@ What you can expect from this repository:
 - efficient ways to parse textual information (localize and identify each word) from your documents
 - guidance on how to integrate this in your current architecture
 
+![OCR_example](https://github.com/mindee/doctr/releases/download/v0.2.0/ocr.png)
 
 ## Quick Tour
 
