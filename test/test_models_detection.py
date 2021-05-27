@@ -84,7 +84,6 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out['loss'], tf.Tensor)
 
 
-@pytest.fixture(scope="session")
 def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
