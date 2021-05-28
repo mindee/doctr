@@ -216,10 +216,11 @@ def main(args):
                 tf.summary.scalar('partial_match', partial_match, step=step)
         # W&B
         if args.wb:
-            wandb.log({'epochs': epoch + 1,
-                       'val_loss': val_loss,
-                       'exact_match': exact_match,
-                       'partial_match': partial_match,
+            wandb.log({
+                'epochs': epoch + 1,
+                'val_loss': val_loss,
+                'exact_match': exact_match,
+                'partial_match': partial_match,
             })
         #reset val metric
         val_metric.reset()

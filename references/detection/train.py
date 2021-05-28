@@ -226,11 +226,12 @@ def main(args):
                 tf.summary.scalar('mean_iou', mean_iou, step=step)
         # W&B
         if args.wb:
-            wandb.log({'epochs': epoch + 1,
-                       'val_loss': val_loss,
-                       'recall': recall,
-                       'precision': precision,
-                       'mean_iou': mean_iou,
+            wandb.log({
+                'epochs': epoch + 1,
+                'val_loss': val_loss,
+                'recall': recall,
+                'precision': precision,
+                'mean_iou': mean_iou,
             })
         # Reset val metric
         val_metric.reset()
