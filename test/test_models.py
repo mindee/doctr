@@ -44,7 +44,7 @@ def test_documentbuilder():
     boxes = np.random.rand(words_per_page, 6)
     boxes[:2] *= boxes[2:4]
 
-    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [(100, 200), (100, 200)])
+    out = doc_builder([boxes, boxes], [('hello', 1.0)] * (num_pages * words_per_page), [(100, 200), (100, 200)])
     assert isinstance(out, Document)
     assert len(out.pages) == num_pages
     # 1 Block & 1 line per page
@@ -53,7 +53,7 @@ def test_documentbuilder():
 
     # Resolve lines
     doc_builder = models.DocumentBuilder(resolve_lines=True, resolve_blocks=True)
-    out = doc_builder([boxes, boxes], ['hello'] * (num_pages * words_per_page), [(100, 200), (100, 200)])
+    out = doc_builder([boxes, boxes], [('hello', 1.0)] * (num_pages * words_per_page), [(100, 200), (100, 200)])
 
     # No detection
     boxes = np.zeros((0, 5))

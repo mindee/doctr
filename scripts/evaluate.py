@@ -49,6 +49,7 @@ def main(args):
             out = predictor(page[None, ...], training=False)
             crops = extract_crops(page, gt_boxes)
             reco_out = predictor.reco_predictor(crops, training=False)
+            reco_words, _ = zip(*reco_out)
 
             # Unpack preds
             pred_boxes = []
@@ -69,7 +70,7 @@ def main(args):
 
             # Update the metric
             det_metric.update(gt_boxes, np.asarray(pred_boxes))
-            reco_metric.update(gt_labels, reco_out)
+            reco_metric.update(gt_labels, reco_words)
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics

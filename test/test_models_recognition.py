@@ -27,7 +27,8 @@ def test_recognition_models(arch_name, input_shape):
     assert isinstance(out, dict)
     assert len(out) == 3
     assert isinstance(out['preds'], list)
-    assert len(out['preds']) == batch_size and all(isinstance(word, str) for word in out['preds'])
+    assert len(out['preds']) == batch_size
+    assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
     assert isinstance(out['out_map'], tf.Tensor)
     assert isinstance(out['loss'], tf.Tensor)
 
@@ -42,9 +43,10 @@ def test_recognition_models(arch_name, input_shape):
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     processor = recognition.__dict__[post_processor](mock_vocab)
     decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
-    assert isinstance(decoded, list) and all(isinstance(word, str) for word in decoded)
+    assert isinstance(decoded, list)
+    assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in decoded)
     assert len(decoded) == input_shape[0]
-    assert all(char in mock_vocab for word in decoded for char in word)
+    assert all(char in mock_vocab for word, _ in decoded for char in word)
     # Repr
     assert repr(processor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
 
@@ -67,7 +69,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     # One prediction per crop
     assert len(out) == boxes.shape[0]
-    assert all(isinstance(charseq, str) for charseq in out)
+    assert all(isinstance(val, str) and isinstance(conf, float) for val, conf in out)
 
     # Dimension check
     with pytest.raises(ValueError):
@@ -95,7 +97,7 @@ def test_recognition_zoo(arch_name):
     input_tensor = tf.random.uniform(shape=[batch_size, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
-    assert all(isinstance(word, str) for word in out)
+    assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
 
 
 def test_recognition_zoo_error():
