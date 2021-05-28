@@ -139,7 +139,7 @@ def main(args):
 
     # Load doctr model
     model = recognition.__dict__[args.model](
-        pretrained=False,
+        pretrained=args.pretrained,
         input_shape=(args.input_size, 4 * args.input_size, 3),
         vocab=VOCABS['french']
     )
@@ -238,6 +238,8 @@ def parse_args():
                         help='Display unormalized training samples')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
+    parser.add_argument('--pretrained', dest='pretrained', action='store_true',
+                        help='Load pretrained parameters before starting the training')
     args = parser.parse_args()
 
     return args
