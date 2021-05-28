@@ -16,6 +16,7 @@ import tensorflow as tf
 from collections import deque
 from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
+import wandb
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
@@ -170,6 +171,22 @@ def main(args):
 
     tb_writer = tf.summary.create_file_writer(str(log_dir))
 
+    # W&B
+    if args.wb:
+
+        run = wandb.init(
+            project=exp_name,
+            config={
+                "learning_rate": args.lr,
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "architecture": args.model,
+                "input_size": args.input_size,
+                "optimizer": "adam",
+                "exp_type": "text-recognition",
+            }
+        )
+
     # Create loss queue
     loss_q = deque(maxlen=100)
     min_loss = np.inf
@@ -192,6 +209,12 @@ def main(args):
             tf.summary.scalar('val_loss', val_loss, step=step)
             tf.summary.scalar('exact_match', exact_match, step=step)
             tf.summary.scalar('partial_match', exact_match, step=step)
+        # W&B
+        if args.wb:
+            wandb.log({'epochs': epoch + 1,
+                       'val_loss': val_loss,
+                       'exact_match': exact_match,
+                       'partial_match': partial_match})
         #reset val metric
         val_metric.reset()
 
@@ -213,6 +236,8 @@ def parse_args():
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
+    parser.add_argument('--wb', dest='wb', action='store_true',
+                        help='Log to Weights & Biases')
     args = parser.parse_args()
 
     return args
