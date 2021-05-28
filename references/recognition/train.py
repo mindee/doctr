@@ -159,8 +159,8 @@ def main(args):
 
     if args.test_only:
         print("Running evaluation")
-        val_loss, exact_match = evaluate(model, val_loader, batch_transforms, val_metric)
-        print(f"Validation loss: {val_loss:.6} (Acc: {exact_match:.2%})")
+        val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
+        print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         return
 
     # Tensorboard to monitor training
@@ -208,7 +208,7 @@ def main(args):
         with tb_writer.as_default():
             tf.summary.scalar('val_loss', val_loss, step=step)
             tf.summary.scalar('exact_match', exact_match, step=step)
-            tf.summary.scalar('partial_match', exact_match, step=step)
+            tf.summary.scalar('partial_match', partial_match, step=step)
         # W&B
         if args.wb:
             wandb.log({'epochs': epoch + 1,
