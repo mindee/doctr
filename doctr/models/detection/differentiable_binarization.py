@@ -31,6 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
+        'rotated_bbox': 'False',
         'post_processor': 'DBPostProcessor',
         'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
     },
@@ -55,12 +56,14 @@ class DBPostProcessor(DetectionPostProcessor):
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
         bin_thresh: float = 0.3,
+        rotated_bbox: bool = False,
     ) -> None:
 
         super().__init__(
             box_thresh,
             bin_thresh,
-            max_candidates
+            max_candidates,
+            rotated_bbox
         )
         self.unclip_ratio = unclip_ratio
 
@@ -238,6 +241,7 @@ class DBNet(DetectionModel, NestedObject):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,
+        rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -274,7 +278,7 @@ class DBNet(DetectionModel, NestedObject):
             ]
         )
 
-        self.postprocessor = DBPostProcessor()
+        self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
 
     @staticmethod
     def compute_distance(
@@ -551,6 +555,7 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     )
 
     kwargs['fpn_channels'] = _cfg['fpn_channels']
+    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)

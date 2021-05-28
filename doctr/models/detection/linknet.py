@@ -6,6 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+from doctr.utils.common_types import RotatedBbox
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -27,6 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.264, 0.2749, 0.287),
         'out_chan': 1,
         'input_shape': (1024, 1024, 3),
+        'rotated_bbox': 'False',
         'post_processor': 'LinkNetPostProcessor',
         'url': None,
     },
@@ -46,12 +48,14 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         bin_thresh: float = 0.15,
         box_thresh: float = 0.1,
-        max_candidates: int = 1000
+        max_candidates: int = 1000,
+        rotated_bbox: bool = False,
     ) -> None:
         super().__init__(
             box_thresh,
             bin_thresh,
-            max_candidates
+            max_candidates,
+            rotated_bbox
         )
 
     def bitmap_to_boxes(
@@ -177,6 +181,7 @@ class LinkNet(DetectionModel, NestedObject):
         self,
         out_chan: int = 1,
         input_shape: Tuple[int, int, int] = (512, 512, 3),
+        rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
@@ -212,7 +217,7 @@ class LinkNet(DetectionModel, NestedObject):
 
         self.min_size_box = 3
 
-        self.postprocessor = LinkNetPostProcessor()
+        self.postprocessor = LinkNetPostProcessor(rotated_bbox=rotated_bbox)
 
     def compute_target(
         self,
@@ -317,6 +322,7 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
 
     kwargs['out_chan'] = _cfg['out_chan']
     kwargs['input_shape'] = _cfg['input_shape']
+    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
     # Build the model
     model = LinkNet(cfg=_cfg, **kwargs)
     # Load pretrained parameters
