@@ -27,7 +27,7 @@ from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
 
-def plot_samples(images, targets):
+def plot_samples(images, targets, rotation):
     # Unnormalize image
     nb_samples = 4
     _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
@@ -41,9 +41,12 @@ def plot_samples(images, targets):
         boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
         boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
         for box in boxes.round().astype(int):
-            box = cv2.boxPoints(((box[0], box[2]), (box[1], box[3]), box[4]))
-            box = np.int0(box)
-            cv2.drawContours(target, [box], 0, (255, 255, 255), 2)
+            if rotation:
+                target[box[1]: box[3] + 1, box[0]: box[2] + 1] = 1
+            else:
+                box = cv2.boxPoints(((box[0], box[2]), (box[1], box[3]), box[4]))
+                box = np.int0(box)
+                cv2.drawContours(target, [box], 0, (255, 255, 255), 2)
 
         axes[0][idx].imshow(img)
         axes[0][idx].axis('off')
@@ -127,7 +130,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        plot_samples(x, target, rotation=args.rotation)
         return
 
     st = time.time()
@@ -268,6 +271,8 @@ def parse_args():
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--rotation', dest='rotation', action='store_true',
+                        help='train with rotated bbox')
     args = parser.parse_args()
 
     return args

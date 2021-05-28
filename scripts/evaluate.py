@@ -35,9 +35,9 @@ def main(args):
         val_set = datasets.__dict__[args.dataset](train=False, download=True)
         sets = [train_set, val_set]
 
-    det_metric = LocalizationConfusion(iou_thresh=args.iou)
+    det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
     reco_metric = TextMatch()
-    e2e_metric = OCRMetric(iou_thresh=args.iou)
+    e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
 
     for dataset in sets:
         for page, target in tqdm(dataset):
@@ -59,13 +59,23 @@ def main(args):
                 for block in page.blocks:
                     for line in block.lines:
                         for word in line.words:
-                            x, y, w, h, alpha = word.geometry
-                            if gt_boxes.dtype == int:
-                                pred_boxes.append(
-                                    [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
-                                )
+                            if not args.rotation:
+                                (a, b), (c, d) = word.geometry
                             else:
-                                pred_boxes.append([x, y, w, h, alpha])
+                                x, y, w, h, alpha = word.geometry
+                            if gt_boxes.dtype == int:
+                                if not args.rotation:
+                                    pred_boxes.append([int(a * width), int(b * height),
+                                                       int(c * width), int(d * height)])
+                                else:
+                                    pred_boxes.append(
+                                        [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
+                                    )
+                            else:
+                                if not args.rotation:
+                                    pred_boxes.append([a, b, c, d])
+                                else:
+                                    pred_boxes.append([x, y, w, h, alpha])
                             pred_labels.append(word.value)
 
             # Update the metric
@@ -96,6 +106,7 @@ def parse_args():
     parser.add_argument('--dataset', type=str, default='FUNSD', help='choose a dataset: FUNSD, CORD')
     parser.add_argument('--img_folder', type=str, default=None, help='Only for local sets, path to images')
     parser.add_argument('--label_file', type=str, default=None, help='Only for local sets, path to labels')
+    parser.add_argument('--rotation', dest='rotation', action='store_true', help='evaluate with rotated bbox')
     parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for recognition')
     args = parser.parse_args()
 
