@@ -12,6 +12,7 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import wandb
 from collections import deque
 from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
