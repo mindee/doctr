@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.detection.differentiable_binarization &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>doctr.models.detection.differentiable_binarization &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -82,11 +82,22 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
@@ -239,7 +250,7 @@
         <span class="s1">&#39;fpn_channels&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;DBPostProcessor&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/db_resnet50-98ba765d.zip&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -328,12 +339,10 @@
             <span class="c1"># Check whether smallest enclosing bounding box is not too small</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">contour</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">contour</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_size_box</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">cv2</span><span class="o">.</span><span class="n">arcLength</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="n">approx</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">approxPolyDP</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>  <span class="c1"># approximate contour by a polygon</span>
-            <span class="n">points</span> <span class="o">=</span> <span class="n">approx</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>  <span class="c1"># get polygon points</span>
-            <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># remove polygons with 3 points or less</span>
-                <span class="k">continue</span>
-            <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_score</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">contour</span><span class="p">)</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span><span class="p">]])</span>
+            <span class="c1"># Compute objectness</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_score</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_thresh</span> <span class="o">&gt;</span> <span class="n">score</span><span class="p">:</span>   <span class="c1"># remove polygons with a weak objectness</span>
                 <span class="k">continue</span>
             <span class="n">_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygon_to_box</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
@@ -419,7 +428,7 @@
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_children_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;feat_extractor&#39;</span><span class="p">,</span> <span class="s1">&#39;fpn&#39;</span><span class="p">,</span> <span class="s1">&#39;probability_head&#39;</span><span class="p">,</span> <span class="s1">&#39;threshold_head&#39;</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;feat_extractor&#39;</span><span class="p">,</span> <span class="s1">&#39;fpn&#39;</span><span class="p">,</span> <span class="s1">&#39;probability_head&#39;</span><span class="p">,</span> <span class="s1">&#39;threshold_head&#39;</span><span class="p">,</span> <span class="s1">&#39;postprocessor&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

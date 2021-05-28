@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>Installation &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="doctr.datasets" href="datasets.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
     <link rel="prev" title="DocTR: Document Text Recognition" href="index.html" /> 
 </head>
 
@@ -85,11 +85,22 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
@@ -212,7 +223,16 @@
             
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>This library requires Python 3.6 or newer.</p>
+<p>This library requires Python 3.6 or higher.</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>If you are running another OS than Linux, you will need a few extra dependencies.</p>
+<p>For MacOS users, you can install them as follows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew install cairo pango gdk-pixbuf libffi
+</pre></div>
+</div>
+<p>For Windows users, those dependencies are included in GTK. You can find the latest installer over <a class="reference external" href="https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases">here</a>.</p>
+</section>
 <section id="via-python-package">
 <h2>Via Python Package<a class="headerlink" href="#via-python-package" title="Permalink to this headline">¶</a></h2>
 <p>Install the last stable release of the package using pip:</p>
@@ -238,7 +258,7 @@ pip install -e doctr/.
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="datasets.html" class="btn btn-neutral float-right" title="doctr.datasets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="DocTR: Document Text Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

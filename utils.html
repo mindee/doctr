@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.utils &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>doctr.utils &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -84,11 +84,22 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
@@ -217,7 +228,7 @@
 <p>Easy-to-use functions to make sense of your model’s predictions.</p>
 <dl class="py function">
 <dt id="doctr.utils.visualization.visualize_page">
-<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">scale</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">add_labels</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.figure.Figure<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">visualize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">words_only</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">display_artefacts</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">scale</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">add_labels</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.figure.Figure<a class="reference internal" href="_modules/doctr/utils/visualization.html#visualize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.visualize_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize a full page with predicted blocks, lines and words</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -239,7 +250,10 @@
 <li><p><strong>page</strong> – the exported Page of a Document</p></li>
 <li><p><strong>image</strong> – np array of the page, needs to have the same shape than page[‘dimensions’]</p></li>
 <li><p><strong>words_only</strong> – whether only words should be displayed</p></li>
+<li><p><strong>display_artefacts</strong> – whether artefacts should be displayed</p></li>
 <li><p><strong>scale</strong> – figsize of the largest windows side</p></li>
+<li><p><strong>interactive</strong> – whether the plot should be interactive</p></li>
+<li><p><strong>add_labels</strong> – for static plot, adds text labels on top of bounding box</p></li>
 </ul>
 </dd>
 </dl>
@@ -250,13 +264,13 @@
 <span id="metrics"></span><h2>Task evaluation<a class="headerlink" href="#task-evaluation" title="Permalink to this headline">¶</a></h2>
 <p>Implementations of task-specific metrics to easily assess your model performances.</p>
 <dl class="py class">
-<dt id="doctr.utils.metrics.ExactMatch">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">ExactMatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ignore_case</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ignore_accents</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#ExactMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.ExactMatch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements exact match metric (word-level accuracy) for recognition task.</p>
-<p>The aggregated metric is computed as follows:</p>
+<dt id="doctr.utils.metrics.TextMatch">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">TextMatch</code><a class="reference internal" href="_modules/doctr/utils/metrics.html#TextMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.TextMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements text match metric (word-level accuracy) for recognition task.</p>
+<p>The raw aggregated metric is computed as follows:</p>
 <div class="math notranslate nohighlight">
 \[\forall X, Y \in \mathcal{W}^N,
-ExactMatch(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N f_{Y_i}(X_i)\]</div>
+TextMatch(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N f_{Y_i}(X_i)\]</div>
 <p>with the indicator function <span class="math notranslate nohighlight">\(f_{a}\)</span> defined as:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\forall a, x \in \mathcal{W},
@@ -269,22 +283,26 @@ f_a(x) = \left\{
 <p>where <span class="math notranslate nohighlight">\(\mathcal{W}\)</span> is the set of all possible character sequences,
 <span class="math notranslate nohighlight">\(N\)</span> is a strictly positive integer.</p>
 <dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.utils</span> <span class="kn">import</span> <span class="n">ExactMatch</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">ExactMatch</span><span class="p">()</span>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.utils</span> <span class="kn">import</span> <span class="n">TextMatch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">TextMatch</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="s1">&#39;Hello&#39;</span><span class="p">,</span> <span class="s1">&#39;world&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;hello&#39;</span><span class="p">,</span> <span class="s1">&#39;world&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="doctr.utils.metrics.TextMatch.summary">
+<code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#TextMatch.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.TextMatch.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the aggregated metrics</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ignore_case</strong> – if true, ignore letter case when computing metric</p></li>
-<li><p><strong>ignore_accents</strong> – if true, ignore accents errors when computing metrics</p></li>
-</ul>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode
+counterpart and its lower-case unidecode counterpart</p>
 </dd>
 </dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -324,11 +342,22 @@ g_X(y) = \left\{
 <dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="doctr.utils.metrics.LocalizationConfusion.summary">
+<code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the aggregated metrics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple with the recall, precision and meanIoU scores</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.OCRMetric">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">max_dist</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements end-to-end OCR metric.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
@@ -364,12 +393,20 @@ h_{B,L}(b, l) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
-<li><p><strong>max_dist</strong> – maximum Levenshtein distance between 2 sequence to consider a match</p></li>
-</ul>
+<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="doctr.utils.metrics.OCRMetric.summary">
+<code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the aggregated metrics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple with the recall &amp; precision for each string comparison flexibility and the mean IoU</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>

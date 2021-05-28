@@ -5,10 +5,11 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python Module Index &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>DocTR: Document Text Recognition &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -40,13 +41,7 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
- 
-
-    <script>
-      DOCUMENTATION_OPTIONS.COLLAPSE_INDEX = true;
-    </script>
-
-
+    <link rel="next" title="Installation" href="installing.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -60,7 +55,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> doctr
+            <a href="#" class="icon icon-home"> doctr
           
 
           
@@ -164,7 +159,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">doctr</a>
+          <a href="#">doctr</a>
         
       </nav>
 
@@ -193,12 +188,16 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="#">Docs</a> &raquo;</li>
         
-      <li>Python Module Index</li>
+      <li>DocTR: Document Text Recognition</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -210,29 +209,102 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-
-   <h1>Python Module Index</h1>
-
-   <div class="modindex-jumpbox">
-   <a href="#cap-d"><strong>d</strong></a>
-   </div>
-
-   <table class="indextable modindextable">
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-d"><td></td><td>
-       <strong>d</strong></td><td></td></tr>
-     <tr>
-       <td></td>
-       <td>
-       <a href="index.html#module-doctr"><code class="xref">doctr</code></a></td><td>
-       <em></em></td></tr>
-   </table>
+  <section id="doctr-document-text-recognition">
+<h1>DocTR: Document Text Recognition<a class="headerlink" href="#doctr-document-text-recognition" title="Permalink to this headline">¶</a></h1>
+<p>State-of-the-art Optical Character Recognition made seamless &amp; accessible to anyone, powered by TensorFlow 2</p>
+<p>DocTR provides an easy and powerful way to extract valuable information from your documents:</p>
+<ul class="simple">
+<li><p>🧾 <strong>for automation</strong>: seemlessly process documents for Natural Language Understanding tasks: we provide OCR predictors to parse textual information (localize and identify each word) from your documents.</p></li>
+<li><p>👩‍🔬 <strong>for research</strong>: quickly compare your own architectures speed &amp; performances with state-of-art models on public datasets.</p></li>
+</ul>
+<p>This is the documentation of our repository <a class="reference external" href="https://github.com/mindee/doctr">doctr</a>.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>🤖 Robust 2-stages (detection + recognition) OCR predictors fully trained</p></li>
+<li><p>⚡ User-friendly, 3 lines of code to load a document and extract text with a predictor</p></li>
+<li><p>🚀 State-of-the-art performances on public document datasets, comparable with GoogleVision/AWS Textract</p></li>
+<li><p>⚡ Predictors optimized to be very fast on both CPU &amp; GPU</p></li>
+<li><p>🐦 Light package, small dependencies</p></li>
+<li><p>🛠️ Daily maintained</p></li>
+<li><p>🏭 Easily integrable</p></li>
+</ul>
+<section id="scientist-build-train-your-predictor">
+<h3>🧑‍🔬 Build &amp; train your predictor<a class="headerlink" href="#scientist-build-train-your-predictor" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>👷 Compose your own end-to-end OCR predictor: mix and match detection &amp; recognition predictors (all-pretrained)</p></li>
+<li><p>👷 Fine-tune or train from scratch any detection or recognition model to specialize on your data</p></li>
+</ul>
+</section>
+<section id="toolbox-implemented-models">
+<h3>🧰 Implemented models<a class="headerlink" href="#toolbox-implemented-models" title="Permalink to this headline">¶</a></h3>
+<section id="detection-models">
+<h4>Detection models<a class="headerlink" href="#detection-models" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><ul class="simple">
+<li><p>DB (Differentiable Binarization), <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>.</p></li>
+<li><p>LinkNet, <a class="reference external" href="https://arxiv.org/pdf/1707.03718.pdf">“LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation”</a>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="recognition-models">
+<h4>Recognition models<a class="headerlink" href="#recognition-models" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div><ul class="simple">
+<li><p>SAR (Show, Attend and Read), <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition”</a>.</p></li>
+<li><p>CRNN (Convolutional Recurrent Neural Network), <a class="reference external" href="https://arxiv.org/pdf/1507.05717.pdf">“An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="receipt-integrated-datasets">
+<h3>🧾 Integrated datasets<a class="headerlink" href="#receipt-integrated-datasets" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>FUNSD from <a class="reference external" href="https://arxiv.org/pdf/1905.13538.pdf">“FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents”</a>.</p></li>
+<li><p>CORD from <a class="reference external" href="https://openreview.net/pdf?id=SJl3z659UH">“CORD: A Consolidated Receipt Dataset forPost-OCR Parsing”</a>.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
+</ul>
+</div>
+<span class="target" id="module-doctr"></span></section>
+</section>
 
 
            </div>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installing.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
   
 
   <hr/>

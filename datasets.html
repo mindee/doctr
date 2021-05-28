@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.datasets &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>doctr.datasets &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -42,7 +42,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="doctr.documents" href="documents.html" />
-    <link rel="prev" title="Installation" href="installing.html" /> 
+    <link rel="prev" title="Changelog" href="changelog.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,11 +85,22 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#available-datasets">Available Datasets</a></li>
@@ -305,7 +316,22 @@ can be a significant save of time.</p>
 </dl>
 </dd></dl>
 
-<p>..autoclass:: OCRDataset</p>
+<dl class="py class">
+<dt id="doctr.datasets.OCRDataset">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">OCRDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements an OCR dataset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – local path to image folder (all jpg at the root)</p></li>
+<li><p><strong>label_file</strong> – local path to the label file</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="data-loading">
 <h2>Data Loading<a class="headerlink" href="#data-loading" title="Permalink to this headline">¶</a></h2>
@@ -415,7 +441,7 @@ of vocabs.</p>
         <a href="documents.html" class="btn btn-neutral float-right" title="doctr.documents" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="installing.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="changelog.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

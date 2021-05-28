@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>doctr.models &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -85,11 +85,22 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
@@ -214,11 +225,10 @@
 <h1>doctr.models<a class="headerlink" href="#doctr-models" title="Permalink to this headline">¶</a></h1>
 <p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
-<p>For a given task, DocTR provides a Predictor, which is composed of 3 components:</p>
+<p>For a given task, DocTR provides a Predictor, which is composed of 2 components:</p>
 <ul class="simple">
 <li><p>PreProcessor: a module in charge of making inputs directly usable by the TensorFlow model.</p></li>
-<li><p>Model: a deep learning model, implemented with TensorFlow backend.</p></li>
-<li><p>PostProcessor: making model outputs structured and reusable.</p></li>
+<li><p>Model: a deep learning model, implemented with TensorFlow backend along with its specific post-processor to make outputs structured and reusable.</p></li>
 </ul>
 <section id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
@@ -253,11 +263,11 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </tr>
 <tr class="row-odd"><td><p>db_resnet50</p></td>
 <td><p>(1024, 1024, 3)</p></td>
-<td></td>
-<td><p>0.733</p></td>
-<td><p>0.817</p></td>
-<td><p>0.745</p></td>
-<td><p>0.875</p></td>
+<td><p>25.2 M</p></td>
+<td><p>82.14</p></td>
+<td><p>87.64</p></td>
+<td><p>92.49</p></td>
+<td><p>89.66</p></td>
 <td><p>2.1</p></td>
 </tr>
 </tbody>
@@ -389,23 +399,23 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <tbody>
 <tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
-<td></td>
-<td><p>0.860</p></td>
-<td><p>0.913</p></td>
+<td><p>15.8M</p></td>
+<td><p>86.02</p></td>
+<td><p>91.3</p></td>
 <td><p>12.8</p></td>
 </tr>
 <tr class="row-odd"><td><p>sar_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
-<td></td>
-<td><p>0.862</p></td>
-<td><p>0.917</p></td>
+<td><p>21.5M</p></td>
+<td><p>86.2</p></td>
+<td><p>91.7</p></td>
 <td><p>3.3</p></td>
 </tr>
 <tr class="row-even"><td><p>sar_resnet31</p></td>
 <td><p>(32, 128, 3)</p></td>
-<td></td>
-<td><p><strong>0.863</strong></p></td>
-<td><p><strong>0.921</strong></p></td>
+<td><p>53.1M</p></td>
+<td><p><strong>86.3</strong></p></td>
+<td><p><strong>92.1</strong></p></td>
 <td><p>2.7</p></td>
 </tr>
 </tbody>
@@ -544,26 +554,22 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <p>Predictors that localize and identify text elements in images</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 13%" />
-<col style="width: 11%" />
+<col style="width: 29%" />
+<col style="width: 12%" />
+<col style="width: 15%" />
 <col style="width: 9%" />
-<col style="width: 11%" />
-<col style="width: 7%" />
+<col style="width: 12%" />
+<col style="width: 15%" />
 <col style="width: 9%" />
-<col style="width: 11%" />
-<col style="width: 7%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head" colspan="3"></th>
+<tr class="row-odd"><th class="head"></th>
 <th class="head" colspan="3"><p>FUNSD</p></th>
 <th class="head" colspan="3"><p>CORD</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>Architecture</strong></p></td>
-<td><p><strong>Input shape</strong></p></td>
-<td><p><strong># params</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
 <td><p><strong>FPS</strong></p></td>
@@ -572,38 +578,30 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <td><p><strong>FPS</strong></p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn</p></td>
-<td><p>(1024, 1024, 3)</p></td>
-<td></td>
-<td><p>0.629</p></td>
-<td><p>0.701</p></td>
+<td><p>70.08</p></td>
+<td><p>74.77</p></td>
 <td><p>0.85</p></td>
-<td><p>0.664</p></td>
-<td><p>0.780</p></td>
+<td><p>82.19</p></td>
+<td><p><strong>79.67</strong></p></td>
 <td><p>1.6</p></td>
 </tr>
 <tr class="row-even"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
-<td><p>(1024, 1024, 3)</p></td>
-<td></td>
-<td><p>0.630</p></td>
-<td><p>0.702</p></td>
+<td><p>N/A</p></td>
+<td><p>N/A</p></td>
 <td><p>0.49</p></td>
-<td><p>0.666</p></td>
-<td><p>0.783</p></td>
+<td><p>N/A</p></td>
+<td><p>N/A</p></td>
 <td><p>1.0</p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
-<td><p>(1024, 1024, 3)</p></td>
-<td></td>
-<td><p>0.640</p></td>
-<td><p>0.713</p></td>
+<td><p>N/A</p></td>
+<td><p>N/A</p></td>
 <td><p>0.27</p></td>
-<td><p>0.672</p></td>
-<td><p><strong>0.789</strong></p></td>
+<td><p>N/A</p></td>
+<td><p>N/A</p></td>
 <td><p>0.83</p></td>
 </tr>
 <tr class="row-even"><td><p>Gvision text detection</p></td>
-<td><p>NA</p></td>
-<td></td>
 <td><p>0.595</p></td>
 <td><p>0.625</p></td>
 <td></td>
@@ -612,8 +610,6 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
-<td><p>NA</p></td>
-<td></td>
 <td><p>0.640</p></td>
 <td><p>0.533</p></td>
 <td></td>
@@ -621,9 +617,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <td><p>0.611</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>aws textract</p></td>
-<td><p>NA</p></td>
-<td></td>
+<tr class="row-even"><td><p>AWS textract</p></td>
 <td><p><strong>0.781</strong></p></td>
 <td><p><strong>0.830</strong></p></td>
 <td></td>
@@ -639,6 +633,59 @@ Explanations about the metrics being used are available in <a class="reference i
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
 <p>FPS (Frames per second) is computed this way: we instantiate the predictor, we warm-up the model and then we measure the average speed of the end-to-end predictor on the datasets, with a batch size of 1.
 We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.</p>
+<p>Results on private ocr datasets</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 31%" />
+<col style="width: 10%" />
+<col style="width: 13%" />
+<col style="width: 10%" />
+<col style="width: 13%" />
+<col style="width: 10%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head" colspan="2"><p>Receipts</p></th>
+<th class="head" colspan="2"><p>Invoices</p></th>
+<th class="head" colspan="2"><p>IDs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Architecture</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn (ours)</p></td>
+<td><p><strong>78.90</strong></p></td>
+<td><p><strong>81.01</strong></p></td>
+<td><p>65.68</p></td>
+<td><p><strong>69.86</strong></p></td>
+<td><p><strong>49.48</strong></p></td>
+<td><p><strong>50.46</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
+<td><p>68.91</p></td>
+<td><p>59.89</p></td>
+<td><p>63.20</p></td>
+<td><p>52.85</p></td>
+<td><p>43.70</p></td>
+<td><p>29.21</p></td>
+</tr>
+<tr class="row-odd"><td><p>AWS textract</p></td>
+<td><p>75.77</p></td>
+<td><p>77.70</p></td>
+<td><p><strong>70.47</strong></p></td>
+<td><p>69.13</p></td>
+<td><p>46.39</p></td>
+<td><p>43.32</p></td>
+</tr>
+</tbody>
+</table>
 <section id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">¶</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>

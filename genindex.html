@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; doctr 0.2.1a0-git documentation</title>
+  <title>Index &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -82,11 +82,22 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
@@ -217,7 +228,6 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#L"><strong>L</strong></a>
- | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -276,17 +286,10 @@
 </li>
       <li><a href="models.html#doctr.models.detection.db_resnet50">db_resnet50() (in module doctr.models.detection)</a>
 </li>
-      <li><a href="models.html#doctr.models.detection.detection_predictor">detection_predictor() (in module doctr.models.detection)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    doctr
-
-      <ul>
-        <li><a href="index.html#module-doctr">module</a>
+      <li><a href="models.html#doctr.models.detection.detection_predictor">detection_predictor() (in module doctr.models.detection)</a>
 </li>
-      </ul></li>
       <li><a href="documents.html#doctr.documents.Document">Document (class in doctr.documents)</a>
 </li>
       <li><a href="documents.html#doctr.documents.DocumentFile">DocumentFile (class in doctr.documents)</a>
@@ -298,10 +301,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="datasets.html#doctr.datasets.encode_sequences">encode_sequences() (in module doctr.datasets)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utils.html#doctr.utils.metrics.ExactMatch">ExactMatch (class in doctr.utils.metrics)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -350,19 +349,6 @@
   </ul></td>
 </tr></table>
 
-<h2 id="M">M</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li>
-    module
-
-      <ul>
-        <li><a href="index.html#module-doctr">doctr</a>
-</li>
-      </ul></li>
-  </ul></td>
-</tr></table>
-
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -375,6 +361,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.zoo.ocr_predictor">ocr_predictor() (in module doctr.models.zoo)</a>
+</li>
+      <li><a href="datasets.html#doctr.datasets.OCRDataset">OCRDataset (class in doctr.datasets)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -442,17 +430,35 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.sar_resnet31">sar_resnet31() (in module doctr.models.recognition)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
 </li>
+      <li><a href="documents.html#doctr.documents.Document.show">show() (doctr.documents.Document method)</a>
+
+      <ul>
+        <li><a href="documents.html#doctr.documents.Page.show">(doctr.documents.Page method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="datasets.html#doctr.datasets.SROIE">SROIE (class in doctr.datasets)</a>
 </li>
+      <li><a href="utils.html#doctr.utils.metrics.LocalizationConfusion.summary">summary() (doctr.utils.metrics.LocalizationConfusion method)</a>
+
+      <ul>
+        <li><a href="utils.html#doctr.utils.metrics.OCRMetric.summary">(doctr.utils.metrics.OCRMetric method)</a>
+</li>
+        <li><a href="utils.html#doctr.utils.metrics.TextMatch.summary">(doctr.utils.metrics.TextMatch method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#doctr.utils.metrics.TextMatch">TextMatch (class in doctr.utils.metrics)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transforms.html#doctr.transforms.ToGray">ToGray (class in doctr.transforms)</a>
 </li>
