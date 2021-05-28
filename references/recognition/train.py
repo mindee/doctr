@@ -225,6 +225,9 @@ def main(args):
         #reset val metric
         val_metric.reset()
 
+    if args.wb:
+        run.finish()
+
 
 def parse_args():
     import argparse
