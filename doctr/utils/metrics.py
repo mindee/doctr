@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from doctr.utils.common_types import RotatedBbox
 import numpy as np
 from shapely.geometry import Polygon
 import cv2
@@ -119,6 +120,34 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     """Compute the IoU between two sets of bounding boxes
 
     Args:
+        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax
+    Returns:
+        the IoU matrix of shape (N, M)
+    """
+
+    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+
+    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
+        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
+
+        left = np.maximum(l1, l2.T)
+        top = np.maximum(t1, t2.T)
+        right = np.minimum(r1, r2.T)
+        bot = np.minimum(b1, b2.T)
+
+        intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
+        union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
+        iou_mat = intersection / union
+
+    return iou_mat
+
+
+def rbox_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
+    """Compute the IoU between two sets of bounding boxes
+
+    Args:
         boxes_1: bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
         boxes_2: bounding boxes of shape (M, 5) in format (x, y, w, h, alpha)
     Returns:
@@ -178,15 +207,19 @@ class LocalizationConfusion:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(self, iou_thresh: float = 0.5, rotated_bbox: bool = False) -> None:
         self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
 
         if preds.shape[0] > 0:
             # Compute IoU
-            iou_mat = box_iou(gts, preds)
+            if self.rotated_bbox:
+                iou_mat = rbox_iou(gts, preds)
+            else:
+                iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs
@@ -263,8 +296,9 @@ class OCRMetric:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(self, iou_thresh: float = 0.5, rotated_bbox: bool = False) -> None:
         self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
         self.reset()
 
     def update(
@@ -281,7 +315,11 @@ class OCRMetric:
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
-            iou_mat = box_iou(gt_boxes, pred_boxes)
+            if self.rotated_bbox:
+                iou_mat = rbox_iou(gt_boxes, pred_boxes)
+            else:
+                iou_mat = box_iou(gt_boxes, pred_boxes)
+
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs

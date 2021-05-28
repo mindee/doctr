@@ -68,8 +68,10 @@ class CORD(VisionDataset):
                             left, right = min(x), max(x)
                             top, bot = min(y), max(y)
                         else:
-                            pt1, pt2 = [word["quad"]["x1"], word["quad"]["y1"]], [word["quad"]["x2"], word["quad"]["y2"]]
-                            pt3, pt4 = [word["quad"]["x3"], word["quad"]["y3"]], [word["quad"]["x4"], word["quad"]["y4"]]
+                            pt1 = [word["quad"]["x1"], word["quad"]["y1"]]
+                            pt2 = [word["quad"]["x2"], word["quad"]["y2"]]
+                            pt3 = [word["quad"]["x3"], word["quad"]["y3"]]
+                            pt4 = [word["quad"]["x4"], word["quad"]["y4"]]
                             pts = np.asarray([pt1, pt2, pt3, pt4], dtype=np.float32)
                         if len(word["text"]) > 0:
                             if not rotated_bbox:

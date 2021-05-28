@@ -216,10 +216,10 @@ class DocumentBuilder(NestedObject):
                 ((boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
             ] if self.rotated_bbox else
             [
-            ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
+                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
             ] for line in lines
         ]
-        
+
         if self.rotated_bbox:
             box_lines = np.asarray([resolve_enclosing_rbbox(line) for line in _lines])
         else:
@@ -287,14 +287,15 @@ class DocumentBuilder(NestedObject):
         blocks = [
             Block(
                 [Line(
-                    [Word(
-                        *word_preds[idx],
-                        (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
-                    ) if self.rotated_bbox else
-                    Word(
-                        *word_preds[idx],
-                        ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
-                    ) for idx in line
+                    [
+                        Word(
+                            *word_preds[idx],
+                            (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
+                        ) if self.rotated_bbox else
+                        Word(
+                            *word_preds[idx],
+                            ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
+                        ) for idx in line
                     ]
                 ) for line in lines]
             ) for lines in blocks

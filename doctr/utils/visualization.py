@@ -24,6 +24,7 @@ def create_rect_patch(
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
+    rotation: bool = False,
 ) -> patches.Patch:
     """Create a matplotlib patch (rectangle) bounding the element
 
@@ -34,24 +35,41 @@ def create_rect_patch(
         color: color to draw box
         alpha: opacity parameter to fill the boxes, 0 = transparent
         linewidth: line width
+        rotation: if True, fit a rotated rectangle (polygon)
 
     Returns:
         a rectangular Patch
     """
-    height, width = page_dimensions
-    (x, y, w, h, a) = geometry
-    x, w = x * width, w * width
-    y, h = y * height, h * height
-    points = cv2.boxPoints(((x, y), (w, h), a))
-    rect = patches.Polygon(
-        points,
-        fill=fill,
-        linewidth=linewidth,
-        edgecolor=(*color, alpha),
-        facecolor=(*color, alpha),
-        label=label
-    )
-    return rect
+    if rotation:
+        height, width = page_dimensions
+        (x, y, w, h, a) = geometry
+        x, w = x * width, w * width
+        y, h = y * height, h * height
+        points = cv2.boxPoints(((x, y), (w, h), a))
+        return patches.Polygon(
+            points,
+            fill=fill,
+            linewidth=linewidth,
+            edgecolor=(*color, alpha),
+            facecolor=(*color, alpha),
+            label=label
+        )
+
+    else:
+        h, w = page_dimensions
+        (xmin, ymin), (xmax, ymax) = geometry
+        xmin, xmax = xmin * w, xmax * w
+        ymin, ymax = ymin * h, ymax * h
+        return patches.Rectangle(
+            (xmin, ymin),
+            xmax - xmin,
+            ymax - ymin,
+            fill=fill,
+            linewidth=linewidth,
+            edgecolor=(*color, alpha),
+            facecolor=(*color, alpha),
+            label=label
+        )
 
 
 def visualize_page(
@@ -62,6 +80,7 @@ def visualize_page(
     scale: float = 10,
     interactive: bool = True,
     add_labels: bool = True,
+    rotation: bool = False,
     **kwargs: Any,
 ) -> Figure:
     """Visualize a full page with predicted blocks, lines and words
@@ -100,7 +119,8 @@ def visualize_page(
 
     for block in page['blocks']:
         if not words_only:
-            rect = create_rect_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0), linewidth=1, **kwargs)
+            rect = create_rect_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0),
+                                     linewidth=1, rotation=rotation, **kwargs)
             # add patch on figure
             ax.add_patch(rect)
             if interactive:
@@ -109,14 +129,15 @@ def visualize_page(
 
         for line in block['lines']:
             if not words_only:
-                rect = create_rect_patch(line['geometry'], 'line', page['dimensions'], (1, 0, 0), linewidth=1, **kwargs)
+                rect = create_rect_patch(line['geometry'], 'line', page['dimensions'],
+                                         (1, 0, 0), linewidth=1, rotation=rotation, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
 
             for word in line['words']:
                 rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
-                                         page['dimensions'], (0, 0, 1), **kwargs)
+                                         page['dimensions'], (0, 0, 1), rotation=rotation, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
@@ -133,7 +154,7 @@ def visualize_page(
         if display_artefacts:
             for artefact in block['artefacts']:
                 rect = create_rect_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5),
-                                         linewidth=1, **kwargs)
+                                         linewidth=1, rotation=rotation, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
