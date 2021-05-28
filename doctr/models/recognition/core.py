@@ -64,21 +64,15 @@ class RecognitionPostProcessor(NestedObject):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
-        ignore_case: if True, ignore case of letters
-        ignore_accents: if True, ignore accents of letters
     """
 
     def __init__(
         self,
         vocab: str,
-        ignore_case: bool = False,
-        ignore_accents: bool = False
     ) -> None:
 
         self.vocab = vocab
         self._embedding = tf.constant(list(self.vocab) + ['<eos>'], dtype=tf.string)
-        self.ignore_case = ignore_case
-        self.ignore_accents = ignore_accents
 
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"
@@ -113,7 +107,7 @@ class RecognitionPredictor(NestedObject):
         self,
         crops: List[np.ndarray],
         **kwargs: Any,
-    ) -> List[str]:
+    ) -> List[Tuple[str, float]]:
 
         out = []
         if len(crops) > 0:
@@ -125,9 +119,9 @@ class RecognitionPredictor(NestedObject):
             processed_batches = self.pre_processor(crops)
 
             # Forward it
-            out = [self.model(batch, return_preds=True, **kwargs)['preds'] for batch in processed_batches]
+            raw = [self.model(batch, return_preds=True, **kwargs)['preds'] for batch in processed_batches]
 
             # Process outputs
-            out = [charseq for batch in out for charseq in batch]
+            out = [charseq for batch in raw for charseq in batch]
 
         return out
