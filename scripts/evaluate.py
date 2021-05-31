@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from doctr.utils.common_types import RotatedBbox
 import os
 import numpy as np
 from tqdm import tqdm
@@ -28,11 +29,12 @@ def main(args):
         testset = datasets.OCRDataset(
             img_folder=args.img_folder,
             label_file=args.label_file,
+            rotated_bbox=args.rotation,
         )
         sets = [testset]
     else:
-        train_set = datasets.__dict__[args.dataset](train=True, download=True)
-        val_set = datasets.__dict__[args.dataset](train=False, download=True)
+        train_set = datasets.__dict__[args.dataset](train=True, download=True, rotated_bbox=args.rotation)
+        val_set = datasets.__dict__[args.dataset](train=False, download=True, rotated_bbox=args.rotation)
         sets = [train_set, val_set]
 
     det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)

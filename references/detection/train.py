@@ -123,6 +123,7 @@ def main(args):
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
         ]),
+        rotated_bbox=args.rotation
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -140,7 +141,8 @@ def main(args):
         sample_transforms=T.Compose([
             T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
-        ])
+        ]),
+        rotated_bbox=args.rotation
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -167,7 +169,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = LocalizationConfusion()
+    val_metric = LocalizationConfusion(rotated_bbox=args.rotation)
 
     if args.test_only:
         print("Running evaluation")
