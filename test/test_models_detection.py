@@ -1,3 +1,4 @@
+from doctr.models.detection.zoo import detection_predictor
 import pytest
 import numpy as np
 import tensorflow as tf
@@ -7,16 +8,20 @@ from doctr.documents import DocumentFile
 
 
 def test_dbpostprocessor():
-    postprocessor = detection.DBPostProcessor()
+    postprocessor = detection.DBPostProcessor(rotated_bbox=False)
+    r_postprocessor = detection.DBPostProcessor(rotated_bbox=True)
     mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
+    r_out = r_postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2
     assert all(isinstance(sample, np.ndarray) for sample in out)
-    assert all(sample.shape[1] == 6 for sample in out)
+    assert all(sample.shape[1] == 5 for sample in out)
+    assert all(sample.shape[1] == 6 for sample in r_out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in out)
+    assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in r_out)
     # Repr
     assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1, max_candidates=1000)'
     # Edge case when the expanded points of the polygon has two lists
@@ -47,7 +52,9 @@ def test_dbpostprocessor():
         [909, 569],
         [934, 562]], dtype=np.int32)
     out = postprocessor.polygon_to_box(issue_points)
-    assert isinstance(out, tuple) and len(out) == 5
+    r_out = r_postprocessor.polygon_to_box(issue_points)
+    assert isinstance(out, tuple) and len(out) == 4
+    assert isinstance(r_out, tuple) and len(r_out) == 5
 
 
 @pytest.mark.parametrize(
@@ -63,8 +70,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
-        dict(boxes=np.array([[.5, .5, 1, 1, 0], [0.5, 0.5, .5, .5, 0]], dtype=np.float32), flags=[True, False]),
-        dict(boxes=np.array([[.5, .5, 1, 1, 0], [0.5, 0.5, .5, .5, 0]], dtype=np.float32), flags=[True, False])
+        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
+        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32), flags=[True, False])
     ]
     # test training model
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True)
@@ -77,7 +84,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
     for boxes in out['boxes']:
-        assert boxes.shape[1] == 6
+        assert boxes.shape[1] == 5
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out['loss'], tf.Tensor)
@@ -121,7 +128,7 @@ def test_detection_zoo(arch_name):
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list)
-    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 6 for boxes in out)
+    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
 
 
 def test_detection_zoo_error():
@@ -131,12 +138,15 @@ def test_detection_zoo_error():
 
 def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
+    r_postprocessor = detection.LinkNetPostProcessor(rotated_bbox=True)
     mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
     out = postprocessor(mock_batch)
+    r_out = r_postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2
     assert all(isinstance(sample, np.ndarray) for sample in out)
-    assert all(sample.shape[1] == 6 for sample in out)
+    assert all(sample.shape[1] == 5 for sample in out)
+    assert all(sample.shape[1] == 6 for sample in r_out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)

@@ -73,7 +73,7 @@ class DetectionPostProcessor(NestedObject):
         """
         h, w = pred.shape[:2]
 
-        if not self.rotated_box:
+        if self.rotated_bbox is False:
             xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
             xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
             ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
@@ -103,7 +103,7 @@ class DetectionPostProcessor(NestedObject):
             x: dictionary of the model output
 
         returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5).
+            list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6).
         """
 
         proba_map = tf.squeeze(proba_map, axis=-1)  # remove last dim

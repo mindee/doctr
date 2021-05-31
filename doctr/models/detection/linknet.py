@@ -17,7 +17,7 @@ from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from ...utils.repr import NestedObject
-from doctr.utils.geometry import fit_rbbox
+from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 __all__ = ['LinkNet', 'linknet', 'LinkNetPostProcessor']
 
@@ -28,7 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.264, 0.2749, 0.287),
         'out_chan': 1,
         'input_shape': (1024, 1024, 3),
-        'rotated_bbox': 'False',
+        'rotated_bbox': False,
         'post_processor': 'LinkNetPostProcessor',
         'url': None,
     },
@@ -83,7 +83,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
-            if not self.rotated_bbox:
+            if self.rotated_bbox is False:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
                 score = self.box_score(pred, points)
@@ -93,8 +93,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
 
-            if not self.rotated_bbox:
-                x, y, w, h = _box
+            if self.rotated_bbox is False:
                 # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
@@ -104,7 +103,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
 
-        if not self.rotated_bbox:
+        if self.rotated_bbox is False:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
         else:
             if len(boxes) == 0:
@@ -186,6 +185,8 @@ class LinkNet(DetectionModel, NestedObject):
     ) -> None:
         super().__init__(cfg=cfg)
 
+        self.rotated_bbox = rotated_bbox
+
         self.stem = Sequential([
             *conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape),
             layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'),
@@ -225,7 +226,7 @@ class LinkNet(DetectionModel, NestedObject):
         output_shape: Tuple[int, int, int],
     ) -> Tuple[tf.Tensor, tf.Tensor]:
 
-        seg_target = np.zeros(output_shape, dtype=np.bool)
+        seg_target = np.zeros(output_shape, dtype=np.uint8)
         seg_mask = np.ones(output_shape, dtype=np.bool)
 
         for idx, _target in enumerate(target):
@@ -240,9 +241,20 @@ class LinkNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+            if self.rotated_bbox is False:
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
 
-            for box, box_size, is_ambiguous in zip(abs_boxes, boxes_size, _target['flags']):
+            else:
+                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
+                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+
+            for poly, box, box_size, is_ambiguous in zip(polys, abs_boxes, boxes_size, _target['flags']):
                 # Mask ambiguous boxes
                 if is_ambiguous:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
@@ -252,7 +264,7 @@ class LinkNet(DetectionModel, NestedObject):
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 # Fill polygon with 1
-                seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+                cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)

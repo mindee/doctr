@@ -142,14 +142,24 @@ def visualize_page(
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
-                    ax.text(
-                        int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
-                        int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2)),
-                        word['value'],
-                        size=10,
-                        alpha=0.5,
-                        color=(0, 0, 1),
-                    )
+                    if rotation is True:
+                        ax.text(
+                            int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
+                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2)),
+                            word['value'],
+                            size=10,
+                            alpha=0.5,
+                            color=(0, 0, 1),
+                        )
+                    else:
+                        ax.text(
+                            int(page['dimensions'][1] * word['geometry'][0][0]),
+                            int(page['dimensions'][0] * word['geometry'][0][1]),
+                            word['value'],
+                            size=10,
+                            alpha=0.5,
+                            color=(0, 0, 1),
+                        )
 
         if display_artefacts:
             for artefact in block['artefacts']:

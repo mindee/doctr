@@ -12,6 +12,35 @@ from test_models_recognition import test_recognitionpredictor
 def test_extract_crops(mock_pdf):  # noqa: F811
     doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
     num_crops = 2
+    rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
+                          for idx in range(num_crops)], dtype=np.float32)
+    abs_boxes = np.array([[int(idx * doc_img.shape[1] / num_crops),
+                           int(idx * doc_img.shape[0]) / num_crops,
+                           int((idx + 1) * doc_img.shape[1] / num_crops),
+                           int((idx + 1) * doc_img.shape[0] / num_crops)]
+                          for idx in range(num_crops)], dtype=np.float32)
+
+    with pytest.raises(AssertionError):
+        models.extract_crops(doc_img, np.zeros((1, 5)))
+
+    for boxes in (rel_boxes, abs_boxes):
+        croped_imgs = models.extract_crops(doc_img, boxes)
+        # Number of crops
+        assert len(croped_imgs) == num_crops
+        # Data type and shape
+        assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+        assert all(crop.ndim == 3 for crop in croped_imgs)
+
+    # Identity
+    assert np.all(doc_img == models.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32))[0])
+
+    # No box
+    assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
+
+
+def test_rextract_crops(mock_pdf):  # noqa: F811
+    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
+    num_crops = 2
     rel_boxes = np.array([[idx / num_crops + .1, idx / num_crops + .1, .1, .1, 0]
                           for idx in range(num_crops)], dtype=np.float32)
     abs_boxes = np.array([[int((idx / num_crops + .1) * doc_img.shape[1]),
@@ -23,7 +52,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
     with pytest.raises(AssertionError):
         models.extract_crops(doc_img, np.zeros((1, 8)))
     for boxes in (rel_boxes, abs_boxes):
-        croped_imgs = models.extract_crops(doc_img, boxes)
+        croped_imgs = models.extract_rcrops(doc_img, boxes)
         # Number of crops
         assert len(croped_imgs) == num_crops
         # Data type and shape
@@ -67,12 +96,12 @@ def test_documentbuilder():
 @pytest.mark.parametrize(
     "input_boxes, sorted_idxs",
     [
-        [[[0., 0.5, 0.1, 0.6, 0.], [0., 0.3, 0.2, 0.4, 0.], [0., 0., 0.1, 0.1, 0.]], [2, 1, 0]],  # vertical
-        [[[0.7, 0.5, 0.85, 0.6, 0], [0.2, 0.3, 0.4, 0.4, 0], [0, 0, 0.1, 0.1, 0]], [2, 1, 0]],  # diagonal
-        [[[0, 0.5, 0.1, 0.6, 0], [0.15, 0.5, 0.25, 0.6, 0], [0.5, 0.5, 0.6, 0.6, 0]], [0, 1, 2]],  # same line, 2p
-        [[[0, 0.5, 0.1, 0.6, 0], [0.2, 0.49, 0.35, 0.59, 0], [0.8, 0.52, 0.9, 0.63, 0]], [0, 1, 2]],  # ~same line
-        [[[0, 0.3, 0.48, 0.45, 0], [0.5, 0.28, 0.43, 0.42, 0], [0, 0.55, 0.1, 0.15, 0]], [0, 1, 2]],  # 2 lines
-        [[[0, 0.3, 0.4, 0.35, 0], [0.75, 0.68, 0.15, 0.42, 0], [0, 0.45, 0.1, 0.15, 0]], [0, 2, 1]],  # 3 lines
+        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0]],  # vertical
+        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [2, 1, 0]],  # diagonal
+        [[[0, 0.5, 0.1, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [0, 1, 2]],  # same line, 2p
+        [[[0, 0.5, 0.1, 0.6], [0.2, 0.49, 0.35, 0.59], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2]],  # ~same line
+        [[[0, 0.3, 0.4, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
+        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
     ],
 )
 def test_sort_boxes(input_boxes, sorted_idxs):
@@ -84,12 +113,12 @@ def test_sort_boxes(input_boxes, sorted_idxs):
 @pytest.mark.parametrize(
     "input_boxes, lines",
     [
-        [[[0., 0.5, 0.1, 0.6, 0.], [0., 0.3, 0.2, 0.4, 0.], [0., 0., 0.1, 0.1, 0.]], [[2], [1], [0]]],  # vertical
-        [[[0.7, 0.5, 0.85, 0.6, 0], [0.2, 0.3, 0.4, 0.4, 0], [0, 0, 0.1, 0.1, 0]], [[2], [1], [0]]],  # diagonal
-        [[[0, 0.5, 0.14, 0.6, 0], [0.15, 0.5, 0.25, 0.6, 0], [0.5, 0.5, 0.6, 0.6, 0]], [[0, 1], [2]]],  # same line, 2p
-        [[[0, 0.5, 0.18, 0.6, 0], [0.2, 0.48, 0.35, 0.58, 0], [0.8, 0.52, 0.9, 0.63, 0]], [[0, 1], [2]]],  # ~same line
-        [[[0, 0.3, 0.48, 0.45, 0], [0.5, 0.28, 0.43, 0.42, 0], [0, 0.55, 0.1, 0.15, 0]], [[0, 1], [2]]],  # 2 lines
-        [[[0, 0.3, 0.4, 0.35, 0], [0.75, 0.28, 0.15, 0.42, 0], [0, 0.45, 0.1, 0.15, 0]], [[0, 2], [1]]],  # 3 lines
+        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [[2], [1], [0]]],  # vertical
+        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [[2], [1], [0]]],  # diagonal
+        [[[0, 0.5, 0.14, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [[0, 1], [2]]],  # same line, 2p
+        [[[0, 0.5, 0.18, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [[0, 1], [2]]],  # ~same line
+        [[[0, 0.3, 0.48, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [[0, 1], [2]]],  # 2 lines
+        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [[0], [1], [2]]],  # 2 lines
     ],
 )
 def test_resolve_lines(input_boxes, lines):

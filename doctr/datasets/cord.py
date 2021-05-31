@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from .core import VisionDataset
-from doctr.utils.geometry import fit_bb
+from doctr.utils.geometry import fit_rbbox
 
 __all__ = ['CORD']
 
@@ -77,7 +77,7 @@ class CORD(VisionDataset):
                             if not rotated_bbox:
                                 _targets.append((word["text"], [left, top, right, bot]))
                             else:
-                                x, y, w, h, alpha = fit_bb(pts)
+                                x, y, w, h, alpha = fit_rbbox(pts)
                                 _targets.append((word["text"], [x, y, w, h, alpha]))
 
             text_targets, box_targets = zip(*_targets)

@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from .core import AbstractDataset
-from doctr.utils.geometry import fit_bb
+from doctr.utils.geometry import fit_rbbox
 
 
 __all__ = ['OCRDataset']
@@ -67,7 +67,7 @@ class OCRDataset(AbstractDataset):
                     else:
                         is_valid.append(False)
                 else:
-                    x, y, w, h, alpha = fit_bb(np.asarray(box, dtype=np.float32))
+                    x, y, w, h, alpha = fit_rbbox(np.asarray(box, dtype=np.float32))
                     box_targets.append([x, y, w, h, alpha])
             if not rotated_bbox:
                 text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]

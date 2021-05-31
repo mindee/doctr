@@ -10,7 +10,7 @@ import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Callable
 
 from .core import AbstractDataset
-from doctr.utils.geometry import fit_bb
+from doctr.utils.geometry import fit_rbbox
 
 __all__ = ["DetectionDataset"]
 
@@ -53,7 +53,7 @@ class DetectionDataset(AbstractDataset):
                 # Switch to rotated rects
                 _boxes = []
                 for bbox in _bboxes:
-                    x, y, w, h, alpha = fit_bb(bbox)
+                    x, y, w, h, alpha = fit_rbbox(bbox)
                     _boxes.append([x, y, w, h, alpha])
                 bboxes = np.asarray(_boxes, dtype=np.float32)
 

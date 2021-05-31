@@ -31,13 +31,13 @@ class OCRPredictor(NestedObject):
         self,
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
-        rotated_box: bool = False
+        rotated_bbox: bool = False
     ) -> None:
 
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
-        self.doc_builder = DocumentBuilder()
-        self.rotated_box = rotated_box
+        self.doc_builder = DocumentBuilder(rotated_bbox=rotated_bbox)
+        self.rotated_bbox = rotated_bbox
 
     def __call__(
         self,
@@ -52,10 +52,10 @@ class OCRPredictor(NestedObject):
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images
-        if self.rotated_box:
-            crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_rcrops(page, _boxes[:, :5])]
+        if self.rotated_bbox is True:
+            crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_rcrops(page, _boxes[:, :-1])]
         else:
-            crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
+            crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :-1])]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 

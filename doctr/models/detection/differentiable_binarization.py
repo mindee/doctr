@@ -18,7 +18,7 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 from .core import DetectionModel, DetectionPostProcessor
 from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import fit_rbbox
+from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -31,7 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
-        'rotated_bbox': 'False',
+        'rotated_bbox': False,
         'post_processor': 'DBPostProcessor',
         'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
     },
@@ -97,7 +97,7 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        if not self.rotated_bbox:
+        if self.rotated_bbox is False:
             return cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
         return fit_rbbox(expanded_points)
 
@@ -126,7 +126,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
-            if not self.rotated_bbox:
+            if self.rotated_bbox is False:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
                 score = self.box_score(pred, points)
@@ -134,7 +134,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 score = self.box_score(pred, contour)
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            if not self.rotated_bbox:
+            if self.rotated_bbox is False:
                 _box = self.polygon_to_box(points)
             else:
                 _box = self.polygon_to_box(np.squeeze(contour))
@@ -142,7 +142,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
 
-            if not self.rotated_bbox:
+            if self.rotated_bbox is False:
                 x, y, w, h = _box
                 # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
@@ -153,7 +153,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
 
-        if not self.rotated_bbox:
+        if self.rotated_bbox is False:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
         else:
             if len(boxes) == 0:
@@ -253,6 +253,7 @@ class DBNet(DetectionModel, NestedObject):
         self.min_size_box = 3
 
         self.feat_extractor = feature_extractor
+        self.rotated_bbox = rotated_bbox
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
         # Initialize kernels
@@ -399,14 +400,18 @@ class DBNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+            if self.rotated_bbox is False:
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
 
-            polys = np.stack([
-                abs_boxes[:, [0, 1]],
-                abs_boxes[:, [0, 3]],
-                abs_boxes[:, [2, 3]],
-                abs_boxes[:, [2, 1]],
-            ], axis=1)
+            else:
+                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
+                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
 
             for box, box_size, poly, is_ambiguous in zip(abs_boxes, boxes_size, polys, _target['flags']):
                 # Mask ambiguous boxes

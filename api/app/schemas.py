@@ -13,7 +13,7 @@ class RecognitionOut(BaseModel):
 
 
 class DetectionOut(BaseModel):
-    box: Tuple[float, float, float, float, float]
+    box: Tuple[float, float, float, float]
 
 
 class OCROut(RecognitionOut, DetectionOut):
