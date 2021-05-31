@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from doctr import models
 from doctr.documents import Document, DocumentFile
-from test_models_detection import test_detectionpredictor
+from test_models_detection import test_detectionpredictor, test_rotated_detectionpredictor
 from test_models_recognition import test_recognitionpredictor
 
 
@@ -127,18 +127,29 @@ def test_resolve_lines(input_boxes, lines):
     assert doc_builder._resolve_lines(np.asarray(input_boxes)) == lines
 
 
-def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
+def test_ocrpredictor(
+    mock_pdf, test_detectionpredictor, test_recognitionpredictor, test_rotated_detectionpredictor  # noqa: F811
+):
 
     predictor = models.OCRPredictor(
         test_detectionpredictor,
         test_recognitionpredictor
     )
 
+    r_predictor = models.OCRPredictor(
+        test_rotated_detectionpredictor,
+        test_recognitionpredictor,
+        rotated_bbox=True
+    )
+
     doc = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(doc)
+    r_out = r_predictor(doc)
 
     # Document
     assert isinstance(out, Document)
+    assert isinstance(r_out, Document)
+
     # The input PDF has 8 pages
     assert len(out.pages) == 8
     # Dimension check

@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, Dict, List, Any, Optional
 
-from doctr.utils.geometry import resolve_enclosing_bbox
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.visualization import visualize_page
 from doctr.utils.common_types import BoundingBox
 from doctr.utils.repr import NestedObject
@@ -111,7 +111,11 @@ class Line(Element):
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
-            geometry = resolve_enclosing_bbox([w.geometry for w in words])
+            if len(words[0].geometry) < 5:
+                # Straight Bbox
+                geometry = resolve_enclosing_bbox([w.geometry for w in words])
+            else:  # Rotated Bbox
+                geometry = resolve_enclosing_rbbox([w.geometry for w in words])
 
         super().__init__(words=words)
         self.geometry = geometry
@@ -146,7 +150,12 @@ class Block(Element):
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
-            geometry = resolve_enclosing_bbox(line_boxes + artefact_boxes)
+            if len(lines[0].geometry) < 5:
+                # Straight Bbox
+                geometry = resolve_enclosing_bbox(line_boxes + artefact_boxes)
+            else:  # Rotated Bbox
+                geometry = resolve_enclosing_rbbox(line_boxes + artefact_boxes)
+
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry
 

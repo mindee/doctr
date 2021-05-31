@@ -113,6 +113,29 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
     return predictor
 
 
+@pytest.fixture(scope="session")
+def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
+
+    batch_size = 4
+    predictor = detection.DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=batch_size),
+        detection.db_resnet50(rotated_bbox=True, input_shape=(512, 512, 3))
+    )
+
+    pages = DocumentFile.from_pdf(mock_pdf).as_images()
+    out = predictor(pages)
+
+    # The input PDF has 8 pages
+    assert len(out) == 8
+
+    # Dimension check
+    with pytest.raises(ValueError):
+        input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
+        _ = predictor([input_page])
+
+    return predictor
+
+
 @pytest.mark.parametrize(
     "arch_name",
     [

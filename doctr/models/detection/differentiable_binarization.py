@@ -548,6 +548,7 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
+    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
     # Feature extractor
     resnet = tf.keras.applications.__dict__[_cfg['backbone']](

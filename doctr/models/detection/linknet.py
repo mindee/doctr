@@ -331,6 +331,7 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['out_chan'] = kwargs.get('out_chan', _cfg['out_chan'])
+    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
     kwargs['out_chan'] = _cfg['out_chan']
     kwargs['input_shape'] = _cfg['input_shape']
