@@ -199,14 +199,17 @@ class Page(Element):
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
 
-    def show(self, page: np.ndarray, interactive: bool = True, **kwargs) -> None:
+    def show(
+        self, page: np.ndarray, interactive: bool = True, rotation: bool = False, **kwargs
+    ) -> None:
         """Overlay the result on a given image
 
         Args:
             page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
+            rotation: display rotated_bboxes if True
         """
-        visualize_page(self.export(), page, interactive=interactive)
+        visualize_page(self.export(), page, interactive=interactive, rotation=rotation)
         plt.show(**kwargs)
 
 
@@ -229,11 +232,12 @@ class Document(Element):
         """Renders the full text of the element"""
         return page_break.join(p.render() for p in self.pages)
 
-    def show(self, pages: List[np.ndarray], **kwargs) -> None:
+    def show(self, pages: List[np.ndarray], rotation: bool = False, **kwargs) -> None:
         """Overlay the result on a given image
 
         Args:
             pages: list of images encoded as numpy arrays in uint8
+            rotation: display rotated_bboxes if True
         """
-        for img, result in zip(pages, self.pages):
-            result.show(img, **kwargs)
+        for img, result in zip(pages, self.pages, rotation=rotation):
+            result.show(img, rotation=rotation, **kwargs)
