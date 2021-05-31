@@ -22,9 +22,6 @@ def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[
     Returns:
         list of cropped images
     """
-    if isinstance(img, tf.Tensor):
-        img = img.numpy().astype(np.uint8)
-
     if boxes.shape[0] == 0:
         return []
     if boxes.shape[1] != 4:

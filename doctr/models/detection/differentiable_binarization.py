@@ -52,7 +52,7 @@ class DBPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        unclip_ratio: Union[float, int] = 2.2,
+        unclip_ratio: Union[float, int] = 1.5,
         max_candidates: int = 1000,
         box_thresh: float = 0.1,
         bin_thresh: float = 0.3,
@@ -65,7 +65,10 @@ class DBPostProcessor(DetectionPostProcessor):
             max_candidates,
             rotated_bbox
         )
-        self.unclip_ratio = unclip_ratio
+        if rotated_bbox is False:
+            self.unclip_ratio = 1.5
+        else:
+            self.unclip_ratio = 2.2
 
     def polygon_to_box(
         self,
