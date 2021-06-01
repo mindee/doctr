@@ -136,8 +136,8 @@ def visualize_page(
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
-                    if len(word['geometry'] == 5):
-                        text_loc  =  (
+                    if len(word['geometry']) == 5:
+                        text_loc = (
                             int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
                             int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
                         )

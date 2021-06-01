@@ -76,7 +76,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        for contour in contours[:self.max_candidates]:
+        for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
@@ -86,7 +86,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             else:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
-                score = self.box_score(pred, points, rotated_bbox=False)                
+                score = self.box_score(pred, points, rotated_bbox=False)
 
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
@@ -224,7 +224,10 @@ class LinkNet(DetectionModel, NestedObject):
         output_shape: Tuple[int, int, int],
     ) -> Tuple[tf.Tensor, tf.Tensor]:
 
-        seg_target = np.zeros(output_shape, dtype=np.uint8)
+        if self.rotated_bbox:
+            seg_target = np.zeros(output_shape, dtype=np.uint8)
+        else:
+            seg_target = np.zeros(output_shape, dtype=bool)
         seg_mask = np.ones(output_shape, dtype=np.bool)
 
         for idx, _target in enumerate(target):
@@ -262,7 +265,10 @@ class LinkNet(DetectionModel, NestedObject):
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 # Fill polygon with 1
-                cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
+                if self.rotated_bbox:
+                    cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
+                else:
+                    seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)

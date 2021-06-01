@@ -53,7 +53,7 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
         return []
     if boxes.shape[1] != 5:
         raise AssertionError("boxes are expected to be relative and in order (x, y, w, h, alpha)")
-   
+
     if isinstance(img, tf.Tensor):
         img = img.numpy().astype(np.uint8)
 

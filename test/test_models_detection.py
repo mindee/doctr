@@ -23,7 +23,7 @@ def test_dbpostprocessor():
     assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in out)
     assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in r_out)
     # Repr
-    assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1, max_candidates=1000)'
+    assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1)'
     # Edge case when the expanded points of the polygon has two lists
     issue_points = np.array([
         [869, 561],
@@ -85,6 +85,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     # Check boxes
     for boxes in out['boxes']:
         assert boxes.shape[1] == 5
+        assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out['loss'], tf.Tensor)

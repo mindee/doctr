@@ -58,19 +58,17 @@ class OCRDataset(AbstractDataset):
             is_valid: List[bool] = []
             box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
-                if not rotated_bbox:
+                if rotated_bbox:
+                    x, y, w, h, alpha = fit_rbbox(np.asarray(box, dtype=np.float32))
+                    is_valid.append(w > 0 and h > 0)
+                    if is_valid[-1]:
+                        box_targets.append([x, y, w, h, alpha])
+                else:
                     xs, ys = zip(*box)
                     box = [min(xs), min(ys), max(xs), max(ys)]
                     is_valid.append(box[0] < box[2] and box[1] < box[3])
                     if is_valid[-1]:
                         box_targets.append(box)
-                else:
-                    x, y, w, h, alpha = fit_rbbox(np.asarray(box, dtype=np.float32))
-                    box_targets.append([x, y, w, h, alpha])
-            if not rotated_bbox:
-                text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
-            else:
-                text_targets = file_dic["string"]
 
             text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
             self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))

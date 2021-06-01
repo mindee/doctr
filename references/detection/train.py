@@ -37,7 +37,7 @@ def plot_samples(images, targets, rotation):
         img *= 255
         img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
 
-        target = np.zeros(img.shape[:2])
+        target = np.zeros(img.shape[:2], np.uint8)
         boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
         boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
         boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
@@ -47,7 +47,7 @@ def plot_samples(images, targets, rotation):
             else:
                 box = cv2.boxPoints(((box[0], box[2]), (box[1], box[3]), box[4]))
                 box = np.int0(box)
-                cv2.drawContours(target, [box], 0, (255, 255, 255), 2)
+                cv2.fillPoly(target, [box], 1)
 
         axes[0][idx].imshow(img)
         axes[0][idx].axis('off')

@@ -120,7 +120,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
 
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
-        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax
+        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
     Returns:
         the IoU matrix of shape (N, M)
     """

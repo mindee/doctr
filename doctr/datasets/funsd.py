@@ -61,7 +61,7 @@ class FUNSD(VisionDataset):
 
             _targets = [(word['text'], word['box']) for block in data['form']
                         for word in block['words'] if len(word['text']) > 0]
-            text_targets, box_targets = zip(*_targets) 
+            text_targets, box_targets = zip(*_targets)
             if rotated_bbox:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 box_targets = [

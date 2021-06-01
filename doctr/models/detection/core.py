@@ -55,7 +55,7 @@ class DetectionPostProcessor(NestedObject):
         self.rotated_bbox = rotated_bbox
 
     def extra_repr(self) -> str:
-        return f"box_thresh={self.box_thresh}, max_candidates={self.max_candidates}"
+        return f"box_thresh={self.box_thresh}"
 
     @staticmethod
     def box_score(

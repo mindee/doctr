@@ -28,10 +28,6 @@ def rbbox_to_polygon(rbbox: RotatedBbox) -> Polygon4P:
 
 def fit_rbbox(pts: np.ndarray) -> RotatedBbox:
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
-    # if alpha >= 45:
-    #     # cv2.minAreaRect cover only angles between 1 and 90
-    #     # we need to bring symetry with respect to the horizontal axis
-    #     return (x, y, h, w, 90 - alpha)
     return (x, y, w, h, alpha)
 
 

@@ -195,7 +195,7 @@ class Page(Element):
         return f"dimensions={self.dimensions}"
 
     def show(
-        self, page: np.ndarray, interactive: bool = True, rotation: bool = False, **kwargs
+        self, page: np.ndarray, interactive: bool = True, **kwargs
     ) -> None:
         """Overlay the result on a given image
 
@@ -204,7 +204,7 @@ class Page(Element):
             interactive: whether the display should be interactive
             rotation: display rotated_bboxes if True
         """
-        visualize_page(self.export(), page, interactive=interactive, rotation=rotation)
+        visualize_page(self.export(), page, interactive=interactive)
         plt.show(**kwargs)
 
 
@@ -227,7 +227,7 @@ class Document(Element):
         """Renders the full text of the element"""
         return page_break.join(p.render() for p in self.pages)
 
-    def show(self, pages: List[np.ndarray], rotation: bool = False, **kwargs) -> None:
+    def show(self, pages: List[np.ndarray], **kwargs) -> None:
         """Overlay the result on a given image
 
         Args:
@@ -235,4 +235,4 @@ class Document(Element):
             rotation: display rotated_bboxes if True
         """
         for img, result in zip(pages, self.pages):
-            result.show(img, rotation=rotation, **kwargs)
+            result.show(img, **kwargs)
