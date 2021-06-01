@@ -18,12 +18,7 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
 
 def rbbox_to_polygon(rbbox: RotatedBbox) -> Polygon4P:
     (x, y, w, h, alpha) = rbbox
-    alpha = alpha * np.pi / 180
-    pt1 = [x + (w / 2 * np.cos(alpha)) - (h / 2 * np.sin(alpha)), y + (w / 2 * np.sin(alpha)) + (h / 2 * np.cos(alpha))]
-    pt2 = [x - (w / 2 * np.cos(alpha)) - (h / 2 * np.sin(alpha)), y - (w / 2 * np.sin(alpha)) + (h / 2 * np.cos(alpha))]
-    pt3 = [x - (w / 2 * np.cos(alpha)) + (h / 2 * np.sin(alpha)), y - (w / 2 * np.sin(alpha)) - (h / 2 * np.cos(alpha))]
-    pt4 = [x + (w / 2 * np.cos(alpha)) + (h / 2 * np.sin(alpha)), y + (w / 2 * np.sin(alpha)) - (h / 2 * np.cos(alpha))]
-    return (pt1, pt2, pt3, pt4)
+    return cv2.boxPoints(((x, y), (w, h), alpha))
 
 
 def fit_rbbox(pts: np.ndarray) -> RotatedBbox:

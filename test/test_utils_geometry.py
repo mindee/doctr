@@ -1,4 +1,5 @@
 from doctr.utils import geometry
+import numpy as np
 
 
 def test_bbox_to_polygon():
@@ -14,7 +15,9 @@ def test_resolve_enclosing_bbox():
 
 
 def test_rbbox_to_polygon():
-    assert geometry.rbbox_to_polygon((.1, .1, .2, .2, 0)) == ([.2, .2], [0, 0.2], [0, 0], [.2, 0])
+    assert (
+        geometry.rbbox_to_polygon((.1, .1, .2, .2, 0)) == np.array([[0, .2], [0, 0], [.2, 0], [.2, .2]], np.float32)
+    ).all()
 
 
 def test_polygon_to_rbbox():
