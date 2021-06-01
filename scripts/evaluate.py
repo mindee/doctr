@@ -37,9 +37,21 @@ def main(args):
         val_set = datasets.__dict__[args.dataset](train=False, download=True, rotated_bbox=args.rotation)
         sets = [train_set, val_set]
 
-    det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
     reco_metric = TextMatch()
-    e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
+    if args.rotation and args.mask_shape:
+        det_metric = LocalizationConfusion(
+            iou_thresh=args.iou,
+            rotated_bbox=args.rotation,
+            mask_shape=(args.mask_shape, args.mask_shape)
+        )
+        e2e_metric = OCRMetric(
+            iou_thresh=args.iou,
+            rotated_bbox=args.rotation,
+            mask_shape=(args.mask_shape, args.mask_shape)
+        )
+    else:
+        det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
+        e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
 
     for dataset in sets:
         for page, target in tqdm(dataset):
@@ -113,6 +125,7 @@ def parse_args():
     parser.add_argument('--label_file', type=str, default=None, help='Only for local sets, path to labels')
     parser.add_argument('--rotation', dest='rotation', action='store_true', help='evaluate with rotated bbox')
     parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for recognition')
+    parser.add_argument('--mask_shape', type=int, default=None, help='mask shape for mask iou (only for rotation)')
     args = parser.parse_args()
 
     return args

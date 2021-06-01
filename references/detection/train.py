@@ -170,7 +170,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = LocalizationConfusion(rotated_bbox=args.rotation)
+    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
 
     if args.test_only:
         print("Running evaluation")

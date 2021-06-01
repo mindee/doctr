@@ -72,6 +72,5 @@ class OCRDataset(AbstractDataset):
             else:
                 text_targets = file_dic["string"]
 
-
             text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
             self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
