@@ -5,13 +5,11 @@
 
 from doctr.utils.common_types import RotatedBbox
 import numpy as np
-from shapely.geometry import Polygon
-import cv2
 from typing import List, Tuple, Dict
 from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
 
-__all__ = ['TextMatch', 'box_iou', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'mask_iou', 'box_to_mask', 'LocalizationConfusion', 'OCRMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
@@ -144,30 +142,60 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
-def rbox_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
-    """Compute the IoU between two sets of bounding boxes
+def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
+    """Compute the IoU between two sets of boolean masks
 
     Args:
-        boxes_1: bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
-        boxes_2: bounding boxes of shape (M, 5) in format (x, y, w, h, alpha)
+        masks_1: boolean masks of shape (N, H, W)
+        masks_2: boolean masks of shape (M, H, W)
+
     Returns:
         the IoU matrix of shape (N, M)
     """
 
-    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+    if masks_1.shape[1:] != masks_2.shape[1:]:
+        raise AssertionError("both boolean masks should have the same spatial shape")
 
-    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
-        _pts1 = [cv2.boxPoints(((x, y), (w, h), alpha)) for [x, y, w, h, alpha] in list(boxes_1)]
-        _pts2 = [cv2.boxPoints(((x, y), (w, h), alpha)) for [x, y, w, h, alpha] in list(boxes_2)]
-        pts1 = [[(x, y) for [x, y] in list(pt)] for pt in _pts1]
-        pts2 = [[(x, y) for [x, y] in list(pt)] for pt in _pts2]
-        polys1 = [Polygon(pt) for pt in pts1]
-        polys2 = [Polygon(pt) for pt in pts2]
-        for i in range(boxes_1.shape[0]):
-            for j in range(boxes_2.shape[0]):
-                iou_mat[i, j] = polys1[i].intersection(polys2[j]).area / polys1[i].union(polys2[j]).area
+    iou_mat = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
+
+    if masks_1.shape[0] > 0 and masks_2.shape[0] > 0:
+        intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...])
+        union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...])
+        axes = tuple(range(2, masks_1.ndim + 1))
+        iou_mat = intersection.sum(axis=axes) / union.sum(axis=axes)
 
     return iou_mat
+
+
+def box_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
+    """Convert boxes to masks
+
+    Args:
+        boxes: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        shape: spatial shapes of the output masks
+
+    Returns:
+        the boolean masks of shape (N, H, W)
+    """
+
+    masks = np.zeros((boxes.shape[0], *shape), dtype=np.bool)
+
+    if boxes.shape[0] > 0:
+        # Get absolute coordinates
+        if boxes.dtype != np.int:
+            abs_boxes = boxes.copy()
+            abs_boxes[:, [0, 2]] = abs_boxes[:, [0, 2]] * shape[1]
+            abs_boxes[:, [1, 3]] = abs_boxes[:, [1, 3]] * shape[0]
+            abs_boxes = abs_boxes.round().astype(np.int)
+        else:
+            abs_boxes = boxes
+            abs_boxes[:, 2:] = abs_boxes[:, 2:] + 1
+
+        # TODO: optimize slicing to improve vectorization
+        for idx, box in enumerate(abs_boxes):
+            masks[idx, box[1]: box[3], box[0]: box[2]] = True
+
+    return masks
 
 
 class LocalizationConfusion:
@@ -207,9 +235,15 @@ class LocalizationConfusion:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5, rotated_bbox: bool = False) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+    ) -> None:
         self.iou_thresh = iou_thresh
         self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
@@ -217,7 +251,9 @@ class LocalizationConfusion:
         if preds.shape[0] > 0:
             # Compute IoU
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gts, preds)
+                mask_gts = box_to_mask(gts, shape=self.mask_shape)
+                mask_preds = box_to_mask(preds, shape=self.mask_shape)
+                iou_mat = mask_iou(mask_gts, mask_preds)
             else:
                 iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
@@ -296,9 +332,15 @@ class OCRMetric:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5, rotated_bbox: bool = False) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+    ) -> None:
         self.iou_thresh = iou_thresh
         self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
         self.reset()
 
     def update(
@@ -316,7 +358,9 @@ class OCRMetric:
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gt_boxes, pred_boxes)
+                mask_gts = box_to_mask(gt_boxes, shape=self.mask_shape)
+                mask_preds = box_to_mask(pred_boxes, shape=self.mask_shape)
+                iou_mat = mask_iou(mask_gts, mask_preds)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 

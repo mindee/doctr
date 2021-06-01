@@ -51,7 +51,10 @@ def main(args):
             out = predictor(page[None, ...], training=False)
             crops = extract_crops(page, gt_boxes)
             reco_out = predictor.reco_predictor(crops, training=False)
-            reco_words, _ = zip(*reco_out)
+            if len(reco_out):
+                reco_words, _ = zip(*reco_out)
+            else:
+                reco_words = []
 
             # Unpack preds
             pred_boxes = []
