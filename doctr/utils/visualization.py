@@ -9,22 +9,21 @@ import matplotlib.patches as patches
 import mplcursors
 import numpy as np
 import cv2
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Union
 
-from .common_types import BoundingBox
+from .common_types import BoundingBox, RotatedBbox
 
 __all__ = ['visualize_page']
 
 
 def create_rect_patch(
-    geometry: BoundingBox,
+    geometry: Union[BoundingBox, RotatedBbox],
     label: str,
     page_dimensions: Tuple[int, int],
     color: Tuple[int, int, int],
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
-    rotation: bool = False,
 ) -> patches.Patch:
     """Create a matplotlib patch (rectangle) bounding the element
 
@@ -35,12 +34,11 @@ def create_rect_patch(
         color: color to draw box
         alpha: opacity parameter to fill the boxes, 0 = transparent
         linewidth: line width
-        rotation: if True, fit a rotated rectangle (polygon)
 
     Returns:
         a rectangular Patch
     """
-    if rotation:
+    if len(geometry) == 5:
         height, width = page_dimensions
         (x, y, w, h, a) = geometry
         x, w = x * width, w * width
@@ -54,7 +52,6 @@ def create_rect_patch(
             facecolor=(*color, alpha),
             label=label
         )
-
     else:
         h, w = page_dimensions
         (xmin, ymin), (xmax, ymax) = geometry
@@ -80,7 +77,6 @@ def visualize_page(
     scale: float = 10,
     interactive: bool = True,
     add_labels: bool = True,
-    rotation: bool = False,
     **kwargs: Any,
 ) -> Figure:
     """Visualize a full page with predicted blocks, lines and words
@@ -119,8 +115,7 @@ def visualize_page(
 
     for block in page['blocks']:
         if not words_only:
-            rect = create_rect_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0),
-                                     linewidth=1, rotation=rotation, **kwargs)
+            rect = create_rect_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0), linewidth=1, **kwargs)
             # add patch on figure
             ax.add_patch(rect)
             if interactive:
@@ -129,42 +124,40 @@ def visualize_page(
 
         for line in block['lines']:
             if not words_only:
-                rect = create_rect_patch(line['geometry'], 'line', page['dimensions'],
-                                         (1, 0, 0), linewidth=1, rotation=rotation, **kwargs)
+                rect = create_rect_patch(line['geometry'], 'line', page['dimensions'], (1, 0, 0), linewidth=1, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
 
             for word in line['words']:
                 rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
-                                         page['dimensions'], (0, 0, 1), rotation=rotation, **kwargs)
+                                         page['dimensions'], (0, 0, 1), **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
-                    if rotation is True:
-                        ax.text(
+                    if len(word['geometry'] == 5):
+                        text_loc  =  (
                             int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
-                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2)),
-                            word['value'],
-                            size=10,
-                            alpha=0.5,
-                            color=(0, 0, 1),
+                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
                         )
                     else:
-                        ax.text(
+                        text_loc = (
                             int(page['dimensions'][1] * word['geometry'][0][0]),
-                            int(page['dimensions'][0] * word['geometry'][0][1]),
-                            word['value'],
-                            size=10,
-                            alpha=0.5,
-                            color=(0, 0, 1),
+                            int(page['dimensions'][0] * word['geometry'][0][1])
                         )
+                    ax.text(
+                        *text_loc,
+                        word['value'],
+                        size=10,
+                        alpha=0.5,
+                        color=(0, 0, 1),
+                    )
 
         if display_artefacts:
             for artefact in block['artefacts']:
                 rect = create_rect_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5),
-                                         linewidth=1, rotation=rotation, **kwargs)
+                                         linewidth=1, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)

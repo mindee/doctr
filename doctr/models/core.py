@@ -37,7 +37,7 @@ class OCRPredictor(NestedObject):
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
         self.doc_builder = DocumentBuilder(rotated_bbox=rotated_bbox)
-        self.rotated_bbox = rotated_bbox
+        self.extract_crops_fn = extract_rcrops if rotated_bbox else extract_crops
 
     def __call__(
         self,
@@ -52,10 +52,7 @@ class OCRPredictor(NestedObject):
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images
-        if self.rotated_bbox is True:
-            crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_rcrops(page, _boxes[:, :-1])]
-        else:
-            crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :-1])]
+        crops = [crop for page, _boxes in zip(pages, boxes) for crop in self.extract_crops_fn(page, _boxes[:, :-1])]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 
@@ -104,7 +101,7 @@ class DocumentBuilder(NestedObject):
         """Split a line in sub_lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4) or (N, 5) in case of rtated bbox
+            boxes: bounding boxes of shape (N, 4) or (N, 5) in case of rotated bbox
             words: list of indexes for the words of the line
 
         Returns:
@@ -128,7 +125,7 @@ class DocumentBuilder(NestedObject):
                 else:
                     dist = boxes[i, 0] - prev_box[2]
                 # If distance between boxes is lower than paragraph break, same sub-line
-                if (dist) < self.paragraph_break:
+                if dist < self.paragraph_break:
                     horiz_break = False
 
                 if horiz_break:
@@ -150,16 +147,10 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Compute median for boxes heights
-        if self.rotated_bbox:
-            y_med = np.median(boxes[:, 3])
-        else:
-            y_med = np.median(boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 3] if self.rotated_bbox else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
-        if self.rotated_bbox:
-            idxs = (boxes[:, 0] + 2 * boxes[:, 1] / y_med).argsort()
-        else:
-            idxs = (boxes[:, 0] + 2 * boxes[:, 3] / y_med).argsort()
+        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if self.rotated_bbox else 3] / y_med).argsort()
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
@@ -188,10 +179,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            if self.rotated_bbox:
-                y_center_sum += boxes[idx][1]
-            else:
-                y_center_sum += boxes[idx][[1, 3]].mean()
+            y_center_sum = boxes[idxs[0]][1 if self.rotated_bbox else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -259,7 +247,7 @@ class DocumentBuilder(NestedObject):
 
         Args:
             boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 6)
-            char_sequences: list of all detected words of the page, of shape N
+            word_preds: list of all detected words of the page, of shape N
 
         Returns:
             list of block elements

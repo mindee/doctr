@@ -111,11 +111,9 @@ class Line(Element):
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
-            if len(words[0].geometry) < 5:
-                # Straight Bbox
-                geometry = resolve_enclosing_bbox([w.geometry for w in words])
-            else:  # Rotated Bbox
-                geometry = resolve_enclosing_rbbox([w.geometry for w in words])
+            # Check whether this is a rotated or straight box
+            box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 5 else resolve_enclosing_bbox
+            geometry = box_resolution_fn([w.geometry for w in words])
 
         super().__init__(words=words)
         self.geometry = geometry
@@ -150,11 +148,8 @@ class Block(Element):
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
-            if len(lines[0].geometry) < 5:
-                # Straight Bbox
-                geometry = resolve_enclosing_bbox(line_boxes + artefact_boxes)
-            else:  # Rotated Bbox
-                geometry = resolve_enclosing_rbbox(line_boxes + artefact_boxes)
+            box_resolution_fn = resolve_enclosing_rbbox if len(lines[0].geometry) == 5 else resolve_enclosing_bbox
+            geometry = box_resolution_fn(line_boxes + artefact_boxes)
 
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry

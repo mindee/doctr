@@ -38,7 +38,7 @@ def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[
     return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
-def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[Union[np.ndarray, tf.Tensor]]:
+def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:
@@ -49,20 +49,19 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
     Returns:
         list of cropped images
     """
-    if isinstance(img, tf.Tensor):
-        img = img.numpy().astype(np.uint8)
-
     if boxes.shape[0] == 0:
         return []
     if boxes.shape[1] != 5:
         raise AssertionError("boxes are expected to be relative and in order (x, y, w, h, alpha)")
+   
+    if isinstance(img, tf.Tensor):
+        img = img.numpy().astype(np.uint8)
 
     # Project relative coordinates
     _boxes = boxes.copy()
     if _boxes.dtype != np.int:
         _boxes[:, [0, 2]] *= img.shape[1]
         _boxes[:, [1, 3]] *= img.shape[0]
-        _boxes = _boxes.round().astype(int)
 
     crops = []
     # Determine rotation direction (clockwise/counterclockwise)

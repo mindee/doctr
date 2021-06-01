@@ -48,13 +48,11 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         bin_thresh: float = 0.15,
         box_thresh: float = 0.1,
-        max_candidates: int = 1000,
         rotated_bbox: bool = False,
     ) -> None:
         super().__init__(
             box_thresh,
             bin_thresh,
-            max_candidates,
             rotated_bbox
         )
 
@@ -83,34 +81,34 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
-            if self.rotated_bbox is False:
+            if self.rotated_bbox:
+                score = self.box_score(pred, contour, rotated_bbox=True)
+            else:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
-                score = self.box_score(pred, points)
-            else:
-                score = self.box_score(pred, contour)
+                score = self.box_score(pred, points, rotated_bbox=False)                
 
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
 
-            if self.rotated_bbox is False:
-                # compute relative polygon to get rid of img shape
-                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-                boxes.append([xmin, ymin, xmax, ymax, score])
-            else:
+            if self.rotated_bbox:
                 x, y, w, h, alpha = fit_rbbox(contour)
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
+            else:
+                # compute relative polygon to get rid of img shape
+                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+                boxes.append([xmin, ymin, xmax, ymax, score])
 
-        if self.rotated_bbox is False:
-            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
-        else:
+        if self.rotated_bbox:
             if len(boxes) == 0:
                 return np.zeros((0, 6), dtype=np.float32)
             coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
             boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
             return boxes
+        else:
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
 def decoder_block(in_chan: int, out_chan: int) -> Sequential:

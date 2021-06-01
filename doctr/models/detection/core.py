@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from numpy.core.defchararray import startswith
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
@@ -46,22 +47,21 @@ class DetectionPostProcessor(NestedObject):
         self,
         box_thresh: float = 0.5,
         bin_thresh: float = 0.5,
-        max_candidates: int = 1000,
         rotated_bbox: bool = False
     ) -> None:
 
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
-        self.max_candidates = max_candidates
         self.rotated_bbox = rotated_bbox
 
     def extra_repr(self) -> str:
         return f"box_thresh={self.box_thresh}, max_candidates={self.max_candidates}"
 
+    @staticmethod
     def box_score(
-        self,
         pred: np.ndarray,
-        points: np.ndarray
+        points: np.ndarray,
+        rotated_bbox: bool = False
     ) -> float:
         """Compute the confidence score for a polygon : mean of the p values on the polygon
 
@@ -73,7 +73,7 @@ class DetectionPostProcessor(NestedObject):
         """
         h, w = pred.shape[:2]
 
-        if self.rotated_bbox is False:
+        if not rotated_bbox:
             xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
             xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
             ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)

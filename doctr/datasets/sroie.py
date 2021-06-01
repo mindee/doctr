@@ -48,7 +48,7 @@ class SROIE(VisionDataset):
         self.sample_transforms = sample_transforms
         self.train = train
 
-        if rotated_bbox is True:
+        if rotated_bbox:
             raise NotImplementedError
 
         # # List images

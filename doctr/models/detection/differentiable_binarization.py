@@ -52,8 +52,6 @@ class DBPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        unclip_ratio: Union[float, int] = 1.5,
-        max_candidates: int = 1000,
         box_thresh: float = 0.1,
         bin_thresh: float = 0.3,
         rotated_bbox: bool = False,
@@ -62,7 +60,6 @@ class DBPostProcessor(DetectionPostProcessor):
         super().__init__(
             box_thresh,
             bin_thresh,
-            max_candidates,
             rotated_bbox
         )
         if rotated_bbox is False:
@@ -100,9 +97,7 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        if self.rotated_bbox is False:
-            return cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
-        return fit_rbbox(expanded_points)
+        return fit_rbbox(expanded_points) if self.rotated_bbox else cv2.boundingRect(expanded_points)
 
     def bitmap_to_boxes(
         self,
@@ -124,46 +119,48 @@ class DBPostProcessor(DetectionPostProcessor):
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        for contour in contours[:self.max_candidates]:
+        for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
-            if self.rotated_bbox is False:
+            if self.rotated_bbox:
+                score = self.box_score(pred, contour, rotated_bbox=True)
+            else:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
-                score = self.box_score(pred, points)
-            else:
-                score = self.box_score(pred, contour)
+                score = self.box_score(pred, points, rotated_bbox=False)
+
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            if self.rotated_bbox is False:
-                _box = self.polygon_to_box(points)
-            else:
+
+            if self.rotated_bbox:
                 _box = self.polygon_to_box(np.squeeze(contour))
+            else:
+                _box = self.polygon_to_box(points)
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
 
-            if self.rotated_bbox is False:
-                x, y, w, h = _box
-                # compute relative polygon to get rid of img shape
-                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-                boxes.append([xmin, ymin, xmax, ymax, score])
-            else:
+            if self.rotated_bbox:
                 x, y, w, h, alpha = _box
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
+            else:
+                x, y, w, h = _box
+                # compute relative polygon to get rid of img shape
+                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+                boxes.append([xmin, ymin, xmax, ymax, score])
 
-        if self.rotated_bbox is False:
-            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
-        else:
+        if self.rotated_bbox:
             if len(boxes) == 0:
                 return np.zeros((0, 6), dtype=np.float32)
             coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
             boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
             return boxes
+        else:
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
 class FeaturePyramidNetwork(layers.Layer, NestedObject):
