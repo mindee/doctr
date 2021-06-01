@@ -8,7 +8,7 @@ from typing import List, Tuple, Dict
 from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
 
-__all__ = ['TextMatch', 'box_iou', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'mask_iou', 'box_to_mask', 'LocalizationConfusion', 'OCRMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
@@ -140,6 +140,62 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         iou_mat = intersection / union
 
     return iou_mat
+
+
+def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
+    """Compute the IoU between two sets of boolean masks
+
+    Args:
+        masks_1: boolean masks of shape (N, H, W)
+        masks_2: boolean masks of shape (M, H, W)
+
+    Returns:
+        the IoU matrix of shape (N, M)
+    """
+
+    if masks_1.shape[1:] != masks_2.shape[1:]:
+        raise AssertionError("both boolean masks should have the same spatial shape")
+
+    iou_mat = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
+
+    if masks_1.shape[0] > 0 and masks_2.shape[0] > 0:
+        intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...])
+        union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...])
+        axes = tuple(range(2, masks_1.ndim + 1))
+        iou_mat = intersection.sum(axis=axes) / union.sum(axis=axes)
+
+    return iou_mat
+
+
+def box_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
+    """Convert boxes to masks
+
+    Args:
+        boxes: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        shape: spatial shapes of the output masks
+
+    Returns:
+        the boolean masks of shape (N, H, W)
+    """
+
+    masks = np.zeros((boxes.shape[0], *shape), dtype=np.bool)
+
+    if boxes.shape[0] > 0:
+        # Get absolute coordinates
+        if boxes.dtype != np.int:
+            abs_boxes = boxes.copy()
+            abs_boxes[:, [0, 2]] = abs_boxes[:, [0, 2]] * shape[1]
+            abs_boxes[:, [1, 3]] = abs_boxes[:, [1, 3]] * shape[0]
+            abs_boxes = abs_boxes.round().astype(np.int)
+        else:
+            abs_boxes = boxes
+            abs_boxes[:, 2:] = abs_boxes[:, 2:] + 1
+
+        # TODO: optimize slicing to improve vectorization
+        for idx, box in enumerate(abs_boxes):
+            masks[idx, box[1]: box[3], box[0]: box[2]] = True
+
+    return masks
 
 
 class LocalizationConfusion:
