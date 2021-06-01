@@ -58,11 +58,9 @@ class OCRDataset(AbstractDataset):
             for box in file_dic["coordinates"]:
                 xs, ys = zip(*box)
                 box = [min(xs), min(ys), max(xs), max(ys)]
-                if box[0] < box[2] and box[1] < box[3]:
+                is_valid.append(box[0] < box[2] and box[1] < box[3])
+                if is_valid[-1]:
                     box_targets.append(box)
-                    is_valid.append(True)
-                else:
-                    is_valid.append(False)
 
             text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
             self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
