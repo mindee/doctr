@@ -65,15 +65,27 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
         _boxes = _boxes.round().astype(int)
 
     crops = []
+    # Determine rotation direction (clockwise/counterclockwise)
+    # Angle coverage: [-90°, +90°], half of the quadrant
+    clockwise = False
+    if np.sum(boxes[:, 2]) > np.sum(boxes[:, 3]):
+        clockwise = True
+
     for box in _boxes:
         x, y, w, h, alpha = box.astype(np.float32)
-        src_pts = cv2.boxPoints(((x, y), (w, h), alpha))
+        src_pts = cv2.boxPoints(((x, y), (w, h), alpha))[1:, :]
         # Preserve size
-        dst_pts = np.array([[0, h - 1], [0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=np.float32)
+        if clockwise:
+            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=np.float32)
+        else:
+            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=np.float32)
         # The transformation matrix
-        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
-        crop = cv2.warpPerspective(img, M, (int(w), int(h)))
+        if clockwise:
+            crop = cv2.warpAffine(img, M, (int(w), int(h)))
+        else:
+            crop = cv2.warpAffine(img, M, (int(h), int(w)))
         crops.append(crop)
 
     return crops
