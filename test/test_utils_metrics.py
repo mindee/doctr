@@ -45,6 +45,48 @@ def test_box_iou(box1, box2, iou, abs_tol):
 
 
 @pytest.mark.parametrize(
+    "mask1, mask2, iou, abs_tol",
+    [
+        [
+            [[[True, True, False], [True, True, False]]],
+            [[[True, True, False], [True, True, False]]],
+            1,
+            0
+        ],  # Perfect match
+        [
+            [[[True, False, False], [False, False, False]]],
+            [[[True, True, False], [True, True, False]]],
+            0.25,
+            0
+        ],  # Partial match
+    ],
+)
+def test_mask_iou(mask1, mask2, iou, abs_tol):
+    iou_mat = metrics.mask_iou(np.asarray(mask1), np.asarray(mask2))
+    assert iou_mat.shape == (len(mask1), len(mask2))
+    if iou_mat.size > 0:
+        assert abs(iou_mat - iou) <= abs_tol
+
+    with pytest.raises(AssertionError):
+        metrics.mask_iou(np.zeros((2, 3, 5), dtype=bool), np.ones((3, 2, 5), dtype=bool))
+
+
+@pytest.mark.parametrize(
+    "box, shape, mask",
+    [
+        [
+            [0, 0, .5, .5], (2, 2),
+            [[True, False], [False, False]],
+        ],
+    ],
+)
+def test_box_to_mask(box, shape, mask):
+    masks = metrics.box_to_mask(np.asarray(box)[None, ...], shape)
+    assert masks.shape == (1, *shape)
+    assert np.all(masks[0] == np.asarray(mask, dtype=bool))
+
+
+@pytest.mark.parametrize(
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
         [[[[0, 0, .5, .5]]], [[[0, 0, .5, .5]]], 0.5, 1, 1, 1],  # Perfect match
