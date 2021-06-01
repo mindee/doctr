@@ -75,13 +75,13 @@ def test_mask_iou(mask1, mask2, iou, abs_tol):
     "box, shape, mask",
     [
         [
-            [0, 0, .5, .5], (2, 2),
+            [0, 0, .5, .5, 0], (2, 2),
             [[True, False], [False, False]],
         ],
     ],
 )
-def test_box_to_mask(box, shape, mask):
-    masks = metrics.box_to_mask(np.asarray(box)[None, ...], shape)
+def test_rbox_to_mask(box, shape, mask):
+    masks = metrics.rbox_to_mask(np.asarray(box)[None, ...], shape)
     assert masks.shape == (1, *shape)
     assert np.all(masks[0] == np.asarray(mask, dtype=bool))
 
@@ -106,38 +106,20 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
 
 
 @pytest.mark.parametrize(
-    "box1, box2, iou, abs_tol",
-    [
-        [[[.1, .1, .1, .1, 0]], [[.1, .1, .1, .1, 0]], 1, 0],  # Perfect match
-        [[[.1, .1, .1, .1, 0]], [[.5, .5, .2, .2, 0]], 0, 0],  # No match
-        [[[.5, .5, .2, .2, 0]], [[.4, .4, .2, .2, 0]], 1 / 7, 1e-7],  # Partial match
-        [[[.1, .1, .1, .1, 0]], [[.9, .9, .1, .1, 0]], 0, 0],  # Boxes far from each other
-        [np.zeros((0, 5)), [[0, 0, .5, .5, 0]], 0, 0],  # Zero-sized inputs
-        [[[0, 0, .5, .5, 0]], np.zeros((0, 5)), 0, 0],  # Zero-sized inputs
-    ],
-)
-def test_rbox_iou(box1, box2, iou, abs_tol):
-    iou_mat = metrics.rbox_iou(np.asarray(box1), np.asarray(box2))
-    assert iou_mat.shape == (len(box1), len(box2))
-    if iou_mat.size > 0:
-        assert abs(iou_mat - iou) <= abs_tol
-
-
-@pytest.mark.parametrize(
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
         [[[[.1, .1, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]]], 0.5, 1, 1, 1],  # Perfect match
-        [[[[.1, .1, .1, .1, 0]]], [[[.1, .1, .05, .05, 0], [.6, .6, .2, .2, 0]]], 0.2, 1, 0.5, 0.125],  # Bad match
+        [[[[.15, .1, .1, .1, 0]]], [[[.2, .1, .2, .1, 0], [.7, .7, .2, .2, 0]]], 0.2, 1, 0.5, 0.25],  # Bad match
         [[[[.1, .1, .1, .1, 0]], [[.3, .3, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]], None], 0.5, 0.5, 1, 1],  # Empty
     ],
 )
 def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):
 
-    metric = metrics.LocalizationConfusion(iou_thresh, rotated_bbox=True)
+    metric = metrics.LocalizationConfusion(iou_thresh, rotated_bbox=True, mask_shape=(1000, 1000))
     for _gts, _preds in zip(gts, preds):
         metric.update(np.asarray(_gts), np.zeros((0, 5)) if _preds is None else np.asarray(_preds))
     assert metric.summary()[:2] == (recall, precision)
-    assert abs(metric.summary()[2] - mean_iou) <= 1e-7
+    assert abs(metric.summary()[2] - mean_iou) <= 5e-3
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.matches == metric.tot_iou == 0
 
