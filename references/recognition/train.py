@@ -85,7 +85,10 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         images = batch_transforms(images)
         out = model(images, targets, return_preds=True, training=False)
         # Compute metric
-        words, _ = zip(*out['preds'])
+        if len(out['preds']):
+            words, _ = zip(*out['preds'])
+        else:
+            words = []
         val_metric.update(targets, words)
 
         val_loss += out['loss'].numpy().mean()
