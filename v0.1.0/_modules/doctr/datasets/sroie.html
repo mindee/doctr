@@ -225,6 +225,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
@@ -232,6 +233,9 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sha256</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sample_transforms</span> <span class="o">=</span> <span class="n">sample_transforms</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
+
+        <span class="k">if</span> <span class="n">rotated_bbox</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
         <span class="c1"># # List images</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s1">&#39;images&#39;</span><span class="p">)</span>

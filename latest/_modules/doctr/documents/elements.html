@@ -227,7 +227,7 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">resolve_enclosing_bbox</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">resolve_enclosing_bbox</span><span class="p">,</span> <span class="n">resolve_enclosing_rbbox</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">visualize_page</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
@@ -331,7 +331,9 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Resolve the geometry using the smallest enclosing bounding box</span>
         <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">geometry</span> <span class="o">=</span> <span class="n">resolve_enclosing_bbox</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">geometry</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">])</span>
+            <span class="c1"># Check whether this is a rotated or straight box</span>
+            <span class="n">box_resolution_fn</span> <span class="o">=</span> <span class="n">resolve_enclosing_rbbox</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="n">resolve_enclosing_bbox</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="n">box_resolution_fn</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">geometry</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">])</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">words</span><span class="o">=</span><span class="n">words</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
@@ -366,7 +368,9 @@
         <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">line_boxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">geometry</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">words</span><span class="p">]</span>
             <span class="n">artefact_boxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">artefact</span><span class="o">.</span><span class="n">geometry</span> <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="n">artefacts</span><span class="p">]</span>
-            <span class="n">geometry</span> <span class="o">=</span> <span class="n">resolve_enclosing_bbox</span><span class="p">(</span><span class="n">line_boxes</span> <span class="o">+</span> <span class="n">artefact_boxes</span><span class="p">)</span>
+            <span class="n">box_resolution_fn</span> <span class="o">=</span> <span class="n">resolve_enclosing_rbbox</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span> <span class="k">else</span> <span class="n">resolve_enclosing_bbox</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="n">box_resolution_fn</span><span class="p">(</span><span class="n">line_boxes</span> <span class="o">+</span> <span class="n">artefact_boxes</span><span class="p">)</span>
+
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">lines</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span> <span class="n">artefacts</span><span class="o">=</span><span class="n">artefacts</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
 
@@ -410,7 +414,9 @@
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;dimensions=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="si">}</span><span class="s2">&quot;</span>
 
-<div class="viewcode-block" id="Page.show"><a class="viewcode-back" href="../../../documents.html#doctr.documents.Page.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Page.show"><a class="viewcode-back" href="../../../documents.html#doctr.documents.Page.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Overlay the result on a given image</span>
 
 <span class="sd">        Args:</span>
