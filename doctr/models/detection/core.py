@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from numpy.core.defchararray import startswith
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
@@ -45,19 +46,22 @@ class DetectionPostProcessor(NestedObject):
     def __init__(
         self,
         box_thresh: float = 0.5,
-        bin_thresh: float = 0.5
+        bin_thresh: float = 0.5,
+        rotated_bbox: bool = False
     ) -> None:
 
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
+        self.rotated_bbox = rotated_bbox
 
     def extra_repr(self) -> str:
-        return f"box_thresh={self.box_thresh}, max_candidates={self.max_candidates}"
+        return f"box_thresh={self.box_thresh}"
 
     @staticmethod
     def box_score(
         pred: np.ndarray,
-        points: np.ndarray
+        points: np.ndarray,
+        rotated_bbox: bool = False
     ) -> float:
         """Compute the confidence score for a polygon : mean of the p values on the polygon
 
@@ -68,12 +72,19 @@ class DetectionPostProcessor(NestedObject):
             polygon objectness
         """
         h, w = pred.shape[:2]
-        xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
-        xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
-        ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
-        ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
 
-        return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+        if not rotated_bbox:
+            xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
+            xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
+            ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
+            ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
+            return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+
+        else:
+            mask = np.zeros((h, w), np.int32)
+            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
+            product = pred * mask
+            return np.sum(product) / np.count_nonzero(product)
 
     def bitmap_to_boxes(
         self,
@@ -92,7 +103,7 @@ class DetectionPostProcessor(NestedObject):
             x: dictionary of the model output
 
         returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5).
+            list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6).
         """
 
         proba_map = tf.squeeze(proba_map, axis=-1)  # remove last dim

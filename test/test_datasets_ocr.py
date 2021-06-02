@@ -61,14 +61,21 @@ def test_ocrdataset(mock_ocrdataset):
         *mock_ocrdataset,
         sample_transforms=Resize(input_size),
     )
+    rotated_ds = datasets.OCRDataset(
+        *mock_ocrdataset,
+        sample_transforms=Resize(input_size),
+        rotated_bbox=True
+    )
     assert len(ds) == 5
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape[:2] == input_size
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
-    assert np.all(np.logical_and(target['boxes'] >= 0, target['boxes'] <= 1))
+    assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
     assert target['boxes'].shape[1] == 4
+    _, r_target = rotated_ds[0]
+    assert r_target['boxes'].shape[1] == 5
     # Flags
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     # Cardinality consistency

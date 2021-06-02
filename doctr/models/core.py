@@ -9,10 +9,10 @@ from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
-from ._utils import extract_crops
+from ._utils import extract_crops, extract_rcrops
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import resolve_enclosing_bbox
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 
 __all__ = ['OCRPredictor', 'DocumentBuilder']
 
@@ -31,11 +31,13 @@ class OCRPredictor(NestedObject):
         self,
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
+        rotated_bbox: bool = False
     ) -> None:
 
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
-        self.doc_builder = DocumentBuilder()
+        self.doc_builder = DocumentBuilder(rotated_bbox=rotated_bbox)
+        self.extract_crops_fn = extract_rcrops if rotated_bbox else extract_crops
 
     def __call__(
         self,
@@ -50,7 +52,7 @@ class OCRPredictor(NestedObject):
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images
-        crops = [crop for page, _boxes in zip(pages, boxes) for crop in extract_crops(page, _boxes[:, :4])]
+        crops = [crop for page, _boxes in zip(pages, boxes) for crop in self.extract_crops_fn(page, _boxes[:, :-1])]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 
@@ -73,32 +75,33 @@ class DocumentBuilder(NestedObject):
         self,
         resolve_lines: bool = False,
         resolve_blocks: bool = False,
-        paragraph_break: float = 0.035
+        paragraph_break: float = 0.035,
+        rotated_bbox: bool = False
     ) -> None:
 
         self.resolve_lines = resolve_lines
-
         self.resolve_blocks = resolve_blocks
-
         self.paragraph_break = paragraph_break
+        self.rotated_bbox = rotated_bbox
 
-    @staticmethod
-    def _sort_boxes(boxes: np.ndarray) -> np.ndarray:
+    def _sort_boxes(self, boxes: np.ndarray) -> np.ndarray:
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 4) or (N, 5) (in case of rotated bbox)
 
         Returns:
             indices of ordered boxes of shape (N,)
         """
+        if self.rotated_bbox:
+            return (boxes[:, 0] + 2 * boxes[:, 1] / np.median(boxes[:, 3])).argsort()
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
         """Split a line in sub_lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 4) or (N, 5) in case of rotated bbox
             words: list of indexes for the words of the line
 
         Returns:
@@ -116,8 +119,13 @@ class DocumentBuilder(NestedObject):
                 horiz_break = True
 
                 prev_box = boxes[sub_line[-1]]
+                # Compute distance between boxes
+                if self.rotated_bbox:
+                    dist = boxes[i, 0] - prev_box[2] / 2 - (prev_box[0] + prev_box[2] / 2)
+                else:
+                    dist = boxes[i, 0] - prev_box[2]
                 # If distance between boxes is lower than paragraph break, same sub-line
-                if (boxes[i, 0] - prev_box[2]) < self.paragraph_break:
+                if dist < self.paragraph_break:
                     horiz_break = False
 
                 if horiz_break:
@@ -133,26 +141,35 @@ class DocumentBuilder(NestedObject):
         """Order boxes to group them in lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 4) or (N, 5) in case of rotated bbox
 
         Returns:
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 3] if self.rotated_bbox else boxes[:, 3] - boxes[:, 1])
+
         # Sort boxes
-        idxs = (boxes[:, 0] + 2 * boxes[:, 3] / y_med).argsort()
+        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if self.rotated_bbox else 3] / y_med).argsort()
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
-        y_center_sum = boxes[idxs[0]][[1, 3]].mean()
+        if self.rotated_bbox:
+            y_center_sum = boxes[idxs[0]][1]
+        else:
+            y_center_sum = boxes[idxs[0]][[1, 3]].mean()
 
         for idx in idxs[1:]:
             vert_break = True
 
+            # Compute y_dist
+            if self.rotated_bbox:
+                y_dist = abs(boxes[idx][1] - y_center_sum / len(words))
+            else:
+                y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
             # If y-center of the box is close enough to mean y-center of the line, same line
-            if abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words)) < y_med / 2:
+            if y_dist < y_med / 2:
                 vert_break = False
 
             if vert_break:
@@ -162,7 +179,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][[1, 3]].mean()
+            y_center_sum = boxes[idxs[0]][1 if self.rotated_bbox else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -175,7 +192,7 @@ class DocumentBuilder(NestedObject):
         """Order lines to group them in blocks
 
         Args:
-            boxes: bounding boxes of shape (N, 4)
+            boxes: bounding boxes of shape (N, 4) or (N, 5)
             lines: list of lines, each line is a list of idx
 
         Returns:
@@ -184,11 +201,18 @@ class DocumentBuilder(NestedObject):
         # Resolve enclosing boxes of lines
         _lines = [
             [
+                ((boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
+            ] if self.rotated_bbox else
+            [
                 ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
             ] for line in lines
         ]
-        _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
-        box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
+
+        if self.rotated_bbox:
+            box_lines = np.asarray([resolve_enclosing_rbbox(line) for line in _lines])
+        else:
+            _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
+            box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
@@ -198,12 +222,8 @@ class DocumentBuilder(NestedObject):
                 (box_lines[:, 1] + box_lines[:, 2]) / 2,
                 (box_lines[:, 0] + box_lines[:, 2]) / 2,
                 (box_lines[:, 1] + box_lines[:, 3]) / 2,
-                (box_lines[:, 0] + box_lines[:, 1]) / 2,
-                (box_lines[:, 2] + box_lines[:, 3]) / 2,
                 box_lines[:, 0],
                 box_lines[:, 1],
-                box_lines[:, 2],
-                box_lines[:, 3],
             ), axis=-1
         )
         # Compute clusters
@@ -226,7 +246,7 @@ class DocumentBuilder(NestedObject):
         """Gather independent words in structured blocks
 
         Args:
-            boxes: bounding boxes of all detected words of the page, of shape (N, 4)
+            boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 6)
             word_preds: list of all detected words of the page, of shape N
 
         Returns:
@@ -241,24 +261,30 @@ class DocumentBuilder(NestedObject):
 
         # Decide whether we try to form lines
         if self.resolve_lines:
-            lines = self._resolve_lines(boxes[:, :4])
+            lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
             if self.resolve_blocks:
-                blocks = self._resolve_blocks(boxes[:, :4], lines)
+                blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
                 blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(boxes[:, :4])]
+            lines = [self._sort_boxes(boxes[:, :-1])]
             blocks = [lines]
 
         blocks = [
             Block(
                 [Line(
-                    [Word(
-                        *word_preds[idx],
-                        ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
-                    ) for idx in line]
+                    [
+                        Word(
+                            *word_preds[idx],
+                            (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
+                        ) if self.rotated_bbox else
+                        Word(
+                            *word_preds[idx],
+                            ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
+                        ) for idx in line
+                    ]
                 ) for line in lines]
             ) for lines in blocks
         ]
@@ -278,7 +304,7 @@ class DocumentBuilder(NestedObject):
         """Re-arrange detected words into structured blocks
 
         Args:
-            boxes: list of localization predictions for all words, of shape (N, 5)
+            boxes: list of localization predictions for all words, of shape (N, 5) or (N, 6)
             word_preds: list of all word values, of size N
             page_shape: shape of each page
 

@@ -6,6 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+from doctr.utils.common_types import RotatedBbox
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -16,6 +17,7 @@ from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from ...utils.repr import NestedObject
+from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 __all__ = ['LinkNet', 'linknet', 'LinkNetPostProcessor']
 
@@ -26,6 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.264, 0.2749, 0.287),
         'out_chan': 1,
         'input_shape': (1024, 1024, 3),
+        'rotated_bbox': False,
         'post_processor': 'LinkNetPostProcessor',
         'url': None,
     },
@@ -43,13 +46,14 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        min_size_box: int = 3,
         bin_thresh: float = 0.15,
         box_thresh: float = 0.1,
+        rotated_bbox: bool = False,
     ) -> None:
         super().__init__(
             box_thresh,
-            bin_thresh
+            bin_thresh,
+            rotated_bbox
         )
 
     def bitmap_to_boxes(
@@ -64,27 +68,47 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             bitmap: Bitmap map computed from pred (binarized)
 
         Returns:
-            np tensor boxes for the bitmap, each box is a 5-element list
-                containing x, y, w, h, score for the box
+            np tensor boxes for the bitmap, each box is a 6-element list
+                containing x, y, w, h, alpha, score for the box
         """
-        label_num, labelimage = cv2.connectedComponents(bitmap.astype(np.uint8), connectivity=4)
         height, width = bitmap.shape[:2]
         min_size_box = 1 + int(height / 512)
         boxes = []
-        for label in range(1, label_num + 1):
-            points = np.array(np.where(labelimage == label)[::-1]).T
-            if points.shape[0] < 4:  # remove polygons with 3 points or less
+        # get contours from connected components on the bitmap
+        contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for contour in contours:
+            # Check whether smallest enclosing bounding box is not too small
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            score = self.box_score(pred, points.reshape(-1, 2))
+            # Compute objectness
+            if self.rotated_bbox:
+                score = self.box_score(pred, contour, rotated_bbox=True)
+            else:
+                x, y, w, h = cv2.boundingRect(contour)
+                points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+                score = self.box_score(pred, points, rotated_bbox=False)
+
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            x, y, w, h = cv2.boundingRect(points)
-            if min(w, h) < min_size_box:  # filter too small boxes
-                continue
-            # compute relative polygon to get rid of img shape
-            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-            boxes.append([xmin, ymin, xmax, ymax, score])
-        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+
+            if self.rotated_bbox:
+                x, y, w, h, alpha = fit_rbbox(contour)
+                # compute relative box to get rid of img shape
+                x, y, w, h = x / width, y / height, w / width, h / height
+                boxes.append([x, y, w, h, alpha, score])
+            else:
+                # compute relative polygon to get rid of img shape
+                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+                boxes.append([xmin, ymin, xmax, ymax, score])
+
+        if self.rotated_bbox:
+            if len(boxes) == 0:
+                return np.zeros((0, 6), dtype=np.float32)
+            coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
+            boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
+            return boxes
+        else:
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
 def decoder_block(in_chan: int, out_chan: int) -> Sequential:
@@ -154,9 +178,12 @@ class LinkNet(DetectionModel, NestedObject):
         self,
         out_chan: int = 1,
         input_shape: Tuple[int, int, int] = (512, 512, 3),
+        rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
+
+        self.rotated_bbox = rotated_bbox
 
         self.stem = Sequential([
             *conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape),
@@ -189,7 +216,7 @@ class LinkNet(DetectionModel, NestedObject):
 
         self.min_size_box = 3
 
-        self.postprocessor = LinkNetPostProcessor()
+        self.postprocessor = LinkNetPostProcessor(rotated_bbox=rotated_bbox)
 
     def compute_target(
         self,
@@ -197,7 +224,10 @@ class LinkNet(DetectionModel, NestedObject):
         output_shape: Tuple[int, int, int],
     ) -> Tuple[tf.Tensor, tf.Tensor]:
 
-        seg_target = np.zeros(output_shape, dtype=np.bool)
+        if self.rotated_bbox:
+            seg_target = np.zeros(output_shape, dtype=np.uint8)
+        else:
+            seg_target = np.zeros(output_shape, dtype=bool)
         seg_mask = np.ones(output_shape, dtype=np.bool)
 
         for idx, _target in enumerate(target):
@@ -212,9 +242,14 @@ class LinkNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+            if self.rotated_bbox:
+                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
+                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+            else:
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                polys = [None] * abs_boxes.shape[0]  # Unused
 
-            for box, box_size, is_ambiguous in zip(abs_boxes, boxes_size, _target['flags']):
+            for poly, box, box_size, is_ambiguous in zip(polys, abs_boxes, boxes_size, _target['flags']):
                 # Mask ambiguous boxes
                 if is_ambiguous:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
@@ -224,7 +259,10 @@ class LinkNet(DetectionModel, NestedObject):
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 # Fill polygon with 1
-                seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+                if self.rotated_bbox:
+                    cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
+                else:
+                    seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
@@ -291,9 +329,11 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['out_chan'] = kwargs.get('out_chan', _cfg['out_chan'])
+    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
     kwargs['out_chan'] = _cfg['out_chan']
     kwargs['input_shape'] = _cfg['input_shape']
+    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
     # Build the model
     model = LinkNet(cfg=_cfg, **kwargs)
     # Load pretrained parameters

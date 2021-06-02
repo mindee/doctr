@@ -75,13 +75,13 @@ def test_mask_iou(mask1, mask2, iou, abs_tol):
     "box, shape, mask",
     [
         [
-            [0, 0, .5, .5], (2, 2),
+            [0, 0, .5, .5, 0], (2, 2),
             [[True, False], [False, False]],
         ],
     ],
 )
-def test_box_to_mask(box, shape, mask):
-    masks = metrics.box_to_mask(np.asarray(box)[None, ...], shape)
+def test_rbox_to_mask(box, shape, mask):
+    masks = metrics.rbox_to_mask(np.asarray(box)[None, ...], shape)
     assert masks.shape == (1, *shape)
     assert np.all(masks[0] == np.asarray(mask, dtype=bool))
 
@@ -101,6 +101,25 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
     for _gts, _preds in zip(gts, preds):
         metric.update(np.asarray(_gts), np.zeros((0, 4)) if _preds is None else np.asarray(_preds))
     assert metric.summary() == (recall, precision, mean_iou)
+    metric.reset()
+    assert metric.num_gts == metric.num_preds == metric.matches == metric.tot_iou == 0
+
+
+@pytest.mark.parametrize(
+    "gts, preds, iou_thresh, recall, precision, mean_iou",
+    [
+        [[[[.1, .1, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]]], 0.5, 1, 1, 1],  # Perfect match
+        [[[[.15, .1, .1, .1, 0]]], [[[.2, .1, .2, .1, 0], [.7, .7, .2, .2, 0]]], 0.2, 1, 0.5, 0.25],  # Bad match
+        [[[[.1, .1, .1, .1, 0]], [[.3, .3, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]], None], 0.5, 0.5, 1, 1],  # Empty
+    ],
+)
+def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):
+
+    metric = metrics.LocalizationConfusion(iou_thresh, rotated_bbox=True, mask_shape=(1000, 1000))
+    for _gts, _preds in zip(gts, preds):
+        metric.update(np.asarray(_gts), np.zeros((0, 5)) if _preds is None else np.asarray(_preds))
+    assert metric.summary()[:2] == (recall, precision)
+    assert abs(metric.summary()[2] - mean_iou) <= 5e-3
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.matches == metric.tot_iou == 0
 

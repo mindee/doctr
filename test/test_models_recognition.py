@@ -62,7 +62,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     # Create bounding boxes
-    boxes = np.array([[0, 0, 0.25, 0.25], [0.5, 0.5, 1., 1.]], dtype=np.float32)
+    boxes = np.array([[.5, .5, 0.75, 0.75], [0.5, 0.5, 1., 1.]], dtype=np.float32)
     crops = extract_crops(pages[0], boxes)
 
     out = predictor(crops)

@@ -8,6 +8,7 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
+import cv2
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
 
-def plot_samples(images, targets):
+def plot_samples(images, targets, rotation):
     # Unnormalize image
     nb_samples = 4
     _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
@@ -36,16 +37,21 @@ def plot_samples(images, targets):
         img *= 255
         img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
 
-        target = np.zeros(img.shape[:2], dtype=bool)
+        target = np.zeros(img.shape[:2], np.uint8)
         boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
         boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
         boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
         for box in boxes.round().astype(int):
-            target[box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+            if rotation:
+                target[box[1]: box[3] + 1, box[0]: box[2] + 1] = 1
+            else:
+                box = cv2.boxPoints(((box[0], box[2]), (box[1], box[3]), box[4]))
+                box = np.int0(box)
+                cv2.fillPoly(target, [box], 1)
 
         axes[0][idx].imshow(img)
         axes[0][idx].axis('off')
-        axes[1][idx].imshow(target)
+        axes[1][idx].imshow(target.astype(bool))
         axes[1][idx].axis('off')
     plt.show()
 
@@ -118,6 +124,7 @@ def main(args):
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
         ]),
+        rotated_bbox=args.rotation
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -125,7 +132,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        plot_samples(x, target, rotation=args.rotation)
         return
 
     st = time.time()
@@ -135,7 +142,8 @@ def main(args):
         sample_transforms=T.Compose([
             T.LambdaTransformation(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
-        ])
+        ]),
+        rotated_bbox=args.rotation
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -162,7 +170,7 @@ def main(args):
     step = tf.Variable(0, dtype="int64")
 
     # Metrics
-    val_metric = LocalizationConfusion()
+    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
 
     if args.test_only:
         print("Running evaluation")
@@ -266,6 +274,8 @@ def parse_args():
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--rotation', dest='rotation', action='store_true',
+                        help='train with rotated bbox')
     args = parser.parse_args()
 
     return args

@@ -4,11 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
+import cv2
 from typing import List, Tuple, Dict
 from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
+from doctr.utils.geometry import rbbox_to_polygon
 
-__all__ = ['TextMatch', 'box_iou', 'mask_iou', 'box_to_mask', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'mask_iou', 'rbox_to_mask', 'LocalizationConfusion', 'OCRMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
@@ -119,7 +121,6 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
         boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
-
     Returns:
         the IoU matrix of shape (N, M)
     """
@@ -167,18 +168,18 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
-def box_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
+def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     """Convert boxes to masks
 
     Args:
-        boxes: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
         shape: spatial shapes of the output masks
 
     Returns:
         the boolean masks of shape (N, H, W)
     """
 
-    masks = np.zeros((boxes.shape[0], *shape), dtype=np.bool)
+    masks = np.zeros((boxes.shape[0], *shape), dtype=np.uint8)
 
     if boxes.shape[0] > 0:
         # Get absolute coordinates
@@ -192,10 +193,11 @@ def box_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
             abs_boxes[:, 2:] = abs_boxes[:, 2:] + 1
 
         # TODO: optimize slicing to improve vectorization
-        for idx, box in enumerate(abs_boxes):
-            masks[idx, box[1]: box[3], box[0]: box[2]] = True
+        for idx, _box in enumerate(abs_boxes):
+            box = rbbox_to_polygon(_box)
+            cv2.fillPoly(masks[idx], [np.array(box, np.int32)], 1)
 
-    return masks
+    return masks.astype(bool)
 
 
 class LocalizationConfusion:
@@ -235,15 +237,27 @@ class LocalizationConfusion:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+    ) -> None:
         self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
 
         if preds.shape[0] > 0:
             # Compute IoU
-            iou_mat = box_iou(gts, preds)
+            if self.rotated_bbox:
+                mask_gts = rbox_to_mask(gts, shape=self.mask_shape)
+                mask_preds = rbox_to_mask(preds, shape=self.mask_shape)
+                iou_mat = mask_iou(mask_gts, mask_preds)
+            else:
+                iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs
@@ -320,8 +334,15 @@ class OCRMetric:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+    ) -> None:
         self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
         self.reset()
 
     def update(
@@ -338,7 +359,13 @@ class OCRMetric:
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
-            iou_mat = box_iou(gt_boxes, pred_boxes)
+            if self.rotated_bbox:
+                mask_gts = rbox_to_mask(gt_boxes, shape=self.mask_shape)
+                mask_preds = rbox_to_mask(pred_boxes, shape=self.mask_shape)
+                iou_mat = mask_iou(mask_gts, mask_preds)
+            else:
+                iou_mat = box_iou(gt_boxes, pred_boxes)
+
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs

@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from doctr import models
 from doctr.documents import Document, DocumentFile
-from test_models_detection import test_detectionpredictor
+from test_models_detection import test_detectionpredictor, test_rotated_detectionpredictor
 from test_models_recognition import test_recognitionpredictor
 
 
@@ -38,6 +38,31 @@ def test_extract_crops(mock_pdf):  # noqa: F811
     assert models.extract_crops(doc_img, np.zeros((0, 4))) == []
 
 
+def test_extract_rcrops(mock_pdf):  # noqa: F811
+    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
+    num_crops = 2
+    rel_boxes = np.array([[idx / num_crops + .1, idx / num_crops + .1, .1, .1, 0]
+                          for idx in range(num_crops)], dtype=np.float32)
+    abs_boxes = np.array([[int((idx / num_crops + .1) * doc_img.shape[1]),
+                           int((idx / num_crops + .1) * doc_img.shape[0]),
+                           int(.1 * doc_img.shape[1]),
+                           int(.1 * doc_img.shape[0]), 0]
+                          for idx in range(num_crops)], dtype=np.int)
+
+    with pytest.raises(AssertionError):
+        models.extract_crops(doc_img, np.zeros((1, 8)))
+    for boxes in (rel_boxes, abs_boxes):
+        croped_imgs = models.extract_rcrops(doc_img, boxes)
+        # Number of crops
+        assert len(croped_imgs) == num_crops
+        # Data type and shape
+        assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+        assert all(crop.ndim == 3 for crop in croped_imgs)
+
+    # No box
+    assert models.extract_crops(doc_img, np.zeros((0, 5))) == []
+
+
 def test_documentbuilder():
 
     words_per_page = 10
@@ -45,7 +70,7 @@ def test_documentbuilder():
 
     # Don't resolve lines
     doc_builder = models.DocumentBuilder()
-    boxes = np.random.rand(words_per_page, 5)
+    boxes = np.random.rand(words_per_page, 6)
     boxes[:2] *= boxes[2:4]
 
     out = doc_builder([boxes, boxes], [('hello', 1.0)] * (num_pages * words_per_page), [(100, 200), (100, 200)])
@@ -102,18 +127,29 @@ def test_resolve_lines(input_boxes, lines):
     assert doc_builder._resolve_lines(np.asarray(input_boxes)) == lines
 
 
-def test_ocrpredictor(mock_pdf, test_detectionpredictor, test_recognitionpredictor):  # noqa: F811
+def test_ocrpredictor(
+    mock_pdf, test_detectionpredictor, test_recognitionpredictor, test_rotated_detectionpredictor  # noqa: F811
+):
 
     predictor = models.OCRPredictor(
         test_detectionpredictor,
         test_recognitionpredictor
     )
 
+    r_predictor = models.OCRPredictor(
+        test_rotated_detectionpredictor,
+        test_recognitionpredictor,
+        rotated_bbox=True
+    )
+
     doc = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(doc)
+    r_out = r_predictor(doc)
 
     # Document
     assert isinstance(out, Document)
+    assert isinstance(r_out, Document)
+
     # The input PDF has 8 pages
     assert len(out.pages) == 8
     # Dimension check

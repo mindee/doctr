@@ -39,6 +39,7 @@ class SROIE(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -46,6 +47,9 @@ class SROIE(VisionDataset):
         super().__init__(url, None, sha256, True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
+
+        if rotated_bbox:
+            raise NotImplementedError
 
         # # List images
         self.root = os.path.join(self._root, 'images')

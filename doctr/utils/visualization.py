@@ -8,15 +8,16 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
 import numpy as np
-from typing import Tuple, List, Dict, Any
+import cv2
+from typing import Tuple, List, Dict, Any, Union
 
-from .common_types import BoundingBox
+from .common_types import BoundingBox, RotatedBbox
 
 __all__ = ['visualize_page']
 
 
 def create_rect_patch(
-    geometry: BoundingBox,
+    geometry: Union[BoundingBox, RotatedBbox],
     label: str,
     page_dimensions: Tuple[int, int],
     color: Tuple[int, int, int],
@@ -37,21 +38,35 @@ def create_rect_patch(
     Returns:
         a rectangular Patch
     """
-    h, w = page_dimensions
-    (xmin, ymin), (xmax, ymax) = geometry
-    xmin, xmax = xmin * w, xmax * w
-    ymin, ymax = ymin * h, ymax * h
-    rect = patches.Rectangle(
-        (xmin, ymin),
-        xmax - xmin,
-        ymax - ymin,
-        fill=fill,
-        linewidth=linewidth,
-        edgecolor=(*color, alpha),
-        facecolor=(*color, alpha),
-        label=label
-    )
-    return rect
+    if len(geometry) == 5:
+        height, width = page_dimensions
+        (x, y, w, h, a) = geometry
+        x, w = x * width, w * width
+        y, h = y * height, h * height
+        points = cv2.boxPoints(((x, y), (w, h), a))
+        return patches.Polygon(
+            points,
+            fill=fill,
+            linewidth=linewidth,
+            edgecolor=(*color, alpha),
+            facecolor=(*color, alpha),
+            label=label
+        )
+    else:
+        h, w = page_dimensions
+        (xmin, ymin), (xmax, ymax) = geometry
+        xmin, xmax = xmin * w, xmax * w
+        ymin, ymax = ymin * h, ymax * h
+        return patches.Rectangle(
+            (xmin, ymin),
+            xmax - xmin,
+            ymax - ymin,
+            fill=fill,
+            linewidth=linewidth,
+            edgecolor=(*color, alpha),
+            facecolor=(*color, alpha),
+            label=label
+        )
 
 
 def visualize_page(
@@ -121,9 +136,18 @@ def visualize_page(
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
+                    if len(word['geometry']) == 5:
+                        text_loc = (
+                            int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
+                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
+                        )
+                    else:
+                        text_loc = (
+                            int(page['dimensions'][1] * word['geometry'][0][0]),
+                            int(page['dimensions'][0] * word['geometry'][0][1])
+                        )
                     ax.text(
-                        int(page['dimensions'][1] * word['geometry'][0][0]),
-                        int(page['dimensions'][0] * word['geometry'][0][1]),
+                        *text_loc,
                         word['value'],
                         size=10,
                         alpha=0.5,

@@ -18,6 +18,7 @@ from typing import Union, List, Tuple, Optional, Any, Dict
 from .core import DetectionModel, DetectionPostProcessor
 from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from doctr.utils.repr import NestedObject
+from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -30,6 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
+        'rotated_bbox': False,
         'post_processor': 'DBPostProcessor',
         'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
     },
@@ -50,30 +52,29 @@ class DBPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        unclip_ratio: Union[float, int] = 1.5,
-        max_candidates: int = 1000,
         box_thresh: float = 0.1,
         bin_thresh: float = 0.3,
+        rotated_bbox: bool = False,
     ) -> None:
 
         super().__init__(
             box_thresh,
-            bin_thresh
+            bin_thresh,
+            rotated_bbox
         )
-        self.unclip_ratio = unclip_ratio
-        self.max_candidates = max_candidates
+        self.unclip_ratio = 2.2 if self.rotated_bbox else 1.5
 
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Optional[Tuple[int, int, int, int]]:
-        """Expand a polygon (points) by a factor unclip_ratio, and returns a 4-points box
+    ) -> Union[Optional[Tuple[int, int, int, int, float]], Optional[Tuple[int, int, int, int, float, float]]]:
+        """Expand a polygon (points) by a factor unclip_ratio, and returns a rotated box: x, y, w, h, alpha
 
         Args:
             points: The first parameter.
 
         Returns:
-            a box in absolute coordinates (x, y, w, h)
+            a box in absolute coordinates (xmin, ymin, xmax, ymax) or (x, y, w, h, alpha)
         """
         poly = Polygon(points)
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
@@ -93,8 +94,7 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        x, y, w, h = cv2.boundingRect(expanded_points)  # compute a 4-points box from expanded polygon
-        return x, y, w, h
+        return fit_rbbox(expanded_points) if self.rotated_bbox else cv2.boundingRect(expanded_points)
 
     def bitmap_to_boxes(
         self,
@@ -116,25 +116,48 @@ class DBPostProcessor(DetectionPostProcessor):
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        for contour in contours[:self.max_candidates]:
+        for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            x, y, w, h = cv2.boundingRect(contour)
-            points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
             # Compute objectness
-            score = self.box_score(pred, points)
+            if self.rotated_bbox:
+                score = self.box_score(pred, contour, rotated_bbox=True)
+            else:
+                x, y, w, h = cv2.boundingRect(contour)
+                points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+                score = self.box_score(pred, points, rotated_bbox=False)
+
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
-            _box = self.polygon_to_box(points)
+
+            if self.rotated_bbox:
+                _box = self.polygon_to_box(np.squeeze(contour))
+            else:
+                _box = self.polygon_to_box(points)
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
-            x, y, w, h = _box
-            # compute relative polygon to get rid of img shape
-            xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-            boxes.append([xmin, ymin, xmax, ymax, score])
-        return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+
+            if self.rotated_bbox:
+                x, y, w, h, alpha = _box
+                # compute relative box to get rid of img shape
+                x, y, w, h = x / width, y / height, w / width, h / height
+                boxes.append([x, y, w, h, alpha, score])
+            else:
+                x, y, w, h = _box
+                # compute relative polygon to get rid of img shape
+                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+                boxes.append([xmin, ymin, xmax, ymax, score])
+
+        if self.rotated_bbox:
+            if len(boxes) == 0:
+                return np.zeros((0, 6), dtype=np.float32)
+            coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
+            boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
+            return boxes
+        else:
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
 class FeaturePyramidNetwork(layers.Layer, NestedObject):
@@ -215,6 +238,7 @@ class DBNet(DetectionModel, NestedObject):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,
+        rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -226,6 +250,7 @@ class DBNet(DetectionModel, NestedObject):
         self.min_size_box = 3
 
         self.feat_extractor = feature_extractor
+        self.rotated_bbox = rotated_bbox
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
         # Initialize kernels
@@ -251,7 +276,7 @@ class DBNet(DetectionModel, NestedObject):
             ]
         )
 
-        self.postprocessor = DBPostProcessor()
+        self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
 
     @staticmethod
     def compute_distance(
@@ -372,14 +397,17 @@ class DBNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
-
-            polys = np.stack([
-                abs_boxes[:, [0, 1]],
-                abs_boxes[:, [0, 3]],
-                abs_boxes[:, [2, 3]],
-                abs_boxes[:, [2, 1]],
-            ], axis=1)
+            if self.rotated_bbox:
+                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
+                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+            else:
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
 
             for box, box_size, poly, is_ambiguous in zip(abs_boxes, boxes_size, polys, _target['flags']):
                 # Mask ambiguous boxes
@@ -513,6 +541,7 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
+    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
     # Feature extractor
     resnet = tf.keras.applications.__dict__[_cfg['backbone']](
@@ -528,6 +557,7 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     )
 
     kwargs['fpn_channels'] = _cfg['fpn_channels']
+    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)

@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Tuple, Optional, Callable
 import tensorflow as tf
 
 from .core import VisionDataset
+from doctr.utils.geometry import fit_rbbox
 
 __all__ = ['CORD']
 
@@ -39,6 +40,7 @@ class CORD(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -62,10 +64,19 @@ class CORD(VisionDataset):
                         if len(word["text"]) > 0:
                             x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
                             y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
-                            # Reduce 8 coords to 4
-                            left, right = min(x), max(x)
-                            top, bot = min(y), max(y)
-                            _targets.append((word["text"], [left, top, right, bot]))
+                            if not rotated_bbox:
+                                # Reduce 8 coords to 4
+                                left, right = min(x), max(x)
+                                top, bot = min(y), max(y)
+                                _targets.append((word["text"], [left, top, right, bot]))
+                            else:
+                                x, y, w, h, alpha = fit_rbbox(np.array([
+                                    [x[0], y[0]],
+                                    [x[1], y[1]],
+                                    [x[2], y[2]],
+                                    [x[3], y[3]],
+                                ], np.float32))
+                                _targets.append((word["text"], [x, y, w, h, alpha]))
 
             text_targets, box_targets = zip(*_targets)
 

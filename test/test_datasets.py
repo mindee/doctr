@@ -16,19 +16,21 @@ def test_visiondataset():
 
 
 @pytest.mark.parametrize(
-    "dataset_name, train, input_size, size",
+    "dataset_name, train, input_size, size, rotate",
     [
-        ['FUNSD', True, [512, 512], 149],
-        ['FUNSD', False, [512, 512], 50],
-        ['SROIE', True, [512, 512], 626],
-        ['SROIE', False, [512, 512], 360],
-        ['CORD', True, [512, 512], 800],
-        ['CORD', False, [512, 512], 100],
+        ['FUNSD', True, [512, 512], 149, False],
+        ['FUNSD', False, [512, 512], 50, True],
+        ['SROIE', True, [512, 512], 626, False],
+        ['SROIE', False, [512, 512], 360, False],
+        ['CORD', True, [512, 512], 800, True],
+        ['CORD', False, [512, 512], 100, False],
     ],
 )
-def test_dataset(dataset_name, train, input_size, size):
+def test_dataset(dataset_name, train, input_size, size, rotate):
 
-    ds = datasets.__dict__[dataset_name](train=train, download=True, sample_transforms=Resize(input_size))
+    ds = datasets.__dict__[dataset_name](
+        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate
+    )
 
     assert len(ds) == size
     assert repr(ds) == f"{dataset_name}(train={train})"
