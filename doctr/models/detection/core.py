@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import cv2
-from typing import List, Any, Optional, Dict
+from typing import List, Any, Optional, Dict, Tuple
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 from doctr.models._utils import rotate_page, get_bitmap_angle
@@ -96,14 +96,15 @@ class DetectionPostProcessor(NestedObject):
     def __call__(
         self,
         proba_map: tf.Tensor,
-    ) -> List[np.ndarray]:
+    ) -> Tuple[List[np.ndarray], List[float]]:
         """Performs postprocessing for a list of model outputs
 
         Args:
             x: dictionary of the model output
 
         returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6).
+            list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6),
+            and a list of N angles (page orientations).
         """
 
         proba_map = tf.squeeze(proba_map, axis=-1)  # remove last dim
@@ -112,7 +113,7 @@ class DetectionPostProcessor(NestedObject):
         proba_map = tf.unstack(proba_map, axis=0)
         bitmap = tf.unstack(bitmap, axis=0)
 
-        boxes_batch = []
+        boxes_batch, angles_batch = [], []
         # Kernel for opening, empirical law for ksize
         k_size = 1 + int(proba_map[0].shape[0] / 512)
         kernel = np.ones((k_size, k_size), np.uint8)
@@ -124,11 +125,12 @@ class DetectionPostProcessor(NestedObject):
             bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
             # Rotate bitmap and proba_map
             angle = get_bitmap_angle(bitmap_)
-            bitmap_, p_ = rotate_page(bitmap_, angle), rotate_page(p_, angle)
+            angles_batch.append(angle)
+            bitmap_, p_ = rotate_page(bitmap_, -angle), rotate_page(p_, -angle)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
             boxes_batch.append(boxes)
 
-        return boxes_batch
+        return boxes_batch, angles_batch
 
 
 class DetectionPredictor(NestedObject):
@@ -161,7 +163,7 @@ class DetectionPredictor(NestedObject):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(pages)
-        out = [self.model(batch, return_boxes=True, **kwargs)['boxes'] for batch in processed_batches]
-        out = [boxes for batch in out for boxes in batch]
+        out = [self.model(batch, return_boxes=True, **kwargs)['boxes + angles'] for batch in processed_batches]
+        out = [(boxes, angle) for (batch_boxes, batch_angles) in out for boxes, angle in zip(batch_boxes, batch_angles)]
 
         return out

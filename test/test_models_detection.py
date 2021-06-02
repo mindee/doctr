@@ -11,8 +11,8 @@ def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor(rotated_bbox=False)
     r_postprocessor = detection.DBPostProcessor(rotated_bbox=True)
     mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
-    out = postprocessor(mock_batch)
-    r_out = r_postprocessor(mock_batch)
+    out = postprocessor(mock_batch)[0]
+    r_out = r_postprocessor(mock_batch)[0]
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2
@@ -83,7 +83,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if out_prob:
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
-    for boxes in out['boxes']:
+    for boxes in out['boxes + angles'][0]:
         assert boxes.shape[1] == 5
         assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
@@ -102,7 +102,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
-
+    out = [_boxes for _boxes, _ in out]
     # The input PDF has 8 pages
     assert len(out) == 8
 
@@ -151,7 +151,7 @@ def test_detection_zoo(arch_name):
     assert isinstance(predictor, detection.DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
-    assert isinstance(out, list)
+    out = [boxes for boxes, _ in out]
     assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
 
 
@@ -164,10 +164,9 @@ def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
     r_postprocessor = detection.LinkNetPostProcessor(rotated_bbox=True)
     mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
-    out = postprocessor(mock_batch)
-    r_out = r_postprocessor(mock_batch)
+    out = postprocessor(mock_batch)[0]
+    r_out = r_postprocessor(mock_batch)[0]
     # Batch composition
-    assert isinstance(out, list)
     assert len(out) == 2
     assert all(isinstance(sample, np.ndarray) for sample in out)
     assert all(sample.shape[1] == 5 for sample in out)

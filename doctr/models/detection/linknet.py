@@ -314,7 +314,7 @@ class LinkNet(DetectionModel, NestedObject):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["boxes"] = self.postprocessor(prob_map)
+            out["boxes + angles"] = self.postprocessor(prob_map)
 
         if target is not None:
             loss = self.compute_loss(logits, target)
