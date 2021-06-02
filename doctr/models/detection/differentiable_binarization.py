@@ -62,15 +62,12 @@ class DBPostProcessor(DetectionPostProcessor):
             bin_thresh,
             rotated_bbox
         )
-        if rotated_bbox is False:
-            self.unclip_ratio = 1.5
-        else:
-            self.unclip_ratio = 2.2
+        self.unclip_ratio = 2.2 if self.rotated_bbox else 1.5
 
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Union[Optional[Tuple[int, int, int, int, float]], Optional[Tuple[int, int, int, int, int, float]]]:
+    ) -> Union[Optional[Tuple[int, int, int, int, float]], Optional[Tuple[int, int, int, int, float, float]]]:
         """Expand a polygon (points) by a factor unclip_ratio, and returns a rotated box: x, y, w, h, alpha
 
         Args:
@@ -400,7 +397,10 @@ class DBNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            if self.rotated_bbox is False:
+            if self.rotated_bbox:
+                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
+                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+            else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = np.stack([
                     abs_boxes[:, [0, 1]],
@@ -408,10 +408,6 @@ class DBNet(DetectionModel, NestedObject):
                     abs_boxes[:, [2, 3]],
                     abs_boxes[:, [2, 1]],
                 ], axis=1)
-
-            else:
-                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
 
             for box, box_size, poly, is_ambiguous in zip(abs_boxes, boxes_size, polys, _target['flags']):
                 # Mask ambiguous boxes

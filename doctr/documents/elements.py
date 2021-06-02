@@ -202,7 +202,6 @@ class Page(Element):
         Args:
             page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
-            rotation: display rotated_bboxes if True
         """
         visualize_page(self.export(), page, interactive=interactive)
         plt.show(**kwargs)

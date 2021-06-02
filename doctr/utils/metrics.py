@@ -197,7 +197,7 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
             box = rbbox_to_polygon(_box)
             cv2.fillPoly(masks[idx], [np.array(box, np.int32)], 1)
 
-    return np.array(masks, dtype=bool)
+    return masks.astype(bool)
 
 
 class LocalizationConfusion:

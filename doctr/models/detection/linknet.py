@@ -242,18 +242,12 @@ class LinkNet(DetectionModel, NestedObject):
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            if self.rotated_bbox is False:
-                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
-                polys = np.stack([
-                    abs_boxes[:, [0, 1]],
-                    abs_boxes[:, [0, 3]],
-                    abs_boxes[:, [2, 3]],
-                    abs_boxes[:, [2, 1]],
-                ], axis=1)
-
-            else:
+            if self.rotated_bbox:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
                 polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+            else:
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                polys = [None] * abs_boxes.shape[0]  # Unused
 
             for poly, box, box_size, is_ambiguous in zip(polys, abs_boxes, boxes_size, _target['flags']):
                 # Mask ambiguous boxes

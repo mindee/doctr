@@ -51,7 +51,7 @@ def plot_samples(images, targets, rotation):
 
         axes[0][idx].imshow(img)
         axes[0][idx].axis('off')
-        axes[1][idx].imshow(target)
+        axes[1][idx].imshow(target.astype(bool))
         axes[1][idx].axis('off')
     plt.show()
 
