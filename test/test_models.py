@@ -1,8 +1,13 @@
+from qrco import rotate_page
 import pytest
 import math
 import numpy as np
 import tensorflow as tf
+from io import BytesIO
+import requests
+import cv2
 
+from doctr.documents import reader
 from doctr import models
 from doctr.documents import Document, DocumentFile
 from test_models_detection import test_detectionpredictor, test_rotated_detectionpredictor
@@ -217,3 +222,22 @@ def test_preprocessor(mock_pdf):
     batched_docs = processor([page for doc in docs for page in doc])
     # Image size
     assert all(batch.shape[1:] == (256, 128, 3) for batch in batched_docs)
+
+@pytest.fixture(scope="function")
+def mock_bitmap(tmpdir_factory):
+    url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/bitmap30.png'
+    file = BytesIO(requests.get(url).content)
+    tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
+    with open(tmp_path, 'wb') as f:
+        f.write(file.getbuffer())
+    bitmap = reader.read_img(tmp_path)
+    bitmap = np.squeeze(cv2.cvtColor(bitmap, cv2.COLOR_BGR2GRAY) / 255.)
+    return bitmap
+
+def test_get_bitmap_angle(mock_bitmap):
+    angle = models.get_bitmap_angle(mock_bitmap)
+    assert abs(angle - 30.) < 1e-2
+
+def test_rotate_page(mock_bitmap):
+    rotated = models.rotate_page(mock_bitmap, 30.)
+    assert abs(models.get_bitmap_angle(rotated) - 0.) < 1e-2

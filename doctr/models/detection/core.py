@@ -3,14 +3,17 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from tensorflow.python.keras.regularizers import get
+from qrco import rotate_bitmap
 from numpy.core.defchararray import startswith
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 import cv2
-from typing import List, Any, Optional, Dict
+from typing import List, Any, Optional, Dict, Tuple
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
+from doctr.models._utils import rotate_page, get_bitmap_angle
 
 
 __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
@@ -120,8 +123,11 @@ class DetectionPostProcessor(NestedObject):
         for p_, bitmap_ in zip(proba_map, bitmap):
             p_ = p_.numpy()
             bitmap_ = bitmap_.numpy()
-            # perform opening (erosion + dilatation)
+            # Perform opening (erosion + dilatation)
             bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
+            # Rotate bitmap and proba_map
+            angle = get_bitmap_angle(bitmap_)
+            bitmap_, p_ = rotate_page(bitmap_, angle), rotate_page(p_, angle)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
             boxes_batch.append(boxes)
 
