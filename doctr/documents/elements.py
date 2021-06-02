@@ -231,7 +231,6 @@ class Document(Element):
 
         Args:
             pages: list of images encoded as numpy arrays in uint8
-            rotation: display rotated_bboxes if True
         """
         for img, result in zip(pages, self.pages):
             result.show(img, **kwargs)
