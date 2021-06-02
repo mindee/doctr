@@ -104,7 +104,7 @@ def rotate_page(image: np.array, angle: float = 0., min_angle: float = 1.) -> np
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return image
     height, width = image.shape[:2]
-    center=tuple(np.array([height, width]) / 2)
+    center = tuple(np.array([height, width]) / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
     rotated = cv2.warpAffine(image, rot_mat, (width, height))
     return rotated
@@ -124,7 +124,7 @@ def get_bitmap_angle(bitmap: np.array, n_ct: int = 5, std_max: float = 3.) -> fl
     # Find all contours on binarized seg map
     contours, hierarchy = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     # Sort contours
-    contours = sorted(contours, key = cv2.contourArea, reverse = True)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
     # Find largest contours and fit angles
     # Track heights and widths to find aspect ratio (determine is rotation is clockwise)

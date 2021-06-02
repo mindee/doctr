@@ -222,6 +222,7 @@ def test_preprocessor(mock_pdf):
     # Image size
     assert all(batch.shape[1:] == (256, 128, 3) for batch in batched_docs)
 
+
 @pytest.fixture(scope="function")
 def mock_bitmap(tmpdir_factory):
     url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/bitmap30.png'
@@ -233,10 +234,12 @@ def mock_bitmap(tmpdir_factory):
     bitmap = np.squeeze(cv2.cvtColor(bitmap, cv2.COLOR_BGR2GRAY) / 255.)
     return bitmap
 
+
 def test_get_bitmap_angle(mock_bitmap):
     angle = models.get_bitmap_angle(mock_bitmap)
-    assert abs(angle - 30.) < 1e-2
+    assert abs(angle - 30.) < 1.
+
 
 def test_rotate_page(mock_bitmap):
     rotated = models.rotate_page(mock_bitmap, -30.)
-    assert abs(models.get_bitmap_angle(rotated) - 0.) < 1e-2
+    assert abs(models.get_bitmap_angle(rotated) - 0.) < 1.
