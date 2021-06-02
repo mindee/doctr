@@ -101,7 +101,7 @@ def rotate_page(image: np.array, angle: float = 0., min_angle: float = 1.) -> np
     Returns:
         Rotated np array
     """
-    if angle < min_angle or angle > 90 - min_angle:
+    if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return image
     height, width = image.shape[:2]
     center=tuple(np.array([height, width]) / 2)
@@ -139,10 +139,10 @@ def get_bitmap_angle(bitmap: np.array, n_ct: int = 5, std_max: float = 3.) -> fl
         # Edge case with angles of both 0 and 90°, or multi_oriented docs
         angle = 0.
     else:
-        angle = np.mean(angles)
+        angle = -np.mean(angles)
         # Determine rotation direction (clockwise/counterclockwise)
         # Angle coverage: [-90°, +90°], half of the quadrant
         if np.sum(widths) < np.sum(heights):  # CounterClockwise
-            angle = angle - 90
+            angle = 90 + angle
 
     return angle

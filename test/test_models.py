@@ -1,4 +1,3 @@
-from qrco import rotate_page
 import pytest
 import math
 import numpy as np
@@ -239,5 +238,5 @@ def test_get_bitmap_angle(mock_bitmap):
     assert abs(angle - 30.) < 1e-2
 
 def test_rotate_page(mock_bitmap):
-    rotated = models.rotate_page(mock_bitmap, 30.)
+    rotated = models.rotate_page(mock_bitmap, -30.)
     assert abs(models.get_bitmap_angle(rotated) - 0.) < 1e-2
