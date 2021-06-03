@@ -221,12 +221,13 @@ class LinkNet(DetectionModel, NestedObject):
         self,
         target: List[Dict[str, Any]],
         output_shape: Tuple[int, int, int],
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
 
         if self.rotated_bbox:
             seg_target = np.zeros(output_shape, dtype=np.uint8)
         else:
             seg_target = np.zeros(output_shape, dtype=bool)
+            edge_mask = np.zeros(output_shape, dtype=bool)
         seg_mask = np.ones(output_shape, dtype=np.bool)
 
         for idx, _target in enumerate(target):
@@ -262,16 +263,24 @@ class LinkNet(DetectionModel, NestedObject):
                     cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
                 else:
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+                    # fill the 2 vertical edges
+                    edge_mask[idx, max(0, box[1] - 1): min(box[1] + 1, box[3]), box[0]: box[2] + 1] = True
+                    edge_mask[idx, max(box[1] + 1, box[3]): min(output_shape[1], box[3] + 2), box[0]: box[2] + 1] = True
+                    # fill the 2 horizontal edges
+                    edge_mask[idx, box[1]: box[3] + 1, max(0, box[0] - 1): min(box[0] + 1, box[2])] = True
+                    edge_mask[idx, box[1]: box[3] + 1, max(box[0] + 1, box[2]): min(output_shape[2], box[2] + 2)] = True
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
+        edge_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
 
-        return seg_target, seg_mask
+        return seg_target, seg_mask, edge_mask
 
     def compute_loss(
         self,
         out_map: tf.Tensor,
-        target: List[Dict[str, Any]]
+        target: List[Dict[str, Any]],
+        factor: int = 2
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
         Then, it computes the loss function with proba_map, gts and masks
@@ -283,14 +292,18 @@ class LinkNet(DetectionModel, NestedObject):
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask = self.compute_target(target, out_map.shape[:3])
+        seg_target, seg_mask, edge_mask = self.compute_target(target, out_map.shape[:3])
 
         # Compute BCE loss
-        return tf.math.reduce_mean(tf.keras.losses.binary_crossentropy(
-            seg_target[seg_mask],
-            tf.squeeze(out_map, axis=[-1])[seg_mask],
-            from_logits=True
-        ))
+        loss = tf.math.multiply(
+            1 + (factor - 1) * tf.cast(edge_mask, tf.float32),
+            tf.keras.losses.binary_crossentropy(
+                seg_target[seg_mask],
+                tf.squeeze(out_map, axis=[-1])[seg_mask],
+                from_logits=True
+            )
+        )
+        return tf.math.reduce_mean(loss)
 
     def call(
         self,
