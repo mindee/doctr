@@ -17,5 +17,5 @@ router = APIRouter()
 async def text_detection(file: UploadFile = File(...)):
     """Runs DocTR text detection model to analyze the input"""
     img = decode_image(file.file.read())
-    out, angle = det_predictor([img], training=False)
+    [out, angle] = det_predictor([img], training=False)
     return [DetectionOut(box=box.tolist()) for box in out[0][:, :-1]]
