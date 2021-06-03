@@ -110,32 +110,6 @@ def main(args):
     print(args)
 
     st = time.time()
-    # Load both train and val data generators
-    train_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        label_folder=os.path.join(args.data_path, 'train_labels'),
-        sample_transforms=T.Compose([
-            T.LambdaTransformation(lambda x: x / 255),
-            T.Resize((args.input_size, args.input_size)),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .1),
-            T.RandomJpegQuality(60),
-            T.RandomSaturation(.3),
-            T.RandomContrast(.3),
-            T.RandomBrightness(.3),
-        ]),
-        rotated_bbox=args.rotation
-    )
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
-          f"{train_loader.num_batches} batches)")
-
-    if args.show_samples:
-        x, target = next(iter(train_loader))
-        plot_samples(x, target, rotation=args.rotation)
-        return
-
-    st = time.time()
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         label_folder=os.path.join(args.data_path, 'val_labels'),
@@ -177,6 +151,32 @@ def main(args):
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         print(f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
               f"Mean IoU: {mean_iou:.2%})")
+        return
+
+    st = time.time()
+    # Load both train and val data generators
+    train_set = DetectionDataset(
+        img_folder=os.path.join(args.data_path, 'train'),
+        label_folder=os.path.join(args.data_path, 'train_labels'),
+        sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
+            T.Resize((args.input_size, args.input_size)),
+            # Augmentations
+            T.RandomApply(T.ColorInversion(), .1),
+            T.RandomJpegQuality(60),
+            T.RandomSaturation(.3),
+            T.RandomContrast(.3),
+            T.RandomBrightness(.3),
+        ]),
+        rotated_bbox=args.rotation
+    )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
+          f"{train_loader.num_batches} batches)")
+
+    if args.show_samples:
+        x, target = next(iter(train_loader))
+        plot_samples(x, target, rotation=args.rotation)
         return
 
     # Tensorboard to monitor training

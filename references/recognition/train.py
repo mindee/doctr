@@ -101,30 +101,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 
 def main(args):
 
-    st = time.time()
-    # Load both train and val data generators
-    train_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'train_labels.json'),
-        sample_transforms=T.Compose([
-            T.LambdaTransformation(lambda x: x / 255),
-            T.RandomApply(T.ColorInversion(), .1),
-            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-            # Augmentations
-            T.RandomJpegQuality(60),
-            T.RandomSaturation(.3),
-            T.RandomContrast(.3),
-            T.RandomBrightness(.3),
-        ]),
-    )
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
-          f"{train_loader.num_batches} batches)")
-
-    if args.show_samples:
-        x, target = next(iter(train_loader))
-        plot_samples(x, target)
-        return
+    print(args)
 
     st = time.time()
     val_set = RecognitionDataset(
@@ -166,6 +143,31 @@ def main(args):
         print("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
         print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        return
+
+    st = time.time()
+    # Load both train and val data generators
+    train_set = RecognitionDataset(
+        img_folder=os.path.join(args.data_path, 'train'),
+        labels_path=os.path.join(args.data_path, 'train_labels.json'),
+        sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
+            T.RandomApply(T.ColorInversion(), .1),
+            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+            # Augmentations
+            T.RandomJpegQuality(60),
+            T.RandomSaturation(.3),
+            T.RandomContrast(.3),
+            T.RandomBrightness(.3),
+        ]),
+    )
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
+          f"{train_loader.num_batches} batches)")
+
+    if args.show_samples:
+        x, target = next(iter(train_loader))
+        plot_samples(x, target)
         return
 
     # Tensorboard to monitor training

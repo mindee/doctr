@@ -6,7 +6,6 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from doctr.utils.common_types import RotatedBbox
 import tensorflow as tf
 import numpy as np
 import cv2
