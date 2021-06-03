@@ -280,7 +280,7 @@ class LinkNet(DetectionModel, NestedObject):
         self,
         out_map: tf.Tensor,
         target: List[Dict[str, Any]],
-        factor: int = 2
+        factor: float = 2.
     ) -> tf.Tensor:
         """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
         Then, it computes the loss function with proba_map, gts and masks
