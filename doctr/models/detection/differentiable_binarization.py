@@ -525,7 +525,7 @@ class DBNet(DetectionModel, NestedObject):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["boxes + angles"] = self.postprocessor(prob_map)
+            out["preds"] = self.postprocessor(prob_map)
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)

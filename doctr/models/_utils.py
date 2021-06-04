@@ -91,11 +91,12 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
 
 
 def rotate_page(image: np.array, angle: float = 0., min_angle: float = 1.) -> np.array:
-    """Rotate an image counterclockwise by an ange alpha
+    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise)
+    It will pad with 0 by default aroud the image to perform rotation.
 
     Args:
-        alpha: angle, degrees, between -90 and +90
         image: np array to rotate
+        angle: rotation angle in degrees, between -90 and +90
         min_angle: min. angle in degrees to rotate a page
 
     Returns:
@@ -104,7 +105,7 @@ def rotate_page(image: np.array, angle: float = 0., min_angle: float = 1.) -> np
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return image
     height, width = image.shape[:2]
-    center = tuple(np.array([height, width]) / 2)
+    center = (height / 2, width / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
     rotated = cv2.warpAffine(image, rot_mat, (width, height))
     return rotated

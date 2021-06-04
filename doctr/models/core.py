@@ -58,9 +58,8 @@ class OCRPredictor(NestedObject):
         word_preds = self.reco_predictor(crops, **kwargs)
 
         # Reorganize
-        boxes = [_boxes for (_boxes, angle) in boxes]
+        boxes, _ = zip(*boxes)
         out = self.doc_builder(boxes, word_preds, [tuple(page.shape[:2]) for page in pages])
-
         return out
 
 
