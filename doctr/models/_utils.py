@@ -118,7 +118,7 @@ def rotate_page(
     return rotated
 
 
-def get_bitmap_angle(bitmap: np.array, n_ct: int = 5, std_max: float = 3.) -> float:
+def get_bitmap_angle(bitmap: np.array, n_ct: int = 20, std_max: float = 3.) -> float:
     """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
 
     Args:
