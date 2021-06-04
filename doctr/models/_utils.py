@@ -91,8 +91,7 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
 
 
 def rotate_page(image: np.array, angle: float = 0., min_angle: float = 1.) -> np.array:
-    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise)
-    It will pad with 0 by default aroud the image to perform rotation.
+    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
 
     Args:
         image: np array to rotate
@@ -100,7 +99,7 @@ def rotate_page(image: np.array, angle: float = 0., min_angle: float = 1.) -> np
         min_angle: min. angle in degrees to rotate a page
 
     Returns:
-        Rotated np array
+        Rotated np array, padded by 0 by default.
     """
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return image
@@ -123,7 +122,7 @@ def get_bitmap_angle(bitmap: np.array, n_ct: int = 5, std_max: float = 3.) -> fl
         The angle of the page
     """
     # Find all contours on binarized seg map
-    contours, hierarchy = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     # Sort contours
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
