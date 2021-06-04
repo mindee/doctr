@@ -8,7 +8,7 @@ import cv2
 import tensorflow as tf
 from typing import List, Union
 
-__all__ = ['extract_crops', 'extract_rcrops']
+__all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle']
 
 
 def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[Union[np.ndarray, tf.Tensor]]:
@@ -88,3 +88,69 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
         crops.append(crop)
 
     return crops
+
+
+def rotate_page(
+    image: Union[tf.Tensor, np.array],
+    angle: float = 0.,
+    min_angle: float = 1.
+) -> Union[tf.Tensor, np.array]:
+    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
+
+    Args:
+        image: tf tensor or np array to rotate
+        angle: rotation angle in degrees, between -90 and +90
+        min_angle: min. angle in degrees to rotate a page
+
+    Returns:
+        Rotated array or tf.Tensor, padded by 0 by default.
+    """
+    if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
+        return image
+    height, width = image.shape[:2]
+    center = (height / 2, width / 2)
+    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
+    if isinstance(image, tf.Tensor):
+        rotated = cv2.warpAffine(image.numpy(), rot_mat, (width, height))
+        rotated = tf.cast(rotated, tf.float32)
+    else:
+        rotated = cv2.warpAffine(image, rot_mat, (width, height))
+    return rotated
+
+
+def get_bitmap_angle(bitmap: np.array, n_ct: int = 20, std_max: float = 3.) -> float:
+    """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
+
+    Args:
+        bitmap: binarized segmentation map
+        n_ct: number of contours to use to fit page angle
+        std_max: maximum deviation of the angle distribution to consider the mean angle reliable
+
+    Returns:
+        The angle of the page
+    """
+    # Find all contours on binarized seg map
+    contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # Sort contours
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+    # Find largest contours and fit angles
+    # Track heights and widths to find aspect ratio (determine is rotation is clockwise)
+    angles, heights, widths = [], [], []
+    for ct in contours[:n_ct]:
+        _, (w, h), alpha = cv2.minAreaRect(ct)
+        widths.append(w)
+        heights.append(h)
+        angles.append(alpha)
+
+    if np.std(angles) > std_max:
+        # Edge case with angles of both 0 and 90°, or multi_oriented docs
+        angle = 0.
+    else:
+        angle = -np.mean(angles)
+        # Determine rotation direction (clockwise/counterclockwise)
+        # Angle coverage: [-90°, +90°], half of the quadrant
+        if np.sum(widths) < np.sum(heights):  # CounterClockwise
+            angle = 90 + angle
+
+    return angle
