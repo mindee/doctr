@@ -512,7 +512,7 @@
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_boxes</span><span class="p">:</span>
             <span class="c1"># Post-process boxes</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;preds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
