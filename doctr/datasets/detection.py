@@ -27,6 +27,7 @@ class DetectionDataset(AbstractDataset):
         img_folder: folder with all the images of the dataset
         label_folder: folder with all the corresponding labels (stem needs to be identical)
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
     def __init__(
         self,
@@ -40,6 +41,7 @@ class DetectionDataset(AbstractDataset):
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             with open(os.path.join(label_folder, img_path + '.json'), 'rb') as f:

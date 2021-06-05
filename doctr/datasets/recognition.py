@@ -39,6 +39,7 @@ class RecognitionDataset(AbstractDataset):
         with open(labels_path) as f:
             labels = json.load(f)
         for img_path in os.listdir(self.root):
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             label = labels.get(img_path)

@@ -24,6 +24,7 @@ class OCRDataset(AbstractDataset):
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -47,6 +48,7 @@ class OCRDataset(AbstractDataset):
         for file_dic in data:
             # Get image path
             img_name = Path(os.path.basename(file_dic["raw-archive-filepath"])).stem + '.jpg'
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 

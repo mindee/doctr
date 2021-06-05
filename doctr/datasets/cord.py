@@ -28,6 +28,7 @@ class CORD(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
     TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip',
@@ -53,6 +54,7 @@ class CORD(VisionDataset):
         self.train = train
         self.sample_transforms = sample_transforms
         for img_path in os.listdir(self.root):
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             stem = Path(img_path).stem
