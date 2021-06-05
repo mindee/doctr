@@ -64,19 +64,18 @@ class CORD(VisionDataset):
                         if len(word["text"]) > 0:
                             x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
                             y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
-                            if not rotated_bbox:
-                                # Reduce 8 coords to 4
-                                left, right = min(x), max(x)
-                                top, bot = min(y), max(y)
-                                _targets.append((word["text"], [left, top, right, bot]))
-                            else:
+                            if rotated_bbox:
                                 x, y, w, h, alpha = fit_rbbox(np.array([
                                     [x[0], y[0]],
                                     [x[1], y[1]],
                                     [x[2], y[2]],
                                     [x[3], y[3]],
-                                ], np.float32))
-                                _targets.append((word["text"], [x, y, w, h, alpha]))
+                                ], dtype=np.float32))
+                                box = [x, y, w, h, alpha]
+                            else:
+                                # Reduce 8 coords to 4
+                                box = [min(x), min(y), max(x), max(y)]
+                            _targets.append((word['text'], box))
 
             text_targets, box_targets = zip(*_targets)
 
