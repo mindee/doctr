@@ -181,11 +181,12 @@ def rotate_boxes(
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
     rotation_mat = np.array([[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]])
     # Compute unrotated boxes
-    x_unrotated, y_unrotated = (boxes[:, 0, None] + boxes[:, 2, None]) / 2, (boxes[:, 1, None] + boxes[:, 3, None]) / 2
-    width, height = boxes[:, 2, None] - boxes[:, 0, None], boxes[:, 3, None] - boxes[:, 1, None]
+    x_unrotated, y_unrotated = (boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2
+    width, height = boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]
     # Rotate centers
-    centers = np.concatenate((x_unrotated, y_unrotated), axis=-1)
+    centers = np.stack((x_unrotated, y_unrotated), axis=-1)
     rotated_centers = .5 + np.matmul(centers - .5, np.transpose(rotation_mat))
+    x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
     # Compute rotated boxes
-    rotated_boxes = np.concatenate((rotated_centers, width, height, angle * np.ones_like(boxes[:, 0, None])), axis=-1)
+    rotated_boxes = np.stack((x_center, y_center, width, height, angle * np.ones_like(boxes[:, 0])), axis=1)
     return rotated_boxes
