@@ -5,6 +5,7 @@
 
 import numpy as np
 import cv2
+from numpy.ma.core import concatenate
 import tensorflow as tf
 from typing import List, Union, Tuple
 from ..utils.geometry import bbox_to_polygon, fit_rbbox
@@ -177,17 +178,14 @@ def rotate_boxes(
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return boxes
     # Compute rotation matrix
-    angle = angle * np.pi / 180.  # compute radian angle for np functions
-    R = np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
-    # Translate to relative origin of the page
-    boxes[:, [0, 2]] -= .5
-    boxes[:, [1, 3]] -= .5
-    rotated_boxes = []
-    for box in boxes:
-        points = np.array(bbox_to_polygon(((box[0], box[1]), (box[2], box[3]))))
-        rotated_points = np.matmul(points, np.transpose(R))
-        # Translate back to center of the page
-        rotated_points[:, 0] += .5
-        rotated_points[:, 1] += .5
-        rotated_boxes.append(fit_rbbox(rotated_points.astype(np.float32)))
-    return np.array(rotated_boxes)
+    angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
+    rotation_mat = np.array([[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]])
+    # Compute unrotated boxes
+    x_unrotated, y_unrotated = (boxes[:, 0, None] + boxes[:, 2, None]) / 2, (boxes[:, 1, None] + boxes[:, 3, None]) / 2
+    width, height = boxes[:, 2, None] - boxes[:, 0, None], boxes[:, 3, None] - boxes[:, 1, None]
+    # Rotate centers
+    centers = np.concatenate((x_unrotated, y_unrotated), axis=-1)
+    rotated_centers = .5 + np.matmul(centers - .5, np.transpose(rotation_mat))
+    # Compute rotated boxes
+    rotated_boxes = np.concatenate((rotated_centers, width, height, angle * np.ones_like(boxes[:, 0, None])), axis=-1)
+    return rotated_boxes

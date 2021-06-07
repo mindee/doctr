@@ -256,4 +256,4 @@ def test_rotate_boxes():
     # Angle = 30
     rotated = models.rotate_boxes(boxes, angle=30)
     assert rotated.shape == (1, 5)
-    print(rotated)
+    assert rotated[0, 4] == 30.
