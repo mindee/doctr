@@ -6,9 +6,10 @@
 import numpy as np
 import cv2
 import tensorflow as tf
-from typing import List, Union
+from typing import List, Union, Tuple
+from ..utils.geometry import bbox_to_polygon, fit_rbbox
 
-__all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle']
+__all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 
 
 def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[Union[np.ndarray, tf.Tensor]]:
@@ -154,3 +155,39 @@ def get_bitmap_angle(bitmap: np.array, n_ct: int = 20, std_max: float = 3.) -> f
             angle = 90 + angle
 
     return angle
+
+
+def rotate_boxes(
+    boxes: np.array,
+    angle: float = 0.,
+    min_angle: float = 1.
+) -> np.array:
+    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) of an angle,
+    if angle > min_angle, around the center of the page.
+
+    Args:
+        boxes: (N, 4) array of (relative) boxes
+        angle: angle between -90 and +90 degrees
+        min_angle: minimum angle to rotate boxes
+
+    Returns:
+        A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
+    """
+    # If small angle, return boxes (no rotation)
+    if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
+        return boxes
+    # Compute rotation matrix
+    angle = angle * np.pi / 180.  # compute radian angle for np functions
+    R = np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])
+    # Translate to relative origin of the page
+    boxes[:, [0, 2]] -= .5
+    boxes[:, [1, 3]] -= .5
+    rotated_boxes = []
+    for box in boxes:
+        points = np.array(bbox_to_polygon(((box[0], box[1]), (box[2], box[3]))))
+        rotated_points = np.matmul(points, np.transpose(R))
+        # Translate back to center of the page
+        rotated_points[:, 0] += .5
+        rotated_points[:, 1] += .5
+        rotated_boxes.append(fit_rbbox(rotated_points.astype(np.float32)))
+    return np.array(rotated_boxes)

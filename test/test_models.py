@@ -243,3 +243,17 @@ def test_get_bitmap_angle(mock_bitmap):
 def test_rotate_page(mock_bitmap):
     rotated = models.rotate_page(mock_bitmap, -30.)
     assert abs(models.get_bitmap_angle(rotated) - 0.) < 1.
+
+
+def test_rotate_boxes():
+    boxes = np.array([[0.1, 0.1, 0.8, 0.3]])
+    # Angle = 0
+    rotated = models.rotate_boxes(boxes, angle=0.)
+    assert rotated.all() == boxes.all()
+    # Angle < 1:
+    rotated = models.rotate_boxes(boxes, angle=0.5)
+    assert rotated.all() == boxes.all()
+    # Angle = 30
+    rotated = models.rotate_boxes(boxes, angle=30)
+    assert rotated.shape == (1, 5)
+    print(rotated)
