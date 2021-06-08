@@ -5,10 +5,8 @@
 
 import numpy as np
 import cv2
-from numpy.ma.core import concatenate
 import tensorflow as tf
-from typing import List, Union, Tuple
-from ..utils.geometry import bbox_to_polygon, fit_rbbox
+from typing import List, Union
 
 __all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 
