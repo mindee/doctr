@@ -4,8 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from typing import Tuple, List
+from tensorflow.keras import layers, Sequential
+from typing import Tuple
 
 from .core import RecognitionModel
 from ..backbones.resnet import ResnetStage
@@ -33,7 +33,7 @@ class MAGC(layers.Layer):
         att_scale: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(name='MAGC', **kwargs)
+        super().__init__(**kwargs)
 
         self.headers = headers  # h
         self.inplanes = inplanes  # C
@@ -67,19 +67,21 @@ class MAGC(layers.Layer):
 
     @tf.function
     def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
-        B, H, W, C = tf.shape(inputs)
+        B, H, W, C = tf.shape(inputs)[0], tf.shape(inputs)[1], tf.shape(inputs)[2], tf.shape(inputs)[3]
 
-        # B, H, W, h, C/h
+        # B, H, W, C -->> B*h, H, W, C/h
         x = tf.reshape(inputs, shape=(B, H, W, self.headers, self.single_header_inplanes))
-        # B, h, H, W, C/h
         x = tf.transpose(x, perm=(0, 3, 1, 2, 4))
-        # B*h, H, W, C/h
         x = tf.reshape(x, shape=(B * self.headers, H, W, self.single_header_inplanes))
-        input_x = x
+
+        # Compute shorcut
+        shortcut = x
         # B*h, 1, H*W, C/h
-        input_x = tf.reshape(input_x, shape=(B * self.headers, 1, H * W, self.single_header_inplanes))
+        shortcut = tf.reshape(shortcut, shape=(B * self.headers, 1, H * W, self.single_header_inplanes))
         # B*h, 1, C/h, H*W
-        input_x = tf.transpose(input_x, perm=[0, 1, 3, 2])
+        shortcut = tf.transpose(shortcut, perm=[0, 1, 3, 2])
+
+        # Compute context mask
         # B*h, H, W, 1,
         context_mask = self.conv_mask(x)
         # B*h, 1, H*W, 1
@@ -89,23 +91,33 @@ class MAGC(layers.Layer):
             context_mask = context_mask / tf.sqrt(self.single_header_inplanes)
         # B*h, 1, H*W, 1
         context_mask = tf.keras.activations.softmax(context_mask, axis=2)
+
+        # Compute context
         # B*h, 1, C/h, 1
-        context = tf.matmul(input_x, context_mask)
+        context = tf.matmul(shortcut, context_mask)
         context = tf.reshape(context, shape=(B, 1, C, 1))
         # B, 1, 1, C
         context = tf.transpose(context, perm=(0, 1, 3, 2))
+        # Set shape to resolve shape when calling this module in the Sequential MAGCResnet
+        b, c = inputs.get_shape().as_list()[0], inputs.get_shape().as_list()[-1]
+        context.set_shape([b, 1, 1, c])
         return context
 
     def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
         # Context modeling: B, H, W, C  ->  B, 1, 1, C
         context = self.context_modeling(inputs)
-
         # Transform: B, 1, 1, C  ->  B, 1, 1, C
         transformed = self.transform(context)
         return inputs + transformed
 
 
-class MAGCResnet(layers.Sequential):
+class MAGCResnet(Sequential):
+    """Implements the modified resnet with MAGC layers, as described in paper.
+
+    Args:
+        headers: number of header to split channels in MAGC layers
+        input_shape: shape of the model input (without batch dim)
+    """
 
     def __init__(
         self,
@@ -114,27 +126,27 @@ class MAGCResnet(layers.Sequential):
     ) -> None:
         _layers = [
             # conv_1x
-            conv_sequence(out_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_shape),
-            conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
+            *conv_sequence(out_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_shape),
+            *conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
             layers.MaxPooling2D((2, 2), (2, 2)),
             # conv_2x
             ResnetStage(num_blocks=1, output_channels=256),
             MAGC(inplanes=256, headers=headers, att_scale=True),
-            conv_sequence(out_channels=256, activation='relu', bn=True, kernel_size=3),
+            *conv_sequence(out_channels=256, activation='relu', bn=True, kernel_size=3),
             layers.MaxPooling2D((2, 2), (2, 2)),
             # conv_3x
             ResnetStage(num_blocks=2, output_channels=512),
             MAGC(inplanes=512, headers=headers, att_scale=True),
-            conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
+            *conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
             layers.MaxPooling2D((2, 1), (2, 1)),
             # conv_4x
             ResnetStage(num_blocks=5, output_channels=512),
             MAGC(inplanes=512, headers=headers, att_scale=True),
-            conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
+            *conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
             # conv_5x
             ResnetStage(num_blocks=3, output_channels=512),
             MAGC(inplanes=512, headers=headers, att_scale=True),
-            conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
+            *conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
         ]
         super().__init__(_layers)
 
@@ -148,95 +160,106 @@ class MASTER(RecognitionModel):
         d_model: d parameter for the transformer decoder
         headers: headers for the MAGC module
         dff: depth of the pointwise feed-forward layer
+        num_heads: number of heads for the mutli-head attention module
         num_layers: number of decoder layers to stack
         max_length: maximum length of character sequence handled by the model
         input_shape: size of the image inputs
-
     """
+
     def __init__(
         self,
-        vocab_size: int,
-        d_model: int,
-        headers: int,
-        dff: int,
+        vocab: str,
+        d_model: int = 512,
+        headers: int = 1,
+        dff: int = 2048,
+        num_heads: int = 8,
         num_layers: int = 3,
         max_length: int = 50,
-        input_shape: tuple = (48, 160, 3),
+        input_size: tuple = (48, 160, 3),
     ) -> None:
-        super(MASTER, self).__init__(name='Master')
+        super(MASTER, self).__init__(name='Master', vocab=vocab)
 
-        self.input_shape = input_shape
+        self.input_size = input_size
         self.max_length = max_length
-        self.vocab_size = vocab_size
+        self.vocab_size = len(vocab)
 
-        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
-        self.seq_embedding = layers.Embedding(vocab_size, d_model)
+        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_size)
+        self.seq_embedding = layers.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
 
         self.decoder = Decoder(
             num_layers=num_layers,
             d_model=d_model,
-            num_heads=headers,
+            num_heads=num_heads,
             dff=dff,
-            target_vocab_size=vocab_size,
+            vocab_size=self.vocab_size,
             maximum_position_encoding=max_length,
         )
-        self.feature_pe = positional_encoding(input_shape[0] * input_shape[1], d_model)
-        self.linear = layers.Dense(vocab_size, kernel_initializer=tf.initializers.he_uniform())
+        self.feature_pe = positional_encoding(input_size[0] * input_size[1], d_model)
+        self.linear = layers.Dense(self.vocab_size + 1, kernel_initializer=tf.initializers.he_uniform())
 
     @tf.function
-    def make_mask(self, target: List[int]) -> tf.Tensor:
+    def make_mask(self, target: tf.Tensor) -> tf.Tensor:
         look_ahead_mask = create_look_ahead_mask(tf.shape(target)[1])
-        target_padding_mask = create_padding_mask(target, self.vocab_size + 2)  # TODO: define padding symbol in fn
+        target_padding_mask = create_padding_mask(target, self.vocab_size)  # Pad with EOS
         combined_mask = tf.maximum(target_padding_mask, look_ahead_mask)
         return combined_mask
 
-    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
-        image: tf.Tensor = inputs[0]
-        transcript: tf.Tensor = inputs[1]
+    def call(self, inputs: tf.Tensor, labels: tf.Tensor, **kwargs) -> tf.Tensor:
+        """Call function for training
 
-        feature = self.feature_extractor(image, **kwargs)
+        Args:
+            inputs: images
+            labels: tensor of labels
 
-        B, H, W, C = tf.shape(feature)
-
+        Return:
+            Computed logits
+        """
+        # Encode
+        feature = self.feature_extractor(inputs, **kwargs)
+        B, H, W, C = tf.shape(feature)[0], tf.shape(feature)[1], tf.shape(feature)[2], tf.shape(feature)[3]
         feature = tf.reshape(feature, shape=(B, H * W, C))
-        memory = feature + self.feature_pe[:, :H * W, :]
+        encoded = feature + self.feature_pe[:, :H * W, :]
 
-        tgt_mask = self.make_mask(transcript[:, :-1])
+        tgt_mask = self.make_mask(labels)
 
-        output, _ = self.decoder(transcript, memory, tgt_mask, None, training=True)
+        output, _ = self.decoder(labels, encoded, tgt_mask, None, training=True)
         logits = self.linear(output)
 
         return logits
 
     @tf.function
-    def decode(
-        self,
-        image: tf.Tensor,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    def decode(self, inputs: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+        """Decode function for prediction
 
-        feature = self.feature_extractor(image, training=False)
-        B, H, W, C = tf.shape(feature)
+        Args:
+            inputs: images to predict
+
+        Return:
+            A Tuple of tf.Tensor: predictions, logits
+        """
+
+        feature = self.feature_extractor(inputs, training=False)
+        B, H, W, C = tf.shape(feature)[0], tf.shape(feature)[1], tf.shape(feature)[2], tf.shape(feature)[3]
 
         feature = tf.reshape(feature, shape=(B, H * W, C))
-        memory = feature + self.feature_pe[:, :H * W, :]
+        encoded = feature + self.feature_pe[:, :H * W, :]
 
         max_len = tf.constant(self.max_length, dtype=tf.int32)
         start_symbol = tf.constant(self.vocab_size + 1, dtype=tf.int32)  # SOS (EOS = vocab_size)
-        padding_symbol = tf.constant(self.vocab_size + 2, dtype=tf.int32)  # PAD
+        padding_symbol = tf.constant(self.vocab_size, dtype=tf.int32)
 
         ys = tf.fill(dims=(B, max_len - 1), value=padding_symbol)
         start_vector = tf.fill(dims=(B, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-        final_logits = tf.zeros(shape=(B, max_len - 1, self.vocab_size), dtype=tf.float32)
+        final_logits = tf.zeros(shape=(B, max_len - 1, self.vocab_size + 1), dtype=tf.float32)  # don't fgt EOS
         # max_len = len + 2
-        for i in range(max_len - 1):
+        for i in range(self.max_length - 1):
             tf.autograph.experimental.set_loop_options(
-                shape_invariants=[(final_logits, tf.TensorShape([None, None, self.vocab_size]))]
+                shape_invariants=[(final_logits, tf.TensorShape([None, None, self.vocab_size + 1]))]
             )
             ys_mask = self.make_mask(ys)
-            #output, _ = self.decoder(ys, memory, False, ys_mask, None)
-            output = self.decoder(self.seq_embedding(ys), memory, None, ys_mask, training=False)
+            output, _ = self.decoder(ys, encoded, ys_mask, None, training=False)
             logits = self.linear(output)
             prob = tf.nn.softmax(logits, axis=-1)
             next_word = tf.argmax(prob, axis=-1, output_type=ys.dtype)
@@ -247,7 +270,8 @@ class MASTER(RecognitionModel):
 
             ys = tf.tensor_scatter_nd_update(ys, indices, next_word[:, i + 1])
 
-            if i == (max_len - 2):
+            if i == (self.max_length - 2):
                 final_logits = logits
 
-        return ys, final_logits[:, 1:]
+        # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
+        return ys, final_logits
