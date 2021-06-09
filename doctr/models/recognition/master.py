@@ -16,6 +16,7 @@ __all__ = ['MASTER']
 
 
 class MAGC(layers.Layer):
+
     """Implements the Multi-Aspect Global Context Attention, as described in
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
@@ -112,6 +113,7 @@ class MAGC(layers.Layer):
 
 
 class MAGCResnet(Sequential):
+
     """Implements the modified resnet with MAGC layers, as described in paper.
 
     Args:
@@ -152,6 +154,7 @@ class MAGCResnet(Sequential):
 
 
 class MASTER(RecognitionModel):
+
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
 

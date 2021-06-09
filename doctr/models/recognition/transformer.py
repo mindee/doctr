@@ -52,6 +52,7 @@ def create_look_ahead_mask(size: int) -> tf.Tensor:
 def scaled_dot_product_attention(
     q: tf.Tensor, k: tf.Tensor, v: tf.Tensor, mask: tf.Tensor
 ) -> Tuple[tf.Tensor, tf.Tensor]:
+
     """Calculate the attention weights.
     q, k, v must have matching leading dimensions.
     k, v must have matching penultimate dimension, i.e.: seq_len_k = seq_len_v.
