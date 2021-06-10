@@ -14,6 +14,7 @@ from doctr.models import extract_crops
         ["sar_vgg16_bn", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["crnn_resnet31", (32, 128, 3)],
+        ["master", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -38,6 +39,7 @@ def test_recognition_models(arch_name, input_shape):
     [
         ["SARPostProcessor", [2, 30, 119]],
         ["CTCPostProcessor", [2, 30, 119]],
+        ["MASTERPostProcessor", [2, 30, 119]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -86,6 +88,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
         "sar_vgg16_bn",
         "sar_resnet31",
         "crnn_resnet31",
+        "master"
     ],
 )
 def test_recognition_zoo(arch_name):
@@ -106,16 +109,11 @@ def test_recognition_zoo_error():
 
 
 def test_master(mock_vocab, max_len=50, batch_size=16):
-    master = recognition.MASTER(vocab=mock_vocab, d_model=512, dff=512, num_heads=2, input_size=(48, 160, 3))
+    master = recognition.MASTER(vocab=mock_vocab, d_model=512, dff=512, num_heads=2, input_shape=(48, 160, 3))
     input_tensor = tf.random.uniform(shape=[batch_size, 48, 160, 3], minval=0, maxval=1)
-    mock_labels = tf.cast(
-        len(mock_vocab) * tf.random.uniform(shape=[batch_size, max_len], minval=0, maxval=1), tf.int32
-    )
-    logits = master(input_tensor, mock_labels)
-    assert isinstance(logits, tf.Tensor)
-    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))  # 1 more for EOS
-    prediction, logits = master.decode(input_tensor)
-    assert isinstance(prediction, tf.Tensor)
-    assert isinstance(logits, tf.Tensor)
-    assert prediction.shape == (batch_size, max_len)
-    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))
+    mock_labels = ['erv', 'aze', 'rf', 'erv', 'aze', 'rf', 'erv', 'aze', 'rf', 'erv', 'aze', 'rf', 'rf', 'erv', 'aze', 'rf']
+    out = master(input_tensor, mock_labels, return_model_output=True)
+    assert isinstance(out['out_map'], tf.Tensor)
+    assert isinstance(out['loss'], tf.Tensor)
+    assert out['out_map'].shape == (batch_size, max_len, 1 + len(mock_vocab))  # 1 more for EOS
+    assert out['loss'].shape == (batch_size, 1)
