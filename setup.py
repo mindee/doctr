@@ -36,7 +36,22 @@ with open(cwd.joinpath(package_name, 'version.py'), 'w') as f:
 with open('README.md', 'r') as f:
     readme = f.read()
 
-requirements = [
+# Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
+deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
+
+def deps_list(*pkgs):
+    return [deps[pkg] for pkg in pkgs]
+
+extras = {}
+extras["tf"] = deps_list("tensorflow>=2.4.0")
+extras["tf-cpu"] = deps_list("tensorflow-cpu>=2.4.0")
+extras["torch"] = deps_list("torch>=1.8.0", "torchvision>=0.9.0")
+extras["all"] = (
+    extras["tf"]
+    + extras["torch"]
+)
+
+install_requires = [
     "numpy>=1.16.0",
     "scipy>=1.4.0",
     "opencv-python>=4.2",
@@ -82,6 +97,7 @@ setup(
     zip_safe=True,
     python_requires='>=3.6.0',
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=install_requires,
+    extras_require=extras,
     package_data={'': ['LICENSE']}
 )
