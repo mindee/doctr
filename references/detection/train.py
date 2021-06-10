@@ -194,7 +194,8 @@ def main(args):
     if args.wb:
 
         run = wandb.init(
-            project=exp_name,
+            name=exp_name,
+            project="text-detection",
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
