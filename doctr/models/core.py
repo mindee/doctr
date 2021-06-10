@@ -9,7 +9,7 @@ from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
-from ._utils import extract_crops, extract_rcrops, rotate_page
+from ._utils import extract_crops, extract_rcrops, rotate_page, rotate_boxes
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
@@ -57,8 +57,9 @@ class OCRPredictor(NestedObject):
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 
-        # Reorganize
-        boxes, _ = zip(*boxes)
+        # Rotate back boxes if necessary
+        boxes, angles = zip(*boxes)
+        boxes = [rotate_boxes(boxes_page, angle) for boxes_page, angle in zip(boxes, angles)]
         out = self.doc_builder(boxes, word_preds, [tuple(page.shape[:2]) for page in pages])
         return out
 
