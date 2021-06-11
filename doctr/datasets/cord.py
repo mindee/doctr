@@ -28,6 +28,7 @@ class CORD(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
     TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip',
@@ -53,6 +54,7 @@ class CORD(VisionDataset):
         self.train = train
         self.sample_transforms = sample_transforms
         for img_path in os.listdir(self.root):
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             stem = Path(img_path).stem
@@ -64,23 +66,25 @@ class CORD(VisionDataset):
                         if len(word["text"]) > 0:
                             x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
                             y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
-                            if not rotated_bbox:
-                                # Reduce 8 coords to 4
-                                left, right = min(x), max(x)
-                                top, bot = min(y), max(y)
-                                _targets.append((word["text"], [left, top, right, bot]))
-                            else:
+                            if rotated_bbox:
                                 x, y, w, h, alpha = fit_rbbox(np.array([
                                     [x[0], y[0]],
                                     [x[1], y[1]],
                                     [x[2], y[2]],
                                     [x[3], y[3]],
-                                ], np.float32))
-                                _targets.append((word["text"], [x, y, w, h, alpha]))
+                                ], dtype=np.float32))
+                                box = [x, y, w, h, alpha]
+                            else:
+                                # Reduce 8 coords to 4
+                                box = [min(x), min(y), max(x), max(y)]
+                            _targets.append((word['text'], box))
 
             text_targets, box_targets = zip(*_targets)
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.int), labels=text_targets)))
+            self.data.append((
+                img_path,
+                dict(boxes=np.asarray(box_targets, dtype=np.int).clip(min=0), labels=text_targets)
+            ))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
