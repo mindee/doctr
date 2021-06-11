@@ -103,3 +103,19 @@ def test_recognition_zoo(arch_name):
 def test_recognition_zoo_error():
     with pytest.raises(ValueError):
         _ = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)
+
+
+def test_master(mock_vocab, max_len=50, batch_size=16):
+    master = recognition.MASTER(vocab=mock_vocab, d_model=512, dff=512, num_heads=2, input_size=(48, 160, 3))
+    input_tensor = tf.random.uniform(shape=[batch_size, 48, 160, 3], minval=0, maxval=1)
+    mock_labels = tf.cast(
+        len(mock_vocab) * tf.random.uniform(shape=[batch_size, max_len], minval=0, maxval=1), tf.int32
+    )
+    logits = master(input_tensor, mock_labels)
+    assert isinstance(logits, tf.Tensor)
+    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))  # 1 more for EOS
+    prediction, logits = master.decode(input_tensor)
+    assert isinstance(prediction, tf.Tensor)
+    assert isinstance(logits, tf.Tensor)
+    assert prediction.shape == (batch_size, max_len)
+    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))

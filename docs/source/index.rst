@@ -55,6 +55,7 @@ Text recognition models
 """""""""""""""""""""""
    * `SAR <https://arxiv.org/pdf/1811.00751.pdf>`_ (Show, Attend and Read)
    * `CRNN <https://arxiv.org/pdf/1507.05717.pdf>`_ (Convolutional Recurrent Neural Network)
+   * `MASTER <https://arxiv.org/pdf/1910.02562.pdf>`_ (Multi-Aspect Non-local Network for Scene Text Recognition)
 
 
 Supported datasets
