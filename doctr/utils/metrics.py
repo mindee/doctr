@@ -5,7 +5,7 @@
 
 import numpy as np
 import cv2
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
 from doctr.utils.geometry import rbbox_to_polygon
@@ -268,7 +268,7 @@ class LocalizationConfusion:
         self.num_gts += gts.shape[0]
         self.num_preds += preds.shape[0]
 
-    def summary(self) -> Tuple[float, float, float]:
+    def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
         """Computes the aggregated metrics
 
         Returns:
@@ -382,7 +382,7 @@ class OCRMetric:
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
-    def summary(self) -> Tuple[Dict[str, float], Dict[str, float], float]:
+    def summary(self) -> Tuple[Dict[str, Optional[float]], Dict[str, Optional[float]], Optional[float]]:
         """Computes the aggregated metrics
 
         Returns:

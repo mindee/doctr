@@ -6,7 +6,7 @@
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops, extract_rcrops, rotate_page, rotate_boxes
@@ -231,7 +231,7 @@ class DocumentBuilder(NestedObject):
         # Compute clusters
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
 
-        _blocks = dict()
+        _blocks: Dict[int, List[int]] = {}
         # Form clusters
         for line_idx, cluster_idx in enumerate(clusters):
             if cluster_idx in _blocks.keys():
@@ -266,13 +266,13 @@ class DocumentBuilder(NestedObject):
             lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
             if self.resolve_blocks:
-                blocks = self._resolve_blocks(boxes[:, :-1], lines)
+                _blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
-                blocks = [lines]
+                _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
             lines = [self._sort_boxes(boxes[:, :-1])]
-            blocks = [lines]
+            _blocks = [lines]
 
         blocks = [
             Block(
@@ -288,7 +288,7 @@ class DocumentBuilder(NestedObject):
                         ) for idx in line
                     ]
                 ) for line in lines]
-            ) for lines in blocks
+            ) for lines in _blocks
         ]
 
         return blocks

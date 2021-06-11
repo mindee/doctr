@@ -5,11 +5,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple, Dict, List, Any, Optional
+from typing import Tuple, Dict, List, Any, Optional, Union
 
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.visualization import visualize_page
-from doctr.utils.common_types import BoundingBox
+from doctr.utils.common_types import BoundingBox, RotatedBbox
 from doctr.utils.repr import NestedObject
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
@@ -51,7 +51,7 @@ class Word(Element):
 
     _exported_keys: List[str] = ["value", "confidence", "geometry"]
 
-    def __init__(self, value: str, confidence: float, geometry: BoundingBox) -> None:
+    def __init__(self, value: str, confidence: float, geometry: Union[BoundingBox, RotatedBbox]) -> None:
         super().__init__()
         self.value = value
         self.confidence = confidence
@@ -107,7 +107,7 @@ class Line(Element):
     def __init__(
         self,
         words: List[Word],
-        geometry: Optional[BoundingBox] = None,
+        geometry: Optional[Union[BoundingBox, RotatedBbox]] = None,
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
@@ -142,7 +142,7 @@ class Block(Element):
         self,
         lines: List[Line] = [],
         artefacts: List[Artefact] = [],
-        geometry: Optional[BoundingBox] = None,
+        geometry: Optional[Union[BoundingBox, RotatedBbox]] = None,
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
