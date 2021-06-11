@@ -304,7 +304,7 @@ class LinkNet(DetectionModel, NestedObject):
             )
         )
         return tf.math.reduce_mean(loss)
-    
+
     def compute_focal_loss(
         self,
         out_map: tf.Tensor,
