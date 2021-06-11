@@ -175,3 +175,19 @@ def test_linknet_postprocessor():
     assert all(sample.shape[1] == 6 for sample in r_out)
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
+
+def test_linknet_losses():
+    batch_size = 2
+    input_shape=(1024, 1024, 3)
+    model = detection.linknet(pretrained=True)
+    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
+    target = [
+        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
+        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32), flags=[True, False])
+    ]
+    # test focal loss
+    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)
+    assert isinstance(out['loss'], tf.Tensor)
+    # test bce loss
+    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=False)
+    assert isinstance(out['loss'], tf.Tensor)
