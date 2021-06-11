@@ -9,6 +9,11 @@ This library requires Python 3.6 or higher.
 Prerequisites
 =============
 
+Whichever OS you are running, you will need to install at least TensorFlow or PyTorch. You can refer to their corresponding installation pages to do so:
+
+* TensorFlow: `installation page <https://www.tensorflow.org/install/>`_.
+* PyTorch: `installation page <https://pytorch.org/get-started/locally/#start-locally>`_.
+
 If you are running another OS than Linux, you will need a few extra dependencies.
 
 For MacOS users, you can install them as follows:

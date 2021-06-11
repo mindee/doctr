@@ -26,7 +26,7 @@ COPY ./README.md /tmp/README.md
 COPY ./setup.py /tmp/setup.py
 COPY ./doctr /tmp/doctr
 
-RUN pip install -e /tmp/. \
+RUN pip install -e /tmp/.[tf] \
     && pip cache purge \
     && rm -rf /root/.cache/pip
 

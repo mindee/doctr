@@ -30,7 +30,7 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install -e . --upgrade
+          pip install -e .[tf] --upgrade
       - name: Run analysis script
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
@@ -57,4 +57,4 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install -e . --upgrade
+          pip install -e .[tf] --upgrade

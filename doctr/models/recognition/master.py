@@ -193,15 +193,15 @@ class MASTER(RecognitionModel):
         num_heads: int = 8,
         num_layers: int = 3,
         max_length: int = 50,
-        input_shape: tuple = (48, 160, 3),
-        cfg: Optional[Dict[str, Any]] = None,
+        input_size: tuple = (48, 160, 3),
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg)
+        super().__init__(vocab=vocab)
 
+        self.input_size = input_size
         self.max_length = max_length
         self.vocab_size = len(vocab)
 
-        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
+        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_size)
         self.seq_embedding = layers.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
 
         self.decoder = Decoder(
@@ -357,7 +357,6 @@ class MASTER(RecognitionModel):
 
 class MASTERPostProcessor(RecognitionPostProcessor):
     """Post processor for MASTER architectures
-
     Args:
         vocab: string containing the ordered sequence of supported characters
         ignore_case: if True, ignore case of letters
@@ -417,17 +416,14 @@ def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = Non
 
 def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     """MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
-
     Example::
         >>> import tensorflow as tf
         >>> from doctr.models import sar_vgg16_bn
         >>> model = master(pretrained=False)
         >>> input_tensor = tf.random.uniform(shape=[1, 48, 160, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
-
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
     Returns:
         text recognition architecture
     """
