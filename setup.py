@@ -8,6 +8,7 @@ Package installation setup
 """
 
 import os
+import re
 from pathlib import Path
 import subprocess
 
@@ -36,7 +37,8 @@ with open(cwd.joinpath(package_name, 'version.py'), 'w') as f:
 with open('README.md', 'r') as f:
     readme = f.read()
 
-requirements = [
+# Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
+_deps = [
     "numpy>=1.16.0",
     "scipy>=1.4.0",
     "opencv-python>=4.2",
@@ -48,7 +50,39 @@ requirements = [
     "mplcursors>=0.3",
     "weasyprint>=52.2",
     "unidecode>=1.0.0",
+    "tensorflow-cpu>=2.4.0",
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
 ]
+
+deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
+
+
+def deps_list(*pkgs):
+    return [deps[pkg] for pkg in pkgs]
+
+
+install_requires = [
+    deps["numpy"],
+    deps["scipy"],
+    deps["opencv-python"],
+    deps["PyMuPDF"],
+    deps["pyclipper"],
+    deps["shapely"],
+    deps["matplotlib"],
+    deps["mplcursors"],
+    deps["weasyprint"],
+    deps["unidecode"],
+]
+
+extras = {}
+extras["tf"] = deps_list("tensorflow")
+extras["tf-cpu"] = deps_list("tensorflow-cpu")
+extras["torch"] = deps_list("torch", "torchvision")
+extras["all"] = (
+    extras["tf"]
+    + extras["torch"]
+)
 
 setup(
     # Metadata
@@ -63,8 +97,9 @@ setup(
     download_url='https://github.com/mindee/doctr/tags',
     license='Apache',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
+        "Intended Audience :: Education",
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
@@ -72,19 +107,16 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Software Development',
-        'Topic :: Software Development :: Libraries',
-        'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    keywords=['ocr', 'deep learning', 'tensorflow', 'text detection', 'text recognition'],
+    keywords=['OCR', 'deep learning', 'computer vision', 'tensorflow', 'pytorch', 'text detection', 'text recognition'],
 
     # Package info
     packages=find_packages(exclude=('test',)),
     zip_safe=True,
     python_requires='>=3.6.0',
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=install_requires,
+    extras_require=extras,
     package_data={'': ['LICENSE']}
 )

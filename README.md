@@ -72,9 +72,9 @@ json_output = result.export()
 
 ## Installation
 
-Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR.
+Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR. Additionally, you will need to install at least one of [TensorFlow](https://www.tensorflow.org/install/) or [PyTorch](https://pytorch.org/get-started/locally/#start-locally).
 
-You can install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
+You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
 ```shell
 pip install python-doctr
