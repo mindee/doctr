@@ -193,15 +193,15 @@ class MASTER(RecognitionModel):
         num_heads: int = 8,
         num_layers: int = 3,
         max_length: int = 50,
-        input_size: tuple = (48, 160, 3),
+        input_shape: tuple = (48, 160, 3),
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab)
+        super().__init__(vocab=vocab, cfg=cfg)
 
-        self.input_size = input_size
         self.max_length = max_length
         self.vocab_size = len(vocab)
 
-        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_size)
+        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
         self.seq_embedding = layers.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
 
         self.decoder = Decoder(
