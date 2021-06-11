@@ -29,6 +29,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
 }
 
+
 class MAGC(layers.Layer):
 
     """Implements the Multi-Aspect Global Context Attention, as described in
