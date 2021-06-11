@@ -10,8 +10,6 @@ import sys
 import logging
 import importlib.util
 
-logger = logging.get_logger(__name__)
-
 if sys.version_info < (3, 8):
     import importlib_metadata
 else:
@@ -29,11 +27,11 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     if _torch_available:
         try:
             _torch_version = importlib_metadata.version("torch")
-            logger.info(f"PyTorch version {_torch_version} available.")
+            logging.info(f"PyTorch version {_torch_version} available.")
         except importlib_metadata.PackageNotFoundError:
             _torch_available = False
 else:
-    logger.info("Disabling PyTorch because USE_TF is set")
+    logging.info("Disabling PyTorch because USE_TF is set")
     _torch_available = False
 
 
@@ -62,12 +60,12 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         _tf_available = _tf_version is not None
     if _tf_available:
         if version.parse(_tf_version) < version.parse("2"):
-            logger.info(f"TensorFlow found but with version {_tf_version}. Transformers requires version 2 minimum.")
+            logging.info(f"TensorFlow found but with version {_tf_version}. Transformers requires version 2 minimum.")
             _tf_available = False
         else:
-            logger.info(f"TensorFlow version {_tf_version} available.")
+            logging.info(f"TensorFlow version {_tf_version} available.")
 else:
-    logger.info("Disabling Tensorflow because USE_TORCH is set")
+    logging.info("Disabling Tensorflow because USE_TORCH is set")
     _tf_available = False
 
 
