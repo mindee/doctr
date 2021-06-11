@@ -17,11 +17,30 @@ __all__ = ['Decoder', 'positional_encoding', 'create_look_ahead_mask', 'create_p
 
 
 def get_angles(pos: np.array, i: np.array, d_model: int = 512) -> np.array:
+    """This function compute the 2D array of angles for sinusoidal positional encoding.
+
+    Args:
+        pos: range of positions to encode
+        i: range of depth to encode positions
+        d_model: depth parameter of the model
+
+    Returns:
+        2D array of angles, len(pos) x len(i)
+    """
     angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
     return pos * angle_rates
 
 
 def positional_encoding(position: int, d_model: int = 512) -> tf.Tensor:
+    """This function computes the 2D positional encoding of the position, on a depth d_model
+
+    Args:
+        position: Number of positions to encode
+        d_model: depth of the encoding
+    
+    Returns:
+        2D positional encoding as described in Transformer paper.
+    """
     angle_rads = get_angles(
         np.arange(position)[:, np.newaxis],
         np.arange(d_model)[np.newaxis, :],
@@ -78,7 +97,7 @@ def scaled_dot_product_attention(
     # add up to 1.
     attention_weights = tf.nn.softmax(scaled_attention_logits, axis=-1)  # (..., seq_len_q, seq_len_k)
     output = tf.matmul(attention_weights, v)  # (..., seq_len_q, depth_v)
-    return output, attention_weights
+    return output
 
 
 class MultiHeadAttention(tf.keras.layers.Layer):
@@ -118,8 +137,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         # scaled_attention.shape == (batch_size, num_heads, seq_len_q, depth)
         # attention_weights.shape == (batch_size, num_heads, seq_len_q, seq_len_k)
-        scaled_attention, attention_weights = scaled_dot_product_attention(
-            q, k, v, mask)
+        scaled_attention = scaled_dot_product_attention(q, k, v, mask)
 
         scaled_attention = tf.transpose(scaled_attention, perm=[0, 2, 1, 3])  # (batch, seq_len_q, num_heads, depth)
 
@@ -128,7 +146,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
 
         output = self.dense(concat_attention)  # (batch_size, seq_len_q, d_model)
 
-        return output, attention_weights
+        return output
 
 
 def point_wise_feed_forward_network(d_model: int = 512, dff: int = 2048) -> tf.keras.Sequential:
@@ -164,17 +182,16 @@ class DecoderLayer(tf.keras.layers.Layer):
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # enc_output.shape == (batch_size, input_seq_len, d_model)
 
-        attn1, attn_weights_block1 = self.mha1(x, x, x, look_ahead_mask)  # (batch_size, target_seq_len, d_model)
+        attn1 = self.mha1(x, x, x, look_ahead_mask)  # (batch_size, target_seq_len, d_model)
         out1 = self.layernorm1(attn1 + x)
 
-        attn2, attn_weights_block2 = self.mha2(
-            enc_output, enc_output, out1, padding_mask)  # (batch_size, target_seq_len, d_model)
+        attn2 = self.mha2(enc_output, enc_output, out1, padding_mask)  # (batch_size, target_seq_len, d_model)
         out2 = self.layernorm2(attn2 + out1)  # (batch_size, target_seq_len, d_model)
 
         ffn_output = self.ffn(out2)  # (batch_size, target_seq_len, d_model)
         out3 = self.layernorm3(ffn_output + out2)  # (batch_size, target_seq_len, d_model)
 
-        return out3, attn_weights_block1, attn_weights_block2
+        return out3
 
 
 class Decoder(tf.keras.layers.Layer):
@@ -209,18 +226,15 @@ class Decoder(tf.keras.layers.Layer):
     ) -> Tuple[tf.Tensor, tf.Tensor]:
 
         seq_len = tf.shape(x)[1]
-        attention_weights = {}
 
         x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
         x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
         x += self.pos_encoding[:, :seq_len, :]
 
         for i in range(self.num_layers):
-            x, block1, block2 = self.dec_layers[i](
+            x = self.dec_layers[i](
                 x, enc_output, training, look_ahead_mask, padding_mask
             )
-            attention_weights['decoder_layer{}_block1'.format(i + 1)] = block1
-            attention_weights['decoder_layer{}_block2'.format(i + 1)] = block2
 
         # x.shape == (batch_size, target_seq_len, d_model)
-        return x, attention_weights
+        return x

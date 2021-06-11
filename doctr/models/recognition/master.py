@@ -68,17 +68,17 @@ class MAGC(layers.Layer):
 
     @tf.function
     def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
-        B, H, W, C = tf.shape(inputs)[0], tf.shape(inputs)[1], tf.shape(inputs)[2], tf.shape(inputs)[3]
+        b, h, w, c = (tf.shape(inputs)[i] for i in range(4))
 
         # B, H, W, C -->> B*h, H, W, C/h
-        x = tf.reshape(inputs, shape=(B, H, W, self.headers, self.single_header_inplanes))
+        x = tf.reshape(inputs, shape=(b, h, w, self.headers, self.single_header_inplanes))
         x = tf.transpose(x, perm=(0, 3, 1, 2, 4))
-        x = tf.reshape(x, shape=(B * self.headers, H, W, self.single_header_inplanes))
+        x = tf.reshape(x, shape=(b * self.headers, h, w, self.single_header_inplanes))
 
         # Compute shorcut
         shortcut = x
         # B*h, 1, H*W, C/h
-        shortcut = tf.reshape(shortcut, shape=(B * self.headers, 1, H * W, self.single_header_inplanes))
+        shortcut = tf.reshape(shortcut, shape=(b * self.headers, 1, h * w, self.single_header_inplanes))
         # B*h, 1, C/h, H*W
         shortcut = tf.transpose(shortcut, perm=[0, 1, 3, 2])
 
@@ -86,7 +86,7 @@ class MAGC(layers.Layer):
         # B*h, H, W, 1,
         context_mask = self.conv_mask(x)
         # B*h, 1, H*W, 1
-        context_mask = tf.reshape(context_mask, shape=(B * self.headers, 1, H * W, 1))
+        context_mask = tf.reshape(context_mask, shape=(b * self.headers, 1, h * w, 1))
         # scale variance
         if self.att_scale and self.headers > 1:
             context_mask = context_mask / tf.sqrt(self.single_header_inplanes)
@@ -96,12 +96,12 @@ class MAGC(layers.Layer):
         # Compute context
         # B*h, 1, C/h, 1
         context = tf.matmul(shortcut, context_mask)
-        context = tf.reshape(context, shape=(B, 1, C, 1))
+        context = tf.reshape(context, shape=(b, 1, c, 1))
         # B, 1, 1, C
         context = tf.transpose(context, perm=(0, 1, 3, 2))
         # Set shape to resolve shape when calling this module in the Sequential MAGCResnet
-        b, c = inputs.get_shape().as_list()[0], inputs.get_shape().as_list()[-1]
-        context.set_shape([b, 1, 1, c])
+        batch, chan = inputs.get_shape().as_list()[0], inputs.get_shape().as_list()[-1]
+        context.set_shape([batch, 1, 1, chan])
         return context
 
     def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
@@ -159,14 +159,14 @@ class MASTER(RecognitionModel):
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
 
     Args:
-        vocab_size: size of the vocabulary, (without EOS, SOS, PAD)
+        vocab: vocabulary, (without EOS, SOS, PAD)
         d_model: d parameter for the transformer decoder
         headers: headers for the MAGC module
         dff: depth of the pointwise feed-forward layer
         num_heads: number of heads for the mutli-head attention module
         num_layers: number of decoder layers to stack
         max_length: maximum length of character sequence handled by the model
-        input_shape: size of the image inputs
+        input_size: size of the image inputs
     """
 
     def __init__(
@@ -180,7 +180,7 @@ class MASTER(RecognitionModel):
         max_length: int = 50,
         input_size: tuple = (48, 160, 3),
     ) -> None:
-        super(MASTER, self).__init__(name='Master', vocab=vocab)
+        super().__init__(vocab=vocab)
 
         self.input_size = input_size
         self.max_length = max_length
@@ -219,13 +219,13 @@ class MASTER(RecognitionModel):
         """
         # Encode
         feature = self.feature_extractor(inputs, **kwargs)
-        B, H, W, C = tf.shape(feature)[0], tf.shape(feature)[1], tf.shape(feature)[2], tf.shape(feature)[3]
-        feature = tf.reshape(feature, shape=(B, H * W, C))
-        encoded = feature + self.feature_pe[:, :H * W, :]
+        b, h, w, c = (tf.shape(feature)[i] for i in range(4))
+        feature = tf.reshape(feature, shape=(b, h * w, c))
+        encoded = feature + self.feature_pe[:, :h * w, :]
 
         tgt_mask = self.make_mask(labels)
 
-        output, _ = self.decoder(labels, encoded, tgt_mask, None, training=True)
+        output = self.decoder(labels, encoded, tgt_mask, None, training=True)
         logits = self.linear(output)
 
         return logits
@@ -242,33 +242,30 @@ class MASTER(RecognitionModel):
         """
 
         feature = self.feature_extractor(inputs, training=False)
-        B, H, W, C = tf.shape(feature)[0], tf.shape(feature)[1], tf.shape(feature)[2], tf.shape(feature)[3]
+        b, h, w, c = (tf.shape(feature)[i] for i in range(4))
 
-        feature = tf.reshape(feature, shape=(B, H * W, C))
-        encoded = feature + self.feature_pe[:, :H * W, :]
+        feature = tf.reshape(feature, shape=(b, h * w, c))
+        encoded = feature + self.feature_pe[:, :h * w, :]
 
         max_len = tf.constant(self.max_length, dtype=tf.int32)
         start_symbol = tf.constant(self.vocab_size + 1, dtype=tf.int32)  # SOS (EOS = vocab_size)
         padding_symbol = tf.constant(self.vocab_size, dtype=tf.int32)
 
-        ys = tf.fill(dims=(B, max_len - 1), value=padding_symbol)
-        start_vector = tf.fill(dims=(B, 1), value=start_symbol)
+        ys = tf.fill(dims=(b, max_len - 1), value=padding_symbol)
+        start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-        final_logits = tf.zeros(shape=(B, max_len - 1, self.vocab_size + 1), dtype=tf.float32)  # don't fgt EOS
+        final_logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 1), dtype=tf.float32)  # don't fgt EOS
         # max_len = len + 2
         for i in range(self.max_length - 1):
-            tf.autograph.experimental.set_loop_options(
-                shape_invariants=[(final_logits, tf.TensorShape([None, None, self.vocab_size + 1]))]
-            )
             ys_mask = self.make_mask(ys)
-            output, _ = self.decoder(ys, encoded, ys_mask, None, training=False)
+            output = self.decoder(ys, encoded, ys_mask, None, training=False)
             logits = self.linear(output)
             prob = tf.nn.softmax(logits, axis=-1)
             next_word = tf.argmax(prob, axis=-1, output_type=ys.dtype)
 
             # ys.shape = B, T
-            i_mesh, j_mesh = tf.meshgrid(tf.range(B), tf.range(max_len), indexing='ij')
+            i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(max_len), indexing='ij')
             indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
 
             ys = tf.tensor_scatter_nd_update(ys, indices, next_word[:, i + 1])
