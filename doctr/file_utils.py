@@ -62,7 +62,7 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
                 pass
         _tf_available = _tf_version is not None
     if _tf_available:
-        if int(_tf_version.split('.')[0]) < 2:
+        if int(_tf_version.split('.')[0]) < 2:  # type: ignore[union-attr]
             logging.info(f"TensorFlow found but with version {_tf_version}. Transformers requires version 2 minimum.")
             _tf_available = False
         else:
