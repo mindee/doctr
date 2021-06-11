@@ -37,7 +37,7 @@ def positional_encoding(position: int, d_model: int = 512) -> tf.Tensor:
     Args:
         position: Number of positions to encode
         d_model: depth of the encoding
-    
+
     Returns:
         2D positional encoding as described in Transformer paper.
     """
