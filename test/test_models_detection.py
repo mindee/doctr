@@ -176,9 +176,10 @@ def test_linknet_postprocessor():
     # Relative coords
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
 
+
 def test_linknet_losses():
     batch_size = 2
-    input_shape=(1024, 1024, 3)
+    input_shape = (1024, 1024, 3)
     model = detection.linknet(pretrained=True)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
