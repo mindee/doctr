@@ -37,21 +37,7 @@ with open('README.md', 'r') as f:
     readme = f.read()
 
 # Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
-deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
-
-def deps_list(*pkgs):
-    return [deps[pkg] for pkg in pkgs]
-
-extras = {}
-extras["tf"] = deps_list("tensorflow>=2.4.0")
-extras["tf-cpu"] = deps_list("tensorflow-cpu>=2.4.0")
-extras["torch"] = deps_list("torch>=1.8.0", "torchvision>=0.9.0")
-extras["all"] = (
-    extras["tf"]
-    + extras["torch"]
-)
-
-install_requires = [
+_deps = [
     "numpy>=1.16.0",
     "scipy>=1.4.0",
     "opencv-python>=4.2",
@@ -63,7 +49,38 @@ install_requires = [
     "mplcursors>=0.3",
     "weasyprint>=52.2",
     "unidecode>=1.0.0",
+    "tensorflow-cpu>=2.4.0",
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
 ]
+
+deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
+
+def deps_list(*pkgs):
+    return [deps[pkg] for pkg in pkgs]
+
+
+install_requires = [
+    deps["numpy"],
+    deps["scipy"],
+    deps["opencv-python"],
+    deps["PyMuPDF"],
+    deps["pyclipper"],
+    deps["shapely"],
+    deps["matplotlib"],
+    deps["mplcursors"],
+    deps["weasyprint"],
+    deps["unidecode"],
+]
+
+extras = {}
+extras["tf"] = deps_list("tensorflow")
+extras["tf-cpu"] = deps_list("tensorflow-cpu")
+extras["torch"] = deps_list("torch", "torchvision")
+extras["all"] = (
+    extras["tf"]
+    + extras["torch"]
+)
 
 setup(
     # Metadata
