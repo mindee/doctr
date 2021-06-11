@@ -57,6 +57,7 @@ _deps = [
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
 
+
 def deps_list(*pkgs):
     return [deps[pkg] for pkg in pkgs]
 
