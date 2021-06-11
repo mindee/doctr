@@ -196,7 +196,7 @@ class MASTER(RecognitionModel):
         input_shape: tuple = (48, 160, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab)
+        super().__init__(vocab=vocab, cfg=cfg)
 
         self.max_length = max_length
         self.vocab_size = len(vocab)
