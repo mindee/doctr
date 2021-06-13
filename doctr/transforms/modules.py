@@ -159,7 +159,7 @@ class ColorInversion(NestedObject):
     Args:
         min_val: range [min_val, 1] to colorize RGB pixels
     """
-    def __init__(self, min_val: float = 0.6) -> None:
+    def __init__(self, min_val: float = 0.5) -> None:
         self.min_val = min_val
 
     def extra_repr(self) -> str:
