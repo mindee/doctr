@@ -80,7 +80,7 @@ jobs:
 
       - name: Run unittests
         run: |
-          coverage run -m pytest test/
+          coverage run -m pytest test/ --ignore test/pytorch
           coverage xml
 
       - name: Upload coverage to Codecov
@@ -117,7 +117,7 @@ jobs:
 
       - name: Run unittests
         run: |
-          coverage run -m pytest test/pytorch
+          coverage run -m pytest test/pytorch/ --noconftest
           coverage xml
 
       - name: Upload coverage to Codecov
