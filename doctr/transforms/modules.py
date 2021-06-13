@@ -31,7 +31,7 @@ class Compose(NestedObject):
 
     _children_names: List[str] = ['transforms']
 
-    def __init__(self, transforms: List[NestedObject]) -> None:
+    def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
 
     def __call__(self, x: Any) -> Any:
@@ -339,7 +339,7 @@ class OneOf(NestedObject):
 
     _children_names: List[str] = ['transforms']
 
-    def __init__(self, transforms: List[NestedObject]) -> None:
+    def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
@@ -362,7 +362,7 @@ class RandomApply(NestedObject):
         transform: transformation to apply
         p: probability to apply
     """
-    def __init__(self, transform: NestedObject, p: float = .5) -> None:
+    def __init__(self, transform: Callable[[Any], Any], p: float = .5) -> None:
         self.transform = transform
         self.p = p
 
