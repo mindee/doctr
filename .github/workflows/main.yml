@@ -85,7 +85,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: coverage-main.xml
+          name: coverage-main
           path: ./coverage.xml
 
   test-pytorch:
@@ -120,7 +120,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: coverage-pt.xml
+          name: coverage-pytorch
           path: ./coverage-pt.xml
 
   codecov-upload:
@@ -132,7 +132,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./coverage-main.xml,./coverage-pt.xml
           flags: unittests
           fail_ci_if_error: true
 
