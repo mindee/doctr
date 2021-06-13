@@ -1,6 +1,5 @@
 import pytest
 import torch
-import numpy as np
 
 from doctr.models.detection import differentiable_binarization_pt as db
 
