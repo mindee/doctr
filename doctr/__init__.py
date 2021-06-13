@@ -1,4 +1,4 @@
-from .file_utils import *
+from .file_utils import is_tf_available, is_torch_available
 from .version import __version__  # noqa: F401
 
 if is_tf_available():
