@@ -113,7 +113,7 @@ class Line(Element):
         if geometry is None:
             # Check whether this is a rotated or straight box
             box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 5 else resolve_enclosing_bbox
-            geometry = box_resolution_fn([w.geometry for w in words])
+            geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator]
 
         super().__init__(words=words)
         self.geometry = geometry
@@ -149,7 +149,7 @@ class Block(Element):
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
             box_resolution_fn = resolve_enclosing_rbbox if len(lines[0].geometry) == 5 else resolve_enclosing_bbox
-            geometry = box_resolution_fn(line_boxes + artefact_boxes)
+            geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator]
 
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry

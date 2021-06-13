@@ -161,7 +161,7 @@ class SARDecoder(layers.Layer, NestedObject):
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
             if kwargs.get('training'):
-                symbol = gt[:, t]
+                symbol = gt[:, t]  # type: ignore[index]
             else:
                 symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)

@@ -60,7 +60,7 @@ class OCRPredictor(NestedObject):
         # Rotate back boxes if necessary
         boxes, angles = zip(*boxes)
         boxes = [rotate_boxes(boxes_page, angle) for boxes_page, angle in zip(boxes, angles)]
-        out = self.doc_builder(boxes, word_preds, [tuple(page.shape[:2]) for page in pages])
+        out = self.doc_builder(boxes, word_preds, [page.shape[:2] for page in pages])
         return out
 
 
@@ -201,19 +201,17 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
-        _lines = [
-            [
-                ((boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
-            ] if self.rotated_bbox else
-            [
-                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
-            ] for line in lines
-        ]
-
         if self.rotated_bbox:
-            box_lines = np.asarray([resolve_enclosing_rbbox(line) for line in _lines])
+            box_lines = np.asarray([
+                resolve_enclosing_rbbox([tuple(boxes[idx, :5]) for idx in line]) for line in lines  # type: ignore[misc]
+            ])
         else:
-            _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
+            _box_lines = [
+                resolve_enclosing_bbox([
+                    (tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line  # type: ignore[misc]
+                ])
+                for line in lines
+            ]
             box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
 
         # Compute geometrical features of lines to clusterize

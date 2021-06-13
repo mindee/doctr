@@ -6,7 +6,7 @@
 import os
 from pathlib import Path
 from zipfile import ZipFile
-from typing import List, Any, Optional, Tuple
+from typing import List, Any, Optional, Tuple, Callable, Union
 import tensorflow as tf
 
 from doctr.models.utils import download_from_url
@@ -18,6 +18,7 @@ __all__ = ['AbstractDataset', 'VisionDataset']
 class AbstractDataset:
 
     data: List[Any] = []
+    root: str
 
     def __len__(self):
         return len(self.data)
@@ -31,8 +32,10 @@ class AbstractDataset:
         # Read image
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
+        self.sample_transforms: Optional[Callable[[Any], Any]]
         if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
+            # typing issue cf. https://github.com/python/mypy/issues/5485
+            img = self.sample_transforms(img)  # type: ignore[call-arg]
 
         return img, target
 
@@ -77,7 +80,7 @@ class VisionDataset(AbstractDataset):
 
         file_name = file_name if isinstance(file_name, str) else os.path.basename(url)
         # Download the file if not present
-        archive_path = os.path.join(dataset_cache, file_name)
+        archive_path: Union[str, Path] = os.path.join(dataset_cache, file_name)
 
         if not os.path.exists(archive_path) and not download:
             raise ValueError("the dataset needs to be downloaded first with download=True")
