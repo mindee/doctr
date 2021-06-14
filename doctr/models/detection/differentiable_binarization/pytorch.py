@@ -110,6 +110,8 @@ class DBNet(_DBNet, nn.Module):
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
+        self.rotated_bbox = rotated_bbox
+
         self.feat_extractor = feat_extractor
         self.fpn = FeaturePyramidNetwork(fpn_channels, head_chans, deform_conv)
         # Conv1 map to channels
@@ -160,6 +162,11 @@ class DBNet(_DBNet, nn.Module):
             # Post-process boxes
             out["preds"] = self.postprocessor(prob_map.squeeze(1).numpy())
 
+        if target is not None:
+            thresh_map = self.thresh_head(feat_concat)
+            loss = self.compute_loss(logits, thresh_map, target)
+            out['loss'] = loss
+
         return out
 
     def compute_loss(
@@ -183,19 +190,20 @@ class DBNet(_DBNet, nn.Module):
         prob_map = torch.sigmoid(out_map.squeeze(1))
         thresh_map = torch.sigmoid(thresh_map.squeeze(1))
 
-        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
+        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, prob_map.shape)
+
         seg_target, seg_mask = torch.from_numpy(seg_target), torch.from_numpy(seg_mask)
         thresh_target, thresh_mask = torch.from_numpy(thresh_target), torch.from_numpy(thresh_mask)
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.
-        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target[..., None], reduction='none')[seg_mask]
+        bce_loss = F.binary_cross_entropy_with_logits(out_map.squeeze(1), seg_target, reduction='none')[seg_mask]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = seg_target[seg_mask].sum()
-        negative_count = tf.math.reduce_min([neg_target.sum(), 3. * positive_count])
+        negative_count = torch.minimum(neg_target.sum(), 3. * positive_count)
         negative_loss = bce_loss * neg_target
-        negative_loss, _ = tf.nn.top_k(negative_loss, negative_count.to(dtype=torch.int32))
+        negative_loss = negative_loss.sort().values[-int(negative_count.item()):]
         sum_losses = torch.sum(bce_loss * seg_target[seg_mask]) + torch.sum(negative_loss)
         balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
 
@@ -211,7 +219,7 @@ class DBNet(_DBNet, nn.Module):
         # Compute l1 loss for thresh_map
         l1_scale = 10.
         if torch.any(thresh_mask):
-            l1_loss = torch.mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
+            l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
         else:
             l1_loss = torch.zeros(1)
 
