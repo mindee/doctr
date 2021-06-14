@@ -123,11 +123,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         super().__init__()
         self.cfg = cfg
 
-        self.shrink_ratio = 0.4
-        self.thresh_min = 0.3
-        self.thresh_max = 0.7
-        self.min_size_box = 3
-
         self.feat_extractor = feature_extractor
         self.rotated_bbox = rotated_bbox
 

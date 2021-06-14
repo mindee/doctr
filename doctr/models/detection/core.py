@@ -17,8 +17,8 @@ __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 class DetectionModel(NestedObject):
     """Implements abstract DetectionModel class"""
 
-    def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, cfg: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__()
         self.cfg = cfg
 
 

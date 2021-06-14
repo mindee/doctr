@@ -147,6 +147,11 @@ class _DBNet:
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
 
+    shrink_ratio = 0.4
+    thresh_min = 0.3
+    thresh_max = 0.7
+    min_size_box = 3
+
     @staticmethod
     def compute_distance(
         xs: np.array,
