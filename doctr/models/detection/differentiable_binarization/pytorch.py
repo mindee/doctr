@@ -190,10 +190,10 @@ class DBNet(_DBNet, nn.Module):
         prob_map = torch.sigmoid(out_map.squeeze(1))
         thresh_map = torch.sigmoid(thresh_map.squeeze(1))
 
-        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, prob_map.shape)
+        targets = self.compute_target(target, prob_map.shape)  # type: ignore[arg-type]
 
-        seg_target, seg_mask = torch.from_numpy(seg_target), torch.from_numpy(seg_mask)
-        thresh_target, thresh_mask = torch.from_numpy(thresh_target), torch.from_numpy(thresh_mask)
+        seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
+        thresh_target, thresh_mask = torch.from_numpy(targets[2]), torch.from_numpy(targets[3])
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.
