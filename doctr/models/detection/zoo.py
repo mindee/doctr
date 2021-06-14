@@ -12,7 +12,7 @@ from .. import detection
 
 __all__ = ["detection_predictor"]
 
-ARCHS = ['db_resnet50', 'linknet']
+ARCHS = ['db_resnet50', 'linknet16']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor:

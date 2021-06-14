@@ -19,11 +19,11 @@ from doctr.models.backbones import ResnetStage
 from doctr.models.utils import conv_sequence, load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet']
+__all__ = ['LinkNet', 'linknet16']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'linknet': {
+    'linknet16': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'out_chan': 1,
@@ -54,9 +54,7 @@ def decoder_block(in_chan: int, out_chan: int) -> Sequential:
 
 
 class LinkNetFPN(layers.Layer, NestedObject):
-    """LinkNet Encoder-Decoder module
-
-    """
+    """LinkNet Encoder-Decoder module"""
 
     def __init__(
         self,
@@ -251,7 +249,7 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     return model
 
 
-def linknet(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
@@ -269,4 +267,4 @@ def linknet(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet', pretrained, **kwargs)
+    return _linknet('linknet16', pretrained, **kwargs)
