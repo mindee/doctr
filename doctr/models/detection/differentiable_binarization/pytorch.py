@@ -5,10 +5,15 @@
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 from torchvision.models import resnet34, resnet50, mobilenet_v3_large
 from typing import List, Dict, Any, Optional
+
+from .base import DBPostProcessor, _DBNet
+
+__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -85,7 +90,7 @@ class FeaturePyramidNetwork(nn.Module):
         return torch.cat(out, dim=1)
 
 
-class DBNet(nn.Module):
+class DBNet(_DBNet, nn.Module):
 
     def __init__(
         self,
@@ -93,9 +98,12 @@ class DBNet(nn.Module):
         fpn_channels: List[int],
         head_chans: int = 256,
         deform_conv: bool = False,
+        rotated_bbox: bool = False,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         super().__init__()
+        self.cfg = cfg
 
         if len(feat_extractor.return_layers) != len(fpn_channels):
             raise AssertionError
@@ -125,6 +133,8 @@ class DBNet(nn.Module):
             nn.ConvTranspose2d(head_chans // 4, 1, 2, stride=2),
         )
 
+        self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
+
     def forward(
         self,
         x: torch.Tensor,
@@ -145,7 +155,67 @@ class DBNet(nn.Module):
 
         if return_model_output:
             out["out_map"] = prob_map
+
+        if target is None or return_boxes:
+            # Post-process boxes
+            out["preds"] = self.postprocessor(prob_map.squeeze(1).numpy())
+
         return out
+
+    def compute_loss(
+        self,
+        out_map: torch.Tensor,
+        thresh_map: torch.Tensor,
+        target: List[Dict[str, Any]]
+    ) -> torch.Tensor:
+        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
+        and a list of masks for each image. From there it computes the loss with the model output
+
+        Args:
+            out_map: output feature map of the model of shape (N, C, H, W)
+            thresh_map: threshold map of shape (N, C, H, W)
+            target: list of dictionary where each dict has a `boxes` and a `flags` entry
+
+        Returns:
+            A loss tensor
+        """
+
+        prob_map = torch.sigmoid(out_map.squeeze(1))
+        thresh_map = torch.sigmoid(thresh_map.squeeze(1))
+
+        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
+        seg_target, seg_mask = torch.from_numpy(seg_target), torch.from_numpy(seg_mask)
+        thresh_target, thresh_mask = torch.from_numpy(thresh_target), torch.from_numpy(thresh_mask)
+
+        # Compute balanced BCE loss for proba_map
+        bce_scale = 5.
+        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target[..., None], reduction='none')[seg_mask]
+
+        neg_target = 1 - seg_target[seg_mask]
+        positive_count = seg_target[seg_mask].sum()
+        negative_count = tf.math.reduce_min([neg_target.sum(), 3. * positive_count])
+        negative_loss = bce_loss * neg_target
+        negative_loss, _ = tf.nn.top_k(negative_loss, negative_count.to(dtype=torch.int32))
+        sum_losses = torch.sum(bce_loss * seg_target[seg_mask]) + torch.sum(negative_loss)
+        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
+
+        # Compute dice loss for approxbin_map
+        bin_map = 1 / (1 + torch.exp(-50. * (prob_map[seg_mask] - thresh_map[seg_mask])))
+
+        bce_min = bce_loss.min()
+        weights = (bce_loss - bce_min) / (bce_loss.max() - bce_min) + 1.
+        inter = torch.sum(bin_map * seg_target[seg_mask] * weights)
+        union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8
+        dice_loss = 1 - 2.0 * inter / union
+
+        # Compute l1 loss for thresh_map
+        l1_scale = 10.
+        if torch.any(thresh_mask):
+            l1_loss = torch.mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
+        else:
+            l1_loss = torch.zeros(1)
+
+        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
 
 def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwargs: Any) -> DBNet:
@@ -162,7 +232,7 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwa
     )
 
     # Build the model
-    model = DBNet(feat_extractor, default_cfgs[arch]['fpn_channels'], **kwargs)
+    model = DBNet(feat_extractor, default_cfgs[arch]['fpn_channels'], cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
         raise NotImplementedError
