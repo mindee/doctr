@@ -160,7 +160,7 @@ class DBNet(_DBNet, nn.Module):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map.squeeze(1).numpy())
+            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().numpy())
 
         if target is not None:
             thresh_map = self.thresh_head(feat_concat)
