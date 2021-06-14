@@ -61,7 +61,7 @@ def test_dbpostprocessor():
     "arch_name, input_shape, output_size, out_prob",
     [
         ["db_resnet50", (1024, 1024, 3), (1024, 1024, 1), True],
-        ["linknet", (1024, 1024, 3), (1024, 1024, 1), False],
+        ["linknet16", (1024, 1024, 3), (1024, 1024, 1), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
@@ -141,7 +141,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     "arch_name",
     [
         "db_resnet50",
-        "linknet",
+        "linknet16",
     ],
 )
 def test_detection_zoo(arch_name):
