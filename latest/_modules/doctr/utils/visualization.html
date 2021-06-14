@@ -258,9 +258,9 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        a rectangular Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
-        <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">geometry</span>  <span class="c1"># type: ignore[misc]</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="n">w</span> <span class="o">*</span> <span class="n">width</span>
         <span class="n">y</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">height</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">height</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boxPoints</span><span class="p">(((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">a</span><span class="p">))</span>
@@ -273,10 +273,9 @@
             <span class="n">label</span><span class="o">=</span><span class="n">label</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page_dimensions</span>
-        <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>
-        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">xmin</span> <span class="o">*</span> <span class="n">w</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">*</span> <span class="n">w</span>
-        <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ymin</span> <span class="o">*</span> <span class="n">h</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">*</span> <span class="n">h</span>
+        <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>  <span class="c1"># type: ignore[misc]</span>
+        <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="n">xmin</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">*</span> <span class="n">width</span>
+        <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">ymin</span> <span class="o">*</span> <span class="n">height</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">*</span> <span class="n">height</span>
         <span class="k">return</span> <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">(</span>
             <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span>
             <span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">,</span>
@@ -376,8 +375,14 @@
 
         <span class="k">if</span> <span class="n">display_artefacts</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;artefacts&#39;</span><span class="p">]:</span>
-                <span class="n">rect</span> <span class="o">=</span> <span class="n">create_rect_patch</span><span class="p">(</span><span class="n">artefact</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">],</span> <span class="s1">&#39;artefact&#39;</span><span class="p">,</span> <span class="n">page</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">],</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
-                                         <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">rect</span> <span class="o">=</span> <span class="n">create_rect_patch</span><span class="p">(</span>
+                    <span class="n">artefact</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;artefact&#39;</span><span class="p">,</span>
+                    <span class="n">page</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">],</span>
+                    <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>  <span class="c1"># type: ignore[arg-type]</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span>
+                <span class="p">)</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
                     <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
