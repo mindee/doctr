@@ -109,7 +109,7 @@ jobs:
       - name: Run mypy
         run: |
           mypy --version
-          mypy --config-file mypy.ini
+          mypy --config-file mypy.ini doctr/
 
   docker-ready:
     runs-on: ubuntu-latest

@@ -36,5 +36,5 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
     # Multi-threading
     else:
         with ThreadPool(threads) as tp:
-            results = tp.map(func, seq)
+            results = tp.map(func, seq)  # type: ignore[assignment]
     return results

@@ -10,7 +10,7 @@ import tensorflow as tf
 import numpy as np
 import cv2
 from tensorflow.keras import layers, Sequential
-from typing import Dict, Any, Tuple, Optional, List
+from typing import Dict, Any, Tuple, Optional, List, Union
 
 from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
@@ -244,7 +244,9 @@ class LinkNet(DetectionModel, NestedObject):
 
             if self.rotated_bbox:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+                polys = np.stack([
+                    rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
+                ], axis=1)
             else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = [None] * abs_boxes.shape[0]  # Unused

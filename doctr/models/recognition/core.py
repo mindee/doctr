@@ -80,7 +80,7 @@ class RecognitionPostProcessor(NestedObject):
     def __call__(
         self,
         x: List[tf.Tensor],
-    ) -> List[str]:
+    ) -> List[Tuple[str, float]]:
         raise NotImplementedError
 
 

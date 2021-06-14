@@ -38,9 +38,9 @@ def create_rect_patch(
     Returns:
         a rectangular Patch
     """
+    height, width = page_dimensions
     if len(geometry) == 5:
-        height, width = page_dimensions
-        (x, y, w, h, a) = geometry
+        x, y, w, h, a = geometry  # type: ignore[misc]
         x, w = x * width, w * width
         y, h = y * height, h * height
         points = cv2.boxPoints(((x, y), (w, h), a))
@@ -53,10 +53,9 @@ def create_rect_patch(
             label=label
         )
     else:
-        h, w = page_dimensions
-        (xmin, ymin), (xmax, ymax) = geometry
-        xmin, xmax = xmin * w, xmax * w
-        ymin, ymax = ymin * h, ymax * h
+        (xmin, ymin), (xmax, ymax) = geometry  # type: ignore[misc]
+        xmin, xmax = xmin * width, xmax * width
+        ymin, ymax = ymin * height, ymax * height
         return patches.Rectangle(
             (xmin, ymin),
             xmax - xmin,
@@ -156,8 +155,14 @@ def visualize_page(
 
         if display_artefacts:
             for artefact in block['artefacts']:
-                rect = create_rect_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5),
-                                         linewidth=1, **kwargs)
+                rect = create_rect_patch(
+                    artefact['geometry'],
+                    'artefact',
+                    page['dimensions'],
+                    (0.5, 0.5, 0.5),  # type: ignore[arg-type]
+                    linewidth=1,
+                    **kwargs
+                )
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
