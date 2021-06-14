@@ -11,4 +11,4 @@ if is_tf_available():
     from .export import *
     from .zoo import *
 elif is_torch_available():
-    from detection import *
+    from .detection import *
