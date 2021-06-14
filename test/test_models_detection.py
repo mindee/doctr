@@ -10,7 +10,7 @@ from doctr.documents import DocumentFile
 def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor(rotated_bbox=False)
     r_postprocessor = detection.DBPostProcessor(rotated_bbox=True)
-    mock_batch = np.ones((2, 512, 512), dtype=np.float32)
+    mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
     out, _ = postprocessor(mock_batch)
     r_out, _ = r_postprocessor(mock_batch)
     # Batch composition
@@ -164,7 +164,7 @@ def test_detection_zoo_error():
 def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
     r_postprocessor = detection.LinkNetPostProcessor(rotated_bbox=True)
-    mock_batch = np.ones((2, 512, 512), dtype=np.float32)
+    mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
     out, _ = postprocessor(mock_batch)
     r_out, _ = r_postprocessor(mock_batch)
     # Batch composition
