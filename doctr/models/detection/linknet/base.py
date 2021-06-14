@@ -103,6 +103,9 @@ class _LinkNet(DetectionModel):
         out_chan: number of channels for the output
     """
 
+    min_size_box: int = 3
+    rotated_bbox: bool = False
+
     def compute_target(
         self,
         target: List[Dict[str, Any]],

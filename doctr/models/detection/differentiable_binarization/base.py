@@ -150,6 +150,7 @@ class _DBNet:
     thresh_min = 0.3
     thresh_max = 0.7
     min_size_box = 3
+    rotated_bbox: bool = False
 
     @staticmethod
     def compute_distance(

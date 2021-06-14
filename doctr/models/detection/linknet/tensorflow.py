@@ -135,8 +135,6 @@ class LinkNet(_LinkNet, keras.Model):
             ),
         ])
 
-        self.min_size_box = 3
-
         self.postprocessor = LinkNetPostProcessor(rotated_bbox=rotated_bbox)
 
     def compute_loss(
