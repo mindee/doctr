@@ -10,7 +10,7 @@ from doctr.documents import DocumentFile
 def test_dbpostprocessor():
     postprocessor = detection.DBPostProcessor(rotated_bbox=False)
     r_postprocessor = detection.DBPostProcessor(rotated_bbox=True)
-    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
+    mock_batch = np.ones((2, 512, 512), dtype=np.float32)
     out, _ = postprocessor(mock_batch)
     r_out, _ = r_postprocessor(mock_batch)
     # Batch composition
@@ -164,7 +164,7 @@ def test_detection_zoo_error():
 def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
     r_postprocessor = detection.LinkNetPostProcessor(rotated_bbox=True)
-    mock_batch = tf.random.uniform(shape=[2, 512, 512, 1], minval=0, maxval=1)
+    mock_batch = np.ones((2, 512, 512), dtype=np.float32)
     out, _ = postprocessor(mock_batch)
     r_out, _ = r_postprocessor(mock_batch)
     # Batch composition
@@ -177,10 +177,10 @@ def test_linknet_postprocessor():
     assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
 
 
-def test_linknet_losses():
+def test_linknet_focal_loss():
     batch_size = 2
     input_shape = (1024, 1024, 3)
-    model = detection.linknet(pretrained=True)
+    model = detection.linknet16(pretrained=True)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
         dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
@@ -188,7 +188,4 @@ def test_linknet_losses():
     ]
     # test focal loss
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)
-    assert isinstance(out['loss'], tf.Tensor)
-    # test bce loss
-    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=False)
     assert isinstance(out['loss'], tf.Tensor)
