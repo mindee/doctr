@@ -3,8 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import tensorflow as tf
-from tensorflow import keras
 import numpy as np
 import cv2
 from typing import List, Any, Optional, Dict, Tuple
@@ -16,22 +14,12 @@ from doctr.models._utils import rotate_page, get_bitmap_angle
 __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 
 
-class DetectionModel(keras.Model, NestedObject):
+class DetectionModel(NestedObject):
     """Implements abstract DetectionModel class"""
 
     def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.cfg = cfg
-
-    def call(
-        self,
-        x: tf.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
-        return_model_output: bool = False,
-        return_boxes: bool = False,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-        raise NotImplementedError
 
 
 class DetectionPostProcessor(NestedObject):
