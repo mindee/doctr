@@ -12,7 +12,7 @@ from .. import recognition
 
 __all__ = ["recognition_predictor"]
 
-ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31']
+ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31', 'master']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:

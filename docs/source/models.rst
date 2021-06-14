@@ -121,6 +121,7 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_resnet31
+.. autofunction:: doctr.models.recognition.master
 
 Post-processing outputs
 ^^^^^^^^^^^^^^^^^^^^^^^
