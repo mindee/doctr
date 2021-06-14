@@ -178,7 +178,7 @@ class MASTER(RecognitionModel):
         num_heads: int = 8,
         num_layers: int = 3,
         max_length: int = 50,
-        input_size: tuple = (48, 160, 3),
+        input_size: Tuple[int, int, int] = (48, 160, 3),
     ) -> None:
         super().__init__(vocab=vocab)
 
