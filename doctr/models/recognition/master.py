@@ -288,29 +288,22 @@ class MASTER(RecognitionModel):
         if labels is not None:
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(labels)
-
             tgt_mask = self.make_mask(gt)
-
             # Compute logits
             output = self.decoder(gt, encoded, tgt_mask, None, training=True)
             logits = self.linear(output)
-            if return_model_output:
-                out['out_map'] = logits
-
             # Compute loss
             out['loss'] = self.compute_loss(logits, gt, seq_len)
 
-            if return_preds:
-                predictions = self.postprocessor(logits)
-                out['preds'] = predictions
-
         else:
-            raw_predictions, logits = self.decode(encoded)
-            if return_model_output:
-                out['out_map'] = logits
-            if return_preds:
-                predictions = self.postprocessor(logits)
-                out['preds'] = predictions
+            _, logits = self.decode(encoded)
+
+        if return_model_output:
+            out['out_map'] = logits
+
+        if return_preds:
+            predictions = self.postprocessor(logits)
+            out['preds'] = predictions
 
         return out
 
@@ -418,7 +411,7 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     """MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Example::
         >>> import tensorflow as tf
-        >>> from doctr.models import sar_vgg16_bn
+        >>> from doctr.models import master
         >>> model = master(pretrained=False)
         >>> input_tensor = tf.random.uniform(shape=[1, 48, 160, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
