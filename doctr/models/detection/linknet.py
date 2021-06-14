@@ -356,7 +356,7 @@ class LinkNet(DetectionModel, NestedObject):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map)
+            out["preds"] = self.postprocessor(tf.squeeze(prob_map, axis=-1).numpy())
 
         if target is not None:
             loss = self.compute_loss(logits, target, focal_loss)

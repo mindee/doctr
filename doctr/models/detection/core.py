@@ -95,23 +95,19 @@ class DetectionPostProcessor(NestedObject):
 
     def __call__(
         self,
-        proba_map: tf.Tensor,
+        proba_map: np.ndarray,
     ) -> Tuple[List[np.ndarray], List[float]]:
         """Performs postprocessing for a list of model outputs
 
         Args:
-            x: dictionary of the model output
+            proba_map: probability map of shape (N, H, W)
 
         returns:
             list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6),
             and a list of N angles (page orientations).
         """
 
-        proba_map = tf.squeeze(proba_map, axis=-1)  # remove last dim
-        bitmap = tf.cast(proba_map > self.bin_thresh, tf.float32)
-
-        proba_map = tf.unstack(proba_map, axis=0)
-        bitmap = tf.unstack(bitmap, axis=0)
+        bitmap = (proba_map > self.bin_thresh).astype(np.float32)
 
         boxes_batch, angles_batch = [], []
         # Kernel for opening, empirical law for ksize
@@ -119,8 +115,6 @@ class DetectionPostProcessor(NestedObject):
         kernel = np.ones((k_size, k_size), np.uint8)
 
         for p_, bitmap_ in zip(proba_map, bitmap):
-            p_ = p_.numpy()
-            bitmap_ = bitmap_.numpy()
             # Perform opening (erosion + dilatation)
             bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
             # Rotate bitmap and proba_map
