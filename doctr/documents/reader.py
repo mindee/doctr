@@ -8,7 +8,7 @@ import cv2
 from pathlib import Path
 import fitz
 from weasyprint import HTML
-from typing import List, Tuple, Optional, Any, Union, Sequence
+from typing import List, Tuple, Optional, Any, Union, Sequence, Dict
 
 __all__ = ['read_pdf', 'read_img', 'read_html', 'DocumentFile', 'PDF']
 
@@ -75,7 +75,7 @@ def read_pdf(file: AbstractFile, **kwargs: Any) -> fitz.Document:
     if isinstance(file, (str, Path)) and not Path(file).is_file():
         raise FileNotFoundError(f"unable to access {file}")
 
-    fitz_args = {}
+    fitz_args: Dict[str, AbstractFile] = {}
 
     if isinstance(file, (str, Path)):
         fitz_args['filename'] = file
@@ -189,7 +189,8 @@ class PDF:
         return [self.get_page_words(idx, **kwargs) for idx in range(len(self.doc))]
 
     def get_page_artefacts(self, idx) -> List[Tuple[float, float, float, float]]:
-        return [tuple(self.doc[idx].getImageBbox(artefact)) for artefact in self.doc[idx].get_images(full=True)]
+        return [tuple(self.doc[idx].getImageBbox(artefact))  # type: ignore[misc]
+                for artefact in self.doc[idx].get_images(full=True)]
 
     def get_artefacts(self) -> List[List[Tuple[float, float, float, float]]]:
         """Get the artefacts for the entire document

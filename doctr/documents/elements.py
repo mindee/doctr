@@ -5,11 +5,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple, Dict, List, Any, Optional
+from typing import Tuple, Dict, List, Any, Optional, Union
 
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.visualization import visualize_page
-from doctr.utils.common_types import BoundingBox
+from doctr.utils.common_types import BoundingBox, RotatedBbox
 from doctr.utils.repr import NestedObject
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
@@ -51,7 +51,7 @@ class Word(Element):
 
     _exported_keys: List[str] = ["value", "confidence", "geometry"]
 
-    def __init__(self, value: str, confidence: float, geometry: BoundingBox) -> None:
+    def __init__(self, value: str, confidence: float, geometry: Union[BoundingBox, RotatedBbox]) -> None:
         super().__init__()
         self.value = value
         self.confidence = confidence
@@ -107,13 +107,13 @@ class Line(Element):
     def __init__(
         self,
         words: List[Word],
-        geometry: Optional[BoundingBox] = None,
+        geometry: Optional[Union[BoundingBox, RotatedBbox]] = None,
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             # Check whether this is a rotated or straight box
             box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 5 else resolve_enclosing_bbox
-            geometry = box_resolution_fn([w.geometry for w in words])
+            geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator]
 
         super().__init__(words=words)
         self.geometry = geometry
@@ -142,14 +142,14 @@ class Block(Element):
         self,
         lines: List[Line] = [],
         artefacts: List[Artefact] = [],
-        geometry: Optional[BoundingBox] = None,
+        geometry: Optional[Union[BoundingBox, RotatedBbox]] = None,
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
             box_resolution_fn = resolve_enclosing_rbbox if len(lines[0].geometry) == 5 else resolve_enclosing_bbox
-            geometry = box_resolution_fn(line_boxes + artefact_boxes)
+            geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator]
 
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry

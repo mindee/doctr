@@ -19,6 +19,7 @@ from .core import DetectionModel, DetectionPostProcessor
 from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
+from doctr.utils.common_types import RotatedBbox
 
 __all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
 
@@ -67,7 +68,7 @@ class DBPostProcessor(DetectionPostProcessor):
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Union[Optional[Tuple[int, int, int, int, float]], Optional[Tuple[int, int, int, int, float, float]]]:
+    ) -> Optional[Union[RotatedBbox, Tuple[float, float, float, float]]]:
         """Expand a polygon (points) by a factor unclip_ratio, and returns a rotated box: x, y, w, h, alpha
 
         Args:
@@ -131,21 +132,18 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
 
-            if self.rotated_bbox:
-                _box = self.polygon_to_box(np.squeeze(contour))
-            else:
-                _box = self.polygon_to_box(points)
+            _box = self.polygon_to_box(np.squeeze(contour)) if self.rotated_bbox else self.polygon_to_box(points)
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
 
             if self.rotated_bbox:
-                x, y, w, h, alpha = _box
+                x, y, w, h, alpha = _box  # type: ignore[misc]
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
             else:
-                x, y, w, h = _box
+                x, y, w, h = _box  # type: ignore[misc]
                 # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
@@ -399,7 +397,9 @@ class DBNet(DetectionModel, NestedObject):
 
             if self.rotated_bbox:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+                polys = np.stack([
+                    rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
+                ], axis=1)
             else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = np.stack([

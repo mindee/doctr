@@ -6,7 +6,7 @@
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops, extract_rcrops, rotate_page, rotate_boxes
@@ -60,7 +60,7 @@ class OCRPredictor(NestedObject):
         # Rotate back boxes if necessary
         boxes, angles = zip(*boxes)
         boxes = [rotate_boxes(boxes_page, angle) for boxes_page, angle in zip(boxes, angles)]
-        out = self.doc_builder(boxes, word_preds, [tuple(page.shape[:2]) for page in pages])
+        out = self.doc_builder(boxes, word_preds, [page.shape[:2] for page in pages])
         return out
 
 
@@ -201,19 +201,17 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
-        _lines = [
-            [
-                ((boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])) for idx in line
-            ] if self.rotated_bbox else
-            [
-                ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])) for idx in line
-            ] for line in lines
-        ]
-
         if self.rotated_bbox:
-            box_lines = np.asarray([resolve_enclosing_rbbox(line) for line in _lines])
+            box_lines = np.asarray([
+                resolve_enclosing_rbbox([tuple(boxes[idx, :5]) for idx in line]) for line in lines  # type: ignore[misc]
+            ])
         else:
-            _box_lines = [resolve_enclosing_bbox(line) for line in _lines]
+            _box_lines = [
+                resolve_enclosing_bbox([
+                    (tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line  # type: ignore[misc]
+                ])
+                for line in lines
+            ]
             box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
 
         # Compute geometrical features of lines to clusterize
@@ -231,7 +229,7 @@ class DocumentBuilder(NestedObject):
         # Compute clusters
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
 
-        _blocks = dict()
+        _blocks: Dict[int, List[int]] = {}
         # Form clusters
         for line_idx, cluster_idx in enumerate(clusters):
             if cluster_idx in _blocks.keys():
@@ -266,13 +264,13 @@ class DocumentBuilder(NestedObject):
             lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
             if self.resolve_blocks:
-                blocks = self._resolve_blocks(boxes[:, :-1], lines)
+                _blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
-                blocks = [lines]
+                _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
             lines = [self._sort_boxes(boxes[:, :-1])]
-            blocks = [lines]
+            _blocks = [lines]
 
         blocks = [
             Block(
@@ -288,7 +286,7 @@ class DocumentBuilder(NestedObject):
                         ) for idx in line
                     ]
                 ) for line in lines]
-            ) for lines in blocks
+            ) for lines in _blocks
         ]
 
         return blocks

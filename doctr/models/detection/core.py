@@ -90,7 +90,7 @@ class DetectionPostProcessor(NestedObject):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-    ) -> List[List[float]]:
+    ) -> np.ndarray:
         raise NotImplementedError
 
     def __call__(

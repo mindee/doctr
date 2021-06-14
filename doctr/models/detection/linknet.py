@@ -10,7 +10,7 @@ import tensorflow as tf
 import numpy as np
 import cv2
 from tensorflow.keras import layers, Sequential
-from typing import Dict, Any, Tuple, Optional, List
+from typing import Dict, Any, Tuple, Optional, List, Union
 
 from .core import DetectionModel, DetectionPostProcessor
 from ..backbones import ResnetStage
@@ -244,7 +244,9 @@ class LinkNet(DetectionModel, NestedObject):
 
             if self.rotated_bbox:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes], axis=1)
+                polys = np.stack([
+                    rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
+                ], axis=1)
             else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = [None] * abs_boxes.shape[0]  # Unused
@@ -280,30 +282,57 @@ class LinkNet(DetectionModel, NestedObject):
         self,
         out_map: tf.Tensor,
         target: List[Dict[str, Any]],
-        factor: float = 2.
+        focal_loss: bool = False,
+        factor: float = 2.,
+        alpha: float = 1.0,
+        gamma: float = 1.0,
     ) -> tf.Tensor:
-        """Compute a batch of gts and masks from a list of boxes and a list of masks for each image
-        Then, it computes the loss function with proba_map, gts and masks
+        """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
+        <https://github.com/tensorflow/addons/>`_.
 
         Args:
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            focal_loss: if True, use focal loss instead of BCE
+            factor: boost factor for box edges (in case of BCE)
+            alpha: balancing factor in the focal loss formula
+            gammma: modulating factor in the focal loss formula
 
         Returns:
             A loss tensor
         """
         seg_target, seg_mask, edge_mask = self.compute_target(target, out_map.shape[:3])
 
-        # Compute BCE loss
-        loss = tf.math.multiply(
-            1 + (factor - 1) * tf.cast(edge_mask, tf.float32),
-            tf.keras.losses.binary_crossentropy(
-                seg_target[seg_mask],
-                tf.squeeze(out_map, axis=[-1])[seg_mask],
-                from_logits=True
+        # Get the cross_entropy for each entry
+        bce = tf.keras.losses.binary_crossentropy(
+            seg_target[seg_mask],
+            tf.squeeze(out_map, axis=[-1])[seg_mask],
+            from_logits=True)
+
+        if focal_loss:
+            if gamma and gamma < 0:
+                raise ValueError("Value of gamma should be greater than or equal to zero.")
+
+            # Convert logits to prob, compute gamma factor
+            pred_prob = tf.sigmoid(tf.squeeze(out_map, axis=[-1])[seg_mask])
+            p_t = (seg_target[seg_mask] * pred_prob) + ((1 - seg_target[seg_mask]) * (1 - pred_prob))
+            modulating_factor = tf.pow((1.0 - p_t), gamma)
+
+            # Compute alpha factor
+            alpha_factor = seg_target[seg_mask] * alpha + (1 - seg_target[seg_mask]) * (1 - alpha)
+
+            # compute the final loss
+            loss = tf.reduce_mean(alpha_factor * modulating_factor * bce)
+
+        else:
+            # Compute BCE loss with highlighted edges
+            loss = tf.math.multiply(
+                1 + (factor - 1) * tf.cast(edge_mask, tf.float32),
+                bce
             )
-        )
-        return tf.math.reduce_mean(loss)
+            loss = tf.reduce_mean(loss)
+
+        return loss
 
     def call(
         self,
@@ -311,6 +340,7 @@ class LinkNet(DetectionModel, NestedObject):
         target: Optional[List[Dict[str, Any]]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
+        focal_loss: bool = True,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -329,7 +359,7 @@ class LinkNet(DetectionModel, NestedObject):
             out["preds"] = self.postprocessor(prob_map)
 
         if target is not None:
-            loss = self.compute_loss(logits, target)
+            loss = self.compute_loss(logits, target, focal_loss)
             out['loss'] = loss
 
         return out

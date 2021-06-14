@@ -60,7 +60,7 @@ def encode_sequence(
     Returns:
         A list encoding the input_string"""
 
-    return list(map(vocab.index, input_string))
+    return list(map(vocab.index, input_string))  # type: ignore[arg-type]
 
 
 def decode_sequence(
