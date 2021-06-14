@@ -21,7 +21,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'd_model': 512, 'headers': 1, 'dff': 2048, 'num_heads': 8, 'num_layers': 3, 'max_length': 50,
         'input_shape': (48, 160, 3),
         'post_processor': 'MASTERPostProcessor',
         'vocab': VOCABS['french'],
@@ -383,20 +382,8 @@ def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = Non
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['d_model'] = kwargs.get('d_model', _cfg['d_model'])
-    _cfg['headers'] = kwargs.get('headers', _cfg['headers'])
-    _cfg['dff'] = kwargs.get('dff', _cfg['dff'])
-    _cfg['num_heads'] = kwargs.get('num_heads', _cfg['num_heads'])
-    _cfg['num_layers'] = kwargs.get('num_layers', _cfg['num_layers'])
-    _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
 
     kwargs['vocab'] = _cfg['vocab']
-    kwargs['d_model'] = _cfg['d_model']
-    kwargs['headers'] = _cfg['headers']
-    kwargs['dff'] = _cfg['dff']
-    kwargs['num_heads'] = _cfg['num_heads']
-    kwargs['num_layers'] = _cfg['num_layers']
-    kwargs['max_length'] = _cfg['max_length']
 
     # Build the model
     model = MASTER(cfg=_cfg, **kwargs)
