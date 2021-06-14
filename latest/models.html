@@ -513,6 +513,28 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt id="doctr.models.recognition.master">
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">master</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.master.MASTER<a class="reference internal" href="_modules/doctr/models/recognition/master.html#master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.master" title="Permalink to this definition">¶</a></dt>
+<dd><p>MASTER as described in paper: &lt;<a class="reference external" href="https://arxiv.org/pdf/1910.02562.pdf">https://arxiv.org/pdf/1910.02562.pdf</a>&gt;`_.
+Example:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">master</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">master</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text recognition dataset</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>text recognition architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="post-processing-outputs">
 <h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">¶</a></h3>
