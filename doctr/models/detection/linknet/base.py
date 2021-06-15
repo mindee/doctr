@@ -6,10 +6,8 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-import tensorflow as tf
 import numpy as np
 import cv2
-from tensorflow.keras import layers, Sequential
 from typing import Dict, Any, Tuple, Optional, List, Union
 
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
