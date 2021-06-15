@@ -5,13 +5,23 @@
 
 import numpy as np
 import cv2
-import tensorflow as tf
 from typing import List, Union
+
+from doctr.file_utils import is_tf_available, is_torch_available
+
+if is_tf_available():
+    import tensorflow as tf
+    Tensor = tf.Tensor
+    convert_to_tensor = lambda x: tf.cast(x, tf.float32)
+elif is_torch_available():
+    import torch
+    Tensor = torch.Tensor
+    convert_to_tensor = lambda x: torch.from_numpy(x).to(dtype=torch.float32)
 
 __all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 
 
-def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[Union[np.ndarray, tf.Tensor]]:
+def extract_crops(img: Union[np.ndarray, Tensor], boxes: np.ndarray) -> List[Union[np.ndarray, Tensor]]:
     """Created cropped images from list of bounding boxes
 
     Args:
@@ -38,7 +48,7 @@ def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[
     return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
-def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[np.ndarray]:
+def extract_rcrops(img: Union[np.ndarray, Tensor], boxes: np.ndarray) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:
@@ -54,7 +64,7 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
     if boxes.shape[1] != 5:
         raise AssertionError("boxes are expected to be relative and in order (x, y, w, h, alpha)")
 
-    if isinstance(img, tf.Tensor):
+    if isinstance(img, Tensor):
         img = img.numpy().astype(np.uint8)
 
     # Project relative coordinates
@@ -91,10 +101,10 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
 
 
 def rotate_page(
-    image: Union[tf.Tensor, np.array],
+    image: Union[Tensor, np.array],
     angle: float = 0.,
     min_angle: float = 1.
-) -> Union[tf.Tensor, np.array]:
+) -> Union[Tensor, np.array]:
     """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
 
     Args:
@@ -110,9 +120,9 @@ def rotate_page(
     height, width = image.shape[:2]
     center = (height / 2, width / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    if isinstance(image, tf.Tensor):
+    if isinstance(image, Tensor):
         rotated = cv2.warpAffine(image.numpy(), rot_mat, (width, height))
-        rotated = tf.cast(rotated, tf.float32)
+        rotated = convert_to_tensor(rotated)
     else:
         rotated = cv2.warpAffine(image, rot_mat, (width, height))
     return rotated
