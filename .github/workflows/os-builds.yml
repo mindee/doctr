@@ -7,7 +7,7 @@ on:
     branches: main
 
 jobs:
-  build-tf:
+  tensorflow:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,12 +37,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-      - name: Run analysis script
+      - name: Import package
+        run: python -c "import doctr; print(doctr.__version__)"
+      - if: matrix.os != 'windows-latest'
+        name: Run analysis script
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
           python scripts/analyze.py sample.pdf --noblock
 
-  build-torch:
+  pytorch:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
