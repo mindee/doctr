@@ -6,7 +6,7 @@
 import numpy as np
 import cv2
 from typing import List, Any, Optional, Dict, Tuple
-from ..preprocessor import PreProcessor
+from .. import PreProcessor
 from doctr.utils.repr import NestedObject
 from doctr.models._utils import rotate_page, get_bitmap_angle
 
