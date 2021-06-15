@@ -6,9 +6,10 @@
 import numpy as np
 import cv2
 from typing import List, Any, Optional, Dict, Tuple
-from .. import PreProcessor
+
 from doctr.utils.repr import NestedObject
 from doctr.models._utils import rotate_page, get_bitmap_angle
+from doctr.models.preprocessor import PreProcessor
 
 
 __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
