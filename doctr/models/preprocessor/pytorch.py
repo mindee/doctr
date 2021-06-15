@@ -80,14 +80,12 @@ class PreProcessor(nn.Module):
         # Check input type
         if isinstance(x, torch.Tensor):
             # Tf tensor from data loader: check if tensor size is output_size
-            if x.shape[1] != self.resize.size[0] or x.shape[2] != self.resize.size[1]:
+            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
             processed_batches = [x]
         elif isinstance(x, list):
-            # convert images to tf
-            tensors = [torch.from_numpy(sample) for sample in x]
             # Resize (and eventually pad) the inputs
-            images: List[torch.Tensor] = [self.resize(sample) for sample in tensors]
+            images: List[torch.Tensor] = [self.resize(torch.from_numpy(sample).permute(2, 0, 1)) for sample in x]
             # Batch them
             processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
         else:
