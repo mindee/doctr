@@ -9,9 +9,9 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Any, Optional, List
 
-from .. import backbones
-from ..utils import load_pretrained_params
-from .core import RecognitionModel, RecognitionPostProcessor
+from ... import backbones
+from ...utils import load_pretrained_params
+from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor']
 
