@@ -4,6 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
+from itertools import groupby
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -35,9 +37,37 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
-        ignore_case: if True, ignore case of letters
-        ignore_accents: if True, ignore accents of letters
     """
+    @staticmethod
+    def ctc_best_path(
+        logits: nn.Tensor, vocab: str = VOCABS['french'], blank: int = 0
+    ) -> List[Tuple[str, float]]:
+        """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
+        <https://github.com/githubharald/CTCDecoder>`_.
+
+        Args:
+            logits: model output, shape: N x C x T
+            vocab: vocabulary to use
+            blank: index of blank label
+
+        Return:
+
+        """
+        # compute softmax
+        probs = F.log_softmax(logits, dim=-1)
+        # get char indices along best path
+        best_path = np.argmax(probs, axis=1)
+        # define word proba as min proba of sequence
+        probs = np.amin(np.amax(probs, axis=1), axis=1)
+
+        words = []
+        for sequence in best_path:
+            # collapse best path (using itertools.groupby), map to chars, join char list to string
+            collapsed = [vocab[k] for k, _ in groupby(sequence) if k != blank]
+            res = ''.join(collapsed)
+            words.append(res)
+
+        return list(zip(words, list(probs)))
 
     def __call__(
         self,
@@ -48,14 +78,14 @@ class CTCPostProcessor(RecognitionPostProcessor):
         with label_to_idx mapping dictionnary
 
         Args:
-            logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1
+            logits: raw output of the model, shape BATCH_SIZE X NUM_CLASSES + 1 X SEQ_LEN
 
         Returns:
-            A list of decoded words of length BATCH_SIZE
+            A tuple of 2 lists: a list of str (words) and a list of float (probs)
 
         """
         # Decode CTC
-        raise NotImplementedError
+        return self.ctc_best_path(logits=logits, vocab=self.vocab, blank=len(self.vocab))
 
 
 class CRNN(RecognitionModel):
@@ -113,10 +143,11 @@ class CRNN(RecognitionModel):
         gt, seq_len = self.compute_target(target)
         batch_len = model_output.shape[0]
         input_length = model_output.shape[1] * torch.ones(shape=(batch_len))
-        # N x T x C -> T x N x C
-        logits = torch.transpose(model_output, 0, 1)
+        # N x C x T -> T x N x C
+        logits = model_output.transpose(2, 0, 1)
+        probs = F.log_softmax(logits, dim=-1)
         ctc_loss_fn = nn.CTCLoss(blank=len(self.vocab))
-        ctc_loss = ctc_loss_fn(logits, gt, input_length, seq_len)
+        ctc_loss = ctc_loss_fn(probs, gt, input_length, seq_len)
 
         return ctc_loss
 
