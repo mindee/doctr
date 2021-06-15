@@ -6,4 +6,4 @@ if is_tf_available():
     from .linknet import *
     from .zoo import *
 elif is_torch_available():
-    from .differentiable_binarization_pt import *
+    from .differentiable_binarization_pt import *  # type: ignore[misc]
