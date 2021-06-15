@@ -115,7 +115,7 @@ jobs:
 
       - name: Run unittests
         run: |
-          coverage run -m pytest test/pytorch/ --noconftest
+          coverage run -m pytest test/pytorch/
           coverage xml -o coverage-pt.xml
 
       - uses: actions/upload-artifact@v2
