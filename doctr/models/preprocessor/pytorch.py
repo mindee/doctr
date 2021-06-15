@@ -63,7 +63,7 @@ class PreProcessor(nn.Module):
                     for idx in range(int(num_batches))]
         # Deal with the last batch
         if num_batches > int(num_batches):
-            b_images.append(torch.stack(x[int(num_batches) * self.batch_size:], axis=0))
+            b_images.append(torch.stack(x[int(num_batches) * self.batch_size:], dim=0))
         return b_images
 
     def __call__(
