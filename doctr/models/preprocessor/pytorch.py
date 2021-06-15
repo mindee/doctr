@@ -87,12 +87,12 @@ class PreProcessor(nn.Module):
             # convert images to tf
             tensors = [torch.from_numpy(sample) for sample in x]
             # Resize (and eventually pad) the inputs
-            images = [self.resize(sample) for sample in tensors]
+            images: List[torch.Tensor] = [self.resize(sample) for sample in tensors]
             # Batch them
-            processed_batches = self.batch_inputs(images)
+            processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
         else:
             raise AssertionError("invalid input type")
         # Normalize
         processed_batches = [self.normalize(b) for b in processed_batches]
 
-        return processed_batches
+        return processed_batches  # type: ignore[return-value]

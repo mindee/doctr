@@ -39,12 +39,10 @@ class Resize(T.Resize):
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)
             # Pad (inverted in pytorch)
-            _pad = (self.size[1] - img.shape[-1], self.size[0] - img.shape[-2])
+            _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
             if self.symmetric_pad:
-                half_pad = (math.ceil(_pad[0] / 2), math.ceil(_pad[1] / 2))
-                _pad = (half_pad[0], _pad[0] - half_pad[0], half_pad[1], _pad[1] - half_pad[1])
-            else:
-                _pad = (0, _pad[0], 0, _pad[1])
+                half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
+                _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
             return pad(img, _pad)
 
     def __repr__(self) -> str:
