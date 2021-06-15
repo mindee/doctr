@@ -33,7 +33,7 @@ def test_preprocessor(mock_pdf):
     assert all(batch.shape[0] == batch_size for batch in batched_docs[:-1])
     assert batched_docs[-1].shape[0] == batch_size if (8 * num_docs) % batch_size == 0 else (8 * num_docs) % batch_size
     # Data type
-    assert all(batch.dtype == tf.float32 for batch in batched_docs)
+    assert all(batch.dtype == torch.float32 for batch in batched_docs)
     # Image size
     assert all(batch.shape[1:] == (3, 512, 512) for batch in batched_docs)
     # Test with non-full last batch
@@ -43,7 +43,7 @@ def test_preprocessor(mock_pdf):
     assert batched_docs[-1].shape[0] == (8 * num_docs) % batch_size
 
     # Repr
-    assert len(repr(processor).split('\n')) == 9
+    assert len(repr(processor).split('\n')) == 4
 
     # Assymetric
     processor = models.PreProcessor(output_size=(256, 128), batch_size=batch_size, preserve_aspect_ratio=True)
