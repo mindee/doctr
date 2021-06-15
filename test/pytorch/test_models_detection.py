@@ -49,7 +49,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
 def test_detection_zoo(arch_name):
     # Model
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
-    predictor.eval()
+    predictor.model.eval()
     # object check
     assert isinstance(predictor, detection.DetectionPredictor)
     input_tensor = torch.rand((2, 3, 1024, 1024))
