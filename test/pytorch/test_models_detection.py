@@ -36,3 +36,30 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out['loss'], torch.Tensor)
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "db_resnet34",
+        "db_resnet50",
+        "db_mobilenet_v3",
+    ],
+)
+def test_detection_zoo(arch_name):
+    # Model
+    predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
+    predictor.eval()
+    # object check
+    assert isinstance(predictor, detection.DetectionPredictor)
+    input_tensor = torch.rand((2, 3, 1024, 1024))
+    with torch.no_grad():
+        out = predictor(input_tensor)
+    assert all(isinstance(out_img, tuple) for out_img in out)
+    all_boxes, _ = zip(*out)
+    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in all_boxes)
+
+
+def test_detection_zoo_error():
+    with pytest.raises(ValueError):
+        _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
