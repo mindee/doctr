@@ -37,7 +37,7 @@ class PreProcessor(nn.Module):
     ) -> None:
         super().__init__()
         self.batch_size = batch_size
-        self.resize = Resize(output_size, **kwargs)
+        self.resize: T.Resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = T.Compose([
             lambda x: x / 255,
