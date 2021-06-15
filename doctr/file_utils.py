@@ -44,6 +44,7 @@ else:
     logging.info("Disabling Tensorflow because USE_TORCH is set")
     _tf_available = False
 
+
 def is_torch_available():
     return _torch_available
 
