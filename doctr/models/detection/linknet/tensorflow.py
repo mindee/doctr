@@ -8,12 +8,9 @@
 from copy import deepcopy
 import tensorflow as tf
 from tensorflow import keras
-import numpy as np
-import cv2
 from tensorflow.keras import layers, Sequential
-from typing import Dict, Any, Tuple, Optional, List, Union
+from typing import Dict, Any, Tuple, Optional, List
 
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from doctr.utils.repr import NestedObject
 from doctr.models.backbones import ResnetStage
 from doctr.models.utils import conv_sequence, load_pretrained_params

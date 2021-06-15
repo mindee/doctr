@@ -5,18 +5,13 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-import cv2
 from copy import deepcopy
-import numpy as np
-from shapely.geometry import Polygon
-import pyclipper
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-from typing import Union, List, Tuple, Optional, Any, Dict
+from typing import List, Tuple, Optional, Any, Dict
 
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from doctr.utils.common_types import RotatedBbox
 from doctr.models.utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from .base import DBPostProcessor, _DBNet
