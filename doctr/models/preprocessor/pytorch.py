@@ -39,10 +39,7 @@ class PreProcessor(nn.Module):
         self.batch_size = batch_size
         self.resize: T.Resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
-        self.normalize = T.Compose([
-            lambda x: x / 255,
-            T.Normalize(mean, std),
-        ])
+        self.normalize = T.Normalize(mean, std)
 
     def batch_inputs(
         self,
@@ -91,6 +88,8 @@ class PreProcessor(nn.Module):
         else:
             raise AssertionError("invalid input type")
         # Normalize
-        processed_batches = [self.normalize(b) for b in processed_batches]
+        processed_batches = [
+            self.normalize(b.to(dtype=torch.float32) / 255) for b in processed_batches  # type: ignore[union-attr]
+        ]
 
         return processed_batches  # type: ignore[return-value]
