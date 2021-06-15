@@ -12,11 +12,9 @@ from doctr.file_utils import is_tf_available, is_torch_available
 if is_tf_available():
     import tensorflow as tf
     Tensor = tf.Tensor
-    convert_to_tensor = lambda x: tf.cast(x, tf.float32)
 elif is_torch_available():
     import torch
     Tensor = torch.Tensor
-    convert_to_tensor = lambda x: torch.from_numpy(x).to(dtype=torch.float32)
 
 __all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 
@@ -122,7 +120,10 @@ def rotate_page(
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
     if isinstance(image, Tensor):
         rotated = cv2.warpAffine(image.numpy(), rot_mat, (width, height))
-        rotated = convert_to_tensor(rotated)
+        if is_tf_available():
+            rotated = tf.cast(rotated, tf.float32)
+        else:
+            rotated = torch.from_numpy(rotated).to(dtype=torch.float32)
     else:
         rotated = cv2.warpAffine(image, rot_mat, (width, height))
     return rotated
