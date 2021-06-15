@@ -21,8 +21,8 @@ __all__ = ['is_tf_available', 'is_torch_available']
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
-USE_TF = os.environ.get("USE_TF", "1").upper()
-USE_TORCH = os.environ.get("USE_TORCH", "0").upper()
+USE_TF = os.environ.get("USE_TF", "AUTO").upper()
+USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
 
 if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:

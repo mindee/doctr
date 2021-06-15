@@ -9,7 +9,7 @@ from typing import List, Any, Optional, Dict, Tuple
 
 from doctr.utils.repr import NestedObject
 from .._utils import rotate_page, get_bitmap_angle
-from ..preprocessor import PreProcessor
+from .. import PreProcessor
 
 
 __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
