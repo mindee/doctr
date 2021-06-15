@@ -8,7 +8,7 @@ import tensorflow as tf
 from typing import List, Any, Tuple, Callable
 
 from doctr.utils.repr import NestedObject
-from . import functional as F
+from .. import functional as F
 
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'ColorInversion',
