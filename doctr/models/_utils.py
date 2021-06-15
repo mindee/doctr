@@ -5,7 +5,7 @@
 
 import numpy as np
 import cv2
-from typing import List, Union
+from typing import List
 
 __all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 

@@ -1,6 +1,3 @@
-import pytest
-import math
-
 import torch
 from doctr.transforms import Resize
 

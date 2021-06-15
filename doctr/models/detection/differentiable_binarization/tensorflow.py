@@ -12,7 +12,6 @@ from tensorflow.keras import layers
 from typing import List, Tuple, Optional, Any, Dict
 
 from doctr.utils.repr import NestedObject
-from doctr.utils.common_types import RotatedBbox
 from doctr.models.utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from .base import DBPostProcessor, _DBNet
 
