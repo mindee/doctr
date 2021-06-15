@@ -134,6 +134,11 @@ class DetectionPredictor(NestedObject):
         self.pre_processor = pre_processor
         self.model = model
 
+    def eval(self) -> None:
+        """Switch to eval mode"""
+        if hasattr(self.model, "eval"):
+            self.model.eval()
+
     def __call__(
         self,
         pages: List[np.ndarray],
