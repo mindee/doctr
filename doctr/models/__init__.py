@@ -1,5 +1,4 @@
 from .preprocessor import *
-from .detection import *
 
 from doctr.file_utils import is_tf_available
 
@@ -11,3 +10,5 @@ if is_tf_available():
     from .core import *
     from .export import *
     from .zoo import *
+
+from .detection import *
