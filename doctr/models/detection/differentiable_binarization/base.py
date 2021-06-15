@@ -255,7 +255,7 @@ class _DBNet:
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
         seg_target = np.zeros(output_shape, dtype=np.uint8)
-        seg_mask = np.ones(output_shape, dtype=np.bool)
+        seg_mask = np.ones(output_shape, dtype=bool)
         thresh_target = np.zeros(output_shape, dtype=np.uint8)
         thresh_mask = np.ones(output_shape, dtype=np.uint8)
 
@@ -320,8 +320,8 @@ class _DBNet:
         thresh_target = thresh_target.astype(np.float32) * (self.thresh_max - self.thresh_min) + self.thresh_min
 
         seg_target = seg_target.astype(np.float32)
-        seg_mask = seg_mask.astype(np.bool)
+        seg_mask = seg_mask.astype(bool)
         thresh_target = thresh_target.astype(np.float32)
-        thresh_mask = thresh_mask.astype(np.bool)
+        thresh_mask = thresh_mask.astype(bool)
 
         return seg_target, seg_mask, thresh_target, thresh_mask

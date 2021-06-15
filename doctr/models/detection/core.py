@@ -63,10 +63,10 @@ class DetectionPostProcessor(NestedObject):
         h, w = pred.shape[:2]
 
         if not rotated_bbox:
-            xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
-            xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
-            ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
-            ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
+            xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int32), 0, w - 1)
+            xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int32), 0, w - 1)
+            ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int32), 0, h - 1)
+            ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int32), 0, h - 1)
             return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
 
         else:
