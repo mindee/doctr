@@ -27,7 +27,7 @@ class Resize(T.Resize):
         self.symmetric_pad = symmetric_pad
 
     def forward(self, img: torch.Tensor) -> torch.Tensor:
-        target_ratio = self.size[0] / self.size[1]
+        target_ratio = self.size[1] / self.size[0]
         actual_ratio = img.shape[-2] / img.shape[-1]
         if not self.preserve_aspect_ratio or (target_ratio == actual_ratio):
             return super().forward(img)
@@ -39,7 +39,7 @@ class Resize(T.Resize):
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)
             # Pad (inverted in pytorch)
-            _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
+            _pad = (0, self.size[0] - img.shape[-1], 0, self.size[1] - img.shape[-2])
             if self.symmetric_pad:
                 half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
                 _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
