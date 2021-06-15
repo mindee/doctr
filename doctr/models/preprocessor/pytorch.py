@@ -19,7 +19,7 @@ class Resize(T.Resize):
     def __init__(
         self,
         size: Tuple[int, int],
-        interpolation=InterpolationMode.BILINEAR,
+        interpolation=F.InterpolationMode.BILINEAR,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
     ) -> None:
@@ -69,7 +69,7 @@ class PreProcessor(nn.Module):
         std: Tuple[float, float, float] = (1., 1., 1.),
         **kwargs: Any,
     ) -> None:
-
+        super().__init__()
         self.batch_size = batch_size
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time

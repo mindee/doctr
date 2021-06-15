@@ -23,6 +23,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'fpn_channels': [256, 512, 1024, 2048],
         'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'url': None,
     },
     'db_resnet34': {
@@ -31,6 +33,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'fpn_channels': [64, 128, 256, 512],
         'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'url': None,
     },
     'db_mobilenet_v3': {
@@ -39,6 +43,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'fpn_layers': ['3', '6', '12', '16'],
         'fpn_channels': [24, 40, 112, 960],
         'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'url': None,
     },
 }
