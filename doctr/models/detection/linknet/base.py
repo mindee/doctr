@@ -5,10 +5,9 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from copy import deepcopy
 import numpy as np
 import cv2
-from typing import Dict, Any, Tuple, Optional, List, Union
+from typing import Dict, Any, Tuple, List
 
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from ..core import DetectionModel, DetectionPostProcessor
