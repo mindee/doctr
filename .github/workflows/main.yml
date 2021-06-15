@@ -76,7 +76,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-          pip install coverage>=4.5.4 pytest>=5.3.2
+          pip install -r test/requirements.txt
 
       - name: Run unittests
         run: |
@@ -111,11 +111,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
-          pip install coverage>=4.5.4 pytest>=5.3.2
+          pip install -r test/requirements.txt
 
       - name: Run unittests
         run: |
-          coverage run -m pytest test/pytorch/ --noconftest
+          coverage run -m pytest test/pytorch/
           coverage xml -o coverage-pt.xml
 
       - uses: actions/upload-artifact@v2
