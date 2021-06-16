@@ -1,4 +1,4 @@
-name: os-builds
+name: builds
 
 on:
   push:
