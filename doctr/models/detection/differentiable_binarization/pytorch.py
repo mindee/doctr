@@ -152,7 +152,6 @@ class DBNet(_DBNet, nn.Module):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
 
-
     def forward(
         self,
         x: torch.Tensor,
