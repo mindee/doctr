@@ -73,7 +73,8 @@ else:
 
 
 if not _torch_available and not _tf_available:
-    raise ModuleNotFoundError("DocTR requires either TensorFlow or PyTorch to be working. No installation found.")
+    raise ModuleNotFoundError("DocTR requires either TensorFlow or PyTorch to be installed. Please ensure one of them"
+                              " is installed and that either USE_TF or USE_TORCH is enabled.")
 
 
 def is_torch_available():
