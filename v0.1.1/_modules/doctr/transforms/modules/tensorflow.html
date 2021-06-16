@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.transforms.modules &mdash; doctr 0.3.0a0-git documentation</title>
+  <title>doctr.transforms.modules.tensorflow &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -17,28 +17,29 @@
   
 
   
-  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/clipboard.min.js"></script>
-        <script src="../../../_static/copybutton.js"></script>
-        <script src="../../../_static/js/custom.js"></script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/clipboard.min.js"></script>
+        <script src="../../../../_static/copybutton.js"></script>
+        <script src="../../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/copybutton.css" type="text/css" />
-  <link rel="stylesheet" href="../../../_static/css/mindee.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" /> 
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/mindee.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +53,7 @@
           
 
           
-            <a href="../../../index.html" class="icon icon-home"> doctr
+            <a href="../../../../index.html" class="icon icon-home"> doctr
           
 
           
@@ -62,7 +63,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -81,44 +82,49 @@
             
               <p><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-conda">Via Conda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
 <p><span class="caption-text">Package Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#file-reading">File reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#id1">Post-processing outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../models.html">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#post-processing-detections">Post-processing detections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#model-export">Model export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#model-export">Model export</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
 </ul>
 </li>
 </ul>
@@ -135,7 +141,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">doctr</a>
+          <a href="../../../../index.html">doctr</a>
         
       </nav>
 
@@ -164,11 +170,11 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>doctr.transforms.modules</li>
+      <li>doctr.transforms.modules.tensorflow</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -183,7 +189,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for doctr.transforms.modules</h1><div class="highlight"><pre>
+  <h1>Source code for doctr.transforms.modules.tensorflow</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
@@ -194,7 +200,7 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="s1">&#39;Resize&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="s1">&#39;LambdaTransformation&#39;</span><span class="p">,</span> <span class="s1">&#39;ToGray&#39;</span><span class="p">,</span> <span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span>
@@ -202,7 +208,7 @@
            <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implements a wrapper that will apply transformations sequentially</span>
 
 <span class="sd">    Example::</span>
@@ -227,7 +233,7 @@
         <span class="k">return</span> <span class="n">x</span></div>
 
 
-<div class="viewcode-block" id="Resize"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Resize">[docs]</a><span class="k">class</span> <span class="nc">Resize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="Resize"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Resize">[docs]</a><span class="k">class</span> <span class="nc">Resize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Resizes a tensor to a target size</span>
 
 <span class="sd">    Example::</span>
@@ -274,7 +280,7 @@
         <span class="k">return</span> <span class="n">img</span></div>
 
 
-<div class="viewcode-block" id="Normalize"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Normalize">[docs]</a><span class="k">class</span> <span class="nc">Normalize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="Normalize"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Normalize">[docs]</a><span class="k">class</span> <span class="nc">Normalize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Normalize a tensor to a Gaussian distribution for each channel</span>
 
 <span class="sd">    Example::</span>
@@ -300,7 +306,7 @@
         <span class="k">return</span> <span class="n">img</span></div>
 
 
-<div class="viewcode-block" id="LambdaTransformation"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.LambdaTransformation">[docs]</a><span class="k">class</span> <span class="nc">LambdaTransformation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="LambdaTransformation"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.LambdaTransformation">[docs]</a><span class="k">class</span> <span class="nc">LambdaTransformation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Normalize a tensor to a Gaussian distribution for each channel</span>
 
 <span class="sd">    Example::</span>
@@ -319,7 +325,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ToGray"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.ToGray">[docs]</a><span class="k">class</span> <span class="nc">ToGray</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="ToGray"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ToGray">[docs]</a><span class="k">class</span> <span class="nc">ToGray</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor</span>
 
 <span class="sd">    Example::</span>
@@ -332,7 +338,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">rgb_to_grayscale</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
 <span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
 
@@ -355,7 +361,7 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">invert_colors</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomBrightness"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomBrightness">[docs]</a><span class="k">class</span> <span class="nc">RandomBrightness</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomBrightness"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomBrightness">[docs]</a><span class="k">class</span> <span class="nc">RandomBrightness</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust brightness of a tensor (batch of images or image) by adding a delta</span>
 <span class="sd">    to all pixels</span>
 
@@ -379,7 +385,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_brightness</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">max_delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomContrast"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomContrast">[docs]</a><span class="k">class</span> <span class="nc">RandomContrast</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomContrast"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomContrast">[docs]</a><span class="k">class</span> <span class="nc">RandomContrast</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust contrast of a tensor (batch of images or image) by adjusting</span>
 <span class="sd">    each pixel: (img - mean) * contrast_factor + mean.</span>
 
@@ -402,7 +408,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_contrast</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="RandomSaturation"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomSaturation">[docs]</a><span class="k">class</span> <span class="nc">RandomSaturation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomSaturation"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomSaturation">[docs]</a><span class="k">class</span> <span class="nc">RandomSaturation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and</span>
 <span class="sd">    increasing saturation by a factor.</span>
 
@@ -425,7 +431,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_saturation</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomHue"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomHue">[docs]</a><span class="k">class</span> <span class="nc">RandomHue</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomHue"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomHue">[docs]</a><span class="k">class</span> <span class="nc">RandomHue</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta</span>
 
 <span class="sd">    Example::</span>
@@ -447,7 +453,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_hue</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">max_delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomGamma"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomGamma">[docs]</a><span class="k">class</span> <span class="nc">RandomGamma</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomGamma"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomGamma">[docs]</a><span class="k">class</span> <span class="nc">RandomGamma</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;randomly performs gamma correction for a tensor (batch of images or image)</span>
 
 <span class="sd">    Example:</span>
@@ -484,7 +490,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">adjust_gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="n">gain</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomJpegQuality"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomJpegQuality">[docs]</a><span class="k">class</span> <span class="nc">RandomJpegQuality</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomJpegQuality"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomJpegQuality">[docs]</a><span class="k">class</span> <span class="nc">RandomJpegQuality</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly adjust jpeg quality of a 3 dimensional RGB image</span>
 
 <span class="sd">    Example::</span>
@@ -510,7 +516,7 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
 
 <span class="sd">    Example::</span>
@@ -535,7 +541,7 @@
         <span class="k">return</span> <span class="n">transfo</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
 
 <span class="sd">    Example::</span>
