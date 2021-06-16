@@ -19,6 +19,14 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
+      - if: matrix.os == 'windows-latest'
+        name: Install dependencies (Windows)
+        shell: powershell
+        run: |
+          bitsadmin.exe /rawreturn /transfer "cURL-certicates" /priority FOREGROUND https://curl.se/ca/cacert.pem D:\a\ggplotnim\ggplotnim\nim\bin\cacert.pem
+          choco install imagemagick wget
+          wget -O cairo-windows.zip https://github.com/preshing/cairo-windows/releases/download/1.17.2/cairo-windows-1.17.2.zip
+          tar -xf cairo-windows.zip
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1
