@@ -1,0 +1,3 @@
+pytest>=5.3.2
+requests>=2.20.0
+coverage>=4.5.4

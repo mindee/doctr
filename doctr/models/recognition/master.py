@@ -192,7 +192,7 @@ class MASTER(RecognitionModel):
         num_heads: int = 8,
         num_layers: int = 3,
         max_length: int = 50,
-        input_shape: tuple = (48, 160, 3),
+        input_shape: Tuple[int, int, int] = (48, 160, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(vocab=vocab, cfg=cfg)
@@ -258,17 +258,17 @@ class MASTER(RecognitionModel):
 
     def call(
         self,
-        inputs: tf.Tensor,
-        labels: Optional[List[str]] = None,
+        x: tf.Tensor,
+        target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        **kwargs
+        **kwargs: Any,
     ) -> Dict[str, Any]:
         """Call function for training
 
         Args:
-            inputs: images
-            labels: list of str labels
+            x: images
+            target: list of str labels
             return_model_output: if True, return logits
             return_preds: if True, decode logits
 
@@ -277,16 +277,16 @@ class MASTER(RecognitionModel):
         """
 
         # Encode
-        feature = self.feature_extractor(inputs, **kwargs)
+        feature = self.feature_extractor(x, **kwargs)
         b, h, w, c = (tf.shape(feature)[i] for i in range(4))
         feature = tf.reshape(feature, shape=(b, h * w, c))
         encoded = feature + self.feature_pe[:, :h * w, :]
 
         out: Dict[str, tf.Tensor] = {}
 
-        if labels is not None:
+        if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, seq_len = self.compute_target(labels)
+            gt, seq_len = self.compute_target(target)
             tgt_mask = self.make_mask(gt)
             # Compute logits
             output = self.decoder(gt, encoded, tgt_mask, None, training=True)
