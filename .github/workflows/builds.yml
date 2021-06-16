@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         python: [3.7, 3.8]
         framework: [tensorflow, pytorch]
     steps:
@@ -20,16 +20,6 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
-      - if: matrix.os == 'windows-latest'
-        name: Install Wget (Windows)
-        shell: powershell
-        run: choco install wget
-      - if: matrix.os == 'windows-latest'
-        name: Install GTK (Windows)
-        shell: powershell
-        run: |
-          wget -O gtk3.exe https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2021-04-29/gtk3-runtime-3.24.29-2021-04-29-ts-win64.exe
-          start gtk3.exe
       - name: Set up Python
         uses: actions/setup-python@v1
         with:

@@ -1,13 +1,13 @@
 name: scripts
 
 on:
-  push:
-    branches: main
-  pull_request:
-    branches: main
+  workflow_run:
+    workflows: ["builds"]
+    types: [completed]
 
 jobs:
   test-analyze:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
