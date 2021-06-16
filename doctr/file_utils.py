@@ -21,8 +21,8 @@ __all__ = ['is_tf_available', 'is_torch_available']
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
-USE_TF = os.environ.get("USE_TF", "1").upper()
-USE_TORCH = os.environ.get("USE_TORCH", "0").upper()
+USE_TF = os.environ.get("USE_TF", "AUTO").upper()
+USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
 
 if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
@@ -63,7 +63,7 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         _tf_available = _tf_version is not None
     if _tf_available:
         if int(_tf_version.split('.')[0]) < 2:  # type: ignore[union-attr]
-            logging.info(f"TensorFlow found but with version {_tf_version}. Transformers requires version 2 minimum.")
+            logging.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
             _tf_available = False
         else:
             logging.info(f"TensorFlow version {_tf_version} available.")

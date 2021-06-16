@@ -6,37 +6,16 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 import cv2
-from copy import deepcopy
 import numpy as np
 from shapely.geometry import Polygon
 import pyclipper
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 from typing import Union, List, Tuple, Optional, Any, Dict
 
-from .core import DetectionModel, DetectionPostProcessor
-from ..utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
-from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from doctr.utils.common_types import RotatedBbox
+from ..core import DetectionPostProcessor
 
-__all__ = ['DBPostProcessor', 'DBNet', 'db_resnet50']
-
-
-default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_resnet50': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'backbone': 'ResNet50',
-        'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
-        'fpn_channels': 128,
-        'input_shape': (1024, 1024, 3),
-        'rotated_bbox': False,
-        'post_processor': 'DBPostProcessor',
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
-    },
-}
+__all__ = ['DBPostProcessor']
 
 
 class DBPostProcessor(DetectionPostProcessor):
@@ -158,70 +137,7 @@ class DBPostProcessor(DetectionPostProcessor):
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
 
 
-class FeaturePyramidNetwork(layers.Layer, NestedObject):
-    """Feature Pyramid Network as described in `"Feature Pyramid Networks for Object Detection"
-    <https://arxiv.org/pdf/1612.03144.pdf>`_.
-
-    Args:
-        channels: number of channel to output
-    """
-
-    def __init__(
-        self,
-        channels: int,
-    ) -> None:
-        super().__init__()
-        self.channels = channels
-        self.upsample = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
-        self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer='he_normal') for _ in range(4)]
-        self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
-
-    @staticmethod
-    def build_upsampling(
-        channels: int,
-        dilation_factor: int = 1,
-    ) -> layers.Layer:
-        """Module which performs a 3x3 convolution followed by up-sampling
-
-        Args:
-            channels: number of output channels
-            dilation_factor (int): dilation factor to scale the convolution output before concatenation
-
-        Returns:
-            a keras.layers.Layer object, wrapping these operations in a sequential module
-
-        """
-
-        _layers = conv_sequence(channels, 'relu', True, kernel_size=3)
-
-        if dilation_factor > 1:
-            _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
-
-        module = keras.Sequential(_layers)
-
-        return module
-
-    def extra_repr(self) -> str:
-        return f"channels={self.channels}"
-
-    def call(
-        self,
-        x: List[tf.Tensor],
-        **kwargs: Any,
-    ) -> tf.Tensor:
-
-        # Channel mapping
-        results = [block(fmap, **kwargs) for block, fmap in zip(self.inner_blocks, x)]
-        # Upsample & sum
-        for idx in range(len(results) - 1, -1):
-            results[idx] += self.upsample(results[idx + 1])
-        # Conv & upsample
-        results = [block(fmap, **kwargs) for block, fmap in zip(self.layer_blocks, results)]
-
-        return layers.concatenate(results)
-
-
-class DBNet(DetectionModel, NestedObject):
+class _DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
@@ -230,51 +146,11 @@ class DBNet(DetectionModel, NestedObject):
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
 
-    _children_names: List[str] = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head', 'postprocessor']
-
-    def __init__(
-        self,
-        feature_extractor: IntermediateLayerGetter,
-        fpn_channels: int = 128,
-        rotated_bbox: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
-    ) -> None:
-
-        super().__init__(cfg=cfg)
-
-        self.shrink_ratio = 0.4
-        self.thresh_min = 0.3
-        self.thresh_max = 0.7
-        self.min_size_box = 3
-
-        self.feat_extractor = feature_extractor
-        self.rotated_bbox = rotated_bbox
-
-        self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
-        # Initialize kernels
-        _inputs = [layers.Input(shape=in_shape[1:]) for in_shape in self.feat_extractor.output_shape]
-        output_shape = tuple(self.fpn(_inputs).shape)
-
-        self.probability_head = keras.Sequential(
-            [
-                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
-                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
-                layers.BatchNormalization(),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
-            ]
-        )
-        self.threshold_head = keras.Sequential(
-            [
-                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
-                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
-                layers.BatchNormalization(),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
-            ]
-        )
-
-        self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
+    shrink_ratio = 0.4
+    thresh_min = 0.3
+    thresh_max = 0.7
+    min_size_box = 3
+    rotated_bbox: bool = False
 
     @staticmethod
     def compute_distance(
@@ -376,10 +252,10 @@ class DBNet(DetectionModel, NestedObject):
         self,
         target: List[Dict[str, Any]],
         output_shape: Tuple[int, int, int],
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
         seg_target = np.zeros(output_shape, dtype=np.uint8)
-        seg_mask = np.ones(output_shape, dtype=np.bool)
+        seg_mask = np.ones(output_shape, dtype=bool)
         thresh_target = np.zeros(output_shape, dtype=np.uint8)
         thresh_mask = np.ones(output_shape, dtype=np.uint8)
 
@@ -443,147 +319,9 @@ class DBNet(DetectionModel, NestedObject):
 
         thresh_target = thresh_target.astype(np.float32) * (self.thresh_max - self.thresh_min) + self.thresh_min
 
-        seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
-        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        thresh_target = tf.convert_to_tensor(thresh_target, dtype=tf.float32)
-        thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
+        seg_target = seg_target.astype(np.float32)
+        seg_mask = seg_mask.astype(bool)
+        thresh_target = thresh_target.astype(np.float32)
+        thresh_mask = thresh_mask.astype(bool)
 
         return seg_target, seg_mask, thresh_target, thresh_mask
-
-    def compute_loss(
-        self,
-        out_map: tf.Tensor,
-        thresh_map: tf.Tensor,
-        target: List[Dict[str, Any]]
-    ) -> tf.Tensor:
-        """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
-        and a list of masks for each image. From there it computes the loss with the model output
-
-        Args:
-            out_map: output feature map of the model of shape (N, H, W, C)
-            thresh_map: threshold map of shape (N, H, W, C)
-            target: list of dictionary where each dict has a `boxes` and a `flags` entry
-
-        Returns:
-            A loss tensor
-        """
-
-        prob_map = tf.math.sigmoid(tf.squeeze(out_map, axis=[-1]))
-        thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
-
-        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
-
-        # Compute balanced BCE loss for proba_map
-        bce_scale = 5.
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map, from_logits=True)[seg_mask]
-
-        neg_target = 1 - seg_target[seg_mask]
-        positive_count = tf.math.reduce_sum(seg_target[seg_mask])
-        negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3. * positive_count])
-        negative_loss = bce_loss * neg_target
-        negative_loss, _ = tf.nn.top_k(negative_loss, tf.cast(negative_count, tf.int32))
-        sum_losses = tf.math.reduce_sum(bce_loss * seg_target[seg_mask]) + tf.math.reduce_sum(negative_loss)
-        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
-
-        # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + tf.exp(-50. * (prob_map[seg_mask] - thresh_map[seg_mask])))
-
-        bce_min = tf.math.reduce_min(bce_loss)
-        weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.
-        inter = tf.math.reduce_sum(bin_map * seg_target[seg_mask] * weights)
-        union = tf.math.reduce_sum(bin_map) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
-        dice_loss = 1 - 2.0 * inter / union
-
-        # Compute l1 loss for thresh_map
-        l1_scale = 10.
-        if tf.reduce_any(thresh_mask):
-            l1_loss = tf.math.reduce_mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
-        else:
-            l1_loss = tf.constant(0.)
-
-        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
-
-    def call(
-        self,
-        x: tf.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
-        return_model_output: bool = False,
-        return_boxes: bool = False,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-
-        feat_maps = self.feat_extractor(x, **kwargs)
-        feat_concat = self.fpn(feat_maps, **kwargs)
-        logits = self.probability_head(feat_concat, **kwargs)
-
-        out: Dict[str, tf.Tensor] = {}
-        if return_model_output or target is None or return_boxes:
-            prob_map = tf.math.sigmoid(logits)
-
-        if return_model_output:
-            out["out_map"] = prob_map
-
-        if target is None or return_boxes:
-            # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map)
-
-        if target is not None:
-            thresh_map = self.threshold_head(feat_concat, **kwargs)
-            loss = self.compute_loss(logits, thresh_map, target)
-            out['loss'] = loss
-
-        return out
-
-
-def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
-
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
-    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
-
-    # Feature extractor
-    resnet = tf.keras.applications.__dict__[_cfg['backbone']](
-        include_top=False,
-        weights=None,
-        input_shape=_cfg['input_shape'],
-        pooling=None,
-    )
-
-    feat_extractor = IntermediateLayerGetter(
-        resnet,
-        _cfg['fpn_layers'],
-    )
-
-    kwargs['fpn_channels'] = _cfg['fpn_channels']
-    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
-
-    # Build the model
-    model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
-    # Load pretrained parameters
-    if pretrained:
-        load_pretrained_params(model, _cfg['url'])
-
-    return model
-
-
-def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
-    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
-    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
-
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import db_resnet50
-        >>> model = db_resnet50(pretrained=True)
-        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-
-    Returns:
-        text detection architecture
-    """
-
-    return _db_resnet('db_resnet50', pretrained, **kwargs)

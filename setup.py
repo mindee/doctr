@@ -39,6 +39,7 @@ with open('README.md', 'r') as f:
 
 # Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
 _deps = [
+    "importlib_metadata",
     "numpy>=1.16.0",
     "scipy>=1.4.0",
     "opencv-python>=4.2",
@@ -63,6 +64,7 @@ def deps_list(*pkgs):
 
 
 install_requires = [
+    deps["importlib_metadata"] + ";python_version<'3.8'",  # importlib_metadata for Python versions that don't have it
     deps["numpy"],
     deps["scipy"],
     deps["opencv-python"],

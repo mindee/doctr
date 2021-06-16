@@ -5,13 +5,12 @@
 
 import numpy as np
 import cv2
-import tensorflow as tf
-from typing import List, Union
+from typing import List
 
 __all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 
 
-def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[Union[np.ndarray, tf.Tensor]]:
+def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
@@ -38,7 +37,7 @@ def extract_crops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[
     return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
-def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List[np.ndarray]:
+def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:
@@ -53,9 +52,6 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
         return []
     if boxes.shape[1] != 5:
         raise AssertionError("boxes are expected to be relative and in order (x, y, w, h, alpha)")
-
-    if isinstance(img, tf.Tensor):
-        img = img.numpy().astype(np.uint8)
 
     # Project relative coordinates
     _boxes = boxes.copy()
@@ -91,14 +87,14 @@ def extract_rcrops(img: Union[np.ndarray, tf.Tensor], boxes: np.ndarray) -> List
 
 
 def rotate_page(
-    image: Union[tf.Tensor, np.array],
+    image: np.ndarray,
     angle: float = 0.,
     min_angle: float = 1.
-) -> Union[tf.Tensor, np.array]:
+) -> np.ndarray:
     """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
 
     Args:
-        image: tf tensor or np array to rotate
+        image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         min_angle: min. angle in degrees to rotate a page
 
@@ -110,15 +106,10 @@ def rotate_page(
     height, width = image.shape[:2]
     center = (height / 2, width / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    if isinstance(image, tf.Tensor):
-        rotated = cv2.warpAffine(image.numpy(), rot_mat, (width, height))
-        rotated = tf.cast(rotated, tf.float32)
-    else:
-        rotated = cv2.warpAffine(image, rot_mat, (width, height))
-    return rotated
+    return cv2.warpAffine(image, rot_mat, (width, height))
 
 
-def get_bitmap_angle(bitmap: np.array, n_ct: int = 20, std_max: float = 3.) -> float:
+def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) -> float:
     """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
 
     Args:
@@ -157,10 +148,10 @@ def get_bitmap_angle(bitmap: np.array, n_ct: int = 20, std_max: float = 3.) -> f
 
 
 def rotate_boxes(
-    boxes: np.array,
+    boxes: np.ndarray,
     angle: float = 0.,
     min_angle: float = 1.
-) -> np.array:
+) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) of an angle,
     if angle > min_angle, around the center of the page.
 
