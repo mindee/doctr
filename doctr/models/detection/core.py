@@ -3,35 +3,24 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import tensorflow as tf
-from tensorflow import keras
 import numpy as np
 import cv2
 from typing import List, Any, Optional, Dict, Tuple
-from ..preprocessor import PreProcessor
+
 from doctr.utils.repr import NestedObject
-from doctr.models._utils import rotate_page, get_bitmap_angle
+from .._utils import rotate_page, get_bitmap_angle
+from .. import PreProcessor
 
 
 __all__ = ['DetectionModel', 'DetectionPostProcessor', 'DetectionPredictor']
 
 
-class DetectionModel(keras.Model, NestedObject):
+class DetectionModel(NestedObject):
     """Implements abstract DetectionModel class"""
 
-    def __init__(self, *args: Any, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, cfg: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__()
         self.cfg = cfg
-
-    def call(
-        self,
-        x: tf.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
-        return_model_output: bool = False,
-        return_boxes: bool = False,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-        raise NotImplementedError
 
 
 class DetectionPostProcessor(NestedObject):
@@ -74,10 +63,10 @@ class DetectionPostProcessor(NestedObject):
         h, w = pred.shape[:2]
 
         if not rotated_bbox:
-            xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int), 0, w - 1)
-            xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int), 0, w - 1)
-            ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int), 0, h - 1)
-            ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int), 0, h - 1)
+            xmin = np.clip(np.floor(points[:, 0].min()).astype(np.int32), 0, w - 1)
+            xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int32), 0, w - 1)
+            ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int32), 0, h - 1)
+            ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int32), 0, h - 1)
             return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
 
         else:
@@ -95,23 +84,19 @@ class DetectionPostProcessor(NestedObject):
 
     def __call__(
         self,
-        proba_map: tf.Tensor,
+        proba_map: np.ndarray,
     ) -> Tuple[List[np.ndarray], List[float]]:
         """Performs postprocessing for a list of model outputs
 
         Args:
-            x: dictionary of the model output
+            proba_map: probability map of shape (N, H, W)
 
         returns:
             list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6),
             and a list of N angles (page orientations).
         """
 
-        proba_map = tf.squeeze(proba_map, axis=-1)  # remove last dim
-        bitmap = tf.cast(proba_map > self.bin_thresh, tf.float32)
-
-        proba_map = tf.unstack(proba_map, axis=0)
-        bitmap = tf.unstack(bitmap, axis=0)
+        bitmap = (proba_map > self.bin_thresh).astype(np.float32)
 
         boxes_batch, angles_batch = [], []
         # Kernel for opening, empirical law for ksize
@@ -119,8 +104,6 @@ class DetectionPostProcessor(NestedObject):
         kernel = np.ones((k_size, k_size), np.uint8)
 
         for p_, bitmap_ in zip(proba_map, bitmap):
-            p_ = p_.numpy()
-            bitmap_ = bitmap_.numpy()
             # Perform opening (erosion + dilatation)
             bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
             # Rotate bitmap and proba_map
@@ -163,5 +146,8 @@ class DetectionPredictor(NestedObject):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(pages)
-        predicted_batches = [self.model(batch, return_boxes=True, **kwargs)['preds'] for batch in processed_batches]
+        predicted_batches = [
+            self.model(batch, return_boxes=True, **kwargs)['preds']  # type:ignore[operator]
+            for batch in processed_batches
+        ]
         return [pred for batch in predicted_batches for pred in zip(*batch)]
