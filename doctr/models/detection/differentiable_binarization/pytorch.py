@@ -104,6 +104,7 @@ class DBNet(_DBNet, nn.Module):
         fpn_channels: List[int],
         head_chans: int = 256,
         deform_conv: bool = False,
+        num_classes: int = 1,
         rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -138,7 +139,7 @@ class DBNet(_DBNet, nn.Module):
             nn.ConvTranspose2d(head_chans // 4, head_chans // 4, 2, stride=2, bias=False),
             nn.BatchNorm2d(head_chans // 4),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(head_chans // 4, 1, 2, stride=2),
+            nn.ConvTranspose2d(head_chans // 4, num_classes, 2, stride=2),
         )
 
         self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
