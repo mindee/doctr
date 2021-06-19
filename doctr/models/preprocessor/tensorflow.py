@@ -85,10 +85,8 @@ class PreProcessor(NestedObject):
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
             processed_batches = [x]
         elif isinstance(x, list):
-            # convert images to tf
-            tensors = [tf.cast(sample, dtype=tf.float32) for sample in x]
-            # Resize (and eventually pad) the inputs
-            images = [self.resize(sample) for sample in tensors]
+            # Convert to tensors & resize (and eventually pad) the inputs
+            images = [self.resize(tf.cast(sample, dtype=tf.float32)) for sample in x]
             # Batch them
             processed_batches = self.batch_inputs(images)
         else:
