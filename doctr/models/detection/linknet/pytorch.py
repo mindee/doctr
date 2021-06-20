@@ -233,7 +233,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         else:
             # Compute BCE loss with highlighted edges
-            loss = ((1 + (edge_factor - 1) * torch.from_numpy(edge_mask)) * bce).mean()
+            loss = ((1 + (edge_factor - 1) * edge_mask) * bce).mean()
 
         return loss
 
