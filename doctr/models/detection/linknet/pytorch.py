@@ -190,10 +190,10 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         out_map: torch.Tensor,
         target: List[Dict[str, Any]],
-        edge_factor: float = 2.,
         focal_loss: bool = False,
         alpha: float = .5,
         gamma: float = 2.,
+        edge_factor: float = 2.,
     ) -> torch.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.

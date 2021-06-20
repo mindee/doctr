@@ -139,9 +139,9 @@ class LinkNet(_LinkNet, keras.Model):
         out_map: tf.Tensor,
         target: List[Dict[str, Any]],
         focal_loss: bool = False,
-        edge_factor: float = 2.,
         alpha: float = .5,
         gamma: float = 2.,
+        edge_factor: float = 2.,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
