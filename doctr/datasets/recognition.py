@@ -5,10 +5,9 @@
 
 import os
 import json
-import tensorflow as tf
-from typing import Tuple, List, Optional, Callable
+from typing import Tuple, List, Optional, Callable, Any
 
-from .core import AbstractDataset
+from .datasets import AbstractDataset
 
 __all__ = ["RecognitionDataset"]
 
@@ -30,7 +29,7 @@ class RecognitionDataset(AbstractDataset):
         self,
         img_folder: str,
         labels_path: str,
-        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        sample_transforms: Optional[Callable[[Any], Any]] = None,
     ) -> None:
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
         self.root = img_folder

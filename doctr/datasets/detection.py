@@ -5,11 +5,10 @@
 
 import os
 import json
-import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional, Callable
 
-from .core import AbstractDataset
+from .datasets import AbstractDataset
 from doctr.utils.geometry import fit_rbbox
 
 __all__ = ["DetectionDataset"]
@@ -33,7 +32,7 @@ class DetectionDataset(AbstractDataset):
         self,
         img_folder: str,
         label_folder: str,
-        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
     ) -> None:
         self.sample_transforms = sample_transforms

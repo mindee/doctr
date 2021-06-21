@@ -8,9 +8,8 @@ import json
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
-import tensorflow as tf
 
-from .core import VisionDataset
+from .datasets import VisionDataset
 from doctr.utils.geometry import fit_rbbox
 
 __all__ = ['CORD']
@@ -40,7 +39,7 @@ class CORD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
