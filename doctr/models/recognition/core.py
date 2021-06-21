@@ -3,8 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import tensorflow as tf
-from tensorflow import keras
 from typing import Tuple, List, Any, Optional, Dict
 import numpy as np
 
@@ -16,7 +14,7 @@ from doctr.datasets import encode_sequences
 __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor']
 
 
-class RecognitionModel(keras.Model, NestedObject):
+class RecognitionModel(NestedObject):
     """Implements abstract RecognitionModel class"""
 
     def __init__(self, *args: Any, vocab: str, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
@@ -27,8 +25,8 @@ class RecognitionModel(keras.Model, NestedObject):
     def compute_target(
         self,
         gts: List[str],
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
-        """Encode a list of gts sequences into a tf tensor and gives the corresponding*
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Encode a list of gts sequences into a np array and gives the corresponding*
         sequence lengths.
 
         Args:
@@ -43,14 +41,12 @@ class RecognitionModel(keras.Model, NestedObject):
             target_size=self.max_length,
             eos=len(self.vocab)
         )
-        tf_encoded = tf.cast(encoded, tf.int64)
         seq_len = [len(word) for word in gts]
-        tf_seq_len = tf.cast(seq_len, tf.int64)
-        return tf_encoded, tf_seq_len
+        return encoded, seq_len
 
     def call(
         self,
-        x: tf.Tensor,
+        x: np.ndarray,
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
@@ -72,14 +68,14 @@ class RecognitionPostProcessor(NestedObject):
     ) -> None:
 
         self.vocab = vocab
-        self._embedding = tf.constant(list(self.vocab) + ['<eos>'], dtype=tf.string)
+        self._embedding = list(self.vocab) + ['<eos>']
 
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"
 
     def __call__(
         self,
-        x: List[tf.Tensor],
+        x: List[np.ndarray],
     ) -> List[Tuple[str, float]]:
         raise NotImplementedError
 
