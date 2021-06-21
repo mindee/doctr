@@ -178,7 +178,8 @@ def visualize_page(
 
 def draw_page(
     page: Dict[str, Any],
-    draw_proba: bool = True
+    draw_proba: bool = True,
+    font_path: str = "https://github.com/opensourcedesign/fonts/blob/master/gnu-freefont_freemono/FreeMonoBold.ttf",
 ) -> np.ndarray:
     """
     Draw a the content of the element page (OCR response) on a blank page.
@@ -186,6 +187,7 @@ def draw_page(
     Args:
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
+        font_path: path to font
 
     Return:
         A np array (drawn page)
@@ -210,7 +212,7 @@ def draw_page(
                 # Convert Pix -> Pts, add line smoothing and offset to reduce boxes to the size of characters.
                 font_size = int(.75 * ((ymax - ymin + np.mean(smoothing)) / 2 - 4))
                 # Load font
-                fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", font_size)
+                fnt = ImageFont.truetype(font_path, font_size)
 
                 # Draw
                 if draw_proba:
