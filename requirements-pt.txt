@@ -10,3 +10,4 @@ weasyprint>=52.2
 unidecode>=1.0.0
 torch>=1.8.0
 torchvision>=0.9.0
+Pillow>=8.0.0
