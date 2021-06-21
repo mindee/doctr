@@ -9,3 +9,9 @@ def test_visualize_page():
     image = np.ones((300, 200, 3))
     visualization.visualize_page(pages[0].export(), image, words_only=False)
     visualization.visualize_page(pages[0].export(), image, words_only=True, interactive=False)
+
+
+def test_draw_page():
+    pages = _mock_pages()
+    visualization.draw_page(pages[0].export(), draw_proba=True)
+    visualization.draw_page(pages[0].export(), draw_proba=False)

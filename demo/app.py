@@ -18,7 +18,7 @@ if any(gpu_devices):
 
 from doctr.documents import DocumentFile
 from doctr.models import ocr_predictor
-from doctr.utils.visualization import visualize_page
+from doctr.utils.visualization import draw_page, visualize_page
 
 DET_ARCHS = ["db_resnet50"]
 RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
@@ -34,10 +34,9 @@ def main():
     # For newline
     st.write('\n')
     # Set the columns
-    cols = st.beta_columns((1, 1, 1))
-    cols[0].header("Input document")
-    cols[1].header("Text segmentation")
-    cols[-1].header("OCR output")
+    cols = st.beta_columns((1, 1))
+    cols[0].subheader("Input document (first page)")
+    cols[1].subheader("Raw heatmap (segmentation task)")
 
     # Sidebar
     # File selection
@@ -51,7 +50,7 @@ def main():
             doc = DocumentFile.from_pdf(uploaded_file.read()).as_images(output_size=(1024, 1024))
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
-        cols[0].image(doc[0], "First page", use_column_width=True)
+        cols[0].image(doc[0], width=600)
 
     # Model selection
     st.sidebar.title("Model selection")
@@ -85,10 +84,16 @@ def main():
                 ax.axis('off')
                 cols[1].pyplot(fig)
 
-                # OCR
+                # Plot OCR output
                 out = predictor(doc, training=False)
+                cols[1].subheader("OCR output")
                 fig = visualize_page(out.pages[0].export(), doc[0], interactive=False)
-                cols[-1].pyplot(fig)
+                cols[1].pyplot(fig)
+
+                # Page reconsitution under input page
+                cols[0].subheader("Page reconstitution from OCR output")
+                img = draw_page(out.pages[0].export())
+                cols[0].image(img, width=600, use_column_width=False)
 
 
 if __name__ == '__main__':

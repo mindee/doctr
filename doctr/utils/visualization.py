@@ -7,13 +7,14 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
+from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 import cv2
 from typing import Tuple, List, Dict, Any, Union
 
 from .common_types import BoundingBox, RotatedBbox
 
-__all__ = ['visualize_page']
+__all__ = ['visualize_page', 'draw_page']
 
 
 def create_rect_patch(
@@ -170,6 +171,51 @@ def visualize_page(
     if interactive:
         # Create mlp Cursor to hover patches in artists
         mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
-    fig.tight_layout()
+    fig.tight_layout(pad=0.)
 
     return fig
+
+
+def draw_page(
+    page: Dict[str, Any],
+    draw_proba: bool = True
+) -> np.ndarray:
+    """Draw a the content of the element page (OCR response) on a blank page.
+
+    Args:
+        page: exported Page object to represent
+        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
+
+    Return:
+        A np array (drawn page)
+    """
+    # Get a drawing context
+    h, w = page["dimensions"]
+    img = Image.new('RGB', (w, h), color=(255, 255, 255))
+    d = ImageDraw.Draw(img)
+
+    # Draw each word
+    for block in page["blocks"]:
+        for line in block["lines"]:
+            smoothing = []  # Smooth the size of words on the whole line for a better UX (more esthetic)
+            for word in line["words"]:
+                # Resize word geometry
+                (xmin, ymin), (xmax, ymax) = word["geometry"]
+                xmin, xmax = w * xmin, w * xmax
+                ymin, ymax = h * ymin, h * ymax
+
+                # Font computation
+                smoothing.append(ymax - ymin)  # Update line smoother
+                # Convert Pix -> Pts, add line smoothing and offset to reduce boxes to the size of characters.
+                font_size = int(.75 * ((ymax - ymin + np.mean(smoothing)) / 2 - 4))
+                # Load font
+                fnt = ImageFont.truetype("Pillow/Tests/fonts/FreeMono.ttf", font_size)
+
+                # Draw
+                if draw_proba:
+                    p = int(255 * word["confidence"])
+                    d.text((int(xmin), int(ymin)), word["value"], font=fnt, fill=(255 - p, 0, p))
+                else:
+                    d.text((int(xmin), int(ymin)), word["value"], font=fnt, fill=(0, 0, 0))
+
+    return np.array(img)
