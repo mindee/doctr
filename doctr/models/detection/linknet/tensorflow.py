@@ -23,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet16': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'out_chan': 1,
+        'num_classes': 1,
         'input_shape': (1024, 1024, 3),
         'rotated_bbox': False,
         'url': None,
@@ -87,14 +87,14 @@ class LinkNet(_LinkNet, keras.Model):
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Args:
-        out_chan: number of channels for the output
+        num_classes: number of channels for the output
     """
 
     _children_names: List[str] = ['stem', 'fpn', 'classifier', 'postprocessor']
 
     def __init__(
         self,
-        out_chan: int = 1,
+        num_classes: int = 1,
         input_shape: Tuple[int, int, int] = (512, 512, 3),
         rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -123,7 +123,7 @@ class LinkNet(_LinkNet, keras.Model):
             layers.Activation('relu'),
             *conv_sequence(32, 'relu', True, strides=1, kernel_size=3),
             layers.Conv2DTranspose(
-                filters=out_chan,
+                filters=num_classes,
                 kernel_size=2,
                 strides=2,
                 padding="same",
@@ -139,9 +139,9 @@ class LinkNet(_LinkNet, keras.Model):
         out_map: tf.Tensor,
         target: List[Dict[str, Any]],
         focal_loss: bool = False,
-        factor: float = 2.,
         alpha: float = .5,
         gamma: float = 2.,
+        edge_factor: float = 2.,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -150,7 +150,7 @@ class LinkNet(_LinkNet, keras.Model):
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
             focal_loss: if True, use focal loss instead of BCE
-            factor: boost factor for box edges (in case of BCE)
+            edge_factor: boost factor for box edges (in case of BCE)
             alpha: balancing factor in the focal loss formula
             gammma: modulating factor in the focal loss formula
 
@@ -186,7 +186,7 @@ class LinkNet(_LinkNet, keras.Model):
         else:
             # Compute BCE loss with highlighted edges
             loss = tf.math.multiply(
-                1 + (factor - 1) * tf.cast(edge_mask, tf.float32),
+                1 + (edge_factor - 1) * tf.cast(edge_mask, tf.float32),
                 bce
             )
             loss = tf.reduce_mean(loss)
@@ -229,10 +229,10 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['out_chan'] = kwargs.get('out_chan', _cfg['out_chan'])
+    _cfg['num_classes'] = kwargs.get('num_classes', _cfg['num_classes'])
     _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
-    kwargs['out_chan'] = _cfg['out_chan']
+    kwargs['num_classes'] = _cfg['num_classes']
     kwargs['input_shape'] = _cfg['input_shape']
     kwargs['rotated_bbox'] = _cfg['rotated_bbox']
     # Build the model
@@ -250,8 +250,8 @@ def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
 
     Example::
         >>> import tensorflow as tf
-        >>> from doctr.models import linknet
-        >>> model = linknet(pretrained=True)
+        >>> from doctr.models import linknet16
+        >>> model = linknet16(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
 
