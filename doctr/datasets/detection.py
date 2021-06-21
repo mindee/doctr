@@ -59,11 +59,9 @@ class DetectionDataset(AbstractDataset):
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, Dict[str, np.ndarray]]:
+    ) -> Tuple[Any, Dict[str, np.ndarray]]:
 
-        img_name, target = self.data[index]
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
+        img, target = self._read_sample(index)
         h, w = img.shape[:2]
         if self.sample_transforms is not None:
             img = self.sample_transforms(img)
