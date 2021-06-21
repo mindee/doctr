@@ -10,7 +10,7 @@ from typing import List, Any, Optional, Tuple, Callable, Union
 import torch
 from torchvision.io.image import read_image, ImageReadMode
 
-from doctr.models.utils import download_from_url
+from doctr.models.data_utils import download_from_url
 
 
 __all__ = ['AbstractDataset', 'VisionDataset']

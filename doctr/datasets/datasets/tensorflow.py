@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from typing import List, Any, Optional, Tuple, Callable, Union
 import tensorflow as tf
 
-from doctr.models.utils import download_from_url
+from doctr.models.data_utils import download_from_url
 
 
 __all__ = ['AbstractDataset', 'VisionDataset']
