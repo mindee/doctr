@@ -180,7 +180,8 @@ def draw_page(
     page: Dict[str, Any],
     draw_proba: bool = True
 ) -> np.ndarray:
-    """Draw a the content of the element page (OCR response) on a blank page.
+    """
+    Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
         page: exported Page object to represent
