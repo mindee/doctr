@@ -181,8 +181,7 @@ def draw_page(
     draw_proba: bool = True,
     font_path: str = "https://github.com/opensourcedesign/fonts/blob/master/gnu-freefont_freemono/FreeMonoBold.ttf",
 ) -> np.ndarray:
-    """
-    Draw a the content of the element page (OCR response) on a blank page.
+    """Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
         page: exported Page object to represent
