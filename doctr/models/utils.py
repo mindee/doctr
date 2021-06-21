@@ -10,66 +10,14 @@ import hashlib
 from pathlib import Path
 from zipfile import ZipFile
 from tensorflow.keras import layers, Model
-from tensorflow.keras.utils import get_file
 from typing import Optional, List, Any, Union
+
+from .data_utils import download_from_url
 
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
-__all__ = ['download_from_url', 'load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter']
-
-
-# matches bfd8deac from resnet18-bfd8deac.ckpt
-HASH_REGEX = re.compile(r'-([a-f0-9]*)\.')
-
-
-def download_from_url(
-    url: str,
-    file_name: Optional[str] = None,
-    hash_prefix: Optional[str] = None,
-    **kwargs: Any
-) -> str:
-    """Download a file using its URL
-
-    Example::
-        >>> from doctr.models import download_from_url
-        >>> download_from_url("https://yoursource.com/yourcheckpoint-yourhash.zip")
-
-    Args:
-        url: the URL of the file to download
-        file_name: optional name of the file once downloaded
-        hash_prefix: optional expected SHA256 hash of the file
-
-    Returns:
-        the location of the downloaded file
-    """
-
-    if not isinstance(file_name, str):
-        file_name = url.rpartition('/')[-1]
-
-    if not isinstance(kwargs.get('cache_dir'), str):
-        kwargs['cache_dir'] = os.path.join(os.path.expanduser('~'), '.cache', 'doctr')
-        Path(kwargs['cache_dir']).mkdir(parents=True, exist_ok=True)
-
-    file_path = get_file(file_name, url, **kwargs)
-
-    # Check hash in file name
-    if hash_prefix is None:
-        r = HASH_REGEX.search(file_name)
-        hash_prefix = r.group(1) if r else None
-
-    if isinstance(hash_prefix, str):
-        # Hash the file
-        with open(file_path, 'rb') as f:
-            sha_hash = hashlib.sha256(f.read()).hexdigest()
-
-        # Compare to expected hash
-        if sha_hash[:len(hash_prefix)] != hash_prefix:
-            # Remove file
-            os.remove(file_path)
-            raise ValueError(f"corrupted download, the hash of {url} does not match its expected value")
-
-    return file_path
+__all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter']
 
 
 def load_pretrained_params(
@@ -97,11 +45,9 @@ def load_pretrained_params(
     if url is None:
         logging.warning("Invalid model URL, using default initialization.")
     else:
-        archive_path: Union[str, Path]
         archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir='models', **kwargs)
 
         # Unzip the archive
-        archive_path = Path(archive_path)
         params_path = archive_path.parent.joinpath(archive_path.stem)
         if not params_path.is_dir() or overwrite:
             with ZipFile(archive_path, 'r') as f:
