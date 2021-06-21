@@ -1,5 +1,6 @@
 import pytest
-import tensorflow as tf
+import torch
+from torch.utils.data import DataLoader, RandomSampler
 
 from doctr import datasets
 from doctr.transforms import Resize
@@ -35,10 +36,13 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     assert len(ds) == size
     assert repr(ds) == f"{dataset_name}(train={train})"
     img, target = ds[0]
-    assert isinstance(img, tf.Tensor) and img.shape == (*input_size, 3)
+    assert isinstance(img, torch.Tensor) and img.shape == (3, *input_size)
     assert isinstance(target, dict)
 
-    loader = datasets.DataLoader(ds, batch_size=2)
+    loader = DataLoader(
+        ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
+        collate_fn=ds.collate_fn)
+
     images, targets = next(iter(loader))
-    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

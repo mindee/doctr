@@ -55,6 +55,7 @@ _deps = [
     "torch>=1.8.0",
     "torchvision>=0.9.0",
     "Pillow>=8.0.0",
+    "tqdm>=4.30.0",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -77,6 +78,7 @@ install_requires = [
     deps["weasyprint"],
     deps["unidecode"],
     deps["Pillow"],
+    deps["tqdm"],
 ]
 
 extras = {}
