@@ -7,15 +7,14 @@ import os
 from pathlib import Path
 from zipfile import ZipFile
 from typing import List, Any, Optional, Tuple, Callable, Union
-import tensorflow as tf
 
-from doctr.models.utils import download_from_url
-
-
-__all__ = ['AbstractDataset', 'VisionDataset']
+from doctr.models.data_utils import download_from_url
 
 
-class AbstractDataset:
+__all__ = ['_AbstractDataset', '_VisionDataset']
+
+
+class _AbstractDataset:
 
     data: List[Any] = []
     root: str
@@ -23,15 +22,16 @@ class AbstractDataset:
     def __len__(self):
         return len(self.data)
 
+    def _read_sample(self, index: int) -> Tuple[Any, Any]:
+        raise NotImplementedError
+
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[tf.Tensor, Any]:
+    ) -> Tuple[Any, Any]:
 
-        img_name, target = self.data[index]
         # Read image
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
+        img, target = self._read_sample(index)
         self.sample_transforms: Optional[Callable[[Any], Any]]
         if self.sample_transforms is not None:
             # typing issue cf. https://github.com/python/mypy/issues/5485
@@ -45,16 +45,8 @@ class AbstractDataset:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.extra_repr()})"
 
-    @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Any]]) -> Tuple[tf.Tensor, List[Any]]:
 
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, list(targets)
-
-
-class VisionDataset(AbstractDataset):
+class _VisionDataset(_AbstractDataset):
     """Implements an abstract dataset
 
     Args:
