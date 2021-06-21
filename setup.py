@@ -76,6 +76,7 @@ install_requires = [
     deps["mplcursors"],
     deps["weasyprint"],
     deps["unidecode"],
+    deps["Pillow"],
 ]
 
 extras = {}
