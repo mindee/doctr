@@ -143,6 +143,15 @@ class DBNet(_DBNet, nn.Module):
 
         self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
 
+        for m in self.modules():
+            if isinstance(m, (nn.Conv2d, DeformConv2d)):
+                nn.init.kaiming_normal_(m.weight.data, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1.0)
+                m.bias.data.zero_()
+
     def forward(
         self,
         x: torch.Tensor,
