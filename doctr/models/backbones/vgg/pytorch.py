@@ -13,7 +13,7 @@ __all__ = ['VGG', 'vgg16_bn']
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'vgg16_bn': {'num_blocks': (2, 2, 3, 3, 3), 'planes': (3, 64, 128, 256, 512, 512),
                  'rect_pools': (False, False, True, True, True),
-                 'input_shape': (3, 512, 512),
+                 'input_shape': (3, 32, 128),
                  'url': None},
 }
 
@@ -44,6 +44,7 @@ class VGG(nn.Sequential):
                     nn.BatchNorm2d(out_chan),
                     nn.ReLU(inplace=True),
                 ])
+                in_chan = out_chan
             _layers.append(nn.MaxPool2d((2, 1 if rect_pool else 2)))
         if include_top:
             raise NotImplementedError

@@ -111,17 +111,14 @@ class CRNN(RecognitionModel, nn.Module):
         super().__init__(vocab=vocab, cfg=cfg)
         self.feat_extractor = feature_extractor
 
-        # Initialize kernels
-        c, h, w = self.feat_extractor.output_shape[1:]
-        self.max_length = w
+        self.max_length = 32
 
-        self.decoder = nn.Sequential(
-            [
-                nn.LSTM(input_size=h * c, hidden_size=rnn_units, num_layers=1, bidirectional=True),
-                nn.LSTM(input_size=h * c, hidden_size=rnn_units, num_layers=1, bidirectional=True),
-                nn.Linear(in_features=rnn_units, out_features=len(vocab) + 1)
-            ]
+        self.decoder = nn.LSTM(
+            input_size=1 * 512, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True
         )
+
+        # features units = 2 * rnn_units because bidirectional layers
+        self.linear = nn.Linear(in_features=2 * rnn_units, out_features=len(vocab) + 1)
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
 
@@ -142,16 +139,16 @@ class CRNN(RecognitionModel, nn.Module):
         """
         gt, seq_len = self.compute_target(target)
         batch_len = model_output.shape[0]
-        input_length = model_output.shape[1] * torch.ones(shape=(batch_len))
+        input_length = model_output.shape[1] * torch.ones(size=(batch_len,))
         # N x C x T -> T x N x C
-        logits = model_output.transpose(2, 0, 1)
+        logits = model_output.permute(2, 0, 1)
         probs = F.log_softmax(logits, dim=-1)
         ctc_loss_fn = nn.CTCLoss(blank=len(self.vocab))
-        ctc_loss = ctc_loss_fn(probs, gt, input_length, seq_len)
+        ctc_loss = ctc_loss_fn(probs, torch.IntTensor(gt), input_length, torch.IntTensor(seq_len))
 
         return ctc_loss
 
-    def call(
+    def forward(
         self,
         x: torch.Tensor,
         target: Optional[List[str]] = None,
@@ -161,10 +158,12 @@ class CRNN(RecognitionModel, nn.Module):
     ) -> Dict[str, Any]:
 
         features = self.feat_extractor(x, **kwargs)
-        # B x C x H x W --> B x C*H x W
-        c, h, w = tuple(features.shape())[:1]
+        # B x C x H x W --> B x C*H x W --> B x W x C*H
+        c, h, w = features.shape[1], features.shape[2], features.shape[3]
         features_seq = torch.reshape(features, shape=(-1, h * c, w))
-        logits = self.decoder(features_seq, **kwargs)
+        features_seq = torch.transpose(features_seq, 1, 2)
+        logits, _ = self.decoder(features_seq, **kwargs)
+        logits = self.linear(logits)
 
         out: Dict[str, torch.Tensor] = {}
         if return_model_output:
