@@ -211,8 +211,8 @@ def draw_page(
                 # Convert Pix -> Pts, add line smoothing and offset to reduce boxes to the size of characters.
                 font_size = int(.75 * ((ymax - ymin + np.mean(smoothing)) / 2 - 4))
                 # Load font
-                fnt = ImageFont.truetype(font_path, font_size)
-
+                #fnt = ImageFont.truetype(font_path, font_size)
+                fnt = ImageFont.load_default()
                 # Draw
                 if draw_proba:
                     p = int(255 * word["confidence"])
