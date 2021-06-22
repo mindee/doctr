@@ -7,9 +7,6 @@ import torch
 from torch import nn
 from typing import Tuple, Dict, Any
 
-from ...utils import conv_sequence, load_pretrained_params
-
-
 __all__ = ['VGG', 'vgg16_bn']
 
 
@@ -46,11 +43,10 @@ class VGG(nn.Sequential):
         for nb_blocks, in_chan, out_chan, rect_pool in zip(num_blocks, planes[:-1], planes[1:], rect_pools):
             for _ in range(nb_blocks):
                 _layers.extend([
-                    nn.Conv2d(in_chan, out_chan, 3, padding=1, bias=False),
+                    nn.Conv2d(in_chan, out_chan, 3, padding=1, bias=False, **kwargs),
                     nn.BatchNorm2d(out_chan),
                     nn.ReLU(inplace=True),
                 ])
-                _layers.extend(conv_sequence(out_chan, 'relu', True, kernel_size=3, **kwargs))  # type: ignore[arg-type]
                 kwargs = {}
             _layers.append(nn.MaxPool2d((2, 1 if rect_pool else 2)))
         if include_top:
@@ -65,7 +61,7 @@ def _vgg(arch: str, pretrained: bool, **kwargs: Any) -> VGG:
                 default_cfgs[arch]['rect_pools'], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        raise NotImplementedError
 
     return model
 

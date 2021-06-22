@@ -75,7 +75,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(self._embedding, out_idxs),
+            inputs=tf.nn.embedding_lookup(tf.constant(self._embedding, dtype=tf.string), out_idxs),
             axis=-1
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
