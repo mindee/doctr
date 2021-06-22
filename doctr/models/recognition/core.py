@@ -17,9 +17,10 @@ __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor
 class RecognitionModel(NestedObject):
     """Implements abstract RecognitionModel class"""
 
-    def __init__(self, vocab: str, cfg: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, vocab: str, max_length: int = 32, cfg: Optional[Dict[str, Any]] = None) -> None:
         self.vocab = vocab
         self.cfg = cfg
+        self.max_length = max_length
 
     def compute_target(
         self,

@@ -105,12 +105,12 @@ class CRNN(RecognitionModel, Model):
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg)
-        self.feat_extractor = feature_extractor
 
+        self.feat_extractor = feature_extractor
         # Initialize kernels
         h, w, c = self.feat_extractor.output_shape[1:]
-        self.max_length = w
+
+        super().__init__(vocab=vocab, cfg=cfg, max_length=w)
 
         self.decoder = Sequential(
             [

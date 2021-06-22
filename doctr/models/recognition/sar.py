@@ -199,9 +199,8 @@ class SAR(RecognitionModel, Model):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__(vocab=vocab, cfg=cfg)
-
-        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+        # Add 1 timestep for EOS after the longest wor
+        super().__init__(vocab=vocab, cfg=cfg, max_length=max_length + 1)
 
         self.feat_extractor = feature_extractor
 
