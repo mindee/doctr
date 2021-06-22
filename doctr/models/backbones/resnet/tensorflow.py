@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Optional, Any, List
-from ..utils import conv_sequence, load_pretrained_params
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ['Resnet', 'resnet31', 'ResnetStage']
 
