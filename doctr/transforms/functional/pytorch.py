@@ -5,13 +5,12 @@
 
 import torch
 from torchvision.transforms import functional as F
-from typing import Optional
 
 
 __all__ = ["invert_colors"]
 
 
-def invert_colors(img: torch.Tensor, min_val: Optional[float] = 0.6) -> torch.Tensor:
+def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
     out = F.rgb_to_grayscale(img, num_output_channels=3)
     # Random RGB shift
     shift_shape = [img.shape[0], 3, 1, 1] if img.ndim == 4 else [3, 1, 1]
