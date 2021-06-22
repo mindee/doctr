@@ -12,7 +12,6 @@ from torch.nn import functional as F
 from typing import Tuple, Dict, Any, Optional, List
 
 from ... import backbones
-from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
@@ -201,7 +200,7 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        raise NotImplementedError
 
     return model
 
