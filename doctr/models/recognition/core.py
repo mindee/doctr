@@ -17,8 +17,7 @@ __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor
 class RecognitionModel(NestedObject):
     """Implements abstract RecognitionModel class"""
 
-    def __init__(self, *args: Any, vocab: str, cfg: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, vocab: str, cfg: Optional[Dict[str, Any]] = None) -> None:
         self.vocab = vocab
         self.cfg = cfg
 

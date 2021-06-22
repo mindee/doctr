@@ -11,9 +11,9 @@ from doctr.models import recognition
         ["crnn_vgg16_bn", (3, 32, 128)],
     ],
 )
-def test_recognition_models(arch_name, input_shape):
+def test_recognition_models(arch_name, input_shape, mock_vocab):
     batch_size = 4
-    reco_model = recognition.__dict__[arch_name](pretrained=False, input_shape=input_shape).eval()
+    reco_model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=False, input_shape=input_shape).eval()
     assert isinstance(reco_model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = ["i", "am", "a", "jedi"]
