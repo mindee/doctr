@@ -6,7 +6,7 @@
 from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, Model
 from typing import Tuple, Dict, Any, Optional, List
 
 from ... import backbones
@@ -85,7 +85,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-class CRNN(RecognitionModel):
+class CRNN(RecognitionModel, Model):
     """Implements a CRNN architecture as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 

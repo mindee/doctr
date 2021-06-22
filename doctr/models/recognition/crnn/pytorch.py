@@ -39,7 +39,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
     """
     @staticmethod
     def ctc_best_path(
-        logits: nn.Tensor, vocab: str = VOCABS['french'], blank: int = 0
+        logits: torch.Tensor, vocab: str = VOCABS['french'], blank: int = 0
     ) -> List[Tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
@@ -53,11 +53,12 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         """
         # compute softmax
-        probs = F.log_softmax(logits, dim=-1)
+        probs = F.softmax(logits, dim=-1)
         # get char indices along best path
-        best_path = np.argmax(probs, axis=1)
+        best_path = torch.argmax(probs, dim=1)
         # define word proba as min proba of sequence
-        probs = np.amin(np.amax(probs, axis=1), axis=1)
+        probs, _ = torch.max(probs, dim=1)
+        probs, _ = torch.min(probs, dim=1)
 
         words = []
         for sequence in best_path:
@@ -66,7 +67,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
             res = ''.join(collapsed)
             words.append(res)
 
-        return list(zip(words, list(probs)))
+        return list(zip(words, probs.tolist()))
 
     def __call__(
         self,
@@ -87,7 +88,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         return self.ctc_best_path(logits=logits, vocab=self.vocab, blank=len(self.vocab))
 
 
-class CRNN(RecognitionModel):
+class CRNN(RecognitionModel, nn.Module):
     """Implements a CRNN architecture as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
@@ -126,9 +127,9 @@ class CRNN(RecognitionModel):
 
     def compute_loss(
         self,
-        model_output: nn.Tensor,
+        model_output: torch.Tensor,
         target: List[str],
-    ) -> nn.Tensor:
+    ) -> torch.Tensor:
         """Compute CTC loss for the model.
 
         Args:
@@ -152,7 +153,7 @@ class CRNN(RecognitionModel):
 
     def call(
         self,
-        x: nn.Tensor,
+        x: torch.Tensor,
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
@@ -165,7 +166,7 @@ class CRNN(RecognitionModel):
         features_seq = torch.reshape(features, shape=(-1, h * c, w))
         logits = self.decoder(features_seq, **kwargs)
 
-        out: Dict[str, nn.Tensor] = {}
+        out: Dict[str, torch.Tensor] = {}
         if return_model_output:
             out["out_map"] = logits
 
@@ -189,7 +190,6 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
 
     # Feature extractor
     feat_extractor = backbones.__dict__[_cfg['backbone']](
-        input_shape=_cfg['input_shape'],
         include_top=False,
     )
 
