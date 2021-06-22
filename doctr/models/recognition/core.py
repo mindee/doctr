@@ -18,6 +18,7 @@ class RecognitionModel(NestedObject):
     """Implements abstract RecognitionModel class"""
 
     def __init__(self, vocab: str, max_length: int = 32, cfg: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__()
         self.vocab = vocab
         self.cfg = cfg
         self.max_length = max_length
