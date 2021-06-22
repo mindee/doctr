@@ -8,6 +8,8 @@ import cv2
 from pathlib import Path
 import fitz
 from weasyprint import HTML
+from math import floor
+from statistics import median
 from typing import List, Tuple, Optional, Any, Union, Sequence, Dict
 
 __all__ = ['read_pdf', 'read_img', 'read_html', 'DocumentFile', 'PDF']
@@ -17,11 +19,55 @@ AbstractPath = Union[str, Path]
 AbstractFile = Union[AbstractPath, bytes]
 Bbox = Tuple[float, float, float, float]
 
+def orient_image(img):
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.medianBlur(gray_img, 5)
+    thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+    # try to merge words in lines
+    (h, w) = img.shape[:2]
+    k_x = max(1, (floor(w / 100)))
+    k_y = max(1, (floor(h / 100)))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
+    thresh = cv2.dilate(thresh, kernel, iterations=1)
+
+    # extract contours
+    contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Sort contours
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+    n_ct = 50
+    ratio_threshold_for_lines = 5
+
+    angles = []
+    for contour in contours[:n_ct]:
+        _, (w, h), angle = cv2.minAreaRect(contour)
+        if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
+            angles.append(angle)
+        elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
+            angle -= 90
+            angles.append(angle)
+    angle = median(angles)
+
+    if angle < -45:
+        # if image is closer to portrait mode, go for a full 90° rotation
+        img = cv2.rotate(img, cv2.cv2.ROTATE_90_CLOCKWISE)
+        angle += 90 #track the rotation by updating angle
+
+    (h, w) = img.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    img = cv2.warpAffine(img, M, (w, h),
+                         flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    return img
+
 
 def read_img(
     file: AbstractFile,
     output_size: Optional[Tuple[int, int]] = None,
     rgb_output: bool = True,
+    orient_img: bool = True,
 ) -> np.ndarray:
     """Read an image file into numpy format
 
@@ -56,6 +102,8 @@ def read_img(
     # Switch the channel order
     if rgb_output:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    if orient_img:
+        img = orient_image(img)
     return img
 
 
