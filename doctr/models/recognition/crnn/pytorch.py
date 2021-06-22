@@ -139,9 +139,9 @@ class CRNN(RecognitionModel, nn.Module):
         """
         gt, seq_len = self.compute_target(target)
         batch_len = model_output.shape[0]
-        input_length = model_output.shape[1] * torch.ones(size=(batch_len,))
-        # N x C x T -> T x N x C
-        logits = model_output.permute(2, 0, 1)
+        input_length = model_output.shape[1] * torch.ones(size=(batch_len,), dtype=torch.int32)
+        # N x T x C -> T x N x C
+        logits = model_output.permute(1, 0, 2)
         probs = F.log_softmax(logits, dim=-1)
         ctc_loss_fn = nn.CTCLoss(blank=len(self.vocab))
         ctc_loss = ctc_loss_fn(probs, torch.IntTensor(gt), input_length, torch.IntTensor(seq_len))
