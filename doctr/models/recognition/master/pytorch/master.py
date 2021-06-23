@@ -23,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class MAGC(layers.Layer):
+class MAGC(nn.Module):
 
     """Implements the Multi-Aspect Global Context Attention, as described in
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
@@ -60,48 +60,45 @@ class MAGC(layers.Layer):
             nn.Conv2d(self.planes, self.inplanes, kernel_size=1)
         )
 
-    def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
-        b, h, w, c = (tf.shape(inputs)[i] for i in range(4))
-
-        # B, H, W, C -->> B*h, H, W, C/h
-        x = tf.reshape(inputs, shape=(b, h, w, self.headers, self.single_header_inplanes))
-        x = tf.transpose(x, perm=(0, 3, 1, 2, 4))
-        x = tf.reshape(x, shape=(b * self.headers, h, w, self.single_header_inplanes))
-
-        # Compute shorcut
+    def context_modeling(self, inputs: torch.Tensor) -> torch.Tensor:
+        batch, channel, height, width = x.size()
+        # [N*headers, C', H , W] C = headers * C'
+        x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
         shortcut = x
-        # B*h, 1, H*W, C/h
-        shortcut = tf.reshape(shortcut, shape=(b * self.headers, 1, h * w, self.single_header_inplanes))
-        # B*h, 1, C/h, H*W
-        shortcut = tf.transpose(shortcut, perm=[0, 1, 3, 2])
 
-        # Compute context mask
-        # B*h, H, W, 1,
+        # [N*headers, C', H * W] C = headers * C'
+        # input_x = input_x.view(batch, channel, height * width)
+        shortcut = shortcut.view(batch * self.headers, self.single_header_inplanes, height * width)
+
+        # [N*headers, 1, C', H * W]
+        shortcut = shortcut.unsqueeze(1)
+        # [N*headers, 1, H, W]
         context_mask = self.conv_mask(x)
-        # B*h, 1, H*W, 1
-        context_mask = tf.reshape(context_mask, shape=(b * self.headers, 1, h * w, 1))
+        # [N*headers, 1, H * W]
+        context_mask = context_mask.view(batch * self.headers, 1, height * width)
+
         # scale variance
         if self.att_scale and self.headers > 1:
-            context_mask = context_mask / tf.sqrt(self.single_header_inplanes)
-        # B*h, 1, H*W, 1
-        context_mask = tf.keras.activations.softmax(context_mask, axis=2)
+            context_mask = context_mask / torch.sqrt(self.single_header_inplanes)
 
-        # Compute context
-        # B*h, 1, C/h, 1
-        context = tf.matmul(shortcut, context_mask)
-        context = tf.reshape(context, shape=(b, 1, c, 1))
-        # B, 1, 1, C
-        context = tf.transpose(context, perm=(0, 1, 3, 2))
-        # Set shape to resolve shape when calling this module in the Sequential MAGCResnet
-        batch, chan = inputs.get_shape().as_list()[0], inputs.get_shape().as_list()[-1]
-        context.set_shape([batch, 1, 1, chan])
+        # [N*headers, 1, H * W]
+        context_mask = self.softmax(context_mask)
+
+        # [N*headers, 1, H * W, 1]
+        context_mask = context_mask.unsqueeze(-1)
+        # [N*headers, 1, C', 1] = [N*headers, 1, C', H * W] * [N*headers, 1, H * W, 1]
+        context = torch.matmul(shortcut, context_mask)
+
+        # [N, headers * C', 1, 1]
+        context = context.view(batch, self.headers * self.single_header_inplanes, 1, 1)
+
         return context
 
-    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
-        # Context modeling: B, H, W, C  ->  B, 1, 1, C
+    def call(self, inputs: torch.Tensor, **kwargs) -> torch.Tensor:
+        # Context modeling: B, C, H, W  ->  B, C, 1, 1
         context = self.context_modeling(inputs)
-        # Transform: B, 1, 1, C  ->  B, 1, 1, C
-        transformed = self.transform(context)
+        # Transform: B, C, 1, 1 ->  B, C, 1, 1
+        transformed = self.channel_add_conv(context)
         return inputs + transformed
 
 
