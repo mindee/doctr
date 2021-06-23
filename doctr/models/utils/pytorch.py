@@ -11,7 +11,7 @@ from typing import Optional, List, Any
 from ..data_utils import download_from_url
 
 
-__all__ = ['load_pretrained_params', 'conv_sequence']
+__all__ = ['load_pretrained_params', 'conv_sequence_pt']
 
 
 def load_pretrained_params(
@@ -46,7 +46,7 @@ def load_pretrained_params(
         model.load_state_dict(state_dict)
 
 
-def conv_sequence(
+def conv_sequence_pt(
     in_channels: int,
     out_channels: int,
     relu: bool = False,

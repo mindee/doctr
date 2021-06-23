@@ -23,7 +23,7 @@ def test_load_pretrained_params(tmpdir_factory):
 
 def test_conv_sequence():
 
-    assert len(utils.conv_sequence(3, 8, kernel_size=3)) == 1
-    assert len(utils.conv_sequence(3, 8, True, kernel_size=3)) == 2
-    assert len(utils.conv_sequence(3, 8, False, True, kernel_size=3)) == 2
-    assert len(utils.conv_sequence(3, 8, True, True, kernel_size=3)) == 3
+    assert len(utils.conv_sequence_pt(3, 8, kernel_size=3)) == 1
+    assert len(utils.conv_sequence_pt(3, 8, True, kernel_size=3)) == 2
+    assert len(utils.conv_sequence_pt(3, 8, False, True, kernel_size=3)) == 2
+    assert len(utils.conv_sequence_pt(3, 8, True, True, kernel_size=3)) == 3
