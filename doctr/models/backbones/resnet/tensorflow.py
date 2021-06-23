@@ -7,9 +7,9 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Tuple, Dict, Optional, Any, List
-from ..utils import conv_sequence, load_pretrained_params
+from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ['Resnet', 'resnet31', 'ResnetStage']
+__all__ = ['ResNet', 'resnet31', 'ResnetStage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -110,7 +110,7 @@ class ResnetStage(Sequential):
             self.add(final_block)
 
 
-class Resnet(Sequential):
+class ResNet(Sequential):
 
     """Resnet class with two convolutions and a maxpooling before the first stage
 
@@ -155,10 +155,10 @@ class Resnet(Sequential):
         super().__init__(_layers)
 
 
-def _resnet(arch: str, pretrained: bool, **kwargs: Any) -> Resnet:
+def _resnet(arch: str, pretrained: bool, **kwargs: Any) -> ResNet:
 
     # Build the model
-    model = Resnet(
+    model = ResNet(
         default_cfgs[arch]['num_blocks'],
         default_cfgs[arch]['output_channels'],
         default_cfgs[arch]['conv_seq'],
@@ -172,7 +172,7 @@ def _resnet(arch: str, pretrained: bool, **kwargs: Any) -> Resnet:
     return model
 
 
-def resnet31(pretrained: bool = False, **kwargs: Any) -> Resnet:
+def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """Resnet31 architecture with rectangular pooling windows as described in
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
     <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
