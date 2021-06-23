@@ -178,46 +178,54 @@ def visualize_page(
 
 def draw_page(
     page: Dict[str, Any],
-    draw_proba: bool = True,
-    font_path: str = "fonts/FreeMonoBold.ttf",
+    draw_proba: bool = False,
+    font_size: int = 13,
 ) -> np.ndarray:
     """Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
-        font_path: path to font
+        font_size: size of the font, default font = 13
 
     Return:
         A np array (drawn page)
     """
-    # Get a drawing context
+    # Draw template
     h, w = page["dimensions"]
-    img = Image.new('RGB', (w, h), color=(255, 255, 255))
-    d = ImageDraw.Draw(img)
+    response = 255 * np.ones((h, w, 3), dtype=np.int32)
 
     # Draw each word
     for block in page["blocks"]:
         for line in block["lines"]:
-            smoothing = []  # Smooth the size of words on the whole line for a better UX (more esthetic)
             for word in line["words"]:
-                # Resize word geometry
+                # Get aboslute word geometry
                 (xmin, ymin), (xmax, ymax) = word["geometry"]
-                xmin, xmax = w * xmin, w * xmax
-                ymin, ymax = h * ymin, h * ymax
+                xmin, xmax = int(w * xmin), int(w * xmax)
+                ymin, ymax = int(h * ymin), int(h * ymax)
 
-                # Font computation
-                smoothing.append(ymax - ymin)  # Update line smoother
-                # Convert Pix -> Pts, add line smoothing and offset to reduce boxes to the size of characters.
-                font_size = int(.75 * ((ymax - ymin + np.mean(smoothing)) / 2 - 4))
-                # Load font
-                #fnt = ImageFont.truetype(font_path, font_size)
-                fnt = ImageFont.load_default()
-                # Draw
+                # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
+                h_box, w_box = ymax - ymin, xmax - xmin
+                h_font, w_font = font_size, int(font_size * w_box / (h_box * 0.75))
+                img = Image.new('RGB', (w_font, h_font), color=(255, 255, 255))
+                d = ImageDraw.Draw(img)
+
+                # Draw in black the value of the word
+                d.text((0, 0), word["value"], font=ImageFont.load_default(), fill=(0, 0, 0))
+
+                # Resize back to box size
+                img = img.resize((w_box, h_box), Image.NEAREST)
+
+                # Colorize if draw_proba
                 if draw_proba:
                     p = int(255 * word["confidence"])
-                    d.text((int(xmin), int(ymin)), word["value"], font=fnt, fill=(255 - p, 0, p))
-                else:
-                    d.text((int(xmin), int(ymin)), word["value"], font=fnt, fill=(0, 0, 0))
+                    mask = np.where(np.array(img) == 0, 1, 0)
+                    proba = np.array([255 - p, 0, p])
+                    color = mask * proba[np.newaxis, np.newaxis, :]
+                    white_mask = 255 * (1 - mask)
+                    img = color + white_mask
 
-    return np.array(img)
+                # Write to response page
+                response[ymin:ymax, xmin:xmax, :] = np.array(img)
+
+    return response

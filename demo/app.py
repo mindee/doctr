@@ -93,7 +93,7 @@ def main():
                 # Page reconsitution under input page
                 cols[0].subheader("Page reconstitution from OCR output")
                 img = draw_page(out.pages[0].export())
-                cols[0].image(img, width=640)
+                cols[0].image(img, clamp=True, width=640)
 
 
 if __name__ == '__main__':
