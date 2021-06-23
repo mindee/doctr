@@ -13,5 +13,5 @@ def test_visualize_page():
 
 def test_draw_page():
     pages = _mock_pages()
-    visualization.draw_page(pages[0].export(), draw_proba=True)
-    visualization.draw_page(pages[0].export(), draw_proba=False)
+    visualization.synthetize_page(pages[0].export(), draw_proba=True)
+    visualization.synthetize_page(pages[0].export(), draw_proba=False)

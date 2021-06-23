@@ -18,7 +18,7 @@ if any(gpu_devices):
 
 from doctr.documents import DocumentFile
 from doctr.models import ocr_predictor
-from doctr.utils.visualization import draw_page, visualize_page
+from doctr.utils.visualization import synthetize_page, visualize_page
 
 DET_ARCHS = ["db_resnet50"]
 RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
@@ -92,7 +92,7 @@ def main():
 
                 # Page reconsitution under input page
                 cols[0].subheader("Page reconstitution from OCR output")
-                img = draw_page(out.pages[0].export())
+                img = synthetize_page(out.pages[0].export())
                 cols[0].image(img, clamp=True, width=640)
 
 

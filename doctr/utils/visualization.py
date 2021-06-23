@@ -14,7 +14,7 @@ from typing import Tuple, List, Dict, Any, Union
 
 from .common_types import BoundingBox, RotatedBbox
 
-__all__ = ['visualize_page', 'draw_page']
+__all__ = ['visualize_page', 'synthetize_page']
 
 
 def create_rect_patch(
@@ -176,7 +176,7 @@ def visualize_page(
     return fig
 
 
-def draw_page(
+def synthetize_page(
     page: Dict[str, Any],
     draw_proba: bool = False,
     font_size: int = 13,
