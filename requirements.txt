@@ -9,4 +9,5 @@ mplcursors>=0.3
 weasyprint>=52.2
 unidecode>=1.0.0
 tensorflow>=2.4.0
+Pillow>=8.0.0
 tqdm>=4.30.0
