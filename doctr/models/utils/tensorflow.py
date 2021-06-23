@@ -4,15 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import logging
-import re
 import os
-import hashlib
-from pathlib import Path
 from zipfile import ZipFile
 from tensorflow.keras import layers, Model
-from typing import Optional, List, Any, Union
+from typing import Optional, List, Any
 
-from .data_utils import download_from_url
+from ..data_utils import download_from_url
 
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 

@@ -4,13 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-from typing import Optional
 
 
 __all__ = ["invert_colors"]
 
 
-def invert_colors(img: tf.Tensor, min_val: Optional[float] = 0.6) -> tf.Tensor:
+def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
     out = tf.image.rgb_to_grayscale(img)  # Convert to gray
     # Random RGB shift
     shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
