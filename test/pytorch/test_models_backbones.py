@@ -7,6 +7,7 @@ from doctr.models import backbones
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
+        ["vgg16_bn", (3, 224, 224), (512, 7, 56)],
         ["resnet31", (3, 32, 128), (512, 4, 32)],
     ],
 )
