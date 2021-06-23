@@ -16,17 +16,16 @@ from .data_utils import download_from_url
 
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
-
 __all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter']
 
 
 def load_pretrained_params(
-    model: Model,
-    url: Optional[str] = None,
-    hash_prefix: Optional[str] = None,
-    overwrite: bool = False,
-    internal_name: str = 'weights',
-    **kwargs: Any,
+        model: Model,
+        url: Optional[str] = None,
+        hash_prefix: Optional[str] = None,
+        overwrite: bool = False,
+        internal_name: str = 'weights',
+        **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
 
@@ -58,12 +57,12 @@ def load_pretrained_params(
 
 
 def conv_sequence(
-    out_channels: int,
-    activation: str = None,
-    bn: bool = False,
-    padding: str = 'same',
-    kernel_initializer: str = 'he_normal',
-    **kwargs: Any,
+        out_channels: int,
+        activation: str = None,
+        bn: bool = False,
+        padding: str = 'same',
+        kernel_initializer: str = 'he_normal',
+        **kwargs: Any,
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
@@ -83,7 +82,7 @@ def conv_sequence(
         list of layers
     """
     # No bias before Batch norm
-    kwargs['use_bias'] = kwargs.get('use_bias', not(bn))
+    kwargs['use_bias'] = kwargs.get('use_bias', not (bn))
     # Add activation directly to the conv if there is no BN
     kwargs['activation'] = activation if not bn else None
     conv_seq = [
@@ -112,10 +111,11 @@ class IntermediateLayerGetter(Model):
         model: the model to extract feature maps from
         layer_names: the list of layers to retrieve the feature map from
     """
+
     def __init__(
-        self,
-        model: Model,
-        layer_names: List[str]
+            self,
+            model: Model,
+            layer_names: List[str]
     ) -> None:
         intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
