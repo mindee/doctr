@@ -49,8 +49,8 @@ class CTCPostProcessor(RecognitionPostProcessor):
             vocab: vocabulary to use
             blank: index of blank label
 
-        Return:
-
+        Returns:
+            A list of tuples: (word, confidence)
         """
         # compute softmax
         probs = F.softmax(logits, dim=-1)
@@ -78,7 +78,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         with label_to_idx mapping dictionnary
 
         Args:
-            logits: raw output of the model, shape BATCH_SIZE X NUM_CLASSES + 1 X SEQ_LEN
+            logits: raw output of the model, shape (N, C + 1, seq_len)
 
         Returns:
             A tuple of 2 lists: a list of str (words) and a list of float (probs)
@@ -99,7 +99,7 @@ class CRNN(RecognitionModel, nn.Module):
         cfg: configuration dictionary
     """
 
-    _children_names: List[str] = ['feat_extractor', 'decoder', 'postprocessor']
+    _children_names: List[str] = ['feat_extractor', 'decoder', 'linear', 'postprocessor']
 
     def __init__(
         self,
@@ -119,6 +119,15 @@ class CRNN(RecognitionModel, nn.Module):
         self.linear = nn.Linear(in_features=2 * rnn_units, out_features=len(vocab) + 1)
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight.data, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1.0)
+                m.bias.data.zero_()
 
     def compute_loss(
         self,
@@ -141,9 +150,8 @@ class CRNN(RecognitionModel, nn.Module):
         # N x T x C -> T x N x C
         logits = model_output.permute(1, 0, 2)
         probs = F.log_softmax(logits, dim=-1)
-        ctc_loss_fn = nn.CTCLoss(blank=len(self.vocab))
-        ctc_loss = ctc_loss_fn(
-            probs, torch.from_numpy(gt), input_length, torch.tensor(seq_len, dtype=torch.int)
+        ctc_loss = F.ctc_loss(
+            probs, torch.from_numpy(gt), input_length, torch.tensor(seq_len, dtype=torch.int), len(self.vocab)
         )
 
         return ctc_loss
