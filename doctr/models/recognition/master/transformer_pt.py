@@ -39,16 +39,20 @@ def decoder_layer(d_model, num_heads, dff):
         dropout=0.1,
         activation='relu',
         layer_norm_eps=1e-05,
-        batch_first=False,
+        batch_first=True,
     )
 
 
-def create_look_ahead_mask():
-    pass
+def create_look_ahead_mask(size: int) -> torch.Tensor:
+    # With torch transformers, True for pad and 0 False for sequences
+    mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
+    return mask
 
 
-def create_padding_mask():
-    pass
+def create_padding_mask(seq: torch.Tensor, padding: int = 0) -> torch.Tensor:
+    # With torch transformers, True for pad and 0 False for sequences
+    seq = ~ torch.eq(seq, padding)
+    return seq  # (batch_size, seq_len)
 
 
 class Decoder(nn.Module):
@@ -79,19 +83,18 @@ class Decoder(nn.Module):
         enc_output: torch.Tensor,
         look_ahead_mask: torch.Tensor,
         padding_mask: torch.Tensor,
-        training: bool = False,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
 
-        seq_len = tf.shape(x)[1]
+        seq_len = x.size(1)  # Batch first = True
 
         x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
-        x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
+        x *= math.sqrt(self.d_model)
         x += self.pos_encoding[:, :seq_len, :]
 
         for i in range(self.num_layers):
             x = self.dec_layers[i](
-                x, enc_output, training, look_ahead_mask, padding_mask
+                tgt=x, memory=enc_output, tgt_mask=look_ahead_mask, memory_mask=padding_mask
             )
 
-        # x.shape == (batch_size, target_seq_len, d_model)
+        # shape (batch_size, target_seq_len, d_model)
         return x

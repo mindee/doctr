@@ -5,12 +5,14 @@
 
 import torch
 from torch import nn
-from typing import Dict, Any, Tuple
+import nn.functional as F
+from typing import Dict, Any, Tuple, Optional, List
 
+from ..core import RecognitionModel
 from ...datasets import VOCABS
 from ..utils import conv_sequence_pt
 from ..backbones import resnet_stage
-from .transformer_pt import *
+from .transformer_pt import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
 
 __all__ = ['MASTER', 'MASTERPostProcessor', 'master']
 
@@ -145,18 +147,133 @@ class MAGCResnet(nn.Sequential):
         ]
         super().__init__(*_layers)
 
-decoder_layer = nn.TransformerDecoderLayer(
-    d_model=512,
-    nhead=8,
-    dim_feedforward=2048,
-    dropout=0.1,
-    activation='relu',
-    layer_norm_eps=1e-05,
-    batch_first=False,
-)
 
-decoder = nn.TransformerDecoder(
-    decoder_layer,
-    num_layers=3,
-    norm=None
-)
+class MASTER(RecognitionModel, nn.Module):
+
+    """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
+    Implementation based on the official Pytorch implementation: <https://github.com/wenwenyu/MASTER-pytorch>`_.
+
+    Args:
+        vocab: vocabulary, (without EOS, SOS, PAD)
+        d_model: d parameter for the transformer decoder
+        headers: headers for the MAGC module
+        dff: depth of the pointwise feed-forward layer
+        num_heads: number of heads for the mutli-head attention module
+        num_layers: number of decoder layers to stack
+        max_length: maximum length of character sequence handled by the model
+        input_size: size of the image inputs
+    """
+
+    def __init__(
+        self,
+        vocab: str,
+        d_model: int = 512,
+        headers: int = 1,
+        dff: int = 2048,
+        num_heads: int = 8,
+        num_layers: int = 3,
+        max_length: int = 50,
+        input_shape: Tuple[int, int, int] = (3, 48, 160),
+        cfg: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        super().__init__(vocab=vocab, cfg=cfg)
+
+        self.max_length = max_length
+        self.vocab_size = len(vocab)
+
+        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
+        self.seq_embedding = nn.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
+
+        self.decoder = Decoder(
+            num_layers=num_layers,
+            d_model=d_model,
+            num_heads=num_heads,
+            dff=dff,
+            vocab_size=self.vocab_size,
+            maximum_position_encoding=max_length,
+        )
+        self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
+        self.linear = nn.Linear(self.vocab_size + 1)
+        nn.init.kaiming_uniform_(d_model, self.linear.weight)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def make_mask(self, target: torch.Tensor) -> torch.Tensor:
+        look_ahead_mask = create_look_ahead_mask(target.size(1))
+        target_padding_mask = create_padding_mask(target, self.vocab_size)  # Pad with EOS
+        combined_mask = torch.logical_and(target_padding_mask, look_ahead_mask)
+        return combined_mask
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        target: Optional[List[str]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
+        **kwargs: Any,
+    ) -> torch.Tensor:
+        """Call function for training
+
+        Args:
+            x: images
+            target: list of str labels
+            return_model_output: if True, return logits
+            return_preds: if True, decode logits
+
+        Return:
+            A torch tensor, containing logits
+        """
+
+        # Encode
+        feature = self.feature_extractor(x, **kwargs)
+        b, c, h, w = (feature.size(i) for i in range(4))
+        feature = torch.reshape(feature, shape=(b, c, h * w))
+        encoded = feature + self.feature_pe[:, :, :h * w]
+
+        if target is not None:
+            # Compute target: tensor of gts and sequence lengths
+            gt, seq_len = self.compute_target(target)
+            tgt_mask = self.make_mask(gt)
+            # Compute logits
+            output = self.decoder(gt, encoded, tgt_mask, None, training=True)
+            logits = self.linear(output)
+
+        else:
+            _, logits = self.decode(encoded)
+
+        return logits
+
+    def decode(self, encoded: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Decode function for prediction
+
+        Args:
+            encoded: encoded features
+
+        Return:
+            A Tuple of torch.Tensor: predictions, logits
+        """
+        b = encoded.size(0)
+        ys = torch.ones((b, self.max_length - 1), dtype=torch.long) * self.vocab_size  # padding symbol
+        start_vector = torch.ones((b, 1), dtype=torch.long) * self.vocab_size + 1  # SOS
+        ys = torch.cat([start_vector, ys], axis=-1)
+
+        final_logits = torch.zeros(shape=(b, self.max_length - 1, self.vocab_size + 1), dtype=torch.long)  # EOS
+        # max_len = len + 2
+        for i in range(self.max_length - 1):
+            ys_mask = self.make_mask(ys)
+            output = self.decoder(ys, encoded, ys_mask, None, training=False)
+            logits = self.linear(output)
+            prob = F.softmax(logits, axis=-1)
+            max_prob, next_word = torch.max(prob, dim=-1)
+            ys[:, i + 1] = next_word[:, i]
+
+            if i == (self.max_length - 2):
+                final_logits = logits
+
+        # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
+        return ys, final_logits

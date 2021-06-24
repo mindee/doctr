@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-from tensorflow.keras import layers, Sequential
+from tensorflow.keras import layers, Sequential, Model
 from typing import Tuple, List, Dict, Any, Optional
 from copy import deepcopy
 
@@ -167,7 +167,7 @@ class MAGCResnet(Sequential):
         super().__init__(_layers)
 
 
-class MASTER(RecognitionModel):
+class MASTER(RecognitionModel, Model):
 
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
