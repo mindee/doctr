@@ -143,7 +143,7 @@ class CRNN(RecognitionModel, nn.Module):
         probs = F.log_softmax(logits, dim=-1)
         ctc_loss_fn = nn.CTCLoss(blank=len(self.vocab))
         ctc_loss = ctc_loss_fn(
-            probs, torch.from_numpy(gt), input_length, torch.tensor(seq_len, torch.int)
+            probs, torch.from_numpy(gt), input_length, torch.tensor(seq_len, dtype=torch.int)
         )
 
         return ctc_loss
