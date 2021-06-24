@@ -26,7 +26,7 @@ class RecognitionModel(NestedObject):
     def compute_target(
         self,
         gts: List[str],
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, List[int]]:
         """Encode a list of gts sequences into a np array and gives the corresponding*
         sequence lengths.
 
