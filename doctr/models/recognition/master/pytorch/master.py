@@ -94,7 +94,7 @@ class MAGC(nn.Module):
 
         return context
 
-    def call(self, inputs: torch.Tensor, **kwargs) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor, **kwargs) -> torch.Tensor:
         # Context modeling: B, C, H, W  ->  B, C, 1, 1
         context = self.context_modeling(inputs)
         # Transform: B, C, 1, 1 ->  B, C, 1, 1
