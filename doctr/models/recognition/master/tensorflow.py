@@ -11,7 +11,7 @@ from copy import deepcopy
 from .core import RecognitionModel, RecognitionPostProcessor
 from ..backbones.resnet import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
-from .transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
+from .transformer_tf import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
 from ...datasets import VOCABS
 
 __all__ = ['MASTER', 'MASTERPostProcessor', 'master']

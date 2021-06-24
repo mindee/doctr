@@ -5,8 +5,12 @@
 
 import torch
 from torch import nn
-from torch.nn import functional as F
+from typing import Dict, Any, Tuple
+
 from ...datasets import VOCABS
+from ..utils import conv_sequence_pt
+from ..backbones import resnet_stage
+from .transformer_pt import *
 
 __all__ = ['MASTER', 'MASTERPostProcessor', 'master']
 
@@ -101,6 +105,45 @@ class MAGC(nn.Module):
         transformed = self.channel_add_conv(context)
         return inputs + transformed
 
+
+class MAGCResnet(nn.Sequential):
+
+    """Implements the modified resnet with MAGC layers, as described in paper.
+
+    Args:
+        headers: number of header to split channels in MAGC layers
+        input_shape: shape of the model input (without batch dim)
+    """
+
+    def __init__(
+        self,
+        headers: int = 1,
+    ) -> None:
+        _layers = [
+            # conv_1x
+            *conv_sequence_pt(3, 64, relu=True, bn=True, kernel_size=3, padding=1),
+            *conv_sequence_pt(64, 128, relu=True, bn=True, kernel_size=3, padding=1),
+            nn.MaxPool2d(2),
+            # conv_2x
+            resnet_stage(128, 256, num_blocks=1),
+            MAGC(inplanes=256, headers=headers, att_scale=True),
+            *conv_sequence_pt(256, 256, relu=True, bn=True, kernel_size=3, padding=1),
+            nn.MaxPool2d(2),
+            # conv_3x
+            resnet_stage(256, 512, num_blocks=2),
+            MAGC(inplanes=512, headers=headers, att_scale=True),
+            *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
+            nn.MaxPool2d((2, 1)),
+            # conv_4x
+            resnet_stage(512, 512, num_blocks=5),
+            MAGC(inplanes=512, headers=headers, att_scale=True),
+            *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
+            # conv_5x
+            resnet_stage(512, 512, num_blocks=3),
+            MAGC(inplanes=512, headers=headers, att_scale=True),
+            *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
+        ]
+        super().__init__(*_layers)
 
 decoder_layer = nn.TransformerDecoderLayer(
     d_model=512,
