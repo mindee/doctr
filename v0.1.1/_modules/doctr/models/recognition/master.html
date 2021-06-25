@@ -196,12 +196,12 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span><span class="p">,</span> <span class="n">Sequential</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span><span class="p">,</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
-<span class="kn">from</span> <span class="nn">..backbones.resnet</span> <span class="kn">import</span> <span class="n">ResnetStage</span>
+<span class="kn">from</span> <span class="nn">..backbones</span> <span class="kn">import</span> <span class="n">ResnetStage</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">.transformer</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">positional_encoding</span><span class="p">,</span> <span class="n">create_look_ahead_mask</span><span class="p">,</span> <span class="n">create_padding_mask</span>
 <span class="kn">from</span> <span class="nn">...datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
@@ -359,7 +359,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">MASTER</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">MASTER</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;Implements MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 <span class="sd">    Implementation based on the official TF implementation: &lt;https://github.com/jiangxiluning/MASTER-TF&gt;`_.</span>
@@ -387,9 +387,8 @@
         <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span> <span class="o">=</span> <span class="n">MAGCResnet</span><span class="p">(</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">)</span>
@@ -419,7 +418,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_output</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">gt</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">seq_len</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">seq_len</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute categorical cross-entropy loss for the model.</span>
 <span class="sd">        Sequences are masked after the EOS character.</span>
@@ -435,7 +434,7 @@
         <span class="c1"># Input length : number of timesteps</span>
         <span class="n">input_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">model_output</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># Add one for additional &lt;eos&gt; token</span>
-        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># One-hot gt labels</span>
         <span class="n">oh_gt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="c1"># Compute loss</span>
@@ -560,7 +559,8 @@
 
         <span class="c1"># decode raw output of the model with tf_label_to_idx</span>
         <span class="n">out_idxs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">out_idxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span>
-        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">reduce_join</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">,</span> <span class="n">out_idxs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">embedding</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">reduce_join</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="n">out_idxs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="p">,</span> <span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">)</span>
         <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;not valid&#39;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">word_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
