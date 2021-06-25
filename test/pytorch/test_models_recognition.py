@@ -1,5 +1,4 @@
 import pytest
-import numpy as np
 import torch
 
 from doctr.models import recognition
