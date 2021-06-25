@@ -5,16 +5,16 @@
 
 import torch
 from torch import nn
-import nn.functional as F
+from torch.nn import functional as F
 from typing import Dict, Any, Tuple, Optional, List
 
-from ..core import RecognitionModel
-from ...datasets import VOCABS
-from ..utils import conv_sequence_pt
-from ..backbones import resnet_stage
+from ....datasets import VOCABS
+from ...utils import conv_sequence_pt
+from ...backbones import resnet_stage
 from .transformer_pt import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
+from .base import _MASTER
 
-__all__ = ['MASTER', 'MASTERPostProcessor', 'master']
+__all__ = ['MASTER']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -60,14 +60,14 @@ class MAGC(nn.Module):
         self.softmax = nn.Softmax(dim=2)
 
         self.channel_add_conv = nn.Sequential(
-            nn.Conv2d(self.inplanes, self.planes, kernel_size=1),
-            nn.LayerNorm([self.planes, 1, 1]),
+            nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1),
+            nn.LayerNorm([self.inplanes, 1, 1]),
             nn.ReLU(inplace=True),
-            nn.Conv2d(self.planes, self.inplanes, kernel_size=1)
+            nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1)
         )
 
     def context_modeling(self, inputs: torch.Tensor) -> torch.Tensor:
-        batch, channel, height, width = x.size()
+        batch, channel, height, width = inputs.size()
         # [N*headers, C', H , W] C = headers * C'
         x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
         shortcut = x
@@ -127,28 +127,28 @@ class MAGCResnet(nn.Sequential):
             *conv_sequence_pt(64, 128, relu=True, bn=True, kernel_size=3, padding=1),
             nn.MaxPool2d(2),
             # conv_2x
-            resnet_stage(128, 256, num_blocks=1),
+            *resnet_stage(128, 256, num_blocks=1),
             MAGC(inplanes=256, headers=headers, att_scale=True),
             *conv_sequence_pt(256, 256, relu=True, bn=True, kernel_size=3, padding=1),
             nn.MaxPool2d(2),
             # conv_3x
-            resnet_stage(256, 512, num_blocks=2),
+            *resnet_stage(256, 512, num_blocks=2),
             MAGC(inplanes=512, headers=headers, att_scale=True),
             *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
             nn.MaxPool2d((2, 1)),
             # conv_4x
-            resnet_stage(512, 512, num_blocks=5),
+            *resnet_stage(512, 512, num_blocks=5),
             MAGC(inplanes=512, headers=headers, att_scale=True),
             *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
             # conv_5x
-            resnet_stage(512, 512, num_blocks=3),
+            *resnet_stage(512, 512, num_blocks=3),
             MAGC(inplanes=512, headers=headers, att_scale=True),
             *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
         ]
         super().__init__(*_layers)
 
 
-class MASTER(RecognitionModel, nn.Module):
+class MASTER(_MASTER, nn.Module):
 
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official Pytorch implementation: <https://github.com/wenwenyu/MASTER-pytorch>`_.
@@ -176,12 +176,14 @@ class MASTER(RecognitionModel, nn.Module):
         input_shape: Tuple[int, int, int] = (3, 48, 160),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg)
+        super().__init__()
 
         self.max_length = max_length
+        self.vocab = vocab
+        self.cfg = cfg
         self.vocab_size = len(vocab)
 
-        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
+        self.feature_extractor = MAGCResnet(headers=headers)
         self.seq_embedding = nn.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
 
         self.decoder = Decoder(
