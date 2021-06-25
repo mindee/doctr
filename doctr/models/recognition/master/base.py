@@ -10,7 +10,8 @@ from ....datasets import VOCABS, encode_sequences
 
 class _MASTER:
 
-    vocab = VOCABS['french']
+    vocab: str = VOCABS['french']
+    max_length: int = 50
 
     def compute_target(
         self,
