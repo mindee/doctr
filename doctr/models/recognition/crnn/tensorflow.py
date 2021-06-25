@@ -6,12 +6,12 @@
 from copy import deepcopy
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, Model
 from typing import Tuple, Dict, Any, Optional, List
 
-from .. import backbones
-from ..utils import load_pretrained_params
-from .core import RecognitionModel, RecognitionPostProcessor
+from ... import backbones
+from ...utils import load_pretrained_params
+from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor']
 
@@ -75,7 +75,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(self._embedding, out_idxs),
+            inputs=tf.nn.embedding_lookup(tf.constant(self._embedding, dtype=tf.string), out_idxs),
             axis=-1
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
@@ -85,7 +85,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-class CRNN(RecognitionModel):
+class CRNN(RecognitionModel, Model):
     """Implements a CRNN architecture as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
@@ -105,12 +105,11 @@ class CRNN(RecognitionModel):
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg)
-        self.feat_extractor = feature_extractor
-
         # Initialize kernels
-        h, w, c = self.feat_extractor.output_shape[1:]
-        self.max_length = w
+        h, w, c = feature_extractor.output_shape[1:]
+
+        super().__init__(vocab=vocab, cfg=cfg, max_length=w)
+        self.feat_extractor = feature_extractor
 
         self.decoder = Sequential(
             [

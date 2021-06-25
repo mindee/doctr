@@ -4,12 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-from tensorflow.keras import layers, Sequential
+from tensorflow.keras import layers, Sequential, Model
 from typing import Tuple, List, Dict, Any, Optional
 from copy import deepcopy
 
 from .core import RecognitionModel, RecognitionPostProcessor
-from ..backbones.resnet import ResnetStage
+from ..backbones import ResnetStage
 from ..utils import conv_sequence, load_pretrained_params
 from .transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
 from ...datasets import VOCABS
@@ -167,7 +167,7 @@ class MAGCResnet(Sequential):
         super().__init__(_layers)
 
 
-class MASTER(RecognitionModel):
+class MASTER(RecognitionModel, Model):
 
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
@@ -195,9 +195,8 @@ class MASTER(RecognitionModel):
         input_shape: Tuple[int, int, int] = (48, 160, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg)
+        super().__init__(vocab=vocab, cfg=cfg, max_length=max_length)
 
-        self.max_length = max_length
         self.vocab_size = len(vocab)
 
         self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
@@ -227,7 +226,7 @@ class MASTER(RecognitionModel):
         self,
         model_output: tf.Tensor,
         gt: tf.Tensor,
-        seq_len: tf.Tensor,
+        seq_len: List[int],
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -243,7 +242,7 @@ class MASTER(RecognitionModel):
         # Input length : number of timesteps
         input_len = tf.shape(model_output)[1]
         # Add one for additional <eos> token
-        seq_len = seq_len + 1
+        seq_len = tf.cast(seq_len, tf.int32) + 1
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
         # Compute loss
@@ -368,7 +367,8 @@ class MASTERPostProcessor(RecognitionPostProcessor):
 
         # decode raw output of the model with tf_label_to_idx
         out_idxs = tf.cast(out_idxs, dtype='int32')
-        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, out_idxs), axis=-1)
+        embedding = tf.constant(self._embedding, dtype=tf.string)
+        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
