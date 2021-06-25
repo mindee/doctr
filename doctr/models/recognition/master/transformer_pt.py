@@ -27,26 +27,13 @@ def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
     div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
     pe[:, 0::2] = torch.sin(position * div_term)
     pe[:, 1::2] = torch.cos(position * div_term)
-    pe = pe.unsqueeze(0).transpose(0, 1)
-    return pe
-
-
-def decoder_layer(d_model, num_heads, dff):
-    return nn.TransformerDecoderLayer(
-        d_model=d_model,
-        nhead=num_heads,
-        dim_feedforward=dff,
-        dropout=0.1,
-        activation='relu',
-        layer_norm_eps=1e-05,
-        batch_first=True,
-    )
+    return pe.unsqueeze(0)
 
 
 def create_look_ahead_mask(size: int) -> torch.Tensor:
     # With torch transformers, True for pad and 0 False for sequences
     mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
-    return mask
+    return mask[:, None, :]
 
 
 def create_padding_mask(seq: torch.Tensor, padding: int = 0) -> torch.Tensor:
@@ -74,8 +61,15 @@ class Decoder(nn.Module):
         self.embedding = nn.Embedding(vocab_size + 2, d_model)  # 2 more classes EOS/SOS
         self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
 
-        self.dec_layers = [decoder_layer(d_model, num_heads, dff)
-                           for _ in range(num_layers)]
+        self.dec_layers = [
+            nn.TransformerDecoderLayer(
+                d_model=d_model,
+                nhead=num_heads,
+                dim_feedforward=dff,
+                dropout=0.1,
+                activation='relu',
+            ) for _ in range(num_layers)
+        ]
 
     def forward(
         self,
@@ -85,16 +79,19 @@ class Decoder(nn.Module):
         padding_mask: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
 
-        seq_len = x.size(1)  # Batch first = True
+        seq_len = x.shape[1]  # Batch first = True
 
         x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
         x *= math.sqrt(self.d_model)
         x += self.pos_encoding[:, :seq_len, :]
 
+        # Batch first = False in decoder
+        x = x.permute(1, 0, 2)
         for i in range(self.num_layers):
             x = self.dec_layers[i](
                 tgt=x, memory=enc_output, tgt_mask=look_ahead_mask, memory_mask=padding_mask
             )
 
         # shape (batch_size, target_seq_len, d_model)
+        x = x.permute(1, 0, 2)
         return x

@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -85,7 +86,7 @@ class MAGC(nn.Module):
 
         # scale variance
         if self.att_scale and self.headers > 1:
-            context_mask = context_mask / torch.sqrt(self.single_header_inplanes)
+            context_mask = context_mask / math.sqrt(self.single_header_inplanes)
 
         # [N*headers, 1, H * W]
         context_mask = self.softmax(context_mask)
@@ -182,6 +183,7 @@ class MASTER(_MASTER, nn.Module):
         self.vocab = vocab
         self.cfg = cfg
         self.vocab_size = len(vocab)
+        self.num_heads = num_heads
 
         self.feature_extractor = MAGCResnet(headers=headers)
         self.seq_embedding = nn.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
@@ -195,8 +197,8 @@ class MASTER(_MASTER, nn.Module):
             maximum_position_encoding=max_length,
         )
         self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
-        self.linear = nn.Linear(self.vocab_size + 1)
-        nn.init.kaiming_uniform_(d_model, self.linear.weight)
+        self.linear = nn.Linear(d_model, self.vocab_size + 1)
+        nn.init.kaiming_uniform_(self.linear.weight)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -208,8 +210,8 @@ class MASTER(_MASTER, nn.Module):
     def make_mask(self, target: torch.Tensor) -> torch.Tensor:
         look_ahead_mask = create_look_ahead_mask(target.size(1))
         target_padding_mask = create_padding_mask(target, self.vocab_size)  # Pad with EOS
-        combined_mask = torch.logical_and(target_padding_mask, look_ahead_mask)
-        return combined_mask
+        combined_mask = target_padding_mask & look_ahead_mask
+        return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
     def forward(
         self,
@@ -235,14 +237,15 @@ class MASTER(_MASTER, nn.Module):
         feature = self.feature_extractor(x, **kwargs)
         b, c, h, w = (feature.size(i) for i in range(4))
         feature = torch.reshape(feature, shape=(b, c, h * w))
-        encoded = feature + self.feature_pe[:, :, :h * w]
+        feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
+        encoded = feature + self.feature_pe[:, :h * w, :]
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(target)
-            tgt_mask = self.make_mask(gt)
+            tgt_mask = self.make_mask(torch.from_numpy(gt))
             # Compute logits
-            output = self.decoder(gt, encoded, tgt_mask, None, training=True)
+            output = self.decoder(torch.from_numpy(gt), encoded, tgt_mask, None)
             logits = self.linear(output)
 
         else:
@@ -250,27 +253,33 @@ class MASTER(_MASTER, nn.Module):
 
         return logits
 
-    def decode(self, encoded: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def decode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Decode function for prediction
 
         Args:
-            encoded: encoded features
+            x: input tensor
 
         Return:
             A Tuple of torch.Tensor: predictions, logits
         """
-        b = encoded.size(0)
+        # Encode
+        feature = self.feature_extractor(x)
+        b, c, h, w = (feature.size(i) for i in range(4))
+        feature = torch.reshape(feature, shape=(b, c, h * w))
+        feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
+        encoded = feature + self.feature_pe[:, :h * w, :]
+
         ys = torch.ones((b, self.max_length - 1), dtype=torch.long) * self.vocab_size  # padding symbol
         start_vector = torch.ones((b, 1), dtype=torch.long) * self.vocab_size + 1  # SOS
-        ys = torch.cat([start_vector, ys], axis=-1)
+        ys = torch.cat((start_vector, ys), axis=-1)
 
-        final_logits = torch.zeros(shape=(b, self.max_length - 1, self.vocab_size + 1), dtype=torch.long)  # EOS
+        final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 1), dtype=torch.long)  # EOS
         # max_len = len + 2
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
-            output = self.decoder(ys, encoded, ys_mask, None, training=False)
+            output = self.decoder(ys, encoded, ys_mask, None)
             logits = self.linear(output)
-            prob = F.softmax(logits, axis=-1)
+            prob = F.softmax(logits, dim=-1)
             max_prob, next_word = torch.max(prob, dim=-1)
             ys[:, i + 1] = next_word[:, i]
 
