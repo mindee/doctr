@@ -68,7 +68,7 @@ class MAGC(nn.Module):
         )
 
     def context_modeling(self, inputs: torch.Tensor) -> torch.Tensor:
-        batch, channel, height, width = inputs.size()
+        batch, _, height, width = inputs.size()
         # [N*headers, C', H , W] C = headers * C'
         x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
         shortcut = x
@@ -280,7 +280,7 @@ class MASTER(_MASTER, nn.Module):
             output = self.decoder(ys, encoded, ys_mask, None)
             logits = self.linear(output)
             prob = F.softmax(logits, dim=-1)
-            max_prob, next_word = torch.max(prob, dim=-1)
+            _, next_word = torch.max(prob, dim=-1)
             ys[:, i + 1] = next_word[:, i]
 
             if i == (self.max_length - 2):
