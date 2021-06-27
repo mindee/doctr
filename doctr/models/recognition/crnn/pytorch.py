@@ -68,7 +68,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(
+    def __call__(  # type: ignore[override]
         self,
         logits: torch.Tensor
     ) -> List[Tuple[str, float]]:
@@ -172,7 +172,7 @@ class CRNN(RecognitionModel, nn.Module):
         logits, _ = self.decoder(features_seq, **kwargs)
         logits = self.linear(logits)
 
-        out: Dict[str, torch.Tensor] = {}
+        out: Dict[str, Any] = {}
         if return_model_output:
             out["out_map"] = logits
 
