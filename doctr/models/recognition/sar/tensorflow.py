@@ -5,7 +5,7 @@
 
 from copy import deepcopy
 import tensorflow as tf
-from tensorflow.keras import Sequential, layers
+from tensorflow.keras import Sequential, layers, Model
 from typing import Tuple, Dict, List, Any, Optional
 
 from ... import backbones
@@ -169,7 +169,7 @@ class SARDecoder(layers.Layer, NestedObject):
         return outputs
 
 
-class SAR(RecognitionModel):
+class SAR(Model, RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
     Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
@@ -198,7 +198,9 @@ class SAR(RecognitionModel):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__(vocab=vocab, cfg=cfg)
+        super().__init__()
+        self.vocab = vocab
+        self.cfg = cfg
 
         self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
