@@ -5,13 +5,12 @@
 
 from copy import deepcopy
 import tensorflow as tf
-from tensorflow.keras import Sequential, layers, Model
+from tensorflow.keras import Sequential, layers
 from typing import Tuple, Dict, List, Any, Optional
 
-from .. import backbones
-from ..utils import load_pretrained_params
-from .core import RecognitionModel
-from .core import RecognitionPostProcessor
+from ... import backbones
+from ...utils import load_pretrained_params
+from ..core import RecognitionModel, RecognitionPostProcessor
 from doctr.utils.repr import NestedObject
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
@@ -170,7 +169,7 @@ class SARDecoder(layers.Layer, NestedObject):
         return outputs
 
 
-class SAR(RecognitionModel, Model):
+class SAR(RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
     Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
@@ -199,8 +198,9 @@ class SAR(RecognitionModel, Model):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        # Add 1 timestep for EOS after the longest wor
-        super().__init__(vocab=vocab, cfg=cfg, max_length=max_length + 1)
+        super().__init__(vocab=vocab, cfg=cfg)
+
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
         self.feat_extractor = feature_extractor
 
@@ -224,7 +224,7 @@ class SAR(RecognitionModel, Model):
         self,
         model_output: tf.Tensor,
         gt: tf.Tensor,
-        seq_len: List[int],
+        seq_len: tf.Tensor,
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -240,7 +240,7 @@ class SAR(RecognitionModel, Model):
         # Input length : number of timesteps
         input_len = tf.shape(model_output)[1]
         # Add one for additional <eos> token
-        seq_len = tf.cast(seq_len, tf.int32) + 1
+        seq_len = seq_len + 1
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
         # Compute loss
@@ -304,8 +304,7 @@ class SARPostProcessor(RecognitionPostProcessor):
 
         # decode raw output of the model with tf_label_to_idx
         out_idxs = tf.cast(out_idxs, dtype='int32')
-        embedding = tf.constant(self._embedding, dtype=tf.string)
-        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(embedding, out_idxs), axis=-1)
+        decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(self._embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
