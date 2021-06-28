@@ -12,6 +12,7 @@ from typing import Tuple, Dict, List, Any, Optional
 from ... import backbones
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
+from ....datasets import VOCABS
 from doctr.utils.repr import NestedObject
 
 __all__ = ['SAR', 'sar_vgg16_bn', 'sar_resnet31']
@@ -22,20 +23,16 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (3, 32, 128),
-        'post_processor': 'SARPostProcessor',
-        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
+        'vocab': VOCABS['french'],
+        'url': None,
     },
     'sar_resnet31': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (3, 32, 128),
-        'post_processor': 'SARPostProcessor',
-        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-ea202587.zip',
+        'vocab': VOCABS['french'],
+        'url': None,
     },
 }
 

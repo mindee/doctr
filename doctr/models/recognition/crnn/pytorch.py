@@ -22,7 +22,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 128,
         'input_shape': (3, 32, 128),
-        'post_processor': 'CTCPostProcessor',
         'vocab': VOCABS['french'],
         'url': None,
     },
