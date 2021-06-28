@@ -48,12 +48,12 @@ def test_encode_decode(input_str):
         [['cba', 'a'], 'abcdef', 5, -1, 7, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
     ],
 )
-def test_encode_sequences(sequences, vocab, target_size, eos, error, out_shape, gts):
+def test_encode_sequences(sequences, vocab, target_size, eos, sos, error, out_shape, gts):
     if error:
         with pytest.raises(ValueError):
-            _ = utils.encode_sequences(sequences, vocab, target_size, eos)
+            _ = utils.encode_sequences(sequences, vocab, target_size, eos, sos)
     else:
-        out = utils.encode_sequences(sequences, vocab, target_size, eos)
+        out = utils.encode_sequences(sequences, vocab, target_size, eos, sos)
         assert isinstance(out, np.ndarray)
         assert out.shape == out_shape
         assert np.all(out == np.asarray(gts)), print(out, gts)
