@@ -87,6 +87,7 @@ def encode_sequences(
     vocab: str,
     target_size: Optional[int] = None,
     eos: int = -1,
+    sos: Optional[int] = None,
     **kwargs: Any,
 ) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
@@ -96,6 +97,7 @@ def encode_sequences(
         vocab: the ordered vocab to use for encoding
         target_size: maximum length of the encoded data
         eos: encoding of End Of String
+        sos: optional encoding of Start Of String
 
     Returns:
         the padded encoded data as a tensor
@@ -105,7 +107,10 @@ def encode_sequences(
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
     if not isinstance(target_size, int):
-        target_size = max(len(w) for w in sequences)
+        if sos:
+            target_size = max(len(w) for w in sequences) + 1
+        else:
+            target_size = max(len(w) for w in sequences)
 
     # Pad all sequences
     encoded_data = np.full([len(sequences), target_size], eos, dtype=np.int32)
@@ -113,5 +118,9 @@ def encode_sequences(
     for idx, seq in enumerate(sequences):
         encoded_seq = encode_sequence(seq, vocab)
         encoded_data[idx, :min(len(encoded_seq), target_size)] = encoded_seq[:min(len(encoded_seq), target_size)]
+
+    if sos:
+        encoded_data = np.roll(encoded_data, 1)
+        encoded_data[:, 0] = sos
 
     return encoded_data
