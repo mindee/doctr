@@ -17,6 +17,9 @@ __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor
 class RecognitionModel(NestedObject):
     """Implements abstract RecognitionModel class"""
 
+    vocab: str
+    max_length: int
+
     def compute_target(
         self,
         gts: List[str],
