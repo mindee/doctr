@@ -74,12 +74,6 @@ class RecognitionPostProcessor(NestedObject):
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"
 
-    def __call__(
-        self,
-        x: List[np.ndarray],
-    ) -> List[Tuple[str, float]]:
-        raise NotImplementedError
-
 
 class RecognitionPredictor(NestedObject):
     """Implements an object able to identify character sequences in images
