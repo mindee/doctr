@@ -5,10 +5,12 @@
 
 import numpy as np
 import cv2
+from copy import deepcopy
 from typing import List, Any, Optional, Dict, Tuple
 
 from doctr.utils.repr import NestedObject
 from .._utils import rotate_page, get_bitmap_angle
+from ...utils.metrics import box_iou
 from .. import PreProcessor
 
 
@@ -82,6 +84,108 @@ class DetectionPostProcessor(NestedObject):
     ) -> np.ndarray:
         raise NotImplementedError
 
+    @staticmethod
+    def nms(boxes: np.ndarray, thresh: float = .5) -> List[int]:
+        """Perform non-max suppression, borrowed from <https://github.com/rbgirshick/fast-rcnn>`_.
+
+        Args:
+            boxes: np array of straight boxes: (*, 5)
+            thresh: iou threshold to perform box suppression.
+
+        Returns:
+            A list of box indexes to keep
+        """
+        x1 = boxes[:, 0]
+        y1 = boxes[:, 1]
+        x2 = boxes[:, 2]
+        y2 = boxes[:, 3]
+        scores = boxes[:, 4]
+
+        areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+        order = scores.argsort()[::-1]
+
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            xx1 = np.maximum(x1[i], x1[order[1:]])
+            yy1 = np.maximum(y1[i], y1[order[1:]])
+            xx2 = np.minimum(x2[i], x2[order[1:]])
+            yy2 = np.minimum(y2[i], y2[order[1:]])
+
+            w = np.maximum(0.0, xx2 - xx1 + 1)
+            h = np.maximum(0.0, yy2 - yy1 + 1)
+            inter = w * h
+            ovr = inter / (areas[i] + areas[order[1:]] - inter)
+
+            inds = np.where(ovr <= thresh)[0]
+            order = order[inds + 1]
+        return keep
+
+    def filter_boxes(
+        self,
+        boxes: np.ndarray,
+        nms_thresh: float = .8,
+        merging_thresh: float = .2,
+    ) -> np.ndarray:
+        """Filter an array of boxes: boxes with an iou > merging threshold will be merged, and
+        nms is performed with a nms threshold
+
+        Args:
+            boxes: array of boxes, shape (N, 5) or (N, 6)
+            nms_thresh: iou threshold to perform nms
+            merging_thresh: threshold used to merge boxes
+
+        Returns:
+            A np array of filtered boxes, containing at most N boxes.
+        """
+        # Array of rotated boxes: not supported for now
+        # TODO: support for rotated boxes (both NMS & merging algorithm)
+        if boxes.shape[1] == 6:
+            return boxes
+
+        if not np.any(boxes):
+            # If array of boxes is empty, return it
+            return boxes
+
+        # First perform NMS on array of boxes
+        keep = self.nms(boxes, thresh=nms_thresh)
+
+        # Update box list
+        box_list = [list(box) for i, box in enumerate(list(boxes)) if i in keep]
+
+        # Compute iou beween boxes
+        boxes = np.asarray(box_list)
+        iou_mat = box_iou(boxes[:, :4], boxes[:, :4])
+        tri_mat = np.tril(iou_mat, -1)
+
+        def enclosing(box_a: List[float], box_b: List[float]) -> List[float]:
+            """Compute enclosing bbox from 2 list of 5 floats [xmin, ymin, xmax, ymax, score].
+            Return a list of [xmin, ymin, xmax, ymax, score].
+            """
+            x1, y1, x2, y2 = box_a[:4]
+            x3, y3, x4, y4 = box_b[:4]
+            score = (box_a[4] + box_b[4]) / 2
+            enclosing = [min(x1, x3), min(y1, y3), max(x2, x4), max(y2, y4), score]
+            return enclosing
+
+        # Find box indexes with a iou > merging_thresh, and merge them
+        to_merge = np.argwhere(tri_mat > merging_thresh)
+        merged = {k: v for k, v in enumerate(box_list)}
+        for [i, j] in list(to_merge):
+            # Resolve enclosing box, update dictionnary
+            enclosing_box = enclosing(merged[i], merged[j])
+            merged[i] = enclosing_box
+            merged[j] = enclosing_box
+
+        # Update box list: remove duplicates from merged dictionnary
+        box_list = []
+        for box in merged.values():
+            if box not in box_list:
+                box_list.append(box)
+
+        return np.asarray(box_list)
+
     def __call__(
         self,
         proba_map: np.ndarray,
@@ -111,6 +215,8 @@ class DetectionPostProcessor(NestedObject):
             angles_batch.append(angle)
             bitmap_, p_ = rotate_page(bitmap_, -angle), rotate_page(p_, -angle)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
+            # Filter boxes
+            boxes = self.filter_boxes(boxes)
             boxes_batch.append(boxes)
 
         return boxes_batch, angles_batch

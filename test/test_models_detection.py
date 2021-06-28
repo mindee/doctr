@@ -189,3 +189,15 @@ def test_linknet_focal_loss():
     # test focal loss
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)
     assert isinstance(out['loss'], tf.Tensor)
+
+
+def test_filter_box_postprocessor():
+    boxes = [
+        [0.1, 0.2, 0.1, 0.2, 0.95],
+        [0.15, 0.19, 0.12, 0.2, 0.90],  # to remove NMS
+        [0.5, 0.6, 0.5, 0.55, 0.90],
+        [0.55, 0.7, 0.5, 0.55, 0.85],  # to merge
+    ]
+    filter_fn = detection.DetectionPostProcessor().filter_boxes
+    boxes = filter_fn(np.asarray(boxes))
+    assert boxes.shape == (2, 5)
