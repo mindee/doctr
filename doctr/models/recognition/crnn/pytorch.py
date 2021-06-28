@@ -106,7 +106,10 @@ class CRNN(RecognitionModel, nn.Module):
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg, max_length=32)
+        super().__init__()
+        self.vocab = vocab
+        self.cfg = cfg
+        self.max_length = 32
         self.feat_extractor = feature_extractor
 
         self.decoder = nn.LSTM(

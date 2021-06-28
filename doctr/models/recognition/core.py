@@ -17,12 +17,6 @@ __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor
 class RecognitionModel(NestedObject):
     """Implements abstract RecognitionModel class"""
 
-    def __init__(self, vocab: str, max_length: int = 32, cfg: Optional[Dict[str, Any]] = None) -> None:
-        super().__init__()
-        self.vocab = vocab
-        self.cfg = cfg
-        self.max_length = max_length
-
     def compute_target(
         self,
         gts: List[str],
@@ -44,16 +38,6 @@ class RecognitionModel(NestedObject):
         )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len
-
-    def call(
-        self,
-        x: np.ndarray,
-        target: Optional[List[str]] = None,
-        return_model_output: bool = False,
-        return_preds: bool = False,
-        **kwargs: Any,
-    ) -> Dict[str, Any]:
-        raise NotImplementedError
 
 
 class RecognitionPostProcessor(NestedObject):

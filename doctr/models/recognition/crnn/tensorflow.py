@@ -106,7 +106,10 @@ class CRNN(RecognitionModel, Model):
         # Initialize kernels
         h, w, c = feature_extractor.output_shape[1:]
 
-        super().__init__(vocab=vocab, cfg=cfg, max_length=w)
+        super().__init__()
+        self.vocab = vocab
+        self.max_length = w
+        self.cfg = cfg
         self.feat_extractor = feature_extractor
 
         self.decoder = Sequential(
