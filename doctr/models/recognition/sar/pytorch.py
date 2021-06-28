@@ -119,14 +119,14 @@ class SARDecoder(nn.Module):
             embeded_symbol = self.embed(symbol)
 
             hx[0] = self.lstm_cells[0](embeded_symbol, hx[0])
-            hx[1] = self.lstm_cells[1](hx[0][0], hx[1])
-            logits, states = hx[1]
+            hx[1] = self.lstm_cells[1](hx[0][0], hx[1])  # type: ignore[index]
+            logits, states = hx[1]  # type: ignore[misc]
 
             glimpse = self.attention_module(
-                features, logits.unsqueeze(-1).unsqueeze(-1),
+                features, logits.unsqueeze(-1).unsqueeze(-1),  # type: ignore[has-type]
             )
             # logits: shape (N, rnn_units), glimpse: shape (N, 1)
-            logits = torch.cat([logits, glimpse], 1)
+            logits = torch.cat([logits, glimpse], 1)  # type: ignore[has-type]
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits)
             # update symbol with predicted logits for t+1 step
@@ -184,6 +184,8 @@ class SAR(nn.Module, RecognitionModel):
             rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders, 512,
         )
 
+        self.postprocessor = SARPostProcessor(vocab=vocab)
+
     def forward(
         self,
         x: torch.Tensor,
@@ -198,13 +200,73 @@ class SAR(nn.Module, RecognitionModel):
         encoded = encoded[-1]
         if target is not None:
             gt, seq_len = self.compute_target(target)
+            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.tensor(seq_len)  # type: ignore[assignment]
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
 
-        out: Dict[str, torch.Tensor] = {}
+        out: Dict[str, Any] = {}
         if return_model_output:
             out["out_map"] = decoded_features
 
+        if target is None or return_preds:
+            # Post-process boxes
+            out["preds"] = self.postprocessor(decoded_features)
+
+        if target is not None:
+            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)  # type: ignore[arg-type]
+
         return out
+
+    def compute_loss(
+        self,
+        model_output: torch.Tensor,
+        gt: torch.Tensor,
+        seq_len: torch.Tensor,
+    ) -> torch.Tensor:
+        """Compute categorical cross-entropy loss for the model.
+        Sequences are masked after the EOS character.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+
+        Returns:
+            The loss of the model on the batch
+        """
+        # Input length : number of timesteps
+        input_len = model_output.shape[1]
+        # Add one for additional <eos> token
+        seq_len = seq_len + 1
+        # Compute loss
+        cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction='none')
+        # Compute mask
+        mask_2d = torch.arange(input_len)[None, :] < seq_len[:, None]
+        cce[mask_2d] = 0
+
+        ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
+        return ce_loss.unsqueeze(1)
+
+
+class SARPostProcessor(RecognitionPostProcessor):
+    """Post processor for SAR architectures"""
+
+    def __call__(
+        self,
+        logits: torch.Tensor,
+    ) -> List[Tuple[str, float]]:
+        # compute pred with argmax for attention models
+        out_idxs = logits.argmax(-1)
+        # N x L
+        probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
+        # Take the minimum confidence of the sequence
+        probs = probs.min(dim=1).values
+
+        # Manual decoding
+        word_values = [
+            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0] for encoded_seq in out_idxs.numpy()
+        ]
+
+        return list(zip(word_values, probs.detach().numpy().tolist()))
 
 
 def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
