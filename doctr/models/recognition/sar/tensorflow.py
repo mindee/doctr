@@ -266,6 +266,7 @@ class SAR(Model, RecognitionModel):
         encoded = self.encoder(pooled_features, **kwargs)
         if target is not None:
             gt, seq_len = self.compute_target(target)
+            seq_len = tf.cast(seq_len, tf.int32)
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
