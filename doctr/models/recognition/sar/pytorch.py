@@ -13,7 +13,7 @@ from ... import backbones
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
-from doctr.utils.repr import NestedObject
+
 
 __all__ = ['SAR', 'sar_vgg16_bn', 'sar_resnet31']
 
@@ -117,7 +117,7 @@ class SARDecoder(nn.Module):
 
             hx[0] = self.lstm_cells[0](embeded_symbol, hx[0])
             hx[1] = self.lstm_cells[1](hx[0][0], hx[1])  # type: ignore[index]
-            logits, states = hx[1]  # type: ignore[misc]
+            logits, _ = hx[1]  # type: ignore[misc]
 
             glimpse = self.attention_module(
                 features, logits.unsqueeze(-1).unsqueeze(-1),  # type: ignore[has-type]
