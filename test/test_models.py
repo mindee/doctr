@@ -235,8 +235,24 @@ def mock_bitmap(tmpdir_factory):
     return bitmap
 
 
+@pytest.fixture(scope="function")
+def mock_image(tmpdir_factory):
+    url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/bitmap30.png'
+    file = BytesIO(requests.get(url).content)
+    tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
+    with open(tmp_path, 'wb') as f:
+        f.write(file.getbuffer())
+    image = reader.read_img(tmp_path)
+    return image
+
+
 def test_get_bitmap_angle(mock_bitmap):
     angle = models.get_bitmap_angle(mock_bitmap)
+    assert abs(angle - 30.) < 1.
+
+
+def test_estimate_orientation(mock_image):
+    angle = models.estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
 
 
