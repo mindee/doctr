@@ -117,7 +117,7 @@ def rotate_page(
                           flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 
-def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: int = 5) -> int:
+def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
 
