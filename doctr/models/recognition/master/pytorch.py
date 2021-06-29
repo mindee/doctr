@@ -245,16 +245,13 @@ class MASTER(_MASTER, nn.Module):
             # Compute logits
             output = self.decoder(torch.from_numpy(gt), encoded, tgt_mask, None)
             logits = self.linear(output)
-            out['loss'] = logits
+            out['out_map'] = logits
 
         else:
             _, logits = self.decode(encoded)
 
         if return_model_output:
             out['out_map'] = logits
-
-        if return_preds:
-            out['preds'] = logits
 
         return out
 
