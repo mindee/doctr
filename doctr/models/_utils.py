@@ -117,6 +117,19 @@ def rotate_page(
                           flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 
+def get_max_width_length_ratio(contour: np.ndarray):
+    """
+    Get the maximum shape ratio of a contour.
+    Args:
+        contour: the contour from cv2.findContour
+
+    Returns: the maximum shape ratio
+
+    """
+    _, (w, h), angle = cv2.minAreaRect(contour)
+    return max(w/h, h/w)
+
+
 def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
@@ -143,7 +156,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     # Sort contours
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    contours = sorted(contours, key=get_max_width_length_ratio, reverse=True)
 
     angles = []
     for contour in contours[:n_ct]:
@@ -151,8 +164,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
             angles.append(angle)
         elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
-            angle -= 90
-            angles.append(angle)
+            angles.append(angle - 90)
     return median_low(angles)
 
 
