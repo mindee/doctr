@@ -121,8 +121,8 @@ def get_max_width_length_ratio(contour: np.ndarray):
     Returns: the maximum shape ratio
 
     """
-    _, (w, h), angle = cv2.minAreaRect(contour)
-    return max(w/h, h/w)
+    _, (w, h), _ = cv2.minAreaRect(contour)
+    return max(w / h, h / w)
 
 
 def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
