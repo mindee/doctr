@@ -22,7 +22,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 128,
         'input_shape': (3, 32, 128),
-        'post_processor': 'CTCPostProcessor',
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -68,7 +67,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(
+    def __call__(  # type: ignore[override]
         self,
         logits: torch.Tensor
     ) -> List[Tuple[str, float]]:
@@ -107,7 +106,10 @@ class CRNN(RecognitionModel, nn.Module):
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg, max_length=32)
+        super().__init__()
+        self.vocab = vocab
+        self.cfg = cfg
+        self.max_length = 32
         self.feat_extractor = feature_extractor
 
         self.decoder = nn.LSTM(
@@ -172,7 +174,7 @@ class CRNN(RecognitionModel, nn.Module):
         logits, _ = self.decoder(features_seq, **kwargs)
         logits = self.linear(logits)
 
-        out: Dict[str, torch.Tensor] = {}
+        out: Dict[str, Any] = {}
         if return_model_output:
             out["out_map"] = logits
 

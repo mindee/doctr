@@ -9,6 +9,7 @@ from doctr.models import recognition
     "arch_name, input_shape",
     [
         ["crnn_vgg16_bn", (3, 32, 128)],
+        ["sar_resnet31", (3, 32, 128)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, mock_vocab):

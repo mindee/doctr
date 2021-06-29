@@ -200,8 +200,8 @@ class MASTER(_MASTER, Model):
         super().__init__()
 
         self.vocab = vocab
-        self.cfg = cfg
         self.max_length = max_length
+        self.cfg = cfg
         self.vocab_size = len(vocab)
 
         self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)

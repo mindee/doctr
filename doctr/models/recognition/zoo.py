@@ -5,6 +5,7 @@
 
 from typing import Any
 
+from doctr.file_utils import is_tf_available, is_torch_available
 from .core import RecognitionPredictor
 from ..preprocessor import PreProcessor
 from .. import recognition
@@ -12,7 +13,11 @@ from .. import recognition
 
 __all__ = ["recognition_predictor"]
 
-ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31', 'master']
+
+if is_tf_available():
+    ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31', 'master']
+elif is_torch_available():
+    ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
