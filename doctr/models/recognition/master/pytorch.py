@@ -7,19 +7,23 @@ import math
 import torch
 from torch import nn
 from torch.nn import functional as F
+from copy import deepcopy
 from typing import Dict, Any, Tuple, Optional, List
 
 from ....datasets import VOCABS
-from ...utils import conv_sequence_pt
+from ...utils import conv_sequence_pt, load_pretrained_params
 from ...backbones import resnet_stage
-from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
+from ..transformer import Decoder, positional_encoding
 from .base import _MASTER
 
-__all__ = ['MASTER']
+__all__ = ['MASTER', 'master']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'input_shape': (48, 160, 3),
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -199,8 +203,9 @@ class MASTER(_MASTER, nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def make_mask(self, target: torch.Tensor) -> torch.Tensor:
-        look_ahead_mask = create_look_ahead_mask(target.size(1))
-        target_padding_mask = create_padding_mask(target, self.vocab_size)  # Pad with EOS
+        size = target.size(1)
+        look_ahead_mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)[:, None]
+        target_padding_mask = ~ torch.eq(target, self.vocab_size)  # Pad with EOS
         combined_mask = target_padding_mask & look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
@@ -231,6 +236,8 @@ class MASTER(_MASTER, nn.Module):
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
         encoded = feature + self.feature_pe[:, :h * w, :]
 
+        out: Dict[str, torch.Tensor] = {}
+
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(target)
@@ -238,12 +245,16 @@ class MASTER(_MASTER, nn.Module):
             # Compute logits
             output = self.decoder(torch.from_numpy(gt), encoded, tgt_mask, None)
             logits = self.linear(output)
+            out['loss'] = logits
 
         else:
             _, logits = self.decode(encoded)
 
-        out: Dict[str, torch.Tensor] = {}
-        out['out_map'] = logits
+        if return_model_output:
+            out['out_map'] = logits
+
+        if return_preds:
+            out['preds'] = logits
 
         return out
 
@@ -282,3 +293,38 @@ class MASTER(_MASTER, nn.Module):
 
         # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
         return ys, final_logits
+
+
+def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> MASTER:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
+
+    kwargs['vocab'] = _cfg['vocab']
+
+    # Build the model
+    model = MASTER(cfg=_cfg, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    return model
+
+
+def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
+    """MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
+    Example::
+        >>> import torch
+        >>> from doctr.models import master
+        >>> model = master(pretrained=False)
+        >>> input_tensor = torch.rand((1, 3, 48, 160))
+        >>> out = model(input_tensor)
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+    Returns:
+        text recognition architecture
+    """
+
+    return _master('master', pretrained, **kwargs)

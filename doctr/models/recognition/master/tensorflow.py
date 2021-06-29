@@ -24,7 +24,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'input_shape': (48, 160, 3),
-        'post_processor': 'MASTERPostProcessor',
         'vocab': VOCABS['french'],
         'url': None,
     },

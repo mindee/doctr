@@ -8,7 +8,7 @@ import torch
 from torch import nn
 from typing import Tuple
 
-__all__ = ['Decoder', 'positional_encoding', 'create_look_ahead_mask', 'create_padding_mask']
+__all__ = ['Decoder', 'positional_encoding']
 
 
 def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
@@ -28,18 +28,6 @@ def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
     pe[:, 0::2] = torch.sin(position * div_term)
     pe[:, 1::2] = torch.cos(position * div_term)
     return pe.unsqueeze(0)
-
-
-def create_look_ahead_mask(size: int) -> torch.Tensor:
-    # With torch transformers, True for pad and 0 False for sequences
-    mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
-    return mask[:, None]
-
-
-def create_padding_mask(seq: torch.Tensor, padding: int = 0) -> torch.Tensor:
-    # With torch transformers, True for pad and 0 False for sequences
-    seq = ~ torch.eq(seq, padding)
-    return seq  # (batch_size, seq_len)
 
 
 class Decoder(nn.Module):
