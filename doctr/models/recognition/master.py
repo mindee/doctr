@@ -195,8 +195,11 @@ class MASTER(RecognitionModel, Model):
         input_shape: Tuple[int, int, int] = (48, 160, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(vocab=vocab, cfg=cfg, max_length=max_length)
+        super().__init__()
 
+        self.vocab = vocab
+        self.max_length = max_length
+        self.cfg = cfg
         self.vocab_size = len(vocab)
 
         self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)

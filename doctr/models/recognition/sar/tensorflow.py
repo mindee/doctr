@@ -8,10 +8,9 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers, Model
 from typing import Tuple, Dict, List, Any, Optional
 
-from .. import backbones
-from ..utils import load_pretrained_params
-from .core import RecognitionModel
-from .core import RecognitionPostProcessor
+from ... import backbones
+from ...utils import load_pretrained_params
+from ..core import RecognitionModel, RecognitionPostProcessor
 from doctr.utils.repr import NestedObject
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
@@ -22,7 +21,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
-        'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
@@ -32,7 +30,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
-        'post_processor': 'SARPostProcessor',
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-ea202587.zip',
@@ -170,7 +167,7 @@ class SARDecoder(layers.Layer, NestedObject):
         return outputs
 
 
-class SAR(RecognitionModel, Model):
+class SAR(Model, RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
     Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
@@ -199,8 +196,11 @@ class SAR(RecognitionModel, Model):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        # Add 1 timestep for EOS after the longest wor
-        super().__init__(vocab=vocab, cfg=cfg, max_length=max_length + 1)
+        super().__init__()
+        self.vocab = vocab
+        self.cfg = cfg
+
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
         self.feat_extractor = feature_extractor
 
@@ -224,7 +224,7 @@ class SAR(RecognitionModel, Model):
         self,
         model_output: tf.Tensor,
         gt: tf.Tensor,
-        seq_len: List[int],
+        seq_len: tf.Tensor,
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -240,7 +240,7 @@ class SAR(RecognitionModel, Model):
         # Input length : number of timesteps
         input_len = tf.shape(model_output)[1]
         # Add one for additional <eos> token
-        seq_len = tf.cast(seq_len, tf.int32) + 1
+        seq_len = seq_len + 1
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
         # Compute loss
@@ -266,6 +266,7 @@ class SAR(RecognitionModel, Model):
         encoded = self.encoder(pooled_features, **kwargs)
         if target is not None:
             gt, seq_len = self.compute_target(target)
+            seq_len = tf.cast(seq_len, tf.int32)
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
