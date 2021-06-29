@@ -1,6 +1,5 @@
 import pytest
 import torch
-import numpy as np
 
 from doctr.models import recognition
 
@@ -50,7 +49,7 @@ def test_master(mock_vocab, max_len=50, batch_size=4):
     master = recognition.MASTER(vocab=mock_vocab, input_shape=(3, 32, 128))
     input_tensor = torch.rand((batch_size, 3, 32, 128))
     target = ["i", "am", "a", "jedi"]
-    logits = master(input_tensor, target)
+    logits = master(input_tensor, target)["out_map"]
     assert isinstance(logits, torch.Tensor)
     assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))  # 1 more for EOS
     prediction, logits = master.decode(input_tensor)

@@ -107,10 +107,9 @@ def encode_sequences(
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
     if not isinstance(target_size, int):
+        target_size = max(len(w) for w in sequences)
         if sos:
-            target_size = max(len(w) for w in sequences) + 1
-        else:
-            target_size = max(len(w) for w in sequences)
+            target_size += 1
 
     # Pad all sequences
     encoded_data = np.full([len(sequences), target_size], eos, dtype=np.int32)

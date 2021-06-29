@@ -5,13 +5,13 @@
 
 import numpy as np
 from typing import List, Tuple
-from ....datasets import VOCABS, encode_sequences
+from ....datasets import encode_sequences
 
 
 class _MASTER:
 
-    vocab: str = VOCABS['french']
-    max_length: int = 50
+    vocab: str
+    max_length: int
 
     def compute_target(
         self,

@@ -33,7 +33,7 @@ def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
 def create_look_ahead_mask(size: int) -> torch.Tensor:
     # With torch transformers, True for pad and 0 False for sequences
     mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
-    return mask[:, None, :]
+    return mask[:, None]
 
 
 def create_padding_mask(seq: torch.Tensor, padding: int = 0) -> torch.Tensor:

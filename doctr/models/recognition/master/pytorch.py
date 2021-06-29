@@ -12,7 +12,7 @@ from typing import Dict, Any, Tuple, Optional, List
 from ....datasets import VOCABS
 from ...utils import conv_sequence_pt
 from ...backbones import resnet_stage
-from .transformer_pt import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
+from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
 from .base import _MASTER
 
 __all__ = ['MASTER']
@@ -20,10 +20,6 @@ __all__ = ['MASTER']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'input_shape': (3, 48, 160),
-        'post_processor': 'MASTERPostProcessor',
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -67,7 +63,8 @@ class MAGC(nn.Module):
             nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1)
         )
 
-    def context_modeling(self, inputs: torch.Tensor) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor, **kwargs) -> torch.Tensor:
+
         batch, _, height, width = inputs.size()
         # [N*headers, C', H , W] C = headers * C'
         x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
@@ -99,11 +96,6 @@ class MAGC(nn.Module):
         # [N, headers * C', 1, 1]
         context = context.view(batch, self.headers * self.single_header_inplanes, 1, 1)
 
-        return context
-
-    def forward(self, inputs: torch.Tensor, **kwargs) -> torch.Tensor:
-        # Context modeling: B, C, H, W  ->  B, C, 1, 1
-        context = self.context_modeling(inputs)
         # Transform: B, C, 1, 1 ->  B, C, 1, 1
         transformed = self.channel_add_conv(context)
         return inputs + transformed
@@ -198,7 +190,6 @@ class MASTER(_MASTER, nn.Module):
         )
         self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
         self.linear = nn.Linear(d_model, self.vocab_size + 1)
-        nn.init.kaiming_uniform_(self.linear.weight)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -220,7 +211,7 @@ class MASTER(_MASTER, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> torch.Tensor:
+    ) -> Dict[str, Any]:
         """Call function for training
 
         Args:
@@ -251,7 +242,10 @@ class MASTER(_MASTER, nn.Module):
         else:
             _, logits = self.decode(encoded)
 
-        return logits
+        out: Dict[str, torch.Tensor] = {}
+        out['out_map'] = logits
+
+        return out
 
     def decode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Decode function for prediction
