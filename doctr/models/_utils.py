@@ -105,16 +105,11 @@ def rotate_page(
     """
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return image
-    elif abs(angle) > 45:
-        # if image is closer to portrait mode, go for a full 90° rotation
-        image = cv2.rotate(image, cv2.cv2.ROTATE_90_CLOCKWISE)
-        angle += 90  # track the rotation by updating angle
 
     height, width = image.shape[:2]
     center = (height / 2, width / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    return cv2.warpAffine(image, rot_mat, (width, height),
-                          flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    return cv2.warpAffine(image, rot_mat, (width, height))
 
 
 def get_max_width_length_ratio(contour: np.ndarray):

@@ -42,21 +42,12 @@ class OCRPredictor(NestedObject):
     def __call__(
         self,
         pages: List[np.ndarray],
-        rotate_document: bool = True,
         **kwargs: Any,
     ) -> Document:
 
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
-
-        # Detect document rotation and rotate pages
-        if rotate_document:
-            page_angles = []
-            for i,page in enumerate(pages):
-                page_angle = estimate_orientation(page)
-                page_angles.append(page_angle)
-                pages[i] = rotate_page(page,page_angle)
 
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
