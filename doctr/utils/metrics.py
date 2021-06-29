@@ -10,7 +10,8 @@ from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
 from doctr.utils.geometry import rbbox_to_polygon
 
-__all__ = ['TextMatch', 'box_iou', 'mask_iou', 'rbox_to_mask', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_to_mask',
+           'nms', 'LocalizationConfusion', 'OCRMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
@@ -143,6 +144,35 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
+def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
+    """Compute the IoA (intersection over area) between two sets of bounding boxes:
+    ioa(i, j) = inter(i, j) / area(i)
+
+    Args:
+        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
+    Returns:
+        the IoA matrix of shape (N, M)
+    """
+
+    ioa_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+
+    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
+        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
+
+        left = np.maximum(l1, l2.T)
+        top = np.maximum(t1, t2.T)
+        right = np.minimum(r1, r2.T)
+        bot = np.minimum(b1, b2.T)
+
+        intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
+        area = (r1 - l1) * (b1 - t1)
+        ioa_mat = intersection / area
+
+    return ioa_mat
+
+
 def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     """Compute the IoU between two sets of boolean masks
 
@@ -198,6 +228,44 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
             cv2.fillPoly(masks[idx], [np.array(box, np.int32)], 1)
 
     return masks.astype(bool)
+
+
+def nms(boxes: np.ndarray, thresh: float = .5) -> List[int]:
+    """Perform non-max suppression, borrowed from <https://github.com/rbgirshick/fast-rcnn>`_.
+
+    Args:
+        boxes: np array of straight boxes: (*, 5), (xmin, ymin, xmax, ymax, score)
+        thresh: iou threshold to perform box suppression.
+
+    Returns:
+        A list of box indexes to keep
+    """
+    x1 = boxes[:, 0]
+    y1 = boxes[:, 1]
+    x2 = boxes[:, 2]
+    y2 = boxes[:, 3]
+    scores = boxes[:, 4]
+
+    areas = (x2 - x1) * (y2 - y1)
+    order = scores.argsort()[::-1]
+
+    keep = []
+    while order.size > 0:
+        i = order[0]
+        keep.append(i)
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        w = np.maximum(0.0, xx2 - xx1)
+        h = np.maximum(0.0, yy2 - yy1)
+        inter = w * h
+        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+
+        inds = np.where(ovr <= thresh)[0]
+        order = order[inds + 1]
+    return keep
 
 
 class LocalizationConfusion:

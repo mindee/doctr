@@ -9,7 +9,8 @@ import cv2
 from .common_types import BoundingBox, Polygon4P, RotatedBbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
-           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox']
+           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox',
+           'resolve_enclosing_bboxarray']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -44,3 +45,13 @@ def resolve_enclosing_bbox(bboxes: List[BoundingBox]) -> BoundingBox:
 def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> RotatedBbox:
     pts = np.asarray([pt for rbbox in rbboxes for pt in rbbox_to_polygon(rbbox)], np.float32)
     return fit_rbbox(pts)
+
+
+def resolve_enclosing_bboxarray(bboxarray: np.ndarray) -> np.ndarray:
+    """Compute enclosing bbox from an array of boxes: (*, 5), where boxes have this shape:
+    (xmin, ymin, xmax, ymax, score).
+    Return a (1, 5) array (enclosing boxarray)
+    """
+    xmin, ymin, xmax, ymax, score = np.split(bboxarray, 5, axis=1)
+    enclosing = [np.min(xmin), np.min(ymin), np.max(xmax), np.max(ymax), np.mean(score)]
+    return np.asarray(enclosing)

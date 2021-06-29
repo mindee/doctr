@@ -179,3 +179,14 @@ def test_ocr_metric(
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.tot_iou == 0
     assert metric.raw_matches == metric.caseless_matches == metric.unidecode_matches == metric.unicase_matches == 0
+
+
+def test_nms():
+    boxes = [
+        [0.1, 0.1, 0.2, 0.2, 0.95],
+        [0.15, 0.15, 0.19, 0.2, 0.90],  # to suppress
+        [0.5, 0.5, 0.6, 0.55, 0.90],
+        [0.55, 0.5, 0.7, 0.55, 0.85],  # to suppress
+    ]
+    to_keep = metrics.nms(np.asarray(boxes), thresh=0.2)
+    assert to_keep == [0, 2]
