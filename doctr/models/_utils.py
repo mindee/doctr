@@ -89,9 +89,9 @@ def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
 
 
 def rotate_page(
-        image: np.ndarray,
-        angle: float = 0.,
-        min_angle: float = 1.
+    image: np.ndarray,
+    angle: float = 0.,
+    min_angle: float = 1.
 ) -> np.ndarray:
     """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
 
@@ -120,7 +120,6 @@ def rotate_page(
 def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: int = 5) -> int:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
-
 
         Args:
             img: the img to analyze
@@ -196,9 +195,9 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
 
 
 def rotate_boxes(
-        boxes: np.ndarray,
-        angle: float = 0.,
-        min_angle: float = 1.
+    boxes: np.ndarray,
+    angle: float = 0.,
+    min_angle: float = 1.
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) of an angle,
     if angle > min_angle, around the center of the page.
