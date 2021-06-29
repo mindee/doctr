@@ -16,6 +16,7 @@ from .data_utils import download_from_url
 
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
+
 __all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter']
 
 
@@ -111,11 +112,10 @@ class IntermediateLayerGetter(Model):
         model: the model to extract feature maps from
         layer_names: the list of layers to retrieve the feature map from
     """
-
     def __init__(
-            self,
-            model: Model,
-            layer_names: List[str]
+        self,
+        model: Model,
+        layer_names: List[str]
     ) -> None:
         intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
