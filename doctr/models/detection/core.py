@@ -9,8 +9,6 @@ from typing import List, Any, Optional, Dict, Tuple
 
 from doctr.utils.repr import NestedObject
 from .._utils import rotate_page, get_bitmap_angle
-from ...utils.metrics import box_ioa
-from ...utils.geometry import resolve_enclosing_bboxarray
 from .. import PreProcessor
 
 
@@ -84,45 +82,6 @@ class DetectionPostProcessor(NestedObject):
     ) -> np.ndarray:
         raise NotImplementedError
 
-    def filter_boxes(
-        self,
-        boxes: np.ndarray,
-        merging_thresh: float = .2,
-    ) -> np.ndarray:
-        """Filter an array of boxes: boxes with an ioa > merging threshold will be merged
-
-        Args:
-            boxes: array of boxes, shape (N, 5) or (N, 6)
-            merging_thresh: threshold used to merge boxes when IOA is above
-
-        Returns:
-            A np array of filtered boxes, containing at most N boxes.
-        """
-        # Array of rotated boxes: not supported for now
-        # TODO: support for rotated boxes (merging algorithm)
-        if boxes.shape[1] == 6:
-            return boxes
-
-        if not np.any(boxes):
-            # If array of boxes is empty, return it
-            return boxes
-
-        # Compute iou beween boxes
-        ioa_mat = box_ioa(boxes[:, :4], boxes[:, :4])
-
-        # Find box indexes with a ioa > merging_thresh, and merge them
-        to_merge = np.argwhere(ioa_mat > merging_thresh)
-        for [i, j] in list(to_merge):
-            # Resolve enclosing box, update dictionnary
-            enclosing_box = resolve_enclosing_bboxarray(boxes[[i, j], :])
-            boxes[i, :] = enclosing_box
-            boxes[j, :] = enclosing_box
-
-        # Update box list: remove duplicates from merged dictionnary
-        merged_unique = np.unique(boxes, axis=0)
-
-        return merged_unique
-
     def __call__(
         self,
         proba_map: np.ndarray,
@@ -152,8 +111,6 @@ class DetectionPostProcessor(NestedObject):
             angles_batch.append(angle)
             bitmap_, p_ = rotate_page(bitmap_, -angle), rotate_page(p_, -angle)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-            # Filter boxes
-            boxes = self.filter_boxes(boxes)
             boxes_batch.append(boxes)
 
         return boxes_batch, angles_batch

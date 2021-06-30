@@ -190,3 +190,13 @@ def test_nms():
     ]
     to_keep = metrics.nms(np.asarray(boxes), thresh=0.2)
     assert to_keep == [0, 2]
+
+
+def test_box_ioa():
+    boxes = [
+        [0.1, 0.1, 0.2, 0.2],
+        [0.15, 0.15, 0.2, 0.2],
+    ]
+    mat = metrics.box_ioa(np.array(boxes), np.array(boxes))
+    assert mat[1, 0] == mat[0, 0] == mat[1, 1] == 1.
+    assert abs(mat[0, 1] - .25) <= 1e-7

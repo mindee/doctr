@@ -53,5 +53,4 @@ def resolve_enclosing_bboxarray(bboxarray: np.ndarray) -> np.ndarray:
     Return a (1, 5) array (enclosing boxarray)
     """
     xmin, ymin, xmax, ymax, score = np.split(bboxarray, 5, axis=1)
-    enclosing = [np.min(xmin), np.min(ymin), np.max(xmax), np.max(ymax), np.mean(score)]
-    return np.asarray(enclosing)
+    return np.array([xmin.min(), ymin.min(), xmax.max(), ymax.max(), score.mean()])

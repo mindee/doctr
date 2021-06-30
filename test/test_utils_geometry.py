@@ -30,3 +30,8 @@ def test_resolve_enclosing_rbbox():
     pred = geometry.resolve_enclosing_rbbox([(.2, .2, .05, .05, 0), (.2, .2, .2, .2, 0)])[:4]
     target = (.2, .2, .2, .2)
     assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
+
+
+def test_resolve_bboxarray():
+    pred = geometry.resolve_enclosing_bboxarray(np.array([[0.1, 0.1, 0.2, 0.2, 0.9], [0.15, 0.15, 0.2, 0.2, 0.8]]))
+    assert pred.all() == np.array([0.1, 0.1, 0.2, 0.2, 0.85]).all()
