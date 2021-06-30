@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.recognition.master &mdash; doctr 0.3.0a0-git documentation</title>
+  <title>doctr.models.recognition.master.tensorflow &mdash; doctr 0.3.0a0-git documentation</title>
   
 
   
@@ -17,29 +17,28 @@
   
 
   
-  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  <script type="text/javascript" src="../../../../../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/clipboard.min.js"></script>
-        <script src="../../../../_static/copybutton.js"></script>
-        <script src="../../../../_static/js/custom.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/clipboard.min.js"></script>
+        <script src="../../../../../_static/copybutton.js"></script>
+        <script src="../../../../../_static/js/custom.js"></script>
     
-    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/copybutton.css" type="text/css" />
-  <link rel="stylesheet" href="../../../../_static/css/mindee.css" type="text/css" />
-    <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" /> 
+  <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/css/mindee.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -53,7 +52,7 @@
           
 
           
-            <a href="../../../../index.html" class="icon icon-home"> doctr
+            <a href="../../../../../index.html" class="icon icon-home"> doctr
           
 
           
@@ -63,7 +62,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -82,49 +81,44 @@
             
               <p><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-git">Via Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-conda">Via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
 </ul>
 <p><span class="caption-text">Package Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#document-structure">Document structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#file-reading">File reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../models.html">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#post-processing-detections">Post-processing detections</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-predictors">Detection predictors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#id1">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-predictors">Recognition predictors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#model-export">Model export</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#model-export">Model export</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../utils.html">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../utils.html#visualization">Visualization</a></li>
 </ul>
 </li>
 </ul>
@@ -141,7 +135,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">doctr</a>
+          <a href="../../../../../index.html">doctr</a>
         
       </nav>
 
@@ -170,11 +164,11 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../../../../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
         
-      <li>doctr.models.recognition.master</li>
+      <li>doctr.models.recognition.master.tensorflow</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -189,7 +183,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for doctr.models.recognition.master</h1><div class="highlight"><pre>
+  <h1>Source code for doctr.models.recognition.master.tensorflow</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
@@ -200,11 +194,13 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
-<span class="kn">from</span> <span class="nn">..backbones</span> <span class="kn">import</span> <span class="n">ResnetStage</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
-<span class="kn">from</span> <span class="nn">.transformer</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">positional_encoding</span><span class="p">,</span> <span class="n">create_look_ahead_mask</span><span class="p">,</span> <span class="n">create_padding_mask</span>
-<span class="kn">from</span> <span class="nn">...datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">RecognitionPostProcessor</span>
+<span class="kn">from</span> <span class="nn">...backbones.resnet</span> <span class="kn">import</span> <span class="n">ResnetStage</span>
+<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">..transformer</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">positional_encoding</span><span class="p">,</span> <span class="n">create_look_ahead_mask</span><span class="p">,</span> <span class="n">create_padding_mask</span>
+<span class="kn">from</span> <span class="nn">....datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_MASTER</span>
+
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MASTER&#39;</span><span class="p">,</span> <span class="s1">&#39;MASTERPostProcessor&#39;</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span><span class="p">]</span>
 
@@ -214,7 +210,6 @@
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;MASTERPostProcessor&#39;</span><span class="p">,</span>
         <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">],</span>
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
@@ -359,7 +354,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">MASTER</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">MASTER</span><span class="p">(</span><span class="n">_MASTER</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;Implements MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 <span class="sd">    Implementation based on the official TF implementation: &lt;https://github.com/jiangxiluning/MASTER-TF&gt;`_.</span>
@@ -589,7 +584,7 @@
     <span class="k">return</span> <span class="n">model</span>
 
 
-<div class="viewcode-block" id="master"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.master">[docs]</a><span class="k">def</span> <span class="nf">master</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
+<div class="viewcode-block" id="master"><a class="viewcode-back" href="../../../../../models.html#doctr.models.recognition.master">[docs]</a><span class="k">def</span> <span class="nf">master</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
