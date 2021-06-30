@@ -10,7 +10,7 @@ from torchvision.models.resnet import BasicBlock
 from typing import Tuple, Dict, Any, List
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet31']
+__all__ = ['ResNet', 'resnet31', 'resnet_stage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
