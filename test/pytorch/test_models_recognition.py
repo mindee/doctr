@@ -43,3 +43,17 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert all(char in mock_vocab for word, _ in decoded for char in word)
     # Repr
     assert repr(processor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
+
+
+def test_master(mock_vocab, max_len=50, batch_size=4):
+    master = recognition.MASTER(vocab=mock_vocab, input_shape=(3, 32, 128))
+    input_tensor = torch.rand((batch_size, 3, 32, 128))
+    target = ["i", "am", "a", "jedi"]
+    logits = master(input_tensor, target, return_model_output=True)['out_map']
+    assert isinstance(logits, torch.Tensor)
+    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))  # 1 more for EOS
+    prediction, logits = master.decode(input_tensor)
+    assert isinstance(prediction, torch.Tensor)
+    assert isinstance(logits, torch.Tensor)
+    assert prediction.shape == (batch_size, max_len)
+    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))

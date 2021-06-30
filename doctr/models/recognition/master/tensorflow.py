@@ -8,11 +8,13 @@ from tensorflow.keras import layers, Sequential, Model
 from typing import Tuple, List, Dict, Any, Optional
 from copy import deepcopy
 
-from .core import RecognitionModel, RecognitionPostProcessor
-from ..backbones import ResnetStage
-from ..utils import conv_sequence, load_pretrained_params
-from .transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
-from ...datasets import VOCABS
+from ..core import RecognitionPostProcessor
+from ...backbones.resnet import ResnetStage
+from ...utils import conv_sequence, load_pretrained_params
+from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
+from ....datasets import VOCABS
+from .base import _MASTER
+
 
 __all__ = ['MASTER', 'MASTERPostProcessor', 'master']
 
@@ -22,7 +24,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'input_shape': (48, 160, 3),
-        'post_processor': 'MASTERPostProcessor',
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -167,7 +168,7 @@ class MAGCResnet(Sequential):
         super().__init__(_layers)
 
 
-class MASTER(RecognitionModel, Model):
+class MASTER(_MASTER, Model):
 
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
