@@ -50,7 +50,7 @@ def translate(
 def encode_sequence(
     input_string: str,
     vocab: str,
-) -> List[str]:
+) -> List[int]:
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
