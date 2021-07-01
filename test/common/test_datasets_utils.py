@@ -38,22 +38,23 @@ def test_encode_decode(input_str):
 
 
 @pytest.mark.parametrize(
-    "sequences, vocab, target_size, eos, sos, error, out_shape, gts",
+    "sequences, vocab, target_size, eos, sos, pad, error, out_shape, gts",
     [
-        [['cba'], 'abcdef', None, 1, None, True, (1, 3), [[2, 1, 0]]],
-        [['cba', 'a'], 'abcdef', None, -1, None, False, (2, 3), [[2, 1, 0], [0, -1, -1]]],
-        [['cba', 'a'], 'abcdef', None, 6, None, False, (2, 3), [[2, 1, 0], [0, 6, 6]]],
-        [['cba', 'a'], 'abcdef', 2, -1, None, False, (2, 2), [[2, 1], [0, -1]]],
-        [['cba', 'a'], 'abcdef', 4, -1, None, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
-        [['cba', 'a'], 'abcdef', 5, -1, 7, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
+        [['cba'], 'abcdef', None, 1, None, None, True, (1, 3), [[2, 1, 0]]],
+        [['cba', 'a'], 'abcdef', None, -1, None, None, False, (2, 3), [[2, 1, 0], [0, -1, -1]]],
+        [['cba', 'a'], 'abcdef', None, 6, None, None, False, (2, 3), [[2, 1, 0], [0, 6, 6]]],
+        [['cba', 'a'], 'abcdef', 2, -1, None, None, False, (2, 2), [[2, 1], [0, -1]]],
+        [['cba', 'a'], 'abcdef', 4, -1, None, None, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
+        [['cba', 'a'], 'abcdef', 5, -1, 7, None, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
+        [['cba', 'a'], 'abcdef', None, -1, 7, 9, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, 9, 9]]],
     ],
 )
-def test_encode_sequences(sequences, vocab, target_size, eos, sos, error, out_shape, gts):
+def test_encode_sequences(sequences, vocab, target_size, eos, sos, pad, error, out_shape, gts):
     if error:
         with pytest.raises(ValueError):
-            _ = utils.encode_sequences(sequences, vocab, target_size, eos, sos)
+            _ = utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad)
     else:
-        out = utils.encode_sequences(sequences, vocab, target_size, eos, sos)
+        out = utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad)
         assert isinstance(out, np.ndarray)
         assert out.shape == out_shape
         assert np.all(out == np.asarray(gts)), print(out, gts)
