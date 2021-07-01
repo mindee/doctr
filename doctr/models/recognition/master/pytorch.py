@@ -240,7 +240,7 @@ class MASTER(_MASTER, nn.Module):
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, seq_len = self.compute_target(target)
+            gt, _ = self.compute_target(target)
             tgt_mask = self.make_mask(torch.from_numpy(gt))
             # Compute logits
             output = self.decoder(torch.from_numpy(gt), encoded, tgt_mask, None)

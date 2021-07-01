@@ -5,7 +5,7 @@
 
 from torch import nn
 from torchvision.models import vgg as tv_vgg
-from typing import Tuple, Dict, Any
+from typing import Dict, Any
 
 from ...utils import load_pretrained_params
 
