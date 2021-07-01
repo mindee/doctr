@@ -182,7 +182,7 @@ class MASTER(_MASTER, nn.Module):
         self.num_heads = num_heads
 
         self.feature_extractor = MAGCResnet(headers=headers)
-        self.seq_embedding = nn.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
+        self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
             num_layers=num_layers,
@@ -193,7 +193,7 @@ class MASTER(_MASTER, nn.Module):
             maximum_position_encoding=max_length,
         )
         self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
-        self.linear = nn.Linear(d_model, self.vocab_size + 1)
+        self.linear = nn.Linear(d_model, self.vocab_size + 3)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -205,7 +205,7 @@ class MASTER(_MASTER, nn.Module):
     def make_mask(self, target: torch.Tensor) -> torch.Tensor:
         size = target.size(1)
         look_ahead_mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)[:, None]
-        target_padding_mask = ~ torch.eq(target, self.vocab_size)  # Pad with EOS
+        target_padding_mask = ~ torch.eq(target, self.vocab_size + 2)  # Pad
         combined_mask = target_padding_mask & look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
@@ -274,7 +274,7 @@ class MASTER(_MASTER, nn.Module):
         start_vector = torch.ones((b, 1), dtype=torch.long) * self.vocab_size + 1  # SOS
         ys = torch.cat((start_vector, ys), axis=-1)
 
-        final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 1), dtype=torch.long)  # EOS
+        final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long)  # EOS/SOS/PAD
         # max_len = len + 2
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
