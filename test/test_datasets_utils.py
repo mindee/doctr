@@ -56,6 +56,5 @@ def test_encode_sequences(sequences, vocab, target_size, eos, sos, pad, error, o
     else:
         out = utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad)
         assert isinstance(out, np.ndarray)
-        print(out)
         assert out.shape == out_shape
         assert np.all(out == np.asarray(gts)), print(out, gts)
