@@ -64,7 +64,7 @@ def test_read_img(tmpdir_factory, mock_pdf):
         reader.read_img(str(mock_pdf))
 
     # From path
-    url = 'https://upload.wikimedia.org/wikipedia/commons/5/55/Grace_Hopper.jpg'
+    url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/Grace_Hopper.jpg'
     file = BytesIO(requests.get(url).content)
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_img_file.jpg"))
     with open(tmp_path, 'wb') as f:
