@@ -3,14 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List
+from typing import List, Union
 import numpy as np
 import cv2
 from .common_types import BoundingBox, Polygon4P, RotatedBbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
-           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox',
-           'resolve_enclosing_bboxarray']
+           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -37,20 +36,24 @@ def polygon_to_rbbox(polygon: Polygon4P) -> RotatedBbox:
     return fit_rbbox(cnt)
 
 
-def resolve_enclosing_bbox(bboxes: List[BoundingBox]) -> BoundingBox:
-    x, y = zip(*[point for box in bboxes for point in box])
-    return (min(x), min(y)), (max(x), max(y))
+def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Union[BoundingBox, np.ndarray]:
+    """Compute enclosing bbox either from:
+
+    - an array of boxes: (*, 5), where boxes have this shape:
+    (xmin, ymin, xmax, ymax, score)
+
+    - a list of BoundingBox
+
+    Return a (1, 5) array (enclosing boxarray), or a BoundingBox
+    """
+    if isinstance(bboxes, np.ndarray):
+        xmin, ymin, xmax, ymax, score = np.split(bboxes, 5, axis=1)
+        return np.array([xmin.min(), ymin.min(), xmax.max(), ymax.max(), score.mean()])
+    else:
+        x, y = zip(*[point for box in bboxes for point in box])
+        return (min(x), min(y)), (max(x), max(y))
 
 
 def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> RotatedBbox:
     pts = np.asarray([pt for rbbox in rbboxes for pt in rbbox_to_polygon(rbbox)], np.float32)
     return fit_rbbox(pts)
-
-
-def resolve_enclosing_bboxarray(bboxarray: np.ndarray) -> np.ndarray:
-    """Compute enclosing bbox from an array of boxes: (*, 5), where boxes have this shape:
-    (xmin, ymin, xmax, ymax, score).
-    Return a (1, 5) array (enclosing boxarray)
-    """
-    xmin, ymin, xmax, ymax, score = np.split(bboxarray, 5, axis=1)
-    return np.array([xmin.min(), ymin.min(), xmax.max(), ymax.max(), score.mean()])

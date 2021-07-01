@@ -12,6 +12,8 @@ def test_polygon_to_bbox():
 
 def test_resolve_enclosing_bbox():
     assert geometry.resolve_enclosing_bbox([((0, 0.5), (1, 0)), ((0.5, 0), (1, 0.25))]) == ((0, 0), (1, 0.5))
+    pred = geometry.resolve_enclosing_bbox(np.array([[0.1, 0.1, 0.2, 0.2, 0.9], [0.15, 0.15, 0.2, 0.2, 0.8]]))
+    assert pred.all() == np.array([0.1, 0.1, 0.2, 0.2, 0.85]).all()
 
 
 def test_rbbox_to_polygon():
@@ -30,8 +32,3 @@ def test_resolve_enclosing_rbbox():
     pred = geometry.resolve_enclosing_rbbox([(.2, .2, .05, .05, 0), (.2, .2, .2, .2, 0)])[:4]
     target = (.2, .2, .2, .2)
     assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
-
-
-def test_resolve_bboxarray():
-    pred = geometry.resolve_enclosing_bboxarray(np.array([[0.1, 0.1, 0.2, 0.2, 0.9], [0.15, 0.15, 0.2, 0.2, 0.8]]))
-    assert pred.all() == np.array([0.1, 0.1, 0.2, 0.2, 0.85]).all()
