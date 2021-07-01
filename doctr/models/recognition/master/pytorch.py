@@ -272,7 +272,7 @@ class MASTER(_MASTER, nn.Module):
 
         ys = torch.ones((b, self.max_length - 1), dtype=torch.long) * self.vocab_size  # padding symbol
         start_vector = torch.ones((b, 1), dtype=torch.long) * self.vocab_size + 1  # SOS
-        ys = torch.cat((start_vector, ys), axis=-1)
+        ys = torch.cat((start_vector, ys), dim=-1)
 
         final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 1), dtype=torch.long)  # EOS
         # max_len = len + 2
