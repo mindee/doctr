@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models.detection.zoo import detection_predictor
 from doctr.models import detection, PreProcessor
 from doctr.documents import DocumentFile
 
