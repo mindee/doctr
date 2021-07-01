@@ -6,6 +6,7 @@
 import numpy as np
 from typing import List, Tuple
 from ....datasets import encode_sequences
+from ..core import RecognitionPostProcessor
 
 
 class _MASTER:
@@ -32,6 +33,23 @@ class _MASTER:
             target_size=self.max_length,
             eos=len(self.vocab),
             sos=len(self.vocab) + 1,
+            pad=len(self.vocab) + 2,
         )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len
+
+
+class _MASTERPostProcessor(RecognitionPostProcessor):
+    """Abstract class to postprocess the raw output of the model
+
+    Args:
+        vocab: string containing the ordered sequence of supported characters
+    """
+
+    def __init__(
+        self,
+        vocab: str,
+    ) -> None:
+
+        super().__init__(vocab)
+        self._embedding = list(vocab) + ['<eos>'] + ['<sos>'] + ['<pad>']

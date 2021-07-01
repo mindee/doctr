@@ -51,9 +51,9 @@ def test_master(mock_vocab, max_len=50, batch_size=4):
     target = ["i", "am", "a", "jedi"]
     logits = master(input_tensor, target, return_model_output=True)['out_map']
     assert isinstance(logits, torch.Tensor)
-    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))  # 1 more for EOS
+    assert logits.shape == (batch_size, max_len, 3 + len(mock_vocab))
     prediction, logits = master.decode(input_tensor)
     assert isinstance(prediction, torch.Tensor)
     assert isinstance(logits, torch.Tensor)
     assert prediction.shape == (batch_size, max_len)
-    assert logits.shape == (batch_size, max_len, 1 + len(mock_vocab))
+    assert logits.shape == (batch_size, max_len, 3 + len(mock_vocab))

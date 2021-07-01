@@ -13,7 +13,7 @@ from ...backbones.resnet import ResnetStage
 from ...utils import conv_sequence, load_pretrained_params
 from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
 from ....datasets import VOCABS
-from .base import _MASTER
+from .base import _MASTER, _MASTERPostProcessor
 
 
 __all__ = ['MASTER', 'MASTERPostProcessor', 'master']
@@ -204,7 +204,7 @@ class MASTER(_MASTER, Model):
         self.vocab_size = len(vocab)
 
         self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
-        self.seq_embedding = layers.Embedding(self.vocab_size + 1, d_model)  # One additional class for EOS
+        self.seq_embedding = layers.Embedding(self.vocab_size + 3, d_model)  # 3 more classes: EOS/PAD/SOS
 
         self.decoder = Decoder(
             num_layers=num_layers,
@@ -215,14 +215,14 @@ class MASTER(_MASTER, Model):
             maximum_position_encoding=max_length,
         )
         self.feature_pe = positional_encoding(input_shape[0] * input_shape[1], d_model)
-        self.linear = layers.Dense(self.vocab_size + 1, kernel_initializer=tf.initializers.he_uniform())
+        self.linear = layers.Dense(self.vocab_size + 3, kernel_initializer=tf.initializers.he_uniform())
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
     @tf.function
     def make_mask(self, target: tf.Tensor) -> tf.Tensor:
         look_ahead_mask = create_look_ahead_mask(tf.shape(target)[1])
-        target_padding_mask = create_padding_mask(target, self.vocab_size)  # Pad with EOS
+        target_padding_mask = create_padding_mask(target, self.vocab_size + 2)  # Pad symbol
         combined_mask = tf.maximum(target_padding_mask, look_ahead_mask)
         return combined_mask
 
@@ -245,15 +245,16 @@ class MASTER(_MASTER, Model):
         """
         # Input length : number of timesteps
         input_len = tf.shape(model_output)[1]
-        # Add one for additional <eos> token
+        # Add one for additional <eos> token (sos disappear in shift!)
         seq_len = tf.cast(seq_len, tf.int32) + 1
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
-        # Compute loss
-        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
+        # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
+        # The "masked" first gt char is <sos>. Delete last logit of the model output.
+        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:, :], model_output[:, :-1, :])
         # Compute mask
         mask_values = tf.zeros_like(cce)
-        mask_2d = tf.sequence_mask(seq_len, input_len)
+        mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
         masked_loss = tf.where(mask_2d, cce, mask_values)
         ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, tf.float32))
 
@@ -290,15 +291,22 @@ class MASTER(_MASTER, Model):
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(target)
+
+        if kwargs.get('training', False):
+            if target is None:
+                raise AssertionError("In training mode, you need to pass a value to 'target'")
             tgt_mask = self.make_mask(gt)
             # Compute logits
-            output = self.decoder(gt, encoded, tgt_mask, None, training=True)
-            logits = self.linear(output)
-            # Compute loss
-            out['loss'] = self.compute_loss(logits, gt, seq_len)
+            output = self.decoder(gt, encoded, tgt_mask, None, **kwargs)
+            logits = self.linear(output, **kwargs)
 
         else:
-            _, logits = self.decode(encoded)
+            # When not training, we want to compute logits in with the decoder, although
+            # we have access to gts (we need gts to compute the loss, but not in the decoder)
+            _, logits = self.decode(encoded, **kwargs)
+
+        if target is not None:
+            out['loss'] = self.compute_loss(logits, gt, seq_len)
 
         if return_model_output:
             out['out_map'] = logits
@@ -309,8 +317,7 @@ class MASTER(_MASTER, Model):
 
         return out
 
-    @tf.function
-    def decode(self, encoded: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def decode(self, encoded: tf.Tensor, **kwargs: Any) -> Tuple[tf.Tensor, tf.Tensor]:
         """Decode function for prediction
 
         Args:
@@ -321,22 +328,21 @@ class MASTER(_MASTER, Model):
         """
         b = tf.shape(encoded)[0]
         max_len = tf.constant(self.max_length, dtype=tf.int32)
-        start_symbol = tf.constant(self.vocab_size + 1, dtype=tf.int32)  # SOS (EOS = vocab_size)
-        padding_symbol = tf.constant(self.vocab_size, dtype=tf.int32)
+        start_symbol = tf.constant(self.vocab_size + 1, dtype=tf.int32)  # SOS
+        padding_symbol = tf.constant(self.vocab_size + 2, dtype=tf.int32)  # PAD
 
         ys = tf.fill(dims=(b, max_len - 1), value=padding_symbol)
         start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-        final_logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 1), dtype=tf.float32)  # don't fgt EOS
-        # max_len = len + 2
+        final_logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=tf.float32)  # 3 symbols
+        # max_len = len + 2 (sos + eos)
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
-            output = self.decoder(ys, encoded, ys_mask, None, training=False)
-            logits = self.linear(output)
+            output = self.decoder(ys, encoded, ys_mask, None, **kwargs)
+            logits = self.linear(output, **kwargs)
             prob = tf.nn.softmax(logits, axis=-1)
             next_word = tf.argmax(prob, axis=-1, output_type=ys.dtype)
-
             # ys.shape = B, T
             i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(max_len), indexing='ij')
             indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
@@ -346,11 +352,12 @@ class MASTER(_MASTER, Model):
             if i == (self.max_length - 2):
                 final_logits = logits
 
-        # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
+        # ys predictions of shape B x max_length (including sos)
+        # final_logits of shape B x max_length - 1 x vocab_size + 1 (whithout sos)
         return ys, final_logits
 
 
-class MASTERPostProcessor(RecognitionPostProcessor):
+class MASTERPostProcessor(_MASTERPostProcessor):
     """Post processor for MASTER architectures
     Args:
         vocab: string containing the ordered sequence of supported characters

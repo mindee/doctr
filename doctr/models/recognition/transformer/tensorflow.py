@@ -7,7 +7,7 @@
 # https://www.tensorflow.org/text/tutorials/transformer
 
 
-from typing import Tuple
+from typing import Tuple, Any
 
 import tensorflow as tf
 import numpy as np
@@ -124,12 +124,20 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         x = tf.reshape(x, (batch_size, -1, self.num_heads, self.depth))
         return tf.transpose(x, perm=[0, 2, 1, 3])
 
-    def call(self, v: tf.Tensor, k: tf.Tensor, q: tf.Tensor, mask: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def call(
+        self,
+        v: tf.Tensor,
+        k: tf.Tensor,
+        q: tf.Tensor,
+        mask: tf.Tensor,
+        **kwargs: Any,
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
+
         batch_size = tf.shape(q)[0]
 
-        q = self.wq(q)  # (batch_size, seq_len, d_model)
-        k = self.wk(k)  # (batch_size, seq_len, d_model)
-        v = self.wv(v)  # (batch_size, seq_len, d_model)
+        q = self.wq(q, **kwargs)  # (batch_size, seq_len, d_model)
+        k = self.wk(k, **kwargs)  # (batch_size, seq_len, d_model)
+        v = self.wv(v, **kwargs)  # (batch_size, seq_len, d_model)
 
         q = self.split_heads(q, batch_size)  # (batch_size, num_heads, seq_len_q, depth)
         k = self.split_heads(k, batch_size)  # (batch_size, num_heads, seq_len_k, depth)
@@ -144,7 +152,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
         concat_attention = tf.reshape(scaled_attention,
                                       (batch_size, -1, self.d_model))  # (batch_size, seq_len_q, d_model)
 
-        output = self.dense(concat_attention)  # (batch_size, seq_len_q, d_model)
+        output = self.dense(concat_attention, **kwargs)  # (batch_size, seq_len_q, d_model)
 
         return output
 
@@ -176,20 +184,20 @@ class DecoderLayer(tf.keras.layers.Layer):
         self,
         x: tf.Tensor,
         enc_output: tf.Tensor,
-        training: bool,
         look_ahead_mask: tf.Tensor,
-        padding_mask: tf.Tensor
+        padding_mask: tf.Tensor,
+        **kwargs: Any,
     ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         # enc_output.shape == (batch_size, input_seq_len, d_model)
 
-        attn1 = self.mha1(x, x, x, look_ahead_mask)  # (batch_size, target_seq_len, d_model)
-        out1 = self.layernorm1(attn1 + x)
+        attn1 = self.mha1(x, x, x, look_ahead_mask, **kwargs)  # (batch_size, target_seq_len, d_model)
+        out1 = self.layernorm1(attn1 + x, **kwargs)
 
-        attn2 = self.mha2(enc_output, enc_output, out1, padding_mask)  # (batch_size, target_seq_len, d_model)
-        out2 = self.layernorm2(attn2 + out1)  # (batch_size, target_seq_len, d_model)
+        attn2 = self.mha2(enc_output, enc_output, out1, padding_mask, **kwargs)  # (batch_size, target_seq_len, d_model)
+        out2 = self.layernorm2(attn2 + out1, **kwargs)  # (batch_size, target_seq_len, d_model)
 
-        ffn_output = self.ffn(out2)  # (batch_size, target_seq_len, d_model)
-        out3 = self.layernorm3(ffn_output + out2)  # (batch_size, target_seq_len, d_model)
+        ffn_output = self.ffn(out2, **kwargs)  # (batch_size, target_seq_len, d_model)
+        out3 = self.layernorm3(ffn_output + out2, **kwargs)  # (batch_size, target_seq_len, d_model)
 
         return out3
 
@@ -210,7 +218,7 @@ class Decoder(tf.keras.layers.Layer):
         self.d_model = d_model
         self.num_layers = num_layers
 
-        self.embedding = tf.keras.layers.Embedding(vocab_size + 2, d_model)  # 2 more classes EOS/SOS
+        self.embedding = tf.keras.layers.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
         self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
 
         self.dec_layers = [DecoderLayer(d_model, num_heads, dff)
@@ -222,18 +230,18 @@ class Decoder(tf.keras.layers.Layer):
         enc_output: tf.Tensor,
         look_ahead_mask: tf.Tensor,
         padding_mask: tf.Tensor,
-        training: bool = False,
+        **kwargs: Any,
     ) -> Tuple[tf.Tensor, tf.Tensor]:
 
         seq_len = tf.shape(x)[1]
 
-        x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
+        x = self.embedding(x, **kwargs)  # (batch_size, target_seq_len, d_model)
         x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
         x += self.pos_encoding[:, :seq_len, :]
 
         for i in range(self.num_layers):
             x = self.dec_layers[i](
-                x, enc_output, training, look_ahead_mask, padding_mask
+                x, enc_output, look_ahead_mask, padding_mask, **kwargs
             )
 
         # x.shape == (batch_size, target_seq_len, d_model)
