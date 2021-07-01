@@ -32,6 +32,7 @@ class _MASTER:
             target_size=self.max_length,
             eos=len(self.vocab),
             sos=len(self.vocab) + 1,
+            pad=len(self.vocab) + 2,
         )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len

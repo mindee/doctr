@@ -88,6 +88,7 @@ def encode_sequences(
     target_size: Optional[int] = None,
     eos: int = -1,
     sos: Optional[int] = None,
+    pad: Optional[int] = None,
     **kwargs: Any,
 ) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
@@ -98,6 +99,7 @@ def encode_sequences(
         target_size: maximum length of the encoded data
         eos: encoding of End Of String
         sos: optional encoding of Start Of String
+        pad: optional encoding for padding. In case of padding, all sequences are followed by 1 EOS then PAD
 
     Returns:
         the padded encoded data as a tensor
@@ -107,18 +109,25 @@ def encode_sequences(
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
     if not isinstance(target_size, int):
-        target_size = max(len(w) for w in sequences)
+        target_size = max(len(w) for w in sequences) + 1  # One more for eos
         if sos:
             target_size += 1
 
     # Pad all sequences
-    encoded_data = np.full([len(sequences), target_size], eos, dtype=np.int32)
+    if pad:  # pad with padding symbol
+        assert 0 <= pad < len(vocab)
+        encoded_data = np.full([len(sequences), target_size], pad, dtype=np.int32)
+    else:  # pad with eos symbol
+        encoded_data = np.full([len(sequences), target_size], eos, dtype=np.int32)
 
     for idx, seq in enumerate(sequences):
         encoded_seq = encode_sequence(seq, vocab)
+        if pad:  # add eos at the end of the sequence
+            encoded_seq += [eos]
         encoded_data[idx, :min(len(encoded_seq), target_size)] = encoded_seq[:min(len(encoded_seq), target_size)]
 
-    if sos:
+    if sos:  # place eos symbol at the beginning of each sequence
+        assert 0 <= sos < len(vocab)
         encoded_data = np.roll(encoded_data, 1)
         encoded_data[:, 0] = sos
 

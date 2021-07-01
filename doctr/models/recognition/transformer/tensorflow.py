@@ -210,7 +210,7 @@ class Decoder(tf.keras.layers.Layer):
         self.d_model = d_model
         self.num_layers = num_layers
 
-        self.embedding = tf.keras.layers.Embedding(vocab_size + 2, d_model)  # 2 more classes EOS/SOS
+        self.embedding = tf.keras.layers.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
         self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
 
         self.dec_layers = [DecoderLayer(d_model, num_heads, dff)
