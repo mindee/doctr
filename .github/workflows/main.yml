@@ -94,6 +94,7 @@ jobs:
           pip install -r test/requirements.txt
       - name: Run unittests
         run: |
+          find -name "*.pyc" -delete
           coverage run -m pytest test/ --ignore test/pytorch
           coverage xml
       - uses: actions/upload-artifact@v2
