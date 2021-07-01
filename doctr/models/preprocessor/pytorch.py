@@ -82,7 +82,7 @@ class PreProcessor(nn.Module):
             processed_batches = [x]
         elif isinstance(x, list):
             # Resize (and eventually pad) the inputs
-            images: List[torch.Tensor] = [self.resize(torch.from_numpy(sample).permute(2, 0, 1)) for sample in x]
+            images: List[torch.Tensor] = [self.resize(torch.from_numpy(sample.copy()).permute(2, 0, 1)) for sample in x]
             # Batch them
             processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
         else:

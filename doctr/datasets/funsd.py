@@ -71,7 +71,7 @@ class FUNSD(VisionDataset):
                     ] for box in box_targets
                 ]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.int), labels=text_targets)))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=text_targets)))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
