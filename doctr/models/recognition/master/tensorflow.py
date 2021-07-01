@@ -266,7 +266,6 @@ class MASTER(_MASTER, Model):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        training: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
         """Call function for training
@@ -293,22 +292,21 @@ class MASTER(_MASTER, Model):
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(target)
 
-        if training:
-            assert target is not None
-            tgt_mask = self.make_mask(gt)
-            # Compute logits
-            output = self.decoder(gt, encoded, tgt_mask, None, training=True)
-            logits = self.linear(output)
-            # Compute loss
-            out['loss'] = self.compute_loss(logits, gt, seq_len)
-
-        else:
+        if kwargs.get('training', False):
             # When not training, we want to compute logits in with the decoder, although
             # we have access to gts (we need gts to compute the loss, but not in the decoder)
-            _, logits = self.decode(encoded)
+            _, logits = self.decode(encoded, **kwargs)
 
-            if target is not None:
-                out['loss'] = self.compute_loss(logits, gt, seq_len)
+        else:
+            if target is None:
+                raise AssertionError("In training mode, you need to pass a value to 'target'")
+            tgt_mask = self.make_mask(gt)
+            # Compute logits
+            output = self.decoder(gt, encoded, tgt_mask, None, **kwargs)
+            logits = self.linear(output, **kwargs)
+
+        if target is not None:
+            out['loss'] = self.compute_loss(logits, gt, seq_len)
 
         if return_model_output:
             out['out_map'] = logits
@@ -319,7 +317,7 @@ class MASTER(_MASTER, Model):
 
         return out
 
-    def decode(self, encoded: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def decode(self, encoded: tf.Tensor, **kwargs: Any) -> Tuple[tf.Tensor, tf.Tensor]:
         """Decode function for prediction
 
         Args:
@@ -341,8 +339,8 @@ class MASTER(_MASTER, Model):
         # max_len = len + 2 (sos + eos)
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
-            output = self.decoder(ys, encoded, ys_mask, None, training=False)
-            logits = self.linear(output)
+            output = self.decoder(ys, encoded, ys_mask, None, **kwargs)
+            logits = self.linear(output, **kwargs)
             prob = tf.nn.softmax(logits, axis=-1)
             next_word = tf.argmax(prob, axis=-1, output_type=ys.dtype)
             # ys.shape = B, T
