@@ -23,10 +23,10 @@ def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
         2D positional encoding as described in Transformer paper.
     """
     pe = torch.zeros(position, d_model)
-    position = torch.arange(0, position, dtype=torch.float).unsqueeze(1)
+    pos = torch.arange(0, position, dtype=torch.float).unsqueeze(1)
     div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-    pe[:, 0::2] = torch.sin(position * div_term)
-    pe[:, 1::2] = torch.cos(position * div_term)
+    pe[:, 0::2] = torch.sin(pos * div_term)
+    pe[:, 1::2] = torch.cos(pos * div_term)
     return pe.unsqueeze(0)
 
 
@@ -65,7 +65,7 @@ class Decoder(nn.Module):
         enc_output: torch.Tensor,
         look_ahead_mask: torch.Tensor,
         padding_mask: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> torch.Tensor:
 
         seq_len = x.shape[1]  # Batch first = True
 

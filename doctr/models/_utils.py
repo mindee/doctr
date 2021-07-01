@@ -5,9 +5,11 @@
 
 import numpy as np
 import cv2
+from math import floor
 from typing import List
+from statistics import median_low
 
-__all__ = ['extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
+__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
 
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
@@ -103,10 +105,62 @@ def rotate_page(
     """
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return image
+
     height, width = image.shape[:2]
     center = (height / 2, width / 2)
     rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
     return cv2.warpAffine(image, rot_mat, (width, height))
+
+
+def get_max_width_length_ratio(contour: np.ndarray) -> float:
+    """
+    Get the maximum shape ratio of a contour.
+    Args:
+        contour: the contour from cv2.findContour
+
+    Returns: the maximum shape ratio
+
+    """
+    _, (w, h), _ = cv2.minAreaRect(contour)
+    return max(w / h, h / w)
+
+
+def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
+    """Estimate the angle of the general document orientation based on the
+     lines of the document and the assumption that they should be horizontal.
+
+        Args:
+            img: the img to analyze
+            n_ct: the number of contours used for the orientation estimation
+            ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
+        Returns:
+            the angle of the general document orientation
+        """
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_img = cv2.medianBlur(gray_img, 5)
+    thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+    # try to merge words in lines
+    (h, w) = img.shape[:2]
+    k_x = max(1, (floor(w / 100)))
+    k_y = max(1, (floor(h / 100)))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
+    thresh = cv2.dilate(thresh, kernel, iterations=1)
+
+    # extract contours
+    contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Sort contours
+    contours = sorted(contours, key=get_max_width_length_ratio, reverse=True)
+
+    angles = []
+    for contour in contours[:n_ct]:
+        _, (w, h), angle = cv2.minAreaRect(contour)
+        if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
+            angles.append(angle)
+        elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
+            angles.append(angle - 90)
+    return -median_low(angles)
 
 
 def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) -> float:

@@ -114,7 +114,7 @@ class _LinkNet(DetectionModel):
         else:
             seg_target = np.zeros(output_shape, dtype=bool)
             edge_mask = np.zeros(output_shape, dtype=bool)
-        seg_mask = np.ones(output_shape, dtype=np.bool)
+        seg_mask = np.ones(output_shape, dtype=bool)
 
         for idx, _target in enumerate(target):
             # Draw each polygon on gt

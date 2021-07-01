@@ -81,7 +81,7 @@ class CORD(VisionDataset):
 
             self.data.append((
                 img_path,
-                dict(boxes=np.asarray(box_targets, dtype=np.int).clip(min=0), labels=text_targets)
+                dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=text_targets)
             ))
 
     def extra_repr(self) -> str:
