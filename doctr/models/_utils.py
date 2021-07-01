@@ -112,7 +112,7 @@ def rotate_page(
     return cv2.warpAffine(image, rot_mat, (width, height))
 
 
-def get_max_width_length_ratio(contour: np.ndarray):
+def get_max_width_length_ratio(contour: np.ndarray) -> float:
     """
     Get the maximum shape ratio of a contour.
     Args:
