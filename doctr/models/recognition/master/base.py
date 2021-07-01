@@ -53,6 +53,3 @@ class _MASTERPostProcessor(RecognitionPostProcessor):
 
         super().__init__(vocab)
         self._embedding = list(vocab) + ['<eos>'] + ['<sos>'] + ['<pad>']
-
-    def extra_repr(self) -> str:
-        return f"vocab_size={len(self.vocab)}"
