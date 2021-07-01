@@ -13,7 +13,7 @@ from ...backbones.resnet import ResnetStage
 from ...utils import conv_sequence, load_pretrained_params
 from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
 from ....datasets import VOCABS
-from .base import _MASTER
+from .base import _MASTER, _MASTERPostProcessor
 
 
 __all__ = ['MASTER', 'MASTERPostProcessor', 'master']
@@ -359,7 +359,7 @@ class MASTER(_MASTER, Model):
         return ys, final_logits
 
 
-class MASTERPostProcessor(RecognitionPostProcessor):
+class MASTERPostProcessor(_MASTERPostProcessor):
     """Post processor for MASTER architectures
     Args:
         vocab: string containing the ordered sequence of supported characters

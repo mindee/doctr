@@ -36,3 +36,22 @@ class _MASTER:
         )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len
+
+
+class _MASTERPostProcessor:
+    """Abstract class to postprocess the raw output of the model
+
+    Args:
+        vocab: string containing the ordered sequence of supported characters
+    """
+
+    def __init__(
+        self,
+        vocab: str,
+    ) -> None:
+
+        self.vocab = vocab
+        self._embedding = list(self.vocab) + ['<eos>'] + ['<sos>'] + ['<pad>']
+
+    def extra_repr(self) -> str:
+        return f"vocab_size={len(self.vocab)}"

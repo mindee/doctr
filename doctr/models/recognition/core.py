@@ -56,7 +56,7 @@ class RecognitionPostProcessor(NestedObject):
     ) -> None:
 
         self.vocab = vocab
-        self._embedding = list(self.vocab) + ['<eos>'] + ['<sos>'] + ['<pad>']
+        self._embedding = list(self.vocab) + ['<eos>']
 
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"
