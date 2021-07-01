@@ -109,13 +109,16 @@ def encode_sequences(
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
     if not isinstance(target_size, int):
-        target_size = max(len(w) for w in sequences) + 1  # One more for eos
+        target_size = max(len(w) for w in sequences)
         if sos:
+            target_size += 1
+        if pad:
             target_size += 1
 
     # Pad all sequences
     if pad:  # pad with padding symbol
-        assert 0 <= pad < len(vocab)
+        assert not 0 <= pad < len(vocab)
+        # In that case, add EOS at the end of the word before padding
         encoded_data = np.full([len(sequences), target_size], pad, dtype=np.int32)
     else:  # pad with eos symbol
         encoded_data = np.full([len(sequences), target_size], eos, dtype=np.int32)
@@ -123,11 +126,11 @@ def encode_sequences(
     for idx, seq in enumerate(sequences):
         encoded_seq = encode_sequence(seq, vocab)
         if pad:  # add eos at the end of the sequence
-            encoded_seq += [eos]
+            encoded_seq.append(eos)
         encoded_data[idx, :min(len(encoded_seq), target_size)] = encoded_seq[:min(len(encoded_seq), target_size)]
 
     if sos:  # place eos symbol at the beginning of each sequence
-        assert 0 <= sos < len(vocab)
+        assert not 0 <= sos < len(vocab)
         encoded_data = np.roll(encoded_data, 1)
         encoded_data[:, 0] = sos
 

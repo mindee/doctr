@@ -266,7 +266,7 @@ class MASTER(_MASTER, Model):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        training: bool = True,
+        training: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
         """Call function for training
