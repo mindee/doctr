@@ -224,18 +224,6 @@ def test_preprocessor(mock_pdf):
 
 
 @pytest.fixture(scope="function")
-def mock_bitmap(tmpdir_factory):
-    url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/bitmap30.png'
-    file = BytesIO(requests.get(url).content)
-    tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
-    with open(tmp_path, 'wb') as f:
-        f.write(file.getbuffer())
-    bitmap = reader.read_img(tmp_path)
-    bitmap = np.squeeze(cv2.cvtColor(bitmap, cv2.COLOR_BGR2GRAY) / 255.)
-    return bitmap
-
-
-@pytest.fixture(scope="function")
 def mock_image(tmpdir_factory):
     url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/bitmap30.png'
     file = BytesIO(requests.get(url).content)
@@ -244,6 +232,12 @@ def mock_image(tmpdir_factory):
         f.write(file.getbuffer())
     image = reader.read_img(tmp_path)
     return image
+
+
+@pytest.fixture(scope="function")
+def mock_bitmap(mock_image):
+    bitmap = np.squeeze(cv2.cvtColor(mock_image, cv2.COLOR_BGR2GRAY) / 255.)
+    return bitmap
 
 
 def test_get_bitmap_angle(mock_bitmap):
