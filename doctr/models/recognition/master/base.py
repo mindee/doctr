@@ -6,6 +6,7 @@
 import numpy as np
 from typing import List, Tuple
 from ....datasets import encode_sequences
+from ..core import RecognitionPostProcessor
 
 
 class _MASTER:
@@ -38,7 +39,7 @@ class _MASTER:
         return encoded, seq_len
 
 
-class _MASTERPostProcessor:
+class _MASTERPostProcessor(RecognitionPostProcessor):
     """Abstract class to postprocess the raw output of the model
 
     Args:
@@ -50,8 +51,8 @@ class _MASTERPostProcessor:
         vocab: str,
     ) -> None:
 
-        self.vocab = vocab
-        self._embedding = list(self.vocab) + ['<eos>'] + ['<sos>'] + ['<pad>']
+        super().__init__(vocab)
+        self._embedding = list(vocab) + ['<eos>'] + ['<sos>'] + ['<pad>']
 
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"
