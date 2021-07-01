@@ -47,9 +47,8 @@ class MAGC(nn.Module):
         inplanes: int,
         headers: int = 1,
         att_scale: bool = False,
-        **kwargs
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__()
 
         self.headers = headers  # h
         self.inplanes = inplanes  # C
@@ -67,7 +66,7 @@ class MAGC(nn.Module):
             nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1)
         )
 
-    def forward(self, inputs: torch.Tensor, **kwargs) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
 
         batch, _, height, width = inputs.size()
         # [N*headers, C', H , W] C = headers * C'
@@ -270,8 +269,8 @@ class MASTER(_MASTER, nn.Module):
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
         encoded = feature + self.feature_pe[:, :h * w, :]
 
-        ys = torch.ones((b, self.max_length - 1), dtype=torch.long) * self.vocab_size  # padding symbol
-        start_vector = torch.ones((b, 1), dtype=torch.long) * self.vocab_size + 1  # SOS
+        ys = torch.full((b, self.max_length - 1), self.vocab_size, dtype=torch.long)  # padding symbol
+        start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long)  # SOS
         ys = torch.cat((start_vector, ys), dim=-1)
 
         final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 1), dtype=torch.long)  # EOS
