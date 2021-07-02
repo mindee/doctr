@@ -14,9 +14,9 @@ from ....datasets import VOCABS
 from ...utils import conv_sequence_pt, load_pretrained_params
 from ...backbones import resnet_stage
 from ..transformer import Decoder, positional_encoding
-from .base import _MASTER
+from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'master']
+__all__ = ['MASTER', 'MASTERPostProcessor', 'master']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -194,6 +194,8 @@ class MASTER(_MASTER, nn.Module):
         self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
         self.linear = nn.Linear(d_model, self.vocab_size + 3)
 
+        self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
+
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -204,9 +206,40 @@ class MASTER(_MASTER, nn.Module):
     def make_mask(self, target: torch.Tensor) -> torch.Tensor:
         size = target.size(1)
         look_ahead_mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)[:, None]
-        target_padding_mask = ~ torch.eq(target, self.vocab_size + 2)  # Pad
+        target_padding_mask = ~ torch.eq(target, self.vocab_size + 2)  # Pad symbol
         combined_mask = target_padding_mask & look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
+
+    def compute_loss(
+        self,
+        model_output: torch.Tensor,
+        gt: torch.Tensor,
+        seq_len: List[int],
+    ) -> torch.Tensor:
+        """Compute categorical cross-entropy loss for the model.
+        Sequences are masked after the EOS character.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+
+        Returns:
+            The loss of the model on the batch
+        """
+        # Input length : number of timesteps
+        input_len = model_output.shape[1]
+        # Add one for additional <eos> token (sos disappear in shift!)
+        seq_len = torch.Tensor(seq_len) + 1
+        # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
+        # The "masked" first gt char is <sos>. Delete last logit of the model output.
+        cce = F.cross_entropy(model_output.permute(0, 2, 1)[:, :, :-1], gt[:, 1:], reduction='none')
+        # Compute mask, remove 1 timestep here as well
+        mask_2d = torch.arange(input_len - 1)[None, :] < seq_len[:, None]
+        cce[mask_2d] = 0
+
+        ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
+        return ce_loss.unsqueeze(1)
 
     def forward(
         self,
@@ -239,17 +272,29 @@ class MASTER(_MASTER, nn.Module):
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, _ = self.compute_target(target)
-            tgt_mask = self.make_mask(torch.from_numpy(gt))
+            gt, seq_len = self.compute_target(target)
+            gt = torch.from_numpy(gt).to(dtype=torch.long)
+
+        if self.training:
+            if target is None:
+                raise AssertionError("In training mode, you need to pass a value to 'target'")
+            tgt_mask = self.make_mask(gt)
             # Compute logits
-            output = self.decoder(torch.from_numpy(gt), encoded, tgt_mask, None)
+            output = self.decoder(gt, encoded, tgt_mask, None)
             logits = self.linear(output)
 
         else:
             _, logits = self.decode(encoded)
 
+        if target is not None:
+            out['loss'] = self.compute_loss(logits, gt, seq_len)
+
         if return_model_output:
             out['out_map'] = logits
+
+        if return_preds:
+            predictions = self.postprocessor(logits)
+            out['preds'] = predictions
 
         return out
 
@@ -269,7 +314,7 @@ class MASTER(_MASTER, nn.Module):
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
         encoded = feature + self.feature_pe[:, :h * w, :]
 
-        ys = torch.full((b, self.max_length - 1), self.vocab_size, dtype=torch.long)  # padding symbol
+        ys = torch.full((b, self.max_length - 1), self.vocab_size + 2, dtype=torch.long)  # padding symbol
         start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long)  # SOS
         ys = torch.cat((start_vector, ys), dim=-1)
 
@@ -288,6 +333,29 @@ class MASTER(_MASTER, nn.Module):
 
         # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
         return ys, final_logits
+
+
+class MASTERPostProcessor(_MASTERPostProcessor):
+    """Post processor for MASTER architectures
+    """
+
+    def __call__(
+        self,
+        logits: torch.Tensor,
+    ) -> List[Tuple[str, float]]:
+        # compute pred with argmax for attention models
+        out_idxs = logits.argmax(-1)
+        # N x L
+        probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
+        # Take the minimum confidence of the sequence
+        probs = probs.min(dim=1).values
+
+        # Manual decoding
+        word_values = [
+            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0] for encoded_seq in out_idxs.numpy()
+        ]
+
+        return list(zip(word_values, probs.detach().numpy().tolist()))
 
 
 def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> MASTER:
