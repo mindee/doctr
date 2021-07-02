@@ -37,3 +37,7 @@
 .wy-nav-content {
     max-width: 1000px !important;
 }
+
+h1, h2, h3, h4, h5, .caption-text {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
