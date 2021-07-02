@@ -489,7 +489,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># When not training, we want to compute logits in with the decoder, although</span>
             <span class="c1"># we have access to gts (we need gts to compute the loss, but not in the decoder)</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">)</span>
@@ -503,7 +503,7 @@
 
         <span class="k">return</span> <span class="n">out</span>
 
-    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoded</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoded</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Decode function for prediction</span>
 
 <span class="sd">        Args:</span>
@@ -521,7 +521,7 @@
         <span class="n">start_vector</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">start_symbol</span><span class="p">)</span>
         <span class="n">ys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">start_vector</span><span class="p">,</span> <span class="n">ys</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="n">final_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">max_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>  <span class="c1"># 3 symbols</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">max_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>  <span class="c1"># 3 symbols</span>
         <span class="c1"># max_len = len + 2 (sos + eos)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">ys_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_mask</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
@@ -535,12 +535,8 @@
 
             <span class="n">ys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tensor_scatter_nd_update</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">next_word</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
 
-            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
-                <span class="n">final_logits</span> <span class="o">=</span> <span class="n">logits</span>
-
-        <span class="c1"># ys predictions of shape B x max_length (including sos)</span>
-        <span class="c1"># final_logits of shape B x max_length - 1 x vocab_size + 1 (whithout sos)</span>
-        <span class="k">return</span> <span class="n">ys</span><span class="p">,</span> <span class="n">final_logits</span>
+        <span class="c1"># final_logits of shape (N, max_length - 1, vocab_size + 1) (whithout sos)</span>
+        <span class="k">return</span> <span class="n">logits</span>
 
 
 <span class="k">class</span> <span class="nc">MASTERPostProcessor</span><span class="p">(</span><span class="n">_MASTERPostProcessor</span><span class="p">):</span>
