@@ -246,14 +246,14 @@ class MASTER(_MASTER, nn.Module):
             logits = self.linear(output)
 
         else:
-            _, logits = self.decode(encoded)
+            logits = self.decode(encoded)
 
         if return_model_output:
             out['out_map'] = logits
 
         return out
 
-    def decode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def decode(self, x: torch.Tensor) -> torch.Tensor:
         """Decode function for prediction
 
         Args:
@@ -266,28 +266,26 @@ class MASTER(_MASTER, nn.Module):
         feature = self.feature_extractor(x)
         b, c, h, w = (feature.size(i) for i in range(4))
         feature = torch.reshape(feature, shape=(b, c, h * w))
-        feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
+        # Shape (N, H * W, C)
+        feature = feature.permute(0, 2, 1)
         encoded = feature + self.feature_pe[:, :h * w, :]
 
         ys = torch.full((b, self.max_length - 1), self.vocab_size, dtype=torch.long)  # padding symbol
         start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long)  # SOS
         ys = torch.cat((start_vector, ys), dim=-1)
 
-        final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long)  # EOS/SOS/PAD
+        logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long)  # EOS/SOS/PAD
         # max_len = len + 2
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
             output = self.decoder(ys, encoded, ys_mask, None)
             logits = self.linear(output)
             prob = F.softmax(logits, dim=-1)
-            _, next_word = torch.max(prob, dim=-1)
+            next_word = torch.max(prob, dim=-1).indices
             ys[:, i + 1] = next_word[:, i]
 
-            if i == (self.max_length - 2):
-                final_logits = logits
-
-        # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
-        return ys, final_logits
+        # Shape (N, max_length, vocab_size + 1)
+        return logits
 
 
 def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> MASTER:

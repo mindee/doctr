@@ -303,7 +303,7 @@ class MASTER(_MASTER, Model):
         else:
             # When not training, we want to compute logits in with the decoder, although
             # we have access to gts (we need gts to compute the loss, but not in the decoder)
-            _, logits = self.decode(encoded, **kwargs)
+            logits = self.decode(encoded, **kwargs)
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, gt, seq_len)
@@ -317,7 +317,7 @@ class MASTER(_MASTER, Model):
 
         return out
 
-    def decode(self, encoded: tf.Tensor, **kwargs: Any) -> Tuple[tf.Tensor, tf.Tensor]:
+    def decode(self, encoded: tf.Tensor, **kwargs: Any) -> tf.Tensor:
         """Decode function for prediction
 
         Args:
@@ -335,7 +335,7 @@ class MASTER(_MASTER, Model):
         start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-        final_logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=tf.float32)  # 3 symbols
+        logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=tf.float32)  # 3 symbols
         # max_len = len + 2 (sos + eos)
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
@@ -349,12 +349,8 @@ class MASTER(_MASTER, Model):
 
             ys = tf.tensor_scatter_nd_update(ys, indices, next_word[:, i + 1])
 
-            if i == (self.max_length - 2):
-                final_logits = logits
-
-        # ys predictions of shape B x max_length (including sos)
-        # final_logits of shape B x max_length - 1 x vocab_size + 1 (whithout sos)
-        return ys, final_logits
+        # final_logits of shape (N, max_length - 1, vocab_size + 1) (whithout sos)
+        return logits
 
 
 class MASTERPostProcessor(_MASTERPostProcessor):
