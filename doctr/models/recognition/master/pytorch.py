@@ -298,7 +298,7 @@ class MASTER(_MASTER, nn.Module):
 
         return out
 
-    def decode(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def decode(self, encoded: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """Decode function for prediction
 
         Args:
@@ -307,12 +307,7 @@ class MASTER(_MASTER, nn.Module):
         Return:
             A Tuple of torch.Tensor: predictions, logits
         """
-        # Encode
-        feature = self.feature_extractor(x)
-        b, c, h, w = (feature.size(i) for i in range(4))
-        feature = torch.reshape(feature, shape=(b, c, h * w))
-        feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
-        encoded = feature + self.feature_pe[:, :h * w, :]
+        b = encoded.size(0)
 
         ys = torch.full((b, self.max_length - 1), self.vocab_size + 2, dtype=torch.long)  # padding symbol
         start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long)  # SOS
