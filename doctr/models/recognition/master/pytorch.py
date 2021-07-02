@@ -273,7 +273,7 @@ class MASTER(_MASTER, nn.Module):
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(target)
-            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.from_numpy(seq_len)
+            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.tensor(seq_len)
 
         if self.training:
             if target is None:
