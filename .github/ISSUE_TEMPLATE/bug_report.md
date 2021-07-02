@@ -39,7 +39,8 @@ python collect_env.py
 ```
 
  - DocTR Version (e.g., 0.1.0):
- - TensorFlow Version (e.g., 2.4.0):
+ - TensorFlow Version (e.g., 2.5.0):
+ - PyTorch & torchvision versions (e.g., 1.8.0 & 0.9.0):
  - OpenCV Version (e.g., 4.5.1):
  - OS (e.g., Linux):
  - How you installed DocTR (`conda`, `pip`, source):
