@@ -59,5 +59,5 @@ def test_invert_colorize(rgb_min):
 
     input_t = torch.full((8, 3, 32, 32), 255, dtype=torch.uint8)
     out = transfo(input_t)
-    assert torch.all(out <= int(math.ceil(255 * (1 - rgb_min))))
+    assert torch.all(out <= int(1 + math.ceil(255 * (1 - rgb_min))))
     assert torch.all(out >= 0)
