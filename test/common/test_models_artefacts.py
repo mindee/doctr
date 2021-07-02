@@ -6,9 +6,8 @@ import cv2
 
 def test_qr_code_detector(mock_image_folder):
     detector = QRCodeDetector()
-    for img in os.listdir(mock_image_folder):
-        image = cv2.imread(os.path.join(mock_image_folder, img)).astype(np.uint8)
-        qrcode = detector(image)
+    image = np.random.randint(low=0, high=255, size=(512, 512, 3), dtype=np.uint8)
+    qrcode = detector(image)
     assert qrcode is None
 
 
