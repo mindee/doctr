@@ -268,12 +268,12 @@ class MASTER(_MASTER, nn.Module):
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
         encoded = feature + self.feature_pe[:, :h * w, :]
 
-        out: Dict[str, torch.Tensor] = {}
+        out: Dict[str, Any] = {}
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, seq_len = self.compute_target(target)
-            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.tensor(seq_len)
+            _gt, _seq_len = self.compute_target(target)
+            gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
 
         if self.training:
             if target is None:
@@ -284,7 +284,7 @@ class MASTER(_MASTER, nn.Module):
             logits = self.linear(output)
 
         else:
-            _, logits = self.decode(encoded)
+            logits = self.decode(encoded)
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, gt, seq_len)
@@ -298,11 +298,11 @@ class MASTER(_MASTER, nn.Module):
 
         return out
 
-    def decode(self, encoded: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def decode(self, encoded: torch.Tensor) -> torch.Tensor:
         """Decode function for prediction
 
         Args:
-            x: input tensor
+            encoded: input tensor
 
         Return:
             A Tuple of torch.Tensor: predictions, logits
@@ -313,21 +313,18 @@ class MASTER(_MASTER, nn.Module):
         start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long)  # SOS
         ys = torch.cat((start_vector, ys), dim=-1)
 
-        final_logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long)  # EOS/SOS/PAD
+        logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long)  # EOS/SOS/PAD
         # max_len = len + 2
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
             output = self.decoder(ys, encoded, ys_mask, None)
             logits = self.linear(output)
             prob = F.softmax(logits, dim=-1)
-            _, next_word = torch.max(prob, dim=-1)
+            next_word = torch.max(prob, dim=-1).indices
             ys[:, i + 1] = next_word[:, i]
 
-            if i == (self.max_length - 2):
-                final_logits = logits
-
-        # ys predictions of shape B x max_length, final_logits of shape B x max_length x vocab_size + 1
-        return ys, final_logits
+        # Shape (N, max_length, vocab_size + 1)
+        return logits
 
 
 class MASTERPostProcessor(_MASTERPostProcessor):
