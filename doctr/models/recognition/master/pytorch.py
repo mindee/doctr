@@ -16,7 +16,7 @@ from ...backbones import resnet_stage
 from ..transformer import Decoder, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'MASTERPostProcessor', 'master']
+__all__ = ['MASTER', 'master']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -233,7 +233,7 @@ class MASTER(_MASTER, nn.Module):
         seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = F.cross_entropy(model_output.permute(0, 2, 1)[:, :, :-1], gt[:, 1:], reduction='none')
+        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction='none')
         # Compute mask, remove 1 timestep here as well
         mask_2d = torch.arange(input_len - 1)[None, :] < seq_len[:, None]
         cce[mask_2d] = 0

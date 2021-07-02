@@ -16,7 +16,7 @@ from ....datasets import VOCABS
 from .base import _MASTER, _MASTERPostProcessor
 
 
-__all__ = ['MASTER', 'MASTERPostProcessor', 'master']
+__all__ = ['MASTER', 'master']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
