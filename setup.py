@@ -15,7 +15,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 
-version = "0.3.0a0"
+version = "0.3.1a0"
 sha = 'Unknown'
 package_name = 'doctr'
 
