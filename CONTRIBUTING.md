@@ -52,7 +52,7 @@ USE_TF='1' pytest test/ --ignore test/pytorch
 for TensorFlow,
 
 ```shell
-USE_TORCH='1' pytest test/pytorch/
+USE_TORCH='1' pytest test/ --ignore test/tensorflow
 ```
 
 for PyTorch.
