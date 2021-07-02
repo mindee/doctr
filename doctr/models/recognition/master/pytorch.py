@@ -214,7 +214,7 @@ class MASTER(_MASTER, nn.Module):
         self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
-        seq_len: List[int],
+        seq_len: torch.Tensor,
     ) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -230,7 +230,7 @@ class MASTER(_MASTER, nn.Module):
         # Input length : number of timesteps
         input_len = model_output.shape[1]
         # Add one for additional <eos> token (sos disappear in shift!)
-        seq_len = torch.Tensor(seq_len) + 1
+        seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
         cce = F.cross_entropy(model_output.permute(0, 2, 1)[:, :, :-1], gt[:, 1:], reduction='none')
@@ -273,7 +273,7 @@ class MASTER(_MASTER, nn.Module):
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             gt, seq_len = self.compute_target(target)
-            gt = torch.from_numpy(gt).to(dtype=torch.long)
+            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.from_numpy(seq_len)
 
         if self.training:
             if target is None:
