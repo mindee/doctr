@@ -48,12 +48,6 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.detection.db_resnet50
 .. autofunction:: doctr.models.detection.linknet16
 
-
-Post-processing detections
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.
-
-
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.
@@ -123,9 +117,6 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.recognition.sar_resnet31
 .. autofunction:: doctr.models.recognition.master
 
-Post-processing outputs
-^^^^^^^^^^^^^^^^^^^^^^^
-The purpose of this block is to turn the model output (symbol classification for the sequence), into a set of strings.
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^

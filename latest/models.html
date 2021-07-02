@@ -126,14 +126,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -339,10 +337,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dd></dl>
 
 </section>
-<section id="post-processing-detections">
-<h3>Post-processing detections<a class="headerlink" href="#post-processing-detections" title="Permalink to this headline">¶</a></h3>
-<p>The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.</p>
-</section>
 <section id="detection-predictors">
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this headline">¶</a></h3>
 <p>Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.</p>
@@ -535,10 +529,6 @@ Example:</p>
 </dl>
 </dd></dl>
 
-</section>
-<section id="post-processing-outputs">
-<h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">¶</a></h3>
-<p>The purpose of this block is to turn the model output (symbol classification for the sequence), into a set of strings.</p>
 </section>
 <section id="recognition-predictors">
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this headline">¶</a></h3>
