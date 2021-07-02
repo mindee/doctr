@@ -16,7 +16,7 @@ from ...backbones import resnet_stage
 from ..transformer import Decoder, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'master']
+__all__ = ['MASTER', 'master', 'MASTERPostProcessor']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
