@@ -8,9 +8,8 @@ import csv
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
-import tensorflow as tf
 
-from .core import VisionDataset
+from .datasets import VisionDataset
 
 __all__ = ['SROIE']
 
@@ -27,6 +26,7 @@ class SROIE(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -38,7 +38,8 @@ class SROIE(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -47,10 +48,14 @@ class SROIE(VisionDataset):
         self.sample_transforms = sample_transforms
         self.train = train
 
+        if rotated_bbox:
+            raise NotImplementedError
+
         # # List images
         self.root = os.path.join(self._root, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             stem = Path(img_path).stem

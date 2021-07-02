@@ -47,8 +47,16 @@ Use Github [issues](https://github.com/mindee/doctr/issues) for feature requests
 In order to run the same unit tests as the CI workflows, you can run unittests locally:
 
 ```shell
-pytest test/
+USE_TF='1' pytest test/ --ignore test/pytorch
 ```
+for TensorFlow,
+
+```shell
+USE_TORCH='1' pytest test/ --ignore test/tensorflow
+```
+
+for PyTorch.
+
 
 #### Lint verification
 
@@ -64,7 +72,7 @@ This will read the `.flake8` setting file and let you know whether your commits 
 Additionally, to catch type-related issues and have a cleaner codebase, annotation typing are expected. After installing [mypy](https://github.com/python/mypy), you can run the verifications as follows:
 
 ```shell
-mypy --config-file mypy.ini
+mypy --config-file mypy.ini doctr/
 ```
 The `mypy.ini` file will be read to check your typing.
 

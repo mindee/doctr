@@ -46,7 +46,7 @@ Detection models
 Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:
 
 .. autofunction:: doctr.models.detection.db_resnet50
-.. autofunction:: doctr.models.detection.linknet
+.. autofunction:: doctr.models.detection.linknet16
 
 
 Post-processing detections
@@ -121,6 +121,7 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_resnet31
+.. autofunction:: doctr.models.recognition.master
 
 Post-processing outputs
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -148,11 +149,11 @@ Predictors that localize and identify text elements in images
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
 | db_resnet50 + sar_resnet31  | N/A        | N/A           | 0.27    | N/A        | N/A           | 0.83    |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| Gvision text detection      | 0.595      | 0.625         |         | 0.753      | 0.700         |         |
+| Gvision text detection      | 59.50      | 62.50         |         | 75.30      | 70.00         |         |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| Gvision doc. text detection | 0.640      | 0.533         |         | 0.689      | 0.611         |         |
+| Gvision doc. text detection | 64.00      | 53.30         |         | 68.90      | 61.10         |         |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| AWS textract                | **0.781**  | **0.830**     |         | **0.875**  | 0.660         |         |
+| AWS textract                | **78.10**  | **83.00**     |         | **87.50**  | 66.00         |         |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
 
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).

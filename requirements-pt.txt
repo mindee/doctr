@@ -1,0 +1,14 @@
+numpy>=1.16.0
+scipy>=1.4.0
+opencv-python>=3.4.5.20
+PyMuPDF>=1.16.0,<1.18.11
+pyclipper>=1.2.0
+shapely>=1.6.0
+matplotlib>=3.1.0
+mplcursors>=0.3
+weasyprint>=52.2
+unidecode>=1.0.0
+torch>=1.8.0
+torchvision>=0.9.0
+Pillow>=8.0.0
+tqdm>=4.30.0

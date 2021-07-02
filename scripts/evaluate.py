@@ -28,16 +28,29 @@ def main(args):
         testset = datasets.OCRDataset(
             img_folder=args.img_folder,
             label_file=args.label_file,
+            rotated_bbox=args.rotation,
         )
         sets = [testset]
     else:
-        train_set = datasets.__dict__[args.dataset](train=True, download=True)
-        val_set = datasets.__dict__[args.dataset](train=False, download=True)
+        train_set = datasets.__dict__[args.dataset](train=True, download=True, rotated_bbox=args.rotation)
+        val_set = datasets.__dict__[args.dataset](train=False, download=True, rotated_bbox=args.rotation)
         sets = [train_set, val_set]
 
-    det_metric = LocalizationConfusion(iou_thresh=args.iou)
     reco_metric = TextMatch()
-    e2e_metric = OCRMetric(iou_thresh=args.iou)
+    if args.rotation and args.mask_shape:
+        det_metric = LocalizationConfusion(
+            iou_thresh=args.iou,
+            rotated_bbox=args.rotation,
+            mask_shape=(args.mask_shape, args.mask_shape)
+        )
+        e2e_metric = OCRMetric(
+            iou_thresh=args.iou,
+            rotated_bbox=args.rotation,
+            mask_shape=(args.mask_shape, args.mask_shape)
+        )
+    else:
+        det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
+        e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
 
     for dataset in sets:
         for page, target in tqdm(dataset):
@@ -49,25 +62,41 @@ def main(args):
             out = predictor(page[None, ...], training=False)
             crops = extract_crops(page, gt_boxes)
             reco_out = predictor.reco_predictor(crops, training=False)
+            if len(reco_out):
+                reco_words, _ = zip(*reco_out)
+            else:
+                reco_words = []
 
             # Unpack preds
             pred_boxes = []
             pred_labels = []
             for page in out.pages:
-                h, w = page.dimensions
+                height, width = page.dimensions
                 for block in page.blocks:
                     for line in block.lines:
                         for word in line.words:
-                            (a, b), (c, d) = word.geometry
-                            if gt_boxes.dtype == int:
-                                pred_boxes.append([int(a * w), int(b * h), int(c * w), int(d * h)])
+                            if not args.rotation:
+                                (a, b), (c, d) = word.geometry
                             else:
-                                pred_boxes.append([a, b, c, d])
+                                x, y, w, h, alpha = word.geometry
+                            if gt_boxes.dtype == int:
+                                if not args.rotation:
+                                    pred_boxes.append([int(a * width), int(b * height),
+                                                       int(c * width), int(d * height)])
+                                else:
+                                    pred_boxes.append(
+                                        [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
+                                    )
+                            else:
+                                if not args.rotation:
+                                    pred_boxes.append([a, b, c, d])
+                                else:
+                                    pred_boxes.append([x, y, w, h, alpha])
                             pred_labels.append(word.value)
 
             # Update the metric
             det_metric.update(gt_boxes, np.asarray(pred_boxes))
-            reco_metric.update(gt_labels, reco_out)
+            reco_metric.update(gt_labels, reco_words)
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
     # Unpack aggregated metrics
@@ -93,7 +122,9 @@ def parse_args():
     parser.add_argument('--dataset', type=str, default='FUNSD', help='choose a dataset: FUNSD, CORD')
     parser.add_argument('--img_folder', type=str, default=None, help='Only for local sets, path to images')
     parser.add_argument('--label_file', type=str, default=None, help='Only for local sets, path to labels')
+    parser.add_argument('--rotation', dest='rotation', action='store_true', help='evaluate with rotated bbox')
     parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for recognition')
+    parser.add_argument('--mask_shape', type=int, default=None, help='mask shape for mask iou (only for rotation)')
     args = parser.parse_args()
 
     return args

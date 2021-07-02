@@ -8,10 +8,12 @@ import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
+import cv2
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import wandb
 from collections import deque
 from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
@@ -26,7 +28,7 @@ from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
 
-def plot_samples(images, targets):
+def plot_samples(images, targets, rotation):
     # Unnormalize image
     nb_samples = 4
     _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
@@ -35,21 +37,26 @@ def plot_samples(images, targets):
         img *= 255
         img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
 
-        target = np.zeros(img.shape[:2], dtype=bool)
+        target = np.zeros(img.shape[:2], np.uint8)
         boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
         boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
         boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
         for box in boxes.round().astype(int):
-            target[box[1]: box[3] + 1, box[0]: box[2] + 1] = True
+            if rotation:
+                target[box[1]: box[3] + 1, box[0]: box[2] + 1] = 1
+            else:
+                box = cv2.boxPoints(((box[0], box[2]), (box[1], box[3]), box[4]))
+                box = np.int0(box)
+                cv2.fillPoly(target, [box], 1)
 
         axes[0][idx].imshow(img)
         axes[0][idx].axis('off')
-        axes[1][idx].imshow(target)
+        axes[1][idx].imshow(target.astype(bool))
         axes[1][idx].axis('off')
     plt.show()
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
@@ -71,8 +78,9 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, 
         if batch_step % 100 == 0:
             # Compute loss
             loss = sum(loss_q) / len(loss_q)
-            with tb_writer.as_default():
-                tf.summary.scalar('train_loss', loss, step=step)
+            if tb_writer is not None:
+                with tb_writer.as_default():
+                    tf.summary.scalar('train_loss', loss, step=step)
 
 
 def evaluate(model, val_loader, batch_transforms, val_metric):
@@ -85,7 +93,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         images = batch_transforms(images)
         out = model(images, targets, training=False, return_boxes=True)
         # Compute metric
-        for boxes_gt, boxes_pred in zip([t['boxes'] for t in targets], out['boxes']):
+        loc_preds, _ = out['preds']
+        for boxes_gt, boxes_pred in zip([t['boxes'] for t in targets], loc_preds):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
@@ -102,6 +111,50 @@ def main(args):
     print(args)
 
     st = time.time()
+    val_set = DetectionDataset(
+        img_folder=os.path.join(args.data_path, 'val'),
+        label_folder=os.path.join(args.data_path, 'val_labels'),
+        sample_transforms=T.Compose([
+            T.LambdaTransformation(lambda x: x / 255),
+            T.Resize((args.input_size, args.input_size)),
+        ]),
+        rotated_bbox=args.rotation
+    )
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
+    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
+          f"{val_loader.num_batches} batches)")
+
+    batch_transforms = T.Compose([
+        T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
+    ])
+
+    # Optimizer
+    optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, clipnorm=5)
+
+    # Load doctr model
+    model = detection.__dict__[args.model](
+        pretrained=args.pretrained,
+        input_shape=(args.input_size, args.input_size, 3)
+    )
+
+    # Resume weights
+    if isinstance(args.resume, str):
+        model.load_weights(args.resume)
+
+    # Tf variable to log steps
+    step = tf.Variable(0, dtype="int64")
+
+    # Metrics
+    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
+
+    if args.test_only:
+        print("Running evaluation")
+        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
+        print(f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
+              f"Mean IoU: {mean_iou:.2%})")
+        return
+
+    st = time.time()
     # Load both train and val data generators
     train_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'train'),
@@ -116,6 +169,7 @@ def main(args):
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
         ]),
+        rotated_bbox=args.rotation
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -123,56 +177,36 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
-        return
-
-    st = time.time()
-    val_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'val'),
-        label_folder=os.path.join(args.data_path, 'val_labels'),
-        sample_transforms=T.Compose([
-            T.LambdaTransformation(lambda x: x / 255),
-            T.Resize((args.input_size, args.input_size)),
-        ])
-    )
-    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
-          f"{val_loader.num_batches} batches)")
-
-    batch_transforms = T.Compose([
-        T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
-    ])
-
-    # Optimizer
-    optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, clipnorm=5)
-
-    # Load doctr model
-    model = detection.__dict__[args.model](pretrained=False, input_shape=(args.input_size, args.input_size, 3))
-
-    # Resume weights
-    if isinstance(args.resume, str):
-        model.load_weights(args.resume)
-
-    # Tf variable to log steps
-    step = tf.Variable(0, dtype="int64")
-
-    # Metrics
-    val_metric = LocalizationConfusion()
-
-    if args.test_only:
-        print("Running evaluation")
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
-        print(f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
-              f"Mean IoU: {mean_iou:.2%})")
+        plot_samples(x, target, rotation=args.rotation)
         return
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
-    log_dir = Path('logs', exp_name)
-    log_dir.mkdir(parents=True, exist_ok=True)
 
-    tb_writer = tf.summary.create_file_writer(str(log_dir))
+    # Tensorboard
+    tb_writer = None
+    if args.tb:
+        log_dir = Path('logs', exp_name)
+        log_dir.mkdir(parents=True, exist_ok=True)
+        tb_writer = tf.summary.create_file_writer(str(log_dir))
+
+    # W&B
+    if args.wb:
+
+        run = wandb.init(
+            name=exp_name,
+            project="text-detection",
+            config={
+                "learning_rate": args.lr,
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "architecture": args.model,
+                "input_size": args.input_size,
+                "optimizer": "adam",
+                "exp_type": "text-detection",
+            }
+        )
 
     if args.freeze_backbone:
         for layer in model.feat_extractor.layers:
@@ -185,7 +219,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, tb_writer, step)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
@@ -195,13 +229,26 @@ def main(args):
         mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                  f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
         # Tensorboard
-        with tb_writer.as_default():
-            tf.summary.scalar('val_loss', val_loss, step=step)
-            tf.summary.scalar('recall', recall, step=step)
-            tf.summary.scalar('precision', precision, step=step)
-            tf.summary.scalar('mean_iou', mean_iou, step=step)
+        if args.tb:
+            with tb_writer.as_default():
+                tf.summary.scalar('val_loss', val_loss, step=step)
+                tf.summary.scalar('recall', recall, step=step)
+                tf.summary.scalar('precision', precision, step=step)
+                tf.summary.scalar('mean_iou', mean_iou, step=step)
+        # W&B
+        if args.wb:
+            wandb.log({
+                'epochs': epoch + 1,
+                'val_loss': val_loss,
+                'recall': recall,
+                'precision': precision,
+                'mean_iou': mean_iou,
+            })
         # Reset val metric
         val_metric.reset()
+
+    if args.wb:
+        run.finish()
 
 
 def parse_args():
@@ -223,6 +270,14 @@ def parse_args():
                         help='freeze model backbone for fine-tuning')
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
+    parser.add_argument('--tb', dest='tb', action='store_true',
+                        help='Log to Tensorboard')
+    parser.add_argument('--wb', dest='wb', action='store_true',
+                        help='Log to Weights & Biases')
+    parser.add_argument('--pretrained', dest='pretrained', action='store_true',
+                        help='Load pretrained parameters before starting the training')
+    parser.add_argument('--rotation', dest='rotation', action='store_true',
+                        help='train with rotated bbox')
     args = parser.parse_args()
 
     return args

@@ -4,11 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-from typing import List, Tuple, Dict
+import cv2
+from typing import List, Tuple, Dict, Optional
 from unidecode import unidecode
 from scipy.optimize import linear_sum_assignment
+from doctr.utils.geometry import rbbox_to_polygon
 
-__all__ = ['TextMatch', 'box_iou', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_to_mask',
+           'nms', 'LocalizationConfusion', 'OCRMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
@@ -119,7 +122,6 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
         boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
-
     Returns:
         the IoU matrix of shape (N, M)
     """
@@ -140,6 +142,130 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         iou_mat = intersection / union
 
     return iou_mat
+
+
+def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
+    """Compute the IoA (intersection over area) between two sets of bounding boxes:
+    ioa(i, j) = inter(i, j) / area(i)
+
+    Args:
+        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
+        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
+    Returns:
+        the IoA matrix of shape (N, M)
+    """
+
+    ioa_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+
+    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
+        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
+
+        left = np.maximum(l1, l2.T)
+        top = np.maximum(t1, t2.T)
+        right = np.minimum(r1, r2.T)
+        bot = np.minimum(b1, b2.T)
+
+        intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
+        area = (r1 - l1) * (b1 - t1)
+        ioa_mat = intersection / area
+
+    return ioa_mat
+
+
+def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
+    """Compute the IoU between two sets of boolean masks
+
+    Args:
+        masks_1: boolean masks of shape (N, H, W)
+        masks_2: boolean masks of shape (M, H, W)
+
+    Returns:
+        the IoU matrix of shape (N, M)
+    """
+
+    if masks_1.shape[1:] != masks_2.shape[1:]:
+        raise AssertionError("both boolean masks should have the same spatial shape")
+
+    iou_mat = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
+
+    if masks_1.shape[0] > 0 and masks_2.shape[0] > 0:
+        intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...])
+        union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...])
+        axes = tuple(range(2, masks_1.ndim + 1))
+        iou_mat = intersection.sum(axis=axes) / union.sum(axis=axes)
+
+    return iou_mat
+
+
+def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
+    """Convert boxes to masks
+
+    Args:
+        boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
+        shape: spatial shapes of the output masks
+
+    Returns:
+        the boolean masks of shape (N, H, W)
+    """
+
+    masks = np.zeros((boxes.shape[0], *shape), dtype=np.uint8)
+
+    if boxes.shape[0] > 0:
+        # Get absolute coordinates
+        if boxes.dtype != np.int:
+            abs_boxes = boxes.copy()
+            abs_boxes[:, [0, 2]] = abs_boxes[:, [0, 2]] * shape[1]
+            abs_boxes[:, [1, 3]] = abs_boxes[:, [1, 3]] * shape[0]
+            abs_boxes = abs_boxes.round().astype(np.int)
+        else:
+            abs_boxes = boxes
+            abs_boxes[:, 2:] = abs_boxes[:, 2:] + 1
+
+        # TODO: optimize slicing to improve vectorization
+        for idx, _box in enumerate(abs_boxes):
+            box = rbbox_to_polygon(_box)
+            cv2.fillPoly(masks[idx], [np.array(box, np.int32)], 1)
+
+    return masks.astype(bool)
+
+
+def nms(boxes: np.ndarray, thresh: float = .5) -> List[int]:
+    """Perform non-max suppression, borrowed from <https://github.com/rbgirshick/fast-rcnn>`_.
+
+    Args:
+        boxes: np array of straight boxes: (*, 5), (xmin, ymin, xmax, ymax, score)
+        thresh: iou threshold to perform box suppression.
+
+    Returns:
+        A list of box indexes to keep
+    """
+    x1 = boxes[:, 0]
+    y1 = boxes[:, 1]
+    x2 = boxes[:, 2]
+    y2 = boxes[:, 3]
+    scores = boxes[:, 4]
+
+    areas = (x2 - x1) * (y2 - y1)
+    order = scores.argsort()[::-1]
+
+    keep = []
+    while order.size > 0:
+        i = order[0]
+        keep.append(i)
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        w = np.maximum(0.0, xx2 - xx1)
+        h = np.maximum(0.0, yy2 - yy1)
+        inter = w * h
+        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+
+        inds = np.where(ovr <= thresh)[0]
+        order = order[inds + 1]
+    return keep
 
 
 class LocalizationConfusion:
@@ -179,15 +305,27 @@ class LocalizationConfusion:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+    ) -> None:
         self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
 
         if preds.shape[0] > 0:
             # Compute IoU
-            iou_mat = box_iou(gts, preds)
+            if self.rotated_bbox:
+                mask_gts = rbox_to_mask(gts, shape=self.mask_shape)
+                mask_preds = rbox_to_mask(preds, shape=self.mask_shape)
+                iou_mat = mask_iou(mask_gts, mask_preds)
+            else:
+                iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs
@@ -198,7 +336,7 @@ class LocalizationConfusion:
         self.num_gts += gts.shape[0]
         self.num_preds += preds.shape[0]
 
-    def summary(self) -> Tuple[float, float, float]:
+    def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
         """Computes the aggregated metrics
 
         Returns:
@@ -264,8 +402,15 @@ class OCRMetric:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+    ) -> None:
         self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
         self.reset()
 
     def update(
@@ -282,7 +427,13 @@ class OCRMetric:
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
-            iou_mat = box_iou(gt_boxes, pred_boxes)
+            if self.rotated_bbox:
+                mask_gts = rbox_to_mask(gt_boxes, shape=self.mask_shape)
+                mask_preds = rbox_to_mask(pred_boxes, shape=self.mask_shape)
+                iou_mat = mask_iou(mask_gts, mask_preds)
+            else:
+                iou_mat = box_iou(gt_boxes, pred_boxes)
+
             self.tot_iou += float(iou_mat.max(axis=1).sum())
 
             # Assign pairs
@@ -299,7 +450,7 @@ class OCRMetric:
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
-    def summary(self) -> Tuple[Dict[str, float], Dict[str, float], float]:
+    def summary(self) -> Tuple[Dict[str, Optional[float]], Dict[str, Optional[float]], Optional[float]]:
         """Computes the aggregated metrics
 
         Returns:

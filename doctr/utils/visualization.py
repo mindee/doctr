@@ -7,16 +7,18 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
+from PIL import ImageFont, ImageDraw, Image
 import numpy as np
-from typing import Tuple, List, Dict, Any
+import cv2
+from typing import Tuple, List, Dict, Any, Union
 
-from .common_types import BoundingBox
+from .common_types import BoundingBox, RotatedBbox
 
-__all__ = ['visualize_page']
+__all__ = ['visualize_page', 'synthetize_page']
 
 
 def create_rect_patch(
-    geometry: BoundingBox,
+    geometry: Union[BoundingBox, RotatedBbox],
     label: str,
     page_dimensions: Tuple[int, int],
     color: Tuple[int, int, int],
@@ -37,21 +39,34 @@ def create_rect_patch(
     Returns:
         a rectangular Patch
     """
-    h, w = page_dimensions
-    (xmin, ymin), (xmax, ymax) = geometry
-    xmin, xmax = xmin * w, xmax * w
-    ymin, ymax = ymin * h, ymax * h
-    rect = patches.Rectangle(
-        (xmin, ymin),
-        xmax - xmin,
-        ymax - ymin,
-        fill=fill,
-        linewidth=linewidth,
-        edgecolor=(*color, alpha),
-        facecolor=(*color, alpha),
-        label=label
-    )
-    return rect
+    height, width = page_dimensions
+    if len(geometry) == 5:
+        x, y, w, h, a = geometry  # type: ignore[misc]
+        x, w = x * width, w * width
+        y, h = y * height, h * height
+        points = cv2.boxPoints(((x, y), (w, h), a))
+        return patches.Polygon(
+            points,
+            fill=fill,
+            linewidth=linewidth,
+            edgecolor=(*color, alpha),
+            facecolor=(*color, alpha),
+            label=label
+        )
+    else:
+        (xmin, ymin), (xmax, ymax) = geometry  # type: ignore[misc]
+        xmin, xmax = xmin * width, xmax * width
+        ymin, ymax = ymin * height, ymax * height
+        return patches.Rectangle(
+            (xmin, ymin),
+            xmax - xmin,
+            ymax - ymin,
+            fill=fill,
+            linewidth=linewidth,
+            edgecolor=(*color, alpha),
+            facecolor=(*color, alpha),
+            label=label
+        )
 
 
 def visualize_page(
@@ -121,9 +136,18 @@ def visualize_page(
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
+                    if len(word['geometry']) == 5:
+                        text_loc = (
+                            int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
+                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
+                        )
+                    else:
+                        text_loc = (
+                            int(page['dimensions'][1] * word['geometry'][0][0]),
+                            int(page['dimensions'][0] * word['geometry'][0][1])
+                        )
                     ax.text(
-                        int(page['dimensions'][1] * word['geometry'][0][0]),
-                        int(page['dimensions'][0] * word['geometry'][0][1]),
+                        *text_loc,
                         word['value'],
                         size=10,
                         alpha=0.5,
@@ -132,8 +156,14 @@ def visualize_page(
 
         if display_artefacts:
             for artefact in block['artefacts']:
-                rect = create_rect_patch(artefact['geometry'], 'artefact', page['dimensions'], (0.5, 0.5, 0.5),
-                                         linewidth=1, **kwargs)
+                rect = create_rect_patch(
+                    artefact['geometry'],
+                    'artefact',
+                    page['dimensions'],
+                    (0.5, 0.5, 0.5),  # type: ignore[arg-type]
+                    linewidth=1,
+                    **kwargs
+                )
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
@@ -141,6 +171,61 @@ def visualize_page(
     if interactive:
         # Create mlp Cursor to hover patches in artists
         mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
-    fig.tight_layout()
+    fig.tight_layout(pad=0.)
 
     return fig
+
+
+def synthetize_page(
+    page: Dict[str, Any],
+    draw_proba: bool = False,
+    font_size: int = 13,
+) -> np.ndarray:
+    """Draw a the content of the element page (OCR response) on a blank page.
+
+    Args:
+        page: exported Page object to represent
+        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
+        font_size: size of the font, default font = 13
+
+    Return:
+        A np array (drawn page)
+    """
+    # Draw template
+    h, w = page["dimensions"]
+    response = 255 * np.ones((h, w, 3), dtype=np.int32)
+
+    # Draw each word
+    for block in page["blocks"]:
+        for line in block["lines"]:
+            for word in line["words"]:
+                # Get aboslute word geometry
+                (xmin, ymin), (xmax, ymax) = word["geometry"]
+                xmin, xmax = int(w * xmin), int(w * xmax)
+                ymin, ymax = int(h * ymin), int(h * ymax)
+
+                # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
+                h_box, w_box = ymax - ymin, xmax - xmin
+                h_font, w_font = font_size, int(font_size * w_box / (h_box * 0.75))
+                img = Image.new('RGB', (w_font, h_font), color=(255, 255, 255))
+                d = ImageDraw.Draw(img)
+
+                # Draw in black the value of the word
+                d.text((0, 0), word["value"], font=ImageFont.load_default(), fill=(0, 0, 0))
+
+                # Resize back to box size
+                img = img.resize((w_box, h_box), Image.NEAREST)
+
+                # Colorize if draw_proba
+                if draw_proba:
+                    p = int(255 * word["confidence"])
+                    mask = np.where(np.array(img) == 0, 1, 0)
+                    proba = np.array([255 - p, 0, p])
+                    color = mask * proba[np.newaxis, np.newaxis, :]
+                    white_mask = 255 * (1 - mask)
+                    img = color + white_mask
+
+                # Write to response page
+                response[ymin:ymax, xmin:xmax, :] = np.array(img)
+
+    return response

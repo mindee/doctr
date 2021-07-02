@@ -12,7 +12,7 @@ COPY ./doctr /tmp/doctr
 RUN apt-get update \
     && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
     && pip install --upgrade pip setuptools wheel \
-    && pip install -e /tmp/. \
+    && pip install -e /tmp/.[tf] \
     && pip cache purge \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \

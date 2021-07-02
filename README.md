@@ -1,7 +1,7 @@
 
 # DocTR: Document Text Recognition
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/python-package/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.2.0-blue.svg)](https://pypi.org/project/python-doctr/) 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.2.1-blue.svg)](https://pypi.org/project/python-doctr/) 
 
 
 **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2**
@@ -11,6 +11,7 @@ What you can expect from this repository:
 - efficient ways to parse textual information (localize and identify each word) from your documents
 - guidance on how to integrate this in your current architecture
 
+![OCR_example](https://github.com/mindee/doctr/releases/download/v0.2.0/ocr.png)
 
 ## Quick Tour
 
@@ -71,9 +72,9 @@ json_output = result.export()
 
 ## Installation
 
-Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR.
+Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR. Additionally, you will need to install at least one of [TensorFlow](https://www.tensorflow.org/install/) or [PyTorch](https://pytorch.org/get-started/locally/#start-locally).
 
-You can install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
+You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
 ```shell
 pip install python-doctr
@@ -105,6 +106,7 @@ Credits where it's due: this repository is implementing, among others, architect
 ### Text Recognition
 - [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
 - [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
+- [MASTER: Multi-Aspect Non-local Network for Scene Text Recognition](https://arxiv.org/pdf/1910.02562.pdf).
 
 
 ## More goodies
@@ -128,7 +130,7 @@ You can then easily run your app in your default browser by running:
 streamlit run demo/app.py
 ```
 
-![Demo app](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_demo_app.png)
+![Demo app](https://github.com/mindee/doctr/releases/download/v0.2.1/demo.png)
 
 ### Docker container
 

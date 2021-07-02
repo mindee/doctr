@@ -8,9 +8,8 @@ import json
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
-import tensorflow as tf
 
-from .core import VisionDataset
+from .datasets import VisionDataset
 
 __all__ = ['FUNSD']
 
@@ -27,6 +26,7 @@ class FUNSD(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -37,7 +37,8 @@ class FUNSD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -52,6 +53,7 @@ class FUNSD(VisionDataset):
         self.root = os.path.join(self._root, subfolder, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         for img_path in os.listdir(self.root):
+            # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             stem = Path(img_path).stem
@@ -60,10 +62,16 @@ class FUNSD(VisionDataset):
 
             _targets = [(word['text'], word['box']) for block in data['form']
                         for word in block['words'] if len(word['text']) > 0]
-
             text_targets, box_targets = zip(*_targets)
+            if rotated_bbox:
+                # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
+                box_targets = [
+                    [
+                        (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                    ] for box in box_targets
+                ]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.int), labels=text_targets)))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=text_targets)))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
