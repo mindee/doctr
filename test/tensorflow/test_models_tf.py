@@ -5,8 +5,8 @@ import tensorflow as tf
 
 from doctr import models
 from doctr.documents import Document, DocumentFile
-from test_models_detection import test_detectionpredictor, test_rotated_detectionpredictor
-from test_models_recognition import test_recognitionpredictor
+from test_models_detection_tf import test_detectionpredictor, test_rotated_detectionpredictor
+from test_models_recognition_tf import test_recognitionpredictor
 
 
 def test_ocrpredictor(
