@@ -268,12 +268,12 @@ class MASTER(_MASTER, nn.Module):
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
         encoded = feature + self.feature_pe[:, :h * w, :]
 
-        out: Dict[str, torch.Tensor] = {}
+        out: Dict[str, Any] = {}
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, seq_len = self.compute_target(target)
-            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.tensor(seq_len)
+            _gt, _seq_len = self.compute_target(target)
+            gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
 
         if self.training:
             if target is None:
