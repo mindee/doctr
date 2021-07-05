@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.transforms &mdash; doctr 0.3.0a0-git documentation</title>
+  <title>doctr.transforms &mdash; doctr 0.3.1a0-git documentation</title>
   
 
   
@@ -94,6 +94,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
@@ -125,14 +126,12 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -229,7 +228,7 @@
 <p>Here are all transformations that are available through DocTR:</p>
 <dl class="py class">
 <dt id="doctr.transforms.Resize">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Resize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_size</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'bilinear'</span></em>, <em class="sig-param"><span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">symmetric_pad</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Resize" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Resize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_size</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'bilinear'</span></em>, <em class="sig-param"><span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">symmetric_pad</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#Resize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Resize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Resizes a tensor to a target size</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Resize</span>
@@ -254,7 +253,7 @@
 
 <dl class="py class">
 <dt id="doctr.transforms.Normalize">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Normalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mean</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">std</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Normalize" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Normalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mean</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">std</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#Normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Normalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize a tensor to a Gaussian distribution for each channel</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -277,7 +276,7 @@
 
 <dl class="py class">
 <dt id="doctr.transforms.LambdaTransformation">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">LambdaTransformation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#LambdaTransformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.LambdaTransformation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">LambdaTransformation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fn</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>tensorflow.python.framework.ops.Tensor<span class="p">]</span><span class="p">, </span>tensorflow.python.framework.ops.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#LambdaTransformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.LambdaTransformation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize a tensor to a Gaussian distribution for each channel</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">LambdaTransformation</span>
@@ -297,7 +296,7 @@
 
 <dl class="py class">
 <dt id="doctr.transforms.ToGray">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ToGray</code><a class="reference internal" href="_modules/doctr/transforms/modules.html#ToGray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ToGray" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ToGray</code><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#ToGray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ToGray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -312,7 +311,7 @@
 
 <dl class="py class">
 <dt id="doctr.transforms.ColorInversion">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ColorInversion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_val</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.6</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#ColorInversion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ColorInversion" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ColorInversion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_val</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#ColorInversion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ColorInversion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the following tranformation to a tensor (image or batch of images):
 convert to grayscale, colorize (shift 0-values randomly), and then invert colors</p>
 <dl>
@@ -333,7 +332,7 @@ convert to grayscale, colorize (shift 0-values randomly), and then invert colors
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomBrightness">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomBrightness</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomBrightness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomBrightness" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomBrightness</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomBrightness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomBrightness" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
 to all pixels</p>
 <p class="rubric">Example</p>
@@ -355,7 +354,7 @@ to all pixels</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomContrast">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomContrast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomContrast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomContrast" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomContrast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomContrast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomContrast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly adjust contrast of a tensor (batch of images or image) by adjusting
 each pixel: (img - mean) * contrast_factor + mean.</p>
 <p class="rubric">Example</p>
@@ -374,7 +373,7 @@ each pixel: (img - mean) * contrast_factor + mean.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomSaturation">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomSaturation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomSaturation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomSaturation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomSaturation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomSaturation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomSaturation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and
 increasing saturation by a factor.</p>
 <p class="rubric">Example</p>
@@ -393,7 +392,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomHue">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomHue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomHue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomHue" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomHue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_delta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomHue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomHue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -413,7 +412,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomGamma">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomGamma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">max_gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">min_gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.8</span></em>, <em class="sig-param"><span class="n">max_gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomGamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomGamma" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomGamma</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">max_gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">min_gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.8</span></em>, <em class="sig-param"><span class="n">max_gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomGamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomGamma" title="Permalink to this definition">¶</a></dt>
 <dd><p>randomly performs gamma correction for a tensor (batch of images or image)</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -436,7 +435,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomJpegQuality">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomJpegQuality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">60</span></em>, <em class="sig-param"><span class="n">max_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomJpegQuality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomJpegQuality" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomJpegQuality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">min_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">60</span></em>, <em class="sig-param"><span class="n">max_quality</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomJpegQuality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomJpegQuality" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly adjust jpeg quality of a 3 dimensional RGB image</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -463,7 +462,7 @@ increasing saturation by a factor.</p>
 <p>It is common to require several transformations to be performed consecutively.</p>
 <dl class="py class">
 <dt id="doctr.transforms.Compose">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Compose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.utils.repr.NestedObject<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Compose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Compose" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">Compose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#Compose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.Compose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a wrapper that will apply transformations sequentially</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">Resize</span>
@@ -483,7 +482,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.OneOf">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">OneOf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.utils.repr.NestedObject<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#OneOf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.OneOf" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">OneOf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#OneOf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.OneOf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly apply one of the input transformations</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -503,7 +502,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomApply">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomApply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transform</span><span class="p">:</span> <span class="n">doctr.utils.repr.NestedObject</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomApply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomApply" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomApply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transform</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomApply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomApply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply with a probability p the input transformation</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>

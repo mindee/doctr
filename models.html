@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models &mdash; doctr 0.3.0a0-git documentation</title>
+  <title>doctr.models &mdash; doctr 0.3.1a0-git documentation</title>
   
 
   
@@ -94,6 +94,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
@@ -125,14 +126,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#post-processing-detections">Post-processing detections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#text-recognition">Text Recognition</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#post-processing-outputs">Post-processing outputs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#recognition-predictors">Recognition predictors</a></li>
 </ul>
 </li>
@@ -291,7 +290,7 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
 <dt id="doctr.models.detection.db_resnet50">
-<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.differentiable_binarization.DBNet<a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization.html#db_resnet50"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.differentiable_binarization.tensorflow.DBNet<a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization/tensorflow.html#db_resnet50"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">¶</a></dt>
 <dd><p>DBNet as described in <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>, using a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -314,13 +313,13 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dd></dl>
 
 <dl class="py function">
-<dt id="doctr.models.detection.linknet">
-<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">linknet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.linknet.LinkNet<a class="reference internal" href="_modules/doctr/models/detection/linknet.html#linknet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.linknet" title="Permalink to this definition">¶</a></dt>
+<dt id="doctr.models.detection.linknet16">
+<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">linknet16</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.linknet.tensorflow.LinkNet<a class="reference internal" href="_modules/doctr/models/detection/linknet/tensorflow.html#linknet16"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.linknet16" title="Permalink to this definition">¶</a></dt>
 <dd><p>LinkNet as described in <a class="reference external" href="https://arxiv.org/pdf/1707.03718.pdf">“LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">linknet</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">linknet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">linknet16</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">linknet16</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
@@ -337,10 +336,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dl>
 </dd></dl>
 
-</section>
-<section id="post-processing-detections">
-<h3>Post-processing detections<a class="headerlink" href="#post-processing-detections" title="Permalink to this headline">¶</a></h3>
-<p>The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.</p>
 </section>
 <section id="detection-predictors">
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this headline">¶</a></h3>
@@ -441,7 +436,7 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
 <dt id="doctr.models.recognition.crnn_vgg16_bn">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.crnn.CRNN<a class="reference internal" href="_modules/doctr/models/recognition/crnn.html#crnn_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.crnn.tensorflow.CRNN<a class="reference internal" href="_modules/doctr/models/recognition/crnn/tensorflow.html#crnn_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">¶</a></dt>
 <dd><p>CRNN with a VGG-16 backbone as described in <a class="reference external" href="https://arxiv.org/pdf/1507.05717.pdf">“An End-to-End Trainable Neural Network for Image-based
 Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <dl>
@@ -466,7 +461,7 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_vgg16_bn">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.tensorflow.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar/tensorflow.html#sar_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">¶</a></dt>
 <dd><p>SAR with a VGG16 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
 Baseline for Irregular Text Recognition”</a>.</p>
 <dl>
@@ -491,7 +486,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_resnet31">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_resnet31"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.tensorflow.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar/tensorflow.html#sar_resnet31"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31" title="Permalink to this definition">¶</a></dt>
 <dd><p>SAR with a resnet-31 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
 Baseline for Irregular Text Recognition”</a>.</p>
 <p class="rubric">Example</p>
@@ -512,10 +507,28 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 </dd></dl>
 
-</section>
-<section id="post-processing-outputs">
-<h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">¶</a></h3>
-<p>The purpose of this block is to turn the model output (symbol classification for the sequence), into a set of strings.</p>
+<dl class="py function">
+<dt id="doctr.models.recognition.master">
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">master</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.master.tensorflow.MASTER<a class="reference internal" href="_modules/doctr/models/recognition/master/tensorflow.html#master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.master" title="Permalink to this definition">¶</a></dt>
+<dd><p>MASTER as described in paper: &lt;<a class="reference external" href="https://arxiv.org/pdf/1910.02562.pdf">https://arxiv.org/pdf/1910.02562.pdf</a>&gt;`_.
+Example:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">master</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">master</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text recognition dataset</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>text recognition architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="recognition-predictors">
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this headline">¶</a></h3>
@@ -602,27 +615,27 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <td><p>0.83</p></td>
 </tr>
 <tr class="row-even"><td><p>Gvision text detection</p></td>
-<td><p>0.595</p></td>
-<td><p>0.625</p></td>
+<td><p>59.50</p></td>
+<td><p>62.50</p></td>
 <td></td>
-<td><p>0.753</p></td>
-<td><p>0.700</p></td>
+<td><p>75.30</p></td>
+<td><p>70.00</p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
-<td><p>0.640</p></td>
-<td><p>0.533</p></td>
+<td><p>64.00</p></td>
+<td><p>53.30</p></td>
 <td></td>
-<td><p>0.689</p></td>
-<td><p>0.611</p></td>
+<td><p>68.90</p></td>
+<td><p>61.10</p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p>AWS textract</p></td>
-<td><p><strong>0.781</strong></p></td>
-<td><p><strong>0.830</strong></p></td>
+<td><p><strong>78.10</strong></p></td>
+<td><p><strong>83.00</strong></p></td>
 <td></td>
-<td><p><strong>0.875</strong></p></td>
-<td><p>0.660</p></td>
+<td><p><strong>87.50</strong></p></td>
+<td><p>66.00</p></td>
 <td></td>
 </tr>
 </tbody>
