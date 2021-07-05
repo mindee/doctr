@@ -181,10 +181,10 @@ Those architectures involve one stage of text detection, and one stage of text r
 Export model output
 ^^^^^^^^^^^^^^^^^^^^
 
-Calling the ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
 To get a better understanding of our document model, check our :ref:`document_structure` section
 
-A `Document` can be printed out::
+Here is a typical `Document` layout::
 
   Document(
     (pages): [Page(
@@ -202,11 +202,11 @@ A `Document` can be printed out::
     )]
   )
 
-You can also export a document to a nested dict format (JSON)::
+You can also export them as a nested dict, more appropriate for JSON format::
 
   json_output = result.export()
 
-Then when printing `json_output`::
+For reference, here is the JSON export for the same `Document` as above::
 
   {
     'pages': [
