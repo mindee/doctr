@@ -398,8 +398,8 @@ def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = Non
     # Build the model
     model = MASTER(cfg=_cfg, **kwargs)
     # Load pretrained parameters
-    # if pretrained:
-    #     load_pretrained_params(model, default_cfgs[arch]['url'])
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 

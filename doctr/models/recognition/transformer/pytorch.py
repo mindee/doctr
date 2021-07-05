@@ -60,6 +60,8 @@ class Decoder(nn.Module):
             ) for _ in range(num_layers)
         ]
 
+        self.dropout = nn.Dropout(dropout)
+
     def forward(
         self,
         x: torch.Tensor,
@@ -73,6 +75,7 @@ class Decoder(nn.Module):
         x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
         x *= math.sqrt(self.d_model)
         x += self.pos_encoding[:, :seq_len, :]
+        x = self.dropout(x)
 
         # Batch first = False in decoder
         x = x.permute(1, 0, 2)
