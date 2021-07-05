@@ -45,8 +45,9 @@ class MAGC(layers.Layer):
     def __init__(
         self,
         inplanes: int,
-        headers: int = 1,
+        headers: int = 8,
         att_scale: bool = False,
+        ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
         **kwargs
     ) -> None:
         super().__init__(**kwargs)
@@ -54,6 +55,7 @@ class MAGC(layers.Layer):
         self.headers = headers  # h
         self.inplanes = inplanes  # C
         self.att_scale = att_scale
+        self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
 
@@ -66,7 +68,7 @@ class MAGC(layers.Layer):
         self.transform = tf.keras.Sequential(
             [
                 tf.keras.layers.Conv2D(
-                    filters=self.inplanes,
+                    filters=self.planes,
                     kernel_size=1,
                     kernel_initializer=tf.initializers.he_normal()
                 ),
@@ -138,7 +140,7 @@ class MAGCResnet(Sequential):
 
     def __init__(
         self,
-        headers: int = 1,
+        headers: int = 8,
         input_shape: Tuple[int, int, int] = (48, 160, 3),
     ) -> None:
         _layers = [
@@ -188,9 +190,9 @@ class MASTER(_MASTER, Model):
         self,
         vocab: str,
         d_model: int = 512,
-        headers: int = 1,
+        headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
-        num_heads: int = 8,
+        num_heads: int = 8,  # number of heads in the trasnformer decoder
         num_layers: int = 3,
         max_length: int = 50,
         input_shape: Tuple[int, int, int] = (48, 160, 3),
