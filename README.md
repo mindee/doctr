@@ -66,73 +66,12 @@ result.show(doc)
 Calling the ocr_predictor returns a `result`, which is a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
 To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/documents.html#document-structure):
 
-A `Document` can be printed out:
-
-```
-Document(
-  (pages): [Page(
-    dimensions=(340, 600)
-    (blocks): [Block(
-      (lines): [Line(
-        (words): [
-          Word(value='No.', confidence=0.91),
-          Word(value='RECEIPT', confidence=0.99),
-          Word(value='DATE', confidence=0.96),
-        ]
-      )]
-      (artefacts): []
-    )]
-  )]
-)
-```
-
 You can also export a document to a nested dict format (JSON):
 
 ```python
 json_output = result.export()
 ```
-Then when printing `json_output`:
-
-```
-{
-    'pages': [
-        {
-            'page_idx': 0,
-            'dimensions': (340, 600),
-            'orientation': {'value': None, 'confidence': None},
-            'language': {'value': None, 'confidence': None},
-            'blocks': [
-                {
-                    'geometry': ((0.1357421875, 0.0361328125), (0.8564453125, 0.8603515625)),
-                    'lines': [
-                        {
-                            'geometry': ((0.1357421875, 0.0361328125), (0.8564453125, 0.8603515625)),
-                            'words': [
-                                {
-                                    'value': 'No.',
-                                    'confidence': 0.914085328578949,
-                                    'geometry': ((0.5478515625, 0.06640625), (0.5810546875, 0.0966796875))
-                                },
-                                {
-                                    'value': 'RECEIPT',
-                                    'confidence': 0.9949972033500671,
-                                    'geometry': ((0.1357421875, 0.0361328125), (0.51171875, 0.1630859375))
-                                },
-                                {
-                                    'value': 'DATE',
-                                    'confidence': 0.9578408598899841,
-                                    'geometry': ((0.1396484375, 0.3232421875), (0.185546875, 0.3515625))
-                                }
-                            ]
-                        }
-                    ],
-                    'artefacts': []
-                }
-            ]
-        }
-    ]
-}
-```
+For examples & further details about the export format, please refer [this section](https://mindee.github.io/doctr/models#export-model-output.html) of the documentation
 
 ## Installation
 
