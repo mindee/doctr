@@ -7,6 +7,7 @@ doctr.documents
 The documents module enables users to easily access content from documents and export analysis
 results to structured formats.
 
+.. _document_structure:
 
 Document structure
 ------------------

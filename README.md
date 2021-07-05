@@ -71,7 +71,7 @@ You can also export a document to a nested dict format (JSON):
 ```python
 json_output = result.export()
 ```
-For examples & further details about the export format, please refer [this section](https://mindee.github.io/doctr/models#export-model-output.html) of the documentation
+For examples & further details about the export format, please refer [this section](https://mindee.github.io/doctr/models.html#export-model-output) of the documentation
 
 ## Installation
 

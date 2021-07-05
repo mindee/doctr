@@ -182,7 +182,7 @@ Export model output
 ^^^^^^^^^^^^^^^^^^^^
 
 Calling the ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
-To get a better understanding of our document model, check our [document section](https://mindee.github.io/doctr/documents.html#document-structure):
+To get a better understanding of our document model, check our :ref:`document_structure` section
 
 A `Document` can be printed out::
 
