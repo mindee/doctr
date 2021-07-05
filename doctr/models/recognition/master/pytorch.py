@@ -45,14 +45,16 @@ class MAGC(nn.Module):
     def __init__(
         self,
         inplanes: int,
-        headers: int = 1,
+        headers: int = 8,
         att_scale: bool = False,
+        ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
     ) -> None:
         super().__init__()
 
         self.headers = headers  # h
         self.inplanes = inplanes  # C
         self.att_scale = att_scale
+        self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
 
@@ -60,10 +62,10 @@ class MAGC(nn.Module):
         self.softmax = nn.Softmax(dim=2)
 
         self.channel_add_conv = nn.Sequential(
-            nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1),
-            nn.LayerNorm([self.inplanes, 1, 1]),
+            nn.Conv2d(self.inplanes, self.planes, kernel_size=1),
+            nn.LayerNorm([self.planes, 1, 1]),
             nn.ReLU(inplace=True),
-            nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1)
+            nn.Conv2d(self.planes, self.inplanes, kernel_size=1)
         )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -115,7 +117,7 @@ class MAGCResnet(nn.Sequential):
 
     def __init__(
         self,
-        headers: int = 1,
+        headers: int = 8,
     ) -> None:
         _layers = [
             # conv_1x
@@ -164,9 +166,9 @@ class MASTER(_MASTER, nn.Module):
         self,
         vocab: str,
         d_model: int = 512,
-        headers: int = 1,
+        headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
-        num_heads: int = 8,
+        num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
         max_length: int = 50,
         input_shape: Tuple[int, int, int] = (3, 48, 160),
