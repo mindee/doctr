@@ -168,7 +168,7 @@ class MASTER(_MASTER, nn.Module):
         d_model: int = 512,
         headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
-        num_heads: int = 8,  # number of heads in the trasnformer decoder
+        num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
         max_length: int = 50,
         input_shape: Tuple[int, int, int] = (3, 48, 160),
