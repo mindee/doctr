@@ -63,7 +63,7 @@ class MAGC(nn.Module):
 
         self.channel_add_conv = nn.Sequential(
             nn.Conv2d(self.inplanes, self.planes, kernel_size=1),
-            nn.LayerNorm([self.inplanes, 1, 1]),
+            nn.LayerNorm([self.planes, 1, 1]),
             nn.ReLU(inplace=True),
             nn.Conv2d(self.planes, self.inplanes, kernel_size=1)
         )

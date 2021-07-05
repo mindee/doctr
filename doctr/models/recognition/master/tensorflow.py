@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 import tensorflow as tf
 from tensorflow.keras import layers, Sequential, Model
 from typing import Tuple, List, Dict, Any, Optional
@@ -106,7 +107,7 @@ class MAGC(layers.Layer):
         context_mask = tf.reshape(context_mask, shape=(b * self.headers, 1, h * w, 1))
         # scale variance
         if self.att_scale and self.headers > 1:
-            context_mask = context_mask / tf.sqrt(self.single_header_inplanes)
+            context_mask = context_mask / math.sqrt(self.single_header_inplanes)
         # B*h, 1, H*W, 1
         context_mask = tf.keras.activations.softmax(context_mask, axis=2)
 
