@@ -40,6 +40,7 @@ class Decoder(nn.Module):
         dff: int = 2048,
         vocab_size: int = 120,
         maximum_position_encoding: int = 50,
+        dropout: float = 0.2,
     ) -> None:
         super(Decoder, self).__init__()
 
@@ -54,7 +55,7 @@ class Decoder(nn.Module):
                 d_model=d_model,
                 nhead=num_heads,
                 dim_feedforward=dff,
-                dropout=0.1,
+                dropout=dropout,
                 activation='relu',
             ) for _ in range(num_layers)
         ]
