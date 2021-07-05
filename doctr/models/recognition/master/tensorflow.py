@@ -21,11 +21,11 @@ __all__ = ['MASTER', 'master', 'MASTERPostProcessor']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
-        'url': 'file:///home/laptopmindee/Téléchargements/masternew.zip',
+        'url': None,
     },
 }
 
