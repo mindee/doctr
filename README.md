@@ -64,7 +64,7 @@ result.show(doc)
 ![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
 
 Calling the ocr_predictor returns a `result`, which is a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
-(to get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/documents.html#document-structure)):
+To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/documents.html#document-structure):
 
 A `Document` can be printed out:
 
@@ -91,7 +91,7 @@ You can also export a document to a nested dict format (JSON):
 ```python
 json_output = result.export()
 ```
-Then when printing json_output:
+Then when printing `json_output`:
 
 ```
 {
