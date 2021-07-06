@@ -172,15 +172,14 @@ class CRNN(RecognitionModel, nn.Module):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x, **kwargs)
+        features = self.feat_extractor(x)
         # B x C x H x W --> B x C*H x W --> B x W x C*H
         c, h, w = features.shape[1], features.shape[2], features.shape[3]
         features_seq = torch.reshape(features, shape=(-1, h * c, w))
         features_seq = torch.transpose(features_seq, 1, 2)
-        logits, _ = self.decoder(features_seq, **kwargs)
+        logits, _ = self.decoder(features_seq)
         logits = self.linear(logits)
 
         out: Dict[str, Any] = {}

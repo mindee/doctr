@@ -251,7 +251,6 @@ class MASTER(_MASTER, nn.Module):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        **kwargs: Any,
     ) -> Dict[str, Any]:
         """Call function for training
 
@@ -266,7 +265,7 @@ class MASTER(_MASTER, nn.Module):
         """
 
         # Encode
-        feature = self.feat_extractor(x, **kwargs)
+        feature = self.feat_extractor(x)
         b, c, h, w = (feature.size(i) for i in range(4))
         feature = torch.reshape(feature, shape=(b, c, h * w))
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
