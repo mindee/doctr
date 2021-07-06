@@ -40,6 +40,12 @@ def test_resize():
     assert not torch.all(out == 1)
     assert out.shape[-2:] == output_size
 
+    # Same aspect ratio
+    output_size = (32, 128)
+    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    out = transfo(torch.ones((3, 16, 64), dtype=torch.float32))
+    assert out.shape[-2:] == output_size
+
 
 @pytest.mark.parametrize(
     "rgb_min",
