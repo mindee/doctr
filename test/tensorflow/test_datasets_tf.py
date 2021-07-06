@@ -80,7 +80,7 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     ds = datasets.RecognitionDataset(
         img_folder=mock_image_folder,
         labels_path=mock_recognition_label,
-        sample_transforms=Resize(input_size),
+        sample_transforms=Resize(input_size, preserve_aspect_ratio=True),
     )
     assert len(ds) == 5
     image, label = ds[0]

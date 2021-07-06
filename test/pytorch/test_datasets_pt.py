@@ -72,7 +72,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     # Cardinality consistency
     assert target['boxes'].shape[0] == target['flags'].shape[0]
 
-    loader = DataLoader(ds, batch_size=2)
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
@@ -93,15 +93,15 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     ds = datasets.RecognitionDataset(
         img_folder=mock_image_folder,
         labels_path=mock_recognition_label,
-        sample_transforms=Resize(input_size),
+        sample_transforms=Resize(input_size, preserve_aspect_ratio=True),
     )
-    assert ds.__len__() == 5
+    assert len(ds) == 5
     image, label = ds[0]
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert isinstance(label, str)
 
-    loader = DataLoader(ds, batch_size=2)
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, labels = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
@@ -135,7 +135,7 @@ def test_ocrdataset(mock_ocrdataset):
     # Cardinality consistency
     assert target['boxes'].shape[0] == len(target['labels'])
 
-    loader = DataLoader(ds, batch_size=2)
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
