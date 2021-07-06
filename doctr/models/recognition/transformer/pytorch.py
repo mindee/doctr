@@ -32,6 +32,8 @@ def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
 
 class Decoder(nn.Module):
 
+    pos_encoding: torch.Tensor
+
     def __init__(
         self,
         num_layers: int = 3,

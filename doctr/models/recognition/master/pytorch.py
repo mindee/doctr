@@ -162,6 +162,8 @@ class MASTER(_MASTER, nn.Module):
         input_size: size of the image inputs
     """
 
+    feature_pe: torch.Tensor
+
     def __init__(
         self,
         vocab: str,

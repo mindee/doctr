@@ -196,8 +196,8 @@ class SAR(nn.Module, RecognitionModel):
         _, (encoded, _) = self.encoder(pooled_features)
         encoded = encoded[-1]
         if target is not None:
-            gt, seq_len = self.compute_target(target)
-            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.tensor(seq_len)  # type: ignore[assignment]
+            _gt, _seq_len = self.compute_target(target)
+            gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)  # type: ignore[assignment]
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
 
