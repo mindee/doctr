@@ -115,10 +115,9 @@ def main(args):
 
     if args.test_only:
         print("Running evaluation")
-        val_loss, exact_match, partial_match  = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
         print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         return
-
 
     st = time.time()
     # Load both train and val data generators
@@ -155,7 +154,6 @@ def main(args):
     model_params = ContiguousParams([p for p in model.parameters() if p.requires_grad]).contiguous()
     optimizer = torch.optim.Adam(model_params, args.lr,
                                  betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
-
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
