@@ -19,10 +19,14 @@ class _AbstractDataset:
     data: List[Any] = []
     root: str
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
     def _read_sample(self, index: int) -> Tuple[Any, Any]:
+        raise NotImplementedError
+
+    @staticmethod
+    def _get_img_shape(img: Any) -> Tuple[int, int]:
         raise NotImplementedError
 
     def __getitem__(

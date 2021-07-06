@@ -42,7 +42,7 @@ def test_dataloader():
     num_batches = 0
     for x, y in ds_iter:
         num_batches += 1
-    assert loader.num_batches == 1
+    assert len(loader) == 1
     assert num_batches == 1
     assert isinstance(x, tf.Tensor) and isinstance(y, tf.Tensor)
     assert x.shape == (2, 32, 32)

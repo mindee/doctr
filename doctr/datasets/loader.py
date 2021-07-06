@@ -65,6 +65,9 @@ class DataLoader:
         self.workers = workers
         self.reset()
 
+    def __len__(self) -> int:
+        return self.num_batches
+
     def reset(self) -> None:
         # Updates indices after each epoch
         self._num_yielded = 0
