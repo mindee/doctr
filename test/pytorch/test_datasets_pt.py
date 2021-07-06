@@ -62,7 +62,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert len(ds) == 5
     img, target = ds[0]
     assert isinstance(img, torch.Tensor)
-    assert img.shape[:2] == input_size
+    assert img.shape[-2:] == input_size
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
@@ -98,7 +98,7 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     assert ds.__len__() == 5
     image, label = ds[0]
     assert isinstance(image, torch.Tensor)
-    assert image.shape[:2] == input_size
+    assert image.shape[-2:] == input_size
     assert isinstance(label, str)
 
     loader = DataLoader(ds, batch_size=2)
@@ -123,7 +123,7 @@ def test_ocrdataset(mock_ocrdataset):
     assert len(ds) == 5
     img, target = ds[0]
     assert isinstance(img, torch.Tensor)
-    assert img.shape[:2] == input_size
+    assert img.shape[-2:] == input_size
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
