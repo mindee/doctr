@@ -9,6 +9,7 @@ os.environ['USE_TORCH'] = '1'
 
 import time
 import datetime
+import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
@@ -76,6 +77,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 def main(args):
 
     print(args)
+
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
 
     torch.backends.cudnn.benchmark = True
 
@@ -240,7 +244,7 @@ def parse_args():
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
