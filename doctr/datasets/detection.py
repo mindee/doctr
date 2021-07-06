@@ -62,7 +62,7 @@ class DetectionDataset(AbstractDataset):
     ) -> Tuple[Any, Dict[str, np.ndarray]]:
 
         img, target = self._read_sample(index)
-        h, w = img.shape[:2]
+        h, w = self._get_img_shape(img)
         if self.sample_transforms is not None:
             img = self.sample_transforms(img)
 

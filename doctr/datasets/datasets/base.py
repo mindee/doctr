@@ -25,6 +25,10 @@ class _AbstractDataset:
     def _read_sample(self, index: int) -> Tuple[Any, Any]:
         raise NotImplementedError
 
+    @staticmethod
+    def _get_img_shape(img: Any) -> Tuple[int, int]:
+        raise NotImplementedError
+
     def __getitem__(
         self,
         index: int
