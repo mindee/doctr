@@ -82,7 +82,7 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
         labels_path=mock_recognition_label,
         sample_transforms=Resize(input_size),
     )
-    assert ds.__len__() == 5
+    assert len(ds) == 5
     image, label = ds[0]
     assert isinstance(image, tf.Tensor)
     assert image.shape[:2] == input_size
