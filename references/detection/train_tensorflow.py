@@ -102,7 +102,16 @@ def main(args):
     ])
 
     # Optimizer
-    optimizer = tf.keras.optimizers.Adam(learning_rate=args.lr, clipnorm=5)
+    scheduler = tf.keras.optimizers.schedules.CosineDecay(
+        initial_learning_rate=args.lr, decay_steps=args.epochs, alpha=0.0
+    )
+    optimizer = tf.keras.optimizers.Adam(
+        learning_rate=scheduler,
+        beta_1=0.95,
+        beta_2=0.99,
+        epsilon=1e-6,
+        clipnorm=5
+    )
 
     # Load doctr model
     model = detection.__dict__[args.model](
