@@ -1,9 +1,10 @@
 name: scripts
 
 on:
-  workflow_run:
-    workflows: ["builds"]
-    types: [completed]
+  push:
+    branches: main
+  pull_request:
+    branches: main
 
 jobs:
   test-analyze:
