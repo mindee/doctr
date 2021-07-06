@@ -206,7 +206,7 @@ class MASTER(_MASTER, Model):
         self.cfg = cfg
         self.vocab_size = len(vocab)
 
-        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
+        self.feat_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
         self.seq_embedding = layers.Embedding(self.vocab_size + 3, d_model)  # 3 more classes: EOS/PAD/SOS
 
         self.decoder = Decoder(
@@ -284,7 +284,7 @@ class MASTER(_MASTER, Model):
         """
 
         # Encode
-        feature = self.feature_extractor(x, **kwargs)
+        feature = self.feat_extractor(x, **kwargs)
         b, h, w, c = (tf.shape(feature)[i] for i in range(4))
         feature = tf.reshape(feature, shape=(b, h * w, c))
         encoded = feature + self.feature_pe[:, :h * w, :]
