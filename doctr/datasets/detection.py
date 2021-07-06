@@ -71,4 +71,4 @@ class DetectionDataset(AbstractDataset):
         boxes[..., [0, 2]] /= w
         boxes[..., [1, 3]] /= h
 
-        return img, dict(boxes=boxes, flags=target['flags'])
+        return img, dict(boxes=boxes.clip(0, 1), flags=target['flags'])

@@ -254,6 +254,11 @@ class _DBNet:
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
+        if any(t['boxes'].dtype != np.float32 for t in target):
+            raise AssertionError("the 'boxes' entry of the target is expected to have dtype 'np.float32'.")
+        if any(np.any((t['boxes'][:, :4] > 1) | (t['boxes'][:, :4] < 0)) for t in target):
+            raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
+
         seg_target = np.zeros(output_shape, dtype=np.uint8)
         seg_mask = np.ones(output_shape, dtype=bool)
         thresh_target = np.zeros(output_shape, dtype=np.uint8)
