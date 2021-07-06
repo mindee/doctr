@@ -171,6 +171,7 @@ class MASTER(_MASTER, nn.Module):
         num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
         max_length: int = 50,
+        dropout: float = 0.2,
         input_shape: Tuple[int, int, int] = (3, 48, 160),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -192,6 +193,7 @@ class MASTER(_MASTER, nn.Module):
             dff=dff,
             vocab_size=self.vocab_size,
             maximum_position_encoding=max_length,
+            dropout=dropout,
         )
         self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
         self.linear = nn.Linear(d_model, self.vocab_size + 3)

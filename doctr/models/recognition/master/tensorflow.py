@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'input_shape': (48, 160, 3),
+        'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -84,7 +84,6 @@ class MAGC(layers.Layer):
             name='transform'
         )
 
-    @tf.function
     def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
         b, h, w, c = (tf.shape(inputs)[i] for i in range(4))
 
@@ -196,6 +195,7 @@ class MASTER(_MASTER, Model):
         num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
         max_length: int = 50,
+        dropout: float = 0.2,
         input_shape: Tuple[int, int, int] = (48, 160, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -216,13 +216,13 @@ class MASTER(_MASTER, Model):
             dff=dff,
             vocab_size=self.vocab_size,
             maximum_position_encoding=max_length,
+            dropout=dropout,
         )
         self.feature_pe = positional_encoding(input_shape[0] * input_shape[1], d_model)
         self.linear = layers.Dense(self.vocab_size + 3, kernel_initializer=tf.initializers.he_uniform())
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
-    @tf.function
     def make_mask(self, target: tf.Tensor) -> tf.Tensor:
         look_ahead_mask = create_look_ahead_mask(tf.shape(target)[1])
         target_padding_mask = create_padding_mask(target, self.vocab_size + 2)  # Pad symbol

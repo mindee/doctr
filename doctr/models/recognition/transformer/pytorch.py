@@ -40,6 +40,7 @@ class Decoder(nn.Module):
         dff: int = 2048,
         vocab_size: int = 120,
         maximum_position_encoding: int = 50,
+        dropout: float = 0.2,
     ) -> None:
         super(Decoder, self).__init__()
 
@@ -54,10 +55,12 @@ class Decoder(nn.Module):
                 d_model=d_model,
                 nhead=num_heads,
                 dim_feedforward=dff,
-                dropout=0.1,
+                dropout=dropout,
                 activation='relu',
             ) for _ in range(num_layers)
         ]
+
+        self.dropout = nn.Dropout(dropout)
 
     def forward(
         self,
@@ -72,6 +75,7 @@ class Decoder(nn.Module):
         x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
         x *= math.sqrt(self.d_model)
         x += self.pos_encoding[:, :seq_len, :]
+        x = self.dropout(x)
 
         # Batch first = False in decoder
         x = x.permute(1, 0, 2)
