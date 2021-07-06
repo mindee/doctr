@@ -6,7 +6,7 @@
 import math
 import torch
 from torch import nn
-from typing import Tuple
+from typing import Tuple, Optional
 
 __all__ = ['Decoder', 'positional_encoding']
 
@@ -67,7 +67,7 @@ class Decoder(nn.Module):
         x: torch.Tensor,
         enc_output: torch.Tensor,
         look_ahead_mask: torch.Tensor,
-        padding_mask: torch.Tensor,
+        padding_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
 
         seq_len = x.shape[1]  # Batch first = True
