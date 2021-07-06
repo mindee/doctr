@@ -212,7 +212,8 @@ class LinkNet(nn.Module, _LinkNet):
         targets = self.compute_target(target, out_map.shape)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]).to(dtype=torch.float32), torch.from_numpy(targets[1])
-        edge_mask = torch.from_numpy(targets[2])
+        seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
+        edge_mask = torch.from_numpy(targets[2]).to(out_map.device)
 
         # Get the cross_entropy for each entry
         bce = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')[seg_mask]
