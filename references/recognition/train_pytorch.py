@@ -10,10 +10,8 @@ os.environ['USE_TORCH'] = '1'
 import time
 import datetime
 import numpy as np
-from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torch import nn
 from torchvision.transforms import Compose, Lambda, Normalize, ColorJitter
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from contiguous_params import ContiguousParams
@@ -31,7 +29,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for batch_step in progress_bar(range(len(train_loader)), parent=mb):
+    for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
 
         images = batch_transforms(images)

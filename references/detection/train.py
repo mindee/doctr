@@ -9,10 +9,8 @@ os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
-import cv2
 import datetime
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import wandb
 from collections import deque

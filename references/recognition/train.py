@@ -10,9 +10,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
 import datetime
-import math
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from collections import deque
 from pathlib import Path
