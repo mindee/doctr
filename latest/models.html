@@ -138,6 +138,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#export-model-output">Export model output</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#model-export">Model export</a><ul>
@@ -730,6 +731,74 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dl>
 </dd></dl>
 
+</section>
+<section id="export-model-output">
+<h3>Export model output<a class="headerlink" href="#export-model-output" title="Permalink to this headline">¶</a></h3>
+<p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
+To get a better understanding of our document model, check our <a class="reference internal" href="documents.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
+<p>Here is a typical <cite>Document</cite> layout:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Document</span><span class="p">(</span>
+  <span class="p">(</span><span class="n">pages</span><span class="p">):</span> <span class="p">[</span><span class="n">Page</span><span class="p">(</span>
+    <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">blocks</span><span class="p">):</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span>
+      <span class="p">(</span><span class="n">lines</span><span class="p">):</span> <span class="p">[</span><span class="n">Line</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">words</span><span class="p">):</span> <span class="p">[</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;No.&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.91</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.99</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.96</span><span class="p">),</span>
+        <span class="p">]</span>
+      <span class="p">)]</span>
+      <span class="p">(</span><span class="n">artefacts</span><span class="p">):</span> <span class="p">[]</span>
+    <span class="p">)]</span>
+  <span class="p">)]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also export them as a nested dict, more appropriate for JSON format:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">json_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For reference, here is the JSON export for the same <cite>Document</cite> as above:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;pages&#39;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+          <span class="s1">&#39;page_idx&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+          <span class="s1">&#39;dimensions&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">),</span>
+          <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+          <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+          <span class="s1">&#39;blocks&#39;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
+                  <span class="s1">&#39;lines&#39;</span><span class="p">:</span> <span class="p">[</span>
+                      <span class="p">{</span>
+                          <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
+                          <span class="s1">&#39;words&#39;</span><span class="p">:</span> <span class="p">[</span>
+                              <span class="p">{</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;No.&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
+                              <span class="p">},</span>
+                              <span class="p">{</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
+                              <span class="p">},</span>
+                              <span class="p">{</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
+                              <span class="p">}</span>
+                          <span class="p">]</span>
+                      <span class="p">}</span>
+                  <span class="p">],</span>
+                  <span class="s1">&#39;artefacts&#39;</span><span class="p">:</span> <span class="p">[]</span>
+              <span class="p">}</span>
+          <span class="p">]</span>
+      <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="model-export">
