@@ -20,7 +20,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'vgg16_bn', 'rnn_units': 128,
+        'backbone': 'vgg16_bn', 'rnn_units': 128, 'lstm_features': 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
@@ -103,6 +103,7 @@ class CRNN(RecognitionModel, nn.Module):
         self,
         feature_extractor: nn.Module,
         vocab: str,
+        lstm_features: int,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -113,7 +114,7 @@ class CRNN(RecognitionModel, nn.Module):
         self.feat_extractor = feature_extractor
 
         self.decoder = nn.LSTM(
-            input_size=1 * 512, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True
+            input_size=lstm_features, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True
         )
 
         # features units = 2 * rnn_units because bidirectional layers
@@ -203,6 +204,7 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']
+    kwargs['lstm_features'] = _cfg['lstm_features']
 
     # Build the model
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
