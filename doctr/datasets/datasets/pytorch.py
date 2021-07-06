@@ -6,7 +6,8 @@
 import os
 from typing import List, Any, Tuple
 import torch
-from torchvision.io.image import read_image, ImageReadMode
+from PIL import Image
+from torchvision.transforms.functional import to_tensor
 
 from .base import _AbstractDataset, _VisionDataset
 
@@ -23,7 +24,7 @@ class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[torch.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        img = read_image(os.path.join(self.root, img_name), mode=ImageReadMode.RGB)
+        img = to_tensor(Image.open(os.path.join(self.root, img_name), mode='r').convert('RGB'))
 
         return img, target
 
