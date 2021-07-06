@@ -42,15 +42,15 @@ class Decoder(nn.Module):
         maximum_position_encoding: int = 50,
         dropout: float = 0.2,
     ) -> None:
-        super(Decoder, self).__init__()
+        super().__init__()
 
         self.d_model = d_model
         self.num_layers = num_layers
 
         self.embedding = nn.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
-        self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
+        self.register_buffer('pos_encoding', positional_encoding(maximum_position_encoding, d_model))
 
-        self.dec_layers = [
+        self.dec_layers = nn.ModuleList([
             nn.TransformerDecoderLayer(
                 d_model=d_model,
                 nhead=num_heads,
@@ -58,7 +58,7 @@ class Decoder(nn.Module):
                 dropout=dropout,
                 activation='relu',
             ) for _ in range(num_layers)
-        ]
+        ])
 
         self.dropout = nn.Dropout(dropout)
 
