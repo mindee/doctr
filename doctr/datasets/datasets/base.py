@@ -19,7 +19,7 @@ class _AbstractDataset:
     data: List[Any] = []
     root: str
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
     def _read_sample(self, index: int) -> Tuple[Any, Any]:
