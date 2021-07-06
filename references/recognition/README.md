@@ -2,6 +2,35 @@
 
 The sample training script was made to train text recognition model with doctr
 
+## Setup
+
+First, you need to install doctr (with pip, for instance)
+
+```shell
+pip install -e . --upgrade
+pip install -r references/requirements.txt
+```
+
+if you are using PyTorch back-end, there is an extra dependency (to optimize data loading):
+```shell
+pip install contiguous-params>=1.0.0
+```
+
+## Usage
+
+You can start your training in TensorFlow:
+
+```shell
+python references/recognition/train.py path/to/your/dataset crnn_vgg16_bn --epochs 5
+```
+or PyTorch:
+
+```shell
+python references/recognition/train_pytorch.py path/to/your/dataset crnn_vgg16_bn --epochs 5 --device 0
+```
+
+
+
 ## Getting started
 
 First, you need to install doctr (with pip, for instance)
@@ -50,17 +79,10 @@ labels = {
 }
 ```
 
-## Tune arguments
+## Advanced options
 
-You can pass the following arguments:
+Feel free to inspect the multiple script option to customize your training to your own needs!
 
-```shell
-model (str): text-recognition model to train
---epochs (int): default=10, number of epochs to train the model on
---batch_size (int): default=64, batch size for training
---input_size Tuple[int, int]: default=(32, 128), input size (H, W) for the model
---learning_rate, (float): default=0.001, learning rate for the optimizer (Adam)
---postprocessor, (str): default='crnn', postprocessor, either crnn or sar
---teacher_forcing (bool), default=False, if True, teacher forcing during training
---data_path (str), path to data folder
+```python
+python references/recognition/train.py --help
 ```
