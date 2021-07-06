@@ -178,7 +178,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().numpy())
+            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().cpu().numpy())
 
         if target is not None:
             loss = self.compute_loss(logits, target, focal_loss)
