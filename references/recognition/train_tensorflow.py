@@ -99,7 +99,7 @@ def main(args):
 
     # Optimizer
     scheduler = tf.keras.optimizers.schedules.CosineDecay(
-        initial_learning_rate=args.lr, decay_steps=15, alpha=0.0
+        initial_learning_rate=args.lr, decay_steps=args.epochs, alpha=0.0
     )
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=scheduler,
