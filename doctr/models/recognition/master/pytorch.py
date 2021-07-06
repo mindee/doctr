@@ -195,7 +195,7 @@ class MASTER(_MASTER, nn.Module):
             maximum_position_encoding=max_length,
             dropout=dropout,
         )
-        self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
+        self.register_buffer('feature_pe', positional_encoding(input_shape[1] * input_shape[2], d_model))
         self.linear = nn.Linear(d_model, self.vocab_size + 3)
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
