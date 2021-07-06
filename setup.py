@@ -83,9 +83,8 @@ install_requires = [
 ]
 
 extras = {}
-extras["tf"] = deps_list("tensorflow")
-extras["tf-cpu"] = deps_list("tensorflow-cpu")
-extras["tfa"] = deps_list("tensorflow-addons")
+extras["tf"] = deps_list("tensorflow", "tensorflow-addons")
+extras["tf-cpu"] = deps_list("tensorflow-cpu", "tensorflow-addons")
 extras["torch"] = deps_list("torch", "torchvision")
 extras["all"] = (
     extras["tf"]
