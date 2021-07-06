@@ -60,8 +60,3 @@ def test_detection_zoo(arch_name):
     assert all(isinstance(out_img, tuple) for out_img in out)
     all_boxes, _ = zip(*out)
     assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in all_boxes)
-
-
-def test_detection_zoo_error():
-    with pytest.raises(ValueError):
-        _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
