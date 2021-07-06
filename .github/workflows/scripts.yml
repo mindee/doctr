@@ -8,7 +8,6 @@ on:
 
 jobs:
   test-analyze:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
