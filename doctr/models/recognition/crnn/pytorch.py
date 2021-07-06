@@ -205,9 +205,7 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = backbones.__dict__[_cfg['backbone']](
-        include_top=False,
-    )
+    feat_extractor = backbones.__dict__[_cfg['backbone']]()
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']
