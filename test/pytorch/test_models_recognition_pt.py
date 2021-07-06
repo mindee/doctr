@@ -20,6 +20,9 @@ def test_recognition_models(arch_name, input_shape, mock_vocab):
     input_tensor = torch.rand((batch_size, *input_shape))
     target = ["i", "am", "a", "jedi"]
 
+    if torch.cuda.is_available():
+        model.cuda()
+        input_tensor = input_tensor.cuda()
     out = model(input_tensor, target, return_model_output=True, return_preds=True)
     assert isinstance(out, dict)
     assert len(out) == 3
@@ -66,6 +69,10 @@ def test_recognition_zoo(arch_name):
     # object check
     assert isinstance(predictor, recognition.RecognitionPredictor)
     input_tensor = torch.rand((batch_size, 3, 128, 128))
+    if torch.cuda.is_available():
+        predictor.model.cuda()
+        input_tensor = input_tensor.cuda()
+
     with torch.no_grad():
         out = predictor(input_tensor)
     out = predictor(input_tensor)

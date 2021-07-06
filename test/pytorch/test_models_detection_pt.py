@@ -23,6 +23,9 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
         dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32), flags=[True, False])
     ]
+    if torch.cuda.is_available():
+        model.cuda()
+        input_tensor = input_tensor.cuda()
     out = model(input_tensor, target, return_model_output=True, return_boxes=True)
     assert isinstance(out, dict)
     assert len(out) == 3
@@ -55,6 +58,10 @@ def test_detection_zoo(arch_name):
     # object check
     assert isinstance(predictor, detection.DetectionPredictor)
     input_tensor = torch.rand((2, 3, 1024, 1024))
+    if torch.cuda.is_available():
+        predictor.model.cuda()
+        input_tensor = input_tensor.cuda()
+
     with torch.no_grad():
         out = predictor(input_tensor)
     assert all(isinstance(out_img, tuple) for out_img in out)
