@@ -32,3 +32,17 @@ def test_resolve_enclosing_rbbox():
     pred = geometry.resolve_enclosing_rbbox([(.2, .2, .05, .05, 0), (.2, .2, .2, .2, 0)])[:4]
     target = (.2, .2, .2, .2)
     assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
+
+
+def test_rotate_boxes():
+    boxes = np.array([[0.1, 0.1, 0.8, 0.3]])
+    # Angle = 0
+    rotated = geometry.rotate_boxes(boxes, angle=0.)
+    assert rotated.all() == boxes.all()
+    # Angle < 1:
+    rotated = geometry.rotate_boxes(boxes, angle=0.5)
+    assert rotated.all() == boxes.all()
+    # Angle = 30
+    rotated = geometry.rotate_boxes(boxes, angle=30)
+    assert rotated.shape == (1, 5)
+    assert rotated[0, 4] == 30.

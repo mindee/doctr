@@ -271,7 +271,7 @@ class _DBNet:
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
-            if self.rotated_bbox:
+            if self.rotated_bbox or abs_boxes.shape[1] == 5:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
                 polys = np.stack([
                     rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
