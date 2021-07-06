@@ -87,10 +87,7 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         label_folder=os.path.join(args.data_path, 'val_labels'),
-        sample_transforms=Compose([
-            Lambda(lambda x: x / 255),
-            T.Resize((args.input_size, args.input_size)),
-        ]),
+        sample_transforms=T.Resize((args.input_size, args.input_size)),
         rotated_bbox=args.rotation
     )
     val_loader = DataLoader(
@@ -141,7 +138,6 @@ def main(args):
         img_folder=os.path.join(args.data_path, 'train'),
         label_folder=os.path.join(args.data_path, 'train_labels'),
         sample_transforms=Compose([
-            Lambda(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
             T.RandomApply(T.ColorInversion(), .1),
