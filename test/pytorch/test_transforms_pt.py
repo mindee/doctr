@@ -2,7 +2,9 @@ import pytest
 
 import math
 import torch
+import numpy as np
 from doctr.transforms import Resize, ColorInversion
+from doctr.transforms.functional import rotate
 
 
 def test_resize():
@@ -67,3 +69,21 @@ def test_invert_colorize(rgb_min):
     out = transfo(input_t)
     assert torch.all(out <= int(math.ceil(255 * (1 - rgb_min + 1e-4))))
     assert torch.all(out >= 0)
+
+
+def test_rotate():
+    input_t = torch.ones((3, 50, 50), dtype=torch.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    target = {"boxes": boxes}
+    r_img, r_target = rotate(input_t, target, angle=12.)
+    assert r_img.shape == (3, 50, 50)
+    assert r_img[0, 0, 0] == 0.
+    assert r_target["boxes"].all() == np.array([[25., 25., 20., 10., 12.]]).all()
+    rel_boxes = np.array([
+        [.3, .4, .7, .6]
+    ])
+    target = {"boxes": rel_boxes}
+    r_img, r_target = rotate(input_t, target, angle=12.)
+    assert r_target["boxes"].all() == np.array([[.5, .5, .4, .2, 12.]]).all()

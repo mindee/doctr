@@ -56,6 +56,7 @@ _deps = [
     "torchvision>=0.9.0",
     "Pillow>=8.0.0",
     "tqdm>=4.30.0",
+    "tensorflow-addons>=0.13.0"
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -82,8 +83,8 @@ install_requires = [
 ]
 
 extras = {}
-extras["tf"] = deps_list("tensorflow")
-extras["tf-cpu"] = deps_list("tensorflow-cpu")
+extras["tf"] = deps_list("tensorflow", "tensorflow-addons")
+extras["tf-cpu"] = deps_list("tensorflow-cpu", "tensorflow-addons")
 extras["torch"] = deps_list("torch", "torchvision")
 extras["all"] = (
     extras["tf"]

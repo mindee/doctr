@@ -1,8 +1,9 @@
 import pytest
 import math
-
+import numpy as np
 import tensorflow as tf
 from doctr import transforms as T
+from doctr.transforms.functional import rotate
 
 
 def test_resize():
@@ -190,3 +191,21 @@ def test_randomapply():
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
     out = T.RandomApply(transfo, p=1.)(input_t)
     assert (tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.))
+
+
+def test_rotate():
+    input_t = tf.ones((50, 50, 3), dtype=tf.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    target = {"boxes": boxes}
+    r_img, r_target = rotate(input_t, target, angle=12.)
+    assert r_img.shape == (50, 50, 3)
+    assert r_img[0, 0, 0] == 0.
+    assert r_target["boxes"].all() == np.array([[25., 25., 20., 10., 12.]]).all()
+    rel_boxes = np.array([
+        [.3, .4, .7, .6]
+    ])
+    target = {"boxes": rel_boxes}
+    r_img, r_target = rotate(input_t, target, angle=12.)
+    assert r_target["boxes"].all() == np.array([[.5, .5, .4, .2, 12.]]).all()
