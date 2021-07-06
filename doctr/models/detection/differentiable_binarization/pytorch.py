@@ -176,7 +176,7 @@ class DBNet(_DBNet, nn.Module):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().numpy())
+            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().cpu().numpy())
 
         if target is not None:
             thresh_map = self.thresh_head(feat_concat)
@@ -209,7 +209,9 @@ class DBNet(_DBNet, nn.Module):
         targets = self.compute_target(target, prob_map.shape)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
+        seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         thresh_target, thresh_mask = torch.from_numpy(targets[2]), torch.from_numpy(targets[3])
+        thresh_target, thresh_mask = thresh_target.to(out_map.device), thresh_mask.to(out_map.device)
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.
