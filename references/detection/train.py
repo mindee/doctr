@@ -229,7 +229,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR train text-detection model',
+    parser = argparse.ArgumentParser(description='DocTR train text-detection model (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('data_path', type=str, help='path to data folder')
@@ -237,7 +237,7 @@ def parse_args():
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
-    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W)')
+    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')

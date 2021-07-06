@@ -221,7 +221,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR train text-recognition model',
+    parser = argparse.ArgumentParser(description='DocTR train text-recognition model (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('data_path', type=str, help='path to data folder')
