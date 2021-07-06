@@ -5,6 +5,7 @@
 
 import os
 
+os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
@@ -27,33 +28,7 @@ from doctr.utils.metrics import LocalizationConfusion
 from doctr.datasets import DetectionDataset, DataLoader
 from doctr import transforms as T
 
-
-def plot_samples(images, targets, rotation):
-    # Unnormalize image
-    nb_samples = 4
-    _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
-    for idx in range(nb_samples):
-        img = images[idx]
-        img *= 255
-        img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
-
-        target = np.zeros(img.shape[:2], np.uint8)
-        boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
-        boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
-        boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
-        for box in boxes.round().astype(int):
-            if rotation:
-                target[box[1]: box[3] + 1, box[0]: box[2] + 1] = 1
-            else:
-                box = cv2.boxPoints(((box[0], box[2]), (box[1], box[3]), box[4]))
-                box = np.int0(box)
-                cv2.fillPoly(target, [box], 1)
-
-        axes[0][idx].imshow(img)
-        axes[0][idx].axis('off')
-        axes[1][idx].imshow(target.astype(bool))
-        axes[1][idx].axis('off')
-    plt.show()
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):
@@ -205,6 +180,7 @@ def main(args):
                 "input_size": args.input_size,
                 "optimizer": "adam",
                 "exp_type": "text-detection",
+                "framework": "tensorflow",
             }
         )
 

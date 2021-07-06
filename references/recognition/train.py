@@ -5,6 +5,7 @@
 
 import os
 
+os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
@@ -27,25 +28,7 @@ from doctr.utils.metrics import TextMatch
 from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
 from doctr import transforms as T
 
-
-def plot_samples(images, targets):
-    # Unnormalize image
-    num_samples = 12
-    num_rows = 3
-    num_cols = int(math.ceil(num_samples / num_rows))
-    _, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5))
-    for idx in range(num_samples):
-        img = images[idx]
-        img *= 255
-        img = tf.cast(tf.clip_by_value(tf.round(img), 0, 255), dtype=tf.uint8).numpy()
-
-        row_idx = idx // num_cols
-        col_idx = idx % num_cols
-
-        axes[row_idx][col_idx].imshow(img)
-        axes[row_idx][col_idx].axis('off')
-        axes[row_idx][col_idx].set_title(targets[idx])
-    plt.show()
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):
