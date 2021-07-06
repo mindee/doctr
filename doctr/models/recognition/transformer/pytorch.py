@@ -6,7 +6,7 @@
 import math
 import torch
 from torch import nn
-from typing import Tuple, Optional
+from typing import Optional
 
 __all__ = ['Decoder', 'positional_encoding']
 
