@@ -183,7 +183,7 @@ class MASTER(_MASTER, nn.Module):
         self.vocab_size = len(vocab)
         self.num_heads = num_heads
 
-        self.feature_extractor = MAGCResnet(headers=headers)
+        self.feat_extractor = MAGCResnet(headers=headers)
         self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
@@ -266,7 +266,7 @@ class MASTER(_MASTER, nn.Module):
         """
 
         # Encode
-        feature = self.feature_extractor(x, **kwargs)
+        feature = self.feat_extractor(x, **kwargs)
         b, c, h, w = (feature.size(i) for i in range(4))
         feature = torch.reshape(feature, shape=(b, c, h * w))
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
