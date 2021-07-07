@@ -17,12 +17,10 @@ __all__ = ['_AbstractDataset', '_VisionDataset']
 class _AbstractDataset:
 
     data: List[Any] = []
-    root: str
-    fp16: bool
 
     def __init__(
         self,
-        root: str,
+        root: Union[str, Path],
         fp16: bool = False,
     ) -> None:
         self.root = root
