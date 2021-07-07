@@ -83,7 +83,7 @@ class PreProcessor(NestedObject):
             if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
             if input_dtype == tf.uint8:
-                x = tf.cast(sample, dtype=tf.float32) / 255
+                x = tf.cast(x, dtype=tf.float32) / 255
             processed_batches = [x]
         elif isinstance(x, list):
             input_dtype = x[0].dtype
