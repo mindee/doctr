@@ -79,17 +79,21 @@ class PreProcessor(nn.Module):
             # Tf tensor from data loader: check if tensor size is output_size
             if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
+            if x.dtype == torch.uint8:
+                x = x.to(dtype=torch.float32) / 255
             processed_batches = [x]
         elif isinstance(x, list):
             # Resize (and eventually pad) the inputs
             images: List[torch.Tensor] = [self.resize(torch.from_numpy(sample.copy()).permute(2, 0, 1)) for sample in x]
             # Batch them
             processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
+            # Casting & 255 division
+            if x[0].dtype == np.uint8:
+                processed_batches = [b.to(dtype=torch.float32) / 255 for b in processed_batches]
         else:
             raise AssertionError("invalid input type")
+
         # Normalize
-        processed_batches = [
-            self.normalize(b.to(dtype=torch.float32) / 255) for b in processed_batches  # type: ignore[union-attr]
-        ]
+        processed_batches = [self.normalize(b) for b in processed_batches]  # type: ignore[union-attr]
 
         return processed_batches  # type: ignore[return-value]
