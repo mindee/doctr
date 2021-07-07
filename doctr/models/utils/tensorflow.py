@@ -90,7 +90,8 @@ def conv_sequence(
     if bn:
         conv_seq.append(layers.BatchNormalization())
 
-    if isinstance(activation, str) and bn:
+    if (isinstance(activation, str) or callable(activation)) and bn:
+        # Activation function can either be a string or a function ('relu' or tf.nn.relu)
         conv_seq.append(layers.Activation(activation))
 
     return conv_seq
