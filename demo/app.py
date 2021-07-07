@@ -33,6 +33,8 @@ def main():
     st.title("DocTR: Document Text Recognition")
     # For newline
     st.write('\n')
+    # Instructions
+    st.markdown("*Hint: click on the top-right corner of an image to enlarge it!*")
     # Set the columns
     cols = st.beta_columns((1, 1, 1, 1))
     cols[0].subheader("Input page")
