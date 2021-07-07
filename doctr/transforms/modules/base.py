@@ -101,7 +101,7 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}"
 
-    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
+    def __call__(self, img: Any, boxes: np.ndarray) -> Tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        rotated_img, rotated_target = F.rotate(img, target, angle)
-        return rotated_img, rotated_target
+        rotated_img, rotated_boxes = F.rotate(img, boxes, angle)
+        return rotated_img, rotated_boxes
