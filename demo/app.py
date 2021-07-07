@@ -95,8 +95,13 @@ def main():
                 cols[2].pyplot(fig)
 
                 # Page reconsitution under input page
-                img = synthetize_page(out.pages[0].export())
+                page_export = out.pages[0].export()
+                img = synthetize_page(page_export)
                 cols[3].image(img, clamp=True)
+
+                # Display JSON
+                st.markdown("\nHere are your analysis results in JSON format:")
+                st.json(page_export)
 
 
 if __name__ == '__main__':
