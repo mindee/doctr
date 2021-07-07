@@ -37,7 +37,7 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     assert len(ds) == size
     assert repr(ds) == f"{dataset_name}(train={train})"
     img, target = ds[0]
-    assert isinstance(img, torch.Tensor) 
+    assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
