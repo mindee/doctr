@@ -47,7 +47,7 @@ def main():
     uploaded_file = st.sidebar.file_uploader("Upload files", type=['pdf', 'png', 'jpeg', 'jpg'])
     if uploaded_file is not None:
         if uploaded_file.name.endswith('.pdf'):
-            doc = DocumentFile.from_pdf(uploaded_file.read()).as_images(output_size=(1024, 1024))
+            doc = DocumentFile.from_pdf(uploaded_file.read()).as_images()
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
         cols[0].image(doc[0], width=640)
