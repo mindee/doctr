@@ -3,7 +3,6 @@ import pytest
 import math
 import torch
 import numpy as np
-from torchvision.transforms.functional import crop
 from doctr.transforms import Resize, ColorInversion
 from doctr.transforms.functional import rotate, crop_detection
 

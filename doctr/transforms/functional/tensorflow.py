@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import tensorflow as tf
-from tensorflow.python.ops.gen_array_ops import empty
 import tensorflow_addons as tfa
 import numpy as np
 from typing import Tuple, Dict
