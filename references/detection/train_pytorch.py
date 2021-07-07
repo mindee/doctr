@@ -9,6 +9,7 @@ os.environ['USE_TORCH'] = '1'
 
 import time
 import datetime
+import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
@@ -77,16 +78,16 @@ def main(args):
 
     print(args)
 
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
+
     torch.backends.cudnn.benchmark = True
 
     st = time.time()
     val_set = DetectionDataset(
         img_folder=os.path.join(args.data_path, 'val'),
         label_folder=os.path.join(args.data_path, 'val_labels'),
-        sample_transforms=Compose([
-            Lambda(lambda x: x / 255),
-            T.Resize((args.input_size, args.input_size)),
-        ]),
+        sample_transforms=T.Resize((args.input_size, args.input_size)),
         rotated_bbox=args.rotation
     )
     val_loader = DataLoader(
@@ -137,7 +138,6 @@ def main(args):
         img_folder=os.path.join(args.data_path, 'train'),
         label_folder=os.path.join(args.data_path, 'train_labels'),
         sample_transforms=Compose([
-            Lambda(lambda x: x / 255),
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
             T.RandomApply(T.ColorInversion(), .1),
@@ -240,7 +240,7 @@ def parse_args():
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',

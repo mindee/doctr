@@ -54,7 +54,7 @@ _deps = [
     "tensorflow-cpu>=2.4.0",
     "torch>=1.8.0",
     "torchvision>=0.9.0",
-    "Pillow>=8.0.0",
+    "Pillow>=8.0.0,<8.3.0",  # cf. https://github.com/python-pillow/Pillow/issues/5571
     "tqdm>=4.30.0",
     "tensorflow-addons>=0.13.0"
 ]
