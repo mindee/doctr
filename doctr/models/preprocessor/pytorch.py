@@ -61,6 +61,7 @@ class PreProcessor(nn.Module):
         # Deal with the last batch
         if num_batches > int(num_batches):
             b_images.append(torch.stack(x[int(num_batches) * self.batch_size:], dim=0))
+
         return b_images
 
     def __call__(
@@ -80,7 +81,7 @@ class PreProcessor(nn.Module):
             if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
             if x.dtype == torch.uint8:
-                x = x.to(dtype=torch.float32) / 255
+                x = x.to(dtype=torch.float32).div(255).clip(0, 1)
             processed_batches = [x]
         elif isinstance(x, list):
             # Resize (and eventually pad) the inputs
@@ -89,7 +90,7 @@ class PreProcessor(nn.Module):
             processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
             # Casting & 255 division
             if x[0].dtype == np.uint8:
-                processed_batches = [b.to(dtype=torch.float32) / 255 for b in processed_batches]
+                processed_batches = [b.to(dtype=torch.float32).div(255).clip(0, 1) for b in processed_batches]
         else:
             raise AssertionError("invalid input type")
 
