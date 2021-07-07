@@ -6,7 +6,6 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
 import numpy as np
-from copy import deepcopy
 from typing import Tuple, Dict
 from doctr.utils.geometry import rotate_boxes
 

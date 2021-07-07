@@ -6,7 +6,6 @@
 import torch
 from torchvision.transforms import functional as F
 import numpy as np
-from copy import deepcopy
 from typing import Dict, Tuple
 from doctr.utils.geometry import rotate_boxes
 
