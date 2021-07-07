@@ -35,12 +35,12 @@ class OCRDataset(AbstractDataset):
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
-
+        super().__init__(img_folder, **kwargs)
         self.sample_transforms = sample_transforms
-        self.root = img_folder
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
+        np_dtype = np.float16 if self.fp16 else np.float32
         with open(label_file, 'rb') as f:
             data = json.load(f)
 
@@ -54,13 +54,13 @@ class OCRDataset(AbstractDataset):
             # handle empty images
             if (len(file_dic["coordinates"]) == 0 or
                (len(file_dic["coordinates"]) == 1 and file_dic["coordinates"][0] == "N/A")):
-                self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np.float32), labels=[])))
+                self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np_dtype), labels=[])))
                 continue
             is_valid: List[bool] = []
             box_targets: List[List[float]] = []
             for box in file_dic["coordinates"]:
                 if rotated_bbox:
-                    x, y, w, h, alpha = fit_rbbox(np.asarray(box, dtype=np.float32))
+                    x, y, w, h, alpha = fit_rbbox(np.asarray(box, dtype=np_dtype))
                     box = [x, y, w, h, alpha]
                     is_valid.append(w > 0 and h > 0)
                 else:
@@ -71,4 +71,4 @@ class OCRDataset(AbstractDataset):
                     box_targets.append(box)
 
             text_targets = [word for word, _valid in zip(file_dic["string"], is_valid) if _valid]
-            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
+            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=text_targets)))
