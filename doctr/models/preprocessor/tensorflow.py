@@ -8,7 +8,7 @@ import numpy as np
 from typing import List, Tuple, Union, Any
 
 from doctr.utils.repr import NestedObject
-from doctr.transforms import Normalize, Resize, LambdaTransformation, Compose
+from doctr.transforms import Normalize, Resize
 
 
 __all__ = ['PreProcessor']
@@ -40,10 +40,7 @@ class PreProcessor(NestedObject):
         self.batch_size = batch_size
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
-        self.normalize = Compose([
-            LambdaTransformation(lambda x: x / 255),
-            Normalize(mean, std),
-        ])
+        self.normalize = Normalize(mean, std)
 
     def batch_inputs(
         self,
@@ -80,17 +77,26 @@ class PreProcessor(NestedObject):
         """
         # Check input type
         if isinstance(x, tf.Tensor):
+            # Inspect the data type before resizing (depending on interpolation method, it may cast it to fp32)
+            input_dtype = x.dtype
             # Tf tensor from data loader: check if tensor size is output_size
             if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
+            if input_dtype == tf.uint8:
+                x = tf.cast(sample, dtype=tf.float32) / 255
             processed_batches = [x]
         elif isinstance(x, list):
+            input_dtype = x[0].dtype
             # Convert to tensors & resize (and eventually pad) the inputs
-            images = [self.resize(tf.cast(sample, dtype=tf.float32)) for sample in x]
+            images = [self.resize(tf.convert_to_tensor(sample)) for sample in x]
             # Batch them
             processed_batches = self.batch_inputs(images)
+            # Casting & 255 division
+            if input_dtype == np.uint8:
+                processed_batches = [tf.cast(b, dtype=tf.float32) / 255 for b in processed_batches]
         else:
             raise AssertionError("invalid input type")
+
         # Normalize
         processed_batches = [self.normalize(b) for b in processed_batches]
 
