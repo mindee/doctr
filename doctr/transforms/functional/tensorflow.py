@@ -6,7 +6,7 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
 import numpy as np
-from typing import Tuple, Dict
+from typing import Tuple
 from doctr.utils.geometry import rotate_boxes
 
 __all__ = ["invert_colors", "rotate"]

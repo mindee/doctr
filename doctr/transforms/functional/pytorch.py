@@ -6,7 +6,7 @@
 import torch
 from torchvision.transforms import functional as F
 import numpy as np
-from typing import Dict, Tuple
+from typing import Tuple
 from doctr.utils.geometry import rotate_boxes
 
 __all__ = ["invert_colors", "rotate"]
