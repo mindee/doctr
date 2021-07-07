@@ -85,7 +85,7 @@ class PreProcessor(NestedObject):
             if input_dtype == tf.uint8:
                 x = tf.cast(x, dtype=tf.float32) / 255
             processed_batches = [x]
-        elif isinstance(x, list):
+        elif isinstance(x, list) and all(isinstance(t, np.ndarray) for t in x):
             input_dtype = x[0].dtype
             # Convert to tensors & resize (and eventually pad) the inputs
             images = [self.resize(tf.convert_to_tensor(sample)) for sample in x]

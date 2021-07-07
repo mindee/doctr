@@ -83,7 +83,7 @@ class PreProcessor(nn.Module):
             if x.dtype == torch.uint8:
                 x = x.to(dtype=torch.float32).div(255).clip(0, 1)
             processed_batches = [x]
-        elif isinstance(x, list):
+        elif isinstance(x, list) and all(isinstance(t, np.ndarray) for t in x):
             # Resize (and eventually pad) the inputs
             images: List[torch.Tensor] = [self.resize(torch.from_numpy(sample.copy()).permute(2, 0, 1)) for sample in x]
             # Batch them
