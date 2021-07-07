@@ -57,7 +57,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape[:2] == input_size
-    assert img.dtype = tf.float32
+    assert img.dtype == tf.float32
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
@@ -85,7 +85,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     # FP16
     ds = datasets.DetectionDataset(img_folder=mock_image_folder, label_folder=mock_detection_label, fp16=True)
     img, target = ds[0]
-    assert img.dtype = tf.float16
+    assert img.dtype == tf.float16
     assert target['boxes'].dtype == np.float16
 
 
