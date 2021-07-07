@@ -80,8 +80,8 @@ class PreProcessor(nn.Module):
             # Tf tensor from data loader: check if tensor size is output_size
             if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
-            if x.dtype == torch.uint8:
-                x = x.to(dtype=torch.float32).div(255).clip(0, 1)
+            if x.dtype == torch.uint8:  # type: ignore[union-attr]
+                x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
             processed_batches = [x]
         elif isinstance(x, list) and all(isinstance(t, np.ndarray) for t in x):
             # Resize (and eventually pad) the inputs
@@ -90,7 +90,9 @@ class PreProcessor(nn.Module):
             processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
             # Casting & 255 division
             if x[0].dtype == np.uint8:
-                processed_batches = [b.to(dtype=torch.float32).div(255).clip(0, 1) for b in processed_batches]
+                processed_batches = [
+                    b.to(dtype=torch.float32).div(255).clip(0, 1) for b in processed_batches  # type: ignore[union-attr]
+                ]
         else:
             raise AssertionError("invalid input type")
 
