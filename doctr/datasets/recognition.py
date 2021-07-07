@@ -30,9 +30,10 @@ class RecognitionDataset(AbstractDataset):
         img_folder: str,
         labels_path: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
+        **kwargs: Any,
     ) -> None:
+        super().__init__(img_folder, **kwargs)
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
-        self.root = img_folder
 
         self.data: List[Tuple[str, str]] = []
         with open(labels_path) as f:
