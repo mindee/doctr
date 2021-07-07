@@ -107,7 +107,7 @@ class SARDecoder(nn.Module):
         # initialize states (each of shape (N, rnn_units))
         hx = [None, None]
         # Initialize with the index of virtual START symbol (placed after <eos>)
-        symbol = torch.zeros((features.shape[0], self.vocab_size + 1))
+        symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
 
@@ -196,8 +196,9 @@ class SAR(nn.Module, RecognitionModel):
         _, (encoded, _) = self.encoder(pooled_features)
         encoded = encoded[-1]
         if target is not None:
-            gt, seq_len = self.compute_target(target)
-            gt, seq_len = torch.from_numpy(gt).to(dtype=torch.long), torch.tensor(seq_len)  # type: ignore[assignment]
+            _gt, _seq_len = self.compute_target(target)
+            gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)  # type: ignore[assignment]
+            gt, seq_len = gt.to(x.device), seq_len.to(x.device)
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
 
         out: Dict[str, Any] = {}
@@ -237,7 +238,7 @@ class SAR(nn.Module, RecognitionModel):
         # Compute loss
         cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction='none')
         # Compute mask
-        mask_2d = torch.arange(input_len)[None, :] < seq_len[:, None]
+        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] < seq_len[:, None]
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
@@ -256,14 +257,15 @@ class SARPostProcessor(RecognitionPostProcessor):
         # N x L
         probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
         # Take the minimum confidence of the sequence
-        probs = probs.min(dim=1).values
+        probs = probs.min(dim=1).values.detach().cpu()
 
         # Manual decoding
         word_values = [
-            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0] for encoded_seq in out_idxs.numpy()
+            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
+            for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
 
-        return list(zip(word_values, probs.detach().numpy().tolist()))
+        return list(zip(word_values, probs.numpy().tolist()))
 
 
 def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:

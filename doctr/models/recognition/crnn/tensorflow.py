@@ -188,7 +188,6 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
     # Feature extractor
     feat_extractor = backbones.__dict__[_cfg['backbone']](
         input_shape=_cfg['input_shape'],
-        include_top=False,
     )
 
     kwargs['vocab'] = _cfg['vocab']

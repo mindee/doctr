@@ -5,7 +5,7 @@
 
 from typing import Any
 
-from doctr.file_utils import is_tf_available, is_torch_available
+from doctr import is_tf_available
 from .core import RecognitionPredictor
 from ..preprocessor import PreProcessor
 from .. import recognition
@@ -14,10 +14,7 @@ from .. import recognition
 __all__ = ["recognition_predictor"]
 
 
-if is_tf_available():
-    ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31', 'master']
-elif is_torch_available():
-    ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31']
+ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31', 'master']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
@@ -29,8 +26,9 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 32)
+    input_shape = _model.cfg['input_shape'][:2] if is_tf_available() else _model.cfg['input_shape'][-2:]
     predictor = RecognitionPredictor(
-        PreProcessor(_model.cfg['input_shape'][:2], preserve_aspect_ratio=True, **kwargs),
+        PreProcessor(input_shape, preserve_aspect_ratio=True, **kwargs),
         _model
     )
 

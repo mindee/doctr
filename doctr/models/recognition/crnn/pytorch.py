@@ -14,13 +14,21 @@ from ... import backbones
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'CTCPostProcessor']
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'vgg16_bn', 'rnn_units': 128,
+        'backbone': 'vgg16_bn', 'rnn_units': 128, 'lstm_features': 512,
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'],
+        'url': None,
+    },
+    'crnn_resnet31': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'backbone': 'resnet31', 'rnn_units': 128, 'lstm_features': 4 * 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
@@ -103,6 +111,7 @@ class CRNN(RecognitionModel, nn.Module):
         self,
         feature_extractor: nn.Module,
         vocab: str,
+        lstm_features: int,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -113,7 +122,7 @@ class CRNN(RecognitionModel, nn.Module):
         self.feat_extractor = feature_extractor
 
         self.decoder = nn.LSTM(
-            input_size=1 * 512, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True
+            input_size=lstm_features, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True
         )
 
         # features units = 2 * rnn_units because bidirectional layers
@@ -163,15 +172,14 @@ class CRNN(RecognitionModel, nn.Module):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x, **kwargs)
+        features = self.feat_extractor(x)
         # B x C x H x W --> B x C*H x W --> B x W x C*H
         c, h, w = features.shape[1], features.shape[2], features.shape[3]
         features_seq = torch.reshape(features, shape=(-1, h * c, w))
         features_seq = torch.transpose(features_seq, 1, 2)
-        logits, _ = self.decoder(features_seq, **kwargs)
+        logits, _ = self.decoder(features_seq)
         logits = self.linear(logits)
 
         out: Dict[str, Any] = {}
@@ -197,12 +205,11 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = backbones.__dict__[_cfg['backbone']](
-        include_top=False,
-    )
+    feat_extractor = backbones.__dict__[_cfg['backbone']]()
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']
+    kwargs['lstm_features'] = _cfg['lstm_features']
 
     # Build the model
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
@@ -232,3 +239,24 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """
 
     return _crnn('crnn_vgg16_bn', pretrained, **kwargs)
+
+
+def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with a ResNet-31 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import crnn_resnet31
+        >>> model = crnn_resnet31(pretrained=True)
+        >>> input_tensor = torch.rand(1, 3, 32, 128)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn('crnn_resnet31', pretrained, **kwargs)

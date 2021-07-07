@@ -329,7 +329,6 @@ def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, 
     # Feature extractor
     feat_extractor = backbones.__dict__[default_cfgs[arch]['backbone']](
         input_shape=_cfg['input_shape'],
-        include_top=False,
     )
 
     kwargs['vocab'] = _cfg['vocab']

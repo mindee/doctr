@@ -97,7 +97,7 @@ def test_recognition_zoo(arch_name):
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, recognition.RecognitionPredictor)
-    input_tensor = tf.random.uniform(shape=[batch_size, 1024, 1024, 3], minval=0, maxval=1)
+    input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)

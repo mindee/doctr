@@ -1,11 +1,7 @@
 import pytest
-import os
 import json
 import requests
 from io import BytesIO
-
-# Disable GPU for testing
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 @pytest.fixture(scope="session")
