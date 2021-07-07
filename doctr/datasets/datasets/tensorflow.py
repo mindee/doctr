@@ -24,6 +24,8 @@ class AbstractDataset(_AbstractDataset):
         # Read image
         img = tf.io.read_file(os.path.join(self.root, img_name))
         img = tf.image.decode_jpeg(img, channels=3)
+        if self.fp16:
+            img = tf.image.convert_image_dtype(img, dtype=tf.float16)
 
         return img, target
 
