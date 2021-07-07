@@ -50,7 +50,8 @@ def main():
             doc = DocumentFile.from_pdf(uploaded_file.read()).as_images(output_size=(1024, 1024))
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
-        cols[0].image(doc[0], width=640)
+        page_idx = st.sidebar.selectbox("Page selection", [idx + 1 for idx in range(len(doc))]) - 1
+        cols[0].image(doc[page_idx])
 
     # Model selection
     st.sidebar.title("Model selection")
@@ -72,11 +73,11 @@ def main():
             with st.spinner('Analyzing...'):
 
                 # Forward the image to the model
-                processed_batches = predictor.det_predictor.pre_processor(doc)
+                processed_batches = predictor.det_predictor.pre_processor([doc[page_idx]])
                 out = predictor.det_predictor.model(processed_batches[0], return_model_output=True, training=False)
                 seg_map = out["out_map"]
                 seg_map = tf.squeeze(seg_map[0, ...], axis=[2])
-                seg_map = cv2.resize(seg_map.numpy(), (doc[0].shape[1], doc[0].shape[0]),
+                seg_map = cv2.resize(seg_map.numpy(), (doc[page_idx].shape[1], doc[page_idx].shape[0]),
                                      interpolation=cv2.INTER_LINEAR)
                 # Plot the raw heatmap
                 fig, ax = plt.subplots()
@@ -85,10 +86,10 @@ def main():
                 cols[1].pyplot(fig)
 
                 # Plot OCR output
-                out = predictor(doc, training=False)
                 cols[1].subheader("OCR output")
-                fig = visualize_page(out.pages[0].export(), doc[0], interactive=False)
                 cols[1].pyplot(fig)
+                out = predictor([doc[page_idx]], training=False)
+                fig = visualize_page(out.pages[0].export(), doc[page_idx], interactive=False)
 
                 # Page reconsitution under input page
                 cols[0].subheader("Page reconstitution from OCR output")
