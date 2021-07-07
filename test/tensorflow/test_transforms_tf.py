@@ -209,3 +209,15 @@ def test_rotate():
     target = {"boxes": rel_boxes}
     r_img, r_target = rotate(input_t, target, angle=12.)
     assert r_target["boxes"].all() == np.array([[.5, .5, .4, .2, 12.]]).all()
+
+
+def test_random_rotate():
+    rotator = T.RandomRotate(max_angle=10.)
+    input_t = tf.ones((50, 50, 3), dtype=tf.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    target = {"boxes": boxes}
+    r_img, r_target = rotator(input_t, target)
+    assert r_img.shape == input_t.shape
+    assert abs(r_target["boxes"][-1, -1]) <= 10.

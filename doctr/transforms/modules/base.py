@@ -4,13 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import List, Any, Callable
+from typing import List, Any, Callable, Dict, Tuple
+import numpy as np
 
 from doctr.utils.repr import NestedObject
 from .. import functional as F
 
 
-__all__ = ['ColorInversion', 'OneOf', 'RandomApply']
+__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate']
 
 
 class ColorInversion(NestedObject):
@@ -85,3 +86,22 @@ class RandomApply(NestedObject):
         if random.random() < self.p:
             return self.transform(img)
         return img
+
+
+class RandomRotate(NestedObject):
+    """Randomly rotate a tensor image
+
+    Args:
+        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
+        [-max_angle, max_angle]
+    """
+    def __init__(self, max_angle: float = 25.) -> None:
+        self.max_angle = max_angle
+
+    def extra_repr(self) -> str:
+        return f"max_angle={self.max_angle}"
+
+    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
+        angle = random.uniform(-self.max_angle, self.max_angle)
+        rotated_img, rotated_target = F.rotate(img, target, angle)
+        return rotated_img, rotated_target
