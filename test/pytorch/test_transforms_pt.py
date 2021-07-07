@@ -93,6 +93,6 @@ def test_random_rotate():
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    r_img, r_boxes = rotator(input_t, boxes)
+    r_img, target = rotator(input_t, dict(boxes=boxes))
     assert r_img.shape == input_t.shape
-    assert abs(r_boxes[-1, -1]) <= 10.
+    assert abs(target["boxes"][-1, -1]) <= 10.
