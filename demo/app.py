@@ -34,9 +34,11 @@ def main():
     # For newline
     st.write('\n')
     # Set the columns
-    cols = st.beta_columns((1, 1))
-    cols[0].subheader("Input document (first page)")
-    cols[1].subheader("Raw heatmap (segmentation task)")
+    cols = st.beta_columns((1, 1, 1, 1))
+    cols[0].subheader("Input page")
+    cols[1].subheader("Segmentation heatmap")
+    cols[2].subheader("OCR output")
+    cols[3].subheader("Page reconstitution")
 
     # Sidebar
     # File selection
@@ -86,15 +88,13 @@ def main():
                 cols[1].pyplot(fig)
 
                 # Plot OCR output
-                cols[1].subheader("OCR output")
-                cols[1].pyplot(fig)
                 out = predictor([doc[page_idx]], training=False)
                 fig = visualize_page(out.pages[0].export(), doc[page_idx], interactive=False)
+                cols[2].pyplot(fig)
 
                 # Page reconsitution under input page
-                cols[0].subheader("Page reconstitution from OCR output")
                 img = synthetize_page(out.pages[0].export())
-                cols[0].image(img, clamp=True, width=640)
+                cols[3].image(img, clamp=True)
 
 
 if __name__ == '__main__':
