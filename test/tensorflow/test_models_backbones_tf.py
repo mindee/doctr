@@ -9,6 +9,8 @@ from doctr.models import backbones
     [
         ["vgg16_bn", False, (224, 224, 3), (7, 56, 512)],
         ["resnet31", False, (32, 128, 3), (4, 32, 512)],
+        ["mobilenetv3_large", False, (512, 512, 3), (1, 1, 1280)],
+        ["mobilenetv3_small", False, (512, 512, 3), (1, 1, 1280)],
     ],
 )
 def test_classification_architectures(arch_name, top_implemented, input_shape, output_size):
