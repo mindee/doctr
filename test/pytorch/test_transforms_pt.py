@@ -3,8 +3,13 @@ import pytest
 import math
 import torch
 import numpy as np
+<<<<<<< HEAD
 from doctr.transforms import Resize, ColorInversion, RandomRotate
 from doctr.transforms.functional import rotate
+=======
+from doctr.transforms import Resize, ColorInversion
+from doctr.transforms.functional import rotate, crop_detection
+>>>>>>> main
 
 
 def test_resize():
@@ -96,3 +101,22 @@ def test_random_rotate():
     r_img, target = rotator(input_t, dict(boxes=boxes))
     assert r_img.shape == input_t.shape
     assert abs(target["boxes"][-1, -1]) <= 10.
+
+
+def test_crop_detection():
+    img = torch.ones((3, 50, 50), dtype=torch.float32)
+    abs_boxes = np.array([
+        [15, 20, 35, 30],
+        [5, 10, 10, 20],
+    ])
+    crop_box = (12, 23, 50, 50)
+    c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
+    assert c_img.shape == (3, 27, 38)
+    assert c_boxes.shape == (1, 4)
+    rel_boxes = np.array([
+        [.3, .4, .7, .6],
+        [.1, .2, .2, .4],
+    ])
+    c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
+    assert c_img.shape == (3, 27, 38)
+    assert c_boxes.shape == (1, 4)

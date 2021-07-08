@@ -22,7 +22,7 @@ def main(args):
 
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
     if args.path.endswith(".pdf"):
-        doc = DocumentFile.from_pdf(args.path).as_images(output_size=(1024, 1024))
+        doc = DocumentFile.from_pdf(args.path).as_images()
     else:
         doc = DocumentFile.from_images(args.path)
 

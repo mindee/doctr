@@ -3,7 +3,7 @@ import math
 import numpy as np
 import tensorflow as tf
 from doctr import transforms as T
-from doctr.transforms.functional import rotate
+from doctr.transforms.functional import rotate, crop_detection
 
 
 def test_resize():
@@ -218,3 +218,22 @@ def test_random_rotate():
     r_img, target = rotator(input_t, dict(boxes=boxes))
     assert r_img.shape == input_t.shape
     assert abs(target["boxes"][-1, -1]) <= 10.
+
+
+def test_crop_detection():
+    img = tf.ones((50, 50, 3), dtype=tf.float32)
+    abs_boxes = np.array([
+        [15, 20, 35, 30],
+        [5, 10, 10, 20],
+    ])
+    crop_box = (12, 23, 50, 50)
+    c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
+    assert c_img.shape == (27, 38, 3)
+    assert c_boxes.shape == (1, 4)
+    rel_boxes = np.array([
+        [.3, .4, .7, .6],
+        [.1, .2, .2, .4],
+    ])
+    c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
+    assert c_img.shape == (27, 38, 3)
+    assert c_boxes.shape == (1, 4)

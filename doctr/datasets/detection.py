@@ -34,21 +34,23 @@ class DetectionDataset(AbstractDataset):
         label_folder: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
+        **kwargs: Any,
     ) -> None:
+        super().__init__(img_folder, **kwargs)
         self.sample_transforms = sample_transforms
-        self.root = img_folder
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
+        np_dtype = np.float16 if self.fp16 else np.float32
         for img_path in os.listdir(self.root):
             # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
             with open(os.path.join(label_folder, img_path + '.json'), 'rb') as f:
                 boxes = json.load(f)
-            bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np.float32)
+            bboxes = np.asarray(boxes["boxes_1"] + boxes["boxes_2"] + boxes["boxes_3"], dtype=np_dtype)
             if rotated_bbox:
                 # Switch to rotated rects
-                bboxes = np.asarray([list(fit_rbbox(box)) for box in bboxes], dtype=np.float32)
+                bboxes = np.asarray([list(fit_rbbox(box)) for box in bboxes], dtype=np_dtype)
             else:
                 # Switch to xmin, ymin, xmax, ymax
                 bboxes = np.concatenate((bboxes.min(axis=1), bboxes.max(axis=1)), axis=1)

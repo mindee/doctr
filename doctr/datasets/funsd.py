@@ -50,14 +50,14 @@ class FUNSD(VisionDataset):
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
 
         # # List images
-        self.root = os.path.join(self._root, subfolder, 'images')
+        tmp_root = os.path.join(self.root, subfolder, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        for img_path in os.listdir(self.root):
+        for img_path in os.listdir(tmp_root):
             # File existence check
-            if not os.path.exists(os.path.join(self.root, img_path)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
+            if not os.path.exists(os.path.join(tmp_root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
             stem = Path(img_path).stem
-            with open(os.path.join(self._root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
+            with open(os.path.join(self.root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
                 data = json.load(f)
 
             _targets = [(word['text'], word['box']) for block in data['form']
@@ -72,6 +72,8 @@ class FUNSD(VisionDataset):
                 ]
 
             self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=text_targets)))
+
+        self.root = tmp_root
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
