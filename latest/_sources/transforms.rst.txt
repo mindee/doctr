@@ -21,6 +21,7 @@ Here are all transformations that are available through DocTR:
 .. autoclass:: RandomHue
 .. autoclass:: RandomGamma
 .. autoclass:: RandomJpegQuality
+.. autoclass:: RandomRotate
 
 
 Composing transformations
