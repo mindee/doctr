@@ -20,6 +20,7 @@ Here are all transformations that are available through DocTR:
 .. autoclass:: RandomSaturation
 .. autoclass:: RandomHue
 .. autoclass:: RandomGamma
+.. autoclass:: RandomJpegQuality
 .. autoclass:: RandomRotate
 
 
