@@ -22,7 +22,7 @@ class RecognitionDataset(AbstractDataset):
         >>> img, target = train_set[0]
 
     Args:
-        data_folder: folder containing folder(s) of images and labels as json files, each image folder 
+        data_folder: folder containing folder(s) of images and labels as json files, each image folder
         must be named "images" and be in the same subdirectory than the corresponding "labels.json"
         sample_transforms: composable transformations that will be applied to each image
     """
