@@ -5,7 +5,7 @@
 
 import os
 import json
-from typing import Tuple, List, Optional, Callable, Any, Union
+from typing import Tuple, List, Optional, Callable, Any
 
 from .datasets import AbstractDataset
 
@@ -27,8 +27,8 @@ class RecognitionDataset(AbstractDataset):
     """
     def __init__(
         self,
-        img_folder: Union[str, List[str]],
-        labels_path: Union[str, List[str]],
+        img_folder: str,
+        labels_path: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         **kwargs: Any,
     ) -> None:
@@ -36,31 +36,14 @@ class RecognitionDataset(AbstractDataset):
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
 
         self.data: List[Tuple[str, str]] = []
-        if isinstance(labels_path, str):
-            with open(labels_path) as f:
-                labels = json.load(f)
-        else:
-            labels = dict()
-            for labelfile in labels_path:
-                with open(labelfile) as f:
-                    labels.update(json.load(f))
+        with open(labels_path) as f:
+            labels = json.load(f)
 
-        if isinstance(img_folder, str):
-            for img_path in os.listdir(self.root):
-                # File existence check
-                if not os.path.exists(os.path.join(self.root, img_path)):
-                    raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
-                label = labels.get(img_path)
-                if not isinstance(label, str):
-                    raise KeyError("Image is not in referenced in label file")
-                self.data.append((img_path, label))
-        else:
-            for folder_path in self.root:
-                for img_path in os.listdir(folder_path):
-                    # File existence check
-                    if not os.path.exists(os.path.join(self.root, img_path)):
-                        raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
-                    label = labels.get(img_path)
-                    if not isinstance(label, str):
-                        raise KeyError("Image is not in referenced in label file")
-                    self.data.append((img_path, label))
+        for img_path in os.listdir(self.root):
+            # File existence check
+            if not os.path.exists(os.path.join(self.root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
+            label = labels.get(img_path)
+            if not isinstance(label, str):
+                raise KeyError("Image is not in referenced in label file")
+            self.data.append((img_path, label))

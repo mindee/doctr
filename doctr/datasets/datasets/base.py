@@ -20,7 +20,7 @@ class _AbstractDataset:
 
     def __init__(
         self,
-        root: Union[str, Path, List[str]],
+        root: Union[str, Path],
         fp16: bool = False,
     ) -> None:
         self.root = root
