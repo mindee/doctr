@@ -129,8 +129,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     ds2 = ds
     ds.merge_dataset(ds2)
     assert len(ds) == 2 * len(ds2)
-    ds.merge_datasets([ds2, ds2])
-    assert len(ds) == 4 * len(ds2)
+    ds2.merge_datasets([ds2, ds2])
+    assert len(ds) == 3 * len(ds2)
 
 
 def test_ocrdataset(mock_ocrdataset):
