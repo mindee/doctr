@@ -94,18 +94,6 @@ def main(args):
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
 
-    # Optimizer
-    scheduler = tf.keras.optimizers.schedules.CosineDecay(
-        initial_learning_rate=args.lr, decay_steps=args.epochs, alpha=0.0
-    )
-    optimizer = tf.keras.optimizers.Adam(
-        learning_rate=scheduler,
-        beta_1=0.95,
-        beta_2=0.99,
-        epsilon=1e-6,
-        clipnorm=5
-    )
-
     # Load doctr model
     model = recognition.__dict__[args.model](
         pretrained=args.pretrained,
@@ -155,6 +143,19 @@ def main(args):
         x, target = next(iter(train_loader))
         plot_samples(x, target)
         return
+
+    # Optimizer
+    total_steps = int(args.epochs * len(train_set) / args.batch_size)
+    scheduler = tf.keras.optimizers.schedules.CosineDecay(
+        initial_learning_rate=args.lr, decay_steps=total_steps, alpha=0.0
+    )
+    optimizer = tf.keras.optimizers.Adam(
+        learning_rate=scheduler,
+        beta_1=0.95,
+        beta_2=0.99,
+        epsilon=1e-6,
+        clipnorm=5
+    )
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
