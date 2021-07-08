@@ -75,6 +75,25 @@ class PreProcessor(nn.Module):
         Returns:
             list of page batches
         """
+
+        # List check
+        if not isinstance(x, list):
+            if not isinstance(x, (np.ndarray, torch.Tensor)):
+                raise TypeError("invalid input type")
+            x = [x]
+        # Sample transform (to tensor, resize)
+        samples = multithread_exec(, x)
+
+        # Batching
+        num_batches = int(math.ceil(len(samples) / self.batch_size))
+        _indices = range(len(samples))
+        batches = [
+            torch.stack(samples[idx * num_batches: min((idx + 1) * num_batches, len(samples) - 1)], dim=0)
+            for idx in range(num_batches)
+        ]
+        # Batch transforms (normalize)
+        batches = multithread_exec(self.normalize, batches)
+
         # Check input type
         if isinstance(x, torch.Tensor):
             # Tf tensor from data loader: check if tensor size is output_size
