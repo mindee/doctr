@@ -21,8 +21,8 @@ class RecognitionDataset(AbstractDataset):
         >>> img, target = train_set[0]
 
     Args:
-        img_folder: path to the images folder (or list of paths)
-        labels_path: path to the json file containing all labels (character sequences), or list of paths
+        img_folder: path to the images folder
+        labels_path: path to the json file containing all labels (character sequences)
         sample_transforms: composable transformations that will be applied to each image
     """
     def __init__(
@@ -38,7 +38,6 @@ class RecognitionDataset(AbstractDataset):
         self.data: List[Tuple[str, str]] = []
         with open(labels_path) as f:
             labels = json.load(f)
-
         for img_path in os.listdir(self.root):
             # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
