@@ -3,13 +3,8 @@ import pytest
 import math
 import torch
 import numpy as np
-<<<<<<< HEAD
 from doctr.transforms import Resize, ColorInversion, RandomRotate
-from doctr.transforms.functional import rotate
-=======
-from doctr.transforms import Resize, ColorInversion
 from doctr.transforms.functional import rotate, crop_detection
->>>>>>> main
 
 
 def test_resize():
