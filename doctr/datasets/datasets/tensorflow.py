@@ -29,7 +29,7 @@ class AbstractDataset(_AbstractDataset):
         else:
             img = tf.image.convert_image_dtype(img, dtype=tf.float32)
 
-        img = tf.clip_by_value(img / 255, 0, 1)
+        img = tf.clip_by_value(img, 0, 1)
 
         return img, target
 
