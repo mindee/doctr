@@ -7,7 +7,7 @@ import logging
 import os
 from zipfile import ZipFile
 from tensorflow.keras import layers, Model
-from typing import Optional, List, Any
+from typing import Callable, Optional, List, Any, Union
 
 from ..data_utils import download_from_url
 
@@ -56,7 +56,7 @@ def load_pretrained_params(
 
 def conv_sequence(
     out_channels: int,
-    activation: str = None,
+    activation: Union[str, Callable] = None,
     bn: bool = False,
     padding: str = 'same',
     kernel_initializer: str = 'he_normal',
