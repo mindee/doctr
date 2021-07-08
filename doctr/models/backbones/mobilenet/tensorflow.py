@@ -6,6 +6,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
+from typing import Optional, Tuple
 from ...utils import conv_sequence
 
 
@@ -55,28 +56,37 @@ class Bottleneck(layers.Layer):
     """
     def __init__(
         self,
-        filters: int,
+        out_chan: int,
         kernel: int,
-        e: int,
-        s: int,
-        squeeze: bool,
-        nl: str,
-        alpha: float,
+        exp_chan: int,
+        strides: int,
+        use_squeeze: bool,
+        use_swish: bool,
     ) -> None:
 
-        cchannel = int(alpha * filters)
-        self.filters = filters
-        _layers = [
-            *conv_sequence(e, activation=nl, kernel_size=1),
-            layers.DepthwiseConv2D(kernel, strides=(s, s), depth_multiplier=1, padding='same'),
+        self.out_chan = out_chan
+        self.strides = strides
+        if use_swish:
+            _layers = [*conv_sequence(exp_chan, activation=hard_swish, kernel_size=1)]
+        else:
+            _layers = [*conv_sequence(exp_chan, activation=tf.nn.relu6, kernel_size=1)]
+
+        _layers.append([
+            layers.DepthwiseConv2D(kernel, strides, depth_multiplier=1, padding='same'),
             layers.BatchNormalization(),
-            activation(nl),
-        ]
-        if squeeze:
-            _layers.append(Squeeze(chan=e))
+        ])
+
+        if use_swish:
+            _layers.append(layers.Activation(hard_swish))
+        else:
+            _layers.append(layers.Activation(tf.nn.relu6))
+
+        if use_squeeze:
+            _layers.append(Squeeze(exp_chan))
+
         _layers.append(
             [
-                layers.Conv2D(cchannel, (1, 1), strides=(1, 1), padding='same'),
+                layers.Conv2D(out_chan, 1, strides=(1, 1), padding='same'),
                 layers.BatchNormalization(),
 
             ]
@@ -88,10 +98,59 @@ class Bottleneck(layers.Layer):
         inputs: tf.Tensor
     ) -> tf.Tensor:
 
-        input_shape = inputs.shape
-        r = (s == 1 and input_shape[3] == self.filters)
+        in_chan = inputs.shape[3]
+        use_residual = (self.strides == 1 and in_chan == self.out_chan)
         x = self.bottleneck_sequence(inputs)
-        if r:
+        if use_residual:
             x = tf.add(x, inputs)
 
         return x
+
+
+class MobileNetV3_Large(Sequential):
+    def __init__(
+        self,
+        input_shape: Tuple[int, int],
+        num_classes: Optional[int] = None,
+        include_top: bool = True
+    ):
+        """Init.
+        # Arguments
+            input_shape: An integer or tuple/list of 3 integers, shape
+                of input tensor.
+            n_class: Integer, number of classes.
+            alpha: Integer, width multiplier.
+            include_top: if inculde classification layer.
+        # Returns
+            MobileNetv3 model.
+        """
+        _layers = [
+            *conv_sequence(16, strides=2, activation=hard_swish, kernel_size=3, input_shape=(*input_shape, 3)),
+            Bottleneck(16, 3, 16, 1, use_squeeze=False, use_swish=False),
+            Bottleneck(24, 3, 64, 2, use_squeeze=False, use_swish=False),
+            Bottleneck(24, 3, 72, 1, use_squeeze=False, use_swish=False),
+            Bottleneck(40, 5, 72, 2, use_squeeze=True, use_swish=False),
+            Bottleneck(40, 5, 120, 1, use_squeeze=True, use_swish=False),
+            Bottleneck(40, 5, 120, 1, use_squeeze=True, use_swish=False),
+            Bottleneck(80, 3, 240, 2, use_squeeze=False, use_swish=True),
+            Bottleneck(80, 3, 200, 1, use_squeeze=False, use_swish=True),
+            Bottleneck(80, 3, 184, 1, use_squeeze=False, use_swish=True),
+            Bottleneck(80, 3, 184, 1, use_squeeze=False, use_swish=True),
+            Bottleneck(112, 3, 480, 1, use_squeeze=True, use_swish=True),
+            Bottleneck(112, 3, 672, 1, use_squeeze=True, use_swish=True),
+            Bottleneck(160, 5, 672, 2, use_squeeze=True, use_swish=True),
+            Bottleneck(160, 5, 960, 1, use_squeeze=True, use_swish=True),
+            Bottleneck(160, 5, 960, 1, use_squeeze=True, use_swish=True),
+            *conv_sequence(960, strides=1, activation=hard_swish, kernel_size=1),
+            layers.GlobalAveragePooling2D(),
+            layers.Reshape((1, 1, 960)),
+            layers.Conv2D(1280, 1, padding='same'),
+            layers.Activation(hard_swish)
+        ]
+
+        if include_top:
+            _layers.append([
+                layers.Conv2D(num_classes, 1, padding='same', activation='softmax'),
+            ])
+
+        super().__init__(_layers)
