@@ -4,7 +4,7 @@ import math
 import torch
 import numpy as np
 from doctr.transforms import Resize, ColorInversion
-from doctr.transforms.functional import rotate
+from doctr.transforms.functional import rotate, crop_detection
 
 
 def test_resize():
@@ -87,3 +87,22 @@ def test_rotate():
     target = {"boxes": rel_boxes}
     r_img, r_target = rotate(input_t, target, angle=12.)
     assert r_target["boxes"].all() == np.array([[.5, .5, .4, .2, 12.]]).all()
+
+
+def test_crop_detection():
+    img = torch.ones((3, 50, 50), dtype=torch.float32)
+    abs_boxes = np.array([
+        [15, 20, 35, 30],
+        [5, 10, 10, 20],
+    ])
+    crop_box = (12, 23, 50, 50)
+    c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
+    assert c_img.shape == (3, 27, 38)
+    assert c_boxes.shape == (1, 4)
+    rel_boxes = np.array([
+        [.3, .4, .7, .6],
+        [.1, .2, .2, .4],
+    ])
+    c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
+    assert c_img.shape == (3, 27, 38)
+    assert c_boxes.shape == (1, 4)

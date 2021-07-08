@@ -48,17 +48,18 @@ class CORD(VisionDataset):
         super().__init__(url, None, sha256, True, **kwargs)
 
         # # List images
-        self.root = os.path.join(self._root, 'image')
+        tmp_root = os.path.join(self.root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
+        np_dtype = np.float16 if self.fp16 else np.float32
         self.train = train
         self.sample_transforms = sample_transforms
-        for img_path in os.listdir(self.root):
+        for img_path in os.listdir(tmp_root):
             # File existence check
-            if not os.path.exists(os.path.join(self.root, img_path)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
+            if not os.path.exists(os.path.join(tmp_root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
             stem = Path(img_path).stem
             _targets = []
-            with open(os.path.join(self._root, 'json', f"{stem}.json"), 'rb') as f:
+            with open(os.path.join(self.root, 'json', f"{stem}.json"), 'rb') as f:
                 label = json.load(f)
                 for line in label["valid_line"]:
                     for word in line["words"]:
@@ -71,7 +72,7 @@ class CORD(VisionDataset):
                                     [x[1], y[1]],
                                     [x[2], y[2]],
                                     [x[3], y[3]],
-                                ], dtype=np.float32)))
+                                ], dtype=np_dtype)))
                             else:
                                 # Reduce 8 coords to 4
                                 box = [min(x), min(y), max(x), max(y)]
@@ -83,6 +84,7 @@ class CORD(VisionDataset):
                 img_path,
                 dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=text_targets)
             ))
+        self.root = tmp_root
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
