@@ -8,7 +8,7 @@ import tensorflow as tf
 import numpy as np
 from typing import Optional
 
-from .multithreading import multithread_exec
+from doctr.utils.multithreading import multithread_exec
 
 __all__ = ["DataLoader"]
 
