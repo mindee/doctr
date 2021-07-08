@@ -6,6 +6,7 @@
 import os
 import json
 from typing import Tuple, List, Optional, Callable, Any
+from pathlib import Path
 
 from .datasets import AbstractDataset
 
@@ -46,3 +47,19 @@ class RecognitionDataset(AbstractDataset):
             if not isinstance(label, str):
                 raise KeyError("Image is not in referenced in label file")
             self.data.append((img_path, label))
+
+    def merge_dataset(self, ds: AbstractDataset) -> None:
+        # Update data with new root for self
+        new_data: List[Tuple[str, str]] = []
+        for img_path, label in self.data:
+            new_data.append((str(Path(self.root).joinpath(img_path)), label))
+        self.data = new_data
+        # Define new root
+        self.root = Path("/")
+        # Merge with ds data
+        for img_path, label in ds.data:
+            self.data.append((str(Path(ds.root).joinpath(img_path)), label))
+
+    def merge_datasets(self, ds_list: List[AbstractDataset]) -> None:
+        for ds in ds_list:
+            self.merge_dataset(ds)
