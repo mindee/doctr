@@ -9,7 +9,7 @@ import numpy as np
 from typing import Dict, Tuple
 from doctr.utils.geometry import rotate_boxes
 
-__all__ = ["invert_colors", "rotate"]
+__all__ = ["invert_colors", "rotate", "crop_detection"]
 
 
 def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
@@ -57,3 +57,40 @@ def rotate(
         r_boxes[:, [1, 3]] *= img.shape[1]
     target["boxes"] = r_boxes
     return rotated_img, target
+
+
+def crop_detection(
+    img: torch.Tensor,
+    boxes: np.ndarray,
+    crop_box: Tuple[int, int, int, int]
+) -> Tuple[torch.Tensor, np.ndarray]:
+    """Crop and image and associated bboxes
+
+    Args:
+        img: image to crop
+        boxes: array of boxes to clip, absolute (int) or relative (float)
+        crop_box: box (xmin, ymin, xmax, ymax) to crop the image. Absolute coords.
+
+    Returns:
+        A tuple of cropped image, cropped boxes, where the image is not resized.
+    """
+    xmin, ymin, xmax, ymax = crop_box
+    croped_img = F.crop(
+        img, ymin, xmin, ymax - ymin, xmax - xmin
+    )
+    if boxes.dtype == int:  # absolute boxes
+        # Clip boxes
+        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin, xmax)
+        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin, ymax)
+    else:  # relative boxes
+        h, w = img.shape[-2:]
+        # Clip boxes
+        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin / w, xmax / w)
+        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin / h, ymax / h)
+    # Remove 0-sized boxes
+    zero_height = boxes[:, 1] == boxes[:, 3]
+    zero_width = boxes[:, 0] == boxes[:, 2]
+    empty_boxes = np.logical_or(zero_height, zero_width)
+    boxes = boxes[~empty_boxes]
+
+    return croped_img, boxes
