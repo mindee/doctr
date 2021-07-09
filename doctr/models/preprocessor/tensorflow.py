@@ -57,7 +57,7 @@ class PreProcessor(NestedObject):
 
         num_batches = int(math.ceil(len(samples) / self.batch_size))
         batches = [
-            tf.stack(samples[idx * self.batch_size: (idx + 1) * self.batch_size], axis=0)
+            tf.stack(samples[idx * self.batch_size: min((idx + 1) * self.batch_size, len(samples))], axis=0)
             for idx in range(int(num_batches))
         ]
 

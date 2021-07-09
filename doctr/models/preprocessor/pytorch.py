@@ -56,7 +56,7 @@ class PreProcessor(nn.Module):
 
         num_batches = int(math.ceil(len(samples) / self.batch_size))
         batches = [
-            torch.stack(samples[idx * self.batch_size: (idx + 1) * self.batch_size], dim=0)
+            torch.stack(samples[idx * self.batch_size: min((idx + 1) * self.batch_size, len(samples))], dim=0)
             for idx in range(int(num_batches))
         ]
 
