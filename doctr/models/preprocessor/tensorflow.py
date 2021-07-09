@@ -9,6 +9,7 @@ from typing import List, Tuple, Union, Any
 
 from doctr.utils.repr import NestedObject
 from doctr.transforms import Normalize, Resize
+from doctr.utils.multithreading import multithread_exec
 
 
 __all__ = ['PreProcessor']
@@ -42,60 +43,73 @@ class PreProcessor(NestedObject):
 
     def batch_inputs(
         self,
-        x: List[tf.Tensor]
+        samples: List[tf.Tensor]
     ) -> List[tf.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
-            x: list of samples (tf.Tensor)
+            samples: list of samples (tf.Tensor)
 
         Returns:
             list of batched samples
         """
 
-        num_batches = len(x) / self.batch_size
-        # Deal with fixed-size batches
-        b_images = [tf.stack(x[idx * self.batch_size: (idx + 1) * self.batch_size], axis=0)
-                    for idx in range(int(num_batches))]
-        # Deal with the last batch
-        if num_batches > int(num_batches):
-            b_images.append(tf.stack(x[int(num_batches) * self.batch_size:], axis=0))
-        return b_images
+        num_batches = int(math.ceil(len(samples) / self.batch_size))
+        batches = [
+            tf.stack(samples[idx * self.batch_size: (idx + 1) * self.batch_size], axis=0)
+            for idx in range(int(num_batches))
+        ]
+
+        return batches
+
+    def sample_transforms(self, x: Union[np.ndarray, tf.Tensor]) -> tf.Tensor:
+        if x.ndim != 3:
+            raise AssertionError("expected list of 3D Tensors")
+        if isinstance(x, np.ndarray):
+            x = tf.convert_to_tensor(x)
+        # Resizing
+        x = self.resize(x)
+        # Data type
+        if x.dtype == tf.uint8:  # type: ignore[union-attr]
+            x = tf.image.convert_image_dtype(x, dtype=tf.float32)
+
+        return x
 
     def __call__(
         self,
-        x: Union[tf.Tensor, List[np.ndarray]]
+        x: Union[tf.Tensor, np.ndarray, List[Union[tf.Tensor, np.ndarray]]]
     ) -> List[tf.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
-            x: list of images (np.array) or tf.Tensor (already resized and batched)
+            x: list of images (np.array) or tensors (already resized and batched)
         Returns:
             list of page batches
         """
-        # Check input type
-        if isinstance(x, tf.Tensor):
-            # Inspect the data type before resizing (depending on interpolation method, it may cast it to fp32)
-            input_dtype = x.dtype
-            # Tf tensor from data loader: check if tensor size is output_size
-            if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
+
+        # Input type check
+        if isinstance(x, (np.ndarray, tf.Tensor)):
+            if x.ndim != 4:
+                raise AssertionError("expected 4D Tensor")
+            if isinstance(x, np.ndarray):
+                x = tf.convert_to_tensor(x)
+            # Resizing
+            if x.shape[1] != self.resize.size[0] or x.shape[2] != self.resize.size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
-            if input_dtype == tf.uint8:
-                x = tf.cast(x, dtype=tf.float32) / 255
-            processed_batches = [x]
-        elif isinstance(x, list) and all(isinstance(t, np.ndarray) for t in x):
-            input_dtype = x[0].dtype
-            # Convert to tensors & resize (and eventually pad) the inputs
-            images = [self.resize(tf.convert_to_tensor(sample)) for sample in x]
-            # Batch them
-            processed_batches = self.batch_inputs(images)
-            # Casting & 255 division
-            if input_dtype == np.uint8:
-                processed_batches = [tf.cast(b, dtype=tf.float32) / 255 for b in processed_batches]
+            # Data type
+            if x.dtype == torch.uint8:  # type: ignore[union-attr]
+                x = tf.image.convert_image_dtype(x, dtype=tf.float32)
+            batches = [x]
+
+        elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, tf.Tensor)) for sample in x):
+            # Sample transform (to tensor, resize)
+            samples = multithread_exec(self.sample_transforms, x)
+            # Batching
+            batches = self.batch_inputs(samples)
         else:
-            raise AssertionError("invalid input type")
+            raise TypeError(f"invalid input type: {type(x)}")
 
-        # Normalize
-        processed_batches = [self.normalize(b) for b in processed_batches]
+        # Batch transforms (normalize)
+        batches = multithread_exec(self.normalize, batches)
 
-        return processed_batches
+        return batches

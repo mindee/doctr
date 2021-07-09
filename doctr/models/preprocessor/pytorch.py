@@ -3,14 +3,16 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 import torch
 from torch import nn
 import numpy as np
 from typing import List, Tuple, Union, Any
-
 from torchvision.transforms import transforms as T
 from torchvision.transforms import functional as F
+
 from doctr.transforms import Resize
+from doctr.utils.multithreading import multithread_exec
 
 __all__ = ['PreProcessor']
 
@@ -41,30 +43,41 @@ class PreProcessor(nn.Module):
 
     def batch_inputs(
         self,
-        x: List[torch.Tensor]
+        samples: List[torch.Tensor]
     ) -> List[torch.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
-            x: list of samples
+            samples: list of samples of shape (C, H, W)
 
         Returns:
-            list of batched samples
+            list of batched samples (*, C, H, W)
         """
 
-        num_batches = len(x) / self.batch_size
-        # Deal with fixed-size batches
-        b_images = [torch.stack(x[idx * self.batch_size: (idx + 1) * self.batch_size], dim=0)
-                    for idx in range(int(num_batches))]
-        # Deal with the last batch
-        if num_batches > int(num_batches):
-            b_images.append(torch.stack(x[int(num_batches) * self.batch_size:], dim=0))
+        num_batches = int(math.ceil(len(samples) / self.batch_size))
+        batches = [
+            torch.stack(samples[idx * self.batch_size: (idx + 1) * self.batch_size], dim=0)
+            for idx in range(int(num_batches))
+        ]
 
-        return b_images
+        return batches
+
+    def sample_transforms(self, x: Union[np.ndarray, torch.Tensor]) -> torch.Tensor:
+        if x.ndim != 3:
+            raise AssertionError("expected list of 3D Tensors")
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x.copy()).permute(2, 0, 1)
+        # Resizing
+        x = self.resize(x)
+        # Data type
+        if x.dtype == torch.uint8:  # type: ignore[union-attr]
+            x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+
+        return x
 
     def __call__(
         self,
-        x: Union[torch.Tensor, List[np.ndarray]]
+        x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]
     ) -> List[torch.Tensor]:
         """Prepare document data for model forwarding
 
@@ -74,46 +87,29 @@ class PreProcessor(nn.Module):
             list of page batches
         """
 
-        # List check
-        if not isinstance(x, list):
-            if not isinstance(x, (np.ndarray, torch.Tensor)):
-                raise TypeError("invalid input type")
-            x = [x]
-        # Sample transform (to tensor, resize)
-        samples = multithread_exec(, x)
+        # Input type check
+        if isinstance(x, (np.ndarray, torch.Tensor)):
+            if x.ndim != 4:
+                raise AssertionError("expected 4D Tensor")
+            if isinstance(x, np.ndarray):
+                x = torch.from_numpy(x.copy()).permute(2, 0, 1)
+            # Resizing
+            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
+                x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
+            # Data type
+            if x.dtype == torch.uint8:  # type: ignore[union-attr]
+                x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+            batches = [x]
 
-        # Batching
-        num_batches = int(math.ceil(len(samples) / self.batch_size))
-        _indices = range(len(samples))
-        batches = [
-            torch.stack(samples[idx * num_batches: min((idx + 1) * num_batches, len(samples) - 1)], dim=0)
-            for idx in range(num_batches)
-        ]
+        elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
+            # Sample transform (to tensor, resize)
+            samples = multithread_exec(self.sample_transforms, x)
+            # Batching
+            batches = self.batch_inputs(samples)
+        else:
+            raise TypeError(f"invalid input type: {type(x)}")
+
         # Batch transforms (normalize)
         batches = multithread_exec(self.normalize, batches)
 
-        # Check input type
-        if isinstance(x, torch.Tensor):
-            # Tf tensor from data loader: check if tensor size is output_size
-            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
-                x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
-            if x.dtype == torch.uint8:  # type: ignore[union-attr]
-                x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
-            processed_batches = [x]
-        elif isinstance(x, list) and all(isinstance(t, np.ndarray) for t in x):
-            # Resize (and eventually pad) the inputs
-            images: List[torch.Tensor] = [self.resize(torch.from_numpy(sample.copy()).permute(2, 0, 1)) for sample in x]
-            # Batch them
-            processed_batches = self.batch_inputs(images)  # type: ignore[assignment]
-            # Casting & 255 division
-            if x[0].dtype == np.uint8:
-                processed_batches = [
-                    b.to(dtype=torch.float32).div(255).clip(0, 1) for b in processed_batches  # type: ignore[union-attr]
-                ]
-        else:
-            raise AssertionError("invalid input type")
-
-        # Normalize
-        processed_batches = [self.normalize(b) for b in processed_batches]  # type: ignore[union-attr]
-
-        return processed_batches  # type: ignore[return-value]
+        return batches
