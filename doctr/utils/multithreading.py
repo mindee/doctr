@@ -16,7 +16,7 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
     """Execute a given function in parallel for each element of a given sequence
 
     Example::
-        >>> from doctr.datasets.multithreading import multithread_exec
+        >>> from doctr.utils.multithreading import multithread_exec
         >>> entries = [1, 4, 8]
         >>> results = multithread_exec(lambda x: x ** 2, entries)
 
