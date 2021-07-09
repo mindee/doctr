@@ -8,12 +8,14 @@ from doctr.models.preprocessor import PreProcessor
 @pytest.mark.parametrize(
     "batch_size, output_size, input_tensor, expected_batches, expected_value",
     [
-        [2, (128, 128), [np.full((256, 128, 3), 255, dtype=np.uint8)] * 3, 2, .5],  # numpy uint8
-        [2, (128, 128), [np.ones((256, 128, 3), dtype=np.float32)] * 3, 2, .5],  # numpy float32
-        [2, (128, 128), torch.ones((3, 3, 128, 128), dtype=torch.float32), 1, .5],  # torch correct size
-        [2, (128, 128), torch.ones((3, 3, 256, 128), dtype=torch.float32), 1, .5],  # torch incorrect size
+        [2, (128, 128), np.full((3, 256, 128, 3), 255, dtype=np.uint8), 1, .5],  # numpy uint8
+        [2, (128, 128), np.ones((3, 256, 128, 3), dtype=np.float32), 1, .5],  # numpy fp32
         [2, (128, 128), torch.full((3, 3, 256, 128), 255, dtype=torch.uint8), 1, .5],  # torch uint8
-
+        [2, (128, 128), torch.ones((3, 3, 256, 128), dtype=torch.float32), 1, .5],  # torch fp32
+        [2, (128, 128), [np.full((256, 128, 3), 255, dtype=np.uint8)] * 3, 2, .5],  # list of numpy uint8
+        [2, (128, 128), [np.ones((256, 128, 3), dtype=np.float32)] * 3, 2, .5],  # list of numpy fp32
+        [2, (128, 128), [torch.full((3, 256, 128), 255, dtype=torch.uint8)] * 3, 2, .5],  # list of torch uint8
+        [2, (128, 128), [torch.ones((3, 256, 128), dtype=torch.float32)] * 3, 2, .5],  # list of torch fp32
     ],
 )
 def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, expected_value):
@@ -23,6 +25,12 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     # Invalid input type
     with pytest.raises(TypeError):
         processor(42)
+    # 4D check
+    with pytest.raises(AssertionError):
+        processor(np.full((256, 128, 3), 255, dtype=np.uint8))
+    # 3D check
+    with pytest.raises(AssertionError):
+        processor([np.full((3, 256, 128, 3), 255, dtype=np.uint8)])
 
     out = processor(input_tensor)
     assert isinstance(out, list) and len(out) == expected_batches
