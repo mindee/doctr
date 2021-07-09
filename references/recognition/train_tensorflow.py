@@ -145,10 +145,9 @@ def main(args):
         return
 
     # Optimizer
-    total_steps = int(args.epochs * len(train_set) / args.batch_size)
     scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
         args.lr,
-        decay_steps=total_steps,
+        decay_steps=args.epochs * len(train_loader),
         decay_rate=0.01,  # final lr as a fraction of initial lr
         staircase=False
     )
