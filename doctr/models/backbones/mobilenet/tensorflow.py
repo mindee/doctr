@@ -51,21 +51,17 @@ class Squeeze(layers.Layer):
 
 class Bottleneck(layers.Layer):
 
-    """Bottleneck
-    This function defines a basic bottleneck structure.
-    # Arguments
-        inputs: Tensor, input tensor of conv layer.
-        filters: Integer, the dimensionality of the output space.
-        kernel: An integer or tuple/list of 2 integers, specifying the
-            width and height of the 2D convolution window.
-        e: Integer, expansion factor.
-            t is always applied to the input size.
-        s: An integer or tuple/list of 2 integers,specifying the strides
-            of the convolution along the width and height.Can be a single
-            integer to specify the same value for all spatial dimensions.
-        squeeze: Boolean, Whether to use the squeeze.
-        nl: String, nonlinearity activation type.
-    # Returns
+    """Bottleneck for mobilenet
+    
+    Args:
+        out_chan: the dimensionality of the output space.
+        kernel: kernel size for depthwise conv
+        exp_chan: expanded channels, used in squeeze and first conv
+        strides: strides in depthwise conv
+        use_squeeze: whether to use the squeeze & sequence module
+        use_swish: activation type, relu6 or hard_swish
+    
+    Returns:
         Output tensor.
     """
     def __init__(
@@ -122,22 +118,19 @@ class Bottleneck(layers.Layer):
 
 
 class MobileNetV3_Large(Sequential):
+
+    """Implements large version of MobileNetV3, inspired from both:
+    <https://github.com/xiaochus/MobileNetV3/tree/master/model>`_.
+    and <https://pytorch.org/vision/stable/_modules/torchvision/models/mobilenetv3.html>`_.
+    """
+
     def __init__(
         self,
         input_shape: Tuple[int, int],
         num_classes: Optional[int] = None,
         include_top: bool = False,
     ) -> None:
-        """Init.
-        # Arguments
-            input_shape: An integer or tuple/list of 3 integers, shape
-                of input tensor.
-            n_class: Integer, number of classes.
-            alpha: Integer, width multiplier.
-            include_top: if inculde classification layer.
-        # Returns
-            MobileNetv3 model.
-        """
+
         _layers = [
             *conv_sequence(16, strides=2, activation=hard_swish, kernel_size=3, input_shape=(*input_shape, 3)),
             Bottleneck(16, 3, 16, 1, use_squeeze=False, use_swish=False),
@@ -171,22 +164,19 @@ class MobileNetV3_Large(Sequential):
 
 
 class MobileNetV3_Small(Sequential):
+
+    """Implements large version of MobileNetV3, inspired from both:
+    <https://github.com/xiaochus/MobileNetV3/tree/master/model>`_.
+    and <https://pytorch.org/vision/stable/_modules/torchvision/models/mobilenetv3.html>`_.
+    """
+
     def __init__(
         self,
         input_shape: Tuple[int, int],
         num_classes: Optional[int] = None,
         include_top: bool = False,
     ) -> None:
-        """Init.
-        # Arguments
-            input_shape: An integer or tuple/list of 3 integers, shape
-                of input tensor.
-            n_class: Integer, number of classes.
-            alpha: Integer, width multiplier.
-            include_top: if inculde classification layer.
-        # Returns
-            MobileNetv3 model.
-        """
+
         _layers = [
             *conv_sequence(16, strides=2, activation=hard_swish, kernel_size=3, input_shape=(*input_shape, 3)),
             Bottleneck(16, 3, 16, 2, use_squeeze=True, use_swish=False),
