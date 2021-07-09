@@ -23,8 +23,6 @@ class PreProcessor(nn.Module):
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
-        interpolation: one of 'bilinear', 'nearest', 'bicubic', 'area', 'lanczos3', 'lanczos5'
-
     """
 
     def __init__(
