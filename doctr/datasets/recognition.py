@@ -56,7 +56,3 @@ class RecognitionDataset(AbstractDataset):
         # Merge with ds data
         for img_path, label in ds.data:
             self.data.append((str(Path(ds.root).joinpath(img_path)), label))
-
-    def merge_datasets(self, ds_list: List[AbstractDataset]) -> None:
-        for ds in ds_list:
-            self.merge_dataset(ds)

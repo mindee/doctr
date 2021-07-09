@@ -128,7 +128,7 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     image, label = ds[0]
     assert image.dtype == torch.float16
     ds2, ds3 = deepcopy(ds), deepcopy(ds)
-    ds2.merge_datasets([ds3])
+    ds2.merge_dataset(ds3)
     assert len(ds2) == 2 * len(ds)
 
 
