@@ -50,10 +50,7 @@ class RecognitionDataset(AbstractDataset):
 
     def merge_dataset(self, ds: AbstractDataset) -> None:
         # Update data with new root for self
-        new_data: List[Tuple[str, str]] = []
-        for img_path, label in self.data:
-            new_data.append((str(Path(self.root).joinpath(img_path)), label))
-        self.data = new_data
+        self.data = [(str(Path(self.root).joinpath(img_path)), label) for img_path, label in self.data]
         # Define new root
         self.root = Path("/")
         # Merge with ds data
