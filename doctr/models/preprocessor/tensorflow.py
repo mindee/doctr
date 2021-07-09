@@ -68,11 +68,11 @@ class PreProcessor(NestedObject):
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
             x = tf.convert_to_tensor(x)
+        # Data type
+        if x.dtype == tf.uint8:
+            x = tf.image.convert_image_dtype(x, dtype=tf.float32)
         # Resizing
         x = self.resize(x)
-        # Data type
-        if x.dtype == tf.uint8:  # type: ignore[union-attr]
-            x = tf.image.convert_image_dtype(x, dtype=tf.float32)
 
         return x
 
@@ -94,13 +94,13 @@ class PreProcessor(NestedObject):
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
                 x = tf.convert_to_tensor(x)
-            input_dtype = x.dtype
+            # Data type
+            if x.dtype == tf.uint8:
+                x = tf.image.convert_image_dtype(x, dtype=tf.float32)
             # Resizing
             if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
-            # Data type
-            if input_dtype == tf.uint8:  # type: ignore[union-attr]
-                x = tf.image.convert_image_dtype(x, dtype=tf.float32)
+
             batches = [x]
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, tf.Tensor)) for sample in x):
