@@ -127,10 +127,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     image, label = ds[0]
     assert image.dtype == torch.float16
     ds2 = ds
-    ds.merge_dataset(ds2)
-    assert len(ds) == 2 * len(ds2)
-    ds2.merge_datasets([ds2, ds2])
-    assert len(ds) == 3 * len(ds2)
+    ds2.merge_datasets([ds2])
+    assert len(ds2) == 2 * len(ds)
 
 
 def test_ocrdataset(mock_ocrdataset):

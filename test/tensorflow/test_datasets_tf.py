@@ -113,10 +113,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     image, _ = ds[0]
     assert image.dtype == tf.float16
     ds2 = ds
-    ds.merge_dataset(ds2)
-    assert len(ds) == 2 * len(ds2)
-    ds.merge_datasets([ds2, ds2])
-    assert len(ds) == 4 * len(ds2)
+    ds2.merge_datasets([ds2])
+    assert len(ds2) == 2 * len(ds)
 
 
 def test_ocrdataset(mock_ocrdataset):
