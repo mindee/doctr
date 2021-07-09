@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 import tensorflow as tf
 import numpy as np
 from typing import List, Tuple, Union, Any
@@ -93,11 +94,12 @@ class PreProcessor(NestedObject):
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
                 x = tf.convert_to_tensor(x)
+            input_dtype = x.dtype
             # Resizing
-            if x.shape[1] != self.resize.size[0] or x.shape[2] != self.resize.size[1]:
+            if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
             # Data type
-            if x.dtype == torch.uint8:  # type: ignore[union-attr]
+            if input_dtype == tf.uint8:  # type: ignore[union-attr]
                 x = tf.image.convert_image_dtype(x, dtype=tf.float32)
             batches = [x]
 

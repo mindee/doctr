@@ -70,8 +70,8 @@ class PreProcessor(nn.Module):
         # Resizing
         x = self.resize(x)
         # Data type
-        if x.dtype == torch.uint8:  # type: ignore[union-attr]
-            x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+        if x.dtype == torch.uint8:
+            x = x.to(dtype=torch.float32).div(255).clip(0, 1)
 
         return x
 
@@ -92,13 +92,13 @@ class PreProcessor(nn.Module):
             if x.ndim != 4:
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
-                x = torch.from_numpy(x.copy()).permute(2, 0, 1)
+                x = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)
             # Resizing
             if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
             # Data type
-            if x.dtype == torch.uint8:  # type: ignore[union-attr]
-                x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+            if x.dtype == torch.uint8:
+                x = x.to(dtype=torch.float32).div(255).clip(0, 1)
             batches = [x]
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
