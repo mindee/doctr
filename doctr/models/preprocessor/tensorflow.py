@@ -68,7 +68,7 @@ class PreProcessor(NestedObject):
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
             x = tf.convert_to_tensor(x)
-        # Data type
+        # Data type & 255 division
         if x.dtype == tf.uint8:
             x = tf.image.convert_image_dtype(x, dtype=tf.float32)
         # Resizing
@@ -94,7 +94,7 @@ class PreProcessor(NestedObject):
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
                 x = tf.convert_to_tensor(x)
-            # Data type
+            # Data type & 255 division
             if x.dtype == tf.uint8:
                 x = tf.image.convert_image_dtype(x, dtype=tf.float32)
             # Resizing
