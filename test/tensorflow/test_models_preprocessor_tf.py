@@ -35,5 +35,7 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     out = processor(input_tensor)
     assert isinstance(out, list) and len(out) == expected_batches
     assert all(isinstance(b, tf.Tensor) for b in out)
+    assert all(b.dtype == tf.float32 for b in out)
     assert all(b.shape[1:3] == output_size for b in out)
     assert all(tf.math.reduce_all(b == expected_value) for b in out)
+    assert len(repr(processor).split('\n')) == 4
