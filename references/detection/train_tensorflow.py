@@ -98,18 +98,6 @@ def main(args):
         T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
     ])
 
-    # Optimizer
-    scheduler = tf.keras.optimizers.schedules.CosineDecay(
-        initial_learning_rate=args.lr, decay_steps=args.epochs, alpha=0.0
-    )
-    optimizer = tf.keras.optimizers.Adam(
-        learning_rate=scheduler,
-        beta_1=0.95,
-        beta_2=0.99,
-        epsilon=1e-6,
-        clipnorm=5
-    )
-
     # Load doctr model
     model = detection.__dict__[args.model](
         pretrained=args.pretrained,
@@ -157,6 +145,21 @@ def main(args):
         x, target = next(iter(train_loader))
         plot_samples(x, target, rotation=args.rotation)
         return
+
+    # Optimizer
+    scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+        args.lr,
+        decay_steps=args.epochs * len(train_loader),
+        decay_rate=0.01,  # final lr as a fraction of initial lr
+        staircase=False
+    )
+    optimizer = tf.keras.optimizers.Adam(
+        learning_rate=scheduler,
+        beta_1=0.95,
+        beta_2=0.99,
+        epsilon=1e-6,
+        clipnorm=5
+    )
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
