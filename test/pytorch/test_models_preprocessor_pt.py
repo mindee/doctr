@@ -21,7 +21,7 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     processor = PreProcessor(output_size, batch_size)
 
     # Invalid input type
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         processor(42)
 
     out = processor(input_tensor)
