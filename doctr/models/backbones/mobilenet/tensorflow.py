@@ -52,7 +52,7 @@ class Squeeze(layers.Layer):
 class Bottleneck(layers.Layer):
 
     """Bottleneck for mobilenet
-    
+
     Args:
         out_chan: the dimensionality of the output space.
         kernel: kernel size for depthwise conv
@@ -60,7 +60,7 @@ class Bottleneck(layers.Layer):
         strides: strides in depthwise conv
         use_squeeze: whether to use the squeeze & sequence module
         use_swish: activation type, relu6 or hard_swish
-    
+
     Returns:
         Output tensor.
     """
