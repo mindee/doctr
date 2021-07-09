@@ -146,8 +146,11 @@ def main(args):
 
     # Optimizer
     total_steps = int(args.epochs * len(train_set) / args.batch_size)
-    scheduler = tf.keras.optimizers.schedules.CosineDecay(
-        initial_learning_rate=args.lr, decay_steps=total_steps, alpha=0.0
+    scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+        args.lr,
+        decay_steps=total_steps,
+        decay_rate=0.01,  # final lr as a fraction of initial lr
+        staircase=False
     )
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=scheduler,
