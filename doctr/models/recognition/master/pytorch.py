@@ -245,7 +245,7 @@ class MASTER(_MASTER, nn.Module):
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
-        return ce_loss.unsqueeze(1)
+        return torch.mean(ce_loss)
 
     def forward(
         self,
