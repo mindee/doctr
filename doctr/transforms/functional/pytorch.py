@@ -51,7 +51,7 @@ def rotate(
         _boxes[:, [0, 2]] = _boxes[:, [0, 2]] / img.shape[2]
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] / img.shape[1]
     # Compute rotated bboxes: xmin, ymin, xmax, ymax --> x, y, w, h, alpha
-    r_boxes = rotate_boxes(_boxes, angle=angle, min_angle=1)
+    r_boxes = rotate_boxes(_boxes, angle=angle, min_angle=0)
     if boxes.dtype == int:
         # Back to absolute boxes
         r_boxes[:, [0, 2]] *= img.shape[2]
