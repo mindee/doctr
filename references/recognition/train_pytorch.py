@@ -17,6 +17,7 @@ from torchvision.transforms import Compose, Lambda, Normalize, ColorJitter
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from contiguous_params import ContiguousParams
 import wandb
+from typing import List
 
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
@@ -80,10 +81,11 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
+    # Load val data generator
     st = time.time()
     val_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'val'),
-        labels_path=os.path.join(args.data_path, 'val_labels.json'),
+        img_folder=os.path.join(args.val_data_path, 'images'),
+        labels_path=os.path.join(args.val_data_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
     val_loader = DataLoader(
@@ -119,10 +121,11 @@ def main(args):
         return
 
     st = time.time()
-    # Load both train and val data generators
+
+    # Load train data generator
     train_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'train_labels.json'),
+        img_folder=os.path.join(args.train_data_path[0], 'images'),
+        labels_path=os.path.join(args.train_data_path[0], 'labels.json'),
         sample_transforms=Compose([
             T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
             # Augmentations
@@ -130,6 +133,22 @@ def main(args):
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
         ]),
     )
+
+    # If multiple paths provided, 
+    if len(args.train_data_path) > 1:
+        for i in range(1, len(args.train_data_path)):
+                train_set.merge_dataset(
+                    RecognitionDataset(
+                        img_folder=os.path.join(args.train_data_path[i], 'images'),
+                        labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
+                        sample_transforms=Compose([
+                            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                            # Augmentations
+                            T.RandomApply(T.ColorInversion(), .1),
+                            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                        ]),
+                    )
+                )
 
     train_loader = DataLoader(
         train_set,
@@ -210,7 +229,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR train text-recognition model (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('data_path', type=str, help='path to data folder')
+    parser.add_argument('train_data_path', type=List[str], help='list of path(s) to train data folder')
+    parser.add_argument('val_data_path', type=str, help='path to data folder')
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')

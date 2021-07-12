@@ -16,6 +16,7 @@ from collections import deque
 from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
 import wandb
+from typing import List
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
@@ -84,10 +85,11 @@ def main(args):
 
     print(args)
 
+    # Load val data generator
     st = time.time()
     val_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'val'),
-        labels_path=os.path.join(args.data_path, 'val_labels.json'),
+        img_folder=os.path.join(args.val_data_path, 'images'),
+        labels_path=os.path.join(args.val_data_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
@@ -121,10 +123,11 @@ def main(args):
         return
 
     st = time.time()
-    # Load both train and val data generators
+
+    # Load train data generator
     train_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'train_labels.json'),
+        img_folder=os.path.join(args.train_data_path[0], 'images'),
+        labels_path=os.path.join(args.train_data_path[0], 'labels.json'),
         sample_transforms=T.Compose([
             T.RandomApply(T.ColorInversion(), .1),
             T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
@@ -135,6 +138,26 @@ def main(args):
             T.RandomBrightness(.3),
         ]),
     )
+
+    # If multiple paths provided, 
+    if len(args.train_data_path) > 1:
+        for i in range(1, len(args.train_data_path)):
+                train_set.merge_dataset(
+                    RecognitionDataset(
+                        img_folder=os.path.join(args.train_data_path[i], 'images'),
+                        labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
+                        sample_transforms=T.Compose([
+                            T.RandomApply(T.ColorInversion(), .1),
+                            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                            # Augmentations
+                            T.RandomJpegQuality(60),
+                            T.RandomSaturation(.3),
+                            T.RandomContrast(.3),
+                            T.RandomBrightness(.3),
+                        ]),
+                    )
+                )
+
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
@@ -230,6 +253,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR train text-recognition model (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    parser.add_argument('train_data_path', type=List[str], help='list of path(s) to train data folder')
+    parser.add_argument('val_data_path', type=str, help='path to data folder')
     parser.add_argument('data_path', type=str, help='path to data folder')
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
