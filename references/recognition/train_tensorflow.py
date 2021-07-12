@@ -125,36 +125,42 @@ def main(args):
     st = time.time()
 
     # Load train data generator
-    train_set = RecognitionDataset(
-        img_folder=os.path.join(args.train_data_path[0], 'images'),
-        labels_path=os.path.join(args.train_data_path[0], 'labels.json'),
-        sample_transforms=T.Compose([
-            T.RandomApply(T.ColorInversion(), .1),
-            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-            # Augmentations
-            T.RandomJpegQuality(60),
-            T.RandomSaturation(.3),
-            T.RandomContrast(.3),
-            T.RandomBrightness(.3),
-        ]),
-    )
+    if Path(os.path.join(args.train_data_path, 'labels.json')).is_file():
+        # Only one folder of images
+        train_set = RecognitionDataset(
+            img_folder=os.path.join(args.train_data_path, 'images'),
+            labels_path=os.path.join(args.train_data_path, 'labels.json'),
+            sample_transforms=T.Compose([
+                T.RandomApply(T.ColorInversion(), .1),
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomJpegQuality(60),
+                T.RandomSaturation(.3),
+                T.RandomContrast(.3),
+                T.RandomBrightness(.3),
+            ]),
+        )
 
     # If multiple paths provided, merge datasets
-    if len(args.train_data_path) > 1:
-        for i in range(1, len(args.train_data_path)):
+    else:
+        train_set = RecognitionDataset(
+            img_folder=os.path.join(args.train_data_path, os.listdir(args.train_data_path)[0], 'images'),
+            labels_path=os.path.join(args.train_data_path, os.listdir(args.train_data_path)[0], 'labels.json'),
+            sample_transforms=T.Compose([
+                T.RandomApply(T.ColorInversion(), .1),
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomJpegQuality(60),
+                T.RandomSaturation(.3),
+                T.RandomContrast(.3),
+                T.RandomBrightness(.3),
+            ]),
+        )
+        for folder in os.listdir(args.train_data_path)[1:]:
             train_set.merge_dataset(
                 RecognitionDataset(
-                    img_folder=os.path.join(args.train_data_path[i], 'images'),
-                    labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
-                    sample_transforms=T.Compose([
-                        T.RandomApply(T.ColorInversion(), .1),
-                        T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                        # Augmentations
-                        T.RandomJpegQuality(60),
-                        T.RandomSaturation(.3),
-                        T.RandomContrast(.3),
-                        T.RandomBrightness(.3),
-                    ]),
+                    img_folder=os.path.join(args.train_data_path, folder, 'images'),
+                    labels_path=os.path.join(args.train_data_path, folder, 'labels.json'),
                 )
             )
 
@@ -253,8 +259,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR train text-recognition model (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('train_data_path', type=List[str], help='list of path(s) to train data folder')
-    parser.add_argument('val_data_path', type=str, help='path to data folder')
+    parser.add_argument('train_data_path', type=str, help='path to train data folder(s)')
+    parser.add_argument('val_data_path', type=str, help='path to val data folder')
     parser.add_argument('data_path', type=str, help='path to data folder')
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
