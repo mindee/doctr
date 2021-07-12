@@ -134,21 +134,21 @@ def main(args):
         ]),
     )
 
-    # If multiple paths provided, 
+    # If multiple paths provided, merge datasets
     if len(args.train_data_path) > 1:
         for i in range(1, len(args.train_data_path)):
-                train_set.merge_dataset(
-                    RecognitionDataset(
-                        img_folder=os.path.join(args.train_data_path[i], 'images'),
-                        labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
-                        sample_transforms=Compose([
-                            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                            # Augmentations
-                            T.RandomApply(T.ColorInversion(), .1),
-                            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-                        ]),
-                    )
+            train_set.merge_dataset(
+                RecognitionDataset(
+                    img_folder=os.path.join(args.train_data_path[i], 'images'),
+                    labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
+                    sample_transforms=Compose([
+                        T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                        # Augmentations
+                        T.RandomApply(T.ColorInversion(), .1),
+                        ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                    ]),
                 )
+            )
 
     train_loader = DataLoader(
         train_set,

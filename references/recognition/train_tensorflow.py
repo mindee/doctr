@@ -139,24 +139,24 @@ def main(args):
         ]),
     )
 
-    # If multiple paths provided, 
+    # If multiple paths provided, merge datasets
     if len(args.train_data_path) > 1:
         for i in range(1, len(args.train_data_path)):
-                train_set.merge_dataset(
-                    RecognitionDataset(
-                        img_folder=os.path.join(args.train_data_path[i], 'images'),
-                        labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
-                        sample_transforms=T.Compose([
-                            T.RandomApply(T.ColorInversion(), .1),
-                            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                            # Augmentations
-                            T.RandomJpegQuality(60),
-                            T.RandomSaturation(.3),
-                            T.RandomContrast(.3),
-                            T.RandomBrightness(.3),
-                        ]),
-                    )
+            train_set.merge_dataset(
+                RecognitionDataset(
+                    img_folder=os.path.join(args.train_data_path[i], 'images'),
+                    labels_path=os.path.join(args.train_data_path[i], 'labels.json'),
+                    sample_transforms=T.Compose([
+                        T.RandomApply(T.ColorInversion(), .1),
+                        T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                        # Augmentations
+                        T.RandomJpegQuality(60),
+                        T.RandomSaturation(.3),
+                        T.RandomContrast(.3),
+                        T.RandomBrightness(.3),
+                    ]),
                 )
+            )
 
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
