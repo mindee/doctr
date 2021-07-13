@@ -18,7 +18,6 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from contiguous_params import ContiguousParams
 import wandb
 from pathlib import Path
-from typing import List
 
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch

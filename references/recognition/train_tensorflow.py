@@ -16,7 +16,6 @@ from collections import deque
 from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
 import wandb
-from typing import List
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
