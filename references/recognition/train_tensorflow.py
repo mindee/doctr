@@ -243,7 +243,6 @@ def parse_args():
 
     parser.add_argument('train_path', type=str, help='path to train data folder(s)')
     parser.add_argument('val_path', type=str, help='path to val data folder')
-    parser.add_argument('data_path', type=str, help='path to data folder')
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
