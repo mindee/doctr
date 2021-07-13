@@ -245,7 +245,7 @@ class MASTER(_MASTER, nn.Module):
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
-        return ce_loss.unsqueeze(1)
+        return ce_loss.mean()
 
     def forward(
         self,

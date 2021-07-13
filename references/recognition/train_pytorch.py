@@ -17,6 +17,7 @@ from torchvision.transforms import Compose, Lambda, Normalize, ColorJitter
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from contiguous_params import ContiguousParams
 import wandb
+from pathlib import Path
 
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
@@ -80,10 +81,11 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
+    # Load val data generator
     st = time.time()
     val_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'val'),
-        labels_path=os.path.join(args.data_path, 'val_labels.json'),
+        img_folder=os.path.join(args.val_path, 'images'),
+        labels_path=os.path.join(args.val_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
     val_loader = DataLoader(
@@ -119,10 +121,15 @@ def main(args):
         return
 
     st = time.time()
-    # Load both train and val data generators
+
+    # Load train data generator
+    base_path = Path(args.train_path)
+    parts = [base_path] if base_path.joinpath('labels.json').is_file() else [
+        base_path.joinpath(sub) for sub in os.listdir(base_path)
+    ]
     train_set = RecognitionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        labels_path=os.path.join(args.data_path, 'train_labels.json'),
+        parts[0].joinpath('images'),
+        parts[0].joinpath('labels.json'),
         sample_transforms=Compose([
             T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
             # Augmentations
@@ -130,6 +137,9 @@ def main(args):
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
         ]),
     )
+    if len(parts) > 1:
+        for subfolder in parts[1:]:
+            train_set.merge_dataset(RecognitionDataset(subfolder.joinpath('images'), subfolder.joinpath('labels.json')))
 
     train_loader = DataLoader(
         train_set,
@@ -210,7 +220,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR train text-recognition model (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('data_path', type=str, help='path to data folder')
+    parser.add_argument('train_path', type=str, help='path to train data folder(s)')
+    parser.add_argument('val_path', type=str, help='path to val data folder')
     parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
