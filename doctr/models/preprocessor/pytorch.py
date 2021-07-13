@@ -79,10 +79,7 @@ class PreProcessor(nn.Module):
         # Data type
         if x.dtype == torch.uint8:
             x = x.to(dtype=torch.float32).div(255).clip(0, 1)
-        if self.fp16:
-            x = x.to(dtype=torch.float16)
-        else:
-            x = x.to(dtype=torch.float32)
+        x = x.to(dtype=torch.float16 if self.fp16 else torch.float32)
 
         return x
 
@@ -114,10 +111,7 @@ class PreProcessor(nn.Module):
             # Data type
             if x.dtype == torch.uint8:
                 x = x.to(dtype=torch.float32).div(255).clip(0, 1)
-            if self.fp16:
-                x = x.to(dtype=torch.float16)
-            else:
-                x = x.to(dtype=torch.float32)
+            x = x.to(dtype=torch.float16 if self.fp16 else torch.float32)
             batches = [x]
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
