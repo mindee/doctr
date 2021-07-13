@@ -166,9 +166,9 @@ def main(args):
                                  betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
     # Scheduler
     if args.sched == 'cosine':
-        scheduler = CosineAnnealingLR(optimizer, args.epochs * len(self.train_loader), eta_min=args.lr / 25e4)
+        scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
     elif args.sched == 'onecycle':
-        scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(self.train_loader))
+        scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(train_loader))
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
