@@ -53,7 +53,7 @@ class OCRPredictor(NestedObject):
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images, rotate page if necessary
         crops = [crop for page, (_boxes, angle) in zip(pages, boxes) for crop in
-                 self.extract_crops_fn(rotate_page(page, -angle), _boxes[:, :-1])]
+                 self.extract_crops_fn(rotate_page(page, -angle), _boxes[:, :-1])]  # type: ignore[operator]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 
