@@ -24,6 +24,7 @@ class PreProcessor(NestedObject):
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
+        fp16: whether returned batches should be in FP16
     """
 
     _children_names: List[str] = ['resize', 'normalize']
@@ -34,6 +35,7 @@ class PreProcessor(NestedObject):
         batch_size: int,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
+        fp16: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -41,6 +43,7 @@ class PreProcessor(NestedObject):
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = Normalize(mean, std)
+        self.fp16 = fp16
 
     def batch_inputs(
         self,
@@ -70,7 +73,7 @@ class PreProcessor(NestedObject):
             x = tf.convert_to_tensor(x)
         # Data type & 255 division
         if x.dtype == tf.uint8:
-            x = tf.image.convert_image_dtype(x, dtype=tf.float32)
+            x = tf.image.convert_image_dtype(x, dtype=tf.float16 if self.fp16 else tf.float32)
         # Resizing
         x = self.resize(x)
 
@@ -96,7 +99,7 @@ class PreProcessor(NestedObject):
                 x = tf.convert_to_tensor(x)
             # Data type & 255 division
             if x.dtype == tf.uint8:
-                x = tf.image.convert_image_dtype(x, dtype=tf.float32)
+                x = tf.image.convert_image_dtype(x, dtype=tf.float16 if self.fp16 else tf.float32)
             # Resizing
             if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)

@@ -25,6 +25,7 @@ class PreProcessor(nn.Module):
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
+        fp16: whether returned batches should be in FP16
     """
 
     def __init__(
@@ -33,6 +34,7 @@ class PreProcessor(nn.Module):
         batch_size: int,
         mean: Tuple[float, float, float] = (.5, .5, .5),
         std: Tuple[float, float, float] = (1., 1., 1.),
+        fp16: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -40,6 +42,7 @@ class PreProcessor(nn.Module):
         self.resize: T.Resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = T.Normalize(mean, std)
+        self.fp16 = fp16
 
     def batch_inputs(
         self,
@@ -71,7 +74,7 @@ class PreProcessor(nn.Module):
         x = self.resize(x)
         # Data type
         if x.dtype == torch.uint8:
-            x = x.to(dtype=torch.float32).div(255).clip(0, 1)
+            x = x.to(dtype=torch.float16 if self.fp16 else torch.float32).div(255).clip(0, 1)
 
         return x
 
@@ -98,7 +101,7 @@ class PreProcessor(nn.Module):
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
             # Data type
             if x.dtype == torch.uint8:
-                x = x.to(dtype=torch.float32).div(255).clip(0, 1)
+                x = x.to(dtype=torch.float16 if self.fp16 else torch.float32).div(255).clip(0, 1)
             batches = [x]
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
