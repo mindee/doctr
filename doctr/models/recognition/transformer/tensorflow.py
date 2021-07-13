@@ -31,7 +31,7 @@ def get_angles(pos: np.array, i: np.array, d_model: int = 512) -> np.array:
     return pos * angle_rates
 
 
-def positional_encoding(position: int, d_model: int = 512) -> tf.Tensor:
+def positional_encoding(position: int, d_model: int = 512, dtype=tf.float32) -> tf.Tensor:
     """This function computes the 2D positional encoding of the position, on a depth d_model
 
     Args:
@@ -51,7 +51,7 @@ def positional_encoding(position: int, d_model: int = 512) -> tf.Tensor:
     # apply cos to odd indices in the array; 2i+1
     angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
     pos_encoding = angle_rads[np.newaxis, ...]
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=dtype)
 
 
 @tf.function
