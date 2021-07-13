@@ -39,3 +39,15 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     assert all(b.shape[-2:] == output_size for b in out)
     assert all(torch.all(b == expected_value) for b in out)
     assert len(repr(processor).split('\n')) == 4
+
+    # Check FP16
+    if isinstance(input_tensor, np.ndarray) and input_tensor.dtype == np.float32:
+        with torch.no_grad():
+            out = processor(input_tensor.astype(np.float16))
+        assert all(elt.dtype == torch.float16 for elt in out)
+    elif isinstance(input_tensor, torch.Tensor) and torch.cuda.is_available() and (input_tensor.dtype == torch.float32):
+        input_tensor = input_tensor.to(dtype=torch.float16).cuda()
+        processor = processor.cuda()
+        with torch.no_grad():
+            out = processor(input_tensor)
+        assert all(elt.cpu().dtype == torch.float16 for elt in out)

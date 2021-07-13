@@ -31,6 +31,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert len(out) == 3
     # Check proba map
     assert out['out_map'].shape == (batch_size, *output_size)
+    assert out['out_map'].dtype == torch.float32
     if out_prob:
         assert torch.all((out['out_map'] >= 0) & (out['out_map'] <= 1))
     # Check boxes
