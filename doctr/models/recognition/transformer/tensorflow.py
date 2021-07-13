@@ -56,7 +56,7 @@ def positional_encoding(position: int, d_model: int = 512, dtype=tf.float32) -> 
 
 @tf.function
 def create_padding_mask(seq: tf.Tensor, padding: int = 0) -> tf.Tensor:
-    seq = tf.cast(tf.math.equal(seq, padding), tf.float32)
+    seq = tf.cast(tf.math.equal(seq, padding), seq.dtype)
     # add extra dimensions to add the padding to the attention logits.
     return seq[:, tf.newaxis, tf.newaxis, :]  # (batch_size, 1, 1, seq_len)
 
@@ -88,7 +88,7 @@ def scaled_dot_product_attention(
 
     matmul_qk = tf.matmul(q, k, transpose_b=True)  # (..., seq_len_q, seq_len_k)
     # scale matmul_qk
-    dk = tf.cast(tf.shape(k)[-1], tf.float32)
+    dk = tf.cast(tf.shape(k)[-1], q.dtype)
     scaled_attention_logits = matmul_qk / tf.math.sqrt(dk)
     # add the mask to the scaled tensor.
     if mask is not None:
@@ -252,7 +252,7 @@ class Decoder(tf.keras.layers.Layer):
         seq_len = tf.shape(x)[1]
 
         x = self.embedding(x, **kwargs)  # (batch_size, target_seq_len, d_model)
-        x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
+        x *= tf.math.sqrt(tf.cast(self.d_model, x.dtype))
         x += self.pos_encoding[:, :seq_len, :]
 
         x = self.dropout(x, **kwargs)
