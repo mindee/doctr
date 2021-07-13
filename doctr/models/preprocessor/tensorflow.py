@@ -70,10 +70,14 @@ class PreProcessor(NestedObject):
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
+            if x.dtype not in (np.uint8, np.float16, np.float32):
+                raise TypeError("unsupported data type for numpy.ndarray")
             x = tf.convert_to_tensor(x)
+        elif x.dtype not in (tf.uint8, tf.float16, tf.float32):
+            raise TypeError("unsupported data type for torch.Tensor")
         # Data type & 255 division
         if x.dtype == tf.uint8:
-            x = tf.image.convert_image_dtype(x, dtype=tf.float16 if self.fp16 else tf.float32)
+            x = tf.image.convert_image_dtype(x, dtype=tf.float32)
         # Resizing
         x = self.resize(x)
 
@@ -96,10 +100,15 @@ class PreProcessor(NestedObject):
             if x.ndim != 4:
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
+                if x.dtype not in (np.uint8, np.float16, np.float32):
+                    raise TypeError("unsupported data type for numpy.ndarray")
                 x = tf.convert_to_tensor(x)
+            elif x.dtype not in (tf.uint8, tf.float16, tf.float32):
+                raise TypeError("unsupported data type for torch.Tensor")
+
             # Data type & 255 division
             if x.dtype == tf.uint8:
-                x = tf.image.convert_image_dtype(x, dtype=tf.float16 if self.fp16 else tf.float32)
+                x = tf.image.convert_image_dtype(x, dtype=tf.float32)
             # Resizing
             if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
@@ -116,5 +125,9 @@ class PreProcessor(NestedObject):
 
         # Batch transforms (normalize)
         batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
+
+        # Resize outputs tf.float32
+        if self.fp16:
+            batches = [tf.cast(b, dtype=tf.float16) for b in batches]
 
         return batches
