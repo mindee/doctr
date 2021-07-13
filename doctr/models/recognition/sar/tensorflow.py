@@ -134,7 +134,7 @@ class SARDecoder(layers.Layer, NestedObject):
 
         # initialize states (each of shape (N, rnn_units))
         states = self.lstm_decoder.get_initial_state(
-            inputs=None, batch_size=features.shape[0], dtype=tf.float32
+            inputs=None, batch_size=features.shape[0], dtype=features.dtype
         )
         # run first step of lstm
         # holistic: shape (N, rnn_units)
@@ -249,7 +249,7 @@ class SAR(Model, RecognitionModel):
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len)
         masked_loss = tf.where(mask_2d, cce, mask_values)
-        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, tf.float32))
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
         return tf.expand_dims(ce_loss, axis=1)
 
     def call(

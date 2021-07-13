@@ -158,9 +158,9 @@ class LinkNet(_LinkNet, keras.Model):
             A loss tensor
         """
         seg_target, seg_mask, edge_mask = self.compute_target(target, out_map.shape[:3])
-        seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
-        edge_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+        seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
+        edge_mask = tf.convert_to_tensor(seg_mask, dtype=out_map.dtype)
+        seg_mask = tf.convert_to_tensor(seg_mask, dtype=out_map.dtype)
 
         # Get the cross_entropy for each entry
         bce = tf.keras.losses.binary_crossentropy(
@@ -186,7 +186,7 @@ class LinkNet(_LinkNet, keras.Model):
         else:
             # Compute BCE loss with highlighted edges
             loss = tf.math.multiply(
-                1 + (edge_factor - 1) * tf.cast(edge_mask, tf.float32),
+                1 + (edge_factor - 1) * tf.cast(edge_mask, out_map.dtype),
                 bce
             )
             loss = tf.reduce_mean(loss)

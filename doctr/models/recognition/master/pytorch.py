@@ -244,7 +244,7 @@ class MASTER(_MASTER, nn.Module):
         mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] < seq_len[:, None]
         cce[mask_2d] = 0
 
-        ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
+        ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.unsqueeze(1)
 
     def forward(
