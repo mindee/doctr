@@ -19,5 +19,5 @@ You can open any page of the documentation as a notebook in colab (there is a bu
 
 | Notebook     |      Description      |   |
 |:----------|:-------------|------:|
-| [Quicktour of detection predictor](text_detection_example.ipynb)  | A presentation of the text detection predictor | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/text_detection_example.ipynb) |
-| [Quicktour of OCR predictor](ocr_example.ipynb)  | A presentation of the OCR predictor | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/ocr_example.ipynb) |
+| [Quicktour of detection predictor](text_detection_example.ipynb)  | A presentation of the text detection predictor | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/https://github.com/mindee/doctr/blob/note/notebooks/text_detection_example.ipynb) |
+| [Quicktour of OCR predictor](ocr_example.ipynb)  | A presentation of the OCR predictor | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/https://github.com/mindee/doctr/blob/note/notebooks/ocr_example.ipynb) |
