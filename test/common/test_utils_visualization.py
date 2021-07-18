@@ -25,4 +25,4 @@ def test_draw_boxes():
         [0.5, 0.5, 0.6, 0.55, 0.90],
         [0.55, 0.5, 0.7, 0.55, 0.85],  # to suppress
     ]
-    visualization.draw_boxes(boxes=np.array(boxes), image=pages[0], block=True)
+    visualization.draw_boxes(boxes=np.array(boxes), image=image, block=True)
