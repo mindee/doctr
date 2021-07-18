@@ -241,6 +241,12 @@ def draw_boxes(boxes: np.ndarray, image: np.ndarray, **kwargs) -> None:
     h, w = image.shape[:2]
     for box in boxes.tolist():
         xmin, ymin, xmax, ymax = box
-        image = cv2.rectangle(image, (xmin * w, ymin * h), (xmax * w, ymax * h), color=(0, 0, 255), thickness=2)
+        image = cv2.rectangle(
+            image,
+            (int(xmin * w), int(ymin * h)),
+            (int(xmax * w), int(ymax * h)),
+            color=(0, 0, 255),
+            thickness=2
+        )
     plt.imshow(image)
     plt.plot(**kwargs)

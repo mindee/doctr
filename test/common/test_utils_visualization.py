@@ -20,9 +20,9 @@ def test_draw_page():
 def test_draw_boxes():
     image = np.ones((256, 256, 3))
     boxes = [
-        [0.1, 0.1, 0.2, 0.2, 0.95],
-        [0.15, 0.15, 0.19, 0.2, 0.90],  # to suppress
-        [0.5, 0.5, 0.6, 0.55, 0.90],
-        [0.55, 0.5, 0.7, 0.55, 0.85],  # to suppress
+        [0.1, 0.1, 0.2, 0.2],
+        [0.15, 0.15, 0.19, 0.2],  # to suppress
+        [0.5, 0.5, 0.6, 0.55],
+        [0.55, 0.5, 0.7, 0.55],  # to suppress
     ]
     visualization.draw_boxes(boxes=np.array(boxes), image=image, block=True)
