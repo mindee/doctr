@@ -233,7 +233,7 @@ def synthetize_page(
 
 def draw_boxes(boxes: np.ndarray, image: np.ndarray, **kwargs) -> None:
     """Draw an array of relative straight boxes on an image
-    
+
     Args:
         boxes: array of relative boxes, of shape (*, 4)
         image: np array
