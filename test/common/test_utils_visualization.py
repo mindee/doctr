@@ -18,7 +18,7 @@ def test_draw_page():
 
 
 def test_draw_boxes():
-    pages = _mock_pages()
+    image = np.ones((256, 256, 3))
     boxes = [
         [0.1, 0.1, 0.2, 0.2, 0.95],
         [0.15, 0.15, 0.19, 0.2, 0.90],  # to suppress
