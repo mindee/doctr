@@ -14,7 +14,7 @@ from typing import Tuple, List, Dict, Any, Union
 
 from .common_types import BoundingBox, RotatedBbox
 
-__all__ = ['visualize_page', 'synthetize_page']
+__all__ = ['visualize_page', 'synthetize_page', 'draw_boxes']
 
 
 def create_rect_patch(
@@ -229,3 +229,18 @@ def synthetize_page(
                 response[ymin:ymax, xmin:xmax, :] = np.array(img)
 
     return response
+
+
+def draw_boxes(boxes: np.ndarray, image: np.ndarray, **kwargs) -> None:
+    """Draw an array of relative straight boxes on an image
+    
+    Args:
+        boxes: array of relative boxes, of shape (*, 4)
+        image: np array
+    """
+    h, w = image.shape[:2]
+    for box in boxes.tolist():
+        xmin, ymin, xmax, ymax = box
+        image = cv2.rectangle(image, (xmin * w, ymin * h), (xmax * w, ymax * h), color=(0, 0, 255), thickness=2)
+    plt.imshow(image)
+    plt.plot(**kwargs)
