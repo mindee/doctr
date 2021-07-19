@@ -129,12 +129,12 @@ class DBPostProcessor(DetectionPostProcessor):
 
         if self.rotated_bbox:
             if len(boxes) == 0:
-                return np.zeros((0, 6), dtype=np.float32)
+                return np.zeros((0, 6), dtype=pred.dtype)
             coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
             boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
             return boxes
         else:
-            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 
 
 class _DBNet:
@@ -224,7 +224,7 @@ class _DBNet:
         ys = np.broadcast_to(np.linspace(0, height - 1, num=height).reshape(height, 1), (height, width))
 
         # Compute distance map to fill the padded polygon
-        distance_map = np.zeros((polygon.shape[0], height, width), dtype=np.float32)
+        distance_map = np.zeros((polygon.shape[0], height, width), dtype=polygon.dtype)
         for i in range(polygon.shape[0]):
             j = (i + 1) % polygon.shape[0]
             absolute_distance = self.compute_distance(xs, ys, polygon[i], polygon[j])
@@ -254,10 +254,12 @@ class _DBNet:
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t['boxes'].dtype != np.float32 for t in target):
-            raise AssertionError("the 'boxes' entry of the target is expected to have dtype 'np.float32'.")
+        if any(t['boxes'].dtype not in (np.float32, np.float16) for t in target):
+            raise AssertionError("the expected dtype of target 'boxes' entry is either 'np.float32' or 'np.float16'.")
         if any(np.any((t['boxes'][:, :4] > 1) | (t['boxes'][:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
+
+        input_dtype = target[0]['boxes'].dtype if any(target) else np.float32
 
         seg_target = np.zeros(output_shape, dtype=np.uint8)
         seg_mask = np.ones(output_shape, dtype=bool)
@@ -322,11 +324,11 @@ class _DBNet:
                 poly, thresh_target[idx], thresh_mask[idx] = self.draw_thresh_map(poly, thresh_target[idx],
                                                                                   thresh_mask[idx])
 
-        thresh_target = thresh_target.astype(np.float32) * (self.thresh_max - self.thresh_min) + self.thresh_min
+        thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 
-        seg_target = seg_target.astype(np.float32)
+        seg_target = seg_target.astype(input_dtype)
         seg_mask = seg_mask.astype(bool)
-        thresh_target = thresh_target.astype(np.float32)
+        thresh_target = thresh_target.astype(input_dtype)
         thresh_mask = thresh_mask.astype(bool)
 
         return seg_target, seg_mask, thresh_target, thresh_mask

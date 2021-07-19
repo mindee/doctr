@@ -259,7 +259,7 @@ class MASTER(_MASTER, Model):
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
         masked_loss = tf.where(mask_2d, cce, mask_values)
-        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, tf.float32))
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
 
         return tf.expand_dims(ce_loss, axis=1)
 
@@ -338,7 +338,7 @@ class MASTER(_MASTER, Model):
         start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-        logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=tf.float32)  # 3 symbols
+        logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=encoded.dtype)  # 3 symbols
         # max_len = len + 2 (sos + eos)
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)

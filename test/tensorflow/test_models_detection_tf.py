@@ -27,6 +27,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
+    assert isinstance(out['out_map'], tf.Tensor)
+    assert out['out_map'].dtype == tf.float32
     seg_map = out['out_map'].numpy()
     assert seg_map.shape == (batch_size, *output_size)
     if out_prob:
