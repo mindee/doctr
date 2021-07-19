@@ -38,6 +38,20 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out['loss'], tf.Tensor)
+    # Target checks
+    target = [
+        dict(boxes=np.array([[0, 0, 1, 1]], dtype=np.uint8), flags=[True, False]),
+        dict(boxes=np.array([[0, 0, 1, 1]], dtype=np.uint8), flags=[True, False])
+    ]
+    with pytest.raises(AssertionError):
+        out = model(input_tensor, target, training=True)
+
+    target = [
+        dict(boxes=np.array([[0, 0, 1.5, 1.5]], dtype=np.float32), flags=[True, False]),
+        dict(boxes=np.array([[-.2, -.3, 1, 1]], dtype=np.float32), flags=[True, False])
+    ]
+    with pytest.raises(ValueError):
+        out = model(input_tensor, target, training=True)
 
 
 @pytest.fixture(scope="session")

@@ -15,7 +15,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 
-version = "0.3.0a0"
+version = "0.3.1a0"
 sha = 'Unknown'
 package_name = 'doctr'
 
@@ -54,8 +54,9 @@ _deps = [
     "tensorflow-cpu>=2.4.0",
     "torch>=1.8.0",
     "torchvision>=0.9.0",
-    "Pillow>=8.0.0",
+    "Pillow>=8.0.0,<8.3.0",  # cf. https://github.com/python-pillow/Pillow/issues/5571
     "tqdm>=4.30.0",
+    "tensorflow-addons>=0.13.0"
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -82,8 +83,8 @@ install_requires = [
 ]
 
 extras = {}
-extras["tf"] = deps_list("tensorflow")
-extras["tf-cpu"] = deps_list("tensorflow-cpu")
+extras["tf"] = deps_list("tensorflow", "tensorflow-addons")
+extras["tf-cpu"] = deps_list("tensorflow-cpu", "tensorflow-addons")
 extras["torch"] = deps_list("torch", "torchvision")
 extras["all"] = (
     extras["tf"]

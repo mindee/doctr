@@ -48,12 +48,6 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.detection.db_resnet50
 .. autofunction:: doctr.models.detection.linknet16
 
-
-Post-processing detections
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-The purpose of this block is to turn the model output (binary segmentation map for instance), into a set of bounding boxes.
-
-
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.
@@ -123,9 +117,6 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 .. autofunction:: doctr.models.recognition.sar_resnet31
 .. autofunction:: doctr.models.recognition.master
 
-Post-processing outputs
-^^^^^^^^^^^^^^^^^^^^^^^
-The purpose of this block is to turn the model output (symbol classification for the sequence), into a set of strings.
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -187,6 +178,74 @@ Those architectures involve one stage of text detection, and one stage of text r
 
 .. autofunction:: doctr.models.zoo.ocr_predictor
 
+Export model output
+^^^^^^^^^^^^^^^^^^^^
+
+The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+To get a better understanding of our document model, check our :ref:`document_structure` section
+
+Here is a typical `Document` layout::
+
+  Document(
+    (pages): [Page(
+      dimensions=(340, 600)
+      (blocks): [Block(
+        (lines): [Line(
+          (words): [
+            Word(value='No.', confidence=0.91),
+            Word(value='RECEIPT', confidence=0.99),
+            Word(value='DATE', confidence=0.96),
+          ]
+        )]
+        (artefacts): []
+      )]
+    )]
+  )
+
+You can also export them as a nested dict, more appropriate for JSON format::
+
+  json_output = result.export()
+
+For reference, here is the JSON export for the same `Document` as above::
+
+  {
+    'pages': [
+        {
+            'page_idx': 0,
+            'dimensions': (340, 600),
+            'orientation': {'value': None, 'confidence': None},
+            'language': {'value': None, 'confidence': None},
+            'blocks': [
+                {
+                    'geometry': ((0.1357421875, 0.0361328125), (0.8564453125, 0.8603515625)),
+                    'lines': [
+                        {
+                            'geometry': ((0.1357421875, 0.0361328125), (0.8564453125, 0.8603515625)),
+                            'words': [
+                                {
+                                    'value': 'No.',
+                                    'confidence': 0.914085328578949,
+                                    'geometry': ((0.5478515625, 0.06640625), (0.5810546875, 0.0966796875))
+                                },
+                                {
+                                    'value': 'RECEIPT',
+                                    'confidence': 0.9949972033500671,
+                                    'geometry': ((0.1357421875, 0.0361328125), (0.51171875, 0.1630859375))
+                                },
+                                {
+                                    'value': 'DATE',
+                                    'confidence': 0.9578408598899841,
+                                    'geometry': ((0.1396484375, 0.3232421875), (0.185546875, 0.3515625))
+                                }
+                            ]
+                        }
+                    ],
+                    'artefacts': []
+                }
+            ]
+        }
+    ]
+  }
 
 Model export
 ------------

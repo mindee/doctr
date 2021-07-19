@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 import tensorflow as tf
 from tensorflow.keras import layers, Sequential, Model
 from typing import Tuple, List, Dict, Any, Optional
@@ -23,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'input_shape': (48, 160, 3),
+        'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -45,8 +46,9 @@ class MAGC(layers.Layer):
     def __init__(
         self,
         inplanes: int,
-        headers: int = 1,
+        headers: int = 8,
         att_scale: bool = False,
+        ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
         **kwargs
     ) -> None:
         super().__init__(**kwargs)
@@ -54,6 +56,7 @@ class MAGC(layers.Layer):
         self.headers = headers  # h
         self.inplanes = inplanes  # C
         self.att_scale = att_scale
+        self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
 
@@ -66,7 +69,7 @@ class MAGC(layers.Layer):
         self.transform = tf.keras.Sequential(
             [
                 tf.keras.layers.Conv2D(
-                    filters=self.inplanes,
+                    filters=self.planes,
                     kernel_size=1,
                     kernel_initializer=tf.initializers.he_normal()
                 ),
@@ -81,7 +84,6 @@ class MAGC(layers.Layer):
             name='transform'
         )
 
-    @tf.function
     def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
         b, h, w, c = (tf.shape(inputs)[i] for i in range(4))
 
@@ -104,7 +106,7 @@ class MAGC(layers.Layer):
         context_mask = tf.reshape(context_mask, shape=(b * self.headers, 1, h * w, 1))
         # scale variance
         if self.att_scale and self.headers > 1:
-            context_mask = context_mask / tf.sqrt(self.single_header_inplanes)
+            context_mask = context_mask / math.sqrt(self.single_header_inplanes)
         # B*h, 1, H*W, 1
         context_mask = tf.keras.activations.softmax(context_mask, axis=2)
 
@@ -138,7 +140,7 @@ class MAGCResnet(Sequential):
 
     def __init__(
         self,
-        headers: int = 1,
+        headers: int = 8,
         input_shape: Tuple[int, int, int] = (48, 160, 3),
     ) -> None:
         _layers = [
@@ -188,11 +190,12 @@ class MASTER(_MASTER, Model):
         self,
         vocab: str,
         d_model: int = 512,
-        headers: int = 1,
+        headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
-        num_heads: int = 8,
+        num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
         max_length: int = 50,
+        dropout: float = 0.2,
         input_shape: Tuple[int, int, int] = (48, 160, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -203,7 +206,7 @@ class MASTER(_MASTER, Model):
         self.cfg = cfg
         self.vocab_size = len(vocab)
 
-        self.feature_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
+        self.feat_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
         self.seq_embedding = layers.Embedding(self.vocab_size + 3, d_model)  # 3 more classes: EOS/PAD/SOS
 
         self.decoder = Decoder(
@@ -213,13 +216,13 @@ class MASTER(_MASTER, Model):
             dff=dff,
             vocab_size=self.vocab_size,
             maximum_position_encoding=max_length,
+            dropout=dropout,
         )
         self.feature_pe = positional_encoding(input_shape[0] * input_shape[1], d_model)
         self.linear = layers.Dense(self.vocab_size + 3, kernel_initializer=tf.initializers.he_uniform())
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
-    @tf.function
     def make_mask(self, target: tf.Tensor) -> tf.Tensor:
         look_ahead_mask = create_look_ahead_mask(tf.shape(target)[1])
         target_padding_mask = create_padding_mask(target, self.vocab_size + 2)  # Pad symbol
@@ -281,7 +284,7 @@ class MASTER(_MASTER, Model):
         """
 
         # Encode
-        feature = self.feature_extractor(x, **kwargs)
+        feature = self.feat_extractor(x, **kwargs)
         b, h, w, c = (tf.shape(feature)[i] for i in range(4))
         feature = tf.reshape(feature, shape=(b, h * w, c))
         encoded = feature + self.feature_pe[:, :h * w, :]

@@ -17,12 +17,23 @@ __all__ = ['_AbstractDataset', '_VisionDataset']
 class _AbstractDataset:
 
     data: List[Any] = []
-    root: str
 
-    def __len__(self):
+    def __init__(
+        self,
+        root: Union[str, Path],
+        fp16: bool = False,
+    ) -> None:
+        self.root = root
+        self.fp16 = fp16
+
+    def __len__(self) -> int:
         return len(self.data)
 
     def _read_sample(self, index: int) -> Tuple[Any, Any]:
+        raise NotImplementedError
+
+    @staticmethod
+    def _get_img_shape(img: Any) -> Tuple[int, int]:
         raise NotImplementedError
 
     def __getitem__(
@@ -56,6 +67,7 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: whether the downloaded file is an archive to be extracted
         download: whether the dataset should be downloaded if not present on disk
         overwrite: whether the archive should be re-extracted
+        fp16: should FP precision be switched to FP16
     """
 
     def __init__(
@@ -66,6 +78,7 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: bool = False,
         download: bool = False,
         overwrite: bool = False,
+        fp16: bool = False,
     ) -> None:
 
         dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
@@ -87,6 +100,4 @@ class _VisionDataset(_AbstractDataset):
                 with ZipFile(archive_path, 'r') as f:
                     f.extractall(path=dataset_path)
 
-        # List images
-        self._root = dataset_path if extract_archive else archive_path
-        self.data: List[Any] = []
+        super().__init__(dataset_path if extract_archive else archive_path, fp16)

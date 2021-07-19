@@ -28,7 +28,6 @@ class VGG(Sequential):
         num_blocks: number of convolutional block in each stage
         planes: number of output channels in each stage
         rect_pools: whether pooling square kernels should be replace with rectangular ones
-        include_top: whether the classifier head should be added
         input_shape: shapes of the input tensor
     """
     def __init__(
@@ -36,7 +35,6 @@ class VGG(Sequential):
         num_blocks: Tuple[int, int, int, int, int],
         planes: Tuple[int, int, int, int, int],
         rect_pools: Tuple[bool, bool, bool, bool, bool],
-        include_top: bool = False,
         input_shape: Tuple[int, int, int] = (512, 512, 3),
     ) -> None:
 
@@ -48,8 +46,6 @@ class VGG(Sequential):
                 _layers.extend(conv_sequence(out_chan, 'relu', True, kernel_size=3, **kwargs))  # type: ignore[arg-type]
                 kwargs = {}
             _layers.append(layers.MaxPooling2D((2, 1 if rect_pool else 2)))
-        if include_top:
-            raise NotImplementedError
         super().__init__(_layers)
 
 

@@ -23,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'input_shape': (48, 160, 3),
+        'input_shape': (3, 48, 160),
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -45,14 +45,16 @@ class MAGC(nn.Module):
     def __init__(
         self,
         inplanes: int,
-        headers: int = 1,
+        headers: int = 8,
         att_scale: bool = False,
+        ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
     ) -> None:
         super().__init__()
 
         self.headers = headers  # h
         self.inplanes = inplanes  # C
         self.att_scale = att_scale
+        self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
 
@@ -60,10 +62,10 @@ class MAGC(nn.Module):
         self.softmax = nn.Softmax(dim=2)
 
         self.channel_add_conv = nn.Sequential(
-            nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1),
-            nn.LayerNorm([self.inplanes, 1, 1]),
+            nn.Conv2d(self.inplanes, self.planes, kernel_size=1),
+            nn.LayerNorm([self.planes, 1, 1]),
             nn.ReLU(inplace=True),
-            nn.Conv2d(self.inplanes, self.inplanes, kernel_size=1)
+            nn.Conv2d(self.planes, self.inplanes, kernel_size=1)
         )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -115,7 +117,7 @@ class MAGCResnet(nn.Sequential):
 
     def __init__(
         self,
-        headers: int = 1,
+        headers: int = 8,
     ) -> None:
         _layers = [
             # conv_1x
@@ -160,15 +162,18 @@ class MASTER(_MASTER, nn.Module):
         input_size: size of the image inputs
     """
 
+    feature_pe: torch.Tensor
+
     def __init__(
         self,
         vocab: str,
         d_model: int = 512,
-        headers: int = 1,
+        headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
-        num_heads: int = 8,
+        num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
         max_length: int = 50,
+        dropout: float = 0.2,
         input_shape: Tuple[int, int, int] = (3, 48, 160),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -180,7 +185,7 @@ class MASTER(_MASTER, nn.Module):
         self.vocab_size = len(vocab)
         self.num_heads = num_heads
 
-        self.feature_extractor = MAGCResnet(headers=headers)
+        self.feat_extractor = MAGCResnet(headers=headers)
         self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
@@ -190,8 +195,9 @@ class MASTER(_MASTER, nn.Module):
             dff=dff,
             vocab_size=self.vocab_size,
             maximum_position_encoding=max_length,
+            dropout=dropout,
         )
-        self.feature_pe = positional_encoding(input_shape[1] * input_shape[2], d_model)
+        self.register_buffer('feature_pe', positional_encoding(input_shape[1] * input_shape[2], d_model))
         self.linear = nn.Linear(d_model, self.vocab_size + 3)
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
@@ -205,7 +211,7 @@ class MASTER(_MASTER, nn.Module):
 
     def make_mask(self, target: torch.Tensor) -> torch.Tensor:
         size = target.size(1)
-        look_ahead_mask = ~ (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)[:, None]
+        look_ahead_mask = ~ (torch.triu(torch.ones(size, size, device=target.device)) == 1).transpose(0, 1)[:, None]
         target_padding_mask = ~ torch.eq(target, self.vocab_size + 2)  # Pad symbol
         combined_mask = target_padding_mask & look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
@@ -235,11 +241,11 @@ class MASTER(_MASTER, nn.Module):
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
         cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction='none')
         # Compute mask, remove 1 timestep here as well
-        mask_2d = torch.arange(input_len - 1)[None, :] < seq_len[:, None]
+        mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] < seq_len[:, None]
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
-        return ce_loss.unsqueeze(1)
+        return ce_loss.mean()
 
     def forward(
         self,
@@ -247,7 +253,6 @@ class MASTER(_MASTER, nn.Module):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-        **kwargs: Any,
     ) -> Dict[str, Any]:
         """Call function for training
 
@@ -262,7 +267,7 @@ class MASTER(_MASTER, nn.Module):
         """
 
         # Encode
-        feature = self.feature_extractor(x, **kwargs)
+        feature = self.feat_extractor(x)
         b, c, h, w = (feature.size(i) for i in range(4))
         feature = torch.reshape(feature, shape=(b, c, h * w))
         feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
@@ -274,6 +279,7 @@ class MASTER(_MASTER, nn.Module):
             # Compute target: tensor of gts and sequence lengths
             _gt, _seq_len = self.compute_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
+            gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
         if self.training:
             if target is None:
@@ -309,11 +315,13 @@ class MASTER(_MASTER, nn.Module):
         """
         b = encoded.size(0)
 
-        ys = torch.full((b, self.max_length - 1), self.vocab_size + 2, dtype=torch.long)  # padding symbol
-        start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long)  # SOS
+        # Padding symbol
+        ys = torch.full((b, self.max_length - 1), self.vocab_size + 2, dtype=torch.long, device=encoded.device)
+        start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long, device=encoded.device)  # SOS
         ys = torch.cat((start_vector, ys), dim=-1)
 
-        logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long)  # EOS/SOS/PAD
+        # Final dimension include EOS/SOS/PAD
+        logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long, device=encoded.device)
         # max_len = len + 2
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
@@ -340,14 +348,15 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         # N x L
         probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
         # Take the minimum confidence of the sequence
-        probs = probs.min(dim=1).values
+        probs = probs.min(dim=1).values.detach().cpu()
 
         # Manual decoding
         word_values = [
-            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0] for encoded_seq in out_idxs.numpy()
+            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
+            for encoded_seq in out_idxs.cpu().numpy()
         ]
 
-        return list(zip(word_values, probs.detach().numpy().tolist()))
+        return list(zip(word_values, probs.numpy().tolist()))
 
 
 def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> MASTER:

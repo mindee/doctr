@@ -52,15 +52,16 @@ class SROIE(VisionDataset):
             raise NotImplementedError
 
         # # List images
-        self.root = os.path.join(self._root, 'images')
+        tmp_root = os.path.join(self.root, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        for img_path in os.listdir(self.root):
+        np_dtype = np.float16 if self.fp16 else np.float32
+        for img_path in os.listdir(tmp_root):
             # File existence check
-            if not os.path.exists(os.path.join(self.root, img_path)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
+            if not os.path.exists(os.path.join(tmp_root, img_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
             stem = Path(img_path).stem
             _targets = []
-            with open(os.path.join(self._root, 'annotations', f"{stem}.txt"), encoding='latin') as f:
+            with open(os.path.join(self.root, 'annotations', f"{stem}.txt"), encoding='latin') as f:
                 for row in csv.reader(f, delimiter=','):
                     # Safeguard for blank lines
                     if len(row) > 0:
@@ -75,7 +76,8 @@ class SROIE(VisionDataset):
 
             text_targets, box_targets = zip(*_targets)
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=text_targets)))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=text_targets)))
+        self.root = tmp_root
 
     def extra_repr(self) -> str:
         return f"train={self.train}"

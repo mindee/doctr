@@ -1,8 +1,9 @@
 import pytest
 import math
-
+import numpy as np
 import tensorflow as tf
 from doctr import transforms as T
+from doctr.transforms.functional import rotate, crop_detection
 
 
 def test_resize():
@@ -190,3 +191,49 @@ def test_randomapply():
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
     out = T.RandomApply(transfo, p=1.)(input_t)
     assert (tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.))
+
+
+def test_rotate():
+    input_t = tf.ones((50, 50, 3), dtype=tf.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    r_img, r_boxes = rotate(input_t, boxes, angle=12.)
+    assert r_img.shape == (50, 50, 3)
+    assert r_img[0, 0, 0] == 0.
+    assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
+    rel_boxes = np.array([
+        [.3, .4, .7, .6]
+    ])
+    r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
+    assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
+
+
+def test_random_rotate():
+    rotator = T.RandomRotate(max_angle=10.)
+    input_t = tf.ones((50, 50, 3), dtype=tf.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    r_img, target = rotator(input_t, dict(boxes=boxes))
+    assert r_img.shape == input_t.shape
+    assert abs(target["boxes"][-1, -1]) <= 10.
+
+
+def test_crop_detection():
+    img = tf.ones((50, 50, 3), dtype=tf.float32)
+    abs_boxes = np.array([
+        [15, 20, 35, 30],
+        [5, 10, 10, 20],
+    ])
+    crop_box = (12, 23, 50, 50)
+    c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
+    assert c_img.shape == (27, 38, 3)
+    assert c_boxes.shape == (1, 4)
+    rel_boxes = np.array([
+        [.3, .4, .7, .6],
+        [.1, .2, .2, .4],
+    ])
+    c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
+    assert c_img.shape == (27, 38, 3)
+    assert c_boxes.shape == (1, 4)

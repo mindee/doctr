@@ -9,10 +9,10 @@ from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
-from ._utils import estimate_orientation, extract_crops, extract_rcrops, rotate_page, rotate_boxes
+from ._utils import estimate_orientation, extract_crops, extract_rcrops, rotate_page
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 
 __all__ = ['OCRPredictor', 'DocumentBuilder']
 

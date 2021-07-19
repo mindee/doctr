@@ -168,7 +168,13 @@ def point_wise_feed_forward_network(d_model: int = 512, dff: int = 2048) -> tf.k
 
 class DecoderLayer(tf.keras.layers.Layer):
 
-    def __init__(self, d_model: int = 512, num_heads: int = 8, dff: int = 2048) -> None:
+    def __init__(
+        self,
+        d_model: int = 512,
+        num_heads: int = 8,
+        dff: int = 2048,
+        dropout: float = 0.2,
+    ) -> None:
         super(DecoderLayer, self).__init__()
 
         self.mha1 = MultiHeadAttention(d_model, num_heads)
@@ -179,6 +185,10 @@ class DecoderLayer(tf.keras.layers.Layer):
         self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
         self.layernorm3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
+
+        self.dropout1 = tf.keras.layers.Dropout(dropout)
+        self.dropout2 = tf.keras.layers.Dropout(dropout)
+        self.dropout3 = tf.keras.layers.Dropout(dropout)
 
     def call(
         self,
@@ -191,12 +201,15 @@ class DecoderLayer(tf.keras.layers.Layer):
         # enc_output.shape == (batch_size, input_seq_len, d_model)
 
         attn1 = self.mha1(x, x, x, look_ahead_mask, **kwargs)  # (batch_size, target_seq_len, d_model)
+        attn1 = self.dropout1(attn1, **kwargs)
         out1 = self.layernorm1(attn1 + x, **kwargs)
 
         attn2 = self.mha2(enc_output, enc_output, out1, padding_mask, **kwargs)  # (batch_size, target_seq_len, d_model)
+        attn2 = self.dropout2(attn2, **kwargs)
         out2 = self.layernorm2(attn2 + out1, **kwargs)  # (batch_size, target_seq_len, d_model)
 
         ffn_output = self.ffn(out2, **kwargs)  # (batch_size, target_seq_len, d_model)
+        ffn_output = self.dropout3(ffn_output, **kwargs)
         out3 = self.layernorm3(ffn_output + out2, **kwargs)  # (batch_size, target_seq_len, d_model)
 
         return out3
@@ -212,6 +225,7 @@ class Decoder(tf.keras.layers.Layer):
         dff: int = 2048,
         vocab_size: int = 120,
         maximum_position_encoding: int = 50,
+        dropout: float = 0.2,
     ) -> None:
         super(Decoder, self).__init__()
 
@@ -221,8 +235,10 @@ class Decoder(tf.keras.layers.Layer):
         self.embedding = tf.keras.layers.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
         self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
 
-        self.dec_layers = [DecoderLayer(d_model, num_heads, dff)
+        self.dec_layers = [DecoderLayer(d_model, num_heads, dff, dropout)
                            for _ in range(num_layers)]
+
+        self.dropout = tf.keras.layers.Dropout(dropout)
 
     def call(
         self,
@@ -238,6 +254,8 @@ class Decoder(tf.keras.layers.Layer):
         x = self.embedding(x, **kwargs)  # (batch_size, target_seq_len, d_model)
         x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
         x += self.pos_encoding[:, :seq_len, :]
+
+        x = self.dropout(x, **kwargs)
 
         for i in range(self.num_layers):
             x = self.dec_layers[i](

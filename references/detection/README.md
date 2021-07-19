@@ -2,7 +2,7 @@
 
 The sample training script was made to train text detection model with doctr
 
-## Getting started
+## Setup
 
 First, you need to install doctr (with pip, for instance)
 
@@ -11,10 +11,22 @@ pip install -e . --upgrade
 pip install -r references/requirements.txt
 ```
 
-Then, to run the script execute the following command
+if you are using PyTorch back-end, there is an extra dependency (to optimize data loading):
+```shell
+pip install contiguous-params>=1.0.0
+```
+
+## Usage
+
+You can start your training in TensorFlow:
 
 ```shell
-python references/detection/train.py db_resnet50 --epochs 5 --data_path path/to/your/dataset
+python references/detection/train.py path/to/your/dataset db_resnet50 --epochs 5
+```
+or PyTorch:
+
+```shell
+python references/detection/train_pytorch.py path/to/your/dataset db_resnet50 --epochs 5 --device 0
 ```
 
 ## Data format
@@ -56,15 +68,10 @@ image.json = {
 }
 ```
 
-## Tune arguments
+## Advanced options
 
-You can pass the following arguments:
+Feel free to inspect the multiple script option to customize your training to your own needs!
 
-```shell
-model (str): text-detection model to train
---epochs (int): default=10, number of epochs to train the model on
---batch_size (int): default=2, batch size for training
---input_size Tuple[int, int]: default=(1024, 1024), input size (H, W) for the model
---learning_rate, (float): default=0.001, learning rate for the optimizer (Adam)
---data_path (str), path to data folder
+```python
+python references/detection/train.py --help
 ```

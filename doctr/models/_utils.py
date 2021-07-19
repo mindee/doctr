@@ -9,7 +9,7 @@ from math import floor
 from typing import List
 from statistics import median_low
 
-__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle', 'rotate_boxes']
+__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle']
 
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
@@ -204,37 +204,3 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
             angle = 90 + angle
 
     return angle
-
-
-def rotate_boxes(
-    boxes: np.ndarray,
-    angle: float = 0.,
-    min_angle: float = 1.
-) -> np.ndarray:
-    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) of an angle,
-    if angle > min_angle, around the center of the page.
-
-    Args:
-        boxes: (N, 4) array of (relative) boxes
-        angle: angle between -90 and +90 degrees
-        min_angle: minimum angle to rotate boxes
-
-    Returns:
-        A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
-    """
-    # If small angle, return boxes (no rotation)
-    if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
-        return boxes
-    # Compute rotation matrix
-    angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
-    rotation_mat = np.array([[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]])
-    # Compute unrotated boxes
-    x_unrotated, y_unrotated = (boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2
-    width, height = boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]
-    # Rotate centers
-    centers = np.stack((x_unrotated, y_unrotated), axis=-1)
-    rotated_centers = .5 + np.matmul(centers - .5, np.transpose(rotation_mat))
-    x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
-    # Compute rotated boxes
-    rotated_boxes = np.stack((x_center, y_center, width, height, angle * np.ones_like(boxes[:, 0])), axis=1)
-    return rotated_boxes

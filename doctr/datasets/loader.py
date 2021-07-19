@@ -8,7 +8,7 @@ import tensorflow as tf
 import numpy as np
 from typing import Optional
 
-from .multithreading import multithread_exec
+from doctr.utils.multithreading import multithread_exec
 
 __all__ = ["DataLoader"]
 
@@ -64,6 +64,9 @@ class DataLoader:
         self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
         self.workers = workers
         self.reset()
+
+    def __len__(self) -> int:
+        return self.num_batches
 
     def reset(self) -> None:
         # Updates indices after each epoch
