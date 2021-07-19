@@ -103,8 +103,13 @@ def rotate_page(
     Returns:
         Rotated array or tf.Tensor, padded by 0 by default.
     """
-    if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
+    angle = - angle #TODO : the angles given by estimate_orientation are not correct and should be negative
+    if abs(angle) < min_angle:
         return image
+    elif abs(angle) > 45:
+        # if image is closer to portrait mode, go for a full 90° rotation
+        image = cv2.rotate(image, cv2.cv2.ROTATE_90_CLOCKWISE)
+        angle += 90  # track the rotation by updating angle
 
     height, width = image.shape[:2]
     center = (height / 2, width / 2)

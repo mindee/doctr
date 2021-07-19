@@ -9,7 +9,7 @@ from scipy.cluster.hierarchy import fclusterdata
 from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
-from ._utils import extract_crops, extract_rcrops, rotate_page, rotate_boxes
+from ._utils import estimate_orientation, extract_crops, extract_rcrops, rotate_page, rotate_boxes
 from doctr.documents.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
@@ -42,12 +42,21 @@ class OCRPredictor(NestedObject):
     def __call__(
         self,
         pages: List[np.ndarray],
+        rotate_document: bool = False,
         **kwargs: Any,
     ) -> Document:
 
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
+
+        # Detect document rotation and rotate pages
+        if rotate_document:
+            page_angles = []
+            for i, page in enumerate(pages):
+                page_angle = estimate_orientation(page)
+                page_angles.append(page_angle)
+                pages[i] = rotate_page(page, page_angle)
 
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
