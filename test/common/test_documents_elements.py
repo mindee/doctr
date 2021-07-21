@@ -80,6 +80,12 @@ def test_word():
     # Repr
     assert word.__repr__() == f"Word(value='hello', confidence={conf:.2})"
 
+    # Load
+    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (.5, .5))}
+    word.load(state_dict)
+    for k, v in state_dict.items():
+        assert getattr(word, k) == v
+
 
 def test_line():
     geom = ((0, 0), (0.5, 0.5))
@@ -103,6 +109,15 @@ def test_line():
 
     # Ensure that words repr does't span on several lines when there are none
     assert repr(elements.Line([], ((0, 0), (1, 1)))) == "Line(\n  (words): []\n)"
+
+    # Load
+    state_dict = {
+        "words": [{"value": "there", "confidence": 0.1, "geometry": ((0, 0), (1., 1.))}],
+        "geometry": ((0, 0), (1., 1.))
+    }
+    line.load(state_dict)
+    assert line.geometry == state_dict['geometry']
+    assert all(w.export() == s for w, s in zip(line.words, state_dict['words']))
 
 
 def test_artefact():
