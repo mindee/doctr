@@ -18,13 +18,15 @@ __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 class Element(NestedObject):
     """Implements an abstract document element with exporting and text rendering capabilities"""
 
+    _children_names: List[str] = []
     _exported_keys: List[str] = []
 
     def __init__(self, **kwargs: Any) -> None:
-        self._children_names: List[str] = []
         for k, v in kwargs.items():
-            setattr(self, k, v)
-            self._children_names.append(k)
+            if k in self._children_names:
+                setattr(self, k, v)
+            else:
+                raise KeyError(f"{self.__class__.__name__} object does not have any attribute named '{k}'")
 
     def export(self) -> Dict[str, Any]:
         """Exports the object into a nested dict format"""
@@ -35,14 +37,9 @@ class Element(NestedObject):
 
         return export_dict
 
-    def load(self, save_dict: Dict[str, Any]) -> None:
-        """Loads back the element from its export dict"""
-
-        for k in self._exported_keys:
-            setattr(self, k, save_dict[k])
-        for children_name in self._children_names:
-            for idx, data in enumerate(save_dict[children_name]):
-                getattr(self, children_name)[idx].load(data)
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        raise NotImplementedError
 
     def render(self) -> str:
         raise NotImplementedError
@@ -59,6 +56,7 @@ class Word(Element):
     """
 
     _exported_keys: List[str] = ["value", "confidence", "geometry"]
+    _children_names: List[str] = []
 
     def __init__(self, value: str, confidence: float, geometry: Union[BoundingBox, RotatedBbox]) -> None:
         super().__init__()
@@ -73,6 +71,11 @@ class Word(Element):
     def extra_repr(self) -> str:
         return f"value='{self.value}', confidence={self.confidence:.2}"
 
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        return cls(**kwargs)
+
 
 class Artefact(Element):
     """Implements a non-textual element
@@ -85,6 +88,7 @@ class Artefact(Element):
     """
 
     _exported_keys: List[str] = ["geometry", "type", "confidence"]
+    _children_names: List[str] = []
 
     def __init__(self, artefact_type: str, confidence: float, geometry: BoundingBox) -> None:
         super().__init__()
@@ -99,6 +103,11 @@ class Artefact(Element):
     def extra_repr(self) -> str:
         return f"type='{self.type}', confidence={self.confidence:.2}"
 
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        return cls(**kwargs)
+
 
 class Line(Element):
     """Implements a line element as a collection of words
@@ -111,6 +120,7 @@ class Line(Element):
     """
 
     _exported_keys: List[str] = ["geometry"]
+    _children_names: List[str] = ['words']
     words: List[Word] = []
 
     def __init__(
@@ -131,6 +141,14 @@ class Line(Element):
         """Renders the full text of the element"""
         return " ".join(w.render() for w in self.words)
 
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        kwargs.update({
+            'words': [Word.from_dict(_dict) for _dict in save_dict['words']],
+        })
+        return cls(**kwargs)
+
 
 class Block(Element):
     """Implements a block element as a collection of lines and artefacts
@@ -144,6 +162,7 @@ class Block(Element):
     """
 
     _exported_keys: List[str] = ["geometry"]
+    _children_names: List[str] = ['lines', 'artefacts']
     lines: List[Line] = []
     artefacts: List[Artefact] = []
 
@@ -167,6 +186,15 @@ class Block(Element):
         """Renders the full text of the element"""
         return line_break.join(line.render() for line in self.lines)
 
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        kwargs.update({
+            'lines': [Line.from_dict(_dict) for _dict in save_dict['lines']],
+            'artefacts': [Artefact.from_dict(_dict) for _dict in save_dict['artefacts']],
+        })
+        return cls(**kwargs)
+
 
 class Page(Element):
     """Implements a page element as a collection of blocks
@@ -180,6 +208,7 @@ class Page(Element):
     """
 
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
+    _children_names: List[str] = ['blocks']
     blocks: List[Block] = []
 
     def __init__(
@@ -215,6 +244,12 @@ class Page(Element):
         visualize_page(self.export(), page, interactive=interactive)
         plt.show(**kwargs)
 
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        kwargs.update({'blocks': [Block.from_dict(block_dict) for block_dict in save_dict['blocks']]})
+        return cls(**kwargs)
+
 
 class Document(Element):
     """Implements a document element as a collection of pages
@@ -223,6 +258,7 @@ class Document(Element):
         pages: list of page elements
     """
 
+    _children_names: List[str] = ['pages']
     pages: List[Page] = []
 
     def __init__(
@@ -243,3 +279,9 @@ class Document(Element):
         """
         for img, result in zip(pages, self.pages):
             result.show(img, **kwargs)
+
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        kwargs.update({'pages': [Page.from_dict(page_dict) for page_dict in save_dict['pages']]})
+        return cls(**kwargs)
