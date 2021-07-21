@@ -35,6 +35,15 @@ class Element(NestedObject):
 
         return export_dict
 
+    def load(self, save_dict: Dict[str, Any]) -> None:
+        """Loads back the element from its export dict"""
+
+        for k in self._exported_keys:
+            setattr(self, k, save_dict[k])
+        for children_name in self._children_names:
+            for idx, data in enumerate(save_dict[children_name]):
+                getattr(self, children_name)[idx].load(data)
+
     def render(self) -> str:
         raise NotImplementedError
 
