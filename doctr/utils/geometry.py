@@ -80,7 +80,10 @@ def rotate_boxes(
         return boxes
     # Compute rotation matrix
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
-    rotation_mat = np.array([[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]])
+    rotation_mat = np.array([
+        [np.cos(angle_rad), -np.sin(angle_rad)],
+        [np.sin(angle_rad), np.cos(angle_rad)]
+    ], dtype=boxes.dtype)
     # Compute unrotated boxes
     x_unrotated, y_unrotated = (boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2
     width, height = boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]
