@@ -5,7 +5,7 @@
 
 import numpy as np
 import cv2
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from typing import List, Dict
 
 
