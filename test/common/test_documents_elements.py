@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from doctr.documents import elements
 
