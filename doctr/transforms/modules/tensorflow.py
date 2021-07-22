@@ -73,6 +73,7 @@ class Resize(NestedObject):
         return _repr
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        input_dtype = img.dtype
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
         if self.preserve_aspect_ratio:
             # pad width
@@ -83,7 +84,7 @@ class Resize(NestedObject):
             else:
                 offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
             img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
-        return img
+        return tf.cast(img, dtype=input_dtype)
 
 
 class Normalize(NestedObject):
@@ -100,15 +101,15 @@ class Normalize(NestedObject):
         std: standard deviation per channel
     """
     def __init__(self, mean: Tuple[float, float, float], std: Tuple[float, float, float]) -> None:
-        self.mean = tf.constant(mean, dtype=tf.float32)
-        self.std = tf.constant(std, dtype=tf.float32)
+        self.mean = tf.constant(mean)
+        self.std = tf.constant(std)
 
     def extra_repr(self) -> str:
         return f"mean={self.mean.numpy().tolist()}, std={self.std.numpy().tolist()}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        img -= self.mean
-        img /= self.std
+        img -= tf.cast(self.mean, dtype=img.dtype)
+        img /= tf.cast(self.std, dtype=img.dtype)
         return img
 
 
