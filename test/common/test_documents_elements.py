@@ -60,6 +60,11 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     ]
 
 
+def test_element():
+    with pytest.raises(AssertionError):
+        elements.Element(sub_elements=[1])
+
+
 def test_word():
     word_str = "hello"
     conf = 0.8
