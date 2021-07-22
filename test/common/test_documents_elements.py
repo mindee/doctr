@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from doctr.documents import elements
 
@@ -60,6 +61,11 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     ]
 
 
+def test_element():
+    with pytest.raises(KeyError):
+        elements.Element(sub_elements=[1])
+
+
 def test_word():
     word_str = "hello"
     conf = 0.8
@@ -79,6 +85,11 @@ def test_word():
 
     # Repr
     assert word.__repr__() == f"Word(value='hello', confidence={conf:.2})"
+
+    # Class method
+    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (.5, .5))}
+    word = elements.Word.from_dict(state_dict)
+    assert word.export() == state_dict
 
 
 def test_line():
@@ -103,6 +114,14 @@ def test_line():
 
     # Ensure that words repr does't span on several lines when there are none
     assert repr(elements.Line([], ((0, 0), (1, 1)))) == "Line(\n  (words): []\n)"
+
+    # from dict
+    state_dict = {
+        "words": [{"value": "there", "confidence": 0.1, "geometry": ((0, 0), (1., 1.))}],
+        "geometry": ((0, 0), (1., 1.))
+    }
+    line = elements.Line.from_dict(state_dict)
+    assert line.export() == state_dict
 
 
 def test_artefact():
