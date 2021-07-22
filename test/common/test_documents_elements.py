@@ -62,7 +62,7 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
 
 
 def test_element():
-    with pytest.raises(AssertionError):
+    with pytest.raises(KeyError):
         elements.Element(sub_elements=[1])
 
 
