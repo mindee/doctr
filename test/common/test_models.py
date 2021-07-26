@@ -133,7 +133,7 @@ def mock_image(tmpdir_factory):
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
     with open(tmp_path, 'wb') as f:
         f.write(file.getbuffer())
-    image = reader.read_img(tmp_path)
+    image = reader.read_img_as_numpy(tmp_path)
     return image
 
 
