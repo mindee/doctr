@@ -9,16 +9,12 @@ from pathlib import Path
 import fitz
 from weasyprint import HTML
 from typing import List, Tuple, Optional, Any, Union, Sequence, Dict
-from .pdf import read_pdf
+from doctr.utils.common_types import AbstractFile
+from .pdf import read_pdf, PDF
 from .html import read_html
 from .image import read_img_as_numpy
 
 __all__ = ['DocumentFile']
-
-
-AbstractPath = Union[str, Path]
-AbstractFile = Union[AbstractPath, bytes]
-Bbox = Tuple[float, float, float, float]
 
 
 class DocumentFile:

@@ -9,7 +9,7 @@ from pathlib import Path
 import fitz
 from typing import List, Tuple, Optional, Any, Dict
 
-from .reader import AbstractFile
+from doctr.utils.common_types import AbstractFile, Bbox
 
 __all__ = ['read_pdf', 'PDF']
 
