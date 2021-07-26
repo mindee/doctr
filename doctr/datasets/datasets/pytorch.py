@@ -5,10 +5,7 @@
 
 import os
 from typing import List, Any, Tuple
-import numpy as np
-from PIL import Image
 import torch
-from torchvision.transforms.functional import to_tensor
 
 from doctr.io import read_img_as_tensor
 from .base import _AbstractDataset, _VisionDataset
