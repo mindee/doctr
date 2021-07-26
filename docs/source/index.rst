@@ -77,7 +77,7 @@ Supported datasets
    :caption: Package Reference
 
    datasets
-   documents
+   io
    models
    transforms
    utils

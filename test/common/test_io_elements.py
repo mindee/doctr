@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from doctr.documents import elements
+from doctr.io import elements
 
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):

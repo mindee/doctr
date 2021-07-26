@@ -15,7 +15,7 @@ if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 from doctr.models import ocr_predictor
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 
 
 def main(args):

@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.models import detection, PreProcessor
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 
 
 @pytest.mark.parametrize(

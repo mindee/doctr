@@ -4,9 +4,8 @@ from io import BytesIO
 import requests
 import cv2
 
-from doctr.documents import reader
+from doctr.io import reader, Document, DocumentFile
 from doctr import models
-from doctr.documents import Document, DocumentFile
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -134,7 +133,7 @@ def mock_image(tmpdir_factory):
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
     with open(tmp_path, 'wb') as f:
         f.write(file.getbuffer())
-    image = reader.read_img(tmp_path)
+    image = reader.read_img_as_numpy(tmp_path)
     return image
 
 

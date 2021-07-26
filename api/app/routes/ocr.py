@@ -6,7 +6,8 @@
 from fastapi import APIRouter, UploadFile, File
 from typing import List
 
-from app.vision import decode_image, predictor
+from doctr.io import decode_img_as_tensor
+from app.vision import predictor
 from app.schemas import OCROut
 
 
@@ -16,7 +17,7 @@ router = APIRouter()
 @router.post("/", response_model=List[OCROut], status_code=200, summary="Perform OCR")
 async def perform_ocr(file: UploadFile = File(...)):
     """Runs DocTR OCR model to analyze the input"""
-    img = decode_image(file.file.read())
+    img = decode_img_as_tensor(file.file.read())
     out = predictor([img], training=False)
 
     return [OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)

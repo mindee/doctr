@@ -2,9 +2,8 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import recognition, PreProcessor
-from doctr.documents import DocumentFile
-from doctr.models import extract_crops
+from doctr.models import recognition, PreProcessor, extract_crops
+from doctr.io import DocumentFile
 
 
 @pytest.mark.parametrize(
