@@ -13,7 +13,7 @@ import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torchvision.transforms import Compose, Lambda, Normalize, ColorJitter
+from torchvision.transforms import Compose, Normalize, ColorJitter
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
