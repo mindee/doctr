@@ -5,7 +5,8 @@
 
 from fastapi import APIRouter, UploadFile, File
 
-from app.vision import decode_image, reco_predictor
+from doctr.io import decode_img_as_tensor
+from app.vision import reco_predictor
 from app.schemas import RecognitionOut
 
 

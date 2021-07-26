@@ -6,7 +6,8 @@
 from fastapi import APIRouter, UploadFile, File
 from typing import List
 
-from app.vision import decode_image, predictor
+from doctr.io import decode_img_as_tensor
+from app.vision import predictor
 from app.schemas import OCROut
 
 
