@@ -4,11 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-import cv2
 from pathlib import Path
-import fitz
-from weasyprint import HTML
-from typing import List, Tuple, Optional, Any, Union, Sequence, Dict
+from typing import List, Union, Sequence
 from doctr.utils.common_types import AbstractFile
 from .pdf import read_pdf, PDF
 from .html import read_html
