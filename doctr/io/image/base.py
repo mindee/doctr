@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 import numpy as np
 import cv2
-from ..reader import AbstractFile
+from doctr.utils.common_types import AbstractFile
 
 __all__ = ['read_img_as_numpy']
 
