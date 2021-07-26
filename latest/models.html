@@ -42,7 +42,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="doctr.transforms" href="transforms.html" />
-    <link rel="prev" title="doctr.documents" href="documents.html" /> 
+    <link rel="prev" title="doctr.io" href="io.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -110,17 +110,17 @@
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#word">Word</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#line">Line</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#artefact">Artefact</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#block">Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#page">Page</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#document">Document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="io.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="io.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#document">Document</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io.html#file-reading">File reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.models</a><ul>
@@ -735,7 +735,7 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <section id="export-model-output">
 <h3>Export model output<a class="headerlink" href="#export-model-output" title="Permalink to this headline">¶</a></h3>
 <p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
-To get a better understanding of our document model, check our <a class="reference internal" href="documents.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
+To get a better understanding of our document model, check our <a class="reference internal" href="io.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
 <p>Here is a typical <cite>Document</cite> layout:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Document</span><span class="p">(</span>
   <span class="p">(</span><span class="n">pages</span><span class="p">):</span> <span class="p">[</span><span class="n">Page</span><span class="p">(</span>
@@ -920,7 +920,7 @@ To get a better understanding of our document model, check our <a class="referen
         <a href="transforms.html" class="btn btn-neutral float-right" title="doctr.transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="documents.html" class="btn btn-neutral float-left" title="doctr.documents" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="io.html" class="btn btn-neutral float-left" title="doctr.io" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

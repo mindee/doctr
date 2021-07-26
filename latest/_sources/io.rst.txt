@@ -1,10 +1,10 @@
-doctr.documents
-===============
+doctr.io
+========
 
 
-.. currentmodule:: doctr.documents
+.. currentmodule:: doctr.io
 
-The documents module enables users to easily access content from documents and export analysis
+The io module enables users to easily access content from documents and export analysis
 results to structured formats.
 
 .. _document_structure:
@@ -66,7 +66,11 @@ High-performance file reading and conversion to processable structured data.
 
 .. autofunction:: read_pdf
 
-.. autofunction:: read_img
+.. autofunction:: read_img_as_numpy
+
+.. autofunction:: read_img_as_tensor
+
+.. autofunction:: decode_img_as_tensor
 
 .. autofunction:: read_html
 
