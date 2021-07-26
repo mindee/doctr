@@ -49,19 +49,19 @@ def test_read_pdf(mock_pdf, mock_pdf_stream):
         _ = reader.read_pdf("my_imaginary_file.pdf")
 
 
-def test_read_img(tmpdir_factory, mock_pdf):
+def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
 
     # Wrong input type
     with pytest.raises(TypeError):
-        _ = reader.read_img(123)
+        _ = reader.read_img_as_numpy(123)
 
     # Non-existing file
     with pytest.raises(FileNotFoundError):
-        reader.read_img("my_imaginary_file.jpg")
+        reader.read_img_as_numpy("my_imaginary_file.jpg")
 
     # Invalid image
     with pytest.raises(ValueError):
-        reader.read_img(str(mock_pdf))
+        reader.read_img_as_numpy(str(mock_pdf))
 
     # From path
     url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/Grace_Hopper.jpg'
@@ -72,9 +72,9 @@ def test_read_img(tmpdir_factory, mock_pdf):
 
     # Path & stream
     with open(tmp_path, 'rb') as f:
-        page_stream = reader.read_img(f.read())
+        page_stream = reader.read_img_as_numpy(f.read())
 
-    for page in (reader.read_img(tmp_path), page_stream):
+    for page in (reader.read_img_as_numpy(tmp_path), page_stream):
         # Data type
         assert isinstance(page, np.ndarray)
         assert page.dtype == np.uint8
@@ -82,12 +82,12 @@ def test_read_img(tmpdir_factory, mock_pdf):
         assert page.shape == (606, 517, 3)
 
     # RGB
-    bgr_page = reader.read_img(tmp_path, rgb_output=False)
+    bgr_page = reader.read_img_as_numpy(tmp_path, rgb_output=False)
     assert np.all(page == bgr_page[..., ::-1])
 
     # Resize
     target_size = (200, 150)
-    resized_page = reader.read_img(tmp_path, target_size)
+    resized_page = reader.read_img_as_numpy(tmp_path, target_size)
     assert resized_page.shape[:2] == target_size
 
 
