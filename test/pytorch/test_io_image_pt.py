@@ -1,6 +1,4 @@
-import pytest
 import torch
-import numpy as np
 
 from doctr.io import read_img_as_tensor, decode_img_as_tensor
 

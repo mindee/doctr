@@ -1,6 +1,4 @@
-import pytest
 import tensorflow as tf
-import numpy as np
 
 from doctr.io import read_img_as_tensor, decode_img_as_tensor
 
