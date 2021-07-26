@@ -1,7 +1,7 @@
 import numpy as np
 
 from doctr.utils import visualization
-from test_documents_elements import _mock_pages
+from test_io_elements import _mock_pages
 
 
 def test_visualize_page():
