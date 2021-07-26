@@ -1,7 +1,5 @@
 import pytest
-import math
 import numpy as np
-import tensorflow as tf
 
 from doctr import models
 from doctr.io import Document, DocumentFile
