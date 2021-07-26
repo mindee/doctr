@@ -4,7 +4,7 @@ import fitz
 import numpy as np
 from io import BytesIO
 
-from doctr.documents import reader
+from doctr.io import reader
 
 
 def test_convert_page_to_numpy(mock_pdf):
