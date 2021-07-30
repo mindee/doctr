@@ -5,28 +5,28 @@ from doctr.io import elements
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
-        elements.Word("hello", confidence, [
+        elements.Word("hello", confidence, (
             (offset[0], offset[1]),
             (size[0] / 2 + offset[0], size[1] / 2 + offset[1])
-        ]),
-        elements.Word("world", confidence, [
+        )),
+        elements.Word("world", confidence, (
             (size[0] / 2 + offset[0], size[1] / 2 + offset[1]),
             (size[0] + offset[0], size[1] + offset[1])
-        ])
+        ))
     ]
 
 
 def _mock_artefacts(size=(1, 1), offset=(0, 0), confidence=0.8):
     sub_size = (size[0] / 2, size[1] / 2)
     return [
-        elements.Artefact("qr_code", confidence, [
+        elements.Artefact("qr_code", confidence, (
             (offset[0], offset[1]),
             (sub_size[0] + offset[0], sub_size[1] + offset[1])
-        ]),
-        elements.Artefact("qr_code", confidence, [
+        )),
+        elements.Artefact("qr_code", confidence, (
             (sub_size[0] + offset[0], sub_size[1] + offset[1]),
             (size[0] + offset[0], size[1] + offset[1])
-        ]),
+        )),
     ]
 
 
