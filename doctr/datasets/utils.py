@@ -74,12 +74,13 @@ def decode_sequence(
         mapping: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-        A string, decoded from input_array"""
+        A string, decoded from input_array
+    """
 
     if not input_array.dtype == np.int_ or input_array.max() >= len(mapping):
         raise AssertionError("Input must be an array of int, with max less than mapping size")
-    decoded = ''.join(mapping[idx] for idx in input_array)
-    return decoded
+
+    return ''.join(map(mapping.__getitem__, input_array))
 
 
 def encode_sequences(
