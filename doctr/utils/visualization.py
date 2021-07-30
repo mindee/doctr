@@ -10,7 +10,7 @@ import mplcursors
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 import cv2
-from typing import Tuple, List, Dict, Any, Union
+from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
 
@@ -20,8 +20,8 @@ __all__ = ['visualize_page', 'synthetize_page']
 def rect_patch(
     geometry: BoundingBox,
     page_dimensions: Tuple[int, int],
-    label: str,
-    color: Tuple[float, float, float],
+    label: Optional[str] = None,
+    color: Tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
@@ -66,8 +66,8 @@ def rect_patch(
 def polygon_patch(
     geometry: RotatedBbox,
     page_dimensions: Tuple[int, int],
-    label: str,
-    color: Tuple[float, float, float],
+    label: Optional[str] = None,
+    color: Tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
