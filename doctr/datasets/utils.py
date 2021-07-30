@@ -6,11 +6,12 @@
 import string
 import unicodedata
 import numpy as np
+from functools import partial
 from typing import List, Optional, Any
 
 from .vocabs import VOCABS
 
-__all__ = ['translate', 'encode_sequence', 'decode_sequence', 'encode_sequences']
+__all__ = ['translate', 'encode_string', 'decode_sequence', 'encode_sequences']
 
 
 def translate(
@@ -47,7 +48,7 @@ def translate(
     return translated
 
 
-def encode_sequence(
+def encode_string(
     input_string: str,
     vocab: str,
 ) -> List[int]:
@@ -90,6 +91,7 @@ def encode_sequences(
     eos: int = -1,
     sos: Optional[int] = None,
     pad: Optional[int] = None,
+    dynamic_seq_length: bool = False,
     **kwargs: Any,
 ) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
@@ -101,6 +103,7 @@ def encode_sequences(
         eos: encoding of End Of String
         sos: optional encoding of Start Of String
         pad: optional encoding for padding. In case of padding, all sequences are followed by 1 EOS then PAD
+        dynamic_seq_length: if `target_size` is specified, uses it as upper bound and enables dynamic sequence size
 
     Returns:
         the padded encoded data as a tensor
@@ -109,29 +112,32 @@ def encode_sequences(
     if 0 <= eos < len(vocab):
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
-    if not isinstance(target_size, int):
-        target_size = max(len(w) for w in sequences)
-        if sos:
-            target_size += 1
-        if pad:
-            target_size += 1
+    if not isinstance(target_size, int) or dynamic_seq_length:
+        # Maximum string length + EOS
+        max_length = max(len(w) for w in sequences) + 1
+        if isinstance(sos, int):
+            max_length += 1
+        if isinstance(pad, int):
+            max_length += 1
+        target_size = max_length if not isinstance(target_size, int) else min(max_length, target_size)
 
     # Pad all sequences
-    if pad:  # pad with padding symbol
+    if isinstance(pad, int):  # pad with padding symbol
         if 0 <= pad < len(vocab):
             raise ValueError("argument 'pad' needs to be outside of vocab possible indices")
         # In that case, add EOS at the end of the word before padding
-        encoded_data = np.full([len(sequences), target_size], pad, dtype=np.int32)
+        default_symbol = pad
     else:  # pad with eos symbol
-        encoded_data = np.full([len(sequences), target_size], eos, dtype=np.int32)
+        default_symbol = eos
+    encoded_data = np.full([len(sequences), target_size], default_symbol, dtype=np.int32)
 
-    for idx, seq in enumerate(sequences):
-        encoded_seq = encode_sequence(seq, vocab)
-        if pad:  # add eos at the end of the sequence
-            encoded_seq.append(eos)
-        encoded_data[idx, :min(len(encoded_seq), target_size)] = encoded_seq[:min(len(encoded_seq), target_size)]
+    # Encode the strings
+    for idx, seq in enumerate(map(partial(encode_string, vocab=vocab), sequences)):
+        if isinstance(pad, int):  # add eos at the end of the sequence
+            seq.append(eos)
+        encoded_data[idx, :min(len(seq), target_size)] = seq[:min(len(seq), target_size)]
 
-    if sos:  # place eos symbol at the beginning of each sequence
+    if isinstance(sos, int):  # place sos symbol at the beginning of each sequence
         if 0 <= sos < len(vocab):
             raise ValueError("argument 'sos' needs to be outside of vocab possible indices")
         encoded_data = np.roll(encoded_data, 1)
