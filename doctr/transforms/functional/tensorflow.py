@@ -20,9 +20,9 @@ def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
     rgb_shift = tf.random.uniform(shape=shift_shape, minval=min_val, maxval=1)
     # Inverse the color
     if out.dtype == tf.uint8:
-        out = tf.cast(tf.cast(out, dtype=tf.float32) * rgb_shift, dtype=tf.uint8)
+        out = tf.cast(tf.cast(out, dtype=rgb_shift.dtype) * rgb_shift, dtype=tf.uint8)
     else:
-        out *= rgb_shift
+        out *= tf.cast(rgb_shift, dtype=out.dtype)
     # Inverse the color
     out = 255 - out if out.dtype == tf.uint8 else 1 - out
     return out
@@ -31,7 +31,7 @@ def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
 def rotate(
     img: tf.Tensor,
     boxes: np.ndarray,
-    angle: float
+    angle: float,
 ) -> Tuple[tf.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 

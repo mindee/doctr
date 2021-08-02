@@ -20,4 +20,11 @@ def test_classification_architectures(arch_name, input_shape, output_size):
         out = model(torch.rand((batch_size, *input_shape), dtype=torch.float32))
     # Output checks
     assert isinstance(out, torch.Tensor)
+    assert out.dtype == torch.float32
     assert out.numpy().shape == (batch_size, *output_size)
+    # Check FP16
+    if torch.cuda.is_available():
+        model = model.half().cuda()
+        with torch.no_grad():
+            out = model(torch.rand((batch_size, *input_shape), dtype=torch.float16).cuda())
+        assert out.dtype == torch.float16

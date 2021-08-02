@@ -140,7 +140,7 @@ class CRNN(RecognitionModel, Model):
         """
         gt, seq_len = self.compute_target(target)
         batch_len = model_output.shape[0]
-        input_length = model_output.shape[1] * tf.ones(shape=(batch_len))
+        input_length = tf.fill((batch_len,), model_output.shape[1])
         ctc_loss = tf.nn.ctc_loss(
             gt, model_output, seq_len, input_length, logits_time_major=False, blank_index=len(self.vocab)
         )

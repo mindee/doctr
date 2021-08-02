@@ -15,8 +15,3 @@ from doctr.models import ocr_predictor
 predictor = ocr_predictor(pretrained=True)
 det_predictor = predictor.det_predictor
 reco_predictor = predictor.reco_predictor
-
-
-def decode_image(img_bytes: bytes) -> tf.Tensor:
-    """Decodes an image from bytes"""
-    return tf.io.decode_image(img_bytes, channels=3)

@@ -2,9 +2,8 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import recognition, PreProcessor
-from doctr.documents import DocumentFile
-from doctr.models import extract_crops
+from doctr.models import recognition, PreProcessor, extract_crops
+from doctr.io import DocumentFile
 
 
 @pytest.mark.parametrize(
@@ -27,10 +26,11 @@ def test_recognition_models(arch_name, input_shape):
     out = reco_model(input_tensor, target, return_model_output=True, return_preds=True)
     assert isinstance(out, dict)
     assert len(out) == 3
+    assert isinstance(out['out_map'], tf.Tensor)
+    assert out['out_map'].dtype == tf.float32
     assert isinstance(out['preds'], list)
     assert len(out['preds']) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
-    assert isinstance(out['out_map'], tf.Tensor)
     assert isinstance(out['loss'], tf.Tensor)
 
 
