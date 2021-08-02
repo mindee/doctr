@@ -16,7 +16,7 @@ gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from doctr.utils.visualization import synthetize_page, visualize_page
 

@@ -20,9 +20,9 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
     rgb_shift = min_val + (1 - min_val) * torch.rand(shift_shape)
     # Inverse the color
     if out.dtype == torch.uint8:
-        out = (out.to(dtype=torch.float32) * rgb_shift).to(dtype=torch.uint8)
+        out = (out.to(dtype=rgb_shift.dtype) * rgb_shift).to(dtype=torch.uint8)
     else:
-        out = out * rgb_shift
+        out = out * rgb_shift.to(dtype=out.dtype)
     # Inverse the color
     out = 255 - out if out.dtype == torch.uint8 else 1 - out
     return out
@@ -31,7 +31,7 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
 def rotate(
     img: torch.Tensor,
     boxes: np.ndarray,
-    angle: float
+    angle: float,
 ) -> Tuple[torch.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 

@@ -1,6 +1,5 @@
 import pytest
 
-import numpy as np
 from doctr.utils.multithreading import multithread_exec
 
 

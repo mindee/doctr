@@ -40,6 +40,11 @@ def test_resize():
     assert not tf.reduce_all(out == 1)
     assert out.shape[:2] == output_size
 
+    # FP16
+    input_t = tf.cast(tf.fill([64, 64, 3], 1), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
+
 
 def test_compose():
 
@@ -70,6 +75,11 @@ def test_normalize(input_shape):
     assert tf.reduce_all(out == 1)
     assert repr(transfo) == f"Normalize(mean={mean}, std={std})"
 
+    # FP16
+    input_t = tf.cast(tf.fill(input_shape, 1), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
+
 
 def test_lambatransformation():
 
@@ -91,6 +101,11 @@ def test_togray():
 
     assert tf.reduce_all(out <= .51)
     assert tf.reduce_all(out >= .49)
+
+    # FP16
+    input_t = tf.cast(tf.concat([r, g, b], axis=-1), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
 
 
 @pytest.mark.parametrize(
@@ -114,6 +129,11 @@ def test_invert_colorize(rgb_min):
     assert tf.reduce_all(out <= int(math.ceil(255 * (1 - rgb_min))))
     assert tf.reduce_all(out >= 0)
 
+    # FP16
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 1), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
+
 
 def test_brightness():
 
@@ -124,6 +144,11 @@ def test_brightness():
     assert tf.reduce_all(out >= .4)
     assert tf.reduce_all(out <= .6)
 
+    # FP16
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
+
 
 def test_contrast():
     transfo = T.RandomContrast(delta=.2)
@@ -131,6 +156,12 @@ def test_contrast():
     out = transfo(input_t)
 
     assert tf.reduce_all(out == .5)
+
+    # FP16
+    if any(tf.config.list_physical_devices('GPU')):
+        input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+        out = transfo(input_t)
+        assert out.dtype == tf.float16
 
 
 def test_saturation():
@@ -144,6 +175,12 @@ def test_saturation():
     assert tf.reduce_all(hsv[:, :, :, 1] >= .4)
     assert tf.reduce_all(hsv[:, :, :, 1] <= .6)
 
+    # FP16
+    if any(tf.config.list_physical_devices('GPU')):
+        input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+        out = transfo(input_t)
+        assert out.dtype == tf.float16
+
 
 def test_hue():
 
@@ -156,6 +193,12 @@ def test_hue():
     assert tf.reduce_all(hsv[:, :, :, 0] <= .7)
     assert tf.reduce_all(hsv[:, :, :, 0] >= .3)
 
+    # FP16
+    if any(tf.config.list_physical_devices('GPU')):
+        input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+        out = transfo(input_t)
+        assert out.dtype == tf.float16
+
 
 def test_gamma():
 
@@ -166,6 +209,11 @@ def test_gamma():
     assert tf.reduce_all(out >= 1.6)
     assert tf.reduce_all(out <= 4.)
 
+    # FP16
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
+
 
 def test_jpegquality():
 
@@ -173,6 +221,11 @@ def test_jpegquality():
     input_t = tf.cast(tf.fill([32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
     assert out.shape == input_t.shape
+
+    # FP16
+    input_t = tf.cast(tf.fill([32, 32, 3], 1), dtype=tf.float16)
+    out = transfo(input_t)
+    assert out.dtype == tf.float16
 
 
 def test_oneof():
@@ -208,6 +261,11 @@ def test_rotate():
     r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
     assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
 
+    # FP16
+    input_t = tf.ones((50, 50, 3), dtype=tf.float16)
+    r_img, _ = rotate(input_t, boxes, angle=12.)
+    assert r_img.dtype == tf.float16
+
 
 def test_random_rotate():
     rotator = T.RandomRotate(max_angle=10.)
@@ -218,6 +276,11 @@ def test_random_rotate():
     r_img, target = rotator(input_t, dict(boxes=boxes))
     assert r_img.shape == input_t.shape
     assert abs(target["boxes"][-1, -1]) <= 10.
+
+    # FP16
+    input_t = tf.ones((50, 50, 3), dtype=tf.float16)
+    r_img, _ = rotator(input_t, dict(boxes=boxes))
+    assert r_img.dtype == tf.float16
 
 
 def test_crop_detection():
@@ -237,3 +300,8 @@ def test_crop_detection():
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (27, 38, 3)
     assert c_boxes.shape == (1, 4)
+
+    # FP16
+    img = tf.ones((50, 50, 3), dtype=tf.float16)
+    c_img, _ = crop_detection(img, rel_boxes, crop_box)
+    assert c_img.dtype == tf.float16

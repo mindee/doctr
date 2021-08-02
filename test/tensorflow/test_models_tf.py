@@ -1,10 +1,8 @@
 import pytest
-import math
 import numpy as np
-import tensorflow as tf
 
 from doctr import models
-from doctr.documents import Document, DocumentFile
+from doctr.io import Document, DocumentFile
 from test_models_detection_tf import test_detectionpredictor, test_rotated_detectionpredictor
 from test_models_recognition_tf import test_recognitionpredictor
 

@@ -30,6 +30,7 @@ def test_recognition_models(arch_name, input_shape, mock_vocab):
     assert len(out['preds']) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
     assert isinstance(out['out_map'], torch.Tensor)
+    assert out['out_map'].dtype == torch.float32
     assert isinstance(out['loss'], torch.Tensor)
 
 

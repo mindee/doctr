@@ -6,7 +6,8 @@
 from fastapi import APIRouter, UploadFile, File
 from typing import List
 
-from app.vision import decode_image, det_predictor
+from doctr.io import decode_img_as_tensor
+from app.vision import det_predictor
 from app.schemas import DetectionOut
 
 
@@ -16,6 +17,6 @@ router = APIRouter()
 @router.post("/", response_model=List[DetectionOut], status_code=200, summary="Perform text detection")
 async def text_detection(file: UploadFile = File(...)):
     """Runs DocTR text detection model to analyze the input"""
-    img = decode_image(file.file.read())
+    img = decode_img_as_tensor(file.file.read())
     boxes, _ = det_predictor([img], training=False)[0]
     return [DetectionOut(box=box.tolist()) for box in boxes[:, :-1]]
