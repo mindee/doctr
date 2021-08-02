@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, RandomSampler
+from copy import deepcopy
 
 from doctr import datasets
 from doctr.transforms import Resize
@@ -126,6 +127,9 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     ds = datasets.RecognitionDataset(img_folder=mock_image_folder, labels_path=mock_recognition_label, fp16=True)
     image, label = ds[0]
     assert image.dtype == torch.float16
+    ds2, ds3 = deepcopy(ds), deepcopy(ds)
+    ds2.merge_dataset(ds3)
+    assert len(ds2) == 2 * len(ds)
 
 
 def test_ocrdataset(mock_ocrdataset):

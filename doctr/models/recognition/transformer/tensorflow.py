@@ -31,7 +31,7 @@ def get_angles(pos: np.array, i: np.array, d_model: int = 512) -> np.array:
     return pos * angle_rates
 
 
-def positional_encoding(position: int, d_model: int = 512) -> tf.Tensor:
+def positional_encoding(position: int, d_model: int = 512, dtype=tf.float32) -> tf.Tensor:
     """This function computes the 2D positional encoding of the position, on a depth d_model
 
     Args:
@@ -51,12 +51,12 @@ def positional_encoding(position: int, d_model: int = 512) -> tf.Tensor:
     # apply cos to odd indices in the array; 2i+1
     angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
     pos_encoding = angle_rads[np.newaxis, ...]
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    return tf.cast(pos_encoding, dtype=dtype)
 
 
 @tf.function
-def create_padding_mask(seq: tf.Tensor, padding: int = 0) -> tf.Tensor:
-    seq = tf.cast(tf.math.equal(seq, padding), tf.float32)
+def create_padding_mask(seq: tf.Tensor, padding: int = 0, dtype=tf.float32) -> tf.Tensor:
+    seq = tf.cast(tf.math.equal(seq, padding), dtype)
     # add extra dimensions to add the padding to the attention logits.
     return seq[:, tf.newaxis, tf.newaxis, :]  # (batch_size, 1, 1, seq_len)
 
@@ -88,7 +88,7 @@ def scaled_dot_product_attention(
 
     matmul_qk = tf.matmul(q, k, transpose_b=True)  # (..., seq_len_q, seq_len_k)
     # scale matmul_qk
-    dk = tf.cast(tf.shape(k)[-1], tf.float32)
+    dk = tf.cast(tf.shape(k)[-1], q.dtype)
     scaled_attention_logits = matmul_qk / tf.math.sqrt(dk)
     # add the mask to the scaled tensor.
     if mask is not None:
@@ -252,7 +252,7 @@ class Decoder(tf.keras.layers.Layer):
         seq_len = tf.shape(x)[1]
 
         x = self.embedding(x, **kwargs)  # (batch_size, target_seq_len, d_model)
-        x *= tf.math.sqrt(tf.cast(self.d_model, tf.float32))
+        x *= tf.math.sqrt(tf.cast(self.d_model, x.dtype))
         x += self.pos_encoding[:, :seq_len, :]
 
         x = self.dropout(x, **kwargs)

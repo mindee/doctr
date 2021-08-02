@@ -31,7 +31,7 @@ model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrai
 Documents can be interpreted from PDF or images:
 
 ```python
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 # PDF
 pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 # Image
@@ -45,7 +45,7 @@ multi_img_doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jp
 ### Putting it together
 Let's use the default pretrained model for an example:
 ```python
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 
 model = ocr_predictor(pretrained=True)

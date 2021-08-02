@@ -10,7 +10,7 @@ from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops, extract_rcrops, rotate_page
-from doctr.documents.elements import Word, Line, Block, Page, Document
+from doctr.io.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 
@@ -53,7 +53,7 @@ class OCRPredictor(NestedObject):
         boxes = self.det_predictor(pages, **kwargs)
         # Crop images, rotate page if necessary
         crops = [crop for page, (_boxes, angle) in zip(pages, boxes) for crop in
-                 self.extract_crops_fn(rotate_page(page, -angle), _boxes[:, :-1])]
+                 self.extract_crops_fn(rotate_page(page, -angle), _boxes[:, :-1])]  # type: ignore[operator]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 

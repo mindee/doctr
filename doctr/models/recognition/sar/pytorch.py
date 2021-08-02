@@ -107,7 +107,7 @@ class SARDecoder(nn.Module):
         # initialize states (each of shape (N, rnn_units))
         hx = [None, None]
         # Initialize with the index of virtual START symbol (placed after <eos>)
-        symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device)
+        symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=features.dtype)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
 
@@ -131,7 +131,7 @@ class SARDecoder(nn.Module):
                 _symbol = gt[:, t]  # type: ignore[index]
             else:
                 _symbol = logits.argmax(-1)
-            symbol = F.one_hot(_symbol, self.vocab_size + 1).to(dtype=torch.float32)
+            symbol = F.one_hot(_symbol, self.vocab_size + 1).to(dtype=features.dtype)
             logits_list.append(logits)
         outputs = torch.stack(logits_list, 1)  # shape (N, max_length + 1, vocab_size + 1)
 
@@ -241,8 +241,8 @@ class SAR(nn.Module, RecognitionModel):
         mask_2d = torch.arange(input_len, device=model_output.device)[None, :] < seq_len[:, None]
         cce[mask_2d] = 0
 
-        ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
-        return ce_loss.unsqueeze(1)
+        ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
+        return ce_loss.mean()
 
 
 class SARPostProcessor(RecognitionPostProcessor):

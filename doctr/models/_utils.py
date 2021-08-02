@@ -39,7 +39,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
     return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
-def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
+def extract_rcrops(img: np.ndarray, boxes: np.ndarray, dtype=np.float32) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:
@@ -69,13 +69,13 @@ def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
         clockwise = True
 
     for box in _boxes:
-        x, y, w, h, alpha = box.astype(np.float32)
+        x, y, w, h, alpha = box.astype(dtype)
         src_pts = cv2.boxPoints(((x, y), (w, h), alpha))[1:, :]
         # Preserve size
         if clockwise:
-            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=np.float32)
+            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
         else:
-            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=np.float32)
+            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=dtype)
         # The transformation matrix
         M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle

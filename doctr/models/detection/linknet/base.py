@@ -84,12 +84,12 @@ class LinkNetPostProcessor(DetectionPostProcessor):
 
         if self.rotated_bbox:
             if len(boxes) == 0:
-                return np.zeros((0, 6), dtype=np.float32)
+                return np.zeros((0, 6), dtype=pred.dtype)
             coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
             boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
             return boxes
         else:
-            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=np.float32)
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 
 
 class _LinkNet(DetectionModel):
@@ -109,8 +109,8 @@ class _LinkNet(DetectionModel):
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t['boxes'].dtype != np.float32 for t in target):
-            raise AssertionError("the 'boxes' entry of the target is expected to have dtype 'np.float32'.")
+        if any(t['boxes'].dtype not in (np.float32, np.float16) for t in target):
+            raise AssertionError("the expected dtype of target 'boxes' entry is either 'np.float32' or 'np.float16'.")
         if any(np.any((t['boxes'][:, :4] > 1) | (t['boxes'][:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 

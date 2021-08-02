@@ -96,7 +96,7 @@ class DetectionPostProcessor(NestedObject):
             and a list of N angles (page orientations).
         """
 
-        bitmap = (proba_map > self.bin_thresh).astype(np.float32)
+        bitmap = (proba_map > self.bin_thresh).astype(proba_map.dtype)
 
         boxes_batch, angles_batch = [], []
         # Kernel for opening, empirical law for ksize

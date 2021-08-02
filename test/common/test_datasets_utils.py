@@ -32,29 +32,30 @@ def test_translate(input_str, vocab, output_str):
 def test_encode_decode(input_str):
     mapping = """3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|
         za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l"""
-    encoded = utils.encode_sequence(input_str, mapping)
+    encoded = utils.encode_string(input_str, mapping)
     decoded = utils.decode_sequence(np.array(encoded), mapping)
     assert decoded == input_str
 
 
 @pytest.mark.parametrize(
-    "sequences, vocab, target_size, eos, sos, pad, error, out_shape, gts",
+    "sequences, vocab, target_size, sos, eos, pad, dynamic_len, error, out_shape, gts",
     [
-        [['cba'], 'abcdef', None, 1, None, None, True, (1, 3), [[2, 1, 0]]],
-        [['cba', 'a'], 'abcdef', None, -1, None, None, False, (2, 3), [[2, 1, 0], [0, -1, -1]]],
-        [['cba', 'a'], 'abcdef', None, 6, None, None, False, (2, 3), [[2, 1, 0], [0, 6, 6]]],
-        [['cba', 'a'], 'abcdef', 2, -1, None, None, False, (2, 2), [[2, 1], [0, -1]]],
-        [['cba', 'a'], 'abcdef', 4, -1, None, None, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
-        [['cba', 'a'], 'abcdef', 5, -1, 7, None, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
-        [['cba', 'a'], 'abcdef', None, -1, 7, 9, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, 9, 9]]],
+        [['cba'], 'abcdef', None, None, 1, None, False, True, (1, 3), [[2, 1, 0]]],  # eos in vocab
+        [['cba', 'a'], 'abcdef', None, None, -1, None, False, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
+        [['cba', 'a'], 'abcdef', None, None, 6, None, False, False, (2, 4), [[2, 1, 0, 6], [0, 6, 6, 6]]],
+        [['cba', 'a'], 'abcdef', 2, None, -1, None, False, False, (2, 2), [[2, 1], [0, -1]]],
+        [['cba', 'a'], 'abcdef', 4, None, -1, None, False, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
+        [['cba', 'a'], 'abcdef', 5, 7, -1, None, False, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
+        [['cba', 'a'], 'abcdef', 6, 7, -1, None, True, False, (2, 5), [[7, 2, 1, 0, -1], [7, 0, -1, -1, -1]]],
+        [['cba', 'a'], 'abcdef', None, 7, -1, 9, False, False, (2, 6), [[7, 2, 1, 0, -1, 9], [7, 0, -1, 9, 9, 9]]],
     ],
 )
-def test_encode_sequences(sequences, vocab, target_size, eos, sos, pad, error, out_shape, gts):
+def test_encode_sequences(sequences, vocab, target_size, sos, eos, pad, dynamic_len, error, out_shape, gts):
     if error:
         with pytest.raises(ValueError):
-            _ = utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad)
+            utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad, dynamic_len)
     else:
-        out = utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad)
+        out = utils.encode_sequences(sequences, vocab, target_size, eos, sos, pad, dynamic_len)
         assert isinstance(out, np.ndarray)
         assert out.shape == out_shape
         assert np.all(out == np.asarray(gts)), print(out, gts)
