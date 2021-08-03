@@ -10,7 +10,7 @@ from typing import Optional, Tuple, Any, Dict, List
 from ...utils import conv_sequence, load_pretrained_params
 
 
-__all__ = ["MobileNetV3", "MobileNetV3", "mobilenetv3", "mobilenetv3"]
+__all__ = ["MobileNetV3", "mobilenetv3_small", "mobilenetv3_large"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -192,7 +192,28 @@ def _mobilenetv3(arch: str, pretrained: bool) -> MobileNetV3:
     return model
 
 
-def mobilenetv3(small: bool = True, pretrained: bool = False) -> MobileNetV3:
+def mobilenetv3_small(pretrained: bool = False) -> MobileNetV3:
+    """MobileNetV3 architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import mobilenetv3_large
+        >>> model = mobilenetv3_small(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A  mobilenetv3_small model
+    """
+    return _mobilenetv3('mobilenetv3_small', pretrained)
+
+
+def mobilenetv3_large(pretrained: bool = False) -> MobileNetV3:
     """MobileNetV3 architecture as described in
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
@@ -205,12 +226,9 @@ def mobilenetv3(small: bool = True, pretrained: bool = False) -> MobileNetV3:
         >>> out = model(input_tensor)
 
     Args:
-        small: if True, instantiate small architecture (default), else large architecture
         pretrained: boolean, True if model is pretrained
 
     Returns:
         A  mobilenetv3_large model
     """
-    if small:
-        return _mobilenetv3('mobilenetv3_small', pretrained)
     return _mobilenetv3('mobilenetv3_large', pretrained)
