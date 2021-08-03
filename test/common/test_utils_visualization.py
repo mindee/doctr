@@ -25,3 +25,14 @@ def test_draw_page():
     pages = _mock_pages()
     visualization.synthetize_page(pages[0].export(), draw_proba=True)
     visualization.synthetize_page(pages[0].export(), draw_proba=False)
+
+
+def test_draw_boxes():
+    image = np.ones((256, 256, 3), dtype=np.float32)
+    boxes = [
+        [0.1, 0.1, 0.2, 0.2],
+        [0.15, 0.15, 0.19, 0.2],  # to suppress
+        [0.5, 0.5, 0.6, 0.55],
+        [0.55, 0.5, 0.7, 0.55],  # to suppress
+    ]
+    visualization.draw_boxes(boxes=np.array(boxes), image=image, block=False)

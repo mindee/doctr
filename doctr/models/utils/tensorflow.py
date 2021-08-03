@@ -7,7 +7,7 @@ import logging
 import os
 from zipfile import ZipFile
 from tensorflow.keras import layers, Model
-from typing import Optional, List, Any
+from typing import Callable, Optional, List, Any, Union
 
 from ..data_utils import download_from_url
 
@@ -56,7 +56,7 @@ def load_pretrained_params(
 
 def conv_sequence(
     out_channels: int,
-    activation: str = None,
+    activation: Union[str, Callable] = None,
     bn: bool = False,
     padding: str = 'same',
     kernel_initializer: str = 'he_normal',
@@ -90,7 +90,8 @@ def conv_sequence(
     if bn:
         conv_seq.append(layers.BatchNormalization())
 
-    if isinstance(activation, str) and bn:
+    if (isinstance(activation, str) or callable(activation)) and bn:
+        # Activation function can either be a string or a function ('relu' or tf.nn.relu)
         conv_seq.append(layers.Activation(activation))
 
     return conv_seq
