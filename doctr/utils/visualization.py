@@ -8,13 +8,14 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
 from PIL import ImageFont, ImageDraw, Image
+from copy import deepcopy
 import numpy as np
 import cv2
 from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
 
-__all__ = ['visualize_page', 'synthetize_page']
+__all__ = ['visualize_page', 'synthetize_page', 'draw_boxes']
 
 
 def rect_patch(
@@ -294,3 +295,34 @@ def synthetize_page(
                 response[ymin:ymax, xmin:xmax, :] = np.array(img)
 
     return response
+
+
+def draw_boxes(
+    boxes: np.ndarray,
+    image: np.ndarray,
+    color: Optional[Tuple] = None,
+    **kwargs
+) -> None:
+    """Draw an array of relative straight boxes on an image
+
+    Args:
+        boxes: array of relative boxes, of shape (*, 4)
+        image: np array, float32 or uint8
+    """
+    h, w = image.shape[:2]
+    # Convert boxes to absolute coords
+    _boxes = deepcopy(boxes)
+    _boxes[:, [0, 2]] *= w
+    _boxes[:, [1, 3]] *= h
+    _boxes = _boxes.astype(np.int32)
+    for box in _boxes.tolist():
+        xmin, ymin, xmax, ymax = box
+        image = cv2.rectangle(
+            image,
+            (xmin, ymin),
+            (xmax, ymax),
+            color=color if isinstance(color, tuple) else (0, 0, 255),
+            thickness=2
+        )
+    plt.imshow(image)
+    plt.plot(**kwargs)
