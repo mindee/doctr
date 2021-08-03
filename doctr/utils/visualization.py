@@ -8,6 +8,7 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
 from PIL import ImageFont, ImageDraw, Image
+from copy import deepcopy
 import numpy as np
 import cv2
 from typing import Tuple, List, Dict, Any, Union, Optional
@@ -310,10 +311,11 @@ def draw_boxes(
     """
     h, w = image.shape[:2]
     # Convert boxes to absolute coords
-    boxes[:, [0, 2]] *= w
-    boxes[:, [1, 3]] *= h
-    boxes = boxes.astype(np.int32)
-    for box in boxes.tolist():
+    _boxes = deepcopy(boxes)
+    _boxes[:, [0, 2]] *= w
+    _boxes[:, [1, 3]] *= h
+    _boxes = _boxes.astype(np.int32)
+    for box in _boxes.tolist():
         xmin, ymin, xmax, ymax = box
         image = cv2.rectangle(
             image,
