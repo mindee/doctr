@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'backbone': 'mobilenet_v3_small',
-        'fpn_layers': ["inverted_residual", "inverted_residual_2", "inverted_residual_7", "conv2d_23"],
+        'fpn_layers': [1, 3, 8, -1],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'rotated_bbox': False,
