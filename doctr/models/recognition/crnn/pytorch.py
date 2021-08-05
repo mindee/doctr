@@ -318,4 +318,4 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn_mobilenet('crnn_mobilenet_small', pretrained, **kwargs)
+    return _crnn_mobilenet('crnn_mobilenet_v3_small', pretrained, **kwargs)
