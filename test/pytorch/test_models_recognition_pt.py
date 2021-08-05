@@ -11,7 +11,7 @@ from doctr.models import recognition
         ["crnn_resnet31", (3, 32, 128)],
         ["sar_resnet31", (3, 32, 128)],
         ["master", (3, 48, 160)],
-        ["crnn_mobilenet_small", (3, 32, 128)],
+        ["crnn_mobilenet_v3_small", (3, 32, 128)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, mock_vocab):

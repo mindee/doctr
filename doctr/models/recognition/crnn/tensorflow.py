@@ -14,7 +14,7 @@ from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_small']
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.1.1/crnn_resnet31-69ab71db.zip',
     },
-    'crnn_mobilenet_small': {
+    'crnn_mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'backbone': 'mobilenetv3_small', 'rnn_units': 128,
@@ -252,14 +252,14 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
     return _crnn('crnn_resnet31', pretrained, **kwargs)
 
 
-def crnn_mobilenet_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
+def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a small mobilenet backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
         >>> from doctr.models import crnn_resnet31
-        >>> model = crnn_mobilenet_small(pretrained=True)
+        >>> model = crnn_mobilenet_v3_small(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
 

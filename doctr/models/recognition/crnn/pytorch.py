@@ -8,14 +8,14 @@ from itertools import groupby
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision import mobilenet_v3_small
+from torchvision.models import mobilenet_v3_small
 from typing import Tuple, Dict, Any, Optional, List
 
 from ... import backbones
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_small']
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'vocab': VOCABS['french'],
         'url': None,
     },
-    'crnn_mobilenet_small': {
+    'crnn_mobilenet_v3_small': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'backbone': mobilenet_v3_small, 'rnn_units': 128, 'lstm_features': 4 * 512,
@@ -300,14 +300,14 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
     return _crnn('crnn_resnet31', pretrained, **kwargs)
 
 
-def crnn_mobilenet_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
+def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a small mobilenet backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import torch
         >>> from doctr.models import crnn_resnet31
-        >>> model = crnn_mobilenet_small(pretrained=True)
+        >>> model = crnn_mobilenet_v3_small(pretrained=True)
         >>> input_tensor = torch.rand(1, 3, 32, 128)
         >>> out = model(input_tensor)
 
