@@ -22,11 +22,11 @@ __all__ = ['MASTER', 'master', 'MASTERPostProcessor']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/master-bade6eae.zip',
     },
 }
 
@@ -141,7 +141,7 @@ class MAGCResnet(Sequential):
     def __init__(
         self,
         headers: int = 8,
-        input_shape: Tuple[int, int, int] = (48, 160, 3),
+        input_shape: Tuple[int, int, int] = (32, 128, 3),
     ) -> None:
         _layers = [
             # conv_1x
@@ -196,7 +196,7 @@ class MASTER(_MASTER, Model):
         num_layers: int = 3,
         max_length: int = 50,
         dropout: float = 0.2,
-        input_shape: Tuple[int, int, int] = (48, 160, 3),
+        input_shape: Tuple[int, int, int] = (32, 128, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
