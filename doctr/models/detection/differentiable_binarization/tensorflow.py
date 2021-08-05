@@ -11,11 +11,12 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from typing import List, Tuple, Optional, Any, Dict
 
+from ... import backbones
 from doctr.utils.repr import NestedObject
 from doctr.models.utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50']
+__all__ = ['DBNet', 'db_resnet50', 'db_mobilenet_v3_small']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -28,6 +29,16 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (1024, 1024, 3),
         'rotated_bbox': False,
         'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
+    },
+    'db_mobilenet_v3_small': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'backbone': 'mobilenet_v3_small',
+        'fpn_layers': ["inverted_residual", "inverted_residual_2", "inverted_residual_7", "conv2d_23"],
+        'fpn_channels': 128,
+        'input_shape': (1024, 1024, 3),
+        'rotated_bbox': False,
+        'url': None,
     },
 }
 
@@ -268,6 +279,41 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     return model
 
 
+def _db_mobilenet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
+    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
+
+    # Feature extractor
+    mobilenet = tf.keras.applications.__dict__[_cfg['backbone']](
+        include_top=False,
+        weights=None,
+        input_shape=_cfg['input_shape'],
+        pooling=None,
+    )
+
+    feat_extractor = IntermediateLayerGetter(
+        backbones.__dict__[_cfg['backbone']](
+            input_shape=_cfg['input_shape'],
+        ),
+        _cfg['fpn_layers'],
+    )
+
+    kwargs['fpn_channels'] = _cfg['fpn_channels']
+    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
+
+    # Build the model
+    model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, _cfg['url'])
+
+    return model
+
+
 def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
@@ -287,3 +333,24 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _db_resnet('db_resnet50', pretrained, **kwargs)
+
+
+def db_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> DBNet:
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a mobilenet v3 small backbone.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import db_resnet50
+        >>> model = db_mobilenet_v3_small(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _db_mobilenet('db_mobilenet_v3_small', pretrained, **kwargs)
