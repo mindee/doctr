@@ -37,7 +37,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_small': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': mobilenet_v3_small, 'rnn_units': 128, 'lstm_features': 4 * 512,
+        'backbone': mobilenet_v3_small, 'rnn_units': 128, 'lstm_features': 576,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,

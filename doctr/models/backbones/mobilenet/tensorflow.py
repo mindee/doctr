@@ -173,11 +173,12 @@ class MobileNetV3(Sequential):
         super().__init__(_layers)
 
 
-def _mobilenet_v3(arch: str, pretrained: bool, **kwargs: Any) -> MobileNetV3:
+def _mobilenet_v3(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]]) -> MobileNetV3:
+    input_shape = input_shape or default_cfgs[arch]['input_shape']
 
     # Build the model
     model = MobileNetV3(
-        kwargs.get('input_shape', default_cfgs['input_shape']),
+        input_shape,
         default_cfgs[arch]['out_chans'],
         default_cfgs[arch]['kernels'],
         default_cfgs[arch]['exp_chans'],
