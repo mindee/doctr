@@ -243,7 +243,7 @@ def _crnn_mobilenet(
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = _cfg['backbone']()
+    feat_extractor = _cfg['backbone']().features
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']

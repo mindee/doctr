@@ -15,7 +15,7 @@ __all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_large"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'mobilenet_v3_large': {
-        'input_shape': (512, 512),
+        'input_shape': (512, 512, 3),
         'out_chans': [16, 24, 24, 40, 40, 40, 80, 80, 80, 80, 112, 112, 160, 160, 160],
         'kernels': [3, 3, 3, 5, 5, 5, 3, 3, 3, 3, 3, 3, 5, 5, 5],
         'exp_chans': [16, 64, 72, 72, 120, 120, 240, 200, 184, 184, 480, 672, 672, 960, 960],
@@ -26,7 +26,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': None
     },
     'mobilenet_v3_small': {
-        'input_shape': (512, 512),
+        'input_shape': (512, 512, 3),
         'out_chans': [16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
         'kernels': [3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
         'exp_chans': [16, 72, 88, 96, 240, 240, 120, 144, 288, 576, 576],
@@ -134,7 +134,7 @@ class MobileNetV3(Sequential):
 
     def __init__(
         self,
-        input_shape: Tuple[int, int],
+        input_shape: Tuple[int, int, int],
         out_chans: List[int],
         kernels: List[int],
         exp_chans: List[int],
@@ -147,7 +147,7 @@ class MobileNetV3(Sequential):
     ) -> None:
 
         _layers = [
-            *conv_sequence(16, strides=2, activation=hard_swish, kernel_size=3, input_shape=(*input_shape, 3))
+            *conv_sequence(16, strides=2, activation=hard_swish, kernel_size=3, input_shape=input_shape)
         ]
 
         for out, k, exp, s, use_sq, use_sw in zip(out_chans, kernels, exp_chans, strides, use_squeeze, use_swish):
@@ -158,26 +158,26 @@ class MobileNetV3(Sequential):
         _layers.extend(
             [
                 *conv_sequence(exp_chans[-1], strides=1, activation=hard_swish, kernel_size=1),
-                layers.GlobalAveragePooling2D(),
-                layers.Reshape((1, 1, exp_chans[-1])),
-                layers.Conv2D(1280, 1, padding='same'),
-                layers.Activation(hard_swish)
             ]
         )
 
         if include_top:
             _layers.append([
+                layers.GlobalAveragePooling2D(),
+                layers.Reshape((1, 1, exp_chans[-1])),
+                layers.Conv2D(1280, 1, padding='same'),
+                layers.Activation(hard_swish),
                 layers.Conv2D(num_classes, 1, padding='same', activation='softmax'),
             ])
 
         super().__init__(_layers)
 
 
-def _mobilenet_v3(arch: str, pretrained: bool) -> MobileNetV3:
+def _mobilenet_v3(arch: str, pretrained: bool, **kwargs: Any) -> MobileNetV3:
 
     # Build the model
     model = MobileNetV3(
-        default_cfgs[arch]['input_shape'],
+        kwargs.get('input_shape', default_cfgs['input_shape']),
         default_cfgs[arch]['out_chans'],
         default_cfgs[arch]['kernels'],
         default_cfgs[arch]['exp_chans'],
@@ -192,7 +192,7 @@ def _mobilenet_v3(arch: str, pretrained: bool) -> MobileNetV3:
     return model
 
 
-def mobilenet_v3_small(pretrained: bool = False) -> MobileNetV3:
+def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     """MobileNetV3 architecture as described in
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
@@ -210,10 +210,10 @@ def mobilenet_v3_small(pretrained: bool = False) -> MobileNetV3:
     Returns:
         A  mobilenetv3_small model
     """
-    return _mobilenet_v3('mobilenet_v3_small', pretrained)
+    return _mobilenet_v3('mobilenet_v3_small', pretrained, **kwargs)
 
 
-def mobilenet_v3_large(pretrained: bool = False) -> MobileNetV3:
+def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     """MobileNetV3 architecture as described in
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
@@ -231,4 +231,4 @@ def mobilenet_v3_large(pretrained: bool = False) -> MobileNetV3:
     Returns:
         A  mobilenetv3_large model
     """
-    return _mobilenet_v3('mobilenet_v3_large', pretrained)
+    return _mobilenet_v3('mobilenet_v3_large', pretrained, **kwargs)
