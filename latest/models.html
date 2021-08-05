@@ -401,18 +401,25 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>92.93</p></td>
 <td><p>12.8</p></td>
 </tr>
-<tr class="row-odd"><td><p>sar_vgg16_bn</p></td>
+<tr class="row-odd"><td><p>master</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td></td>
+<td><p><strong>87.61</strong></p></td>
+<td><p><strong>93.28</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>sar_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>21.5M</p></td>
 <td><p>86.2</p></td>
 <td><p>91.7</p></td>
 <td><p>3.3</p></td>
 </tr>
-<tr class="row-even"><td><p>sar_resnet31</p></td>
+<tr class="row-odd"><td><p>sar_resnet31</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>53.1M</p></td>
-<td><p><strong>86.3</strong></p></td>
-<td><p><strong>92.1</strong></p></td>
+<td><p>86.3</p></td>
+<td><p>92.1</p></td>
 <td><p>2.7</p></td>
 </tr>
 </tbody>
@@ -597,10 +604,18 @@ Example:</p>
 <td><p>76.02</p></td>
 <td><p>0.85</p></td>
 <td><p>83.99</p></td>
-<td><p><strong>81.42</strong></p></td>
+<td><p>81.42</p></td>
 <td><p>1.6</p></td>
 </tr>
-<tr class="row-even"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
+<tr class="row-even"><td><p>db_resnet50 + master</p></td>
+<td><p>71.26</p></td>
+<td><p>76.03</p></td>
+<td></td>
+<td><p>84.61</p></td>
+<td><p><strong>82.02</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
 <td><p>N/A</p></td>
 <td><p>N/A</p></td>
 <td><p>0.49</p></td>
@@ -608,7 +623,7 @@ Example:</p>
 <td><p>N/A</p></td>
 <td><p>1.0</p></td>
 </tr>
-<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
+<tr class="row-even"><td><p>db_resnet50 + sar_resnet31</p></td>
 <td><p>N/A</p></td>
 <td><p>N/A</p></td>
 <td><p>0.27</p></td>
@@ -616,7 +631,7 @@ Example:</p>
 <td><p>N/A</p></td>
 <td><p>0.83</p></td>
 </tr>
-<tr class="row-even"><td><p>Gvision text detection</p></td>
+<tr class="row-odd"><td><p>Gvision text detection</p></td>
 <td><p>59.50</p></td>
 <td><p>62.50</p></td>
 <td></td>
@@ -624,7 +639,7 @@ Example:</p>
 <td><p>70.00</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
 <td><p>64.00</p></td>
 <td><p>53.30</p></td>
 <td></td>
@@ -632,7 +647,7 @@ Example:</p>
 <td><p>61.10</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>AWS textract</p></td>
+<tr class="row-odd"><td><p>AWS textract</p></td>
 <td><p><strong>78.10</strong></p></td>
 <td><p><strong>83.00</strong></p></td>
 <td></td>
@@ -676,14 +691,22 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p><strong>Precision</strong></p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn (ours)</p></td>
-<td><p><strong>78.56</strong></p></td>
-<td><p><strong>80.94</strong></p></td>
+<td><p>78.56</p></td>
+<td><p>80.94</p></td>
 <td><p>65.79</p></td>
 <td><p><strong>70.10</strong></p></td>
-<td><p><strong>49.35</strong></p></td>
-<td><p><strong>50.84</strong></p></td>
+<td><p>49.35</p></td>
+<td><p>50.84</p></td>
 </tr>
-<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-even"><td><p>db_resnet50 + master (ours)</p></td>
+<td><p><strong>78.91</strong></p></td>
+<td><p><strong>81.31</strong></p></td>
+<td><p>65.57</p></td>
+<td><p>69.86</p></td>
+<td><p><strong>50.65</strong></p></td>
+<td><p><strong>52.17</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
 <td><p>68.91</p></td>
 <td><p>59.89</p></td>
 <td><p>63.20</p></td>
@@ -691,7 +714,7 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>43.70</p></td>
 <td><p>29.21</p></td>
 </tr>
-<tr class="row-odd"><td><p>AWS textract</p></td>
+<tr class="row-even"><td><p>AWS textract</p></td>
 <td><p>75.77</p></td>
 <td><p>77.70</p></td>
 <td><p><strong>70.47</strong></p></td>
