@@ -288,13 +288,6 @@ def _db_mobilenet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int]
     _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
     # Feature extractor
-    mobilenet = tf.keras.applications.__dict__[_cfg['backbone']](
-        include_top=False,
-        weights=None,
-        input_shape=_cfg['input_shape'],
-        pooling=None,
-    )
-
     feat_extractor = IntermediateLayerGetter(
         backbones.__dict__[_cfg['backbone']](
             input_shape=_cfg['input_shape'],
