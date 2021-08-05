@@ -159,7 +159,7 @@ def main(args):
     scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
         args.lr,
         decay_steps=args.epochs * len(train_loader),
-        decay_rate=0.01,  # final lr as a fraction of initial lr
+        decay_rate=1/(25e4),  # final lr as a fraction of initial lr
         staircase=False
     )
     optimizer = tf.keras.optimizers.Adam(
