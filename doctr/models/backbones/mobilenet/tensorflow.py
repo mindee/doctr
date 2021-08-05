@@ -10,11 +10,11 @@ from typing import Optional, Tuple, Any, Dict, List
 from ...utils import conv_sequence, load_pretrained_params
 
 
-__all__ = ["MobileNetV3", "mobilenetv3_small", "mobilenetv3_large"]
+__all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_large"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'mobilenetv3_large': {
+    'mobilenet_v3_large': {
         'input_shape': (512, 512),
         'out_chans': [16, 24, 24, 40, 40, 40, 80, 80, 80, 80, 112, 112, 160, 160, 160],
         'kernels': [3, 3, 3, 5, 5, 5, 3, 3, 3, 3, 3, 3, 5, 5, 5],
@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'use_swish': [False, False, False, False, False, False, True, True, True, True, True, True, True, True, True],
         'url': None
     },
-    'mobilenetv3_small': {
+    'mobilenet_v3_small': {
         'input_shape': (512, 512),
         'out_chans': [16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
         'kernels': [3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
@@ -173,7 +173,7 @@ class MobileNetV3(Sequential):
         super().__init__(_layers)
 
 
-def _mobilenetv3(arch: str, pretrained: bool) -> MobileNetV3:
+def _mobilenet_v3(arch: str, pretrained: bool) -> MobileNetV3:
 
     # Build the model
     model = MobileNetV3(
@@ -192,7 +192,7 @@ def _mobilenetv3(arch: str, pretrained: bool) -> MobileNetV3:
     return model
 
 
-def mobilenetv3_small(pretrained: bool = False) -> MobileNetV3:
+def mobilenet_v3_small(pretrained: bool = False) -> MobileNetV3:
     """MobileNetV3 architecture as described in
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
@@ -210,10 +210,10 @@ def mobilenetv3_small(pretrained: bool = False) -> MobileNetV3:
     Returns:
         A  mobilenetv3_small model
     """
-    return _mobilenetv3('mobilenetv3_small', pretrained)
+    return _mobilenet_v3('mobilenet_v3_small', pretrained)
 
 
-def mobilenetv3_large(pretrained: bool = False) -> MobileNetV3:
+def mobilenet_v3_large(pretrained: bool = False) -> MobileNetV3:
     """MobileNetV3 architecture as described in
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
@@ -231,4 +231,4 @@ def mobilenetv3_large(pretrained: bool = False) -> MobileNetV3:
     Returns:
         A  mobilenetv3_large model
     """
-    return _mobilenetv3('mobilenetv3_large', pretrained)
+    return _mobilenet_v3('mobilenet_v3_large', pretrained)

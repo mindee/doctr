@@ -37,7 +37,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': 'mobilenetv3_small', 'rnn_units': 128,
+        'backbone': 'mobilenet_v3_small', 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': None,
@@ -270,4 +270,4 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_mobilenet_small', pretrained, **kwargs)
+    return _crnn('crnn_mobilenet_v3_small', pretrained, **kwargs)
