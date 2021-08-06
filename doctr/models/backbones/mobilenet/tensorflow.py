@@ -85,8 +85,9 @@ class InvertedResidual(layers.Layer):
         strides: int,
         use_squeeze: bool,
         use_swish: bool,
+        name: Optional[str] = None,
     ) -> None:
-        super().__init__()
+        super().__init__(name=name)
         self.out_chan = out_chan
         self.strides = strides
 
@@ -150,9 +151,11 @@ class MobileNetV3(Sequential):
             *conv_sequence(16, strides=2, activation=hard_swish, kernel_size=3, input_shape=input_shape)
         ]
 
-        for out, k, exp, s, use_sq, use_sw in zip(out_chans, kernels, exp_chans, strides, use_squeeze, use_swish):
+        for i, (out, k, exp, s, use_sq, use_sw) in enumerate(
+            zip(out_chans, kernels, exp_chans, strides, use_squeeze, use_swish)
+        ):
             _layers.append(
-                InvertedResidual(out, k, exp, s, use_sq, use_sw),
+                InvertedResidual(out, k, exp, s, use_sq, use_sw, name="inverted_"+str(i)),
             )
 
         _layers.extend(
