@@ -109,13 +109,18 @@ class IntermediateLayerGetter(Model):
     Args:
         model: the model to extract feature maps from
         layer_names: the list of layers to retrieve the feature map from
+        layer_indices: the list of layer indices when dealing whith a sequential model
     """
     def __init__(
         self,
         model: Model,
-        layer_names: List[str]
+        layer_names: Optional[List[str]] = None,
+        layer_indices: Optional[List[int]] = None,
     ) -> None:
-        intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
+        if layer_names:
+            intermediate_fmaps = [model.get_layer(name=layer_name).output for layer_name in layer_names]
+        elif layer_indices:
+            intermediate_fmaps = [model.get_layer(index=layer_index).output for layer_index in layer_indices]
         super().__init__(model.input, outputs=intermediate_fmaps)
 
     def __repr__(self) -> str:

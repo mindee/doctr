@@ -263,8 +263,8 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     )
 
     feat_extractor = IntermediateLayerGetter(
-        resnet,
-        _cfg['fpn_layers'],
+        model=resnet,
+        layer_names=_cfg['fpn_layers'],
     )
 
     kwargs['fpn_channels'] = _cfg['fpn_channels']
@@ -289,10 +289,10 @@ def _db_mobilenet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbones.__dict__[_cfg['backbone']](
+        model=backbones.__dict__[_cfg['backbone']](
             input_shape=_cfg['input_shape'],
         ),
-        _cfg['fpn_layers'],
+        layer_indices=_cfg['fpn_layers'],
     )
 
     kwargs['fpn_channels'] = _cfg['fpn_channels']
