@@ -14,6 +14,7 @@ from doctr.io import DocumentFile
         ["sar_resnet31", (32, 128, 3)],
         ["crnn_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
+        ["crnn_mobilenet_v3_small", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
