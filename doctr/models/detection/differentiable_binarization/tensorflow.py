@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'backbone': 'mobilenet_v3_small',
-        'fpn_layers': [1, 3, 8, -1],
+        'fpn_layers': ["inverted_residual", "inverted_residual_2", "inverted_residual_7", "last_conv"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'rotated_bbox': False,
@@ -263,8 +263,8 @@ def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = 
     )
 
     feat_extractor = IntermediateLayerGetter(
-        model=resnet,
-        layer_names=_cfg['fpn_layers'],
+        resnet,
+        _cfg['fpn_layers'],
     )
 
     kwargs['fpn_channels'] = _cfg['fpn_channels']
@@ -289,10 +289,10 @@ def _db_mobilenet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        model=backbones.__dict__[_cfg['backbone']](
+        backbones.__dict__[_cfg['backbone']](
             input_shape=_cfg['input_shape'],
         ),
-        layer_indices=_cfg['fpn_layers'],
+        _cfg['fpn_layers'],
     )
 
     kwargs['fpn_channels'] = _cfg['fpn_channels']

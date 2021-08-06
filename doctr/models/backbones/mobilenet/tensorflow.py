@@ -157,7 +157,7 @@ class MobileNetV3(Sequential):
 
         _layers.extend(
             [
-                *conv_sequence(exp_chans[-1], strides=1, activation=hard_swish, kernel_size=1),
+                *conv_sequence(exp_chans[-1], strides=1, activation=hard_swish, kernel_size=1, name="last_conv"),
             ]
         )
 
