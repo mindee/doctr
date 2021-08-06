@@ -21,7 +21,7 @@ from doctr.models import ocr_predictor
 from doctr.utils.visualization import synthetize_page, visualize_page
 
 DET_ARCHS = ["db_resnet50"]
-RECO_ARCHS = ["crnn_vgg16_bn", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
+RECO_ARCHS = ["crnn_vgg16_bn", "master", "crnn_resnet31", "sar_vgg16_bn", "sar_resnet31"]
 
 
 def main():
