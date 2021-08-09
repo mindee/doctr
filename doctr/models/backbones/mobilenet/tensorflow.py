@@ -85,7 +85,7 @@ class InvertedResidual(layers.Layer):
         strides: int,
         use_squeeze: bool,
         use_swish: bool,
-        kwargs: Any,
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.out_chan = out_chan
