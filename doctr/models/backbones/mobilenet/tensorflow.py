@@ -155,7 +155,7 @@ class MobileNetV3(Sequential):
             zip(out_chans, kernels, exp_chans, strides, use_squeeze, use_swish)
         ):
             _layers.append(
-                InvertedResidual(out, k, exp, s, use_sq, use_sw, name="inverted_" + str(i)),
+                InvertedResidual(out, k, exp, s, use_sq, use_sw, name=f"inverted_{i}"),
             )
 
         _layers.extend(
