@@ -160,7 +160,11 @@ def main(args):
         args.lr,
         decay_steps=args.epochs * len(train_loader),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
+=======
+        decay_rate=1/(25e4),  # final lr as a fraction of initial lr
+>>>>>>> Stashed changes
 =======
         decay_rate=1/(25e4),  # final lr as a fraction of initial lr
 >>>>>>> Stashed changes
