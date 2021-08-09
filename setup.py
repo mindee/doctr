@@ -49,7 +49,7 @@ _deps = [
     "shapely>=1.6.0",
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
-    "weasyprint>=52.2",
+    "weasyprint==52.5",
     "unidecode>=1.0.0",
     "tensorflow-cpu>=2.4.0",
     "torch>=1.8.0",
