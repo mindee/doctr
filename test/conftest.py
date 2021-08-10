@@ -124,3 +124,39 @@ def mock_ocrdataset(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
 
     return str(image_folder), str(label_file)
+
+
+@pytest.fixture(scope="session")
+def mock_docdataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp("dataset")
+    label_file = root.join("labels.json")
+    label = {
+        "mock_image_file_0.jpg": {
+            "typed_words": [
+                {'value': 'I', 'geometry': (.2, .2, .1, .1, 0)},
+                {'value': 'am', 'geometry': (.5, .5, .1, .1, 0)},
+            ]
+        },
+        "mock_image_file_1.jpg": {
+            "typed_words": [
+                {'value': 'a', 'geometry': (.2, .2, .1, .1, 0)},
+                {'value': 'jedi', 'geometry': (.5, .5, .1, .1, 0)},
+            ]
+        },
+        "mock_image_file_2.jpg": {
+            "typed_words": [
+                {'value': '!', 'geometry': (.2, .2, .1, .1, 0)},
+            ]
+        }
+    }
+    with open(label_file, 'w') as f:
+        json.dump(label, f)
+
+    file = BytesIO(mock_image_stream)
+    image_folder = tmpdir_factory.mktemp("images")
+    for i in range(3):
+        fn = image_folder.join(f"mock_image_file_{i}.jpg")
+        with open(fn, 'wb') as f:
+            f.write(file.getbuffer())
+
+    return str(image_folder), str(label_file)

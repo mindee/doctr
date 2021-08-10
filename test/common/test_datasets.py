@@ -11,3 +11,8 @@ def test_visiondataset():
     dataset = datasets.datasets.VisionDataset(url, download=True, extract_archive=True)
     assert len(dataset) == 0
     assert repr(dataset) == 'VisionDataset()'
+
+
+def test_abstractdataset():
+    with pytest.raises(ValueError):
+        datasets.datasets.AbstractDataset('my/fantasy/folder')
