@@ -23,6 +23,10 @@ class _AbstractDataset:
         root: Union[str, Path],
         fp16: bool = False,
     ) -> None:
+
+        if not Path(root).is_dir():
+            raise ValueError(f'expected a path to a reachable folder: {root}')
+
         self.root = root
         self.fp16 = fp16
 
