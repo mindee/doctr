@@ -16,7 +16,7 @@ from doctr.models import backbones
 def test_classification_architectures(arch_name, top_implemented, input_shape, output_size):
     # Model
     batch_size = 2
-    model = backbones.__dict__[arch_name](pretrained=True)
+    model = backbones.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     # Forward
     out = model(tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32))
     # Output checks
