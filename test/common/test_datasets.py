@@ -13,6 +13,11 @@ def test_visiondataset():
     assert repr(dataset) == 'VisionDataset()'
 
 
+def test_abstractdataset():
+    with pytest.raises(ValueError):
+        datasets.datasets.AbstractDataset('my/fantasy/folder')
+
+
 def test_character_generator():
     img, char = datasets.generate_character('a')
     assert img.shape == (32, 32, 3)
