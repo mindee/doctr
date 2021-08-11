@@ -7,20 +7,18 @@ import numpy as np
 from PIL import ImageFont, ImageDraw, Image
 import requests
 import io
-from typing import Tuple
-
 
 __all__ = ['generate_character']
 
 
 def generate_character(
-    char: str = None,
+    char: str,
     size: int = 32,
     font_url: str = 'https://github.com/ProgrammingFonts/ProgrammingFonts/raw/master/'
                     'Droid-Sans-Mono/droid-sans-mono-1.00/Droid%20Sans%20Mono.ttf',
     inverted: bool = False,
     angle: int = 0,
-) -> Tuple[np.ndarray, str]:
+) -> np.ndarray:
 
     """Generate a MNIST-like square picture of 1 randomly chosen character in the vocab.
 
@@ -52,4 +50,4 @@ def generate_character(
         img = img.rotate(angle, resample=Image.NEAREST, expand=False)
 
     # Return image & annotation
-    return np.asarray(img), char
+    return np.asarray(img)
