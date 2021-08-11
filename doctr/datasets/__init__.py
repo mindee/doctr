@@ -6,6 +6,7 @@ from .detection import *
 from .recognition import *
 from .ocr import *
 from .sroie import *
+from .character_generator import *
 
 from doctr.file_utils import is_tf_available
 

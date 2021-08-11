@@ -11,3 +11,10 @@ def test_visiondataset():
     dataset = datasets.datasets.VisionDataset(url, download=True, extract_archive=True)
     assert len(dataset) == 0
     assert repr(dataset) == 'VisionDataset()'
+
+
+def test_character_generator():
+    img, char = datasets.generate_character('a')
+    assert img.shape == (32, 32, 3)
+    assert char == 'a'
+    img, char = datasets.generate_character('!', angle=10)
