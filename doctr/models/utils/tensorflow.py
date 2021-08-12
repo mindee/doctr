@@ -115,7 +115,7 @@ class IntermediateLayerGetter(Model):
         model: Model,
         layer_names: List[str]
     ) -> None:
-        intermediate_fmaps = [model.get_layer(layer_name).output for layer_name in layer_names]
+        intermediate_fmaps = [model.get_layer(layer_name).get_output_at(0) for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
 
     def __repr__(self) -> str:
