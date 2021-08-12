@@ -255,7 +255,7 @@
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;mobilenet_v3_small&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;fpn_layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inverted_0&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_2&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_7&quot;</span><span class="p">,</span> <span class="s2">&quot;last_conv&quot;</span><span class="p">],</span>
+        <span class="s1">&#39;fpn_layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inverted_0&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_2&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_7&quot;</span><span class="p">,</span> <span class="s2">&quot;final_block&quot;</span><span class="p">],</span>
         <span class="s1">&#39;fpn_channels&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;rotated_bbox&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -512,6 +512,7 @@
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
         <span class="n">backbones</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span>
             <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+            <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_layers&#39;</span><span class="p">],</span>
     <span class="p">)</span>
