@@ -165,7 +165,7 @@ class MobileNetV3(Sequential):
         _layers.append(
             Sequential(
                 conv_sequence(6 * layout[-1].out_channels, hard_swish, True, kernel_size=1),
-                name="last_conv"
+                name="final_block"
             )
         )
 
