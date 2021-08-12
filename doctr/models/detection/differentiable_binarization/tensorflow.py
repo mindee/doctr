@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'backbone': 'mobilenet_v3_small',
-        'fpn_layers': ["inverted_0", "inverted_2", "inverted_7", "last_conv"],
+        'fpn_layers': ["inverted_0", "inverted_2", "inverted_7", "final_block"],
         'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
         'rotated_bbox': False,
@@ -291,6 +291,7 @@ def _db_mobilenet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int]
     feat_extractor = IntermediateLayerGetter(
         backbones.__dict__[_cfg['backbone']](
             input_shape=_cfg['input_shape'],
+            include_top=False,
         ),
         _cfg['fpn_layers'],
     )
