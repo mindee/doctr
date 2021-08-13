@@ -21,7 +21,6 @@ from contiguous_params import ContiguousParams
 import wandb
 
 from torchvision import models
-from doctr.models import backbones
 from doctr.datasets import CharacterGenerator, VOCABS
 from doctr import transforms as T
 

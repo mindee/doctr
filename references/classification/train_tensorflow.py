@@ -12,8 +12,6 @@ import time
 import datetime
 import numpy as np
 import tensorflow as tf
-from collections import deque
-from pathlib import Path
 from fastprogress.fastprogress import master_bar, progress_bar
 import wandb
 
@@ -31,7 +29,7 @@ from utils import plot_samples
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
+    for _ in progress_bar(range(train_loader.num_batches), parent=mb):
         images, targets = next(train_iter)
 
         images = batch_transforms(images)
