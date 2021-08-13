@@ -53,7 +53,7 @@ class _CharacterGenerator(AbstractDataset):
         self._num_samples = num_samples
         self.font_family = font_family
 
-        self._data = List[Image.Image]
+        self._data: List[Image.Image] = []
         if cache_samples:
             self._data = [synthesize_char_img(char, font_family=self.font_family) for char in self.vocab]
 
