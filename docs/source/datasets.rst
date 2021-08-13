@@ -22,6 +22,7 @@ Here are all datasets that are available through DocTR:
 .. autoclass:: SROIE
 .. autoclass:: CORD
 .. autoclass:: OCRDataset
+.. autoclass:: CharacterGenerator
 
 
 Data Loading
