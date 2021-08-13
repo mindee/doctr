@@ -225,7 +225,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR train text-recognition model (PyTorch)',
+    parser = argparse.ArgumentParser(description='DocTR training script for text recognition (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('train_path', type=str, help='path to train data folder(s)')
