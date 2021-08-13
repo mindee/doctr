@@ -211,11 +211,34 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s1">&#39;2.6.0&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tensorflow.keras.utils</span> <span class="kn">import</span> <span class="n">img_to_array</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tensorflow.keras.preprocessing.image</span> <span class="kn">import</span> <span class="n">img_to_array</span>
 
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractPath</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;decode_img_as_tensor&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tensor_from_pil&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;decode_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;tensor_from_numpy&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">tensor_from_pil</span><span class="p">(</span><span class="n">pil_img</span><span class="p">:</span> <span class="n">Image</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a PIL Image to a TensorFlow tensor</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pil_img: a PIL image</span>
+<span class="sd">        dtype: the output tensor data type</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        decoded image as tensor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">npy_img</span> <span class="o">=</span> <span class="n">img_to_array</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">tensor_from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="read_img_as_tensor"><a class="viewcode-back" href="../../../../io.html#doctr.io.read_img_as_tensor">[docs]</a><span class="k">def</span> <span class="nf">read_img_as_tensor</span><span class="p">(</span><span class="n">img_path</span><span class="p">:</span> <span class="n">AbstractPath</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
@@ -263,6 +286,29 @@
         <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">img</span></div>
+
+
+<span class="k">def</span> <span class="nf">tensor_from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
+<span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        same image as a tensor of shape (H, W, C)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">npy_img</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">convert_image_dtype</span><span class="p">(</span><span class="n">npy_img</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">img</span>
 </pre></div>
 
            </div>
