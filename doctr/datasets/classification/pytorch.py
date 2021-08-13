@@ -13,6 +13,11 @@ __all__ = ['CharacterGenerator']
 class CharacterGenerator(_CharacterGenerator):
     """Implements a character image generation dataset
 
+    Example::
+        >>> from doctr.datasets import CharacterGenerator
+        >>> ds = CharacterGenerator(vocab='abdef')
+        >>> img, target = ds[0]
+
     Args:
         vocab: vocabulary to take the character from
         num_samples: number of samples that will be generated iterating over the dataset

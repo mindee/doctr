@@ -11,25 +11,31 @@ from ..datasets import AbstractDataset
 
 
 def synthesize_char_img(char: str, size: int = 32, font_family: str = "FreeMono.ttf") -> Image:
-    img = Image.new('RGB', (size, size), color=(0, 0, 0))
+    """Generate a synthetic character image with white background and black text
+
+    Args:
+        char: the character to render as an image
+        size: the size of the rendered image
+        font_family: the font family (has to be installed on your system)
+
+    Returns:
+        PIL image of the character
+    """
+
+    if len(char) != 1:
+        raise AssertionError('expected a single character input')
+
+    img = Image.new('RGB', (size, size), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
 
     # Draw the character
     font = ImageFont.truetype(font_family, size)
-    d.text((4, 0), char, font=font, fill=(255, 255, 255))
+    d.text((4, 0), char, font=font, fill=(0, 0, 0))
 
     return img
 
 
 class _CharacterGenerator(AbstractDataset):
-    """Implements a character image generation dataset
-
-    Args:
-        vocab: vocabulary to take the character from
-        num_samples: number of samples that will be generated iterating over the dataset
-        cache_samples: whether generated images should be cached firsthand
-        sample_transforms: composable transformations that will be applied to each image
-    """
 
     def __init__(
         self,
