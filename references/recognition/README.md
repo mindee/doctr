@@ -31,20 +31,6 @@ python references/recognition/train_pytorch.py path/to/your/dataset crnn_vgg16_b
 
 
 
-## Getting started
-
-First, you need to install doctr (with pip, for instance)
-
-```shell
-pip install python-doctr
-```
-
-Then, to run the script execute the following command
-
-```shell
-python references/recognition/train.py crnn_vgg16_bn --epochs 5 --data_path path/to/your/dataset
-```
-
 ## Data format
 
 You need to provide a --data_path argument to start training. 
