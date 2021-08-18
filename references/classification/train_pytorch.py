@@ -13,15 +13,15 @@ import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torchvision.transforms import Compose, Normalize, ColorJitter
+from torch.nn.functional import cross_entropy
+from torchvision.transforms import Compose, Normalize, ColorJitter, RandomPerspective
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
 import wandb
 
-from doctr.models import detection
-from doctr.utils.metrics import LocalizationConfusion
-from doctr.datasets import DetectionDataset
+from torchvision import models
+from doctr.datasets import CharacterGenerator, VOCABS
 from doctr import transforms as T
 
 from utils import plot_samples
@@ -34,15 +34,13 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
 
-        if torch.cuda.is_available():
-            images = images.cuda()
         images = batch_transforms(images)
 
-        train_loss = model(images, targets)['loss']
+        out = model(images)
+        train_loss = cross_entropy(out, targets)
 
         optimizer.zero_grad()
         train_loss.backward()
-        torch.nn.utils.clip_grad_norm(model.parameters(), 5)
         optimizer.step()
         scheduler.step()
 
@@ -50,31 +48,26 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric):
+def evaluate(model, val_loader, batch_transforms):
     # Model in eval mode
     model.eval()
-    # Reset val metric
-    val_metric.reset()
     # Validation loop
-    val_loss, batch_cnt = 0, 0
+    val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
     val_iter = iter(val_loader)
     for images, targets in val_iter:
-        if torch.cuda.is_available():
-            images = images.cuda()
         images = batch_transforms(images)
-        out = model(images, targets, return_boxes=True)
+        out = model(images)
+        loss = cross_entropy(out, targets)
         # Compute metric
-        loc_preds, _ = out['preds']
-        for boxes_gt, boxes_pred in zip([t['boxes'] for t in targets], loc_preds):
-            # Remove scores
-            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
+        correct += (out.argmax(dim=1) == targets).sum().item()
 
-        val_loss += out['loss'].item()
+        val_loss += loss.item()
         batch_cnt += 1
+        samples += images.shape[0]
 
     val_loss /= batch_cnt
-    recall, precision, mean_iou = val_metric.summary()
-    return val_loss, recall, precision, mean_iou
+    acc = correct / samples
+    return val_loss, acc
 
 
 def main(args):
@@ -86,12 +79,16 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
+    vocab = VOCABS['french']
+
+    # Load val data generator
     st = time.time()
-    val_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'val'),
-        label_folder=os.path.join(args.data_path, 'val_labels'),
+    val_set = CharacterGenerator(
+        vocab=vocab,
+        num_samples=20 * len(vocab),
+        cache_samples=True,
         sample_transforms=T.Resize((args.input_size, args.input_size)),
-        rotated_bbox=args.rotation
+        font_family="FreeMono.ttf",
     )
     val_loader = DataLoader(
         val_set,
@@ -100,15 +97,14 @@ def main(args):
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
         pin_memory=True,
-        collate_fn=val_set.collate_fn,
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{len(val_loader)} batches)")
 
-    batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
+    batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = detection.__dict__[args.model](pretrained=args.pretrained)
+    model = models.__dict__[args.model](pretrained=args.pretrained, num_classes=len(vocab))
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -116,37 +112,27 @@ def main(args):
         checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint)
 
-    # GPU
-    if isinstance(args.device, int):
-        if not torch.cuda.is_available():
-            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-        if args.device >= torch.cuda.device_count():
-            raise ValueError("Invalid device index")
-        torch.cuda.set_device(args.device)
-        model = model.cuda()
-
-    # Metrics
-    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
-
     if args.test_only:
         print("Running evaluation")
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
-        print(f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
-              f"Mean IoU: {mean_iou:.2%})")
+        val_loss, acc = evaluate(model, val_loader, batch_transforms)
+        print(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         return
 
     st = time.time()
-    # Load both train and val data generators
-    train_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        label_folder=os.path.join(args.data_path, 'train_labels'),
+
+    # Load train data generator
+    train_set = CharacterGenerator(
+        vocab=vocab,
+        num_samples=1000 * len(vocab),
+        cache_samples=True,
         sample_transforms=Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
-            T.RandomApply(T.ColorInversion(), .1),
+            RandomPerspective(),
+            T.RandomApply(T.ColorInversion(), .7),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
         ]),
-        rotated_bbox=args.rotation
+        font_family="FreeMono.ttf",
     )
 
     train_loader = DataLoader(
@@ -156,20 +142,14 @@ def main(args):
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
         pin_memory=True,
-        collate_fn=train_set.collate_fn,
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target, rotation=args.rotation)
+        plot_samples(x, list(map(vocab.__getitem__, target)))
         return
-
-    # Backbone freezing
-    if args.freeze_backbone:
-        for p in model.feat_extractor.parameters():
-            p.reguires_grad_(False)
 
     # Optimizer
     model_params = ContiguousParams([p for p in model.parameters() if p.requires_grad]).contiguous()
@@ -190,7 +170,7 @@ def main(args):
 
         run = wandb.init(
             name=exp_name,
-            project="text-detection",
+            project="character-classification",
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
@@ -198,37 +178,32 @@ def main(args):
                 "architecture": args.model,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "text-detection",
+                "exp_type": "character-classification",
                 "framework": "pytorch",
             }
         )
 
     # Create loss queue
     min_loss = np.inf
-
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb)
+
         # Validation loop at the end of each epoch
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, acc = evaluate(model, val_loader, batch_transforms)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-                 f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
+        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
         if args.wb:
             wandb.log({
                 'epochs': epoch + 1,
                 'val_loss': val_loss,
-                'recall': recall,
-                'precision': precision,
-                'mean_iou': mean_iou,
+                'acc': acc,
             })
-        # Reset val metric
-        val_metric.reset()
 
     if args.wb:
         run.finish()
@@ -236,31 +211,26 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR training script for text detection (PyTorch)',
+    parser = argparse.ArgumentParser(description='DocTR training script for character classification (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('data_path', type=str, help='path to data folder')
-    parser.add_argument('model', type=str, help='text-detection model to train')
+    parser.add_argument('model', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
-    parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
+    parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
-    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
+    parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = H')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
-    parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
-                        help='freeze model backbone for fine-tuning')
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
-    parser.add_argument('--rotation', dest='rotation', action='store_true',
-                        help='train with rotated bbox')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
     args = parser.parse_args()
 
