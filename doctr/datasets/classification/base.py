@@ -30,11 +30,10 @@ def synthesize_char_img(char: str, size: int = 32, font_family: Optional[str] = 
 
     # Draw the character
     if font_family is None:
-        font = ImageFont.load_default()
+        font = ImageFont.truetype("FreeMono.ttf", size)
     else:
         font = ImageFont.truetype(font_family, size)
     d.text((4, 0), char, font=font, fill=(255, 255, 255))
-
     return img
 
 
