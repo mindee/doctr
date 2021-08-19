@@ -22,14 +22,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-01fbe239.zip'
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
     'mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-7f6087ff.zip'
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
     }
 }
 
@@ -181,7 +181,7 @@ class MobileNetV3(Sequential):
                 layers.GlobalAveragePooling2D(),
                 layers.Dense(head_chans, activation=hard_swish),
                 layers.Dropout(0.2),
-                layers.Dense(num_classes, activation='softmax'),
+                layers.Dense(num_classes),
             ])
 
         super().__init__(_layers)
@@ -230,6 +230,9 @@ def _mobilenet_v3(
             InvertedResidualConfig(160, 5, 960, 160, True, "HS", 1),
         ]
         head_chans = 1280
+
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['vocab']))
+
     # Build the model
     model = MobileNetV3(
         inverted_residual_setting,
