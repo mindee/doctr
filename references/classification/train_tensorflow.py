@@ -36,7 +36,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
 
         with tf.GradientTape() as tape:
             out = model(images, training=True)
-            train_loss = tf.nn.softmax_cross_entropy_with_logits(targets[:, None], out)
+            train_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
