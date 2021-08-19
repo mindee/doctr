@@ -50,7 +50,7 @@ def evaluate(model, val_loader, batch_transforms):
     for images, targets in val_iter:
         images = batch_transforms(images)
         out = model(images, training=False)
-        loss = tf.nn.softmax_cross_entropy_with_logits(targets[:, None], out)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
         # Compute metric
         correct += int((out.numpy().argmax(1) == targets.numpy()).sum())
 
