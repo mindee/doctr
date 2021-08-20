@@ -30,7 +30,7 @@ def preprocess_raw_images(raw_images: Tuple[List[str], List[int], List[int]], pr
 
 
 class ExportModel(tf.Module):
-    
+
     def __init__(
         self,
         preprocessor: PreProcessor,
@@ -45,7 +45,7 @@ class ExportModel(tf.Module):
         tf.TensorSpec([None, ], dtype=tf.int32)
     ])
     def predict(self, infer_array_inputs, infer_inputs_heights, infer_inputs_widths):
-        
+
         # Batch processing
         raw_images = infer_array_inputs, infer_inputs_heights, infer_inputs_widths
         processed_batches = preprocess_raw_images(raw_images, self.preprocessor)
