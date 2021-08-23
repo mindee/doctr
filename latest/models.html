@@ -666,23 +666,28 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <p>Results on private ocr datasets</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 31%" />
+<col style="width: 25%" />
+<col style="width: 8%" />
 <col style="width: 10%" />
-<col style="width: 13%" />
+<col style="width: 8%" />
 <col style="width: 10%" />
-<col style="width: 13%" />
+<col style="width: 8%" />
 <col style="width: 10%" />
-<col style="width: 13%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
 <th class="head" colspan="2"><p>Receipts</p></th>
 <th class="head" colspan="2"><p>Invoices</p></th>
 <th class="head" colspan="2"><p>IDs</p></th>
+<th class="head" colspan="2"><p>US Tax Forms</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>Architecture</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
@@ -697,6 +702,8 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p><strong>70.10</strong></p></td>
 <td><p>49.35</p></td>
 <td><p>50.84</p></td>
+<td><p>78.99</p></td>
+<td><p>92.73</p></td>
 </tr>
 <tr class="row-even"><td><p>db_resnet50 + master (ours)</p></td>
 <td><p><strong>78.91</strong></p></td>
@@ -705,6 +712,8 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>69.86</p></td>
 <td><p><strong>50.65</strong></p></td>
 <td><p><strong>52.17</strong></p></td>
+<td><p>78.86</p></td>
+<td><p>92.57</p></td>
 </tr>
 <tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
 <td><p>68.91</p></td>
@@ -713,6 +722,8 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>52.85</p></td>
 <td><p>43.70</p></td>
 <td><p>29.21</p></td>
+<td><p>69.79</p></td>
+<td><p>65.68</p></td>
 </tr>
 <tr class="row-even"><td><p>AWS textract</p></td>
 <td><p>75.77</p></td>
@@ -721,6 +732,8 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>69.13</p></td>
 <td><p>46.39</p></td>
 <td><p>43.32</p></td>
+<td><p><strong>84.31</strong></p></td>
+<td><p><strong>98.11</strong></p></td>
 </tr>
 </tbody>
 </table>
