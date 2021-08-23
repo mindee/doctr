@@ -262,7 +262,7 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwa
     model = DBNet(feat_extractor, default_cfgs[arch]['fpn_channels'], cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
