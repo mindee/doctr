@@ -253,7 +253,7 @@ def _crnn_mobilenet(
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        raise NotImplementedError
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 
