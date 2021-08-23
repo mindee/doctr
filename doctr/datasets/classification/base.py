@@ -37,7 +37,8 @@ def synthesize_char_img(char: str, size: int = 32, font_family: Optional[str] = 
         except OSError:
             font = ImageFont.load_default()
             logging.warning("unable to load specific font families. Loading default PIL font,"
-                            "font size issues may be expected, you may want to specify the font_family in args")
+                            "font size issues may be expected."
+                            "To prevent this, it is recommended to specify the value of 'font_family'.")
     else:
         font = ImageFont.truetype(font_family, size)
     d.text((4, 0), char, font=font, fill=(255, 255, 255))
