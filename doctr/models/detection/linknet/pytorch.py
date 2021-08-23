@@ -11,6 +11,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from typing import List, Dict, Any, Optional
 
 from .base import LinkNetPostProcessor, _LinkNet
+from ...utils import load_pretrained_params
 
 __all__ = ['LinkNet', 'linknet16']
 
@@ -250,7 +251,7 @@ def _linknet(arch: str, pretrained: bool, **kwargs: Any) -> LinkNet:
     model = LinkNet(_cfg['layout'], cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        raise ValueError
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 

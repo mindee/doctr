@@ -12,6 +12,7 @@ from torchvision.models import mobilenet_v3_small
 from typing import Tuple, Dict, Any, Optional, List
 
 from ... import backbones
+from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
@@ -224,7 +225,7 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        raise NotImplementedError
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 
@@ -253,7 +254,7 @@ def _crnn_mobilenet(
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        raise NotImplementedError
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 

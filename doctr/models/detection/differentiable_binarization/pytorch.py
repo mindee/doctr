@@ -12,6 +12,7 @@ from torchvision.models import resnet34, resnet50, mobilenet_v3_large
 from typing import List, Dict, Any, Optional
 
 from .base import DBPostProcessor, _DBNet
+from ...utils import load_pretrained_params
 
 __all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3']
 
@@ -261,7 +262,7 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwa
     model = DBNet(feat_extractor, default_cfgs[arch]['fpn_channels'], cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        raise NotImplementedError
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
