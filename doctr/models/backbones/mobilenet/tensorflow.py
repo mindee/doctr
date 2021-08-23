@@ -174,7 +174,7 @@ class MobileNetV3(Sequential):
                 layers.GlobalAveragePooling2D(),
                 layers.Dense(head_chans, activation=hard_swish),
                 layers.Dropout(0.2),
-                layers.Dense(num_classes, activation='softmax'),
+                layers.Dense(num_classes),
             ])
 
         super().__init__(_layers)

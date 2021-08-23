@@ -36,7 +36,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
 
         with tf.GradientTape() as tape:
             out = model(images, training=True)
-            train_loss = tf.nn.softmax_cross_entropy_with_logits(targets[:, None], out)
+            train_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
         grads = tape.gradient(train_loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
@@ -50,7 +50,7 @@ def evaluate(model, val_loader, batch_transforms):
     for images, targets in val_iter:
         images = batch_transforms(images)
         out = model(images, training=False)
-        loss = tf.nn.softmax_cross_entropy_with_logits(targets[:, None], out)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
         # Compute metric
         correct += int((out.numpy().argmax(1) == targets.numpy()).sum())
 
