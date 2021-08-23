@@ -10,6 +10,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from typing import Optional, Tuple, Any, Dict, List
 from ...utils import conv_sequence, load_pretrained_params
+from ....datasets import VOCABS
 
 
 __all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_large"]
@@ -17,12 +18,18 @@ __all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_large"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'mobilenet_v3_large': {
-        'input_shape': (224, 224, 3),
-        'url': None
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'vocab': VOCABS['french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
     'mobilenet_v3_small': {
-        'input_shape': (224, 224, 3),
-        'url': None
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'vocab': VOCABS['french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
     }
 }
 
@@ -223,6 +230,9 @@ def _mobilenet_v3(
             InvertedResidualConfig(160, 5, 960, 160, True, "HS", 1),
         ]
         head_chans = 1280
+
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['vocab']))
+
     # Build the model
     model = MobileNetV3(
         inverted_residual_setting,
