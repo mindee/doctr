@@ -11,6 +11,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from typing import List, Dict, Any, Optional
 
 from .base import LinkNetPostProcessor, _LinkNet
+from ...utils import load_pretrained_params
 
 __all__ = ['LinkNet', 'linknet16']
 

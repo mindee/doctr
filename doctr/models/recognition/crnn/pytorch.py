@@ -12,6 +12,7 @@ from torchvision.models import mobilenet_v3_small
 from typing import Tuple, Dict, Any, Optional, List
 
 from ... import backbones
+from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 

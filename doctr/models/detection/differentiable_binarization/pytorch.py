@@ -12,6 +12,7 @@ from torchvision.models import resnet34, resnet50, mobilenet_v3_large
 from typing import List, Dict, Any, Optional
 
 from .base import DBPostProcessor, _DBNet
+from ...utils import load_pretrained_params
 
 __all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3']
 
