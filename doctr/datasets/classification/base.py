@@ -31,6 +31,7 @@ def synthesize_char_img(char: str, size: int = 32, font_family: Optional[str] = 
 
     # Draw the character
     if font_family is None:
+        print(platform.system())
         if platform.system() == 'Linux':
             font = ImageFont.truetype("FreeMono.ttf", size)
         else:
