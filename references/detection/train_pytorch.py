@@ -9,6 +9,7 @@ os.environ['USE_TORCH'] = '1'
 
 import time
 import datetime
+import logging
 import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
@@ -122,6 +123,12 @@ def main(args):
             raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
         if args.device >= torch.cuda.device_count():
             raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    else:
+        logging.warning("No accessible GPU, targe device set to CPU.")
+    if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
 
