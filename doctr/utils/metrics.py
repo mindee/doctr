@@ -344,13 +344,13 @@ class LocalizationConfusion:
         """
 
         # Recall
-        recall = self.matches / self.num_gts if self.num_gts > 0 else None
+        recall = self.matches / self.num_gts if self.num_gts > 0 else 0
 
         # Precision
-        precision = self.matches / self.num_preds if self.num_preds > 0 else None
+        precision = self.matches / self.num_preds if self.num_preds > 0 else 0
 
         # mean IoU
-        mean_iou = self.tot_iou / self.num_preds if self.num_preds > 0 else None
+        mean_iou = self.tot_iou / self.num_preds if self.num_preds > 0 else 0
 
         return recall, precision, mean_iou
 
