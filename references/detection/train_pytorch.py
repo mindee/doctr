@@ -122,6 +122,10 @@ def main(args):
             raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
         if args.device >= torch.cuda.device_count():
             raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
 
