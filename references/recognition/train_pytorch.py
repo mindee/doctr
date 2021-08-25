@@ -35,6 +35,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
 
+        if torch.cuda.is_available():
+            images = images.cuda()
         images = batch_transforms(images)
 
         train_loss = model(images, targets)['loss']
@@ -58,6 +60,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
     for images, targets in val_iter:
+        if torch.cuda.is_available():
+            images = images.cuda()
         images = batch_transforms(images)
         out = model(images, targets, return_preds=True)
         # Compute metric
@@ -113,6 +117,21 @@ def main(args):
         print(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint)
+
+    # GPU
+    if isinstance(args.device, int):
+        if not torch.cuda.is_available():
+            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+        if args.device >= torch.cuda.device_count():
+            raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    else:
+        logging.warning("No accessible GPU, targe device set to CPU.")
+    if torch.cuda.is_available():
+        torch.cuda.set_device(args.device)
+        model = model.cuda()
 
     # Metrics
     val_metric = TextMatch()
