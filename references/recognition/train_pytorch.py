@@ -7,6 +7,7 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
+import logging
 import time
 import datetime
 import multiprocessing as mp
