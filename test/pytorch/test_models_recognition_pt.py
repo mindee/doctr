@@ -9,9 +9,11 @@ from doctr.models import recognition
     [
         ["crnn_vgg16_bn", (3, 32, 128)],
         ["crnn_resnet31", (3, 32, 128)],
+        ["crnn_mobilenet_v3_small", (3, 32, 128)],
+        ["crnn_mobilenet_v3_large", (3, 32, 128)],
+        ["sar_vgg16_bn", (3, 32, 128)],
         ["sar_resnet31", (3, 32, 128)],
         ["master", (3, 48, 160)],
-        ["crnn_mobilenet_v3_small", (3, 32, 128)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, mock_vocab):
@@ -57,9 +59,11 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     "arch_name",
     [
         "crnn_vgg16_bn",
+        "crnn_resnet31",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
         "sar_vgg16_bn",
         "sar_resnet31",
-        "crnn_resnet31",
         "master"
     ],
 )

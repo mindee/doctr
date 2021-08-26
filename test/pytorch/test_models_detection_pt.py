@@ -10,7 +10,7 @@ from doctr.models import detection
     [
         ["db_resnet34", (3, 1024, 1024), (1, 1024, 1024), True],
         ["db_resnet50", (3, 1024, 1024), (1, 1024, 1024), True],
-        ["db_mobilenet_v3", (3, 1024, 1024), (1, 1024, 1024), True],
+        ["db_mobilenet_v3_large", (3, 1024, 1024), (1, 1024, 1024), True],
         ["linknet16", (3, 1024, 1024), (1, 1024, 1024), False],
     ],
 )
@@ -48,7 +48,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     [
         "db_resnet34",
         "db_resnet50",
-        "db_mobilenet_v3",
+        "db_mobilenet_v3_large",
         "linknet16",
     ],
 )
