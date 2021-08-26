@@ -18,13 +18,10 @@ __all__ = ['LinkNet', 'linknet16']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet16': {
-        'layout': [64, 64, 128, 256, 512],
-        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
-        'fpn_channels': [256, 512, 1024, 2048],
+        'layout': [64, 128, 256, 512],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'rotated_bbox': False,
         'url': None,
     },
 }
@@ -65,26 +62,26 @@ class LinkNetEncoder(nn.Module):
         return out
 
 
-def linknet_backbone(layout: List[int], in_channels: int = 3) -> nn.Sequential:
+def linknet_backbone(layout: List[int], in_channels: int = 3, stem_channels: int = 64) -> nn.Sequential:
     # Stem
     _layers: List[nn.Module] = [
-        nn.Conv2d(in_channels, layout[0], kernel_size=7, stride=2, padding=3, bias=False),
-        nn.BatchNorm2d(layout[0]),
+        nn.Conv2d(in_channels, stem_channels, kernel_size=7, stride=2, padding=3, bias=False),
+        nn.BatchNorm2d(stem_channels),
         nn.ReLU(inplace=True),
         nn.MaxPool2d(2),
     ]
     # Encoders
-    for in_chan, out_chan in zip(layout[:-1], layout[1:]):
+    for in_chan, out_chan in zip([stem_channels] + layout[:-1], layout):
         _layers.append(LinkNetEncoder(in_chan, out_chan))
 
     return nn.Sequential(*_layers)
 
 
 class LinkNetFPN(nn.Module):
-    def __init__(self, layout: List[int]) -> None:
+    def __init__(self, layout: List[int], in_channels: int = 64) -> None:
         super().__init__()
         _decoder_layers = [
-            self.decoder_block(out_chan, in_chan) for in_chan, out_chan in zip(layout[:-1], layout[1:])
+            self.decoder_block(out_chan, in_chan) for in_chan, out_chan in zip([in_channels] + layout[:-1], layout)
         ]
         self.decoders = nn.ModuleList(_decoder_layers)
 
@@ -119,25 +116,30 @@ class LinkNet(nn.Module, _LinkNet):
 
     def __init__(
         self,
-        layout: List[int],
+        feat_extractor: IntermediateLayerGetter,
         num_classes: int = 1,
         rotated_bbox: bool = False,
-        in_channels: int = 3,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         super().__init__()
         self.cfg = cfg
 
-        self.feat_extractor = IntermediateLayerGetter(
-            linknet_backbone(layout, in_channels),
-            {str(layer): str(idx) for idx, layer in enumerate(range(4, 3 + len(layout)))},
-        )
+        self.feat_extractor = feat_extractor
+        # Identify the number of channels for the FPN initialization
+        _is_training = self.feat_extractor.training
+        self.feat_extractor = self.feat_extractor.eval()
+        with torch.no_grad():
+            out = self.feat_extractor(torch.zeros((1, 3, 224, 224)))
+            fpn_channels = [v.shape[1] for _, v in out.items()]
 
-        self.fpn = LinkNetFPN(layout)
+        if _is_training:
+            self.feat_extractor = self.feat_extractor.train()
+
+        self.fpn = LinkNetFPN(fpn_channels, fpn_channels[0])
 
         self.classifier = nn.Sequential(
-            nn.ConvTranspose2d(layout[0], 32, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.ConvTranspose2d(fpn_channels[0], 32, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, kernel_size=3, padding=1, bias=False),
@@ -240,18 +242,25 @@ class LinkNet(nn.Module, _LinkNet):
         return loss
 
 
-def _linknet(arch: str, pretrained: bool, **kwargs: Any) -> LinkNet:
+def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwargs: Any) -> LinkNet:
 
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
+    pretrained_backbone = pretrained_backbone and not pretrained
 
-    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
+    # Build the feature extractor
+    backbone = linknet_backbone(default_cfgs[arch]['layout'])
+    if pretrained_backbone:
+        load_pretrained_params(backbone, None)
+
+    feat_extractor = IntermediateLayerGetter(
+        backbone,
+        {str(layer): str(idx) for idx, layer in enumerate(range(4, 4 + len(default_cfgs[arch]['layout'])))},
+    )
+
     # Build the model
-    model = LinkNet(_cfg['layout'], cfg=_cfg, **kwargs)
+    model = LinkNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
