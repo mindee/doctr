@@ -8,9 +8,10 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers, Model
 from typing import Tuple, Dict, List, Any, Optional
 
-from ... import backbones
+from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small, mobilenet_v3_large
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
+from ....datasets import VOCABS
 from doctr.utils.repr import NestedObject
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
@@ -19,7 +20,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_vgg16_bn': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
+        'backbone': vgg16_bn, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
@@ -28,7 +29,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_resnet31': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
+        'backbone': resnet31, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
@@ -314,7 +315,15 @@ class SARPostProcessor(RecognitionPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+def _sar(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> SAR:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -327,8 +336,10 @@ def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, 
     _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
 
     # Feature extractor
-    feat_extractor = backbones.__dict__[default_cfgs[arch]['backbone']](
+    feat_extractor = default_cfgs[arch]['backbone'](
         input_shape=_cfg['input_shape'],
+        pretrained=pretrained_backbone,
+        include_top=False,
     )
 
     kwargs['vocab'] = _cfg['vocab']

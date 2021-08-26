@@ -9,18 +9,19 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential, Model
 from typing import Tuple, Dict, Any, Optional, List
 
-from ... import backbones
+from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small, mobilenet_v3_large
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small']
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small',
+           'crnn_mobilenet_v3_large']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': 'vgg16_bn', 'rnn_units': 128,
+        'backbone': vgg16_bn, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/crnn_vgg16_bn-76b7f2c6.zip',
@@ -28,7 +29,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_resnet31': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': 'resnet31', 'rnn_units': 128,
+        'backbone': resnet31, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
                   'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
@@ -37,7 +38,15 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': 'mobilenet_v3_small', 'rnn_units': 128,
+        'backbone': mobilenet_v3_small, 'rnn_units': 128,
+        'input_shape': (32, 128, 3),
+        'vocab': VOCABS['french'],
+        'url': None,
+    },
+    'crnn_mobilenet_v3_large': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'backbone': mobilenet_v3_large, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': None,
@@ -185,7 +194,15 @@ class CRNN(RecognitionModel, Model):
         return out
 
 
-def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
+def _crnn(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Optional[Tuple[int, int, int]] = None,
+    **kwargs: Any
+) -> CRNN:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -194,8 +211,10 @@ def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = backbones.__dict__[_cfg['backbone']](
+    feat_extractor = _cfg['backbone'](
         input_shape=_cfg['input_shape'],
+        include_top=False,
+        pretrained=pretrained_backbone,
     )
 
     kwargs['vocab'] = _cfg['vocab']
@@ -253,12 +272,12 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a small mobilenet backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    """CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
-        >>> from doctr.models import crnn_resnet31
+        >>> from doctr.models import crnn_mobilenet_v3_small
         >>> model = crnn_mobilenet_v3_small(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
@@ -271,3 +290,24 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """
 
     return _crnn('crnn_mobilenet_v3_small', pretrained, **kwargs)
+
+
+def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with a MobileNet V3 Large backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import crnn_mobilenet_v3_large
+        >>> model = crnn_mobilenet_v3_large(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn('crnn_mobilenet_v3_large', pretrained, **kwargs)
