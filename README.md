@@ -128,7 +128,7 @@ Credits where it's due: this repository is implementing, among others, architect
 
 ### Text Detection
 - [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
-- [LinkNet: Exploiting Encoder Representations forEfficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
+- [LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
 
 ### Text Recognition
 - [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
