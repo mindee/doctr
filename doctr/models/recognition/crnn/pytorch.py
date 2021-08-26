@@ -61,7 +61,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         <https://github.com/githubharald/CTCDecoder>`_.
 
         Args:
-            logits: model output, shape: N x C x T
+            logits: model output, shape: N x T x C
             vocab: vocabulary to use
             blank: index of blank label
 
@@ -71,9 +71,9 @@ class CTCPostProcessor(RecognitionPostProcessor):
         # compute softmax
         probs = F.softmax(logits, dim=-1)
         # get char indices along best path
-        best_path = torch.argmax(probs, dim=1)
+        best_path = torch.argmax(probs, dim=-1)
         # define word proba as min proba of sequence
-        probs, _ = torch.max(probs, dim=1)
+        probs, _ = torch.max(probs, dim=-1)
         probs, _ = torch.min(probs, dim=1)
 
         words = []
@@ -171,7 +171,12 @@ class CRNN(RecognitionModel, nn.Module):
         logits = model_output.permute(1, 0, 2)
         probs = F.log_softmax(logits, dim=-1)
         ctc_loss = F.ctc_loss(
-            probs, torch.from_numpy(gt), input_length, torch.tensor(seq_len, dtype=torch.int), len(self.vocab)
+            probs,
+            torch.from_numpy(gt),
+            input_length,
+            torch.tensor(seq_len, dtype=torch.int),
+            len(self.vocab),
+            zero_infinity=True,
         )
 
         return ctc_loss
