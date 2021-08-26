@@ -45,7 +45,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         optimizer.zero_grad()
         train_loss.backward()
         optimizer.step()
-        torch.nn.utils.clip_grad_norm(model.parameters(), 5)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'

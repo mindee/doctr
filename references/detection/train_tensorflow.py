@@ -208,8 +208,11 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(f'./{exp_name}/weights')
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-                 f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
+        log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+        if any(val is None for val in (recall, precision, mean_iou)):
+            log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
+        else:
+            log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
         # Tensorboard
         if args.tb:
             with tb_writer.as_default():
