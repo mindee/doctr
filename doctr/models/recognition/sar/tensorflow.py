@@ -8,10 +8,9 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers, Model
 from typing import Tuple, Dict, List, Any, Optional
 
-from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small, mobilenet_v3_large
+from ...backbones import vgg16_bn, resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
-from ....datasets import VOCABS
 from doctr.utils.repr import NestedObject
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
