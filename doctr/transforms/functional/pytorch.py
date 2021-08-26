@@ -43,7 +43,7 @@ def rotate(
     Returns:
         A tuple of rotated img (tensor), rotated boxes (np array)
     """
-    rotated_img = F.rotate(img, angle=angle, fill=0)  # Interpolation NEAREST by default
+    rotated_img = F.rotate(img, angle=angle, fill=0, expand=True)  # Interpolation NEAREST by default
     _boxes = deepcopy(boxes)
     if boxes.dtype == int:
         # Compute relative boxes
