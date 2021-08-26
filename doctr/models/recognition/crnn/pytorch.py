@@ -8,21 +8,22 @@ from itertools import groupby
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.models import mobilenet_v3_small
+from torchvision.models import mobilenet_v3_small, mobilenet_v3_large
 from typing import Tuple, Dict, Any, Optional, List
 
-from ... import backbones
+from ...backbones import vgg16_bn, resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small']
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small',
+           'crnn_mobilenet_v3_large']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'vgg16_bn', 'rnn_units': 128, 'lstm_features': 512,
+        'backbone': vgg16_bn, 'rnn_units': 128, 'lstm_features': 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
@@ -30,7 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_resnet31': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'resnet31', 'rnn_units': 128, 'lstm_features': 4 * 512,
+        'backbone': resnet31, 'rnn_units': 128, 'lstm_features': 4 * 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
@@ -39,6 +40,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'backbone': mobilenet_v3_small, 'rnn_units': 128, 'lstm_features': 576,
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'],
+        'url': None,
+    },
+    'crnn_mobilenet_v3_large': {
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'backbone': mobilenet_v3_large, 'rnn_units': 128, 'lstm_features': 960,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
@@ -211,36 +220,15 @@ class CRNN(RecognitionModel, nn.Module):
         return out
 
 
-def _crnn(arch: str, pretrained: bool, input_shape: Optional[Tuple[int, int, int]] = None, **kwargs: Any) -> CRNN:
-
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
-
-    # Feature extractor
-    feat_extractor = backbones.__dict__[_cfg['backbone']]()
-
-    kwargs['vocab'] = _cfg['vocab']
-    kwargs['rnn_units'] = _cfg['rnn_units']
-    kwargs['lstm_features'] = _cfg['lstm_features']
-
-    # Build the model
-    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
-    # Load pretrained parameters
-    if pretrained:
-        load_pretrained_params(model, _cfg['url'])
-
-    return model
-
-
-def _crnn_mobilenet(
+def _crnn(
     arch: str,
     pretrained: bool,
+    pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
-    **kwargs: Any,
+    **kwargs: Any
 ) -> CRNN:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -249,7 +237,10 @@ def _crnn_mobilenet(
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = _cfg['backbone']().features
+    feat_extractor = _cfg['backbone'](pretrained=pretrained_backbone)
+    # Trick to keep only the features while it's not unified between both frameworks
+    if arch.split('_')[1] == "mobilenet":
+        feat_extractor = feat_extractor.features
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']
@@ -307,12 +298,12 @@ def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a small mobilenet backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    """CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Example::
         >>> import torch
-        >>> from doctr.models import crnn_resnet31
+        >>> from doctr.models import crnn_mobilenet_v3_small
         >>> model = crnn_mobilenet_v3_small(pretrained=True)
         >>> input_tensor = torch.rand(1, 3, 32, 128)
         >>> out = model(input_tensor)
@@ -324,4 +315,25 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn_mobilenet('crnn_mobilenet_v3_small', pretrained, **kwargs)
+    return _crnn('crnn_mobilenet_v3_small', pretrained, **kwargs)
+
+
+def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with a MobileNet V3 Large backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import crnn_mobilenet_v3_large
+        >>> model = crnn_mobilenet_v3_large(pretrained=True)
+        >>> input_tensor = torch.rand(1, 3, 32, 128)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn('crnn_mobilenet_v3_large', pretrained, **kwargs)

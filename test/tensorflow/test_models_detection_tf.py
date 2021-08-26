@@ -10,7 +10,7 @@ from doctr.io import DocumentFile
     "arch_name, input_shape, output_size, out_prob",
     [
         ["db_resnet50", (1024, 1024, 3), (1024, 1024, 1), True],
-        ["db_mobilenet_v3_small", (1024, 1024, 3), (1024, 1024, 1), True],
+        ["db_mobilenet_v3_large", (1024, 1024, 3), (1024, 1024, 1), True],
         ["linknet16", (1024, 1024, 3), (1024, 1024, 1), False],
     ],
 )
@@ -107,6 +107,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     "arch_name",
     [
         "db_resnet50",
+        "db_mobilenet_v3_large",
         "linknet16",
     ],
 )

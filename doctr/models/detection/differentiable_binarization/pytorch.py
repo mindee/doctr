@@ -8,13 +8,14 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
-from torchvision.models import resnet34, resnet50, mobilenet_v3_large
+from torchvision.models import resnet34, resnet50
 from typing import List, Dict, Any, Optional
 
 from .base import DBPostProcessor, _DBNet
+from ...backbones import mobilenet_v3_large
 from ...utils import load_pretrained_params
 
-__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3']
+__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -22,7 +23,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone': resnet50,
         'backbone_submodule': None,
         'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
-        'fpn_channels': [256, 512, 1024, 2048],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -32,17 +32,15 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone': resnet34,
         'backbone_submodule': None,
         'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
-        'fpn_channels': [64, 128, 256, 512],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'url': None,
     },
-    'db_mobilenet_v3': {
+    'db_mobilenet_v3_large': {
         'backbone': mobilenet_v3_large,
         'backbone_submodule': 'features',
         'fpn_layers': ['3', '6', '12', '16'],
-        'fpn_channels': [24, 40, 112, 960],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -102,7 +100,6 @@ class DBNet(_DBNet, nn.Module):
     def __init__(
         self,
         feat_extractor: IntermediateLayerGetter,
-        fpn_channels: List[int],
         head_chans: int = 256,
         deform_conv: bool = False,
         num_classes: int = 1,
@@ -113,14 +110,21 @@ class DBNet(_DBNet, nn.Module):
         super().__init__()
         self.cfg = cfg
 
-        if len(feat_extractor.return_layers) != len(fpn_channels):
-            raise AssertionError
-
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
         self.rotated_bbox = rotated_bbox
 
         self.feat_extractor = feat_extractor
+        # Identify the number of channels for the head initialization
+        _is_training = self.feat_extractor.training
+        self.feat_extractor = self.feat_extractor.eval()
+        with torch.no_grad():
+            out = self.feat_extractor(torch.zeros((1, 3, 224, 224)))
+            fpn_channels = [v.shape[1] for _, v in out.items()]
+
+        if _is_training:
+            self.feat_extractor = self.feat_extractor.train()
+
         self.fpn = FeaturePyramidNetwork(fpn_channels, head_chans, deform_conv)
         # Conv1 map to channels
 
@@ -245,8 +249,10 @@ class DBNet(_DBNet, nn.Module):
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
 
-def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwargs: Any) -> DBNet:
+def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = True, **kwargs: Any) -> DBNet:
 
+    # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
+    pretrained_backbone = pretrained_backbone and not arch.split('_')[1].startswith('resnet')
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Feature extractor
@@ -259,7 +265,7 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwa
     )
 
     # Build the model
-    model = DBNet(feat_extractor, default_cfgs[arch]['fpn_channels'], cfg=default_cfgs[arch], **kwargs)
+    model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
@@ -309,14 +315,14 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     return _dbnet('db_resnet50', pretrained, **kwargs)
 
 
-def db_mobilenet_v3(pretrained: bool = False, **kwargs: Any) -> DBNet:
+def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
-    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a MobileNet V3 backbone.
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a MobileNet V3 Large backbone.
 
     Example::
         >>> import torch
-        >>> from doctr.models import db_mobilenet_v3
-        >>> model = db_mobilenet_v3(pretrained=True)
+        >>> from doctr.models import db_mobilenet_v3_large
+        >>> model = db_mobilenet_v3_large(pretrained=True)
         >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
         >>> out = model(input_tensor)
 
@@ -327,4 +333,4 @@ def db_mobilenet_v3(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet('db_mobilenet_v3', pretrained, **kwargs)
+    return _dbnet('db_mobilenet_v3_large', pretrained, **kwargs)

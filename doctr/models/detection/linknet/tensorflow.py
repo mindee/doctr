@@ -23,9 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet16': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'num_classes': 1,
         'input_shape': (1024, 1024, 3),
-        'rotated_bbox': False,
         'url': None,
     },
 }
@@ -229,12 +227,8 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['num_classes'] = kwargs.get('num_classes', _cfg['num_classes'])
-    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
-    kwargs['num_classes'] = _cfg['num_classes']
     kwargs['input_shape'] = _cfg['input_shape']
-    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
     # Build the model
     model = LinkNet(cfg=_cfg, **kwargs)
     # Load pretrained parameters
