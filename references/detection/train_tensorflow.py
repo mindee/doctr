@@ -208,8 +208,12 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(f'./{exp_name}/weights')
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-                 f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
+        if not all(recall, precision, mean_iou):
+            mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+                     "Either recall, precision or mean_iou can't be defined (empty gts or empty preds)")
+        else:
+            mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+                     f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
         # Tensorboard
         if args.tb:
             with tb_writer.as_default():
