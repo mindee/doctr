@@ -120,6 +120,7 @@ class ResNet(Sequential):
         conv_seq: wether to add a conv_sequence after each stage
         pooling: pooling to add after each stage (if None, no pooling)
         input_shape: shape of inputs
+        include_top: whether the classifier head should be instantiated
     """
 
     def __init__(
@@ -134,6 +135,7 @@ class ResNet(Sequential):
             Optional[Tuple[int, int]]
         ],
         input_shape: Tuple[int, int, int] = (640, 640, 3),
+        include_top: bool = False,
     ) -> None:
 
         _layers = [
