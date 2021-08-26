@@ -75,22 +75,12 @@ For examples & further details about the export format, please refer to [this se
 
 ## Installation
 
+### Prerequisites
+
 Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR. Additionally, you will need to install at least one of [TensorFlow](https://www.tensorflow.org/install/) or [PyTorch](https://pytorch.org/get-started/locally/#start-locally).
 
-You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
-
-```shell
-pip install python-doctr
-```
-
-Or you can install it from source:
-
-```shell
-git clone https://github.com/mindee/doctr.git
-pip install -e doctr/.
-```
-
 Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
+
 For MacOS users, you can install them as follows:
 ```shell
 brew install cairo pango gdk-pixbuf libffi
@@ -98,13 +88,47 @@ brew install cairo pango gdk-pixbuf libffi
 
 For Windows users, those dependencies are included in GTK. You can find the latest installer over [here](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).
 
+### Latest release
+
+You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
+
+```shell
+pip install python-doctr
+```
+
+We try to keep framework-specific dependencies to a minimum. But if you encounter missing ones, you can install framework-specific builds as follows:
+
+```shell
+# for TensorFlow
+pip install python-doctr[tf]
+# for PyTorch
+pip install python-doctr[torch]
+```
+
+### Developer mode
+Alternatively, you can install it from source, which will require you to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+First clone the project repository:
+
+```shell
+git clone https://github.com/mindee/doctr.git
+pip install -e doctr/.
+```
+
+Again, if you prefer to avoid the risk of missing dependencies, you can install the TensorFlow or the PyTorch build:
+```shell
+# for TensorFlow
+pip install -e doctr/.[tf]
+# for PyTorch
+pip install -e doctr/.[torch]
+```
+
 
 ## Models architectures
 Credits where it's due: this repository is implementing, among others, architectures from published research papers.
 
 ### Text Detection
 - [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
-- [LinkNet: Exploiting Encoder Representations forEfficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
+- [LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
 
 ### Text Recognition
 - [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
