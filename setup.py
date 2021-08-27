@@ -95,9 +95,10 @@ setup(
     # Metadata
     name=os.getenv('PKG_INDEX') if os.getenv('PKG_INDEX') else package_name,
     version=version,
-    author='François-Guillaume Fernandez, Charles Gaillard',
+    author='Mindee',
     author_email='fg@mindee.co',
-    description='Extract valuable text information from your documents',
+    maintainer='François-Guillaume Fernandez, Charles Gaillard',
+    description='Document Text Recognition (DocTR): deep Learning for high-performance OCR on documents.',
     long_description=readme,
     long_description_content_type="text/markdown",
     url='https://github.com/mindee/doctr',
