@@ -169,9 +169,9 @@ def rotate_boxes(
 def rotate_image(
     image: np.ndarray,
     angle: float,
-    expand=True,
+    expand=False,
 ) -> np.ndarray:
-    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
+    """Rotate an image counterclockwise by an given angle.
 
     Args:
         image: numpy tensor to rotate
@@ -179,7 +179,7 @@ def rotate_image(
         expand: whether the image should be padded before the rotation
 
     Returns:
-        Rotated array or tf.Tensor, padded by 0 by default.
+        Rotated array, padded by 0 by default.
     """
 
     # Compute the expanded padding
@@ -191,6 +191,19 @@ def rotate_image(
         exp_img = image
 
     height, width = exp_img.shape[:2]
-    center = (height / 2, width / 2)
-    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    return cv2.warpAffine(exp_img, rot_mat, (width, height))
+    rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
+    rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
+    if expand:
+        # Pad to get the same aspect ratio
+        if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
+            # Pad width
+            if (rot_img.shape[0] / rot_img.shape[1]) > (image.shape[0] / image.shape[1]):
+                h_pad, w_pad = 0, int(rot_img.shape[0] * image.shape[1] / image.shape[0] - rot_img.shape[1])
+            # Pad height
+            else:
+                h_pad, w_pad = int(rot_img.shape[1] * image.shape[0] / image.shape[1] - rot_img.shape[0]), 0
+            rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
+        # rescale
+        rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
+
+    return rot_img
