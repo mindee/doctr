@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List, Union
+import math
 import numpy as np
 import cv2
 from .common_types import BoundingBox, Polygon4P, RotatedBbox
@@ -94,3 +95,33 @@ def rotate_boxes(
     # Compute rotated boxes
     rotated_boxes = np.stack((x_center, y_center, width, height, angle * np.ones_like(boxes[:, 0])), axis=1)
     return rotated_boxes
+
+
+def rotate_image(
+    image: np.ndarray,
+    angle: float,
+    expand=True,
+) -> np.ndarray:
+    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
+
+    Args:
+        image: numpy tensor to rotate
+        angle: rotation angle in degrees, between -90 and +90
+        expand: whether the image should be padded before the rotation
+
+    Returns:
+        Rotated array or tf.Tensor, padded by 0 by default.
+    """
+
+    # Compute the expanded padding
+    if expand:
+        exp_shape = compute_expanded_shape(image.shape[:-1], angle)
+        h_pad, w_pad = int(math.ceil(exp_shape[0] - image.shape[0])), int(math.ceil(exp_shape[1] - image.shape[1]))
+        exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
+    else:
+        exp_img = image
+
+    height, width = exp_img.shape[:2]
+    center = (height / 2, width / 2)
+    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
+    return cv2.warpAffine(exp_img, rot_mat, (width, height))
