@@ -3,14 +3,15 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List, Union
 import math
+from typing import List, Union, Tuple
 import numpy as np
 import cv2
 from .common_types import BoundingBox, Polygon4P, RotatedBbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
-           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox', 'rotate_boxes']
+           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox', 'rotate_boxes', 'rotate_abs_boxes',
+           'compute_expanded_shape', 'rotate_image']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -58,6 +59,74 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
 def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> RotatedBbox:
     pts = np.asarray([pt for rbbox in rbboxes for pt in rbbox_to_polygon(rbbox)], np.float32)
     return fit_rbbox(pts)
+
+
+def rotate_abs_points(points: np.ndarray, center: np.ndarray, angle: float = 0.) -> np.ndarray:
+
+    # Y-axis is inverted by convention
+    rel_points = np.stack((points[:, 0] - center[0], center[1] - points[:, 1]), axis=1)
+
+    angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
+    rotation_mat = np.array([
+        [np.cos(angle_rad), -np.sin(angle_rad)],
+        [np.sin(angle_rad), np.cos(angle_rad)]
+    ], dtype=rel_points.dtype)
+
+    rotated_rel_points = np.matmul(rel_points, rotation_mat.T)
+    rotated_rel_points[:, 0] += center[0]
+    rotated_rel_points[:, 1] = center[1] - rotated_rel_points[:, 1]
+
+    return rotated_rel_points
+
+
+def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[int, int]:
+    """Compute the shape of an expanded rotated image
+
+    Args:
+        img_shape: the height and width of the image
+        angle: angle between -90 and +90 degrees
+
+    Returns:
+        the height and width of the rotated image
+    """
+
+    points = np.array([
+        [img_shape[1] / 2, img_shape[0] / 2],
+        [-img_shape[1] / 2, img_shape[0] / 2],
+    ])
+
+    rotated_points = rotate_abs_points(points, np.zeros(2), angle)
+
+    wh_shape = 2 * np.abs(rotated_points).max(axis=0)
+
+    return tuple(wh_shape[::-1])
+
+
+def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]) -> np.ndarray:
+    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) by an angle around the image center.
+
+    Args:
+        boxes: (N, 4) array of absolute coordinate boxes
+        angle: angle between -90 and +90 degrees
+        img_shape: the height and width of the image
+
+    Returns:
+        A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
+    """
+
+    # Get box centers
+    box_centers = np.stack((boxes[:, 0] + boxes[:, 2], boxes[:, 1] + boxes[:, 3]), axis=1) / 2
+
+    # Rotate them around image center
+    box_centers = rotate_abs_points(box_centers, np.array(img_shape[::-1]) / 2, angle)
+
+    rotated_boxes = np.concatenate((
+        box_centers,
+        np.stack((boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]), axis=1),
+        np.full((boxes.shape[0], 1), angle, dtype=box_centers.dtype)
+    ), axis=1)
+
+    return rotated_boxes
 
 
 def rotate_boxes(
