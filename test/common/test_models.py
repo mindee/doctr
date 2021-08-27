@@ -151,8 +151,3 @@ def test_get_bitmap_angle(mock_bitmap):
 def test_estimate_orientation(mock_image):
     angle = models.estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
-
-
-def test_rotate_page(mock_bitmap):
-    rotated = models.rotate_page(mock_bitmap, -30.)
-    assert abs(models.get_bitmap_angle(rotated) - 0.) < 1.

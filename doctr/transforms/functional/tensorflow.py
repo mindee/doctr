@@ -3,12 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 import tensorflow as tf
 import tensorflow_addons as tfa
 from copy import deepcopy
 import numpy as np
 from typing import Tuple
-from doctr.utils.geometry import rotate_boxes
+from doctr.utils.geometry import rotate_abs_boxes, compute_expanded_shape
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]
 
@@ -32,6 +33,7 @@ def rotate(
     img: tf.Tensor,
     boxes: np.ndarray,
     angle: float,
+    expand: bool = False,
 ) -> Tuple[tf.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
@@ -39,23 +41,40 @@ def rotate(
         img: image to rotate
         boxes: array of boxes to rotate as well
         angle: angle in degrees. +: counter-clockwise, -: clockwise
+        expand: whether the image should be padded before the rotation
 
     Returns:
         A tuple of rotated img (tensor), rotated boxes (np array)
     """
-    rotated_img = tfa.image.rotate(img, angles=angle, fill_value=0.0)  # Interpolation NEAREST by default
+    # Compute the expanded padding
+    if expand:
+        exp_shape = compute_expanded_shape(img.shape[:-1], angle)
+        h_pad, w_pad = int(math.ceil(exp_shape[0] - img.shape[0])), int(math.ceil(exp_shape[1] - img.shape[1]))
+        exp_img = tf.pad(img, tf.constant([[h_pad // 2, h_pad - h_pad // 2], [w_pad // 2, w_pad - w_pad // 2], [0, 0]]))
+    else:
+        exp_img = img
+    # Rotate the padded image
+    rotated_img = tfa.image.rotate(exp_img, angle * math.pi / 180)  # Interpolation NEAREST by default
+
+    # Get absolute coords
     _boxes = deepcopy(boxes)
-    if boxes.dtype == int:
-        # Compute relative boxes
-        _boxes = _boxes.astype(float)
-        _boxes[:, [0, 2]] = _boxes[:, [0, 2]] / img.shape[1]
-        _boxes[:, [1, 3]] = _boxes[:, [1, 3]] / img.shape[0]
-    # Compute rotated bboxes: xmin, ymin, xmax, ymax --> x, y, w, h, alpha
-    r_boxes = rotate_boxes(_boxes, angle=angle, min_angle=0)
-    if boxes.dtype == int:
-        # Back to absolute boxes
-        r_boxes[:, [0, 2]] *= img.shape[1]
-        r_boxes[:, [1, 3]] *= img.shape[0]
+    if boxes.dtype != int:
+        _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[1]
+        _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[0]
+
+    # Rotate the boxes: xmin, ymin, xmax, ymax --> x, y, w, h, alpha
+    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[:-1])
+
+    # Apply the expansion
+    if expand:
+        r_boxes[:, 0] += int((rotated_img.shape[1] - img.shape[1]) / 2)
+        r_boxes[:, 1] += int((rotated_img.shape[0] - img.shape[0]) / 2)
+
+    # Convert them to relative
+    if boxes.dtype != int:
+        r_boxes[:, [0, 2]] = r_boxes[:, [0, 2]] / rotated_img.shape[1]
+        r_boxes[:, [1, 3]] = r_boxes[:, [1, 3]] / rotated_img.shape[0]
+
     return rotated_img, r_boxes
 
 
