@@ -98,7 +98,7 @@ def test_rotate():
 
     # FP16 (only on GPU)
     if torch.cuda.is_available():
-        input_t = torch.ones((3, 50, 50), dtype=torch.float16)
+        input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
         r_img, _ = rotate(input_t, boxes, angle=12.)
         assert r_img.dtype == torch.float16
 
@@ -115,7 +115,7 @@ def test_random_rotate():
 
     # FP16 (only on GPU)
     if torch.cuda.is_available():
-        input_t = torch.ones((3, 50, 50), dtype=torch.float16)
+        input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
         r_img, _ = rotator(input_t, dict(boxes=boxes))
         assert r_img.dtype == torch.float16
 
