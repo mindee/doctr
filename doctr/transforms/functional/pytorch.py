@@ -54,7 +54,7 @@ def rotate(
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[1]
 
     # Rotate the boxes: xmin, ymin, xmax, ymax --> x, y, w, h, alpha
-    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:])
+    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:])  # type: ignore[arg-type]
 
     # Apply the expansion
     if expand:

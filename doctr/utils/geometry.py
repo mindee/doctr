@@ -99,7 +99,7 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
 
     wh_shape = 2 * np.abs(rotated_points).max(axis=0)
 
-    return tuple(wh_shape[::-1])
+    return wh_shape[1], wh_shape[0]
 
 
 def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]) -> np.ndarray:
