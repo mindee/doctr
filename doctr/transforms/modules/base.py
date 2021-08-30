@@ -93,15 +93,17 @@ class RandomRotate(NestedObject):
 
     Args:
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
-        [-max_angle, max_angle]
+            [-max_angle, max_angle]
+        expand: whether the image should be padded before the rotation
     """
-    def __init__(self, max_angle: float = 25.) -> None:
+    def __init__(self, max_angle: float = 25., expand: bool = False) -> None:
         self.max_angle = max_angle
+        self.expand = expand
 
     def extra_repr(self) -> str:
-        return f"max_angle={self.max_angle}"
+        return f"max_angle={self.max_angle}, expand={self.expand}"
 
     def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        img, target['boxes'] = F.rotate(img, target['boxes'], angle)
+        img, target['boxes'] = F.rotate(img, target['boxes'], angle, self.expand)
         return img, target

@@ -90,15 +90,21 @@ def test_rotate():
     assert r_img.shape == (3, 50, 50)
     assert r_img[0, 0, 0] == 0.
     assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
-    rel_boxes = np.array([
-        [.3, .4, .7, .6]
-    ])
+
+    # Expand
+    r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)
+    assert r_img.shape == (3, 60, 60)
+    # With the expansion, there should be a maximum of 1 pixel of the initial image on the first row
+    assert r_img[0, 0, :].sum() <= 1
+
+    # Relative coords
+    rel_boxes = np.array([[.3, .4, .7, .6]])
     r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
     assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
 
     # FP16 (only on GPU)
     if torch.cuda.is_available():
-        input_t = torch.ones((3, 50, 50), dtype=torch.float16)
+        input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
         r_img, _ = rotate(input_t, boxes, angle=12.)
         assert r_img.dtype == torch.float16
 
@@ -115,7 +121,7 @@ def test_random_rotate():
 
     # FP16 (only on GPU)
     if torch.cuda.is_available():
-        input_t = torch.ones((3, 50, 50), dtype=torch.float16)
+        input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
         r_img, _ = rotator(input_t, dict(boxes=boxes))
         assert r_img.dtype == torch.float16
 

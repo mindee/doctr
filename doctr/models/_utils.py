@@ -9,7 +9,7 @@ from math import floor
 from typing import List
 from statistics import median_low
 
-__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle']
+__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
 
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
@@ -86,30 +86,6 @@ def extract_rcrops(img: np.ndarray, boxes: np.ndarray, dtype=np.float32) -> List
         crops.append(crop)
 
     return crops
-
-
-def rotate_page(
-    image: np.ndarray,
-    angle: float = 0.,
-    min_angle: float = 1.
-) -> np.ndarray:
-    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
-
-    Args:
-        image: numpy tensor to rotate
-        angle: rotation angle in degrees, between -90 and +90
-        min_angle: min. angle in degrees to rotate a page
-
-    Returns:
-        Rotated array or tf.Tensor, padded by 0 by default.
-    """
-    if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
-        return image
-
-    height, width = image.shape[:2]
-    center = (height / 2, width / 2)
-    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    return cv2.warpAffine(image, rot_mat, (width, height))
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:

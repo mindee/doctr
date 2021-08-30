@@ -255,9 +255,15 @@ def test_rotate():
     assert r_img.shape == (50, 50, 3)
     assert r_img[0, 0, 0] == 0.
     assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
-    rel_boxes = np.array([
-        [.3, .4, .7, .6]
-    ])
+
+    # Expand
+    r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)
+    assert r_img.shape == (60, 60, 3)
+    # With the expansion, there should be a maximum of 1 pixel of the initial image on the first row
+    assert r_img[0, :, 0].numpy().sum() <= 1
+
+    # Relative coords
+    rel_boxes = np.array([[.3, .4, .7, .6]])
     r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
     assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
 

@@ -8,7 +8,8 @@ import cv2
 from typing import List, Any, Optional, Dict, Tuple
 
 from doctr.utils.repr import NestedObject
-from .._utils import rotate_page, get_bitmap_angle
+from doctr.utils.geometry import rotate_image
+from .._utils import get_bitmap_angle
 from .. import PreProcessor
 
 
@@ -109,7 +110,7 @@ class DetectionPostProcessor(NestedObject):
             # Rotate bitmap and proba_map
             angle = get_bitmap_angle(bitmap_)
             angles_batch.append(angle)
-            bitmap_, p_ = rotate_page(bitmap_, -angle), rotate_page(p_, -angle)
+            bitmap_, p_ = rotate_image(bitmap_, -angle, False), rotate_image(p_, -angle, False)
             boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
             boxes_batch.append(boxes)
 

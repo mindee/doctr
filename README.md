@@ -218,7 +218,7 @@ If you wish to cite this project, feel free to use this [BibTeX](http://www.bibt
 ```bibtex
 @misc{doctr2021,
     title={DocTR: Document Text Recognition},
-    author={François-Guillaume Fernandez, Charles Gaillard},
+    author={Mindee},
     year={2021},
     publisher = {GitHub},
     howpublished = {\url{https://github.com/mindee/doctr}}
