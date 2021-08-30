@@ -86,7 +86,7 @@ def test_rotate():
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    r_img, r_boxes = rotate(input_t, boxes, angle=12.)
+    r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
     assert r_img.shape == (3, 50, 50)
     assert r_img[0, 0, 0] == 0.
     assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
@@ -110,7 +110,7 @@ def test_rotate():
 
 
 def test_random_rotate():
-    rotator = RandomRotate(max_angle=10.)
+    rotator = RandomRotate(max_angle=10., expand=False)
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
     boxes = np.array([
         [15, 20, 35, 30]
@@ -158,5 +158,5 @@ def test_random_crop():
     ])
     c_img, _ = cropper(input_t, boxes=boxes)
     new_h, new_w = c_img[:2]
-    assert 20 <= new_h <= 40
-    assert 20 <= new_w <= 40
+    assert torch.all(20 <= new_h <= 40)
+    assert torch.all(20 <= new_w <= 40)
