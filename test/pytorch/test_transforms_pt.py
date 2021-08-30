@@ -3,7 +3,7 @@ import pytest
 import math
 import torch
 import numpy as np
-from doctr.transforms import Resize, ColorInversion, RandomRotate
+from doctr.transforms import Resize, ColorInversion, RandomRotate, RandomCrop
 from doctr.transforms.functional import rotate, crop_detection
 
 
@@ -115,14 +115,14 @@ def test_random_rotate():
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    r_img, target = rotator(input_t, dict(boxes=boxes))
+    r_img, target = rotator(input_t, boxes=boxes)
     assert r_img.shape == input_t.shape
     assert abs(target["boxes"][-1, -1]) <= 10.
 
     # FP16 (only on GPU)
     if torch.cuda.is_available():
         input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
-        r_img, _ = rotator(input_t, dict(boxes=boxes))
+        r_img, _ = rotator(input_t, boxes=boxes)
         assert r_img.dtype == torch.float16
 
 
@@ -148,3 +148,15 @@ def test_crop_detection():
     img = torch.ones((3, 50, 50), dtype=torch.float16)
     c_img, _ = crop_detection(img, abs_boxes, crop_box)
     assert c_img.dtype == torch.float16
+
+
+def test_random_crop():
+    cropper = RandomCrop()
+    input_t = torch.ones((50, 50, 3), dtype=torch.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    c_img, _ = cropper(input_t, boxes=boxes)
+    new_h, new_w = c_img[:2]
+    assert 20 <= new_h <= 40
+    assert 20 <= new_w <= 40

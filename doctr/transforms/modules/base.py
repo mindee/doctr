@@ -11,7 +11,7 @@ from doctr.utils.repr import NestedObject
 from .. import functional as F
 
 
-__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate']
+__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
 
 
 class ColorInversion(NestedObject):
@@ -89,21 +89,45 @@ class RandomApply(NestedObject):
 
 
 class RandomRotate(NestedObject):
-    """Randomly rotate a tensor image
+    """Randomly rotate a tensor image and its boxes
 
     Args:
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
             [-max_angle, max_angle]
         expand: whether the image should be padded before the rotation
     """
-    def __init__(self, max_angle: float = 25., expand: bool = False) -> None:
+    def __init__(self, max_angle: float = 5., expand: bool = True) -> None:
         self.max_angle = max_angle
         self.expand = expand
 
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
+    def __call__(self, img: Any, boxes: np.ndarray) -> Tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        img, target['boxes'] = F.rotate(img, target['boxes'], angle, self.expand)
-        return img, target
+        r_img, r_boxes = F.rotate(img, boxes, angle, self.expand)
+        return r_img, r_boxes
+
+
+class RandomCrop(NestedObject):
+    """Randomly crop a tensor image and its boxes
+
+    Args:
+        min_wh: float, min relative width/height of the crop
+        max_wh: float, max relative width/height of the crop
+    """
+    def __init__(self, min_wh: float = 0.4, max_wh: float = 0.8) -> None:
+        self.min_wh = min_wh
+        self.max_wh = max_wh
+
+    def extra_repr(self) -> str:
+        return f"min_wh={self.min_wh}, max_wh={self.max_wh}"
+
+    def __call__(self, img: Any, boxes: np.ndarray) -> Tuple[Any, np.ndarray]:
+        h, w = img.shape[:2]
+        crop_w = random.uniform(self.min_wh, self.max_wh)
+        crop_h = random.uniform(self.min_wh, self.max_wh)
+        start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
+        crop_box = (int(start_x * w), int(start_y * h), int((start_x + crop_w) * w), int((start_y + crop_h) * h))
+        croped_img, crop_boxes = F.crop_detection(img, boxes, crop_box)
+        return croped_img, crop_boxes

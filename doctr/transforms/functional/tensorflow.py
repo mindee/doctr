@@ -33,7 +33,7 @@ def rotate(
     img: tf.Tensor,
     boxes: np.ndarray,
     angle: float,
-    expand: bool = False,
+    expand: bool = True,
 ) -> Tuple[tf.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
