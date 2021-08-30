@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
+import math
 from typing import List, Any, Callable, Dict, Tuple
 import numpy as np
 
@@ -113,20 +114,20 @@ class RandomCrop(NestedObject):
     """Randomly crop a tensor image and its boxes
 
     Args:
-        min_wh: float, min relative width/height of the crop
-        max_wh: float, max relative width/height of the crop
+        scale: tuple of floats, relative (min_area, max_area) of the crop
+        ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w
     """
-    def __init__(self, min_wh: float = 0.4, max_wh: float = 0.8) -> None:
-        self.min_wh = min_wh
-        self.max_wh = max_wh
+    def __init__(self, scale: Tuple[float, float] = (0.08, 1.), ratio: Tuple[float, float] = (0.75, 1.33)) -> None:
+        self.scale = scale
+        self.ratio = ratio
 
     def extra_repr(self) -> str:
-        return f"min_wh={self.min_wh}, max_wh={self.max_wh}"
+        return f"scale={self.scale}, ratio={self.ratio}"
 
     def __call__(self, img: Any, boxes: np.ndarray) -> Tuple[Any, np.ndarray]:
         h, w = img.shape[:2]
-        crop_w = random.uniform(self.min_wh, self.max_wh)
-        crop_h = random.uniform(self.min_wh, self.max_wh)
+        crop_h = math.sqrt(self.scale * self.ratio)
+        crop_w = math.sqrt(self.scale / self.ratio)
         start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
         crop_box = (int(start_x * w), int(start_y * h), int((start_x + crop_w) * w), int((start_y + crop_h) * h))
         croped_img, crop_boxes = F.crop_detection(img, boxes, crop_box)

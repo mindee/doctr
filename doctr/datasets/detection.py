@@ -33,13 +33,11 @@ class DetectionDataset(AbstractDataset):
         img_folder: str,
         label_folder: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
-        geometric_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(img_folder, **kwargs)
         self.sample_transforms = sample_transforms
-        self.geometric_transforms = geometric_transforms
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float16 if self.fp16 else np.float32
@@ -74,8 +72,5 @@ class DetectionDataset(AbstractDataset):
         boxes = target['boxes'].copy()
         boxes[..., [0, 2]] /= w
         boxes[..., [1, 3]] /= h
-
-        if self.geometric_transforms is not None:
-            img, boxes = self.geometric_transforms(img, boxes)
 
         return img, dict(boxes=boxes.clip(0, 1), flags=target['flags'])

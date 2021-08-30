@@ -8,7 +8,7 @@ import tensorflow as tf
 from typing import List, Any, Tuple, Callable
 
 from doctr.utils.repr import NestedObject
-
+from .functional import rotate
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
            'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality']
@@ -298,3 +298,28 @@ class RandomJpegQuality(NestedObject):
         return tf.image.random_jpeg_quality(
             img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality
         )
+
+
+class RandomRotate(NestedObject):
+    """Randomly rotate images and associated boxes
+
+    Example::
+        >>> from doctr.transforms import RandomRotate
+        >>> import tensorflow as tf
+        >>> transfo = RandomRotate(max_angle=10)
+        >>> rotated_img, rotated_boxes = transfo(img, boxes)
+
+    Args:
+        max_angle: positive float (deg), angle range: [-max_angle, +max_angle], Should be < 90°.
+        expand: bool, wether to pad or not the image before rotation
+    """
+    def __init__(self, max_angle: float = 5., expand: bool = True) -> None:
+        self.max_angle = max_angle
+        self.expand = expand
+
+    def extra_repr(self) -> str:
+        return f"max_angle={self.max_angle}, expand={self.expand}"
+
+    def __call__(self, img: tf.Tensor, boxes: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
+        angle = random.uniform(-self.max_angle, self.max_angle)
+        return rotate(img, boxes, angle, self.expand)
