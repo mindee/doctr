@@ -104,7 +104,7 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]: 
+    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
         angle = random.uniform(-self.max_angle, self.max_angle)
         r_img, r_boxes = F.rotate(img, target["boxes"], angle, self.expand)
         return r_img, dict(boxes=r_boxes)
@@ -124,7 +124,7 @@ class RandomCrop(NestedObject):
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]: 
+    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
         h, w = img.shape[:2]
         random_scale = random.uniform(self.scale[0], self.scale[1])
         random_ratio = random.uniform(self.ratio[0], self.ratio[1])
