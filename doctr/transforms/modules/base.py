@@ -128,8 +128,8 @@ class RandomCrop(NestedObject):
         h, w = img.shape[:2]
         random_scale = random.uniform(self.scale[0], self.scale[1])
         random_ratio = random.uniform(self.ratio[0], self.ratio[1])
-        crop_h = math.sqrt(self.random_scale * self.random_ratio)
-        crop_w = math.sqrt(self.random_scale / self.random_ratio)
+        crop_h = math.sqrt(random_scale * random_ratio)
+        crop_w = math.sqrt(random_scale / random_ratio)
         start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
         crop_box = (int(start_x * w), int(start_y * h), int((start_x + crop_w) * w), int((start_y + crop_h) * h))
         croped_img, crop_boxes = F.crop_detection(img, boxes, crop_box)
