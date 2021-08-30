@@ -8,7 +8,7 @@ import tensorflow as tf
 from typing import List, Any, Tuple, Callable
 
 from doctr.utils.repr import NestedObject
-from .functional import rotate
+
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
            'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality']
@@ -16,13 +16,11 @@ __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', '
 
 class Compose(NestedObject):
     """Implements a wrapper that will apply transformations sequentially
-
     Example::
         >>> from doctr.transforms import Compose, Resize
         >>> import tensorflow as tf
         >>> transfos = Compose([Resize((32, 32))])
         >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
-
     Args:
         transforms: list of transformation modules
     """
@@ -41,13 +39,11 @@ class Compose(NestedObject):
 
 class Resize(NestedObject):
     """Resizes a tensor to a target size
-
     Example::
         >>> from doctr.transforms import Resize
         >>> import tensorflow as tf
         >>> transfo = Resize((32, 32))
         >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
-
     Args:
         output_size: expected output size
         method: interpolation method
@@ -89,13 +85,11 @@ class Resize(NestedObject):
 
 class Normalize(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
-
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         mean: average value per channel
         std: standard deviation per channel
@@ -115,13 +109,11 @@ class Normalize(NestedObject):
 
 class LambdaTransformation(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
-
     Example::
         >>> from doctr.transforms import LambdaTransformation
         >>> import tensorflow as tf
         >>> transfo = LambdaTransformation(lambda x: x/ 255.)
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         fn: the function to be applied to the input tensor
     """
@@ -134,7 +126,6 @@ class LambdaTransformation(NestedObject):
 
 class ToGray(NestedObject):
     """Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor
-
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
@@ -148,13 +139,11 @@ class ToGray(NestedObject):
 class RandomBrightness(NestedObject):
     """Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
     to all pixels
-
     Example:
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = Brightness()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
         p: probability to apply transformation
@@ -172,13 +161,11 @@ class RandomBrightness(NestedObject):
 class RandomContrast(NestedObject):
     """Randomly adjust contrast of a tensor (batch of images or image) by adjusting
     each pixel: (img - mean) * contrast_factor + mean.
-
     Example:
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = Contrast()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor<1)
     """
@@ -195,13 +182,11 @@ class RandomContrast(NestedObject):
 class RandomSaturation(NestedObject):
     """Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and
     increasing saturation by a factor.
-
     Example:
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = Saturation()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor<1)
     """
@@ -217,13 +202,11 @@ class RandomSaturation(NestedObject):
 
 class RandomHue(NestedObject):
     """Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta
-
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = Hue()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
     """
@@ -239,13 +222,11 @@ class RandomHue(NestedObject):
 
 class RandomGamma(NestedObject):
     """randomly performs gamma correction for a tensor (batch of images or image)
-
     Example:
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = Gamma()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
     Args:
         min_gamma: non-negative real number, lower bound for gamma param
         max_gamma: non-negative real number, upper bound for gamma
@@ -276,13 +257,11 @@ class RandomGamma(NestedObject):
 
 class RandomJpegQuality(NestedObject):
     """Randomly adjust jpeg quality of a 3 dimensional RGB image
-
     Example::
         >>> from doctr.transforms import Normalize
         >>> import tensorflow as tf
         >>> transfo = JpegQuality()
         >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
-
     Args:
         min_quality: int between [0, 100]
         max_quality: int between [0, 100]
@@ -298,28 +277,3 @@ class RandomJpegQuality(NestedObject):
         return tf.image.random_jpeg_quality(
             img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality
         )
-
-
-class RandomRotate(NestedObject):
-    """Randomly rotate images and associated boxes
-
-    Example::
-        >>> from doctr.transforms import RandomRotate
-        >>> import tensorflow as tf
-        >>> transfo = RandomRotate(max_angle=10)
-        >>> rotated_img, rotated_boxes = transfo(img, boxes)
-
-    Args:
-        max_angle: positive float (deg), angle range: [-max_angle, +max_angle], Should be < 90°.
-        expand: bool, wether to pad or not the image before rotation
-    """
-    def __init__(self, max_angle: float = 5., expand: bool = True) -> None:
-        self.max_angle = max_angle
-        self.expand = expand
-
-    def extra_repr(self) -> str:
-        return f"max_angle={self.max_angle}, expand={self.expand}"
-
-    def __call__(self, img: tf.Tensor, boxes: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
-        angle = random.uniform(-self.max_angle, self.max_angle)
-        return rotate(img, boxes, angle, self.expand)
