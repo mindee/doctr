@@ -115,9 +115,9 @@ def test_random_rotate():
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    r_img, target = rotator(input_t, boxes=boxes)
+    r_img, r_boxes = rotator(input_t, boxes=boxes)
     assert r_img.shape == input_t.shape
-    assert abs(target["boxes"][-1, -1]) <= 10.
+    assert abs(r_boxes[-1, -1]) <= 10.
 
     # FP16 (only on GPU)
     if torch.cuda.is_available():
@@ -158,5 +158,7 @@ def test_random_crop():
     ])
     c_img, _ = cropper(input_t, boxes=boxes)
     new_h, new_w = c_img[:2]
-    assert torch.all(20 <= new_h <= 40)
-    assert torch.all(20 <= new_w <= 40)
+    assert torch.min(new_h) >= 20
+    assert torch.min(new_w) >= 20
+    assert torch.max(new_h) <= 40
+    assert torch.max(new_w) <= 40
