@@ -97,17 +97,17 @@ class RandomRotate(NestedObject):
             [-max_angle, max_angle]
         expand: whether the image should be padded before the rotation
     """
-    def __init__(self, max_angle: float = 5., expand: bool = True) -> None:
+    def __init__(self, max_angle: float = 5., expand: bool = False) -> None:
         self.max_angle = max_angle
         self.expand = expand
 
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, boxes: np.ndarray) -> Tuple[Any, np.ndarray]:
+    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]: 
         angle = random.uniform(-self.max_angle, self.max_angle)
-        r_img, r_boxes = F.rotate(img, boxes, angle, self.expand)
-        return r_img, r_boxes
+        r_img, r_boxes = F.rotate(img, target["boxes"], angle, self.expand)
+        return r_img, dict(boxes=r_boxes)
 
 
 class RandomCrop(NestedObject):
@@ -124,7 +124,7 @@ class RandomCrop(NestedObject):
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def __call__(self, img: Any, boxes: np.ndarray) -> Tuple[Any, np.ndarray]:
+    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]: 
         h, w = img.shape[:2]
         random_scale = random.uniform(self.scale[0], self.scale[1])
         random_ratio = random.uniform(self.ratio[0], self.ratio[1])
@@ -132,5 +132,5 @@ class RandomCrop(NestedObject):
         crop_w = math.sqrt(random_scale / random_ratio)
         start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
         crop_box = (int(start_x * w), int(start_y * h), int((start_x + crop_w) * w), int((start_y + crop_h) * h))
-        croped_img, crop_boxes = F.crop_detection(img, boxes, crop_box)
-        return croped_img, crop_boxes
+        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], crop_box)
+        return croped_img, dict(boxes=crop_boxes)
