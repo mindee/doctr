@@ -251,7 +251,7 @@ def test_rotate():
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    r_img, r_boxes = rotate(input_t, boxes, angle=12.)
+    r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
     assert r_img.shape == (50, 50, 3)
     assert r_img[0, 0, 0] == 0.
     assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
@@ -274,14 +274,14 @@ def test_rotate():
 
 
 def test_random_rotate():
-    rotator = T.RandomRotate(max_angle=10.)
+    rotator = T.RandomRotate(max_angle=10., expand=False)
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    r_img, target = rotator(input_t, dict(boxes=boxes))
+    r_img, r_boxes = rotator(input_t, dict(boxes=boxes))
     assert r_img.shape == input_t.shape
-    assert abs(target["boxes"][-1, -1]) <= 10.
+    assert abs(r_boxes["boxes"][-1, -1]) <= 10.
 
     # FP16
     input_t = tf.ones((50, 50, 3), dtype=tf.float16)
@@ -311,3 +311,15 @@ def test_crop_detection():
     img = tf.ones((50, 50, 3), dtype=tf.float16)
     c_img, _ = crop_detection(img, rel_boxes, crop_box)
     assert c_img.dtype == tf.float16
+
+
+def test_random_crop():
+    cropper = T.RandomCrop()
+    input_t = tf.ones((50, 50, 3), dtype=tf.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    c_img, _ = cropper(input_t, dict(boxes=boxes))
+    new_h, new_w = c_img.shape[:2]
+    assert new_h >= 3
+    assert new_w >= 3

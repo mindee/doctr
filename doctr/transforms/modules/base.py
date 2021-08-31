@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
+import math
 from typing import List, Any, Callable, Dict, Tuple
 import numpy as np
 
@@ -11,7 +12,7 @@ from doctr.utils.repr import NestedObject
 from .. import functional as F
 
 
-__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate']
+__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
 
 
 class ColorInversion(NestedObject):
@@ -89,14 +90,14 @@ class RandomApply(NestedObject):
 
 
 class RandomRotate(NestedObject):
-    """Randomly rotate a tensor image
+    """Randomly rotate a tensor image and its boxes
 
     Args:
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
             [-max_angle, max_angle]
         expand: whether the image should be padded before the rotation
     """
-    def __init__(self, max_angle: float = 25., expand: bool = False) -> None:
+    def __init__(self, max_angle: float = 5., expand: bool = False) -> None:
         self.max_angle = max_angle
         self.expand = expand
 
@@ -105,5 +106,31 @@ class RandomRotate(NestedObject):
 
     def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        img, target['boxes'] = F.rotate(img, target['boxes'], angle, self.expand)
-        return img, target
+        r_img, r_boxes = F.rotate(img, target["boxes"], angle, self.expand)
+        return r_img, dict(boxes=r_boxes)
+
+
+class RandomCrop(NestedObject):
+    """Randomly crop a tensor image and its boxes
+
+    Args:
+        scale: tuple of floats, relative (min_area, max_area) of the crop
+        ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w
+    """
+    def __init__(self, scale: Tuple[float, float] = (0.08, 1.), ratio: Tuple[float, float] = (0.75, 1.33)) -> None:
+        self.scale = scale
+        self.ratio = ratio
+
+    def extra_repr(self) -> str:
+        return f"scale={self.scale}, ratio={self.ratio}"
+
+    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
+        h, w = img.shape[:2]
+        random_scale = random.uniform(self.scale[0], self.scale[1])
+        random_ratio = random.uniform(self.ratio[0], self.ratio[1])
+        crop_h = math.sqrt(random_scale * random_ratio)
+        crop_w = math.sqrt(random_scale / random_ratio)
+        start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
+        crop_box = (int(start_x * w), int(start_y * h), int((start_x + crop_w) * w), int((start_y + crop_h) * h))
+        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], crop_box)
+        return croped_img, dict(boxes=crop_boxes)
