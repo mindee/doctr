@@ -38,7 +38,6 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
           VERSION: ${{ steps.release_tag.outputs.VERSION }}
         run: |
-          VERSION="${VERSION:1}"
           BUILD_VERSION=$VERSION PKG_INDEX=python-doctr python setup.py sdist bdist_wheel
           twine check dist/*
           twine upload dist/*
