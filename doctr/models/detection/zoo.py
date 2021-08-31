@@ -31,7 +31,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 1)
     predictor = DetectionPredictor(
-        PreProcessor(_model.cfg['input_shape'][:2], **kwargs),
+        PreProcessor(_model.cfg['input_shape'][:-1] if is_tf_available() else _model.cfg['input_shape'][1:], **kwargs),
         _model
     )
     return predictor
