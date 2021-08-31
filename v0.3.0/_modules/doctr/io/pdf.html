@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.documents.reader &mdash; doctr 0.3.1a0-git documentation</title>
+  <title>doctr.io.pdf &mdash; doctr 0.4.0a0-git documentation</title>
   
 
   
@@ -200,7 +200,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>doctr.documents.reader</li>
+      <li>doctr.io.pdf</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -215,7 +215,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for doctr.documents.reader</h1><div class="highlight"><pre>
+  <h1>Source code for doctr.io.pdf</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
@@ -225,59 +225,14 @@
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">fitz</span>
-<span class="kn">from</span> <span class="nn">weasyprint</span> <span class="kn">import</span> <span class="n">HTML</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img&#39;</span><span class="p">,</span> <span class="s1">&#39;read_html&#39;</span><span class="p">,</span> <span class="s1">&#39;DocumentFile&#39;</span><span class="p">,</span> <span class="s1">&#39;PDF&#39;</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">Bbox</span>
 
-
-<span class="n">AbstractPath</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
-<span class="n">AbstractFile</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">AbstractPath</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]</span>
-<span class="n">Bbox</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;PDF&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="read_img"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_img">[docs]</a><span class="k">def</span> <span class="nf">read_img</span><span class="p">(</span>
-    <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span>
-    <span class="n">output_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">rgb_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read an image file into numpy format</span>
-
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import read_img</span>
-<span class="sd">        &gt;&gt;&gt; page = read_img(&quot;path/to/your/doc.jpg&quot;)</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        file: the path to the image file</span>
-<span class="sd">        output_size: the expected output size of each page in format H x W</span>
-<span class="sd">        rgb_output: whether the output ndarray channel order should be RGB instead of BGR.</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        the page decoded as numpy ndarray of shape H x W x 3</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to access </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">IMREAD_COLOR</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-        <span class="n">file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imdecode</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">IMREAD_COLOR</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported object type for argument &#39;file&#39;&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Validity check</span>
-    <span class="k">if</span> <span class="n">img</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unable to read file.&quot;</span><span class="p">)</span>
-    <span class="c1"># Resizing</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_size</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">output_size</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_LINEAR</span><span class="p">)</span>
-    <span class="c1"># Switch the channel order</span>
-    <span class="k">if</span> <span class="n">rgb_output</span><span class="p">:</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_BGR2RGB</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">img</span></div>
-
-
-<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">:</span>
+<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../io.html#doctr.io.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
 
 <span class="sd">    Example::</span>
@@ -347,23 +302,7 @@
     <span class="k">return</span> <span class="n">img</span>
 
 
-<div class="viewcode-block" id="read_html"><a class="viewcode-back" href="../../../documents.html#doctr.documents.read_html">[docs]</a><span class="k">def</span> <span class="nf">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
-
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import read_html</span>
-<span class="sd">        &gt;&gt;&gt; doc = read_html(&quot;https://www.yoursite.com&quot;)</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        url: URL of the target web page</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        decoded PDF file as a bytes stream</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write_pdf</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="PDF"><a class="viewcode-back" href="../../../documents.html#doctr.documents.PDF">[docs]</a><span class="k">class</span> <span class="nc">PDF</span><span class="p">:</span>
+<div class="viewcode-block" id="PDF"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF">[docs]</a><span class="k">class</span> <span class="nc">PDF</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;PDF document template</span>
 
 <span class="sd">    Args:</span>
@@ -372,7 +311,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">doc</span> <span class="o">=</span> <span class="n">doc</span>
 
-<div class="viewcode-block" id="PDF.as_images"><a class="viewcode-back" href="../../../documents.html#doctr.documents.PDF.as_images">[docs]</a>    <span class="k">def</span> <span class="nf">as_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<div class="viewcode-block" id="PDF.as_images"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.as_images">[docs]</a>    <span class="k">def</span> <span class="nf">as_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Convert all document pages to images</span>
 
 <span class="sd">        Example::</span>
@@ -392,7 +331,7 @@
         <span class="c1"># xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">info</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">getTextWords</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
 
-<div class="viewcode-block" id="PDF.get_words"><a class="viewcode-back" href="../../../documents.html#doctr.documents.PDF.get_words">[docs]</a>    <span class="k">def</span> <span class="nf">get_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
+<div class="viewcode-block" id="PDF.get_words"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_words">[docs]</a>    <span class="k">def</span> <span class="nf">get_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
         <span class="sd">&quot;&quot;&quot;Get the annotations for all words in the document</span>
 
 <span class="sd">        Example::</span>
@@ -410,7 +349,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">getImageBbox</span><span class="p">(</span><span class="n">artefact</span><span class="p">))</span>  <span class="c1"># type: ignore[misc]</span>
                 <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
 
-<div class="viewcode-block" id="PDF.get_artefacts"><a class="viewcode-back" href="../../../documents.html#doctr.documents.PDF.get_artefacts">[docs]</a>    <span class="k">def</span> <span class="nf">get_artefacts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+<div class="viewcode-block" id="PDF.get_artefacts"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_artefacts">[docs]</a>    <span class="k">def</span> <span class="nf">get_artefacts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
         <span class="sd">&quot;&quot;&quot;Get the artefacts for the entire document</span>
 
 <span class="sd">        Example::</span>
@@ -422,62 +361,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_page_artefacts</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">))]</span></div></div>
-
-
-<div class="viewcode-block" id="DocumentFile"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile">[docs]</a><span class="k">class</span> <span class="nc">DocumentFile</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read a document from multiple extensions&quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="DocumentFile.from_pdf"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile.from_pdf">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PDF</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Read a PDF file</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; doc = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            file: the path to the PDF file or a binary stream</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            a PDF document</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">doc</span> <span class="o">=</span> <span class="n">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">PDF</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="DocumentFile.from_url"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile.from_url">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PDF</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Interpret a web page as a PDF document</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; doc = DocumentFile.from_url(&quot;https://www.yoursite.com&quot;)</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            url: the URL of the target web page</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            a PDF document</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pdf_stream</span> <span class="o">=</span> <span class="n">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">pdf_stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="DocumentFile.from_images"><a class="viewcode-back" href="../../../documents.html#doctr.documents.DocumentFile.from_images">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_images</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">],</span> <span class="n">AbstractFile</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Read an image file (or a collection of image files) and convert it into an image in numpy format</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; pages = DocumentFile.from_images([&quot;path/to/your/page1.png&quot;, &quot;path/to/your/page2.png&quot;])</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            files: the path to the image file or a binary stream, or a collection of those</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
-            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="p">[</span><span class="n">read_img</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span></div></div>
 </pre></div>
 
            </div>

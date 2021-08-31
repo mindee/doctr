@@ -46,6 +46,7 @@ Detection models
 Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:
 
 .. autofunction:: doctr.models.detection.db_resnet50
+.. autofunction:: doctr.models.detection.db_mobilenet_v3_large
 .. autofunction:: doctr.models.detection.linknet16
 
 Detection predictors
@@ -72,9 +73,15 @@ Identifying strings in images
    * - crnn_vgg16_bn
      - (32, 128, 3)
      - 15.8M
-     - 86.02
-     - 91.3
+     - 87.17
+     - 92.93
      - 12.8
+   * - master
+     - (32, 128, 3)
+     -
+     - 87.61
+     - 93.28
+     -
    * - sar_vgg16_bn
      - (32, 128, 3)
      - 21.5M
@@ -84,8 +91,8 @@ Identifying strings in images
    * - sar_resnet31
      - (32, 128, 3)
      - 53.1M
-     - **86.3**
-     - **92.1**
+     - **87.67**
+     - **93.41**
      - 2.7
 
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
@@ -113,6 +120,7 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
+.. autofunction:: doctr.models.recognition.crnn_mobilenet_v3_large
 .. autofunction:: doctr.models.recognition.sar_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_resnet31
 .. autofunction:: doctr.models.recognition.master
@@ -134,11 +142,13 @@ Predictors that localize and identify text elements in images
 +=============================+============+===============+=========+============+===============+=========+
 | **Architecture**            | **Recall** | **Precision** | **FPS** | **Recall** | **Precision** | **FPS** |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| db_resnet50 + crnn_vgg16_bn | 70.08      | 74.77         | 0.85    | 82.19      | **79.67**     | 1.6     |
+| db_resnet50 + crnn_vgg16_bn | 71.25      | 76.02         | 0.85    | 83.99      |   81.42       | 1.6     |
++-----------------------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + master        | 71.26      | 76.03         |         | 84.61      |   82.02       |         |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
 | db_resnet50 + sar_vgg16_bn  | N/A        | N/A           | 0.49    | N/A        | N/A           | 1.0     |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| db_resnet50 + sar_resnet31  | N/A        | N/A           | 0.27    | N/A        | N/A           | 0.83    |
+| db_resnet50 + sar_resnet31  | 71.48      | 76.26         | 0.27    | 84.66      | **82.07**     | 0.83    |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
 | Gvision text detection      | 59.50      | 62.50         |         | 75.30      | 70.00         |         |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
@@ -159,17 +169,21 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 
 Results on private ocr datasets
 
-+------------------------------------+----------------------------+----------------------------+----------------------------+
-|                                    |          Receipts          |            Invoices        |            IDs             |
-+====================================+============+===============+============+===============+============+===============+
-| **Architecture**                   | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + crnn_vgg16_bn (ours) | **78.90**  | **81.01**     | 65.68      | **69.86**     | **49.48**  | **50.46**     |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
-| Gvision doc. text detection        | 68.91      | 59.89         | 63.20      | 52.85         | 43.70      | 29.21         |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
-| AWS textract                       | 75.77      | 77.70         | **70.47**  | 69.13         | 46.39      | 43.32         |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
++------------------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|                                    |          Receipts          |            Invoices        |            IDs             |        US Tax Forms        |
++====================================+============+===============+============+===============+============+===============+============+===============+
+| **Architecture**                   | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** |
++------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_resnet50 + crnn_vgg16_bn (ours) |   78.56    |   80.94       | 65.79      |   70.10       |   49.35    |   50.84       |   78.99    |   92.73       |
++------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_resnet50 + master (ours)        | **78.91**  | **81.31**     | 65.57      |   69.86       |   50.65    |   52.17       |   78.86    |   92.57       |
++------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_resnet50 + sar_resnet31 (ours)  |   78.84    |   81.23       | 65.90      | **70.21**     | **51.17**  | **52.72**     |   79.17    |   92.68       |
++------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| Gvision doc. text detection        | 68.91      | 59.89         | 63.20      | 52.85         | 43.70      | 29.21         |   69.79    |   65.68       |
++------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| AWS textract                       | 75.77      | 77.70         | **70.47**  | 69.13         | 46.39      | 43.32         | **84.31**  | **98.11**     |
++------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
 
 
 Two-stage approaches
@@ -178,6 +192,74 @@ Those architectures involve one stage of text detection, and one stage of text r
 
 .. autofunction:: doctr.models.zoo.ocr_predictor
 
+Export model output
+^^^^^^^^^^^^^^^^^^^^
+
+The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+To get a better understanding of our document model, check our :ref:`document_structure` section
+
+Here is a typical `Document` layout::
+
+  Document(
+    (pages): [Page(
+      dimensions=(340, 600)
+      (blocks): [Block(
+        (lines): [Line(
+          (words): [
+            Word(value='No.', confidence=0.91),
+            Word(value='RECEIPT', confidence=0.99),
+            Word(value='DATE', confidence=0.96),
+          ]
+        )]
+        (artefacts): []
+      )]
+    )]
+  )
+
+You can also export them as a nested dict, more appropriate for JSON format::
+
+  json_output = result.export()
+
+For reference, here is the JSON export for the same `Document` as above::
+
+  {
+    'pages': [
+        {
+            'page_idx': 0,
+            'dimensions': (340, 600),
+            'orientation': {'value': None, 'confidence': None},
+            'language': {'value': None, 'confidence': None},
+            'blocks': [
+                {
+                    'geometry': ((0.1357421875, 0.0361328125), (0.8564453125, 0.8603515625)),
+                    'lines': [
+                        {
+                            'geometry': ((0.1357421875, 0.0361328125), (0.8564453125, 0.8603515625)),
+                            'words': [
+                                {
+                                    'value': 'No.',
+                                    'confidence': 0.914085328578949,
+                                    'geometry': ((0.5478515625, 0.06640625), (0.5810546875, 0.0966796875))
+                                },
+                                {
+                                    'value': 'RECEIPT',
+                                    'confidence': 0.9949972033500671,
+                                    'geometry': ((0.1357421875, 0.0361328125), (0.51171875, 0.1630859375))
+                                },
+                                {
+                                    'value': 'DATE',
+                                    'confidence': 0.9578408598899841,
+                                    'geometry': ((0.1396484375, 0.3232421875), (0.185546875, 0.3515625))
+                                }
+                            ]
+                        }
+                    ],
+                    'artefacts': []
+                }
+            ]
+        }
+    ]
+  }
 
 Model export
 ------------

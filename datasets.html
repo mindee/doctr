@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.datasets &mdash; doctr 0.3.1a0-git documentation</title>
+  <title>doctr.datasets &mdash; doctr 0.4.0a0-git documentation</title>
   
 
   
@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="doctr.documents" href="documents.html" />
+    <link rel="next" title="doctr.io" href="io.html" />
     <link rel="prev" title="Changelog" href="changelog.html" /> 
 </head>
 
@@ -94,6 +94,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
@@ -109,17 +110,17 @@
 <li class="toctree-l2"><a class="reference internal" href="#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#word">Word</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#line">Line</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#artefact">Artefact</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#block">Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#page">Page</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#document">Document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="io.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="io.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#document">Document</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io.html#file-reading">File reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
@@ -137,6 +138,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#export-model-output">Export model output</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
@@ -229,7 +231,7 @@ can be a significant save of time.</p>
 <p>The datasets from DocTR inherit from an abstract class that handles verified downloading from a given URL.</p>
 <dl class="py class">
 <dt id="doctr.datasets.datasets.VisionDataset">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.datasets.</code><code class="sig-name descname">VisionDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">file_name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_hash</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">extract_archive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">download</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/datasets/tensorflow.html#VisionDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.datasets.VisionDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.datasets.</code><code class="sig-name descname">VisionDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">file_name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_hash</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">extract_archive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">download</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fp16</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/datasets/tensorflow.html#VisionDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.datasets.VisionDataset" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Here are all datasets that are available through DocTR:</p>
@@ -322,13 +324,37 @@ can be a significant save of time.</p>
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt id="doctr.datasets.CharacterGenerator">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CharacterGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/classification/tensorflow.html#CharacterGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CharacterGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements a character image generation dataset</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CharacterGenerator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">CharacterGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab</strong> – vocabulary to take the character from</p></li>
+<li><p><strong>num_samples</strong> – number of samples that will be generated iterating over the dataset</p></li>
+<li><p><strong>cache_samples</strong> – whether generated images should be cached firsthand</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="data-loading">
 <h2>Data Loading<a class="headerlink" href="#data-loading" title="Permalink to this headline">¶</a></h2>
 <p>Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in DocTR.</p>
 <dl class="py class">
 <dt id="doctr.datasets.loader.DataLoader">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.loader.</code><code class="sig-name descname">DataLoader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">drop_last</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">workers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/loader.html#DataLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.loader.DataLoader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.loader.</code><code class="sig-name descname">DataLoader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">drop_last</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">workers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">collate_fn</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/loader.html#DataLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.loader.DataLoader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a dataset wrapper for fast data loading</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">FUNSD</span><span class="p">,</span> <span class="n">DataLoader</span>
@@ -400,7 +426,7 @@ of vocabs.</p>
 </table>
 <dl class="py function">
 <dt id="doctr.datasets.encode_sequences">
-<code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">encode_sequences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequences</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">vocab</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">target_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eos</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">sos</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pad</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/doctr/datasets/utils.html#encode_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.encode_sequences" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">encode_sequences</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequences</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">vocab</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">target_size</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">eos</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">sos</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pad</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dynamic_seq_length</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/doctr/datasets/utils.html#encode_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.encode_sequences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encode character sequences using a given vocab as mapping</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -411,6 +437,7 @@ of vocabs.</p>
 <li><p><strong>eos</strong> – encoding of End Of String</p></li>
 <li><p><strong>sos</strong> – optional encoding of Start Of String</p></li>
 <li><p><strong>pad</strong> – optional encoding for padding. In case of padding, all sequences are followed by 1 EOS then PAD</p></li>
+<li><p><strong>dynamic_seq_length</strong> – if <cite>target_size</cite> is specified, uses it as upper bound and enables dynamic sequence size</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -430,7 +457,7 @@ of vocabs.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="documents.html" class="btn btn-neutral float-right" title="doctr.documents" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="io.html" class="btn btn-neutral float-right" title="doctr.io" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="changelog.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

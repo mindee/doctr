@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.transforms &mdash; doctr 0.3.1a0-git documentation</title>
+  <title>doctr.transforms &mdash; doctr 0.4.0a0-git documentation</title>
   
 
   
@@ -94,6 +94,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
@@ -109,17 +110,17 @@
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#word">Word</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#line">Line</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#artefact">Artefact</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#block">Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#page">Page</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documents.html#document">Document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="io.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="io.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="io.html#document">Document</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io.html#file-reading">File reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
@@ -137,6 +138,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#export-model-output">Export model output</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
@@ -451,6 +453,21 @@ increasing saturation by a factor.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>min_quality</strong> – int between [0, 100]</p></li>
 <li><p><strong>max_quality</strong> – int between [0, 100]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.RandomRotate">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomRotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_angle</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">25.0</span></em>, <em class="sig-param"><span class="n">expand</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomRotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomRotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly rotate a tensor image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_angle</strong> – maximum angle for rotation, in degrees. Angles will be uniformly picked in
+[-max_angle, max_angle]</p></li>
+<li><p><strong>expand</strong> – whether the image should be padded before the rotation</p></li>
 </ul>
 </dd>
 </dl>
