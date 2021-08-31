@@ -461,14 +461,28 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomRotate">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomRotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_angle</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">25.0</span></em>, <em class="sig-param"><span class="n">expand</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomRotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomRotate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Randomly rotate a tensor image</p>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomRotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_angle</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">5.0</span></em>, <em class="sig-param"><span class="n">expand</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomRotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomRotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly rotate a tensor image and its boxes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>max_angle</strong> – maximum angle for rotation, in degrees. Angles will be uniformly picked in
 [-max_angle, max_angle]</p></li>
 <li><p><strong>expand</strong> – whether the image should be padded before the rotation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.RandomCrop">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomCrop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scale</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(0.08, 1.0)</span></em>, <em class="sig-param"><span class="n">ratio</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(0.75, 1.33)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomCrop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomCrop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly crop a tensor image and its boxes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> – tuple of floats, relative (min_area, max_area) of the crop</p></li>
+<li><p><strong>ratio</strong> – tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</p></li>
 </ul>
 </dd>
 </dl>
