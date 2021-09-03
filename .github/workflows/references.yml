@@ -38,7 +38,7 @@ jobs:
           pip install -e .[tf] --upgrade
           pip install -r references/requirements.txt
       - name: Train for a short epoch
-        run: python references/classification/train_tensorflow.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1
+        run: python references/classification/train_tensorflow.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
 
   test-classification-torch:
     runs-on: ${{ matrix.os }}
@@ -71,4 +71,4 @@ jobs:
           pip install -e .[torch] --upgrade
           pip install -r references/requirements.txt
       - name: Train for a short epoch
-        run: python references/classification/train_pytorch.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1
+        run: python references/classification/train_pytorch.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
