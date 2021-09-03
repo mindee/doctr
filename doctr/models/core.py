@@ -69,6 +69,10 @@ class OCRPredictor(NestedObject):
         else:
             crops = [crop for page, (_boxes, _) in zip(pages, boxes) for crop in
                      self.extract_crops_fn(page, _boxes[:, :-1], **crop_kwargs)]  # type: ignore[operator]
+        # Avoid sending zero-sized crops
+        is_kept = [all(s > 0 for s in crop.shape) for crop in crops]
+        crops = [crop for crop, _kept in zip(crops, is_kept) if _kept]
+        boxes = [box for box, _kept in zip(boxes, is_kept) if _kept]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 
