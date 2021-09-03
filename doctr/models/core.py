@@ -77,9 +77,10 @@ class OCRPredictor(NestedObject):
         word_preds = self.reco_predictor(crops, **kwargs)
 
         # Rotate back boxes if necessary
-        boxes, angles = zip(*boxes)
-        if self.doc_builder.rotated_bbox:
-            boxes = [rotate_boxes(boxes_page, angle) for boxes_page, angle in zip(boxes, angles)]
+        if len(boxes) > 0:
+            boxes, angles = zip(*boxes)
+            if self.doc_builder.rotated_bbox:
+                boxes = [rotate_boxes(boxes_page, angle) for boxes_page, angle in zip(boxes, angles)]
         out = self.doc_builder(boxes, word_preds, [page.shape[:2] for page in pages])
         return out
 
