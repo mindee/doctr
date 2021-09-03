@@ -52,6 +52,7 @@ def main(args):
         det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
         e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
 
+    sample_idx = 0
     for dataset in sets:
         for page, target in tqdm(dataset):
             # GT
@@ -99,6 +100,13 @@ def main(args):
             reco_metric.update(gt_labels, reco_words)
             e2e_metric.update(gt_boxes, np.asarray(pred_boxes), gt_labels, pred_labels)
 
+            # Loop break
+            sample_idx += 1
+            if isinstance(args.samples, int) and args.samples == sample_idx:
+                break
+        if isinstance(args.samples, int) and args.samples == sample_idx:
+            break
+
     # Unpack aggregated metrics
     print(f"Model Evaluation (model= {args.detection} + {args.recognition}, "
           f"dataset={'OCRDataset' if args.img_folder else args.dataset})")
@@ -125,6 +133,7 @@ def parse_args():
     parser.add_argument('--rotation', dest='rotation', action='store_true', help='evaluate with rotated bbox')
     parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for recognition')
     parser.add_argument('--mask_shape', type=int, default=None, help='mask shape for mask iou (only for rotation)')
+    parser.add_argument('--samples', type=int, default=None, help='evaluate only on the N first samples')
     args = parser.parse_args()
 
     return args
