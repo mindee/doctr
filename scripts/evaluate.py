@@ -13,7 +13,7 @@ from tqdm import tqdm
 from doctr.utils.metrics import LocalizationConfusion, TextMatch, OCRMetric
 from doctr import datasets
 from doctr.models import ocr_predictor, extract_crops
-from doctr.file_utils import is_tf_available, is_torch_available
+from doctr.file_utils import is_tf_available
 
 # Enable GPU growth if using TF
 if is_tf_available():
@@ -33,7 +33,7 @@ def main(args):
 
     predictor = ocr_predictor(args.detection, args.recognition, pretrained=True, reco_bs=args.batch_size)
 
-    if is_torch_available():
+    if not is_tf_available():
         predictor.det_predictor.pre_processor = predictor.det_predictor.pre_processor.eval()
         predictor.det_predictor.model = predictor.det_predictor.model.eval()
         predictor.reco_predictor.pre_processor = predictor.reco_predictor.pre_processor.eval()
