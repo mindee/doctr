@@ -81,10 +81,10 @@ def main(args):
     st = time.time()
     val_set = CharacterGenerator(
         vocab=vocab,
-        num_samples=20 * len(vocab),
+        num_samples=args.val_samples * len(vocab),
         cache_samples=True,
         sample_transforms=T.Resize((args.input_size, args.input_size)),
-        font_family="FreeMono.ttf",
+        font_family=args.font,
     )
     val_loader = DataLoader(
         val_set,
@@ -123,7 +123,7 @@ def main(args):
     # Load train data generator
     train_set = CharacterGenerator(
         vocab=vocab,
-        num_samples=1000 * len(vocab),
+        num_samples=args.train_samples * len(vocab),
         cache_samples=True,
         sample_transforms=T.Compose([
             T.Resize((args.input_size, args.input_size)),
@@ -134,7 +134,7 @@ def main(args):
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
         ]),
-        font_family="FreeMono.ttf",
+        font_family=args.font,
     )
     train_loader = DataLoader(
         train_set,
@@ -228,6 +228,21 @@ def parse_args():
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
+    parser.add_argument('--font', type=str, default="FreeMono.ttf", help='Font family to be used')
+    parser.add_argument(
+        '--train-samples',
+        dest='train_samples',
+        type=int,
+        default=1000,
+        help='Multiplied by the vocab length gets you the number of training samples that will be used.'
+    )
+    parser.add_argument(
+        '--val-samples',
+        dest='val_samples',
+        type=int,
+        default=20,
+        help='Multiplied by the vocab length gets you the number of validation samples that will be used.'
+    )
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
