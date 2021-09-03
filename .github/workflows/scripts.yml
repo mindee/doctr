@@ -77,7 +77,7 @@ jobs:
           pip install -e .[tf] --upgrade
       - name: Run evaluation script
         run: |
-          python scripts/evaluate.py db_resnet50 crnn_vgg16_bn
+          python scripts/evaluate.py db_resnet50 crnn_vgg16_bn --samples 10
 
   test-collectenv:
     runs-on: ${{ matrix.os }}
