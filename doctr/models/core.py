@@ -10,6 +10,7 @@ from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops, extract_rcrops
+from doctr.file_utils import is_torch_available
 from doctr.io.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes, rotate_image
@@ -51,13 +52,23 @@ class OCRPredictor(NestedObject):
 
         # Localize text elements
         boxes = self.det_predictor(pages, **kwargs)
+        # Check whether crop mode should be switched to channels first
+        crop_kwargs = {}
+        if len(pages) > 0 and not isinstance(pages[0], np.ndarray) and is_torch_available():
+            crop_kwargs['channels_last'] = False
         # Crop images, rotate page if necessary
         if self.doc_builder.rotated_bbox:
-            crops = [crop for page, (_boxes, angle) in zip(pages, boxes) for crop in
-                     self.extract_crops_fn(rotate_image(page, -angle, False), _boxes[:, :-1])]  # type: ignore[operator]
+            crops = [
+                crop for page, (_boxes, angle) in zip(pages, boxes) for crop in
+                self.extract_crops_fn(  # type: ignore[operator]
+                    rotate_image(page, -angle, False),
+                    _boxes[:, :-1],
+                    **crop_kwargs
+                )
+            ]
         else:
             crops = [crop for page, (_boxes, _) in zip(pages, boxes) for crop in
-                     self.extract_crops_fn(page, _boxes[:, :-1])]  # type: ignore[operator]
+                     self.extract_crops_fn(page, _boxes[:, :-1], **crop_kwargs)]  # type: ignore[operator]
         # Identify character sequences
         word_preds = self.reco_predictor(crops, **kwargs)
 

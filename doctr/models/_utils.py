@@ -12,13 +12,14 @@ from statistics import median_low
 __all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
 
 
-def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
+def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
         img: input image
         boxes: bounding boxes of shape (N, 4) where N is the number of boxes, and the relative
             coordinates (xmin, ymin, xmax, ymax)
+        channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
         list of cropped images
@@ -36,16 +37,26 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
         _boxes = _boxes.round().astype(int)
         # Add last index
         _boxes[2:] += 1
-    return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
+    if channels_last:
+        return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
+    else:
+        return [img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
-def extract_rcrops(img: np.ndarray, boxes: np.ndarray, dtype=np.float32) -> List[np.ndarray]:
+def extract_rcrops(
+    img: np.ndarray,
+    boxes: np.ndarray,
+    dtype=np.float32,
+    channels_last: bool = True
+) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:
         img: input image
         boxes: bounding boxes of shape (N, 5) where N is the number of boxes, and the relative
             coordinates (x, y, w, h, alpha)
+        dtype: target data type of bounding boxes
+        channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
         list of cropped images
@@ -80,9 +91,9 @@ def extract_rcrops(img: np.ndarray, boxes: np.ndarray, dtype=np.float32) -> List
         M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
         if clockwise:
-            crop = cv2.warpAffine(img, M, (int(w), int(h)))
+            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
         else:
-            crop = cv2.warpAffine(img, M, (int(h), int(w)))
+            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(h), int(w)))
         crops.append(crop)
 
     return crops
