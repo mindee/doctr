@@ -25,6 +25,10 @@ else:
     import torch
 
 
+def _pct(val):
+    return "N/A" if val is None else f"{val:.2%}"
+
+
 def main(args):
 
     predictor = ocr_predictor(args.detection, args.recognition, pretrained=True, reco_bs=args.batch_size)
@@ -130,12 +134,12 @@ def main(args):
     print(f"Model Evaluation (model= {args.detection} + {args.recognition}, "
           f"dataset={'OCRDataset' if args.img_folder else args.dataset})")
     recall, precision, mean_iou = det_metric.summary()
-    print(f"Text Detection - Recall: {recall:.2%}, Precision: {precision:.2%}, Mean IoU: {mean_iou:.2%}")
+    print(f"Text Detection - Recall: {_pct(recall)}, Precision: {_pct(precision)}, Mean IoU: {_pct(mean_iou)}")
     acc = reco_metric.summary()
-    print(f"Text Recognition - Accuracy: {acc['raw']:.2%} (unicase: {acc['unicase']:.2%})")
+    print(f"Text Recognition - Accuracy: {_pct(acc['raw'])} (unicase: {_pct(acc['unicase'])})")
     recall, precision, mean_iou = e2e_metric.summary()
-    print(f"OCR - Recall: {recall['raw']:.2%} (unicase: {recall['unicase']:.2%}), "
-          f"Precision: {precision['raw']:.2%} (unicase: {precision['unicase']:.2%}), Mean IoU: {mean_iou:.2%}")
+    print(f"OCR - Recall: {_pct(recall['raw'])} (unicase: {_pct(recall['unicase'])}), "
+          f"Precision: {_pct(precision['raw'])} (unicase: {_pct(precision['unicase'])}), Mean IoU: {_pct(mean_iou)}")
 
 
 def parse_args():
