@@ -37,7 +37,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
           pip install -r references/requirements.txt
-          apt-get update && apt-get install fonts-freefont-ttf -y
+          sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - name: Train for a short epoch
         run: python references/classification/train_tensorflow.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
 
@@ -72,6 +72,6 @@ jobs:
           pip install -e .[torch] --upgrade
           pip install -r references/requirements.txt
           pip install contiguous-params
-          apt-get update && apt-get install fonts-freefont-ttf -y
+          sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - name: Train for a short epoch
         run: python references/classification/train_pytorch.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
