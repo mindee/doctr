@@ -1,4 +1,4 @@
-<p style="margin-bottom:300%;" align="center">
+<p style="margin-bottom:3cm;" align="center">
   <img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="40%">
 </p>
 
