@@ -78,7 +78,7 @@ html_theme_options = {
     'logo_only': False,
 }
 
-# html_logo = '_static/images/logo.png'
+html_logo = '_static/images/Logo_doctr.gif'
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
