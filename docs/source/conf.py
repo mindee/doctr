@@ -78,7 +78,7 @@ html_theme_options = {
     'logo_only': False,
 }
 
-html_logo = '_static/images/Logo_doctr.gif'
+html_logo = 'https://github.com/mindee/doctr/releases/download/v0.3.1/Logo-docTR-white.png'
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
