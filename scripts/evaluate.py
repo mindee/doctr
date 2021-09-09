@@ -70,53 +70,56 @@ def main(args):
     sample_idx = 0
     for dataset in sets:
         for page, target in tqdm(dataset):
-            # GT
-            gt_boxes = target['boxes']
-            gt_labels = target['labels']
+            try:
+                # GT
+                gt_boxes = target['boxes']
+                gt_labels = target['labels']
 
-            # Forward
-            if is_tf_available():
-                out = predictor(page[None, ...], training=False)
-                crops = extract_crops(page, gt_boxes)
-                reco_out = predictor.reco_predictor(crops, training=False)
-            else:
-                with torch.no_grad():
-                    out = predictor(page[None, ...])
-                    # We directly crop on PyTorch tensors, which are in channels_first
-                    crops = extract_crops(page, gt_boxes, channels_last=False)
-                    reco_out = predictor.reco_predictor(crops)
+                # Forward
+                if is_tf_available():
+                    out = predictor(page[None, ...], training=False)
+                    crops = extract_crops(page, gt_boxes)
+                    reco_out = predictor.reco_predictor(crops, training=False)
+                else:
+                    with torch.no_grad():
+                        out = predictor(page[None, ...])
+                        # We directly crop on PyTorch tensors, which are in channels_first
+                        crops = extract_crops(page, gt_boxes, channels_last=False)
+                        reco_out = predictor.reco_predictor(crops)
 
-            if len(reco_out):
-                reco_words, _ = zip(*reco_out)
-            else:
-                reco_words = []
+                if len(reco_out):
+                    reco_words, _ = zip(*reco_out)
+                else:
+                    reco_words = []
 
-            # Unpack preds
-            pred_boxes = []
-            pred_labels = []
-            for page in out.pages:
-                height, width = page.dimensions
-                for block in page.blocks:
-                    for line in block.lines:
-                        for word in line.words:
-                            if not args.rotation:
-                                (a, b), (c, d) = word.geometry
-                            else:
-                                x, y, w, h, alpha = word.geometry
-                            if gt_boxes.dtype == int:
+                # Unpack preds
+                pred_boxes = []
+                pred_labels = []
+                for page in out.pages:
+                    height, width = page.dimensions
+                    for block in page.blocks:
+                        for line in block.lines:
+                            for word in line.words:
                                 if not args.rotation:
-                                    pred_boxes.append([int(a * width), int(b * height),
-                                                       int(c * width), int(d * height)])
+                                    (a, b), (c, d) = word.geometry
                                 else:
-                                    pred_boxes.append(
-                                        [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
-                                    )
-                            else:
-                                if not args.rotation:
-                                    pred_boxes.append([a, b, c, d])
+                                    x, y, w, h, alpha = word.geometry
+                                if gt_boxes.dtype == int:
+                                    if not args.rotation:
+                                        pred_boxes.append([int(a * width), int(b * height),
+                                                        int(c * width), int(d * height)])
+                                    else:
+                                        pred_boxes.append(
+                                            [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
+                                        )
                                 else:
-                                    pred_boxes.append([x, y, w, h, alpha])
-                            pred_labels.append(word.value)
+                                    if not args.rotation:
+                                        pred_boxes.append([a, b, c, d])
+                                    else:
+                                        pred_boxes.append([x, y, w, h, alpha])
+                                pred_labels.append(word.value)
+            except:
+                continue
 
             # Update the metric
             det_metric.update(gt_boxes, np.asarray(pred_boxes))
