@@ -5,8 +5,7 @@
 
 from typing import Tuple, List, Any
 import numpy as np
-from numpy.core.numeric import full
-from numpy.lib import index_tricks
+from Levenshtein import distance
 
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
@@ -100,12 +99,16 @@ class RecognitionPredictor(NestedObject):
             for crop in crops:
                 h, w = crop.shape[:2]
                 aspect_ratio = w / h
-                if aspect_ratio > 8:
-                    new_width = int(0.6 * w)
-                    splitted = [crop[:, :new_width, :], crop[:, -new_width:, :]]
-                    # Add the 2 new boxes in the splitted_crops and keep track of indexes
-                    splitted_idxs.append((len(splitted_crops), len(splitted_crops)+1))
-                    splitted_crops.extend(splitted)
+                if aspect_ratio > 6:
+                    # Determine the number of crops, reference aspect ratio = 4 = 128/32
+                    n_crops = aspect_ratio // 4
+                    # Find the new widths, additional 20% to overlap crops
+                    new_width = 1.2 * w / n_crops
+                    # Find the centers 
+                    new_centers = [int(w / n_crops)(1 / 2 + i) for i in range(n_crops)]
+                    # Crop
+                    splitted_crops.extend([crop[:, new_centers[i] - new_width / 2:new_centers[i] + new_width / 2, :] for i in range(n_crops)])
+                    splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)])
                     
                 else:
                     splitted_crops.append(crop)
@@ -124,29 +127,45 @@ class RecognitionPredictor(NestedObject):
 
             # Find splitted crops and merged back the predictions
             if len(splitted_idxs):
-
-                # Merge predictions
-                def overlap(a, b):
-                    return max(i for i in range(len(b)+1) if a.endswith(b[:i]))
-
                 merged_out = []
-                merged = False
-                for i, charseq in enumerate(out):
-                    if (i, i+1) in splitted_idxs:
-                        a, b = out[i][0], out[i+1][0]
-                        print(a)
-                        print(b)
-                        min_conf = min(out[i][1], out[i+1][1])
-                        full_seq = a + b[overlap(a, b):]
-                        merged_out.append((full_seq, min_conf))
-                        print(full_seq)
-                        print()
-                        merged = True
-                    else:
-                        if merged == True:
-                            merged = False
-                            continue
-                        merged_out.append(out[i])
+                out_idx = 0
+                for splitted_list in splitted_idxs:
+                    while out_idx < splitted_list[0]:
+                        merged_out.append(out[out_idx])
+                        out_idx += 1
+                    merged = compute_overlap_multi([out[i] for i in splitted_list])
+                    merged_out.append(merged)
+                    out_idx += len(splitted_list) + 1
+
                 return merged_out
 
         return out
+
+
+def compute_overlap(a: str, b: str) -> str:
+    seq_len = min(len(a), len(b))
+    min_score, index = 1, 0  # No overlap, just concatenate
+    for i in range(1, seq_len - 1):
+        score = distance(a[:-i], b[:i]) / i  # mean levenstein dist
+        if score < min_score:
+            min_score, index = score, i
+    # Merge with correct overlap
+    if index == 0:
+        return a + b
+    return a[:-1] + b[:i-1]
+
+
+def compute_overlap_multi(string_list: List[str]) -> str:
+    """Wrapper for the resursive version of compute_overlap
+    Compute the merged string from a list of strings:
+
+    For instance, compute_overlap_multi(['abc', 'bcdef', 'difghi', 'aijkl']) returns 'abcdefghijkl'
+    """
+    def compute_overlap_rec(a: str, string_list: List[str]) -> str:
+        # Recursive version of compute_overlap
+        if len(string_list) == 1:
+            return compute_overlap(a, string_list[0])
+        else:
+            compute_overlap_rec(compute_overlap(a, string_list[0]), string_list[1:])
+    
+    return compute_overlap_rec("", string_list)
