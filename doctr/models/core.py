@@ -10,7 +10,7 @@ from typing import List, Any, Tuple, Dict
 from .detection import DetectionPredictor
 from .recognition import RecognitionPredictor
 from ._utils import extract_crops, extract_rcrops
-from doctr.file_utils import is_torch_available
+from doctr.file_utils import is_tf_available
 from doctr.io.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes, rotate_image
@@ -54,7 +54,7 @@ class OCRPredictor(NestedObject):
         boxes = self.det_predictor(pages, **kwargs)
         # Check whether crop mode should be switched to channels first
         crop_kwargs = {}
-        if len(pages) > 0 and not isinstance(pages[0], np.ndarray) and is_torch_available():
+        if len(pages) > 0 and not isinstance(pages[0], np.ndarray) and not is_tf_available():
             crop_kwargs['channels_last'] = False
         # Crop images, rotate page if necessary
         if self.doc_builder.rotated_bbox:
