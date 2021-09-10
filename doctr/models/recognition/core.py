@@ -6,6 +6,7 @@
 from typing import Tuple, List, Any
 import numpy as np
 from Levenshtein import distance
+from numpy.core.numeric import Inf
 
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
@@ -101,15 +102,13 @@ class RecognitionPredictor(NestedObject):
                 aspect_ratio = w / h
                 if aspect_ratio > 6:
                     # Determine the number of crops, reference aspect ratio = 4 = 128/32
-                    n_crops = aspect_ratio // 4
+                    n_crops = int(aspect_ratio // 4) + 1
                     # Find the new widths, additional 20% to overlap crops
-                    new_width = 1.2 * w / n_crops
-                    # Find the centers 
-                    new_centers = [int(w / n_crops)(1 / 2 + i) for i in range(n_crops)]
+                    new_width = int(1.2 * w / n_crops)
+                    new_centers = [int((w / n_crops)*(1 / 2 + i)) for i in range(n_crops)]
                     # Crop
-                    splitted_crops.extend([crop[:, new_centers[i] - new_width / 2:new_centers[i] + new_width / 2, :] for i in range(n_crops)])
-                    splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)])
-                    
+                    splitted_crops.extend([crop[:, max(0, int(new_centers[i] - new_width / 2)):min(w-1, int(new_centers[i] + new_width / 2)), :] for i in range(n_crops)])
+                    splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)]) 
                 else:
                     splitted_crops.append(crop)
 
@@ -133,8 +132,10 @@ class RecognitionPredictor(NestedObject):
                     while out_idx < splitted_list[0]:
                         merged_out.append(out[out_idx])
                         out_idx += 1
-                    merged = compute_overlap_multi([out[i] for i in splitted_list])
-                    merged_out.append(merged)
+                    merged = compute_overlap_multi([out[i][0] for i in splitted_list])
+                    #print(merged)
+                    merged_score = min([out[i][1] for i in splitted_list])
+                    merged_out.append((merged, merged_score))
                     out_idx += len(splitted_list) + 1
 
                 return merged_out
@@ -144,15 +145,20 @@ class RecognitionPredictor(NestedObject):
 
 def compute_overlap(a: str, b: str) -> str:
     seq_len = min(len(a), len(b))
+    if seq_len == 0:  # One sequence is empty, return the other
+        if len(a) == 0:
+            return b
+        else:
+            return a
     min_score, index = 1, 0  # No overlap, just concatenate
-    for i in range(1, seq_len - 1):
-        score = distance(a[:-i], b[:i]) / i  # mean levenstein dist
+    for i in range(1, seq_len):
+        score = distance(a[-i:], b[:i]) / i  # mean levenstein dists
         if score < min_score:
             min_score, index = score, i
     # Merge with correct overlap
     if index == 0:
         return a + b
-    return a[:-1] + b[:i-1]
+    return a[:-1] + b[index-1:]
 
 
 def compute_overlap_multi(string_list: List[str]) -> str:
@@ -165,7 +171,6 @@ def compute_overlap_multi(string_list: List[str]) -> str:
         # Recursive version of compute_overlap
         if len(string_list) == 1:
             return compute_overlap(a, string_list[0])
-        else:
-            compute_overlap_rec(compute_overlap(a, string_list[0]), string_list[1:])
-    
+        return compute_overlap_rec(compute_overlap(a, string_list[0]), string_list[1:])
+
     return compute_overlap_rec("", string_list)
