@@ -270,11 +270,46 @@ Utility functions to make the most of document analysis models.
 Model compression
 ^^^^^^^^^^^^^^^^^
 
-.. autofunction:: convert_to_tflite
+This section is meant to help you perform inference with compressed versions of your model.
 
-.. autofunction:: convert_to_fp16
 
-.. autofunction:: quantize_model
+TensorFlow Lite
+"""""""""""""""
+
+TensorFlow provides utilities packaged as TensorFlow Lite to take resource constraints into account. You can easily convert any Keras model into a serialized TFLite version as follows:
+
+    >>> import tensorflow as tf
+    >>> from tensorflow.keras import Sequential
+    >>> from doctr.models import conv_sequence
+    >>> model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))
+    >>> converter = tf.lite.TFLiteConverter.from_keras_model(tf_model)
+    >>> serialized_model = converter.convert()
+
+Half-precision
+""""""""""""""
+
+If you want to convert it to half-precision using your TFLite converter
+
+    >>> converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    >>> converter.target_spec.supported_types = [tf.float16]
+    >>> serialized_model = converter.convert()
+
+
+Post-training quantization
+""""""""""""""""""""""""""
+
+Finally if you wish to quantize the model with your TFLite converter
+
+    >>> converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    >>> # Float fallback for operators that do not have an integer implementation
+    >>> def representative_dataset():
+    >>>     for _ in range(100): yield [np.random.rand(1, *input_shape).astype(np.float32)]
+    >>> converter.representative_dataset = representative_dataset
+    >>> converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    >>> converter.inference_input_type = tf.int8
+    >>> converter.inference_output_type = tf.int8
+    >>> serialized_model = converter.convert()
+
 
 Using SavedModel
 ^^^^^^^^^^^^^^^^
