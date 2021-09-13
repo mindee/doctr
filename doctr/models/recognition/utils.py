@@ -12,7 +12,7 @@ __all__ = ['merge_sequences', 'merge_multi_sequences']
 
 def merge_sequences(a: str, b: str, dil_factor: float) -> str:
     """Compute the (best) overlap between 2 character sequences and merge them.
-    
+
     Args:
         a: first char seq, suffix should be close to b's prefix.
         b: second char seq, prefix should be close to a's suffix.
@@ -61,7 +61,7 @@ def merge_sequences(a: str, b: str, dil_factor: float) -> str:
     # Merge with correct overlap
     if index == 0:
         return a + b
-    return a[:-1] + b[index-1:]
+    return a[:-1] + b[index - 1:]
 
 
 def merge_multi_sequences(seq_list: List[str], dil_factor: float) -> str:
@@ -75,7 +75,7 @@ def merge_multi_sequences(seq_list: List[str], dil_factor: float) -> str:
 
     Returns:
         A merged character sequence
-    
+
     Example::
         >>> from doctr.model.recognition.utils import merge_multi_sequences
         >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)

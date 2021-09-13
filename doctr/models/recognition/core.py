@@ -105,16 +105,15 @@ class RecognitionPredictor(NestedObject):
                     # Determine the number of crops, reference aspect ratio = 4 = 128 / 32
                     n_crops = int(aspect_ratio // 4)
                     # Find the new widths, additional dilation factor to overlap crops
-                    new_width = int(self.dil_factor * w / n_crops)
-                    new_centers = [int((w / n_crops)*(1 / 2 + i)) for i in range(n_crops)]
+                    width = int(self.dil_factor * w / n_crops)
+                    centers = [int((w / n_crops) * (1 / 2 + i)) for i in range(n_crops)]
                     # Crop and keep track of indexes
-                    splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)]) 
-                    splitted_crops.extend(
-                        [
-                            crop[:, max(0, int(new_centers[i] - new_width / 2)):min(w-1, int(new_centers[i] + new_width / 2)), :]
-                            for i in range(n_crops)
+                    splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)])
+                    splitted_crops.extend([
+                        crop[
+                            :, max(0, int(centers[i] - width / 2)):min(w - 1, int(centers[i] + width / 2)), :
                         ]
-                    )
+                        for i in range(n_crops)])
                 else:  # Append whole text box
                     splitted_crops.append(crop)
 
