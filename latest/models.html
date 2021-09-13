@@ -146,7 +146,12 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#model-export">Model export</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-compression">Model compression</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#half-precision">Half-precision</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#using-savedmodel">Using SavedModel</a></li>
 </ul>
 </li>
@@ -905,87 +910,43 @@ To get a better understanding of our document model, check our <a class="referen
 <p>Utility functions to make the most of document analysis models.</p>
 <section id="model-compression">
 <h3>Model compression<a class="headerlink" href="#model-compression" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt id="doctr.models.export.convert_to_tflite">
-<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_tflite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a model to TFLite format</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">convert_to_tflite</span><span class="p">,</span> <span class="n">conv_sequence</span>
+<p>This section is meant to help you perform inference with compressed versions of your model.</p>
+<section id="tensorflow-lite">
+<h4>TensorFlow Lite<a class="headerlink" href="#tensorflow-lite" title="Permalink to this headline">¶</a></h4>
+<p>TensorFlow provides utilities packaged as TensorFlow Lite to take resource constraints into account. You can easily convert any Keras model into a serialized TFLite version as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">conv_sequence</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">convert_to_tflite</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tf_model</strong> – a keras model</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the model</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bytes</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.export.convert_to_fp16">
-<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_fp16</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_fp16"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_fp16" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a model to half precision</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">convert_to_fp16</span><span class="p">,</span> <span class="n">conv_sequence</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">convert_to_fp16</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</section>
+<section id="half-precision">
+<h4>Half-precision<a class="headerlink" href="#half-precision" title="Permalink to this headline">¶</a></h4>
+<p>If you want to convert it to half-precision using your TFLite converter</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">target_spec</span><span class="o">.</span><span class="n">supported_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>tf_model</strong> – a keras model</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the serialized FP16 model</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bytes</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.export.quantize_model">
-<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">quantize_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em>, <em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#quantize_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.quantize_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Quantize a Tensorflow model</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">quantize_model</span><span class="p">,</span> <span class="n">conv_sequence</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">quantize_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+</section>
+<section id="post-training-quantization">
+<h4>Post-training quantization<a class="headerlink" href="#post-training-quantization" title="Permalink to this headline">¶</a></h4>
+<p>Finally if you wish to quantize the model with your TFLite converter</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Float fallback for operators that do not have an integer implementation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">representative_dataset</span><span class="p">():</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span> <span class="k">yield</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">representative_dataset</span> <span class="o">=</span> <span class="n">representative_dataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">target_spec</span><span class="o">.</span><span class="n">supported_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">OpsSet</span><span class="o">.</span><span class="n">TFLITE_BUILTINS_INT8</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">inference_input_type</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">int8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">inference_output_type</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">int8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span>
 </pre></div>
 </div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>tf_model</strong> – a keras model</p></li>
-<li><p><strong>input_shape</strong> – shape of the expected input tensor (excluding batch dimension) with channel last order</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the serialized quantized model</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bytes</p>
-</dd>
-</dl>
-</dd></dl>
-
+</section>
 </section>
 <section id="using-savedmodel">
 <h3>Using SavedModel<a class="headerlink" href="#using-savedmodel" title="Permalink to this headline">¶</a></h3>
