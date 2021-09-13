@@ -21,14 +21,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
     'mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
     }
 }
