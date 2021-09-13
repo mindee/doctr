@@ -110,7 +110,7 @@ class RecognitionPredictor(NestedObject):
                     splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)])
                     splitted_crops.extend([
                         crop[
-                            :, max(0, int(centers[i] - width / 2)):min(w - 1, int(centers[i] + width / 2)), :
+                            :, max(0, round(centers[i] - width / 2)):min(w - 1, round(centers[i] + width / 2)), :
                         ]
                         for i in range(n_crops)])
                 else:  # Append whole text box
