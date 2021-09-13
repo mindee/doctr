@@ -16,5 +16,5 @@ VOCABS: Dict[str, str] = {
     'currency': '£€¥¢฿',
     'latin': string.digits + string.ascii_letters + string.punctuation + '°',
     'french': string.digits + string.ascii_letters + string.punctuation + '°' + 'àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ' + '£€¥¢฿',
-    'portuguese': string.digits + string.ascii_letters + string.punctuation + '°' + 'ª' + 'àâáãéêíïóôõúüçÀÂÃÁÉÊÍÏÔÓÕÚÜÇ' + '£€¥¢฿',
+    'portuguese': string.digits + string.ascii_letters + string.punctuation + '°' + 'àâáãéêíïóôõúüçÀÂÃÁÉÊÍÏÔÓÕÚÜÇ' + '£€¥¢฿',
 }
