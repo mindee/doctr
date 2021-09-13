@@ -100,15 +100,15 @@ class RecognitionPredictor(NestedObject):
             for crop in crops:
                 h, w = crop.shape[:2]
                 aspect_ratio = w / h
-                if aspect_ratio > 6:
+                if aspect_ratio > 8:
                     # Determine the number of crops, reference aspect ratio = 4 = 128/32
-                    n_crops = int(aspect_ratio // 4) + 1
+                    n_crops = int(aspect_ratio // 4)
                     # Find the new widths, additional 20% to overlap crops
-                    new_width = int(1.2 * w / n_crops)
+                    new_width = int(1.4 * w / n_crops)
                     new_centers = [int((w / n_crops)*(1 / 2 + i)) for i in range(n_crops)]
                     # Crop
-                    splitted_crops.extend([crop[:, max(0, int(new_centers[i] - new_width / 2)):min(w-1, int(new_centers[i] + new_width / 2)), :] for i in range(n_crops)])
                     splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)]) 
+                    splitted_crops.extend([crop[:, max(0, int(new_centers[i] - new_width / 2)):min(w-1, int(new_centers[i] + new_width / 2)), :] for i in range(n_crops)])
                 else:
                     splitted_crops.append(crop)
 
@@ -132,18 +132,33 @@ class RecognitionPredictor(NestedObject):
                     while out_idx < splitted_list[0]:
                         merged_out.append(out[out_idx])
                         out_idx += 1
+                    print([out[i][0] for i in splitted_list])
                     merged = compute_overlap_multi([out[i][0] for i in splitted_list])
-                    #print(merged)
+                    print(merged)
+                    print()
                     merged_score = min([out[i][1] for i in splitted_list])
                     merged_out.append((merged, merged_score))
-                    out_idx += len(splitted_list) + 1
-
+                    out_idx += len(splitted_list)
+                # Append last outputs (after the last splitted box)
+                while out_idx < len(out):
+                    merged_out.append(out[out_idx])
+                    out_idx += 1
                 return merged_out
 
         return out
 
 
-def compute_overlap(a: str, b: str) -> str:
+def compute_overlap(a: str, b: str, dil_factor: float = 1.4) -> str:
+    """Compute the (best) overlap between 2 character sequences and merge them.
+    
+    Args:
+        a: first char seq, suffix should be close to b's prefix.
+        b: second char seq, prefix should be close to a's suffix.
+        dil_factor: dilation factor of the boxes to overlap, should be > 1
+
+    Returns:
+        A merged character sequence.
+    """
     seq_len = min(len(a), len(b))
     if seq_len == 0:  # One sequence is empty, return the other
         if len(a) == 0:
@@ -151,10 +166,25 @@ def compute_overlap(a: str, b: str) -> str:
         else:
             return a
     min_score, index = 1, 0  # No overlap, just concatenate
-    for i in range(1, seq_len):
-        score = distance(a[-i:], b[:i]) / i  # mean levenstein dists
-        if score < min_score:
-            min_score, index = score, i
+
+    scores = [distance(a[-i:], b[:i]) / i for i in range(1, seq_len)]
+
+    # Edge case for split in the middle of repetitions: if it starts with 2 or more 0
+    if (scores[0], scores[1]) == (0, 0):
+        # Compute the n_overlap (number of commmon chars)
+        n_overlap = round(len(b) * (dil_factor - 1) / dil_factor)
+        # Find the number of consecutive zeros
+        n_zeros = 0
+        for i, score in enumerate(scores):
+            if score == 0:
+                n_zeros += 1  # Impossible to have a zeros after a non-zeros in that case
+        min_score, index = 0, min(n_zeros, n_overlap)
+
+    else:  # Common case: choose the min score index
+        for i, score in enumerate(scores):
+            if score < min_score:
+                min_score, index = score, i + 1  # Add one because first index is an overlap of 1 char
+
     # Merge with correct overlap
     if index == 0:
         return a + b
