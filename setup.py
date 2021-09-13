@@ -56,7 +56,8 @@ _deps = [
     "torchvision>=0.9.0",
     "Pillow>=8.0.0,<8.3.0",  # cf. https://github.com/python-pillow/Pillow/issues/5571
     "tqdm>=4.30.0",
-    "tensorflow-addons>=0.13.0"
+    "tensorflow-addons>=0.13.0",
+    "python-Levenshtein>=0.12.2",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
