@@ -1,5 +1,5 @@
 import pytest
-from doctr.model.recognition.utils import merge_sequences, merge_multi_sequences
+from doctr.models.recognition.utils import merge_sequences, merge_multi_sequences
 
 
 @pytest.mark.parametrize(
@@ -8,9 +8,8 @@ from doctr.model.recognition.utils import merge_sequences, merge_multi_sequences
         ['abc', 'def', 'abcdef'],
         ['abcd', 'def', 'abcdef'],
         ['abcde', 'def', 'abcdef'],
-        ['abcee', 'def', 'abcdef'],
         ['abcdef', 'def', 'abcdef'],
-        ['abccc', 'ccccc', 'abcccc'],
+        ['abcccc', 'cccccc', 'abcccccccc'],
     ],
 )
 def test_merge_sequences(a, b, merged):

@@ -39,7 +39,7 @@ def merge_sequences(a: str, b: str, dil_factor: float) -> str:
     # Initialize merging index and corresponding score (mean Levenstein)
     min_score, index = 1, 0  # No overlap, just concatenate
 
-    scores = [distance(a[-i:], b[:i]) / i for i in range(1, seq_len)]
+    scores = [distance(a[-i:], b[:i]) / i for i in range(1, seq_len + 1)]
 
     # Edge case (split in the middle of char repetitions): if it starts with 2 or more 0
     if (scores[0], scores[1]) == (0, 0):
