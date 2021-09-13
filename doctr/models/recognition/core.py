@@ -5,7 +5,6 @@
 
 from typing import Tuple, List, Any
 import numpy as np
-from numpy.core.numeric import Inf
 
 from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
@@ -96,8 +95,8 @@ class RecognitionPredictor(NestedObject):
             if any(crop.ndim != 3 for crop in crops):
                 raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
 
-            splitted_crops = []
-            splitted_idxs = []
+            splitted_crops: List[np.ndarray] = []
+            splitted_idxs: List[List[int]] = []
             for crop in crops:
                 h, w = crop.shape[:2]
                 aspect_ratio = w / h
