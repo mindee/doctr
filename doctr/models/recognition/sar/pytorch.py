@@ -23,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': vgg16_bn, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
     'sar_resnet31': {
@@ -31,7 +31,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': resnet31, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
 }
