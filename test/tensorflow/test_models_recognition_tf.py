@@ -10,10 +10,8 @@ from doctr.io import DocumentFile
     "arch_name, input_shape",
     [
         ["crnn_vgg16_bn", (32, 128, 3)],
-        ["crnn_resnet31", (32, 128, 3)],
         ["crnn_mobilenet_v3_small", (32, 128, 3)],
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
-        ["sar_vgg16_bn", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
     ],
@@ -87,10 +85,8 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     "arch_name",
     [
         "crnn_vgg16_bn",
-        "crnn_resnet31",
         "crnn_mobilenet_v3_small",
         "crnn_mobilenet_v3_large",
-        "sar_vgg16_bn",
         "sar_resnet31",
         "master"
     ],
