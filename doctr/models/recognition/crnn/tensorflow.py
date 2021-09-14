@@ -23,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'backbone': vgg16_bn, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/crnn_vgg16_bn-76b7f2c6.zip',
     },
     'crnn_resnet31': {
@@ -40,7 +40,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'backbone': mobilenet_v3_small, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
     'crnn_mobilenet_v3_large': {
@@ -48,7 +48,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'backbone': mobilenet_v3_large, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
 }
