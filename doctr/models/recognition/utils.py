@@ -4,20 +4,20 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List
-from Levenshtein import distance
+import Levenshtein as lev
 
 
-__all__ = ['merge_sequences', 'merge_multi_sequences']
+__all__ = ['merge_strings', 'merge_multi_strings']
 
 
-def merge_sequences(a: str, b: str, dil_factor: float) -> str:
-    """Compute the (best) overlap between 2 character sequences and merge them.
+def merge_strings(a: str, b: str, dil_factor: float) -> str:
+    """Merges 2 character sequences in the best way to maximize the alignment of their overlapping characters.
 
     Args:
-        a: first char seq, suffix should be close to b's prefix.
-        b: second char seq, prefix should be close to a's suffix.
+        a: first char seq, suffix should be similar to b's prefix.
+        b: second char seq, prefix should be similar to a's suffix.
         dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
-        only used when the mother sequence is splitted on a character repetition
+            only used when the mother sequence is splitted on a character repetition
 
     Returns:
         A merged character sequence.
@@ -36,7 +36,7 @@ def merge_sequences(a: str, b: str, dil_factor: float) -> str:
     # Initialize merging index and corresponding score (mean Levenstein)
     min_score, index = 1, 0  # No overlap, just concatenate
 
-    scores = [distance(a[-i:], b[:i]) / i for i in range(1, seq_len + 1)]
+    scores = [lev.distance(a[-i:], b[:i]) / i for i in range(1, seq_len + 1)]
 
     # Edge case (split in the middle of char repetitions): if it starts with 2 or more 0
     if len(scores) > 1 and (scores[0], scores[1]) == (0, 0):
@@ -59,11 +59,10 @@ def merge_sequences(a: str, b: str, dil_factor: float) -> str:
     return a[:-1] + b[index - 1:]
 
 
-def merge_multi_sequences(seq_list: List[str], dil_factor: float) -> str:
-    """Wrapper for the resursive version of merge_sequences
-    Compute the merged string from a list of strings:
+def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
+    """Recursively merges consecutive string sequences with overlapping characters.
 
-    inputs:
+    Args:
         seq_list: list of sequences to merge. Sequences need to be ordered from left to right.
         dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
         only used when the mother sequence is splitted on a character repetition
@@ -76,10 +75,10 @@ def merge_multi_sequences(seq_list: List[str], dil_factor: float) -> str:
         >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)
         'abcdefghijkl'
     """
-    def merge_sequences_rec(a: str, seq_list: List[str], dil_factor: float) -> str:
+    def _recursive_merge(a: str, seq_list: List[str], dil_factor: float) -> str:
         # Recursive version of compute_overlap
         if len(seq_list) == 1:
-            return merge_sequences(a, seq_list[0], dil_factor)
-        return merge_sequences_rec(merge_sequences(a, seq_list[0], dil_factor), seq_list[1:], dil_factor)
+            return merge_strings(a, seq_list[0], dil_factor)
+        return _recursive_merge(merge_strings(a, seq_list[0], dil_factor), seq_list[1:], dil_factor)
 
-    return merge_sequences_rec("", seq_list, dil_factor)
+    return _recursive_merge("", seq_list, dil_factor)
