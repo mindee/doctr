@@ -121,7 +121,6 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
 .. autofunction:: doctr.models.recognition.crnn_mobilenet_v3_large
-.. autofunction:: doctr.models.recognition.sar_vgg16_bn
 .. autofunction:: doctr.models.recognition.sar_resnet31
 .. autofunction:: doctr.models.recognition.master
 
@@ -145,8 +144,6 @@ Predictors that localize and identify text elements in images
 | db_resnet50 + crnn_vgg16_bn | 71.25      | 76.02         | 0.85    | 83.99      |   81.42       | 1.6     |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
 | db_resnet50 + master        | 71.26      | 76.03         |         | 84.61      |   82.02       |         |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| db_resnet50 + sar_vgg16_bn  | N/A        | N/A           | 0.49    | N/A        | N/A           | 1.0     |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+
 | db_resnet50 + sar_resnet31  | 71.48      | 76.26         | 0.27    | 84.66      | **82.07**     | 0.83    |
 +-----------------------------+------------+---------------+---------+------------+---------------+---------+

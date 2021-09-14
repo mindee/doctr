@@ -409,8 +409,8 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <section id="text-recognition">
 <h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this headline">¶</a></h2>
 <p>Identifying strings in images</p>
-<table class="colwidths-given docutils align-default" id="id4">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<table class="colwidths-given docutils align-default" id="id3">
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 24%" />
 <col style="width: 24%" />
@@ -513,31 +513,6 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">crnn_mobilenet_v3_large</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crnn_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="doctr.models.recognition.sar_vgg16_bn">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.tensorflow.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar/tensorflow.html#sar_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">¶</a></dt>
-<dd><p>SAR with a VGG16 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
-Baseline for Irregular Text Recognition”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">sar_vgg16_bn</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">sar_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -675,15 +650,7 @@ Example:</p>
 <td><p>82.02</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
-<td><p>N/A</p></td>
-<td><p>N/A</p></td>
-<td><p>0.49</p></td>
-<td><p>N/A</p></td>
-<td><p>N/A</p></td>
-<td><p>1.0</p></td>
-</tr>
-<tr class="row-even"><td><p>db_resnet50 + sar_resnet31</p></td>
+<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
 <td><p>71.48</p></td>
 <td><p>76.26</p></td>
 <td><p>0.27</p></td>
@@ -691,7 +658,7 @@ Example:</p>
 <td><p><strong>82.07</strong></p></td>
 <td><p>0.83</p></td>
 </tr>
-<tr class="row-odd"><td><p>Gvision text detection</p></td>
+<tr class="row-even"><td><p>Gvision text detection</p></td>
 <td><p>59.50</p></td>
 <td><p>62.50</p></td>
 <td></td>
@@ -699,7 +666,7 @@ Example:</p>
 <td><p>70.00</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
 <td><p>64.00</p></td>
 <td><p>53.30</p></td>
 <td></td>
@@ -707,7 +674,7 @@ Example:</p>
 <td><p>61.10</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>AWS textract</p></td>
+<tr class="row-even"><td><p>AWS textract</p></td>
 <td><p><strong>78.10</strong></p></td>
 <td><p><strong>83.00</strong></p></td>
 <td></td>
