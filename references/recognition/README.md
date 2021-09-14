@@ -33,22 +33,16 @@ python references/recognition/train_pytorch.py path/to/your/dataset crnn_vgg16_b
 
 ## Data format
 
-You need to provide a --data_path argument to start training. 
-The data_path must lead to a 4-elements folder:
+You need to provide both `train_path` and `val_path` arguments to start training. 
+Each of these paths must lead to a 2-elements folder:
 
 ```shell
-├── train
+├── images
     ├── img_1.jpg
     ├── img_2.jpg
     ├── img_3.jpg
     └── ...
-├── train_labels.json
-├── val                    
-    ├── img_a.jpg
-    ├── img_b.jpg
-    ├── img_c.jpg
-    └── ...
-├── val_labels.json
+├── labels.json
 ```
 
 The JSON files must contain word-labels for each picture as a string. 
@@ -70,5 +64,5 @@ labels = {
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
 ```python
-python references/recognition/train.py --help
+python references/recognition/train_pytorch.py --help
 ```
