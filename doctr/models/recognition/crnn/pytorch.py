@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': vgg16_bn, 'rnn_units': 128, 'lstm_features': 512,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
     'crnn_resnet31': {
