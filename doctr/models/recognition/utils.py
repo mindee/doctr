@@ -65,7 +65,7 @@ def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
     Args:
         seq_list: list of sequences to merge. Sequences need to be ordered from left to right.
         dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
-        only used when the mother sequence is splitted on a character repetition
+            only used when the mother sequence is splitted on a character repetition
 
     Returns:
         A merged character sequence

@@ -81,6 +81,7 @@ install_requires = [
     deps["unidecode"],
     deps["Pillow"],
     deps["tqdm"],
+    deps["python-Levenshtein"],
 ]
 
 extras = {}
