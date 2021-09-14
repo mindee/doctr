@@ -10,6 +10,7 @@ from ..preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 from doctr.datasets import encode_sequences
 from .utils import merge_multi_strings
+from ...file_utils import is_tf_available
 
 
 __all__ = ['RecognitionPostProcessor', 'RecognitionModel', 'RecognitionPredictor']
