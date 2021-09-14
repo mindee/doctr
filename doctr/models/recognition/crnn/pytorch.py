@@ -16,7 +16,7 @@ from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_resnet31', 'CTCPostProcessor', 'crnn_mobilenet_v3_small',
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'CTCPostProcessor', 'crnn_mobilenet_v3_small',
            'crnn_mobilenet_v3_large']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -24,14 +24,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'backbone': vgg16_bn, 'rnn_units': 128, 'lstm_features': 512,
-        'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
-        'url': None,
-    },
-    'crnn_resnet31': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'backbone': resnet31, 'rnn_units': 128, 'lstm_features': 4 * 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
@@ -274,27 +266,6 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """
 
     return _crnn('crnn_vgg16_bn', pretrained, **kwargs)
-
-
-def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with a ResNet-31 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
-    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
-
-    Example::
-        >>> import torch
-        >>> from doctr.models import crnn_resnet31
-        >>> model = crnn_resnet31(pretrained=True)
-        >>> input_tensor = torch.rand(1, 3, 32, 128)
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _crnn('crnn_resnet31', pretrained, **kwargs)
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:

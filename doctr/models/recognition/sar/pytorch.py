@@ -15,17 +15,9 @@ from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
 
-__all__ = ['SAR', 'sar_vgg16_bn', 'sar_resnet31']
+__all__ = ['SAR', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'backbone': vgg16_bn, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
-        'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
-        'url': None,
-    },
     'sar_resnet31': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -307,27 +299,6 @@ def _sar(
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
-
-
-def sar_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> SAR:
-    """SAR with a VGG16 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
-    Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
-
-    Example::
-        >>> import torch
-        >>> from doctr.models import sar_vgg16_bn
-        >>> model = sar_vgg16_bn(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 128))
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _sar('sar_vgg16_bn', pretrained, **kwargs)
 
 
 def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:

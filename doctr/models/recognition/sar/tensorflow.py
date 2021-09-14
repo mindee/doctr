@@ -14,18 +14,9 @@ from ..core import RecognitionModel, RecognitionPostProcessor
 from doctr.utils.repr import NestedObject
 from ....datasets import VOCABS
 
-__all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
+__all__ = ['SAR', 'SARPostProcessor', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'backbone': vgg16_bn, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
-        'input_shape': (32, 128, 3),
-        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
-    },
     'sar_resnet31': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
@@ -355,27 +346,6 @@ def _sar(
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
-
-
-def sar_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> SAR:
-    """SAR with a VGG16 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
-    Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
-
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import sar_vgg16_bn
-        >>> model = sar_vgg16_bn(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _sar('sar_vgg16_bn', pretrained, **kwargs)
 
 
 def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
