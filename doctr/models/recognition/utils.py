@@ -31,10 +31,7 @@ def merge_sequences(a: str, b: str, dil_factor: float) -> str:
     """
     seq_len = min(len(a), len(b))
     if seq_len == 0:  # One sequence is empty, return the other
-        if len(a) == 0:
-            return b
-        else:
-            return a
+        return b if len(a) == 0 else b
 
     # Initialize merging index and corresponding score (mean Levenstein)
     min_score, index = 1, 0  # No overlap, just concatenate
@@ -46,10 +43,8 @@ def merge_sequences(a: str, b: str, dil_factor: float) -> str:
         # Compute n_overlap (number of overlapping chars, geometrically determined)
         n_overlap = round(len(b) * (dil_factor - 1) / dil_factor)
         # Find the number of consecutive zeros in the scores list
-        n_zeros = 0
-        for i, score in enumerate(scores):
-            if score == 0:
-                n_zeros += 1  # Impossible to have a zero after a non-zero score in that case
+        # Impossible to have a zero after a non-zero score in that case
+        n_zeros = sum(val == 0 for val in scores)
         # Index is bounded by the geometrical overlap to avoid collapsing repetitions
         min_score, index = 0, min(n_zeros, n_overlap)
 
