@@ -98,7 +98,7 @@ class RecognitionPredictor(NestedObject):
             # Dimension check
             if any(crop.ndim != 3 for crop in crops):
                 raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
-            
+
             if self.use_crop_splitting:
                 splitted_crops: List[np.ndarray] = []
                 splitted_idxs: List[List[int]] = []
@@ -116,12 +116,20 @@ class RecognitionPredictor(NestedObject):
                         splitted_idxs.append([len(splitted_crops) + i for i in range(n_crops)])
                         if channels_last:
                             splitted_crops.extend([
-                                crop[:, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2)))]
+                                crop[
+                                    :,
+                                    max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2))),
+                                    :
+                                ]
                                 for center in centers
                             ])
                         else:
                             splitted_crops.extend([
-                                crop[:, :, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2)))]
+                                crop[
+                                    :,
+                                    :,
+                                    max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2)))
+                                ]
                                 for center in centers
                             ])
                     else:  # Append whole text box
@@ -129,7 +137,7 @@ class RecognitionPredictor(NestedObject):
 
                 # Resize & batch them
                 processed_batches = self.pre_processor(splitted_crops)
-            
+
             else:
                 processed_batches = self.pre_processor(crops)
 
