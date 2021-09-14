@@ -79,6 +79,8 @@ html_theme_options = {
 }
 
 html_logo = '_static/images/Logo-docTR-white.png'
+html_favicon = '_static/images/favicon.ico'
+
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
