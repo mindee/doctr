@@ -56,6 +56,7 @@ Install the library in developper mode:
     pip install -e doctr/.
 
 Again, for framework-specific builds:
+
 .. code:: bash
 
     git clone https://github.com/mindee/doctr.git
