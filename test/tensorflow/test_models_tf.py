@@ -41,10 +41,8 @@ def test_ocrpredictor(
 @pytest.mark.parametrize(
     "det_arch, reco_arch",
     [
-        ["db_resnet50", "sar_vgg16_bn"],
         ["db_resnet50", "crnn_vgg16_bn"],
         ["db_resnet50", "sar_resnet31"],
-        ["db_resnet50", "crnn_resnet31"],
     ],
 )
 def test_zoo_models(det_arch, reco_arch):

@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         python: [3.7, 3.8]
         framework: [tensorflow, pytorch]
     steps:
@@ -68,7 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         python: [3.7, 3.8]
         framework: [tensorflow, pytorch]
     steps:
