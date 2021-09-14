@@ -18,7 +18,7 @@ VOCABS: Dict[str, str] = {
 
 VOCABS['latin'] = VOCABS['digits'] + VOCABS['ascii_letters'] + VOCABS['punctuation']
 VOCABS['english'] = VOCABS['latin'] + '°' + VOCABS['currency']
-VOCABS['legacy_french'] = VOCABS['latin'] + '°' + 'àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ' + VOCABS['currency']
+VOCABS['legacy_french'] = VOCABS['latin'] + '°' + 'àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ' + VOCABS['currency']
 VOCABS['french'] = VOCABS['english'] + 'àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ'
 VOCABS['portuguese'] = VOCABS['english'] + 'áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ' + '¡¿'
 VOCABS['spanish'] = VOCABS['english'] + 'áéíóúüñÁÉÍÓÚÜÑ' + '¡¿'
