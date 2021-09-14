@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/master-bade6eae.zip',
     },
 }

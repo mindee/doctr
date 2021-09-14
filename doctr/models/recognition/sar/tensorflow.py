@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'backbone': resnet31, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/sar_resnet31-9ee49970.zip',
     },
 }

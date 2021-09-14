@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': vgg16_bn, 'rnn_units': 128, 'lstm_features': 512,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
     'crnn_mobilenet_v3_small': {
@@ -33,7 +33,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': mobilenet_v3_small, 'rnn_units': 128, 'lstm_features': 576,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
     'crnn_mobilenet_v3_large': {
@@ -41,7 +41,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'backbone': mobilenet_v3_large, 'rnn_units': 128, 'lstm_features': 960,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
 }
