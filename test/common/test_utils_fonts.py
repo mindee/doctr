@@ -2,6 +2,7 @@ from PIL.ImageFont import ImageFont
 
 from doctr.utils.fonts import get_font
 
+
 def test_get_font():
 
     # Attempts to load recommended OS font
