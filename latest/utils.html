@@ -271,6 +271,25 @@
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt id="doctr.utils.visualization.synthesize_page">
+<code class="sig-prename descclassname">doctr.utils.visualization.</code><code class="sig-name descname">synthesize_page</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">Dict<span class="p">[</span>str<span class="p">, </span>Any<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">draw_proba</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">font_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">13</span></em>, <em class="sig-param"><span class="n">font_family</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/doctr/utils/visualization.html#synthesize_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.visualization.synthesize_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw a the content of the element page (OCR response) on a blank page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – exported Page object to represent</p></li>
+<li><p><strong>draw_proba</strong> – if True, draw words in colors to represent confidence. Blue: p=1, red: p=0</p></li>
+<li><p><strong>font_size</strong> – size of the font, default font = 13</p></li>
+<li><p><strong>font_family</strong> – family of the font</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the synthesized page</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="task-evaluation">
 <span id="metrics"></span><h2>Task evaluation<a class="headerlink" href="#task-evaluation" title="Permalink to this headline">¶</a></h2>

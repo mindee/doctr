@@ -245,8 +245,9 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">RotatedBbox</span>
+<span class="kn">from</span> <span class="nn">.fonts</span> <span class="kn">import</span> <span class="n">get_font</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;visualize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;synthetize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_boxes&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;visualize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;synthesize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_boxes&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">rect_patch</span><span class="p">(</span>
@@ -473,10 +474,11 @@
     <span class="k">return</span> <span class="n">fig</span></div>
 
 
-<span class="k">def</span> <span class="nf">synthetize_page</span><span class="p">(</span>
+<div class="viewcode-block" id="synthesize_page"><a class="viewcode-back" href="../../../utils.html#doctr.utils.visualization.synthesize_page">[docs]</a><span class="k">def</span> <span class="nf">synthesize_page</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">draw_proba</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
+    <span class="n">font_family</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Draw a the content of the element page (OCR response) on a blank page.</span>
 
@@ -484,10 +486,12 @@
 <span class="sd">        page: exported Page object to represent</span>
 <span class="sd">        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0</span>
 <span class="sd">        font_size: size of the font, default font = 13</span>
+<span class="sd">        font_family: family of the font</span>
 
 <span class="sd">    Return:</span>
-<span class="sd">        A np array (drawn page)</span>
+<span class="sd">        the synthesized page</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="c1"># Draw template</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
     <span class="n">response</span> <span class="o">=</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -502,16 +506,11 @@
                 <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymin</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymax</span><span class="p">)</span>
 
                 <span class="c1"># White drawing context adapted to font size, 0.75 factor to convert pts --&gt; pix</span>
-                <span class="n">h_box</span><span class="p">,</span> <span class="n">w_box</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span>
-                <span class="n">h_font</span><span class="p">,</span> <span class="n">w_font</span> <span class="o">=</span> <span class="n">font_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_size</span> <span class="o">*</span> <span class="n">w_box</span> <span class="o">/</span> <span class="p">(</span><span class="n">h_box</span> <span class="o">*</span> <span class="mf">0.75</span><span class="p">))</span>
-                <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">w_font</span><span class="p">,</span> <span class="n">h_font</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+                <span class="n">font</span> <span class="o">=</span> <span class="n">get_font</span><span class="p">(</span><span class="n">font_family</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.75</span> <span class="o">*</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)))</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
                 <span class="n">d</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
-
                 <span class="c1"># Draw in black the value of the word</span>
-                <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="n">font</span><span class="o">=</span><span class="n">ImageFont</span><span class="o">.</span><span class="n">load_default</span><span class="p">(),</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-
-                <span class="c1"># Resize back to box size</span>
-                <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">w_box</span><span class="p">,</span> <span class="n">h_box</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
                 <span class="c1"># Colorize if draw_proba</span>
                 <span class="k">if</span> <span class="n">draw_proba</span><span class="p">:</span>
@@ -525,7 +524,7 @@
                 <span class="c1"># Write to response page</span>
                 <span class="n">response</span><span class="p">[</span><span class="n">ymin</span><span class="p">:</span><span class="n">ymax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">:</span><span class="n">xmax</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">response</span>
+    <span class="k">return</span> <span class="n">response</span></div>
 
 
 <span class="k">def</span> <span class="nf">draw_boxes</span><span class="p">(</span>
