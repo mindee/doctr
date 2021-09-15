@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from typing import Tuple, Dict, List, Any, Optional, Union
 
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
-from doctr.utils.visualization import visualize_page
+from doctr.utils.visualization import visualize_page, synthesize_page
 from doctr.utils.common_types import BoundingBox, RotatedBbox
 from doctr.utils.repr import NestedObject
 
@@ -244,6 +244,15 @@ class Page(Element):
         visualize_page(self.export(), page, interactive=interactive)
         plt.show(**kwargs)
 
+    def synthesize(self, **kwargs) -> np.ndarray:
+        """Synthesize the page from the predictions
+
+        Returns:
+            synthesized page
+        """
+
+        return synthesize_page(self.export(), **kwargs)
+
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
@@ -279,6 +288,15 @@ class Document(Element):
         """
         for img, result in zip(pages, self.pages):
             result.show(img, **kwargs)
+
+    def synthesize(self, **kwargs) -> List[np.ndarray]:
+        """Synthesize all pages from their predictions
+
+        Returns:
+            list of synthesized pages
+        """
+
+        return [page.synthesize() for page in self.pages]
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
