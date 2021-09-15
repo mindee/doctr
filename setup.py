@@ -56,7 +56,8 @@ _deps = [
     "torchvision>=0.9.0",
     "Pillow>=8.3.2",  # cf. https://github.com/advisories/GHSA-98vv-pw6r-q6q4
     "tqdm>=4.30.0",
-    "tensorflow-addons>=0.13.0"
+    "tensorflow-addons>=0.13.0",
+    "rapidfuzz>=1.6.0",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -80,6 +81,7 @@ install_requires = [
     deps["unidecode"],
     deps["Pillow"],
     deps["tqdm"],
+    deps["rapidfuzz"],
 ]
 
 extras = {}
