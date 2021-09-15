@@ -77,6 +77,7 @@ html_theme_options = {
     'collapse_navigation': False,
     'display_version': False,
     'logo_only': False,
+    'analytics_id': 'G-40DVRMX8T4',
 }
 
 html_logo = '_static/images/Logo-docTR-white.png'
