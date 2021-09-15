@@ -196,6 +196,11 @@ def test_page():
     # Show
     page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
 
+    # Synthesize
+    img = page.synthesize()
+    assert isinstance(img, np.ndarray)
+    assert img.shape == (*page_size, 3)
+
 
 def test_document():
     pages = _mock_pages()
@@ -214,3 +219,7 @@ def test_document():
 
     # Show
     doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)
+
+    # Synthesize
+    img_list = doc.synthesize()
+    assert isinstance(img_list, list) and len(img_list) == len(pages)

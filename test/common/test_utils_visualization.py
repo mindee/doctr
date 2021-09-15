@@ -21,10 +21,12 @@ def test_visualize_page():
         visualization.create_obj_patch((1, 2, 3, 4, 5), (100, 100))
 
 
-def test_draw_page():
+def test_synthesize_page():
     pages = _mock_pages()
-    visualization.synthetize_page(pages[0].export(), draw_proba=True)
-    visualization.synthetize_page(pages[0].export(), draw_proba=False)
+    visualization.synthesize_page(pages[0].export(), draw_proba=False)
+    render = visualization.synthesize_page(pages[0].export(), draw_proba=True)
+    assert isinstance(render, np.ndarray)
+    assert render.shape == (*pages[0].dimensions, 3)
 
 
 def test_draw_boxes():
