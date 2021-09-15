@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List
-import Levenshtein as lev
+from rapidfuzz.string_metric import levenshtein
 
 
 __all__ = ['merge_strings', 'merge_multi_strings']
@@ -36,7 +36,7 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
     # Initialize merging index and corresponding score (mean Levenstein)
     min_score, index = 1, 0  # No overlap, just concatenate
 
-    scores = [lev.distance(a[-i:], b[:i]) / i for i in range(1, seq_len + 1)]
+    scores = [levenshtein(a[-i:], b[:i]) / i for i in range(1, seq_len + 1)]
 
     # Edge case (split in the middle of char repetitions): if it starts with 2 or more 0
     if len(scores) > 1 and (scores[0], scores[1]) == (0, 0):
