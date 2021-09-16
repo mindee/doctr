@@ -4,4 +4,4 @@ from .master import *
 from .sar import *
 from .zoo import *
 
-del utils
+del utils  # type: ignore[name-defined]

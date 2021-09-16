@@ -14,8 +14,9 @@ import cv2
 from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
+from .fonts import get_font
 
-__all__ = ['visualize_page', 'synthetize_page', 'draw_boxes']
+__all__ = ['visualize_page', 'synthesize_page', 'draw_boxes']
 
 
 def rect_patch(
@@ -242,10 +243,11 @@ def visualize_page(
     return fig
 
 
-def synthetize_page(
+def synthesize_page(
     page: Dict[str, Any],
     draw_proba: bool = False,
     font_size: int = 13,
+    font_family: Optional[str] = None,
 ) -> np.ndarray:
     """Draw a the content of the element page (OCR response) on a blank page.
 
@@ -253,10 +255,12 @@ def synthetize_page(
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
         font_size: size of the font, default font = 13
+        font_family: family of the font
 
     Return:
-        A np array (drawn page)
+        the synthesized page
     """
+
     # Draw template
     h, w = page["dimensions"]
     response = 255 * np.ones((h, w, 3), dtype=np.int32)
@@ -271,16 +275,11 @@ def synthetize_page(
                 ymin, ymax = int(h * ymin), int(h * ymax)
 
                 # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
-                h_box, w_box = ymax - ymin, xmax - xmin
-                h_font, w_font = font_size, int(font_size * w_box / (h_box * 0.75))
-                img = Image.new('RGB', (w_font, h_font), color=(255, 255, 255))
+                font = get_font(font_family, int(0.75 * (ymax - ymin)))
+                img = Image.new('RGB', (xmax - xmin, ymax - ymin), color=(255, 255, 255))
                 d = ImageDraw.Draw(img)
-
                 # Draw in black the value of the word
-                d.text((0, 0), word["value"], font=ImageFont.load_default(), fill=(0, 0, 0))
-
-                # Resize back to box size
-                img = img.resize((w_box, h_box), Image.NEAREST)
+                d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
 
                 # Colorize if draw_proba
                 if draw_proba:
