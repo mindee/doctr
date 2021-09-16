@@ -9,6 +9,7 @@ import logging
 import platform
 
 from doctr.io.image import tensor_from_pil
+from doctr.utils.fonts import get_font
 from ..datasets import AbstractDataset
 
 
@@ -31,16 +32,7 @@ def synthesize_char_img(char: str, size: int = 32, font_family: Optional[str] = 
     d = ImageDraw.Draw(img)
 
     # Draw the character
-    if font_family is None:
-        try:
-            font = ImageFont.truetype("FreeMono.ttf" if platform.system() == "Linux" else "Arial.ttf", size)
-        except OSError:
-            font = ImageFont.load_default()
-            logging.warning("unable to load specific font families. Loading default PIL font,"
-                            "font size issues may be expected."
-                            "To prevent this, it is recommended to specify the value of 'font_family'.")
-    else:
-        font = ImageFont.truetype(font_family, size)
+    font = get_font(font_family, size)
     d.text((4, 0), char, font=font, fill=(255, 255, 255))
 
     return img

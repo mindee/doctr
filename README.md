@@ -56,15 +56,26 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 result = model(doc)
 ```
 
-To make sense of your model's predictions, you can visualize them as follows:
+To make sense of your model's predictions, you can visualize them interactively as follows:
 
 ```python
 result.show(doc)
 ```
 
-![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
+![Visualization sample](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
 
-The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+Or even rebuild the original document from its predictions:
+
+```python
+import matplotlib.pyplot as plt
+
+plt.imshow(result.synthesize()); plt.axis('off'); plt.show()
+```
+
+![Synthesis sample](https://github.com/mindee/doctr/releases/download/v0.3.1/synthesized_sample.png)
+
+
+The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
 To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/io.html#document-structure):
 
 You can also export them as a nested dict, more appropriate for JSON format:

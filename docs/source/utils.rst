@@ -14,6 +14,8 @@ Easy-to-use functions to make sense of your model's predictions.
 
 .. autofunction:: visualize_page
 
+.. autofunction:: synthesize_page
+
 
 .. _metrics:
 
