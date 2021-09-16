@@ -132,53 +132,11 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     assert len(ds2) == 2 * len(ds)
 
 
-def test_ocrdataset(mock_ocrdataset):
+def test_ocrdataset(mock_docdataset):
 
     input_size = (512, 512)
 
     ds = datasets.OCRDataset(
-        *mock_ocrdataset,
-        sample_transforms=Resize(input_size),
-    )
-    rotated_ds = datasets.OCRDataset(
-        *mock_ocrdataset,
-        sample_transforms=Resize(input_size),
-        rotated_bbox=True
-    )
-    assert len(ds) == 5
-    img, target = ds[0]
-    assert isinstance(img, torch.Tensor)
-    assert img.shape[-2:] == input_size
-    assert img.dtype == torch.float32
-    # Bounding boxes
-    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
-    assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
-    assert target['boxes'].shape[1] == 4
-    _, r_target = rotated_ds[0]
-    assert r_target['boxes'].shape[1] == 5
-    # Flags
-    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
-    # Cardinality consistency
-    assert target['boxes'].shape[0] == len(target['labels'])
-
-    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
-    images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
-
-    # FP16
-    ds = datasets.OCRDataset(*mock_ocrdataset, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == torch.float16
-    # Bounding boxes
-    assert target['boxes'].dtype == np.float16
-
-
-def test_docdataset(mock_docdataset):
-
-    input_size = (512, 512)
-
-    ds = datasets.DocDataset(
         *mock_docdataset,
         sample_transforms=Resize(input_size),
     )
@@ -203,7 +161,7 @@ def test_docdataset(mock_docdataset):
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
     # FP16
-    ds = datasets.DocDataset(*mock_docdataset, fp16=True)
+    ds = datasets.OCRDataset(*mock_docdataset, fp16=True)
     img, target = ds[0]
     assert img.dtype == torch.float16
     # Bounding boxes

@@ -146,7 +146,7 @@ def test_ocrdataset(mock_ocrdataset):
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
     # FP16
-    ds = datasets.DocDataset(*mock_ocrdataset, fp16=True)
+    ds = datasets.OCRDataset(*mock_ocrdataset, fp16=True)
     img, target = ds[0]
     assert img.dtype == tf.float16
     assert target['boxes'].dtype == np.float16
