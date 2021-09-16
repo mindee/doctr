@@ -73,11 +73,6 @@ def main(args):
             gt_boxes = target['boxes']
             gt_labels = target['labels']
 
-            # Convert boxes to [xmin, ymin, xmax, ymax] format for metric computation
-            x, y, w, h = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2], gt_boxes[:, 3]
-            xmin, ymin, xmax, ymax = x - w / 2, y - h / 2, x + w / 2, y + h / 2
-            gt_boxes = np.stack([xmin, ymin, xmax, ymax], axis=-1)
-
             # Forward
             if is_tf_available():
                 out = predictor(page[None, ...], training=False)
