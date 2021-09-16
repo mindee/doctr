@@ -18,7 +18,7 @@ if any(gpu_devices):
 
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
-from doctr.utils.visualization import synthesize_page, visualize_page
+from doctr.utils.visualization import visualize_page
 
 DET_ARCHS = ["db_resnet50"]
 RECO_ARCHS = ["crnn_vgg16_bn", "master", "sar_resnet31"]
@@ -96,7 +96,7 @@ def main():
 
                 # Page reconsitution under input page
                 page_export = out.pages[0].export()
-                img = synthesize_page(page_export)
+                img = out.pages[0].synthesize()
                 cols[3].image(img, clamp=True)
 
                 # Display JSON
