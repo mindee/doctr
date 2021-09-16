@@ -14,6 +14,7 @@ import sphinx_rtd_theme
 #
 import os
 import sys
+from datetime import datetime
 sys.path.insert(0, os.path.abspath('../..'))
 import doctr
 
@@ -21,13 +22,13 @@ import doctr
 
 master_doc = 'index'
 project = 'doctr'
-copyright = '2021, Mindee'
+_copyright_str = f"-{datetime.now().year}" if datetime.now().year > 2021 else ""
+copyright = f"2021{_copyright_str}, Mindee"
 author = 'François-Guillaume Fernandez, Charles Gaillard'
 
 # The full version, including alpha/beta/rc tags
 version = doctr.__version__
 release = doctr.__version__ + '-git'
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -76,6 +77,7 @@ html_theme_options = {
     'collapse_navigation': False,
     'display_version': False,
     'logo_only': False,
+    'analytics_id': 'G-40DVRMX8T4',
 }
 
 html_logo = '_static/images/Logo-docTR-white.png'
