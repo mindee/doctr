@@ -74,9 +74,9 @@ def main(args):
             gt_labels = target['labels']
 
             if args.img_folder and args.label_file:
-                x, y, w, h, a = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2], gt_boxes[:, 3]
+                x, y, w, h = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2], gt_boxes[:, 3]
                 xmin, ymin, xmax, ymax = x - w / 2, y - h / 2, x + w / 2, y + h / 2
-                gt_labels = np.stack([xmin, ymin, xmax, ymax], axis=-1)
+                gt_boxes = np.stack([xmin, ymin, xmax, ymax], axis=-1)
 
             # Forward
             if is_tf_available():
