@@ -87,7 +87,8 @@
               
             
             
-              <ul>
+              <p><span class="caption-text">Getting started</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
@@ -323,6 +324,20 @@ f_a(x) = \left\{
 </dd>
 </dl>
 <dl class="py method">
+<dt id="doctr.utils.metrics.TextMatch.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">pred</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#TextMatch.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.TextMatch.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the state of the metric with new predictions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt</strong> – list of groung-truth character sequences</p></li>
+<li><p><strong>pred</strong> – list of predicted character sequences</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="doctr.utils.metrics.TextMatch.summary">
 <code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Dict<span class="p">[</span>str<span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#TextMatch.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.TextMatch.summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes the aggregated metrics</p>
@@ -373,6 +388,11 @@ g_X(y) = \left\{
 <dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="doctr.utils.metrics.LocalizationConfusion.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">preds</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="doctr.utils.metrics.LocalizationConfusion.summary">
 <code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion.summary" title="Permalink to this definition">¶</a></dt>
@@ -427,6 +447,11 @@ h_{B,L}(b, l) = \left\{
 <dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt id="doctr.utils.metrics.OCRMetric.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">gt_labels</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">pred_labels</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="doctr.utils.metrics.OCRMetric.summary">
 <code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>Dict<span class="p">[</span>str<span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>Dict<span class="p">[</span>str<span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric.summary" title="Permalink to this definition">¶</a></dt>
@@ -486,6 +511,18 @@ h_{B,L}(b, l) = \left\{
 
   
   
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'G-40DVRMX8T4', 'auto');
+    ga('send', 'pageview');
+    </script>
+
     
    
 

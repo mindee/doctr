@@ -3,7 +3,7 @@
 Installation
 ************
 
-This library requires Python 3.6 or higher.
+This library requires `Python <https://www.python.org/downloads/>`_ 3.6 or higher.
 
 
 Prerequisites
@@ -11,12 +11,12 @@ Prerequisites
 
 Whichever OS you are running, you will need to install at least TensorFlow or PyTorch. You can refer to their corresponding installation pages to do so:
 
-* TensorFlow: `installation page <https://www.tensorflow.org/install/>`_.
-* PyTorch: `installation page <https://pytorch.org/get-started/locally/#start-locally>`_.
+* `TensorFlow 2 <https://www.tensorflow.org/install/>`_
+* `PyTorch <https://pytorch.org/get-started/locally/#start-locally>`_
 
 If you are running another OS than Linux, you will need a few extra dependencies.
 
-For MacOS users, you can install them as follows:
+For MacOS users, you can install them using `Homebrew <https://brew.sh/>`_ as follows:
 
 .. code:: shell
 
@@ -28,7 +28,7 @@ For Windows users, those dependencies are included in GTK. You can find the late
 Via Python Package
 ==================
 
-Install the last stable release of the package using pip:
+Install the last stable release of the package using `pip <https://pip.pypa.io/en/stable/installation/>`_:
 
 .. code:: bash
 

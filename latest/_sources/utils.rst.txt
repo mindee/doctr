@@ -27,12 +27,15 @@ Implementations of task-specific metrics to easily assess your model performance
 
 .. autoclass:: TextMatch
 
+   .. automethod:: update
    .. automethod:: summary
 
 .. autoclass:: LocalizationConfusion
 
+   .. automethod:: update
    .. automethod:: summary
 
 .. autoclass:: OCRMetric
 
+   .. automethod:: update
    .. automethod:: summary
