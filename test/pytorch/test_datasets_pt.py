@@ -132,12 +132,12 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     assert len(ds2) == 2 * len(ds)
 
 
-def test_ocrdataset(mock_docdataset):
+def test_ocrdataset(mock_ocrdataset):
 
     input_size = (512, 512)
 
     ds = datasets.OCRDataset(
-        *mock_docdataset,
+        *mock_ocrdataset,
         sample_transforms=Resize(input_size),
     )
 
@@ -161,7 +161,7 @@ def test_ocrdataset(mock_docdataset):
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
     # FP16
-    ds = datasets.OCRDataset(*mock_docdataset, fp16=True)
+    ds = datasets.OCRDataset(*mock_ocrdataset, fp16=True)
     img, target = ds[0]
     assert img.dtype == torch.float16
     # Bounding boxes
