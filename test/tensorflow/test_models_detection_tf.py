@@ -2,7 +2,9 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import detection, PreProcessor
+from doctr.models import detection
+from doctr.models.detection.predictor import DetectionPredictor
+from doctr.models.preprocessor import PreProcessor
 from doctr.io import DocumentFile
 
 
@@ -61,7 +63,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
 def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
-    predictor = detection.DetectionPredictor(
+    predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),
         detection.db_resnet50(input_shape=(512, 512, 3))
     )
@@ -84,7 +86,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
-    predictor = detection.DetectionPredictor(
+    predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),
         detection.db_resnet50(rotated_bbox=True, input_shape=(512, 512, 3))
     )
@@ -115,7 +117,7 @@ def test_detection_zoo(arch_name):
     # Model
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
-    assert isinstance(predictor, detection.DetectionPredictor)
+    assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert all(isinstance(out_img, tuple) for out_img in out)
