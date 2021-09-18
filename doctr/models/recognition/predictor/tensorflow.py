@@ -11,7 +11,7 @@ from typing import List, Any, Union, Tuple
 from doctr.utils.repr import NestedObject
 from doctr.models.preprocessor import PreProcessor
 from ..core import RecognitionModel
-from ..utils import merge_multi_strings
+from .base import split_crops, remap_preds
 
 
 __all__ = ['RecognitionPredictor']
@@ -56,31 +56,11 @@ class RecognitionPredictor(NestedObject):
             raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
 
         # Split crops that are too wide
-        _remap_required = False
+        remapped = False
         if self.split_wide_crops:
-            crop_map: List[Union[int, Tuple[int, int]]] = []
-            new_crops: List[np.ndarray] = []
-            for crop in crops:
-                h, w = crop.shape[:2]
-                aspect_ratio = w / h
-                if aspect_ratio > self.critical_ar:
-                    # Determine the number of crops, reference aspect ratio = 4 = 128 / 32
-                    num_subcrops = int(aspect_ratio // self.target_ar)
-                    # Find the new widths, additional dilation factor to overlap crops
-                    width = self.dil_factor * w / num_subcrops
-                    centers = [(w / num_subcrops) * (1 / 2 + i) for i in range(num_subcrops)]
-                    # Record the slice of crops
-                    crop_map.append((len(new_crops), len(new_crops) + len(centers)))
-                    new_crops.extend(
-                        crop[:, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2))), :]
-                        for center in centers
-                    )
-                    # At least one crop will require merging
-                    _remap_required = True
-                else:
-                    crop_map.append(len(new_crops))
-                    new_crops.append(crop)
-            crops = new_crops
+            new_crops, crop_map, remapped = split_crops(crops, self.critical_ar, self.target_ar, self.dil_factor)
+            if remapped:
+                crops = new_crops
 
         # Resize & batch them
         processed_batches = self.pre_processor(crops)
@@ -95,19 +75,7 @@ class RecognitionPredictor(NestedObject):
         out = [charseq for batch in raw for charseq in batch]
 
         # Remap crops
-        if self.split_wide_crops and _remap_required:
-            remapped_out = []
-            for _idx in crop_map:
-                # Crop hasn't been split
-                if isinstance(_idx, int):
-                    remapped_out.append(out[_idx])
-                else:
-                    # unzip
-                    vals, probs = zip(out[_idx[0]: _idx[1]])
-                    # Merge the string values
-                    remapped_out.append(
-                        (merge_multi_strings(vals, self.dil_factor), min(probs))  # type: ignore[arg-type]
-                    )
-            out = remapped_out
+        if self.split_wide_crops and remapped:
+            out = remap_preds(out, crop_map, self.dil_factor)
 
         return out
