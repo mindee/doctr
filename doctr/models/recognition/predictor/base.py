@@ -46,6 +46,7 @@ def split_crops(
             _remap_required = True
         else:
             crop_map.append(len(new_crops))
+            new_crops.append(crop)
 
     return new_crops, crop_map, _remap_required
 
