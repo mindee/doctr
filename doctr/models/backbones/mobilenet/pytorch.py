@@ -12,7 +12,7 @@ from doctr.datasets import VOCABS
 from ...utils import load_pretrained_params
 
 
-__all__ = ["mobilenet_v3_small", "mobilenet_v3_large"]
+__all__ = ["mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large", "mobilenet_v3_large_r"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
