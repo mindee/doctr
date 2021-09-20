@@ -26,22 +26,12 @@ def main(args):
 
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
-    if not is_tf_available():
-        model.det_predictor.pre_processor = model.det_predictor.pre_processor.eval()
-        model.det_predictor.model = model.det_predictor.model.eval()
-        model.reco_predictor.pre_processor = model.reco_predictor.pre_processor.eval()
-        model.reco_predictor.model = model.reco_predictor.model.eval()
-
     if args.path.endswith(".pdf"):
         doc = DocumentFile.from_pdf(args.path).as_images()
     else:
         doc = DocumentFile.from_images(args.path)
 
-    if is_tf_available():
-        out = model(doc, training=False)
-    else:
-        with torch.no_grad():
-            out = model(doc)
+    out = model(doc)
 
     for page, img in zip(out.pages, doc):
         page.show(img, block=not args.noblock, interactive=not args.static)
