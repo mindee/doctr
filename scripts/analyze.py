@@ -18,8 +18,6 @@ if is_tf_available():
     gpu_devices = tf.config.experimental.list_physical_devices('GPU')
     if any(gpu_devices):
         tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-else:
-    import torch
 
 
 def main(args):

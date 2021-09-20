@@ -4,8 +4,7 @@ from io import BytesIO
 import requests
 import cv2
 
-from doctr.io import reader, Document, DocumentFile
-from doctr import models
+from doctr.io import reader, DocumentFile
 from doctr.models._utils import extract_crops, extract_rcrops, get_bitmap_angle, estimate_orientation
 
 

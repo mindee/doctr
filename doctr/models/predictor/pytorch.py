@@ -9,7 +9,6 @@ from torch import nn
 from typing import List, Any, Union
 
 from doctr.io.elements import Document
-from doctr.models.preprocessor import PreProcessor
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor

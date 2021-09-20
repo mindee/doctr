@@ -5,7 +5,6 @@
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 from typing import List, Any, Union, Tuple
 
 from doctr.utils.repr import NestedObject
