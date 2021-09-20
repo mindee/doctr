@@ -8,12 +8,13 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from typing import Optional, Tuple, Any, Dict, List
+from typing import Optional, Tuple, Any, Dict, List, Union
 from ...utils import conv_sequence, load_pretrained_params
 from ....datasets import VOCABS
 
 
-__all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_large"]
+__all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large",
+           "mobilenet_v3_large_r"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -24,12 +25,26 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
+    'mobilenet_v3_large_r': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'vocab': VOCABS['french'],
+        'url': None,
+    },
     'mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
+    },
+    'mobilenet_v3_small_r': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'vocab': VOCABS['french'],
+        'url': None,
     }
 }
 
@@ -76,7 +91,7 @@ class InvertedResidualConfig:
         out_channels: int,
         use_se: bool,
         activation: str,
-        stride: int,
+        stride: Union[int, Tuple[int, int]],
         width_mult: float = 1,
     ) -> None:
         self.input_channels = self.adjust_channels(input_channels, width_mult)
@@ -108,7 +123,8 @@ class InvertedResidual(layers.Layer):
 
         act_fn = hard_swish if conf.use_hs else tf.nn.relu
 
-        self.use_res_connect = conf.stride == 1 and conf.input_channels == conf.out_channels
+        _is_s1 = (isinstance(conf.stride, tuple) and conf.stride == (1, 1)) or conf.stride == 1
+        self.use_res_connect = _is_s1 and conf.input_channels == conf.out_channels
 
         _layers = []
         # expand
@@ -196,17 +212,17 @@ def _mobilenet_v3(
     input_shape = input_shape or default_cfgs[arch]['input_shape']
 
     # cf. Table 1 & 2 of the paper
-    if arch == "mobilenet_v3_small":
+    if arch.startswith("mobilenet_v3_small"):
         inverted_residual_setting = [
             InvertedResidualConfig(16, 3, 16, 16, True, "RE", 2),  # C1
-            InvertedResidualConfig(16, 3, 72, 24, False, "RE", 2),  # C2
+            InvertedResidualConfig(16, 3, 72, 24, False, "RE", (2, 1) if arch.endswith("_r") else 2),  # C2
             InvertedResidualConfig(24, 3, 88, 24, False, "RE", 1),
-            InvertedResidualConfig(24, 5, 96, 40, True, "HS", 2),  # C3
+            InvertedResidualConfig(24, 5, 96, 40, True, "HS", (2, 1) if arch.endswith("_r") else 2),  # C3
             InvertedResidualConfig(40, 5, 240, 40, True, "HS", 1),
             InvertedResidualConfig(40, 5, 240, 40, True, "HS", 1),
             InvertedResidualConfig(40, 5, 120, 48, True, "HS", 1),
             InvertedResidualConfig(48, 5, 144, 48, True, "HS", 1),
-            InvertedResidualConfig(48, 5, 288, 96, True, "HS", 2),  # C4
+            InvertedResidualConfig(48, 5, 288, 96, True, "HS", (2, 1) if arch.endswith("_r") else 2),  # C4
             InvertedResidualConfig(96, 5, 576, 96, True, "HS", 1),
             InvertedResidualConfig(96, 5, 576, 96, True, "HS", 1),
         ]
@@ -216,16 +232,16 @@ def _mobilenet_v3(
             InvertedResidualConfig(16, 3, 16, 16, False, "RE", 1),
             InvertedResidualConfig(16, 3, 64, 24, False, "RE", 2),  # C1
             InvertedResidualConfig(24, 3, 72, 24, False, "RE", 1),
-            InvertedResidualConfig(24, 5, 72, 40, True, "RE", 2),  # C2
+            InvertedResidualConfig(24, 5, 72, 40, True, "RE", (2, 1) if arch.endswith("_r") else 2),  # C2
             InvertedResidualConfig(40, 5, 120, 40, True, "RE", 1),
             InvertedResidualConfig(40, 5, 120, 40, True, "RE", 1),
-            InvertedResidualConfig(40, 3, 240, 80, False, "HS", 2),  # C3
+            InvertedResidualConfig(40, 3, 240, 80, False, "HS", (2, 1) if arch.endswith("_r") else 2),  # C3
             InvertedResidualConfig(80, 3, 200, 80, False, "HS", 1),
             InvertedResidualConfig(80, 3, 184, 80, False, "HS", 1),
             InvertedResidualConfig(80, 3, 184, 80, False, "HS", 1),
             InvertedResidualConfig(80, 3, 480, 112, True, "HS", 1),
             InvertedResidualConfig(112, 3, 672, 112, True, "HS", 1),
-            InvertedResidualConfig(112, 5, 672, 160, True, "HS", 2),  # C4
+            InvertedResidualConfig(112, 5, 672, 160, True, "HS", (2, 1) if arch.endswith("_r") else 2),  # C4
             InvertedResidualConfig(160, 5, 960, 160, True, "HS", 1),
             InvertedResidualConfig(160, 5, 960, 160, True, "HS", 1),
         ]
@@ -263,10 +279,32 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
         pretrained: boolean, True if model is pretrained
 
     Returns:
-        A  mobilenetv3_small model
+        a keras.Model
     """
 
     return _mobilenet_v3('mobilenet_v3_small', pretrained, **kwargs)
+
+
+def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
+    """MobileNetV3-Small architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_, with rectangular pooling.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import mobilenet_v3_small_r
+        >>> model = mobilenet_v3_small_r(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        a keras.Model
+    """
+
+    return _mobilenet_v3('mobilenet_v3_small_r', pretrained, **kwargs)
 
 
 def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -285,6 +323,27 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
         pretrained: boolean, True if model is pretrained
 
     Returns:
-        A  mobilenetv3_large model
+        a keras.Model
     """
     return _mobilenet_v3('mobilenet_v3_large', pretrained, **kwargs)
+
+
+def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
+    """MobileNetV3-Large architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import mobilenet_v3_large_r
+        >>> model = mobilenet_v3_large_r(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        a keras.Model
+    """
+    return _mobilenet_v3('mobilenet_v3_large_r', pretrained, **kwargs)

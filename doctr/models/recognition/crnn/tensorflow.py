@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential, Model
 from typing import Tuple, Dict, Any, Optional, List
 
-from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small, mobilenet_v3_large
+from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small_r, mobilenet_v3_large_r
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
@@ -29,17 +29,17 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': mobilenet_v3_small, 'rnn_units': 128,
+        'backbone': mobilenet_v3_small_r, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['legacy_french'],
+        'vocab': VOCABS['french'],
         'url': None,
     },
     'crnn_mobilenet_v3_large': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': mobilenet_v3_large, 'rnn_units': 128,
+        'backbone': mobilenet_v3_large_r, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['legacy_french'],
+        'vocab': VOCABS['french'],
         'url': None,
     },
 }
