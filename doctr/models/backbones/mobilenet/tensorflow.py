@@ -8,7 +8,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from typing import Optional, Tuple, Any, Dict, List
+from typing import Optional, Tuple, Any, Dict, List, Union
 from ...utils import conv_sequence, load_pretrained_params
 from ....datasets import VOCABS
 
@@ -91,7 +91,7 @@ class InvertedResidualConfig:
         out_channels: int,
         use_se: bool,
         activation: str,
-        stride: int,
+        stride: Union[int, Tuple[int, int]],
         width_mult: float = 1,
     ) -> None:
         self.input_channels = self.adjust_channels(input_channels, width_mult)
