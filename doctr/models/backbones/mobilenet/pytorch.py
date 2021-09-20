@@ -27,7 +27,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
-        'rect_stride': ['features.2.block.1.0', 'features.4.block.1.0', 'features.9.block.1.0'],
+        'rect_stride': ['features.4.block.1.0', 'features.7.block.1.0', 'features.13.block.1.0'],
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -42,7 +42,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
-        'rect_stride': ['features.4.block.1.0', 'features.7.block.1.0', 'features.13.block.1.0'],
+        'rect_stride': ['features.2.block.1.0', 'features.4.block.1.0', 'features.9.block.1.0'],
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -57,7 +57,7 @@ def _mobilenet_v3(
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['vocab']))
 
-    if arch == "mobilenet_v3_small":
+    if arch.startswith("mobilenet_v3_small"):
         model = mobilenetv3.mobilenet_v3_small(**kwargs)
     else:
         model = mobilenetv3.mobilenet_v3_large(**kwargs)
