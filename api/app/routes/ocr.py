@@ -18,7 +18,7 @@ router = APIRouter()
 async def perform_ocr(file: UploadFile = File(...)):
     """Runs DocTR OCR model to analyze the input"""
     img = decode_img_as_tensor(file.file.read())
-    out = predictor([img], training=False)
+    out = predictor([img])
 
     return [OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)
             for word in out.pages[0].blocks[0].lines[0].words]
