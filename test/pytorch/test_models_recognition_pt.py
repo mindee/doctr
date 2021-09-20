@@ -2,6 +2,7 @@ import pytest
 import torch
 
 from doctr.models import recognition
+from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 @pytest.mark.parametrize(
@@ -69,7 +70,7 @@ def test_recognition_zoo(arch_name):
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     predictor.model.eval()
     # object check
-    assert isinstance(predictor, recognition.RecognitionPredictor)
+    assert isinstance(predictor, RecognitionPredictor)
     input_tensor = torch.rand((batch_size, 3, 128, 128))
     if torch.cuda.is_available():
         predictor.model.cuda()

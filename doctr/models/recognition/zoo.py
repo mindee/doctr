@@ -6,8 +6,8 @@
 from typing import Any
 
 from doctr import is_tf_available
-from .core import RecognitionPredictor
-from ..preprocessor import PreProcessor
+from .predictor import RecognitionPredictor
+from doctr.models.preprocessor import PreProcessor
 from .. import recognition
 
 

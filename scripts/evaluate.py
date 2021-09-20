@@ -12,7 +12,8 @@ from tqdm import tqdm
 
 from doctr.utils.metrics import LocalizationConfusion, TextMatch, OCRMetric
 from doctr import datasets
-from doctr.models import ocr_predictor, extract_crops
+from doctr.models import ocr_predictor
+from doctr.models._utils import extract_crops
 from doctr.file_utils import is_tf_available
 
 # Enable GPU growth if using TF
@@ -32,12 +33,6 @@ def _pct(val):
 def main(args):
 
     predictor = ocr_predictor(args.detection, args.recognition, pretrained=True, reco_bs=args.batch_size)
-
-    if not is_tf_available():
-        predictor.det_predictor.pre_processor = predictor.det_predictor.pre_processor.eval()
-        predictor.det_predictor.model = predictor.det_predictor.model.eval()
-        predictor.reco_predictor.pre_processor = predictor.reco_predictor.pre_processor.eval()
-        predictor.reco_predictor.model = predictor.reco_predictor.model.eval()
 
     if args.img_folder and args.label_file:
         testset = datasets.OCRDataset(
@@ -80,9 +75,9 @@ def main(args):
 
             # Forward
             if is_tf_available():
-                out = predictor(page[None, ...], training=False)
+                out = predictor(page[None, ...])
                 crops = extract_crops(page, gt_boxes)
-                reco_out = predictor.reco_predictor(crops, training=False)
+                reco_out = predictor.reco_predictor(crops)
             else:
                 with torch.no_grad():
                     out = predictor(page[None, ...])

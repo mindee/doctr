@@ -2,7 +2,7 @@ import pytest
 import os
 
 from torch import nn
-from doctr.models import utils
+from doctr.models.utils import load_pretrained_params, conv_sequence_pt
 
 
 def test_load_pretrained_params(tmpdir_factory):
@@ -14,16 +14,16 @@ def test_load_pretrained_params(tmpdir_factory):
     cache_dir = tmpdir_factory.mktemp("cache")
     # Pass an incorrect hash
     with pytest.raises(ValueError):
-        utils.load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir))
+        load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir))
     # Let tit resolve the hash from the file name
-    utils.load_pretrained_params(model, url, cache_dir=str(cache_dir))
+    load_pretrained_params(model, url, cache_dir=str(cache_dir))
     # Check that the file was downloaded & the archive extracted
     assert os.path.exists(cache_dir.join('models').join(url.rpartition("/")[-1]))
 
 
 def test_conv_sequence():
 
-    assert len(utils.conv_sequence_pt(3, 8, kernel_size=3)) == 1
-    assert len(utils.conv_sequence_pt(3, 8, True, kernel_size=3)) == 2
-    assert len(utils.conv_sequence_pt(3, 8, False, True, kernel_size=3)) == 2
-    assert len(utils.conv_sequence_pt(3, 8, True, True, kernel_size=3)) == 3
+    assert len(conv_sequence_pt(3, 8, kernel_size=3)) == 1
+    assert len(conv_sequence_pt(3, 8, True, kernel_size=3)) == 2
+    assert len(conv_sequence_pt(3, 8, False, True, kernel_size=3)) == 2
+    assert len(conv_sequence_pt(3, 8, True, True, kernel_size=3)) == 3
