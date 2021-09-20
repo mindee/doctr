@@ -8,10 +8,9 @@ from itertools import groupby
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.models import mobilenet_v3_small, mobilenet_v3_large
 from typing import Tuple, Dict, Any, Optional, List
 
-from ...backbones import vgg16_bn, resnet31
+from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small_r, mobilenet_v3_large_r
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
@@ -31,17 +30,17 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_small': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': mobilenet_v3_small, 'rnn_units': 128, 'lstm_features': 576,
+        'backbone': mobilenet_v3_small_r, 'rnn_units': 128, 'lstm_features': 576,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['legacy_french'],
+        'vocab': VOCABS['french'],
         'url': None,
     },
     'crnn_mobilenet_v3_large': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': mobilenet_v3_large, 'rnn_units': 128, 'lstm_features': 960,
+        'backbone': mobilenet_v3_large_r, 'rnn_units': 128, 'lstm_features': 960,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['legacy_french'],
+        'vocab': VOCABS['french'],
         'url': None,
     },
 }
