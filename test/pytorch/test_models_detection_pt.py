@@ -3,6 +3,7 @@ import torch
 import numpy as np
 
 from doctr.models import detection
+from doctr.models.detection.predictor import DetectionPredictor
 
 
 @pytest.mark.parametrize(
@@ -57,7 +58,7 @@ def test_detection_zoo(arch_name):
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     predictor.model.eval()
     # object check
-    assert isinstance(predictor, detection.DetectionPredictor)
+    assert isinstance(predictor, DetectionPredictor)
     input_tensor = torch.rand((2, 3, 1024, 1024))
     if torch.cuda.is_available():
         predictor.model.cuda()

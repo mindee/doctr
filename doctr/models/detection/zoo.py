@@ -6,7 +6,7 @@
 from typing import Any
 
 from doctr.file_utils import is_tf_available, is_torch_available
-from .core import DetectionPredictor
+from .predictor import DetectionPredictor
 from ..preprocessor import PreProcessor
 from .. import detection
 

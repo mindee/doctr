@@ -10,7 +10,8 @@ import cv2
 from typing import Dict, Any, Tuple, List
 
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
-from ..core import DetectionModel, DetectionPostProcessor
+from doctr.models.core import BaseModel
+from ..core import DetectionPostProcessor
 
 
 __all__ = ['_LinkNet', 'LinkNetPostProcessor']
@@ -92,7 +93,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 
 
-class _LinkNet(DetectionModel):
+class _LinkNet(BaseModel):
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 

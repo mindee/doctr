@@ -2,7 +2,10 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import recognition, PreProcessor, extract_crops
+from doctr.models import recognition
+from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models._utils import extract_crops
+from doctr.models.preprocessor import PreProcessor
 from doctr.io import DocumentFile
 
 
@@ -57,7 +60,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
-    predictor = recognition.RecognitionPredictor(
+    predictor = RecognitionPredictor(
         PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),
         recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
     )
@@ -96,7 +99,7 @@ def test_recognition_zoo(arch_name):
     # Model
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     # object check
-    assert isinstance(predictor, recognition.RecognitionPredictor)
+    assert isinstance(predictor, RecognitionPredictor)
     input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
