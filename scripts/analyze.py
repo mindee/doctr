@@ -8,25 +8,28 @@ import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-import tensorflow as tf
-
-gpu_devices = tf.config.experimental.list_physical_devices('GPU')
-if any(gpu_devices):
-    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-
 from doctr.models import ocr_predictor
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
+from doctr.file_utils import is_tf_available
+
+# Enable GPU growth if using TF
+if is_tf_available():
+    import tensorflow as tf
+    gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+    if any(gpu_devices):
+        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 
 def main(args):
 
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
+
     if args.path.endswith(".pdf"):
         doc = DocumentFile.from_pdf(args.path).as_images()
     else:
         doc = DocumentFile.from_images(args.path)
 
-    out = model(doc, training=False)
+    out = model(doc)
 
     for page, img in zip(out.pages, doc):
         page.show(img, block=not args.noblock, interactive=not args.static)

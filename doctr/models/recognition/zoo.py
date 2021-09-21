@@ -6,15 +6,15 @@
 from typing import Any
 
 from doctr import is_tf_available
-from .core import RecognitionPredictor
-from ..preprocessor import PreProcessor
+from .predictor import RecognitionPredictor
+from doctr.models.preprocessor import PreProcessor
 from .. import recognition
 
 
 __all__ = ["recognition_predictor"]
 
 
-ARCHS = ['crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31', 'master']
+ARCHS = ['crnn_vgg16_bn', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:

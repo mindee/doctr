@@ -9,25 +9,33 @@ from copy import deepcopy
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.applications import ResNet50
 from typing import List, Tuple, Optional, Any, Dict
 
+from ...backbones import mobilenet_v3_large
 from doctr.utils.repr import NestedObject
 from doctr.models.utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50']
+__all__ = ['DBNet', 'db_resnet50', 'db_mobilenet_v3_large']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'backbone': 'ResNet50',
+        'backbone': ResNet50,
         'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
-        'fpn_channels': 128,
         'input_shape': (1024, 1024, 3),
-        'rotated_bbox': False,
         'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
+    },
+    'db_mobilenet_v3_large': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'backbone': mobilenet_v3_large,
+        'fpn_layers': ["inverted_2", "inverted_5", "inverted_11", "final_block"],
+        'input_shape': (1024, 1024, 3),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip',
     },
 }
 
@@ -102,6 +110,8 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     Args:
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
+        rotated_bbox: whether the segmentation map can include rotated bounding boxes
+        cfg: the configuration dict of the model
     """
 
     _children_names: List[str] = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head', 'postprocessor']
@@ -109,7 +119,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     def __init__(
         self,
         feature_extractor: IntermediateLayerGetter,
-        fpn_channels: int = 128,
+        fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
         rotated_bbox: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -168,9 +178,9 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
 
         seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
-        seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
+        seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        thresh_target = tf.convert_to_tensor(thresh_target, dtype=tf.float32)
+        thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
         thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
 
         # Compute balanced BCE loss for proba_map
@@ -235,29 +245,63 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         return out
 
 
-def _db_resnet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> DBNet:
+def _db_resnet(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = False,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> DBNet:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['fpn_channels'] = kwargs.get('fpn_channels', _cfg['fpn_channels'])
-    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
     # Feature extractor
-    resnet = tf.keras.applications.__dict__[_cfg['backbone']](
-        include_top=False,
-        weights=None,
-        input_shape=_cfg['input_shape'],
-        pooling=None,
-    )
-
     feat_extractor = IntermediateLayerGetter(
-        resnet,
+        _cfg['backbone'](
+            include_top=False,
+            weights='imagenet' if pretrained_backbone else None,
+            input_shape=_cfg['input_shape'],
+            pooling=None,
+        ),
         _cfg['fpn_layers'],
     )
 
-    kwargs['fpn_channels'] = _cfg['fpn_channels']
-    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
+    # Build the model
+    model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, _cfg['url'])
+
+    return model
+
+
+def _db_mobilenet(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> DBNet:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+
+    # Feature extractor
+    feat_extractor = IntermediateLayerGetter(
+        _cfg['backbone'](
+            input_shape=_cfg['input_shape'],
+            include_top=False,
+            pretrained=pretrained_backbone,
+        ),
+        _cfg['fpn_layers'],
+    )
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
@@ -287,3 +331,24 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _db_resnet('db_resnet50', pretrained, **kwargs)
+
+
+def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a mobilenet v3 large backbone.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import db_mobilenet_v3_large
+        >>> model = db_mobilenet_v3_large(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _db_mobilenet('db_mobilenet_v3_large', pretrained, **kwargs)

@@ -8,31 +8,22 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers, Model
 from typing import Tuple, Dict, List, Any, Optional
 
-from ... import backbones
+from ...backbones import vgg16_bn, resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from doctr.utils.repr import NestedObject
+from ....datasets import VOCABS
 
-__all__ = ['SAR', 'SARPostProcessor', 'sar_vgg16_bn', 'sar_resnet31']
+__all__ = ['SAR', 'SARPostProcessor', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
-        'input_shape': (32, 128, 3),
-        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip',
-    },
     'sar_resnet31': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'backbone': resnet31, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (32, 128, 3),
-        'vocab': ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'
-                  'kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l'),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.1.0/sar_resnet31-ea202587.zip',
+        'vocab': VOCABS['legacy_french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/sar_resnet31-9ee49970.zip',
     },
 }
 
@@ -113,7 +104,7 @@ class SARDecoder(layers.Layer, NestedObject):
         super().__init__()
         self.vocab_size = vocab_size
         self.lstm_decoder = layers.StackedRNNCells(
-            [layers.LSTMCell(rnn_units, dtype=tf.float32, implementation=1) for _ in range(num_decoder_layers)]
+            [layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_layers)]
         )
         self.embed = layers.Dense(embedding_units, use_bias=False, input_shape=(None, self.vocab_size + 1))
         self.attention_module = AttentionModule(attention_units)
@@ -134,7 +125,7 @@ class SARDecoder(layers.Layer, NestedObject):
 
         # initialize states (each of shape (N, rnn_units))
         states = self.lstm_decoder.get_initial_state(
-            inputs=None, batch_size=features.shape[0], dtype=tf.float32
+            inputs=None, batch_size=features.shape[0], dtype=features.dtype
         )
         # run first step of lstm
         # holistic: shape (N, rnn_units)
@@ -249,7 +240,7 @@ class SAR(Model, RecognitionModel):
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len)
         masked_loss = tf.where(mask_2d, cce, mask_values)
-        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, tf.float32))
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
         return tf.expand_dims(ce_loss, axis=1)
 
     def call(
@@ -314,7 +305,15 @@ class SARPostProcessor(RecognitionPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+def _sar(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> SAR:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -327,8 +326,10 @@ def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, 
     _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
 
     # Feature extractor
-    feat_extractor = backbones.__dict__[default_cfgs[arch]['backbone']](
+    feat_extractor = default_cfgs[arch]['backbone'](
         input_shape=_cfg['input_shape'],
+        pretrained=pretrained_backbone,
+        include_top=False,
     )
 
     kwargs['vocab'] = _cfg['vocab']
@@ -345,27 +346,6 @@ def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, 
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
-
-
-def sar_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> SAR:
-    """SAR with a VGG16 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
-    Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
-
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import sar_vgg16_bn
-        >>> model = sar_vgg16_bn(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _sar('sar_vgg16_bn', pretrained, **kwargs)
 
 
 def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:

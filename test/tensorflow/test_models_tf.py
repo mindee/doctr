@@ -1,10 +1,9 @@
 import pytest
-import math
 import numpy as np
-import tensorflow as tf
 
 from doctr import models
-from doctr.documents import Document, DocumentFile
+from doctr.models.predictor import OCRPredictor
+from doctr.io import Document, DocumentFile
 from test_models_detection_tf import test_detectionpredictor, test_rotated_detectionpredictor
 from test_models_recognition_tf import test_recognitionpredictor
 
@@ -13,12 +12,12 @@ def test_ocrpredictor(
     mock_pdf, test_detectionpredictor, test_recognitionpredictor, test_rotated_detectionpredictor  # noqa: F811
 ):
 
-    predictor = models.OCRPredictor(
+    predictor = OCRPredictor(
         test_detectionpredictor,
         test_recognitionpredictor
     )
 
-    r_predictor = models.OCRPredictor(
+    r_predictor = OCRPredictor(
         test_rotated_detectionpredictor,
         test_recognitionpredictor,
         rotated_bbox=True
@@ -43,14 +42,12 @@ def test_ocrpredictor(
 @pytest.mark.parametrize(
     "det_arch, reco_arch",
     [
-        ["db_resnet50", "sar_vgg16_bn"],
         ["db_resnet50", "crnn_vgg16_bn"],
         ["db_resnet50", "sar_resnet31"],
-        ["db_resnet50", "crnn_resnet31"],
     ],
 )
 def test_zoo_models(det_arch, reco_arch):
     # Model
     predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
     # Output checks
-    assert isinstance(predictor, models.OCRPredictor)
+    assert isinstance(predictor, OCRPredictor)

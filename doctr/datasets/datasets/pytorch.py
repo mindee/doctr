@@ -5,11 +5,9 @@
 
 import os
 from typing import List, Any, Tuple
-import numpy as np
-from PIL import Image
 import torch
-from torchvision.transforms.functional import to_tensor
 
+from doctr.io import read_img_as_tensor
 from .base import _AbstractDataset, _VisionDataset
 
 
@@ -25,18 +23,7 @@ class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[torch.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        pil_img = Image.open(os.path.join(self.root, img_name), mode='r').convert('RGB')
-        if self.fp16:
-            img = torch.from_numpy(
-                np.array(pil_img, np.uint8, copy=True)
-            )
-            img = img.view(pil_img.size[1], pil_img.size[0], len(pil_img.getbands()))
-            # put it from HWC to CHW format
-            img = img.permute((2, 0, 1)).contiguous()
-            # Switch to FP16
-            img = img.to(dtype=torch.float16).div(255)
-        else:
-            img = to_tensor(pil_img)
+        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=torch.float16 if self.fp16 else torch.float32)
 
         return img, target
 

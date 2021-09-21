@@ -46,3 +46,16 @@ def test_rotate_boxes():
     rotated = geometry.rotate_boxes(boxes, angle=30)
     assert rotated.shape == (1, 5)
     assert rotated[0, 4] == 30.
+
+
+def test_rotate_image():
+    img = np.ones((32, 64, 3), dtype=np.float32)
+    rotated = geometry.rotate_image(img, 30.)
+    assert rotated.shape[:-1] == (32, 64)
+    assert rotated[0, 0, 0] == 0
+    assert rotated[0, :, 0].sum() > 1
+
+    # Expand
+    rotated = geometry.rotate_image(img, 30., expand=True)
+    assert rotated.shape[:-1] == (32, 64)
+    assert rotated[0, :, 0].sum() <= 1

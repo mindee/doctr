@@ -15,7 +15,7 @@ import subprocess
 from setuptools import find_packages, setup
 
 
-version = "0.3.1a0"
+version = "0.4.0a0"
 sha = 'Unknown'
 package_name = 'doctr'
 
@@ -47,16 +47,17 @@ _deps = [
     "PyMuPDF>=1.16.0,<1.18.11",
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
-    "matplotlib>=3.1.0",
+    "matplotlib>=3.1.0,<3.4.3",
     "mplcursors>=0.3",
-    "weasyprint>=52.2",
+    "weasyprint>=52.2,<53.0",
     "unidecode>=1.0.0",
     "tensorflow-cpu>=2.4.0",
     "torch>=1.8.0",
     "torchvision>=0.9.0",
-    "Pillow>=8.0.0,<8.3.0",  # cf. https://github.com/python-pillow/Pillow/issues/5571
+    "Pillow>=8.3.2",  # cf. https://github.com/advisories/GHSA-98vv-pw6r-q6q4
     "tqdm>=4.30.0",
-    "tensorflow-addons>=0.13.0"
+    "tensorflow-addons>=0.13.0",
+    "rapidfuzz>=1.6.0",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -80,6 +81,7 @@ install_requires = [
     deps["unidecode"],
     deps["Pillow"],
     deps["tqdm"],
+    deps["rapidfuzz"],
 ]
 
 extras = {}
@@ -95,9 +97,10 @@ setup(
     # Metadata
     name=os.getenv('PKG_INDEX') if os.getenv('PKG_INDEX') else package_name,
     version=version,
-    author='François-Guillaume Fernandez, Charles Gaillard',
+    author='Mindee',
     author_email='fg@mindee.co',
-    description='Extract valuable text information from your documents',
+    maintainer='François-Guillaume Fernandez, Charles Gaillard',
+    description='Document Text Recognition (DocTR): deep Learning for high-performance OCR on documents.',
     long_description=readme,
     long_description_content_type="text/markdown",
     url='https://github.com/mindee/doctr',

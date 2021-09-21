@@ -3,6 +3,7 @@ import torch
 import numpy as np
 
 from doctr.models import detection
+from doctr.models.detection.predictor import DetectionPredictor
 
 
 @pytest.mark.parametrize(
@@ -10,7 +11,7 @@ from doctr.models import detection
     [
         ["db_resnet34", (3, 1024, 1024), (1, 1024, 1024), True],
         ["db_resnet50", (3, 1024, 1024), (1, 1024, 1024), True],
-        ["db_mobilenet_v3", (3, 1024, 1024), (1, 1024, 1024), True],
+        ["db_mobilenet_v3_large", (3, 1024, 1024), (1, 1024, 1024), True],
         ["linknet16", (3, 1024, 1024), (1, 1024, 1024), False],
     ],
 )
@@ -31,6 +32,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert len(out) == 3
     # Check proba map
     assert out['out_map'].shape == (batch_size, *output_size)
+    assert out['out_map'].dtype == torch.float32
     if out_prob:
         assert torch.all((out['out_map'] >= 0) & (out['out_map'] <= 1))
     # Check boxes
@@ -47,7 +49,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     [
         "db_resnet34",
         "db_resnet50",
-        "db_mobilenet_v3",
+        "db_mobilenet_v3_large",
         "linknet16",
     ],
 )
@@ -56,7 +58,7 @@ def test_detection_zoo(arch_name):
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     predictor.model.eval()
     # object check
-    assert isinstance(predictor, detection.DetectionPredictor)
+    assert isinstance(predictor, DetectionPredictor)
     input_tensor = torch.rand((2, 3, 1024, 1024))
     if torch.cuda.is_available():
         predictor.model.cuda()

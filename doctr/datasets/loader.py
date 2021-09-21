@@ -6,7 +6,7 @@
 import math
 import tensorflow as tf
 import numpy as np
-from typing import Optional
+from typing import Optional, Callable
 
 from doctr.utils.multithreading import multithread_exec
 
@@ -55,13 +55,17 @@ class DataLoader:
         batch_size: int = 1,
         drop_last: bool = False,
         workers: Optional[int] = None,
+        collate_fn: Optional[Callable] = None,
     ) -> None:
         self.dataset = dataset
         self.shuffle = shuffle
         self.batch_size = batch_size
         nb = len(self.dataset) / batch_size
         self.num_batches = math.floor(nb) if drop_last else math.ceil(nb)
-        self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
+        if collate_fn is None:
+            self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
+        else:
+            self.collate_fn = collate_fn
         self.workers = workers
         self.reset()
 

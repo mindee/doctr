@@ -140,12 +140,8 @@ def test_ocrdataset(mock_ocrdataset):
         *mock_ocrdataset,
         sample_transforms=Resize(input_size),
     )
-    rotated_ds = datasets.OCRDataset(
-        *mock_ocrdataset,
-        sample_transforms=Resize(input_size),
-        rotated_bbox=True
-    )
-    assert len(ds) == 5
+
+    assert len(ds) == 3
     img, target = ds[0]
     assert isinstance(img, torch.Tensor)
     assert img.shape[-2:] == input_size
@@ -153,9 +149,7 @@ def test_ocrdataset(mock_ocrdataset):
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
-    assert target['boxes'].shape[1] == 4
-    _, r_target = rotated_ds[0]
-    assert r_target['boxes'].shape[1] == 5
+    assert target['boxes'].shape[1] == 5
     # Flags
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     # Cardinality consistency
@@ -172,3 +166,29 @@ def test_ocrdataset(mock_ocrdataset):
     assert img.dtype == torch.float16
     # Bounding boxes
     assert target['boxes'].dtype == np.float16
+
+
+def test_charactergenerator():
+
+    input_size = (32, 32)
+    vocab = 'abcdef'
+
+    ds = datasets.CharacterGenerator(
+        vocab=vocab,
+        num_samples=10,
+        cache_samples=True,
+        sample_transforms=Resize(input_size),
+    )
+
+    assert len(ds) == 10
+    image, label = ds[0]
+    assert isinstance(image, torch.Tensor)
+    assert image.shape[-2:] == input_size
+    assert image.dtype == torch.float32
+    assert isinstance(label, int) and label < len(vocab)
+
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
+    assert targets.dtype == torch.int64

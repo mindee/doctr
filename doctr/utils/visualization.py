@@ -8,65 +8,129 @@ from matplotlib.figure import Figure
 import matplotlib.patches as patches
 import mplcursors
 from PIL import ImageFont, ImageDraw, Image
+from copy import deepcopy
 import numpy as np
 import cv2
-from typing import Tuple, List, Dict, Any, Union
+from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
+from .fonts import get_font
 
-__all__ = ['visualize_page', 'synthetize_page']
+__all__ = ['visualize_page', 'synthesize_page', 'draw_boxes']
 
 
-def create_rect_patch(
-    geometry: Union[BoundingBox, RotatedBbox],
-    label: str,
+def rect_patch(
+    geometry: BoundingBox,
     page_dimensions: Tuple[int, int],
-    color: Tuple[int, int, int],
+    label: Optional[str] = None,
+    color: Tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
-) -> patches.Patch:
-    """Create a matplotlib patch (rectangle) bounding the element
+) -> patches.Rectangle:
+    """Create a matplotlib rectangular patch for the element
 
     Args:
         geometry: bounding box of the element
-        label: label to display when hovered
         page_dimensions: dimensions of the Page
+        label: label to display when hovered
         color: color to draw box
         alpha: opacity parameter to fill the boxes, 0 = transparent
         linewidth: line width
+        fill: whether the patch should be filled
 
     Returns:
         a rectangular Patch
     """
+
+    if len(geometry) != 2 or any(not isinstance(elt, tuple) or len(elt) != 2 for elt in geometry):
+        raise ValueError("invalid geometry format")
+
+    # Unpack
     height, width = page_dimensions
-    if len(geometry) == 5:
-        x, y, w, h, a = geometry  # type: ignore[misc]
-        x, w = x * width, w * width
-        y, h = y * height, h * height
-        points = cv2.boxPoints(((x, y), (w, h), a))
-        return patches.Polygon(
-            points,
-            fill=fill,
-            linewidth=linewidth,
-            edgecolor=(*color, alpha),
-            facecolor=(*color, alpha),
-            label=label
-        )
-    else:
-        (xmin, ymin), (xmax, ymax) = geometry  # type: ignore[misc]
-        xmin, xmax = xmin * width, xmax * width
-        ymin, ymax = ymin * height, ymax * height
-        return patches.Rectangle(
-            (xmin, ymin),
-            xmax - xmin,
-            ymax - ymin,
-            fill=fill,
-            linewidth=linewidth,
-            edgecolor=(*color, alpha),
-            facecolor=(*color, alpha),
-            label=label
-        )
+    (xmin, ymin), (xmax, ymax) = geometry
+    # Switch to absolute coords
+    xmin, w = xmin * width, (xmax - xmin) * width
+    ymin, h = ymin * height, (ymax - ymin) * height
+
+    return patches.Rectangle(
+        (xmin, ymin),
+        w,
+        h,
+        fill=fill,
+        linewidth=linewidth,
+        edgecolor=(*color, alpha),
+        facecolor=(*color, alpha),
+        label=label,
+    )
+
+
+def polygon_patch(
+    geometry: RotatedBbox,
+    page_dimensions: Tuple[int, int],
+    label: Optional[str] = None,
+    color: Tuple[float, float, float] = (0, 0, 0),
+    alpha: float = 0.3,
+    linewidth: int = 2,
+    fill: bool = True,
+) -> patches.Polygon:
+    """Create a matplotlib polygon patch for the element
+
+    Args:
+        geometry: bounding box of the element
+        page_dimensions: dimensions of the Page
+        label: label to display when hovered
+        color: color to draw box
+        alpha: opacity parameter to fill the boxes, 0 = transparent
+        linewidth: line width
+        fill: whether the patch should be filled
+
+    Returns:
+        a polygon Patch
+    """
+
+    if len(geometry) != 5 or any(not isinstance(elt, float) for elt in geometry):
+        raise ValueError("invalid geometry format")
+
+    # Unpack
+    height, width = page_dimensions
+    x, y, w, h, a = geometry
+    # Switch to absolute coords
+    x, w = x * width, w * width
+    y, h = y * height, h * height
+    points = cv2.boxPoints(((x, y), (w, h), a))
+
+    return patches.Polygon(
+        points,
+        fill=fill,
+        linewidth=linewidth,
+        edgecolor=(*color, alpha),
+        facecolor=(*color, alpha),
+        label=label,
+    )
+
+
+def create_obj_patch(
+    geometry: Union[BoundingBox, RotatedBbox],
+    page_dimensions: Tuple[int, int],
+    **kwargs: Any,
+) -> patches.Patch:
+    """Create a matplotlib patch for the element
+
+    Args:
+        geometry: bounding box (straight or rotated) of the element
+        page_dimensions: dimensions of the page
+
+    Returns:
+        a matplotlib Patch
+    """
+    if isinstance(geometry, tuple):
+        if len(geometry) == 2:
+            return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
+        elif len(geometry) == 5:
+            return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
+
+    raise ValueError("invalid geometry format")
 
 
 def visualize_page(
@@ -115,7 +179,8 @@ def visualize_page(
 
     for block in page['blocks']:
         if not words_only:
-            rect = create_rect_patch(block['geometry'], 'block', page['dimensions'], (0, 1, 0), linewidth=1, **kwargs)
+            rect = create_obj_patch(block['geometry'], page['dimensions'],
+                                    label='block', color=(0, 1, 0), linewidth=1, **kwargs)
             # add patch on figure
             ax.add_patch(rect)
             if interactive:
@@ -124,14 +189,16 @@ def visualize_page(
 
         for line in block['lines']:
             if not words_only:
-                rect = create_rect_patch(line['geometry'], 'line', page['dimensions'], (1, 0, 0), linewidth=1, **kwargs)
+                rect = create_obj_patch(line['geometry'], page['dimensions'],
+                                        label='line', color=(1, 0, 0), linewidth=1, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
 
             for word in line['words']:
-                rect = create_rect_patch(word['geometry'], f"{word['value']} (confidence: {word['confidence']:.2%})",
-                                         page['dimensions'], (0, 0, 1), **kwargs)
+                rect = create_obj_patch(word['geometry'], page['dimensions'],
+                                        label=f"{word['value']} (confidence: {word['confidence']:.2%})",
+                                        color=(0, 0, 1), **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
@@ -156,11 +223,11 @@ def visualize_page(
 
         if display_artefacts:
             for artefact in block['artefacts']:
-                rect = create_rect_patch(
+                rect = create_obj_patch(
                     artefact['geometry'],
-                    'artefact',
                     page['dimensions'],
-                    (0.5, 0.5, 0.5),  # type: ignore[arg-type]
+                    label='artefact',
+                    color=(0.5, 0.5, 0.5),
                     linewidth=1,
                     **kwargs
                 )
@@ -176,10 +243,11 @@ def visualize_page(
     return fig
 
 
-def synthetize_page(
+def synthesize_page(
     page: Dict[str, Any],
     draw_proba: bool = False,
     font_size: int = 13,
+    font_family: Optional[str] = None,
 ) -> np.ndarray:
     """Draw a the content of the element page (OCR response) on a blank page.
 
@@ -187,10 +255,12 @@ def synthetize_page(
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
         font_size: size of the font, default font = 13
+        font_family: family of the font
 
     Return:
-        A np array (drawn page)
+        the synthesized page
     """
+
     # Draw template
     h, w = page["dimensions"]
     response = 255 * np.ones((h, w, 3), dtype=np.int32)
@@ -205,16 +275,11 @@ def synthetize_page(
                 ymin, ymax = int(h * ymin), int(h * ymax)
 
                 # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
-                h_box, w_box = ymax - ymin, xmax - xmin
-                h_font, w_font = font_size, int(font_size * w_box / (h_box * 0.75))
-                img = Image.new('RGB', (w_font, h_font), color=(255, 255, 255))
+                font = get_font(font_family, int(0.75 * (ymax - ymin)))
+                img = Image.new('RGB', (xmax - xmin, ymax - ymin), color=(255, 255, 255))
                 d = ImageDraw.Draw(img)
-
                 # Draw in black the value of the word
-                d.text((0, 0), word["value"], font=ImageFont.load_default(), fill=(0, 0, 0))
-
-                # Resize back to box size
-                img = img.resize((w_box, h_box), Image.NEAREST)
+                d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
 
                 # Colorize if draw_proba
                 if draw_proba:
@@ -229,3 +294,34 @@ def synthetize_page(
                 response[ymin:ymax, xmin:xmax, :] = np.array(img)
 
     return response
+
+
+def draw_boxes(
+    boxes: np.ndarray,
+    image: np.ndarray,
+    color: Optional[Tuple] = None,
+    **kwargs
+) -> None:
+    """Draw an array of relative straight boxes on an image
+
+    Args:
+        boxes: array of relative boxes, of shape (*, 4)
+        image: np array, float32 or uint8
+    """
+    h, w = image.shape[:2]
+    # Convert boxes to absolute coords
+    _boxes = deepcopy(boxes)
+    _boxes[:, [0, 2]] *= w
+    _boxes[:, [1, 3]] *= h
+    _boxes = _boxes.astype(np.int32)
+    for box in _boxes.tolist():
+        xmin, ymin, xmax, ymax = box
+        image = cv2.rectangle(
+            image,
+            (xmin, ymin),
+            (xmax, ymax),
+            color=color if isinstance(color, tuple) else (0, 0, 255),
+            thickness=2
+        )
+    plt.imshow(image)
+    plt.plot(**kwargs)

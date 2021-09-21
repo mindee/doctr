@@ -14,6 +14,8 @@ Easy-to-use functions to make sense of your model's predictions.
 
 .. autofunction:: visualize_page
 
+.. autofunction:: synthesize_page
+
 
 .. _metrics:
 
@@ -25,12 +27,15 @@ Implementations of task-specific metrics to easily assess your model performance
 
 .. autoclass:: TextMatch
 
+   .. automethod:: update
    .. automethod:: summary
 
 .. autoclass:: LocalizationConfusion
 
+   .. automethod:: update
    .. automethod:: summary
 
 .. autoclass:: OCRMetric
 
+   .. automethod:: update
    .. automethod:: summary

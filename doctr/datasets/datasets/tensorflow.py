@@ -7,6 +7,7 @@ import os
 from typing import List, Any, Tuple
 import tensorflow as tf
 
+from doctr.io import read_img_as_tensor
 from .base import _AbstractDataset, _VisionDataset
 
 
@@ -22,14 +23,7 @@ class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[tf.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        img = tf.io.read_file(os.path.join(self.root, img_name))
-        img = tf.image.decode_jpeg(img, channels=3)
-        if self.fp16:
-            img = tf.image.convert_image_dtype(img, dtype=tf.float16)
-        else:
-            img = tf.image.convert_image_dtype(img, dtype=tf.float32)
-
-        img = tf.clip_by_value(img, 0, 1)
+        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=tf.float16 if self.fp16 else tf.float32)
 
         return img, target
 

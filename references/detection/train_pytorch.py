@@ -9,11 +9,12 @@ os.environ['USE_TORCH'] = '1'
 
 import time
 import datetime
+import logging
 import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torchvision.transforms import Compose, Lambda, Normalize, ColorJitter
+from torchvision.transforms import Compose, Normalize, ColorJitter
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
@@ -42,6 +43,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         optimizer.zero_grad()
         train_loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
         optimizer.step()
         scheduler.step()
 
@@ -121,6 +123,12 @@ def main(args):
             raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
         if args.device >= torch.cuda.device_count():
             raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    else:
+        logging.warning("No accessible GPU, targe device set to CPU.")
+    if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
 
@@ -215,8 +223,11 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-                 f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})")
+        log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+        if any(val is None for val in (recall, precision, mean_iou)):
+            log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
+        else:
+            log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
         # W&B
         if args.wb:
             wandb.log({
@@ -235,7 +246,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR train text-detection model (PyTorch)',
+    parser = argparse.ArgumentParser(description='DocTR training script for text detection (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('data_path', type=str, help='path to data folder')

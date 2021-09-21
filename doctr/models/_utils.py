@@ -9,16 +9,17 @@ from math import floor
 from typing import List
 from statistics import median_low
 
-__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'rotate_page', 'get_bitmap_angle']
+__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
 
 
-def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
+def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
         img: input image
         boxes: bounding boxes of shape (N, 4) where N is the number of boxes, and the relative
             coordinates (xmin, ymin, xmax, ymax)
+        channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
         list of cropped images
@@ -30,22 +31,33 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
 
     # Project relative coordinates
     _boxes = boxes.copy()
+    h, w = img.shape[:2] if channels_last else img.shape[-2:]
     if _boxes.dtype != np.int:
-        _boxes[:, [0, 2]] *= img.shape[1]
-        _boxes[:, [1, 3]] *= img.shape[0]
+        _boxes[:, [0, 2]] *= w
+        _boxes[:, [1, 3]] *= h
         _boxes = _boxes.round().astype(int)
         # Add last index
         _boxes[2:] += 1
-    return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
+    if channels_last:
+        return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
+    else:
+        return [img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
-def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
+def extract_rcrops(
+    img: np.ndarray,
+    boxes: np.ndarray,
+    dtype=np.float32,
+    channels_last: bool = True
+) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:
         img: input image
         boxes: bounding boxes of shape (N, 5) where N is the number of boxes, and the relative
             coordinates (x, y, w, h, alpha)
+        dtype: target data type of bounding boxes
+        channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
         list of cropped images
@@ -57,9 +69,10 @@ def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
 
     # Project relative coordinates
     _boxes = boxes.copy()
+    height, width = img.shape[:2] if channels_last else img.shape[-2:]
     if _boxes.dtype != np.int:
-        _boxes[:, [0, 2]] *= img.shape[1]
-        _boxes[:, [1, 3]] *= img.shape[0]
+        _boxes[:, [0, 2]] *= width
+        _boxes[:, [1, 3]] *= height
 
     crops = []
     # Determine rotation direction (clockwise/counterclockwise)
@@ -69,20 +82,20 @@ def extract_rcrops(img: np.ndarray, boxes: np.ndarray) -> List[np.ndarray]:
         clockwise = True
 
     for box in _boxes:
-        x, y, w, h, alpha = box.astype(np.float32)
+        x, y, w, h, alpha = box.astype(dtype)
         src_pts = cv2.boxPoints(((x, y), (w, h), alpha))[1:, :]
         # Preserve size
         if clockwise:
-            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=np.float32)
+            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
         else:
-            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=np.float32)
+            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=dtype)
         # The transformation matrix
         M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
         if clockwise:
-            crop = cv2.warpAffine(img, M, (int(w), int(h)))
+            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
         else:
-            crop = cv2.warpAffine(img, M, (int(h), int(w)))
+            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(h), int(w)))
         crops.append(crop)
 
     return crops

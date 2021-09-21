@@ -2,18 +2,20 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import recognition, PreProcessor
-from doctr.documents import DocumentFile
-from doctr.models import extract_crops
+from doctr.models import recognition
+from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models._utils import extract_crops
+from doctr.models.preprocessor import PreProcessor
+from doctr.io import DocumentFile
 
 
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
         ["crnn_vgg16_bn", (32, 128, 3)],
-        ["sar_vgg16_bn", (32, 128, 3)],
+        ["crnn_mobilenet_v3_small", (32, 128, 3)],
+        ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
-        ["crnn_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
     ],
 )
@@ -27,10 +29,11 @@ def test_recognition_models(arch_name, input_shape):
     out = reco_model(input_tensor, target, return_model_output=True, return_preds=True)
     assert isinstance(out, dict)
     assert len(out) == 3
+    assert isinstance(out['out_map'], tf.Tensor)
+    assert out['out_map'].dtype == tf.float32
     assert isinstance(out['preds'], list)
     assert len(out['preds']) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
-    assert isinstance(out['out_map'], tf.Tensor)
     assert isinstance(out['loss'], tf.Tensor)
 
 
@@ -57,7 +60,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
-    predictor = recognition.RecognitionPredictor(
+    predictor = RecognitionPredictor(
         PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),
         recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
     )
@@ -85,9 +88,9 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
     "arch_name",
     [
         "crnn_vgg16_bn",
-        "sar_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
         "sar_resnet31",
-        "crnn_resnet31",
         "master"
     ],
 )
@@ -96,7 +99,7 @@ def test_recognition_zoo(arch_name):
     # Model
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     # object check
-    assert isinstance(predictor, recognition.RecognitionPredictor)
+    assert isinstance(predictor, RecognitionPredictor)
     input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size

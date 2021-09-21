@@ -11,7 +11,7 @@ from typing import Optional
 __all__ = ['Decoder', 'positional_encoding']
 
 
-def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
+def positional_encoding(position: int, d_model: int = 512, dtype=torch.float32) -> torch.Tensor:
     """Implementation borrowed from this pytorch tutorial:
     <https://pytorch.org/tutorials/beginner/transformer_tutorial.html>`_.
 
@@ -23,8 +23,8 @@ def positional_encoding(position: int, d_model: int = 512) -> torch.Tensor:
         2D positional encoding as described in Transformer paper.
     """
     pe = torch.zeros(position, d_model)
-    pos = torch.arange(0, position, dtype=torch.float).unsqueeze(1)
-    div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+    pos = torch.arange(0, position, dtype=dtype).unsqueeze(1)
+    div_term = torch.exp(torch.arange(0, d_model, 2, dtype=dtype) * (-math.log(10000.0) / d_model))
     pe[:, 0::2] = torch.sin(pos * div_term)
     pe[:, 1::2] = torch.cos(pos * div_term)
     return pe.unsqueeze(0)

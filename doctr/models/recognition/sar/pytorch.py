@@ -9,29 +9,21 @@ from torch import nn
 from torch.nn import functional as F
 from typing import Tuple, Dict, List, Any, Optional
 
-from ... import backbones
+from ...backbones import vgg16_bn, resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS
 
 
-__all__ = ['SAR', 'sar_vgg16_bn', 'sar_resnet31']
+__all__ = ['SAR', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_vgg16_bn': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'backbone': 'vgg16_bn', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
-        'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
-        'url': None,
-    },
     'sar_resnet31': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': 'resnet31', 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
+        'backbone': resnet31, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
+        'vocab': VOCABS['legacy_french'],
         'url': None,
     },
 }
@@ -107,7 +99,7 @@ class SARDecoder(nn.Module):
         # initialize states (each of shape (N, rnn_units))
         hx = [None, None]
         # Initialize with the index of virtual START symbol (placed after <eos>)
-        symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device)
+        symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=features.dtype)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
 
@@ -131,7 +123,7 @@ class SARDecoder(nn.Module):
                 _symbol = gt[:, t]  # type: ignore[index]
             else:
                 _symbol = logits.argmax(-1)
-            symbol = F.one_hot(_symbol, self.vocab_size + 1).to(dtype=torch.float32)
+            symbol = F.one_hot(_symbol, self.vocab_size + 1).to(dtype=features.dtype)
             logits_list.append(logits)
         outputs = torch.stack(logits_list, 1)  # shape (N, max_length + 1, vocab_size + 1)
 
@@ -241,7 +233,7 @@ class SAR(nn.Module, RecognitionModel):
         mask_2d = torch.arange(input_len, device=model_output.device)[None, :] < seq_len[:, None]
         cce[mask_2d] = 0
 
-        ce_loss = cce.sum(1) / seq_len.to(dtype=torch.float32)
+        ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.mean()
 
 
@@ -268,7 +260,15 @@ class SARPostProcessor(RecognitionPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> SAR:
+def _sar(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> SAR:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -280,7 +280,10 @@ def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, 
     _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
 
     # Feature extractor
-    feat_extractor = backbones.__dict__[default_cfgs[arch]['backbone']]()
+    feat_extractor = default_cfgs[arch]['backbone'](pretrained=pretrained_backbone)
+    # Trick to keep only the features while it's not unified between both frameworks
+    if arch.split('_')[1] == "mobilenet":
+        feat_extractor = feat_extractor.features
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']
@@ -296,27 +299,6 @@ def _sar(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, 
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
-
-
-def sar_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> SAR:
-    """SAR with a VGG16 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
-    Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
-
-    Example::
-        >>> import torch
-        >>> from doctr.models import sar_vgg16_bn
-        >>> model = sar_vgg16_bn(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 128))
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _sar('sar_vgg16_bn', pretrained, **kwargs)
 
 
 def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:

@@ -22,11 +22,11 @@ __all__ = ['MASTER', 'master', 'MASTERPostProcessor']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
-        'url': None,
+        'vocab': VOCABS['legacy_french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/master-bade6eae.zip',
     },
 }
 
@@ -141,7 +141,7 @@ class MAGCResnet(Sequential):
     def __init__(
         self,
         headers: int = 8,
-        input_shape: Tuple[int, int, int] = (48, 160, 3),
+        input_shape: Tuple[int, int, int] = (32, 128, 3),
     ) -> None:
         _layers = [
             # conv_1x
@@ -196,7 +196,7 @@ class MASTER(_MASTER, Model):
         num_layers: int = 3,
         max_length: int = 50,
         dropout: float = 0.2,
-        input_shape: Tuple[int, int, int] = (48, 160, 3),
+        input_shape: Tuple[int, int, int] = (32, 128, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
@@ -259,7 +259,7 @@ class MASTER(_MASTER, Model):
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
         masked_loss = tf.where(mask_2d, cce, mask_values)
-        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, tf.float32))
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
 
         return tf.expand_dims(ce_loss, axis=1)
 
@@ -338,7 +338,7 @@ class MASTER(_MASTER, Model):
         start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-        logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=tf.float32)  # 3 symbols
+        logits = tf.zeros(shape=(b, max_len - 1, self.vocab_size + 3), dtype=encoded.dtype)  # 3 symbols
         # max_len = len + 2 (sos + eos)
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)

@@ -2,13 +2,15 @@ import pytest
 import torch
 
 from doctr.models import recognition
+from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
         ["crnn_vgg16_bn", (3, 32, 128)],
-        ["crnn_resnet31", (3, 32, 128)],
+        ["crnn_mobilenet_v3_small", (3, 32, 128)],
+        ["crnn_mobilenet_v3_large", (3, 32, 128)],
         ["sar_resnet31", (3, 32, 128)],
         ["master", (3, 48, 160)],
     ],
@@ -30,6 +32,7 @@ def test_recognition_models(arch_name, input_shape, mock_vocab):
     assert len(out['preds']) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
     assert isinstance(out['out_map'], torch.Tensor)
+    assert out['out_map'].dtype == torch.float32
     assert isinstance(out['loss'], torch.Tensor)
 
 
@@ -55,9 +58,9 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     "arch_name",
     [
         "crnn_vgg16_bn",
-        "sar_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
         "sar_resnet31",
-        "crnn_resnet31",
         "master"
     ],
 )
@@ -67,7 +70,7 @@ def test_recognition_zoo(arch_name):
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     predictor.model.eval()
     # object check
-    assert isinstance(predictor, recognition.RecognitionPredictor)
+    assert isinstance(predictor, RecognitionPredictor)
     input_tensor = torch.rand((batch_size, 3, 128, 128))
     if torch.cuda.is_available():
         predictor.model.cuda()

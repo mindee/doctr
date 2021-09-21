@@ -1,7 +1,8 @@
+<p align="center">
+  <img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="40%">
+</p>
 
-# DocTR: Document Text Recognition
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.3.0-blue.svg)](https://pypi.org/project/python-doctr/) 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.3.1-blue.svg)](https://pypi.org/project/python-doctr/) 
 
 
 **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 (PyTorch in beta)**
@@ -31,7 +32,7 @@ model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrai
 Documents can be interpreted from PDF or images:
 
 ```python
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 # PDF
 pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 # Image
@@ -45,7 +46,7 @@ multi_img_doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jp
 ### Putting it together
 Let's use the default pretrained model for an example:
 ```python
-from doctr.documents import DocumentFile
+from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 
 model = ocr_predictor(pretrained=True)
@@ -55,16 +56,27 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 result = model(doc)
 ```
 
-To make sense of your model's predictions, you can visualize them as follows:
+To make sense of your model's predictions, you can visualize them interactively as follows:
 
 ```python
 result.show(doc)
 ```
 
-![DocTR example](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
+![Visualization sample](https://github.com/mindee/doctr/releases/download/v0.1.1/doctr_example_script.gif)
 
-The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
-To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/documents.html#document-structure):
+Or even rebuild the original document from its predictions:
+
+```python
+import matplotlib.pyplot as plt
+
+plt.imshow(result.synthesize()); plt.axis('off'); plt.show()
+```
+
+![Synthesis sample](https://github.com/mindee/doctr/releases/download/v0.3.1/synthesized_sample.png)
+
+
+The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/io.html#document-structure):
 
 You can also export them as a nested dict, more appropriate for JSON format:
 
@@ -75,22 +87,12 @@ For examples & further details about the export format, please refer to [this se
 
 ## Installation
 
+### Prerequisites
+
 Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install DocTR. Additionally, you will need to install at least one of [TensorFlow](https://www.tensorflow.org/install/) or [PyTorch](https://pytorch.org/get-started/locally/#start-locally).
 
-You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
-
-```shell
-pip install python-doctr
-```
-
-Or you can install it from source:
-
-```shell
-git clone https://github.com/mindee/doctr.git
-pip install -e doctr/.
-```
-
 Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
+
 For MacOS users, you can install them as follows:
 ```shell
 brew install cairo pango gdk-pixbuf libffi
@@ -98,13 +100,47 @@ brew install cairo pango gdk-pixbuf libffi
 
 For Windows users, those dependencies are included in GTK. You can find the latest installer over [here](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).
 
+### Latest release
+
+You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
+
+```shell
+pip install python-doctr
+```
+
+We try to keep framework-specific dependencies to a minimum. But if you encounter missing ones, you can install framework-specific builds as follows:
+
+```shell
+# for TensorFlow
+pip install python-doctr[tf]
+# for PyTorch
+pip install python-doctr[torch]
+```
+
+### Developer mode
+Alternatively, you can install it from source, which will require you to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+First clone the project repository:
+
+```shell
+git clone https://github.com/mindee/doctr.git
+pip install -e doctr/.
+```
+
+Again, if you prefer to avoid the risk of missing dependencies, you can install the TensorFlow or the PyTorch build:
+```shell
+# for TensorFlow
+pip install -e doctr/.[tf]
+# for PyTorch
+pip install -e doctr/.[torch]
+```
+
 
 ## Models architectures
 Credits where it's due: this repository is implementing, among others, architectures from published research papers.
 
 ### Text Detection
 - [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
-- [LinkNet: Exploiting Encoder Representations forEfficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
+- [LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
 
 ### Text Recognition
 - [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
@@ -194,7 +230,7 @@ If you wish to cite this project, feel free to use this [BibTeX](http://www.bibt
 ```bibtex
 @misc{doctr2021,
     title={DocTR: Document Text Recognition},
-    author={François-Guillaume Fernandez, Charles Gaillard},
+    author={Mindee},
     year={2021},
     publisher = {GitHub},
     howpublished = {\url{https://github.com/mindee/doctr}}

@@ -23,9 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet16': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'num_classes': 1,
         'input_shape': (1024, 1024, 3),
-        'rotated_bbox': False,
         'url': None,
     },
 }
@@ -158,7 +156,7 @@ class LinkNet(_LinkNet, keras.Model):
             A loss tensor
         """
         seg_target, seg_mask, edge_mask = self.compute_target(target, out_map.shape[:3])
-        seg_target = tf.convert_to_tensor(seg_target, dtype=tf.float32)
+        seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         edge_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
 
@@ -186,7 +184,7 @@ class LinkNet(_LinkNet, keras.Model):
         else:
             # Compute BCE loss with highlighted edges
             loss = tf.math.multiply(
-                1 + (edge_factor - 1) * tf.cast(edge_mask, tf.float32),
+                1 + (edge_factor - 1) * tf.cast(edge_mask, out_map.dtype),
                 bce
             )
             loss = tf.reduce_mean(loss)
@@ -229,12 +227,8 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['num_classes'] = kwargs.get('num_classes', _cfg['num_classes'])
-    _cfg['rotated_bbox'] = kwargs.get('rotated_bbox', _cfg['rotated_bbox'])
 
-    kwargs['num_classes'] = _cfg['num_classes']
     kwargs['input_shape'] = _cfg['input_shape']
-    kwargs['rotated_bbox'] = _cfg['rotated_bbox']
     # Build the model
     model = LinkNet(cfg=_cfg, **kwargs)
     # Load pretrained parameters

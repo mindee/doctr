@@ -16,13 +16,15 @@ Text Detection
 --------------
 Localizing text elements in images
 
-+---------------------------------------------------+----------------------------+----------------------------+---------+
-|                                                   |        FUNSD               |        CORD                |         |
-+==================+=================+==============+============+===============+============+===============+=========+
-| **Architecture** | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
-+------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_resnet50      | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
-+------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
++------------------------------------------------------------------+----------------------------+----------------------------+---------+
+|                                                                  |        FUNSD               |        CORD                |         |
++=================================+=================+==============+============+===============+============+===============+=========+
+| **Architecture**                | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
++---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| db_resnet50                     | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| db_mobilenet_v3_large           | (1024, 1024, 3) |              | 79.35      | 84.03         | 81.14      | 66.85         |         |
++---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
 All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
@@ -46,6 +48,7 @@ Detection models
 Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:
 
 .. autofunction:: doctr.models.detection.db_resnet50
+.. autofunction:: doctr.models.detection.db_mobilenet_v3_large
 .. autofunction:: doctr.models.detection.linknet16
 
 Detection predictors
@@ -72,20 +75,20 @@ Identifying strings in images
    * - crnn_vgg16_bn
      - (32, 128, 3)
      - 15.8M
-     - 86.02
-     - 91.3
+     - 87.15
+     - 92.92
      - 12.8
-   * - sar_vgg16_bn
+   * - master
      - (32, 128, 3)
-     - 21.5M
-     - 86.2
-     - 91.7
-     - 3.3
+     -
+     - 87.62
+     - 93.27
+     -
    * - sar_resnet31
      - (32, 128, 3)
      - 53.1M
-     - **86.3**
-     - **92.1**
+     - **87.70**
+     - **93.41**
      - 2.7
 
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
@@ -113,7 +116,7 @@ Models expect a TensorFlow tensor as input and produces one in return. DocTR inc
 
 
 .. autofunction:: doctr.models.recognition.crnn_vgg16_bn
-.. autofunction:: doctr.models.recognition.sar_vgg16_bn
+.. autofunction:: doctr.models.recognition.crnn_mobilenet_v3_large
 .. autofunction:: doctr.models.recognition.sar_resnet31
 .. autofunction:: doctr.models.recognition.master
 
@@ -129,23 +132,25 @@ End-to-End OCR
 --------------
 Predictors that localize and identify text elements in images
 
-+-----------------------------+--------------------------------------+--------------------------------------+
-|                             |                  FUNSD               |                  CORD                |
-+=============================+============+===============+=========+============+===============+=========+
-| **Architecture**            | **Recall** | **Precision** | **FPS** | **Recall** | **Precision** | **FPS** |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| db_resnet50 + crnn_vgg16_bn | 70.08      | 74.77         | 0.85    | 82.19      | **79.67**     | 1.6     |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| db_resnet50 + sar_vgg16_bn  | N/A        | N/A           | 0.49    | N/A        | N/A           | 1.0     |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| db_resnet50 + sar_resnet31  | N/A        | N/A           | 0.27    | N/A        | N/A           | 0.83    |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| Gvision text detection      | 59.50      | 62.50         |         | 75.30      | 70.00         |         |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| Gvision doc. text detection | 64.00      | 53.30         |         | 68.90      | 61.10         |         |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
-| AWS textract                | **78.10**  | **83.00**     |         | **87.50**  | 66.00         |         |
-+-----------------------------+------------+---------------+---------+------------+---------------+---------+
++----------------------------------------+--------------------------------------+--------------------------------------+
+|                                        |                  FUNSD               |                  CORD                |
++========================================+============+===============+=========+============+===============+=========+
+| **Architecture**                       | **Recall** | **Precision** | **FPS** | **Recall** | **Precision** | **FPS** |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + crnn_vgg16_bn            | 71.00      | 76.02         | 0.85    | 83.87      |   81.34       | 1.6     |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + master                   | 71.03      | 76.06         |         | 84.49      |   81.94       |         |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| db_resnet50 + sar_resnet31             | 71.25      | 76.29         | 0.27    | 84.50      | **81.96**     | 0.83    |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| db_mobilenet_v3_large + crnn_vgg16_bn  | 67.73      | 71.73         |         | 71.65      | 59.03         |         |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| Gvision text detection                 | 59.50      | 62.50         |         | 75.30      | 70.00         |         |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| Gvision doc. text detection            | 64.00      | 53.30         |         | 68.90      | 61.10         |         |
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
+| AWS textract                           | **78.10**  | **83.00**     |         | **87.50**  | 66.00         |         |
++--------------------------------- ------+------------+---------------+---------+------------+---------------+---------+
 
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
@@ -159,17 +164,23 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 
 Results on private ocr datasets
 
-+------------------------------------+----------------------------+----------------------------+----------------------------+
-|                                    |          Receipts          |            Invoices        |            IDs             |
-+====================================+============+===============+============+===============+============+===============+
-| **Architecture**                   | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + crnn_vgg16_bn (ours) | **78.90**  | **81.01**     | 65.68      | **69.86**     | **49.48**  | **50.46**     |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
-| Gvision doc. text detection        | 68.91      | 59.89         | 63.20      | 52.85         | 43.70      | 29.21         |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
-| AWS textract                       | 75.77      | 77.70         | **70.47**  | 69.13         | 46.39      | 43.32         |
-+------------------------------------+------------+---------------+------------+---------------+------------+---------------+
++----------------------------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|                                              |          Receipts          |            Invoices        |            IDs             |        US Tax Forms        |
++==============================================+============+===============+============+===============+============+===============+============+===============+
+| **Architecture**                             | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_resnet50 + crnn_vgg16_bn (ours)           |   78.70    |   81.12       | 65.80      |   70.70       |   50.25    |   51.78       |   79.08    |   92.83       |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_resnet50 + master (ours)                  | **79.00**  | **81.42**     | 65.57      |   69.86       |   51.34    |   52.90       |   78.86    |   92.57       |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_resnet50 + sar_resnet31 (ours)            |   78.94    |   81.37       | 65.89      | **70.79**     | **51.78**  | **53.35**     |   79.04    |   92.78       |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| db_mobilenet_v3_large + crnn_vgg16_bn (ours) |   78.36    |   74.93       | 63.04      | 68.41         | 39.36      | 41.75         |   72.14    |   89.97       |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| Gvision doc. text detection                  | 68.91      | 59.89         | 63.20      | 52.85         | 43.70      | 29.21         |   69.79    |   65.68       |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+| AWS textract                                 | 75.77      | 77.70         | **70.47**  | 69.13         | 46.39      | 43.32         | **84.31**  | **98.11**     |
++----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
 
 
 Two-stage approaches
@@ -256,11 +267,46 @@ Utility functions to make the most of document analysis models.
 Model compression
 ^^^^^^^^^^^^^^^^^
 
-.. autofunction:: convert_to_tflite
+This section is meant to help you perform inference with compressed versions of your model.
 
-.. autofunction:: convert_to_fp16
 
-.. autofunction:: quantize_model
+TensorFlow Lite
+"""""""""""""""
+
+TensorFlow provides utilities packaged as TensorFlow Lite to take resource constraints into account. You can easily convert any Keras model into a serialized TFLite version as follows:
+
+    >>> import tensorflow as tf
+    >>> from tensorflow.keras import Sequential
+    >>> from doctr.models import conv_sequence
+    >>> model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))
+    >>> converter = tf.lite.TFLiteConverter.from_keras_model(tf_model)
+    >>> serialized_model = converter.convert()
+
+Half-precision
+""""""""""""""
+
+If you want to convert it to half-precision using your TFLite converter
+
+    >>> converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    >>> converter.target_spec.supported_types = [tf.float16]
+    >>> serialized_model = converter.convert()
+
+
+Post-training quantization
+""""""""""""""""""""""""""
+
+Finally if you wish to quantize the model with your TFLite converter
+
+    >>> converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    >>> # Float fallback for operators that do not have an integer implementation
+    >>> def representative_dataset():
+    >>>     for _ in range(100): yield [np.random.rand(1, *input_shape).astype(np.float32)]
+    >>> converter.representative_dataset = representative_dataset
+    >>> converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    >>> converter.inference_input_type = tf.int8
+    >>> converter.inference_output_type = tf.int8
+    >>> serialized_model = converter.convert()
+
 
 Using SavedModel
 ^^^^^^^^^^^^^^^^

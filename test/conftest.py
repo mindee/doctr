@@ -32,6 +32,16 @@ def mock_image_stream():
 
 
 @pytest.fixture(scope="session")
+def mock_image_path(mock_image_stream, tmpdir_factory):
+    file = BytesIO(mock_image_stream)
+    folder = tmpdir_factory.mktemp("images")
+    fn = folder.join("mock_image_file.jpeg")
+    with open(fn, 'wb') as f:
+        f.write(file.getbuffer())
+    return str(fn)
+
+
+@pytest.fixture(scope="session")
 def mock_image_folder(mock_image_stream, tmpdir_factory):
     file = BytesIO(mock_image_stream)
     folder = tmpdir_factory.mktemp("images")
@@ -76,39 +86,31 @@ def mock_recognition_label(tmpdir_factory):
 def mock_ocrdataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp("dataset")
     label_file = root.join("labels.json")
-    label = [
-        {
-            "raw-archive-filepath": "mock_image_file_0.jpg",
-            "coordinates": [[[0.1, 0.2], [0.2, 0.2], [0.2, 0.3], [0.1, 0.3]]],
-            "string": ['I']
+    label = {
+        "mock_image_file_0.jpg": {
+            "typed_words": [
+                {'value': 'I', 'geometry': (.2, .2, .1, .1, 0)},
+                {'value': 'am', 'geometry': (.5, .5, .1, .1, 0)},
+            ]
         },
-        {
-            "raw-archive-filepath": "mock_image_file_1.jpg",
-            "coordinates": [[[0.1, 0.2], [0.2, 0.2], [0.2, 0.3], [0.1, 0.3]]],
-            "string": ['am']
+        "mock_image_file_1.jpg": {
+            "typed_words": [
+                {'value': 'a', 'geometry': (.2, .2, .1, .1, 0)},
+                {'value': 'jedi', 'geometry': (.5, .5, .1, .1, 0)},
+            ]
         },
-        {
-            "raw-archive-filepath": "mock_image_file_2.jpg",
-            "coordinates": [[[0.1, 0.2], [0.2, 0.2], [0.2, 0.3], [0.1, 0.3]]],
-            "string": ['a']
-        },
-        {
-            "raw-archive-filepath": "mock_image_file_3.jpg",
-            "coordinates": [[[0.1, 0.2], [0.2, 0.2], [0.2, 0.3], [0.1, 0.3]]],
-            "string": ['jedi']
-        },
-        {
-            "raw-archive-filepath": "mock_image_file_4.jpg",
-            "coordinates": [[[0.1, 0.2], [0.2, 0.2], [0.2, 0.3], [0.1, 0.3]]],
-            "string": ['!']
+        "mock_image_file_2.jpg": {
+            "typed_words": [
+                {'value': '!', 'geometry': (.2, .2, .1, .1, 0)},
+            ]
         }
-    ]
+    }
     with open(label_file, 'w') as f:
         json.dump(label, f)
 
     file = BytesIO(mock_image_stream)
     image_folder = tmpdir_factory.mktemp("images")
-    for i in range(5):
+    for i in range(3):
         fn = image_folder.join(f"mock_image_file_{i}.jpg")
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())

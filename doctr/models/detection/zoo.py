@@ -6,7 +6,7 @@
 from typing import Any
 
 from doctr.file_utils import is_tf_available, is_torch_available
-from .core import DetectionPredictor
+from .predictor import DetectionPredictor
 from ..preprocessor import PreProcessor
 from .. import detection
 
@@ -15,9 +15,9 @@ __all__ = ["detection_predictor"]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'linknet16']
+    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
 elif is_torch_available():
-    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3', 'linknet16']
+    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
 
 
 def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor:
@@ -31,7 +31,7 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 1)
     predictor = DetectionPredictor(
-        PreProcessor(_model.cfg['input_shape'][:2], **kwargs),
+        PreProcessor(_model.cfg['input_shape'][:-1] if is_tf_available() else _model.cfg['input_shape'][1:], **kwargs),
         _model
     )
     return predictor

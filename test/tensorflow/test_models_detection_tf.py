@@ -2,14 +2,17 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from doctr.models import detection, PreProcessor
-from doctr.documents import DocumentFile
+from doctr.models import detection
+from doctr.models.detection.predictor import DetectionPredictor
+from doctr.models.preprocessor import PreProcessor
+from doctr.io import DocumentFile
 
 
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob",
     [
         ["db_resnet50", (1024, 1024, 3), (1024, 1024, 1), True],
+        ["db_mobilenet_v3_large", (1024, 1024, 3), (1024, 1024, 1), True],
         ["linknet16", (1024, 1024, 3), (1024, 1024, 1), False],
     ],
 )
@@ -27,6 +30,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
+    assert isinstance(out['out_map'], tf.Tensor)
+    assert out['out_map'].dtype == tf.float32
     seg_map = out['out_map'].numpy()
     assert seg_map.shape == (batch_size, *output_size)
     if out_prob:
@@ -58,7 +63,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
 def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
-    predictor = detection.DetectionPredictor(
+    predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),
         detection.db_resnet50(input_shape=(512, 512, 3))
     )
@@ -81,7 +86,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
-    predictor = detection.DetectionPredictor(
+    predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),
         detection.db_resnet50(rotated_bbox=True, input_shape=(512, 512, 3))
     )
@@ -104,6 +109,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     "arch_name",
     [
         "db_resnet50",
+        "db_mobilenet_v3_large",
         "linknet16",
     ],
 )
@@ -111,7 +117,7 @@ def test_detection_zoo(arch_name):
     # Model
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
-    assert isinstance(predictor, detection.DetectionPredictor)
+    assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert all(isinstance(out_img, tuple) for out_img in out)

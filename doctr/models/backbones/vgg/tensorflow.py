@@ -29,6 +29,7 @@ class VGG(Sequential):
         planes: number of output channels in each stage
         rect_pools: whether pooling square kernels should be replace with rectangular ones
         input_shape: shapes of the input tensor
+        include_top: whether the classifier head should be instantiated
     """
     def __init__(
         self,
@@ -36,6 +37,7 @@ class VGG(Sequential):
         planes: Tuple[int, int, int, int, int],
         rect_pools: Tuple[bool, bool, bool, bool, bool],
         input_shape: Tuple[int, int, int] = (512, 512, 3),
+        include_top: bool = False,
     ) -> None:
 
         _layers = []

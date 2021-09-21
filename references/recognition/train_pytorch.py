@@ -7,13 +7,14 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
+import logging
 import time
 import datetime
 import multiprocessing as mp
 import numpy as np
 from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torchvision.transforms import Compose, Lambda, Normalize, ColorJitter
+from torchvision.transforms import Compose, Normalize, ColorJitter
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
@@ -35,6 +36,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
 
+        if torch.cuda.is_available():
+            images = images.cuda()
         images = batch_transforms(images)
 
         train_loss = model(images, targets)['loss']
@@ -42,6 +45,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         optimizer.zero_grad()
         train_loss.backward()
         optimizer.step()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
@@ -57,6 +61,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
     for images, targets in val_iter:
+        if torch.cuda.is_available():
+            images = images.cuda()
         images = batch_transforms(images)
         out = model(images, targets, return_preds=True)
         # Compute metric
@@ -112,6 +118,21 @@ def main(args):
         print(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint)
+
+    # GPU
+    if isinstance(args.device, int):
+        if not torch.cuda.is_available():
+            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+        if args.device >= torch.cuda.device_count():
+            raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    else:
+        logging.warning("No accessible GPU, targe device set to CPU.")
+    if torch.cuda.is_available():
+        torch.cuda.set_device(args.device)
+        model = model.cuda()
 
     # Metrics
     val_metric = TextMatch()
@@ -224,7 +245,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR train text-recognition model (PyTorch)',
+    parser = argparse.ArgumentParser(description='DocTR training script for text recognition (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('train_path', type=str, help='path to train data folder(s)')
