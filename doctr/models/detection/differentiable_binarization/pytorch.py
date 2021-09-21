@@ -42,9 +42,9 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone_submodule': 'features',
         'fpn_layers': ['3', '6', '12', '16'],
         'input_shape': (3, 1024, 1024),
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'url': None,
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
     },
 }
 
