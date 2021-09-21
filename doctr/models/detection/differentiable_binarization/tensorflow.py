@@ -35,7 +35,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone': mobilenet_v3_large,
         'fpn_layers': ["inverted_2", "inverted_5", "inverted_11", "final_block"],
         'input_shape': (1024, 1024, 3),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip',
     },
 }
 
