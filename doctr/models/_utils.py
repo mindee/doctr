@@ -69,9 +69,10 @@ def extract_rcrops(
 
     # Project relative coordinates
     _boxes = boxes.copy()
+    height, width = img.shape[:2] if channels_last else img.shape[-2:]
     if _boxes.dtype != np.int:
-        _boxes[:, [0, 2]] *= img.shape[1]
-        _boxes[:, [1, 3]] *= img.shape[0]
+        _boxes[:, [0, 2]] *= width
+        _boxes[:, [1, 3]] *= height
 
     crops = []
     # Determine rotation direction (clockwise/counterclockwise)
