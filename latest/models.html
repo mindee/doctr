@@ -248,14 +248,14 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <p>Localizing text elements in images</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 16%" />
-<col style="width: 15%" />
+<col style="width: 26%" />
 <col style="width: 13%" />
 <col style="width: 11%" />
-<col style="width: 13%" />
-<col style="width: 11%" />
-<col style="width: 13%" />
-<col style="width: 8%" />
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 7%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head" colspan="3"></th>
@@ -282,6 +282,15 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <td><p>92.49</p></td>
 <td><p>89.66</p></td>
 <td><p>2.1</p></td>
+</tr>
+<tr class="row-even"><td><p>db_mobilenet_v3_large</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td></td>
+<td><p>79.35</p></td>
+<td><p>84.03</p></td>
+<td><p>81.14</p></td>
+<td><p>66.85</p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -605,13 +614,13 @@ Example:</p>
 <p>Predictors that localize and identify text elements in images</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 29%" />
-<col style="width: 12%" />
-<col style="width: 15%" />
-<col style="width: 9%" />
-<col style="width: 12%" />
-<col style="width: 15%" />
-<col style="width: 9%" />
+<col style="width: 36%" />
+<col style="width: 11%" />
+<col style="width: 13%" />
+<col style="width: 8%" />
+<col style="width: 11%" />
+<col style="width: 13%" />
+<col style="width: 8%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
@@ -652,7 +661,15 @@ Example:</p>
 <td><p><strong>81.96</strong></p></td>
 <td><p>0.83</p></td>
 </tr>
-<tr class="row-even"><td><p>Gvision text detection</p></td>
+<tr class="row-even"><td><p>db_mobilenet_v3_large + crnn_vgg16_bn</p></td>
+<td><p>67.73</p></td>
+<td><p>71.73</p></td>
+<td></td>
+<td><p>71.65</p></td>
+<td><p>59.03</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Gvision text detection</p></td>
 <td><p>59.50</p></td>
 <td><p>62.50</p></td>
 <td></td>
@@ -660,7 +677,7 @@ Example:</p>
 <td><p>70.00</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
 <td><p>64.00</p></td>
 <td><p>53.30</p></td>
 <td></td>
@@ -668,16 +685,11 @@ Example:</p>
 <td><p>61.10</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>AWS textract</p></td>
-<td><p><strong>78.10</strong></p></td>
-<td><p><strong>83.00</strong></p></td>
-<td></td>
-<td><p><strong>87.50</strong></p></td>
-<td><p>66.00</p></td>
-<td></td>
-</tr>
 </tbody>
 </table>
+<div class="line-block">
+<div class="line">Gvision doc. text detection            | 64.00      | 53.30         |         | 68.90      | 61.10         |         |</div>
+</div>
 <p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p>All recognition models of predictors are trained with our french vocab (cf. <a class="reference internal" href="datasets.html#vocabs"><span class="std std-ref">Supported Vocabs</span></a>).</p>
@@ -687,7 +699,7 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <p>Results on private ocr datasets</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 25%" />
+<col style="width: 30%" />
 <col style="width: 8%" />
 <col style="width: 10%" />
 <col style="width: 8%" />
@@ -746,7 +758,17 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>79.04</p></td>
 <td><p>92.78</p></td>
 </tr>
-<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-even"><td><p>db_mobilenet_v3_large + crnn_vgg16_bn (ours)</p></td>
+<td><p>78.36</p></td>
+<td><p>74.93</p></td>
+<td><p>63.04</p></td>
+<td><p>68.41</p></td>
+<td><p>39.36</p></td>
+<td><p>41.75</p></td>
+<td><p>72.14</p></td>
+<td><p>89.97</p></td>
+</tr>
+<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
 <td><p>68.91</p></td>
 <td><p>59.89</p></td>
 <td><p>63.20</p></td>
@@ -756,7 +778,7 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>69.79</p></td>
 <td><p>65.68</p></td>
 </tr>
-<tr class="row-odd"><td><p>AWS textract</p></td>
+<tr class="row-even"><td><p>AWS textract</p></td>
 <td><p>75.77</p></td>
 <td><p>77.70</p></td>
 <td><p><strong>70.47</strong></p></td>
