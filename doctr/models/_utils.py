@@ -116,7 +116,7 @@ def rotate_page(
     Returns:
         Rotated array or tf.Tensor, padded by 0 by default.
     """
-    angle = - angle #TODO : the angles given by estimate_orientation are not correct and should be negative
+    angle = - angle
     if abs(angle) < min_angle:
         return image
     elif abs(angle) > 45:
