@@ -20,12 +20,12 @@ __all__ = ['CRNN', 'crnn_vgg16_bn', 'CTCPostProcessor', 'crnn_mobilenet_v3_small
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'backbone': vgg16_bn, 'rnn_units': 128, 'lstm_features': 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['legacy_french'],
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_vgg16_bn-9762b0b0.pt',
     },
     'crnn_mobilenet_v3_small': {
         'mean': (.5, .5, .5),
