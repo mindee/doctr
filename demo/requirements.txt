@@ -1,2 +1,2 @@
-doctr
+doctr[tf]
 streamlit>=0.65.0
