@@ -1,2 +1,4 @@
-doctr[tf]
+-e git+https://github.com/mindee/doctr.git#egg=doctr
+tensorflow
+tensorflow-addons
 streamlit>=0.65.0
