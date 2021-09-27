@@ -85,8 +85,8 @@ def main(args):
 
     st = time.time()
     val_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'val'),
-        label_folder=os.path.join(args.data_path, 'val_labels'),
+        img_folder=os.path.join(args.val_path, 'images'),
+        label_path=os.path.join(args.val_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, args.input_size)),
         rotated_bbox=args.rotation
     )
@@ -124,8 +124,8 @@ def main(args):
     st = time.time()
     # Load both train and val data generators
     train_set = DetectionDataset(
-        img_folder=os.path.join(args.data_path, 'train'),
-        label_folder=os.path.join(args.data_path, 'train_labels'),
+        img_folder=os.path.join(args.train_path, 'images'),
+        label_folder=os.path.join(args.train_path, 'labels.json'),
         sample_transforms=T.Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
@@ -241,7 +241,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for text detection (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('data_path', type=str, help='path to data folder')
+    parser.add_argument('train_path', type=str, help='path to training data folder')
+    parser.add_argument('val_path', type=str, help='path to validation data folder')
     parser.add_argument('model', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
