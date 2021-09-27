@@ -42,16 +42,17 @@ class DetectionDataset(AbstractDataset):
         # File existence check
         if not os.path.exists(label_path):
             raise FileNotFoundError(f"unable to locate {label_path}")
-        with open(labels_path, 'rb') as f:
-            labels = json.load(labels_path)
+        with open(label_path, 'rb') as f:
+            labels = json.load(f)
 
         self.data: List[Tuple[str, np.ndarray]] = []
         np_dtype = np.float16 if self.fp16 else np.float32
         for img_name, label in labels.items():
-            polygons = np.asarray(label['polygons'], dtype=dtype)
+            img_path = os.path.join(self.root, img_name)
+            polygons = np.asarray(label['polygons'])
             if rotated_bbox:
                 # Switch to rotated rects
-                boxes = np.asarray([list(fit_rbbox(poly)) for poly in polygons], dtype=np_dtype)
+                boxes = np.asarray([list(fit_rbbox(poly)) for poly in polygons])
             else:
                 # Switch to xmin, ymin, xmax, ymax
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
