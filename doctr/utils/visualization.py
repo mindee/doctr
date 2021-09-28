@@ -11,6 +11,7 @@ from PIL import ImageFont, ImageDraw, Image
 from copy import deepcopy
 import numpy as np
 import cv2
+from unidecode import unidecode
 from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
@@ -279,7 +280,11 @@ def synthesize_page(
                 img = Image.new('RGB', (xmax - xmin, ymax - ymin), color=(255, 255, 255))
                 d = ImageDraw.Draw(img)
                 # Draw in black the value of the word
-                d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
+                try:
+                    d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
+                except UnicodeEncodeError:
+                    # When character cannot be encoded, use its unidecode version
+                    d.text((0, 0), unidecode(word["value"]), font=font, fill=(0, 0, 0))
 
                 # Colorize if draw_proba
                 if draw_proba:
