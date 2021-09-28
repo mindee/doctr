@@ -1,3 +1,3 @@
-doctr
+-e git+https://github.com/mindee/doctr.git#egg=doctr
 fastprogress>=0.1.21
 wandb>=0.10.31
