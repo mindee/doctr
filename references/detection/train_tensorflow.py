@@ -125,7 +125,7 @@ def main(args):
     # Load both train and val data generators
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, 'images'),
-        label_folder=os.path.join(args.train_path, 'labels.json'),
+        label_path=os.path.join(args.train_path, 'labels.json'),
         sample_transforms=T.Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
