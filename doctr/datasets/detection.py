@@ -48,7 +48,6 @@ class DetectionDataset(AbstractDataset):
         self.data: List[Tuple[str, np.ndarray]] = []
         np_dtype = np.float16 if self.fp16 else np.float32
         for img_name, label in labels.items():
-            img_path = os.path.join(self.root, img_name)
             polygons = np.asarray(label['polygons'])
             if rotated_bbox:
                 # Switch to rotated rects
@@ -57,7 +56,7 @@ class DetectionDataset(AbstractDataset):
                 # Switch to xmin, ymin, xmax, ymax
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
-            self.data.append((img_path, np.asarray(boxes, dtype=np_dtype)))
+            self.data.append((img_name, np.asarray(boxes, dtype=np_dtype)))
 
     def __getitem__(
         self,
