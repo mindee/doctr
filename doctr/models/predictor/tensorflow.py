@@ -12,8 +12,6 @@ from doctr.utils.repr import NestedObject
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import rotate_image, rotate_boxes
-from .._utils import extract_crops, extract_rcrops
 from .base import _OCRPredictor
 
 
