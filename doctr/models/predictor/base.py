@@ -7,7 +7,7 @@ import numpy as np
 from typing import List, Tuple
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import rotate_image
+from doctr.utils.geometry import rotate_image, rotate_boxes
 from .._utils import extract_crops, extract_rcrops
 
 
@@ -70,15 +70,18 @@ class _OCRPredictor:
         word_preds: List[Tuple[str, float]],
         allow_rotated_boxes: bool = False
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
-        # Localization
-        boxes, angles = zip(*loc_preds)
-        # Rotate back boxes if necessary
-        if allow_rotated_boxes:
-            boxes = [rotate_boxes(page_boxes, angle) for page_boxes, angle in zip(boxes, angles)]
-        # Text
-        text_preds, _idx = [], 0
-        for page_boxes in boxes:
-            text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
-            _idx += page_boxes.shape[0]
+
+        boxes, text_preds = [], []
+        if len(loc_preds) > 0:
+            # Localization
+            boxes, angles = zip(*loc_preds)
+            # Rotate back boxes if necessary
+            if allow_rotated_boxes:
+                boxes = [rotate_boxes(page_boxes, angle) for page_boxes, angle in zip(boxes, angles)]
+            # Text
+            _idx = 0
+            for page_boxes in boxes:
+                text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
+                _idx += page_boxes.shape[0]
 
         return boxes, text_preds
