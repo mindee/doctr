@@ -1,2 +1,2 @@
-doctr
+-e git+https://github.com/mindee/doctr.git#egg=doctr[tf]
 streamlit>=0.65.0
