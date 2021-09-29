@@ -100,6 +100,7 @@ jobs:
         with:
           name: coverage-common
           path: ./coverage-common.xml
+          if-no-files-found: error
 
   pytest-tf:
     needs: install-tf
@@ -138,6 +139,7 @@ jobs:
         with:
           name: coverage-tf
           path: ./coverage-tf.xml
+          if-no-files-found: error
 
   pytest-torch:
     needs: install-pytorch
@@ -178,6 +180,7 @@ jobs:
         with:
           name: coverage-pytorch
           path: ./coverage-pt.xml
+          if-no-files-found: error
 
   codecov-upload:
     runs-on: ubuntu-latest
