@@ -9,7 +9,7 @@ from torch import nn
 from torch.nn import functional as F
 from typing import Tuple, Dict, List, Any, Optional
 
-from ...backbones import vgg16_bn, resnet31
+from ...backbones import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 from ....datasets import VOCABS

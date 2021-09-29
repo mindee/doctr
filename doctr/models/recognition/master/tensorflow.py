@@ -9,7 +9,6 @@ from tensorflow.keras import layers, Sequential, Model
 from typing import Tuple, List, Dict, Any, Optional
 from copy import deepcopy
 
-from ..core import RecognitionPostProcessor
 from ...backbones.resnet import ResnetStage
 from ...utils import conv_sequence, load_pretrained_params
 from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
