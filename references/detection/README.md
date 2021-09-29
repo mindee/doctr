@@ -21,12 +21,12 @@ pip install contiguous-params>=1.0.0
 You can start your training in TensorFlow:
 
 ```shell
-python references/detection/train.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
+python references/detection/train_tensorflow.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
 ```
 or PyTorch:
 
 ```shell
-python references/detection/train_pytorch.py path/to/your/train_set path/to/your/val db_resnet50 --epochs 5 --device 0
+python references/detection/train_pytorch.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5 --device 0
 ```
 
 ## Data format
@@ -59,5 +59,5 @@ image.json = {
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
 ```python
-python references/detection/train.py --help
+python references/detection/train_tensorflow.py --help
 ```
