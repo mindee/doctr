@@ -6,9 +6,8 @@
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Any, Tuple, Dict
+from typing import List, Tuple, Dict
 
-from doctr.file_utils import is_tf_available
 from doctr.io.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
