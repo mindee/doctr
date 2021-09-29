@@ -95,7 +95,7 @@ jobs:
       - name: Run unittests
         run: |
           coverage run -m pytest test/common/
-          coverage xml
+          coverage xml -o coverage-common.xml
       - uses: actions/upload-artifact@v2
         with:
           name: coverage-common
