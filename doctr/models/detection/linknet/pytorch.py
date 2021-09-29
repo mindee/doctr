@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -161,7 +162,7 @@ class LinkNet(nn.Module, _LinkNet):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
+        target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
         focal_loss: bool = True,
@@ -191,7 +192,7 @@ class LinkNet(nn.Module, _LinkNet):
     def compute_loss(
         self,
         out_map: torch.Tensor,
-        target: List[Dict[str, Any]],
+        target: List[np.ndarray],
         focal_loss: bool = False,
         alpha: float = .5,
         gamma: float = 2.,

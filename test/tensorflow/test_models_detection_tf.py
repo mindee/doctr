@@ -22,8 +22,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
-        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
-        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32), flags=[True, False])
+        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32),
+        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
     ]
     # test training model
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True)
@@ -45,15 +45,15 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out['loss'], tf.Tensor)
     # Target checks
     target = [
-        dict(boxes=np.array([[0, 0, 1, 1]], dtype=np.uint8), flags=[True, False]),
-        dict(boxes=np.array([[0, 0, 1, 1]], dtype=np.uint8), flags=[True, False])
+        np.array([[0, 0, 1, 1]], dtype=np.uint8),
+        np.array([[0, 0, 1, 1]], dtype=np.uint8),
     ]
     with pytest.raises(AssertionError):
         out = model(input_tensor, target, training=True)
 
     target = [
-        dict(boxes=np.array([[0, 0, 1.5, 1.5]], dtype=np.float32), flags=[True, False]),
-        dict(boxes=np.array([[-.2, -.3, 1, 1]], dtype=np.float32), flags=[True, False])
+        np.array([[0, 0, 1.5, 1.5]], dtype=np.float32),
+        np.array([[-.2, -.3, 1, 1]], dtype=np.float32),
     ]
     with pytest.raises(ValueError):
         out = model(input_tensor, target, training=True)
@@ -136,8 +136,8 @@ def test_linknet_focal_loss():
     model = detection.linknet16(pretrained=True)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
-        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
-        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32), flags=[True, False])
+        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32),
+        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
     ]
     # test focal loss
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)

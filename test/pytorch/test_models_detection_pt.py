@@ -21,8 +21,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [
-        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32), flags=[True, False]),
-        dict(boxes=np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32), flags=[True, False])
+        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32),
+        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
     ]
     if torch.cuda.is_available():
         model.cuda()
