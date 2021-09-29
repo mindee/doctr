@@ -6,6 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
