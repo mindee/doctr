@@ -259,7 +259,7 @@ class _DBNet:
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
-        input_dtype = target[0].dtype if any(target) else np.float32
+        input_dtype = target[0].dtype if len(target) > 0 else np.float32
 
         seg_target = np.zeros(output_shape, dtype=np.uint8)
         seg_mask = np.ones(output_shape, dtype=bool)
