@@ -161,7 +161,7 @@ class DBNet(_DBNet, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
+        target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
     ) -> Dict[str, torch.Tensor]:
@@ -194,7 +194,7 @@ class DBNet(_DBNet, nn.Module):
         self,
         out_map: torch.Tensor,
         thresh_map: torch.Tensor,
-        target: List[Dict[str, Any]]
+        target: List[np.ndarray]
     ) -> torch.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output

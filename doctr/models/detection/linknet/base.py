@@ -7,7 +7,7 @@
 
 import numpy as np
 import cv2
-from typing import Dict, Any, Tuple, List
+from typing import Tuple, List
 
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from doctr.models.core import BaseModel
@@ -106,13 +106,13 @@ class _LinkNet(BaseModel):
 
     def compute_target(
         self,
-        target: List[Dict[str, Any]],
+        target: List[np.ndarray],
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t['boxes'].dtype not in (np.float32, np.float16) for t in target):
+        if any(t.dtype not in (np.float32, np.float16) for t in target):
             raise AssertionError("the expected dtype of target 'boxes' entry is either 'np.float32' or 'np.float16'.")
-        if any(np.any((t['boxes'][:, :4] > 1) | (t['boxes'][:, :4] < 0)) for t in target):
+        if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
         if self.rotated_bbox:
@@ -124,12 +124,12 @@ class _LinkNet(BaseModel):
 
         for idx, _target in enumerate(target):
             # Draw each polygon on gt
-            if _target['boxes'].shape[0] == 0:
+            if _target.shape[0] == 0:
                 # Empty image, full masked
                 seg_mask[idx] = False
 
             # Absolute bounding boxes
-            abs_boxes = _target['boxes'].copy()
+            abs_boxes = _target.copy()
             abs_boxes[:, [0, 2]] *= output_shape[-1]
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
@@ -143,11 +143,7 @@ class _LinkNet(BaseModel):
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = [None] * abs_boxes.shape[0]  # Unused
 
-            for poly, box, box_size, is_ambiguous in zip(polys, abs_boxes, boxes_size, _target['flags']):
-                # Mask ambiguous boxes
-                if is_ambiguous:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
-                    continue
+            for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
                 # Mask boxes that are too small
                 if box_size < self.min_size_box:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
