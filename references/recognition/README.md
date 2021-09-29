@@ -21,12 +21,12 @@ pip install contiguous-params>=1.0.0
 You can start your training in TensorFlow:
 
 ```shell
-python references/recognition/train.py path/to/your/dataset crnn_vgg16_bn --epochs 5
+python references/recognition/train_tensorflow.py path/to/your/train_set path/to/your/val_set crnn_vgg16_bn --epochs 5
 ```
 or PyTorch:
 
 ```shell
-python references/recognition/train_pytorch.py path/to/your/dataset crnn_vgg16_bn --epochs 5 --device 0
+python references/recognition/train_pytorch.py path/to/your/train_set path/to/your/val_set crnn_vgg16_bn --epochs 5 --device 0
 ```
 
 
