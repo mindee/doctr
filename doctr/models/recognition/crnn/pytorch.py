@@ -28,20 +28,20 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_vgg16_bn-9762b0b0.pt',
     },
     'crnn_mobilenet_v3_small': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'backbone': mobilenet_v3_small_r, 'rnn_units': 128, 'lstm_features': 576,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
-        'url': None,
+        'url': "https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_mobilenet_v3_small_pt-3b919a02.pt",
     },
     'crnn_mobilenet_v3_large': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'backbone': mobilenet_v3_large_r, 'rnn_units': 128, 'lstm_features': 960,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
-        'url': None,
+        'url': "https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_mobilenet_v3_large_pt-f5259ec2.pt",
     },
 }
 
