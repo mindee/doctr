@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -24,9 +25,9 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone_submodule': None,
         'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'input_shape': (3, 1024, 1024),
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'url': None,
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
     },
     'db_resnet34': {
         'backbone': resnet34,
@@ -42,9 +43,9 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone_submodule': 'features',
         'fpn_layers': ['3', '6', '12', '16'],
         'input_shape': (3, 1024, 1024),
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'url': None,
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
     },
 }
 
@@ -161,7 +162,7 @@ class DBNet(_DBNet, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
+        target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
     ) -> Dict[str, torch.Tensor]:
@@ -194,7 +195,7 @@ class DBNet(_DBNet, nn.Module):
         self,
         out_map: torch.Tensor,
         thresh_map: torch.Tensor,
-        target: List[Dict[str, Any]]
+        target: List[np.ndarray]
     ) -> torch.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output

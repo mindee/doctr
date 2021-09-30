@@ -6,9 +6,8 @@
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Any, Tuple, Dict
+from typing import List, Tuple, Dict
 
-from doctr.file_utils import is_tf_available
 from doctr.io.elements import Word, Line, Block, Page, Document
 from doctr.utils.repr import NestedObject
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
@@ -250,36 +249,34 @@ class DocumentBuilder(NestedObject):
     def __call__(
         self,
         boxes: List[np.ndarray],
-        word_preds: List[Tuple[str, float]],
+        text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]]
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
         Args:
-            boxes: list of localization predictions for all words, of shape (N, 5) or (N, 6)
-            word_preds: list of all word values, of size N
-            page_shape: shape of each page
+            boxes: list of N elements, where each element represents the localization predictions, of shape (*, 5)
+                or (*, 6) for all words for a given page
+            text_preds: list of N elements, where each element is the list of all word prediction (text + confidence)
+            page_shape: shape of each page, of size N
 
         Returns:
-            list of documents
+            document object
         """
 
-        # Check the number of crops for each page
-        page_idx, crop_idx = 0, 0
-        _pages = []
-        for page_boxes in boxes:
-            # Assemble all detected words into structured blocks
-            _pages.append(
-                Page(
-                    self._build_blocks(
-                        page_boxes,
-                        word_preds[crop_idx: crop_idx + page_boxes.shape[0]]
-                    ),
-                    page_idx,
-                    page_shapes[page_idx],
-                )
+        if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
+            raise ValueError("All arguments are expected to be lists of the same size")
+
+        _pages = [
+            Page(
+                self._build_blocks(
+                    page_boxes,
+                    word_preds,
+                ),
+                _idx,
+                shape,
             )
-            crop_idx += page_boxes.shape[0]
-            page_idx += 1
+            for _idx, shape, page_boxes, word_preds in zip(range(len(boxes)), page_shapes, boxes, text_preds)
+        ]
 
         return Document(_pages)

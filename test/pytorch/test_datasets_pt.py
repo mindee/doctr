@@ -63,7 +63,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     ds = datasets.DetectionDataset(
         img_folder=mock_image_folder,
-        label_folder=mock_detection_label,
+        label_path=mock_detection_label,
         sample_transforms=Resize(input_size),
     )
 
@@ -73,35 +73,31 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert img.dtype == torch.float32
     assert img.shape[-2:] == input_size
     # Bounding boxes
-    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
-    assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
-    assert target['boxes'].shape[1] == 4
-    # Flags
-    assert isinstance(target['flags'], np.ndarray) and target['flags'].dtype == np.bool
-    # Cardinality consistency
-    assert target['boxes'].shape[0] == target['flags'].shape[0]
+    assert isinstance(target, np.ndarray) and target.dtype == np.float32
+    assert np.all(np.logical_and(target[:, :4] >= 0, target[:, :4] <= 1))
+    assert target.shape[1] == 4
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+    assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
 
     # Rotated DS
     rotated_ds = datasets.DetectionDataset(
         img_folder=mock_image_folder,
-        label_folder=mock_detection_label,
+        label_path=mock_detection_label,
         sample_transforms=Resize(input_size),
         rotated_bbox=True
     )
     _, r_target = rotated_ds[0]
-    assert r_target['boxes'].shape[1] == 5
+    assert r_target.shape[1] == 5
 
     # FP16
-    ds = datasets.DetectionDataset(img_folder=mock_image_folder, label_folder=mock_detection_label, fp16=True)
+    ds = datasets.DetectionDataset(img_folder=mock_image_folder, label_path=mock_detection_label, fp16=True)
     img, target = ds[0]
     assert img.dtype == torch.float16
     # Bounding boxes
-    assert target['boxes'].dtype == np.float16
+    assert target.dtype == np.float16
 
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):

@@ -12,13 +12,13 @@ from doctr.utils.repr import NestedObject
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import rotate_image, rotate_boxes
-from .._utils import extract_crops, extract_rcrops, estimate_orientation, rotate_page
+from .base import _OCRPredictor
+
 
 __all__ = ['OCRPredictor']
 
 
-class OCRPredictor(NestedObject):
+class OCRPredictor(NestedObject, _OCRPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
@@ -37,7 +37,6 @@ class OCRPredictor(NestedObject):
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
         self.doc_builder = DocumentBuilder(rotated_bbox=rotated_bbox)
-        self.extract_crops_fn = extract_rcrops if rotated_bbox else extract_crops
 
     def __call__(
         self,
@@ -59,30 +58,12 @@ class OCRPredictor(NestedObject):
                 pages[i] = rotate_page(page, page_angle)
 
         # Localize text elements
-        boxes = self.det_predictor(pages, **kwargs)
+        loc_preds = self.det_predictor(pages, **kwargs)
         # Crop images, rotate page if necessary
-        if self.doc_builder.rotated_bbox:
-            crops = [
-                crop for page, (_boxes, angle) in zip(pages, boxes) for crop in
-                self.extract_crops_fn(  # type: ignore[operator]
-                    rotate_image(page, -angle, False),
-                    _boxes[:, :-1],
-                )
-            ]
-        else:
-            crops = [crop for page, (_boxes, _) in zip(pages, boxes) for crop in
-                     self.extract_crops_fn(page, _boxes[:, :-1])]  # type: ignore[operator]
-        # Avoid sending zero-sized crops
-        is_kept = [all(s > 0 for s in crop.shape) for crop in crops]
-        crops = [crop for crop, _kept in zip(crops, is_kept) if _kept]
-        boxes = [box for box, _kept in zip(boxes, is_kept) if _kept]
+        crops, loc_preds = self._prepare_crops(pages, loc_preds, channels_last=True)
         # Identify character sequences
-        word_preds = self.reco_predictor(crops, **kwargs)
+        word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        # Rotate back boxes if necessary
-        if len(boxes) > 0:
-            boxes, angles = zip(*boxes)
-            if self.doc_builder.rotated_bbox:
-                boxes = [rotate_boxes(boxes_page, angle) for boxes_page, angle in zip(boxes, angles)]
-        out = self.doc_builder(boxes, word_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
+        boxes, text_preds = self._process_predictions(loc_preds, word_preds, self.doc_builder.rotated_bbox)
+        out = self.doc_builder(boxes, text_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
         return out

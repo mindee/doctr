@@ -98,7 +98,7 @@ setup(
     name=os.getenv('PKG_INDEX') if os.getenv('PKG_INDEX') else package_name,
     version=version,
     author='Mindee',
-    author_email='fg@mindee.co',
+    author_email='contact@mindee.com',
     maintainer='François-Guillaume Fernandez, Charles Gaillard',
     description='Document Text Recognition (DocTR): deep Learning for high-performance OCR on documents.',
     long_description=readme,

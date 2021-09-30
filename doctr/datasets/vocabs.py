@@ -14,6 +14,7 @@ VOCABS: Dict[str, str] = {
     'ascii_letters': string.ascii_letters,
     'punctuation': string.punctuation,
     'currency': '£€¥¢฿',
+    'ancient_greek': 'αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
 }
 
 VOCABS['latin'] = VOCABS['digits'] + VOCABS['ascii_letters'] + VOCABS['punctuation']

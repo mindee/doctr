@@ -21,12 +21,12 @@ pip install contiguous-params>=1.0.0
 You can start your training in TensorFlow:
 
 ```shell
-python references/classification/train.py path/to/your/dataset mobilenet_v3_large --epochs 5
+python references/classification/train_tensorflow.py mobilenet_v3_large --epochs 5
 ```
 or PyTorch:
 
 ```shell
-python references/classification/train_pytorch.py path/to/your/dataset mobilenet_v3_large --epochs 5 --device 0
+python references/classification/train_pytorch.py mobilenet_v3_large --epochs 5 --device 0
 ```
 
 
@@ -35,5 +35,5 @@ python references/classification/train_pytorch.py path/to/your/dataset mobilenet
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
 ```python
-python references/classification/train.py --help
+python references/classification/train_tensorflow.py --help
 ```
