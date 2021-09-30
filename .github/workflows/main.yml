@@ -63,6 +63,45 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
 
+  pytest-common:
+    needs: install-tf
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
+            ${{ runner.os }}-pkg-deps-
+            ${{ runner.os }}-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[tf] --upgrade
+          pip install -r test/requirements.txt
+      - name: Run unittests
+        run: |
+          coverage run -m pytest test/common/
+          coverage xml -o coverage-common.xml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-common
+          path: ./coverage-common.xml
+          if-no-files-found: error
+
   pytest-tf:
     needs: install-tf
     runs-on: ${{ matrix.os }}
@@ -94,12 +133,13 @@ jobs:
           pip install -r test/requirements.txt
       - name: Run unittests
         run: |
-          coverage run -m pytest test/ --ignore test/pytorch
-          coverage xml
+          coverage run -m pytest test/tensorflow/
+          coverage xml -o coverage-tf.xml
       - uses: actions/upload-artifact@v2
         with:
-          name: coverage-main
-          path: ./coverage.xml
+          name: coverage-tf
+          path: ./coverage-tf.xml
+          if-no-files-found: error
 
   pytest-torch:
     needs: install-pytorch
@@ -140,10 +180,11 @@ jobs:
         with:
           name: coverage-pytorch
           path: ./coverage-pt.xml
+          if-no-files-found: error
 
   codecov-upload:
     runs-on: ubuntu-latest
-    needs: [ pytest-tf, pytest-torch ]
+    needs: [ pytest-common, pytest-tf, pytest-torch ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2

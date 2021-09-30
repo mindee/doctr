@@ -6,6 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -160,7 +161,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         self,
         out_map: tf.Tensor,
         thresh_map: tf.Tensor,
-        target: List[Dict[str, Any]]
+        target: List[np.ndarray]
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -216,7 +217,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
+        target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
         **kwargs: Any,

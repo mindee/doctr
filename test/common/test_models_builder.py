@@ -15,7 +15,10 @@ def test_documentbuilder():
     boxes = np.random.rand(words_per_page, 6)
     boxes[:2] *= boxes[2:4]
 
-    out = doc_builder([boxes, boxes], [('hello', 1.0)] * (num_pages * words_per_page), [(100, 200), (100, 200)])
+    # Arg consistency check
+    with pytest.raises(ValueError):
+        doc_builder([boxes, boxes], [('hello', 1.0)] * 3, [(100, 200), (100, 200)])
+    out = doc_builder([boxes, boxes], [[('hello', 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
     assert isinstance(out, Document)
     assert len(out.pages) == num_pages
     # 1 Block & 1 line per page
@@ -24,11 +27,11 @@ def test_documentbuilder():
 
     # Resolve lines
     doc_builder = builder.DocumentBuilder(resolve_lines=True, resolve_blocks=True)
-    out = doc_builder([boxes, boxes], [('hello', 1.0)] * (num_pages * words_per_page), [(100, 200), (100, 200)])
+    out = doc_builder([boxes, boxes], [[('hello', 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
 
     # No detection
     boxes = np.zeros((0, 5))
-    out = doc_builder([boxes, boxes], [], [(100, 200), (100, 200)])
+    out = doc_builder([boxes, boxes], [[], []], [(100, 200), (100, 200)])
     assert len(out.pages[0].blocks) == 0
 
     # Repr

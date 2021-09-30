@@ -5,7 +5,6 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
-from torch import nn
 from torchvision.models import mobilenetv3
 from typing import Any, Dict
 from doctr.datasets import VOCABS

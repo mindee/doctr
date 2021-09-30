@@ -79,7 +79,7 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
-    vocab = VOCABS['french']
+    vocab = VOCABS[args.vocab]
 
     # Load val data generator
     st = time.time()
@@ -225,6 +225,7 @@ def parse_args():
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--font', type=str, default="FreeMono.ttf", help='Font family to be used')
+    parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument(
         '--train-samples',
         dest='train_samples',

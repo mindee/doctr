@@ -6,6 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, Sequential
@@ -135,7 +136,7 @@ class LinkNet(_LinkNet, keras.Model):
     def compute_loss(
         self,
         out_map: tf.Tensor,
-        target: List[Dict[str, Any]],
+        target: List[np.ndarray],
         focal_loss: bool = False,
         alpha: float = .5,
         gamma: float = 2.,
@@ -194,7 +195,7 @@ class LinkNet(_LinkNet, keras.Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[Dict[str, Any]]] = None,
+        target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
         focal_loss: bool = True,

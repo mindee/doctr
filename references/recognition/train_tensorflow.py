@@ -99,7 +99,7 @@ def main(args):
     model = recognition.__dict__[args.model](
         pretrained=args.pretrained,
         input_shape=(args.input_size, 4 * args.input_size, 3),
-        vocab=VOCABS['french']
+        vocab=VOCABS[args.vocab]
     )
     # Resume weights
     if isinstance(args.resume, str):
@@ -251,6 +251,7 @@ def parse_args():
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
+    parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')

@@ -111,7 +111,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = recognition.__dict__[args.model](pretrained=args.pretrained, vocab=VOCABS['french'])
+    model = recognition.__dict__[args.model](pretrained=args.pretrained, vocab=VOCABS[args.vocab])
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -260,6 +260,7 @@ def parse_args():
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
+    parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
