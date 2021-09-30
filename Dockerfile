@@ -17,7 +17,3 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /root/.cache/pip
-
-COPY ./demo .
-RUN pip install -r requirements.txt
-CMD [ "streamlit", "run", "app.py" ]

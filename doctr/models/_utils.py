@@ -101,31 +101,6 @@ def extract_rcrops(
     return crops
 
 
-def rotate_page(
-    image: np.ndarray,
-    angle: float = 0.,
-) -> np.ndarray:
-    """Rotate an image counterclockwise by an ange alpha (negative angle to go clockwise).
-
-    Args:
-        image: numpy tensor to rotate
-        angle: rotation angle in degrees, between -90 and +90
-
-    Returns:
-        Rotated array or tf.Tensor, padded by 0 by default.
-    """
-    angle = - angle
-    if abs(angle) > 45:
-        # if image is closer to portrait mode, go for a full 90° rotation
-        image = cv2.rotate(image, cv2.cv2.ROTATE_90_CLOCKWISE)
-        angle += 90  # track the rotation by updating angle
-
-    height, width = image.shape[:2]
-    center = (height / 2, width / 2)
-    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    return cv2.warpAffine(image, rot_mat, (width, height))
-
-
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
     """
     Get the maximum shape ratio of a contour.

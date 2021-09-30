@@ -8,14 +8,17 @@ import tensorflow as tf
 from typing import List, Any, Union
 
 from doctr.io.elements import Document
+from doctr.utils.geometry import rotate_image
 from doctr.utils.repr import NestedObject
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models._utils import estimate_orientation
 from .base import _OCRPredictor
 
 
 __all__ = ['OCRPredictor']
+
 
 
 class OCRPredictor(NestedObject, _OCRPredictor):
@@ -41,7 +44,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
     def __call__(
         self,
         pages: List[Union[np.ndarray, tf.Tensor]],
-        rotate_document: bool = False,
+        straighten_pages: bool = False,
         **kwargs: Any,
     ) -> Document:
 
@@ -50,12 +53,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         # Detect document rotation and rotate pages
-        if rotate_document:
+        if straighten_pages:
             page_angles = []
-            for i, page in enumerate(pages):
-                page_angle = estimate_orientation(page)
-                page_angles.append(page_angle)
-                pages[i] = rotate_page(page, page_angle)
+            page_orientations = [estimate_orientation(page) for page in pages]
+            pages = [rotate_image(page, angle) for page, angle in zip(pages, page_orientations)]
 
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
