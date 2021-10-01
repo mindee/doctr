@@ -57,10 +57,11 @@ Supported datasets
 
 .. toctree::
    :maxdepth: 2
-   :caption: Notes
+   :caption: Using DocTR
    :hidden:
 
-   changelog
+   using_models
+   using_model_export
 
 
 .. toctree::
@@ -73,3 +74,11 @@ Supported datasets
    models
    transforms
    utils
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Notes
+   :hidden:
+
+   changelog
