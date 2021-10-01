@@ -54,7 +54,6 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         # Detect document rotation and rotate pages
         if straighten_pages:
-            page_angles = []
             page_orientations = [estimate_orientation(page) for page in pages]
             pages = [rotate_image(page, angle) for page, angle in zip(pages, page_orientations)]
 

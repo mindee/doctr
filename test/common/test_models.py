@@ -94,7 +94,7 @@ def test_estimate_orientation(mock_image):
     assert abs(angle - 30.) < 1.
 
 
-def test_rotate_page(mock_image):
+def test_estimate_orientation(mock_image):
     angle = estimate_orientation(mock_image)
     rotated = rotate_page(mock_image, angle)
     angle_rotated = estimate_orientation(rotated)
