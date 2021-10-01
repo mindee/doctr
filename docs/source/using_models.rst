@@ -52,7 +52,7 @@ FPS (Frames per second) is computed after a warmup phase of 100 tensors (where t
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 
-Wrapping your detection model to make it easily useable with your favorite deep learning framework seamlessly.
+`detection_predictor <models.html#doctr.models.detection.detection_predictor>`_ wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.
 
     >>> import numpy as np
     >>> from doctr.models import detection_predictor
@@ -139,7 +139,7 @@ FPS (Frames per second) is computed after a warmup phase of 100 tensors (where t
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
-Wrapping your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
+`recognition_predictor <models.html#doctr.models.recognition.recognition_predictor>`_ wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
 
     >>> import numpy as np
     >>> from doctr.models import recognition_predictor
@@ -211,7 +211,7 @@ Since you may be looking for specific use cases, we also performed this benchmar
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
-Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.
+Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with `ocr_predictor <models.html#doctr.models.ocr_predictor>`_.
 
     >>> import numpy as np
     >>> from doctr.models import ocr_predictor
