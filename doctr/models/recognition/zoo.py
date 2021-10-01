@@ -46,7 +46,7 @@ def recognition_predictor(arch: str = 'crnn_vgg16_bn', pretrained: bool = False,
         >>> out = model([input_page])
 
     Args:
-        arch: name of the architecture to use ('crnn_vgg16_bn', 'crnn_resnet31', 'sar_vgg16_bn', 'sar_resnet31')
+        arch: name of the architecture to use (e.g. 'crnn_vgg16_bn')
         pretrained: If True, returns a model pre-trained on our text recognition dataset
 
     Returns:

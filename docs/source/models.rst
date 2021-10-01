@@ -8,13 +8,27 @@ Either performed at once or separately, to each task corresponds a type of deep 
 
 For a given task, DocTR provides a Predictor, which is composed of 2 components:
 
-* PreProcessor: a module in charge of making inputs directly usable by the TensorFlow model.
-* Model: a deep learning model, implemented with TensorFlow backend along with its specific post-processor to make outputs structured and reusable.
+* PreProcessor: a module in charge of making inputs directly usable by the deep learning model.
+* Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow & PyTorch) along with its specific post-processor to make outputs structured and reusable.
 
 
 Text Detection
 --------------
-Localizing text elements in images
+
+The task consists of localizing textual elements in a given image.
+While those text elements can represent many things, in DocTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don't).
+
+Available architectures
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The following architectures are currently supported:
+
+* linknet16
+* db_resnet50
+* db_mobilenet_v3_large
+
+For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
+
 
 +------------------------------------------------------------------+----------------------------+----------------------------+---------+
 |                                                                  |        FUNSD               |        CORD                |         |
@@ -23,47 +37,47 @@ Localizing text elements in images
 +---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 | db_resnet50                     | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
 +---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_mobilenet_v3_large           | (1024, 1024, 3) |              | 79.35      | 84.03         | 81.14      | 66.85         |         |
+| db_mobilenet_v3_large           | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
 +---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+
 
 All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-*Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 1024, 1024, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 1024, 1024, 3]).
-We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
 
-Pre-processing for detection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-In DocTR, the pre-processing scheme for detection is the following:
-
-1. resize each input image to the target size (bilinear interpolation by default) with potential deformation.
-2. batch images together
-3. normalize the batch using the training data statistics
-
-
-Detection models
-^^^^^^^^^^^^^^^^
-Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:
-
-.. autofunction:: doctr.models.detection.db_resnet50
-.. autofunction:: doctr.models.detection.db_mobilenet_v3_large
-.. autofunction:: doctr.models.detection.linknet16
 
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
-Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.
+
+Wrapping your detection model to make it easily useable with your favorite deep learning framework seamlessly.
 
 .. autofunction:: doctr.models.detection.detection_predictor
 
 
 Text Recognition
 ----------------
-Identifying strings in images
+
+The task consists of transcribing the character sequence in a given image.
+
+
+Available architectures
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The following architectures are currently supported:
+
+* crnn_vgg16_bn
+* crnn_mobilenet_v3_small
+* crnn_mobilenet_v3_large
+* sar_resnet31
+* master
+
+For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
+
 
 .. list-table:: Text recognition model zoo
-   :widths: 20 20 15 10 10 10
    :header-rows: 1
 
    * - Architecture
@@ -78,59 +92,64 @@ Identifying strings in images
      - 87.15
      - 92.92
      - 12.8
-   * - master
+   * - crnn_mobilenet_v3_small
      - (32, 128, 3)
+     - 2.1M
      -
-     - 87.62
-     - 93.27
+     -
+     -
+   * - crnn_mobilenet_v3_large
+     - (32, 128, 3)
+     - 4.5M
+     -
+     -
      -
    * - sar_resnet31
      - (32, 128, 3)
-     - 53.1M
+     - 56.2M
      - **87.70**
      - **93.41**
      - 2.7
+   * - master
+     - (32, 128, 3)
+     - 67.7M
+     - 87.62
+     - 93.27
+     -
 
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
-Explanations about the metrics being used are available in :ref:`metrics`.
+Explanations about the metric being used (exact match) are available in :ref:`metrics`.
 
-All these recognition models are trained with our french vocab (cf. :ref:`vocabs`).
+While most of our recognition models were trained on our french vocab (cf. :ref:`vocabs`), you can easily access the vocab of any model as follows:
+
+    >>> from doctr.models import recognition_predictor
+    >>> predictor = recognition_predictor('crnn_vgg16_bn')
+    >>> print(predictor.model.cfg['vocab'])
+
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the model, we feed the model with 100 random tensors of shape [1, 32, 128, 3] as a warm-up. Then, we measure the average speed of the model on 1000 batches of 1 frame (random tensors of shape [1, 32, 128, 3]).
-We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.
-
-Pre-processing for recognition
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-In DocTR, the pre-processing scheme for recognition is the following:
-
-1. resize each input image to the target size (bilinear interpolation by default) without deformation.
-2. pad the image to the target size (with zeros by default)
-3. batch images together
-4. normalize the batch using the training data statistics
-
-Recognition models
-^^^^^^^^^^^^^^^^^^
-Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:
-
-
-.. autofunction:: doctr.models.recognition.crnn_vgg16_bn
-.. autofunction:: doctr.models.recognition.crnn_mobilenet_v3_large
-.. autofunction:: doctr.models.recognition.sar_resnet31
-.. autofunction:: doctr.models.recognition.master
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
 
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
-Combining the right components around a given architecture for easier usage.
+Wrapping your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
 
 .. autofunction:: doctr.models.recognition.recognition_predictor
 
 
 End-to-End OCR
 --------------
-Predictors that localize and identify text elements in images
+
+The task consists of both localizing and transcribing textual elements in a given image.
+
+Available architectures
+^^^^^^^^^^^^^^^^^^^^^^^
+
+You can use any combination of detection and recognition models supporte by DocTR.
+
+For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
 +----------------------------------------+--------------------------------------+--------------------------------------+
 |                                        |                  FUNSD               |                  CORD                |
@@ -150,19 +169,17 @@ Predictors that localize and identify text elements in images
 | Gvision doc. text detection            | 64.00      | 53.30         |         | 68.90      | 61.10         |         |
 +----------------------------------------+------------+---------------+---------+------------+---------------+---------+
 | AWS textract                           | **78.10**  | **83.00**     |         | **87.50**  | 66.00         |         |
-+--------------------------------- ------+------------+---------------+---------+------------+---------------+---------+
++----------------------------------------+------------+---------------+---------+------------+---------------+---------+
 
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-All recognition models of predictors are trained with our french vocab (cf. :ref:`vocabs`).
-
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed this way: we instantiate the predictor, we warm-up the model and then we measure the average speed of the end-to-end predictor on the datasets, with a batch size of 1.
-We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform experiments.
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
 
-Results on private ocr datasets
+Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.
+
 
 +----------------------------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
 |                                              |          Receipts          |            Invoices        |            IDs             |        US Tax Forms        |
@@ -189,10 +206,11 @@ Those architectures involve one stage of text detection, and one stage of text r
 
 .. autofunction:: doctr.models.zoo.ocr_predictor
 
+
 Export model output
 ^^^^^^^^^^^^^^^^^^^^
 
-The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
 To get a better understanding of our document model, check our :ref:`document_structure` section
 
 Here is a typical `Document` layout::
