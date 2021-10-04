@@ -5,7 +5,7 @@ import requests
 import cv2
 
 from doctr.io import reader, DocumentFile
-from doctr.models._utils import extract_crops, extract_rcrops, get_bitmap_angle, estimate_orientation, rotate_page
+from doctr.models._utils import extract_crops, extract_rcrops, get_bitmap_angle, estimate_orientation, rotate_image
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -89,6 +89,29 @@ def test_get_bitmap_angle(mock_bitmap):
     assert abs(angle - 30.) < 1.
 
 
+def test_rotate_image():
+    img = np.ones((32, 64, 3), dtype=np.float32)
+    rotated = rotate_image(img, 30.)
+    assert rotated.shape[:-1] == (32, 64)
+    assert rotated[0, 0, 0] == 0
+    assert rotated[0, :, 0].sum() > 1
+
+    # Expand
+    rotated = rotate_image(img, 30., expand=True)
+    assert rotated.shape[:-1] == (60, 72)
+    assert rotated[0, :, 0].sum() <= 1
+
+    # Expand with 90° rotation
+    rotated = rotate_image(img, 90., expand=True)
+    assert rotated.shape[:-1] == (64, 64)
+    assert rotated[0, :, 0].sum() <= 1
+
+    # Expand with mask
+    rotated = rotate_image(img, 30., expand=True, mask_shape=(40, 72))
+    assert rotated.shape[:-1] == (40, 72)
+    assert rotated[0, :, 0].sum() > 1
+
+
 def test_estimate_orientation(mock_image):
     angle = estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
@@ -96,6 +119,6 @@ def test_estimate_orientation(mock_image):
 
 def test_estimate_orientation(mock_image):
     angle = estimate_orientation(mock_image)
-    rotated = rotate_page(mock_image, angle)
+    rotated = rotate_image(mock_image, -angle)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated - 0.) < 1.

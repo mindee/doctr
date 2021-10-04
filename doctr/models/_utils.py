@@ -5,11 +5,13 @@
 
 import numpy as np
 import cv2
-from math import floor
-from typing import List
+from math import floor, ceil
+from typing import List, Optional, Tuple
 from statistics import median_low
 
-__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
+from doctr.utils import compute_expanded_shape
+
+__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle', 'rotate_image']
 
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
@@ -188,3 +190,47 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
             angle = 90 + angle
 
     return angle
+
+
+def rotate_image(
+        image: np.ndarray,
+        angle: float,
+        expand: bool = False,
+        mask_shape: Optional[Tuple[int, int]] = None
+) -> np.ndarray:
+    """Rotate an image counterclockwise by an given angle.
+
+    Args:
+        image: numpy tensor to rotate
+        angle: rotation angle in degrees, between -90 and +90
+        expand: whether the image should be padded before the rotation
+        mask_shape: applies a mask on the image of the specified shape given in absolute pixels
+
+    Returns:
+        Rotated array, padded by 0 by default.
+    """
+
+    # Compute the expanded padding
+    if expand:
+        exp_shape = compute_expanded_shape(image.shape[:-1], angle)
+        h_pad, w_pad = int(max(0,ceil(exp_shape[0] - image.shape[0]))), int(max(0,ceil(exp_shape[1] - image.shape[1])))
+        exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
+    else:
+        exp_img = image
+
+    height, width = exp_img.shape[:2]
+    rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
+    rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
+
+    if mask_shape is not None:
+        if len(mask_shape) != 2:
+            raise ValueError(f"Mask length should be 2, was found at: {len(mask_shape)}")
+        h_crop, w_crop = int(height - ceil(mask_shape[0])), int(ceil(width - mask_shape[1]))
+        if h_crop > 0 and w_crop > 0:
+            rot_img = rot_img[h_crop // 2: - h_crop // 2, w_crop // 2: - w_crop // 2]
+        elif w_crop <= 0:
+            rot_img = rot_img[h_crop // 2: - h_crop // 2, ]
+        elif h_crop <= 0:
+            rot_img = rot_img[:, w_crop // 2: - w_crop // 2]
+
+    return rot_img
