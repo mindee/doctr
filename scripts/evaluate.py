@@ -70,7 +70,8 @@ def main(args):
 
             if args.img_folder and args.label_file:
                 x, y, w, h = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2], gt_boxes[:, 3]
-                xmin, ymin, xmax, ymax = x - w / 2, y - h / 2, x + w / 2, y + h / 2
+                xmin, ymin = np.clip(x - w / 2, 0, 1), np.clip(y - h / 2, 0, 1)
+                xmax, ymax = np.clip(x + w / 2, 0, 1), np.clip(y + h / 2, 0, 1)
                 gt_boxes = np.stack([xmin, ymin, xmax, ymax], axis=-1)
 
             # Forward
