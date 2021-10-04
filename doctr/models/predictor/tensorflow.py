@@ -20,7 +20,6 @@ from .base import _OCRPredictor
 __all__ = ['OCRPredictor']
 
 
-
 class OCRPredictor(NestedObject, _OCRPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
@@ -75,7 +74,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             rboxes = [rotate_boxes(page_boxes, angle, expand=True, orig_shape=page.shape[:2], mask_shape=mask) for
                       page_boxes, page, angle, mask in zip(boxes, pages, page_orientations, page_shapes)]
             boxes = rboxes
-            self.doc_builder = DocumentBuilder(rotated_bbox=True) #override the current doc_builder
+            self.doc_builder = DocumentBuilder(rotated_bbox=True)  # override the current doc_builder
 
         out = self.doc_builder(boxes, text_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
         return out

@@ -191,7 +191,7 @@ def rotate_boxes(
     if expand:
         exp_shape = compute_expanded_shape(orig_shape, angle)
         boxes = remap_boxes(boxes, orig_shape=orig_shape, dest_shape=exp_shape)
-        orig_shape = exp_shape #in case a mask is used afterwards
+        orig_shape = exp_shape  # in case a mask is used afterwards
     # Compute rotation matrix
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
     rotation_mat = np.array([

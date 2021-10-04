@@ -42,21 +42,21 @@ def test_resolve_enclosing_rbbox():
 
 def test_remap_boxes():
     pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0.]]), (10, 10), (20, 20))
-    target = np.array([[0.5, 0.5,  0.05,  0.05,  0.]])
+    target = np.array([[0.5, 0.5, 0.05, 0.05, 0.]])
     assert pred.all() == target.all()
 
     pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0.]]), (10, 10), (20, 10))
-    target = np.array([[0.5, 0.5,  0.1,  0.05,  0.]])
+    target = np.array([[0.5, 0.5, 0.1, 0.05, 0.]])
     assert pred.all() == target.all()
 
     pred = geometry.remap_boxes(np.array([[0.25, 0.5, 0.5, 0.33, 0.]]), (80, 30), (160, 30))
-    target = np.array([[0.375, 0.5,  0.25,  0.1,  0.]])
+    target = np.array([[0.375, 0.5, 0.25, 0.1, 0.]])
     assert pred.all() == target.all()
 
 
 def test_rotate_boxes():
     boxes = np.array([[0.1, 0.1, 0.8, 0.3]])
-    rboxes = np.apply_along_axis(geometry.bbox_to_rbbox,1,boxes)
+    rboxes = np.apply_along_axis(geometry.bbox_to_rbbox, 1, boxes)
     # Angle = 0
     rotated = geometry.rotate_boxes(boxes, angle=0.)
     assert rotated.all() == rboxes.all()
