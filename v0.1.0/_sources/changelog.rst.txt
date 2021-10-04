@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v0.4.0 (2021-10-01)
+-------------------
+Release note: `v0.4.0 <https://github.com/mindee/doctr/releases/tag/v0.4.0>`_
+
 v0.3.1 (2021-08-27)
 -------------------
 Release note: `v0.3.1 <https://github.com/mindee/doctr/releases/tag/v0.3.1>`_
