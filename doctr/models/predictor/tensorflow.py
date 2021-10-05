@@ -52,10 +52,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
+        page_shapes = [page.shape[:-1] for page in pages]
+
         # Detect document rotation and rotate pages
         if self.straighten_pages:
             page_orientations = [estimate_orientation(page) for page in pages]
-            page_shapes = [page.shape[:-1] for page in pages]
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, page_orientations)]
 
         # Localize text elements
@@ -69,12 +70,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            pages = [rotate_image(page, angle, expand=True, mask_shape=mask) for page, angle, mask in
-                     zip(pages, page_orientations, page_shapes)]
             rboxes = [rotate_boxes(page_boxes, angle, expand=True, orig_shape=page.shape[:2], mask_shape=mask) for
                       page_boxes, page, angle, mask in zip(boxes, pages, page_orientations, page_shapes)]
             boxes = rboxes
             self.doc_builder = DocumentBuilder(rotated_bbox=True)  # override the current doc_builder
 
-        out = self.doc_builder(boxes, text_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
+        out = self.doc_builder(boxes, text_preds, page_shapes)  # type: ignore[misc]
         return out

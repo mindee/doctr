@@ -5,7 +5,8 @@ import requests
 import cv2
 
 from doctr.io import reader, DocumentFile
-from doctr.models._utils import extract_crops, extract_rcrops, get_bitmap_angle, estimate_orientation, rotate_image
+from doctr.utils import geometry
+from doctr.models._utils import extract_crops, extract_rcrops, get_bitmap_angle, estimate_orientation
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -94,6 +95,6 @@ def test_estimate_orientation(mock_image):
     assert abs(angle - 30.) < 1.
 
     angle = estimate_orientation(mock_image)
-    rotated = rotate_image(mock_image, -angle)
+    rotated = geometry.rotate_image(mock_image, -angle)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated - 0.) < 1.
