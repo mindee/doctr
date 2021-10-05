@@ -8,12 +8,12 @@ import tensorflow as tf
 from typing import List, Any, Union
 
 from doctr.io.elements import Document
-from doctr.utils.geometry import rotate_boxes
+from doctr.utils.geometry import rotate_boxes, rotate_image
 from doctr.utils.repr import NestedObject
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.models._utils import estimate_orientation, rotate_image
+from doctr.models._utils import estimate_orientation
 from .base import _OCRPredictor
 
 

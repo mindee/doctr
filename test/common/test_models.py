@@ -89,29 +89,6 @@ def test_get_bitmap_angle(mock_bitmap):
     assert abs(angle - 30.) < 1.
 
 
-def test_rotate_image():
-    img = np.ones((32, 64, 3), dtype=np.float32)
-    rotated = rotate_image(img, 30.)
-    assert rotated.shape[:-1] == (32, 64)
-    assert rotated[0, 0, 0] == 0
-    assert rotated[0, :, 0].sum() > 1
-
-    # Expand
-    rotated = rotate_image(img, 30., expand=True)
-    assert rotated.shape[:-1] == (60, 72)
-    assert rotated[0, :, 0].sum() <= 1
-
-    # Expand with 90° rotation
-    rotated = rotate_image(img, 90., expand=True)
-    assert rotated.shape[:-1] == (64, 64)
-    assert rotated[0, :, 0].sum() <= 1
-
-    # Expand with mask
-    rotated = rotate_image(img, 30., expand=True, mask_shape=(40, 72))
-    assert rotated.shape[:-1] == (40, 72)
-    assert rotated[0, :, 0].sum() > 1
-
-
 def test_estimate_orientation(mock_image):
     angle = estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.

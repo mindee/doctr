@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
+from math import ceil
 from typing import List, Union, Tuple, Optional
 import numpy as np
 import cv2
@@ -11,7 +11,7 @@ from .common_types import BoundingBox, Polygon4P, RotatedBbox, Bbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
            'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox', 'rotate_boxes', 'rotate_abs_boxes',
-           'compute_expanded_shape', 'rotate_image']
+           'compute_expanded_shape']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -213,7 +213,9 @@ def rotate_boxes(
 def rotate_image(
     image: np.ndarray,
     angle: float,
-    expand=False,
+    expand: bool = False,
+    keep_original_size: bool = False,
+    mask_shape: Optional[Tuple[int, int]] = None
 ) -> np.ndarray:
     """Rotate an image counterclockwise by an given angle.
 
@@ -221,6 +223,8 @@ def rotate_image(
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
+        keep_original_size: whether the image should be resized to the original image size after the rotation
+        mask_shape: applies a mask on the image of the specified shape given in absolute pixels after the rotation
 
     Returns:
         Rotated array, padded by 0 by default.
@@ -229,7 +233,7 @@ def rotate_image(
     # Compute the expanded padding
     if expand:
         exp_shape = compute_expanded_shape(image.shape[:-1], angle)
-        h_pad, w_pad = int(math.ceil(exp_shape[0] - image.shape[0])), int(math.ceil(exp_shape[1] - image.shape[1]))
+        h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(max(0, ceil(exp_shape[1] - image.shape[1])))
         exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
     else:
         exp_img = image
@@ -237,7 +241,7 @@ def rotate_image(
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
     rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
-    if expand:
+    if keep_original_size:
         # Pad to get the same aspect ratio
         if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
             # Pad width
@@ -249,5 +253,16 @@ def rotate_image(
             rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
         # rescale
         rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
+
+    if mask_shape is not None:
+        if len(mask_shape) != 2:
+            raise ValueError(f"Mask length should be 2, was found at: {len(mask_shape)}")
+        h_crop, w_crop = int(height - ceil(mask_shape[0])), int(ceil(width - mask_shape[1]))
+        if h_crop > 0 and w_crop > 0:
+            rot_img = rot_img[h_crop // 2: - h_crop // 2, w_crop // 2: - w_crop // 2]
+        elif w_crop <= 0:
+            rot_img = rot_img[h_crop // 2: - h_crop // 2, ]
+        elif h_crop <= 0:
+            rot_img = rot_img[:, w_crop // 2: - w_crop // 2]
 
     return rot_img
