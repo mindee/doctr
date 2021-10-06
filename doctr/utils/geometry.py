@@ -11,7 +11,7 @@ from .common_types import BoundingBox, Polygon4P, RotatedBbox, Bbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
            'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox', 'rotate_boxes', 'rotate_abs_boxes',
-           'compute_expanded_shape']
+           'compute_expanded_shape', 'rotate_image']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -151,13 +151,13 @@ def remap_boxes(boxes: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tupl
         raise ValueError(f"Mask length should be 2, was found at: {len(dest_shape)}")
     if len(orig_shape) != 2:
         raise ValueError(f"Image_shape length should be 2, was found at: {len(orig_shape)}")
-    orig_width, orig_height = orig_shape
-    dest_width, dest_height = dest_shape
+    orig_height, orig_width = orig_shape
+    dest_height, dest_width = dest_shape
     mboxes = boxes.copy()
-    mboxes[:, 0] = ((boxes[:, 0] * orig_height) + (dest_height - orig_height) / 2) / dest_height
-    mboxes[:, 1] = ((boxes[:, 1] * orig_width) + (dest_width - orig_width) / 2) / dest_width
-    mboxes[:, 2] = boxes[:, 2] * orig_height / dest_height
-    mboxes[:, 3] = boxes[:, 3] * orig_width / dest_width
+    mboxes[:, 0] = ((boxes[:, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
+    mboxes[:, 1] = ((boxes[:, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
+    mboxes[:, 2] = boxes[:, 2] * orig_width / dest_width
+    mboxes[:, 3] = boxes[:, 3] * orig_height / dest_height
     return mboxes
 
 

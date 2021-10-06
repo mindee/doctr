@@ -12,7 +12,7 @@ from .recognition.zoo import recognition_predictor
 __all__ = ["ocr_predictor"]
 
 
-def _predictor(det_arch: str, reco_arch: str, pretrained: bool, det_bs=2, reco_bs=128, *kwargs) -> OCRPredictor:
+def _predictor(det_arch: str, reco_arch: str, pretrained: bool, det_bs=2, reco_bs=128) -> OCRPredictor:
 
     # Detection
     det_predictor = detection_predictor(det_arch, pretrained=pretrained, batch_size=det_bs)
@@ -20,7 +20,7 @@ def _predictor(det_arch: str, reco_arch: str, pretrained: bool, det_bs=2, reco_b
     # Recognition
     reco_predictor = recognition_predictor(reco_arch, pretrained=pretrained, batch_size=reco_bs)
 
-    return OCRPredictor(det_predictor, reco_predictor, *kwargs)
+    return OCRPredictor(det_predictor, reco_predictor)
 
 
 def ocr_predictor(
