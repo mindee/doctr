@@ -1,5 +1,8 @@
-from doctr.utils import geometry
+import cv2
 import numpy as np
+from math import hypot
+
+from doctr.utils import geometry
 
 
 def test_bbox_to_polygon():
@@ -52,6 +55,34 @@ def test_remap_boxes():
     pred = geometry.remap_boxes(np.array([[0.25, 0.5, 0.5, 0.33, 0.]]), (80, 30), (160, 30))
     target = np.array([[0.375, 0.5, 0.25, 0.1, 0.]])
     assert pred.all() == target.all()
+
+    orig_dimension = (100, 100)
+    dest_dimensions = (100, 200)
+    orig_box = np.array([[0.5, 0.5, 0.2, 0., 45]])
+    # Unpack
+    height_o, width_o = orig_dimension
+    height_d, width_d = dest_dimensions
+    pred = geometry.remap_boxes(orig_box, orig_dimension, dest_dimensions)
+
+    x, y, w, h, a = orig_box[0]
+    # Switch to absolute coords
+    x, w = x * width_o, w * width_o
+    y, h = y * height_o, h * height_o
+    orig = cv2.boxPoints(((x, y), (w, h), a))
+
+    x, y, w, h, a = pred[0]
+    # Switch to absolute coords
+    x, w = x * width_d, w * width_d
+    y, h = y * height_d, h * height_d
+    dest = cv2.boxPoints(((x, y), (w, h), a))
+
+    len_orig = hypot(orig[0][0] - orig[2][0], orig[0][1] - orig[2][1])
+    len_dest = hypot(dest[0][0] - dest[2][0], dest[0][1] - dest[2][1])
+    assert len_orig == len_dest
+
+    alpha_orig = np.rad2deg(np.arctan((orig[0][1] - orig[2][1])/ (orig[0][0] - orig[2][0])))
+    alpha_dest = np.rad2deg(np.arctan((dest[0][1] - dest[2][1])/ (dest[0][0] - dest[2][0])))
+    assert alpha_orig == alpha_dest
 
 
 def test_rotate_boxes():
