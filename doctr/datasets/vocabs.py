@@ -15,6 +15,11 @@ VOCABS: Dict[str, str] = {
     'punctuation': string.punctuation,
     'currency': '£€¥¢฿',
     'ancient_greek': 'αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ',
+    'arabic_letters': 'ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي',
+    'persian_letters': 'پچڢڤگ',
+    'hindi_digits': '٠١٢٣٤٥٦٧٨٩',
+    'arabic_diacritics': 'ًٌٍَُِّْ',
+    'arabic_punctuation': '؟؛«»—'
 }
 
 VOCABS['latin'] = VOCABS['digits'] + VOCABS['ascii_letters'] + VOCABS['punctuation']
@@ -24,3 +29,5 @@ VOCABS['french'] = VOCABS['english'] + 'àâéèêëîïôùûüçÀÂÉÈÊËÎ
 VOCABS['portuguese'] = VOCABS['english'] + 'áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ' + '¡¿'
 VOCABS['spanish'] = VOCABS['english'] + 'áéíóúüñÁÉÍÓÚÜÑ' + '¡¿'
 VOCABS['german'] = VOCABS['english'] + 'äöüßÄÖÜẞ'
+VOCABS['arabic'] = (VOCABS['digits'] + VOCABS['hindi_digits'] + VOCABS['arabic_letters'] + VOCABS['persian_letters'] +
+                    VOCABS['arabic_diacritics'] + VOCABS['arabic_punctuation'] + VOCABS['punctuation'])
