@@ -214,8 +214,7 @@ def rotate_image(
     image: np.ndarray,
     angle: float,
     expand: bool = False,
-    keep_original_size: bool = False,
-    mask_shape: Optional[Tuple[int, int]] = None
+    keep_original_size: bool = False
 ) -> np.ndarray:
     """Rotate an image counterclockwise by an given angle.
 
@@ -224,7 +223,6 @@ def rotate_image(
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
         keep_original_size: whether the image should be resized to the original image size after the rotation
-        mask_shape: applies a mask on the image of the specified shape given in absolute pixels after the rotation
 
     Returns:
         Rotated array, padded by 0 by default.
@@ -253,16 +251,5 @@ def rotate_image(
             rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
         # rescale
         rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
-
-    if mask_shape is not None:
-        if len(mask_shape) != 2:
-            raise ValueError(f"Mask length should be 2, was found at: {len(mask_shape)}")
-        h_crop, w_crop = int(height - ceil(mask_shape[0])), int(ceil(width - mask_shape[1]))
-        if h_crop > 0 and w_crop > 0:
-            rot_img = rot_img[h_crop // 2: - h_crop // 2, w_crop // 2: - w_crop // 2]
-        elif w_crop <= 0:
-            rot_img = rot_img[h_crop // 2: - h_crop // 2, ]
-        elif h_crop <= 0:
-            rot_img = rot_img[:, w_crop // 2: - w_crop // 2]
 
     return rot_img
