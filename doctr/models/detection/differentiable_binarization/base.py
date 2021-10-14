@@ -35,12 +35,14 @@ class DBPostProcessor(DetectionPostProcessor):
         box_thresh: float = 0.1,
         bin_thresh: float = 0.3,
         rotated_bbox: bool = False,
+        min_size_box: int = 3,
     ) -> None:
 
         super().__init__(
             box_thresh,
             bin_thresh,
-            rotated_bbox
+            rotated_bbox,
+            min_size_box,
         )
         self.unclip_ratio = 2.2 if self.rotated_bbox else 1.5
 
@@ -93,6 +95,9 @@ class DBPostProcessor(DetectionPostProcessor):
         """
         height, width = bitmap.shape[:2]
         min_size_box = 1 + int(height / 512)
+        # the default min_size_box is 3 
+        # so we can decide if we need to retain smaller sized boxes
+        min_size_box = min(min_size_box, self.min_size_box)
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
