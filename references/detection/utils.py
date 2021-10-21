@@ -19,7 +19,7 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
             img = img.transpose(1, 2, 0)
 
         target = np.zeros(img.shape[:2], np.uint8)
-        boxes = targets[idx]['boxes'][np.logical_not(targets[idx]['flags'])]
+        boxes = targets[idx].copy()
         boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
         boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
         boxes[:, :4] = boxes[:, :4].round().astype(int)
