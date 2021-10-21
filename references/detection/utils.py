@@ -11,7 +11,7 @@ from typing import List, Dict
 
 def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
     # Unnormalize image
-    nb_samples = 4
+    nb_samples = min(len(images), 4)
     _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
     for idx in range(nb_samples):
         img = (255 * images[idx].numpy()).round().clip(0, 255).astype(np.uint8)
