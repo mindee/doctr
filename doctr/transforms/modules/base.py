@@ -92,6 +92,9 @@ class RandomApply(NestedObject):
 class RandomRotate(NestedObject):
     """Randomly rotate a tensor image and its boxes
 
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.4.0/rotation_illustration.png
+        :align: center
+
     Args:
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
             [-max_angle, max_angle]
