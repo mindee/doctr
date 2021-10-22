@@ -89,7 +89,7 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
         [-img_shape[1] / 2, img_shape[0] / 2],
     ])
 
-    rotated_points = rotate_abs_points(points, np.zeros(2), angle)
+    rotated_points = rotate_abs_points(points, angle)
 
     wh_shape = 2 * np.abs(rotated_points).max(axis=0)
 
