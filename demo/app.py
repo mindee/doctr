@@ -30,7 +30,7 @@ def main():
     st.set_page_config(layout="wide")
 
     # Designing the interface
-    st.title("DocTR: Document Text Recognition")
+    st.title("docTR: Document Text Recognition")
     # For newline
     st.write('\n')
     # Instructions

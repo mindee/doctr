@@ -1,4 +1,4 @@
-# Contributing to DocTR
+# Contributing to docTR
 
 Everything you need to know to contribute efficiently to the project.
 
@@ -6,20 +6,20 @@ Everything you need to know to contribute efficiently to the project.
 
 ## Codebase structure
 
-- [doctr](https://github.com/mindee/doctr/blob/main/doctr) - The actual doctr library
+- [doctr](https://github.com/mindee/doctr/blob/main/doctr) - The package codebase
 - [test](https://github.com/mindee/doctr/blob/main/test) - Python unit tests
 - [docs](https://github.com/mindee/doctr/blob/main/docs) - Library documentation building
 - [scripts](https://github.com/mindee/doctr/blob/main/scripts) - Example scripts
 - [references](https://github.com/mindee/doctr/blob/main/references) - Reference training scripts
-- [demo](https://github.com/mindee/doctr/blob/main/demo) - Small demo app to showcase DocTR capabilities 
-- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy an API with DocTR
+- [demo](https://github.com/mindee/doctr/blob/main/demo) - Small demo app to showcase docTR capabilities 
+- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy an API with docTR
 
 
 ## Continuous Integration
 
 This project uses the following integrations to ensure proper codebase maintenance:
 
-- [Github Worklow](https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow) / [CircleCI](https://circleci.com/) - run jobs for package build and coverage
+- [Github Worklow](https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow) - run jobs for package build and coverage
 - [Codecov](https://codecov.io/) - reports back coverage results
 
 As a contributor, you will only have to ensure coverage of your code by adding appropriate unit testing of your code.
@@ -32,7 +32,7 @@ Use Github [issues](https://github.com/mindee/doctr/issues) for feature requests
 
 
 
-## Developing doctr
+## Developing docTR
 
 
 ### Commits

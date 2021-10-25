@@ -8,7 +8,7 @@ Data transformations are part of both training and inference procedure. Drawing 
 
 Supported transformations
 -------------------------
-Here are all transformations that are available through DocTR:
+Here are all transformations that are available through docTR:
 
 .. autoclass:: Resize
 .. autoclass:: Normalize

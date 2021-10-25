@@ -1,10 +1,10 @@
 # Text detection
 
-The sample training script was made to train text detection model with doctr
+The sample training script was made to train text detection model with docTR.
 
 ## Setup
 
-First, you need to install doctr (with pip, for instance)
+First, you need to install `doctr` (with pip, for instance)
 
 ```shell
 pip install -e . --upgrade
@@ -46,11 +46,20 @@ Each path must lead to folder with 1 subfolder and 1 file:
 Each JSON file must be a dictionary, where the keys are the image file names and the value is a dictionary with 3 entries: `img_dimensions` (spatial shape of the image), `img_hash` (SHA256 of the image file), `polygons` (the set of 2D points forming the localization polygon).
 The order of the points does not matter inside a polygon. Points are (x, y) absolutes coordinates.
 
+labels.json
 ```shell
-image.json = {
-    'img_dimensions': (900, 600),
-    'img_hash': "theimagedumpmyhash",
-    'polygons': [[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], ...]
+{
+    "sample_img_01.png" = {
+        'img_dimensions': (900, 600),
+        'img_hash': "theimagedumpmyhash",
+        'polygons': [[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], ...]
+     },
+     "sample_img_02.png" = {
+        'img_dimensions': (900, 600),
+        'img_hash': "thisisahash",
+        'polygons': [[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], ...]
+     }
+     ...
 }
 ```
 
