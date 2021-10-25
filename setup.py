@@ -100,7 +100,7 @@ setup(
     author='Mindee',
     author_email='contact@mindee.com',
     maintainer='François-Guillaume Fernandez, Charles Gaillard',
-    description='Document Text Recognition (DocTR): deep Learning for high-performance OCR on documents.',
+    description='Document Text Recognition (docTR): deep Learning for high-performance OCR on documents.',
     long_description=readme,
     long_description_content_type="text/markdown",
     url='https://github.com/mindee/doctr',
