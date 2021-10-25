@@ -17,7 +17,8 @@ from setuptools import find_packages, setup
 
 version = "0.4.1a0"
 sha = 'Unknown'
-package_name = 'python-doctr'
+src_folder = 'doctr'
+package_index = 'python-doctr'
 
 cwd = Path(__file__).parent.absolute()
 
@@ -29,9 +30,9 @@ elif sha != 'Unknown':
     except Exception:
         pass
     version += '+' + sha[:7]
-print(f"Building wheel {package_name}-{version}")
+print(f"Building wheel {package_index}-{version}")
 
-with open(cwd.joinpath(package_name, 'version.py'), 'w') as f:
+with open(cwd.joinpath(src_folder, 'version.py'), 'w') as f:
     f.write(f"__version__ = '{version}'\n")
 
 with open('README.md', 'r') as f:
@@ -95,7 +96,7 @@ extras["all"] = (
 
 setup(
     # Metadata
-    name=package_name,
+    name=package_index,
     version=version,
     author='Mindee',
     author_email='contact@mindee.com',
