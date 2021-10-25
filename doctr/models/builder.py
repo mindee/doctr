@@ -132,7 +132,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum = boxes[idxs[0]][1 if self.rotated_bbox else [1, 3]].mean()
+            y_center_sum += boxes[idx][1 if self.rotated_bbox else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:

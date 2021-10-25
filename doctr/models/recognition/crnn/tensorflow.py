@@ -32,7 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'backbone': mobilenet_v3_small_r, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_mobilenet_v3_small-7f36edec.zip',
     },
     'crnn_mobilenet_v3_large': {
         'mean': (0.694, 0.695, 0.693),

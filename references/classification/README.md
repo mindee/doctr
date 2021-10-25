@@ -1,10 +1,10 @@
 # Character classification
 
-The sample training script was made to train a character classification model with DocTR
+The sample training script was made to train a character classification model with docTR.
 
 ## Setup
 
-First, you need to install doctr (with pip, for instance)
+First, you need to install `doctr` (with pip, for instance)
 
 ```shell
 pip install -e . --upgrade

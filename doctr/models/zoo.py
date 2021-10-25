@@ -34,7 +34,7 @@ def ocr_predictor(
     Example::
         >>> import numpy as np
         >>> from doctr.models import ocr_predictor
-        >>> model = ocr_predictor(pretrained=True)
+        >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
         >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([input_page])
 
