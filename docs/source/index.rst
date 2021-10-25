@@ -1,4 +1,4 @@
-DocTR: Document Text Recognition
+docTR: Document Text Recognition
 ================================
 
 State-of-the-art Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch
@@ -57,7 +57,7 @@ Supported datasets
 
 .. toctree::
    :maxdepth: 2
-   :caption: Using DocTR
+   :caption: Using docTR
    :hidden:
 
    using_models

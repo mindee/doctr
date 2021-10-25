@@ -11,7 +11,7 @@ can be a significant save of time.
 
 Available Datasets
 ------------------
-Here are all datasets that are available through DocTR:
+Here are all datasets that are available through docTR:
 
 .. autoclass:: FUNSD
 .. autoclass:: SROIE
@@ -22,7 +22,7 @@ Here are all datasets that are available through DocTR:
 
 Data Loading
 ------------
-Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in DocTR.
+Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.
 
 .. autoclass:: doctr.datasets.loader.DataLoader
 
@@ -32,10 +32,10 @@ Each dataset has its specific way to load a sample, but handling batch aggregati
 Supported Vocabs
 ----------------
 
-Since textual content has to be encoded properly for models to interpret them efficiently, DocTR supports multiple sets
+Since textual content has to be encoded properly for models to interpret them efficiently, docTR supports multiple sets
 of vocabs.
 
-.. list-table:: DocTR Vocabs
+.. list-table:: docTR Vocabs
    :widths: 20 5 50
    :header-rows: 1
 
