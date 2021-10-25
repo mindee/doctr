@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 def plot_samples(images, targets):
     # Unnormalize image
-    num_samples = 12
-    num_rows = 3
+    num_samples = min(len(images), 12)
+    num_rows = min(len(images), 3)
     num_cols = int(math.ceil(num_samples / num_rows))
     _, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5))
     for idx in range(num_samples):
