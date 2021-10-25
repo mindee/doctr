@@ -1,10 +1,10 @@
 # Text recognition
 
-The sample training script was made to train text recognition model with doctr
+The sample training script was made to train text recognition model with docTR.
 
 ## Setup
 
-First, you need to install doctr (with pip, for instance)
+First, you need to install `doctr` (with pip, for instance)
 
 ```shell
 pip install -e . --upgrade

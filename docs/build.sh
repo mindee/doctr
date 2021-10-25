@@ -37,5 +37,6 @@ deploy_doc "6248b0bd" v0.1.1
 deploy_doc "650c4ad4" v0.2.0
 deploy_doc "1bbdb072" v0.2.1
 deploy_doc "3f051346" v0.3.0
-deploy_doc "369a787d" # v0.3.1 Latest stable release
+deploy_doc "369a787d" v0.3.1
+deploy_doc "51663ddf" # v0.4.0 Latest stable release
 rm -rf _build _static

@@ -65,22 +65,16 @@ def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> RotatedBbox:
     return fit_rbbox(pts)
 
 
-def rotate_abs_points(points: np.ndarray, center: np.ndarray, angle: float = 0.) -> np.ndarray:
-
-    # Y-axis is inverted by convention
-    rel_points = np.stack((points[:, 0] - center[0], center[1] - points[:, 1]), axis=1)
+def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:
+    """Rotate points counter-clockwise"""
 
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
     rotation_mat = np.array([
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
-    ], dtype=rel_points.dtype)
+    ], dtype=points.dtype)
 
-    rotated_rel_points = np.matmul(rel_points, rotation_mat.T)
-    rotated_rel_points[:, 0] += center[0]
-    rotated_rel_points[:, 1] = center[1] - rotated_rel_points[:, 1]
-
-    return rotated_rel_points
+    return np.matmul(points, rotation_mat.T)
 
 
 def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[int, int]:
@@ -99,20 +93,21 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
         [-img_shape[1] / 2, img_shape[0] / 2],
     ])
 
-    rotated_points = rotate_abs_points(points, np.zeros(2), angle)
+    rotated_points = rotate_abs_points(points, angle)
 
     wh_shape = 2 * np.abs(rotated_points).max(axis=0)
 
     return wh_shape[1], wh_shape[0]
 
 
-def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]) -> np.ndarray:
+def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int], expand: bool = True) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) by an angle around the image center.
 
     Args:
         boxes: (N, 4) array of absolute coordinate boxes
         angle: angle between -90 and +90 degrees
         img_shape: the height and width of the image
+        expand: whether the image should be padded to avoid information loss
 
     Returns:
         A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
@@ -120,12 +115,31 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
 
     # Get box centers
     box_centers = np.stack((boxes[:, 0] + boxes[:, 2], boxes[:, 1] + boxes[:, 3]), axis=1) / 2
+    img_corners = np.array([[0, 0], [0, img_shape[0]], [*img_shape[::-1]], [img_shape[1], 0]], dtype=boxes.dtype)
+
+    stacked_points = np.concatenate((img_corners, box_centers), axis=0)
+    # Y-axis is inverted by conversion
+    stacked_rel_points = np.stack(
+        (stacked_points[:, 0] - img_shape[1] / 2, img_shape[0] / 2 - stacked_points[:, 1]),
+        axis=1
+    )
 
     # Rotate them around image center
-    box_centers = rotate_abs_points(box_centers, np.array(img_shape[::-1]) / 2, angle)
+    rot_points = rotate_abs_points(stacked_rel_points, angle)
+    rot_corners, rot_centers = rot_points[:4], rot_points[4:]
 
+    # Expand the image to fit all the original info
+    if expand:
+        new_corners = np.abs(rot_corners).max(axis=0)
+        rot_centers[:, 0] += new_corners[0]
+        rot_centers[:, 1] = new_corners[1] - rot_centers[:, 1]
+    else:
+        rot_centers[:, 0] += img_shape[1] / 2
+        rot_centers[:, 1] = img_shape[0] / 2 - rot_centers[:, 1]
+
+    # Rotated bbox conversion
     rotated_boxes = np.concatenate((
-        box_centers,
+        rot_centers,
         np.stack((boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]), axis=1),
         np.full((boxes.shape[0], 1), angle, dtype=box_centers.dtype)
     ), axis=1)

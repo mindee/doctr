@@ -24,5 +24,6 @@ def mock_detection_image(tmpdir_factory):
 
 @pytest.fixture(scope="function")
 async def test_app_asyncio():
+    # for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac  # testing happens here
