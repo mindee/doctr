@@ -97,7 +97,7 @@
 </ul>
 </li>
 </ul>
-<p><span class="caption-text">Using DocTR</span></p>
+<p><span class="caption-text">Using docTR</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Choosing the right model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a><ul>
@@ -248,7 +248,7 @@
 <h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Permalink to this headline">¶</a></h1>
 <p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
-<p>For a given task, DocTR provides a Predictor, which is composed of 2 components:</p>
+<p>For a given task, docTR provides a Predictor, which is composed of 2 components:</p>
 <ul class="simple">
 <li><p>PreProcessor: a module in charge of making inputs directly usable by the deep learning model.</p></li>
 <li><p>Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow &amp; PyTorch) along with its specific post-processor to make outputs structured and reusable.</p></li>
@@ -256,7 +256,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <section id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
 <p>The task consists of localizing textual elements in a given image.
-While those text elements can represent many things, in DocTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).</p>
+While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).</p>
 <section id="available-architectures">
 <h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this headline">¶</a></h3>
 <p>The following architectures are currently supported:</p>
@@ -430,7 +430,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
 <section id="id3">
 <h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>You can use any combination of detection and recognition models supporte by DocTR.</p>
+<p>You can use any combination of detection and recognition models supporte by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <table class="docutils align-default">
 <colgroup>

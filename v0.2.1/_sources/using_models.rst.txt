@@ -6,7 +6,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 
 .. currentmodule:: doctr.models
 
-For a given task, DocTR provides a Predictor, which is composed of 2 components:
+For a given task, docTR provides a Predictor, which is composed of 2 components:
 
 * PreProcessor: a module in charge of making inputs directly usable by the deep learning model.
 * Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow & PyTorch) along with its specific post-processor to make outputs structured and reusable.
@@ -16,7 +16,7 @@ Text Detection
 --------------
 
 The task consists of localizing textual elements in a given image.
-While those text elements can represent many things, in DocTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don't).
+While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don't).
 
 Available architectures
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -156,7 +156,7 @@ The task consists of both localizing and transcribing textual elements in a give
 Available architectures
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-You can use any combination of detection and recognition models supporte by DocTR.
+You can use any combination of detection and recognition models supporte by docTR.
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
