@@ -229,7 +229,7 @@ If you wish to cite this project, feel free to use this [BibTeX](http://www.bibt
 
 ```bibtex
 @misc{doctr2021,
-    title={DocTR: Document Text Recognition},
+    title={docTR: Document Text Recognition},
     author={Mindee},
     year={2021},
     publisher = {GitHub},

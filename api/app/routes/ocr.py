@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.post("/", response_model=List[OCROut], status_code=200, summary="Perform OCR")
 async def perform_ocr(file: UploadFile = File(...)):
-    """Runs DocTR OCR model to analyze the input"""
+    """Runs docTR OCR model to analyze the input"""
     img = decode_img_as_tensor(file.file.read())
     out = predictor([img])
 

@@ -1,10 +1,10 @@
 # Text detection
 
-The sample training script was made to train text detection model with doctr
+The sample training script was made to train text detection model with docTR.
 
 ## Setup
 
-First, you need to install doctr (with pip, for instance)
+First, you need to install `doctr` (with pip, for instance)
 
 ```shell
 pip install -e . --upgrade

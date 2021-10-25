@@ -1,4 +1,4 @@
-DocTR: Document Text Recognition
+docTR: Document Text Recognition
 ================================
 
 State-of-the-art Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch
