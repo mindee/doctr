@@ -5,13 +5,11 @@
 
 import numpy as np
 import cv2
-from math import floor, ceil
-from typing import List, Optional, Tuple
+from math import floor
+from typing import List
 from statistics import median_low
 
-from doctr.utils import compute_expanded_shape
-
-__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle', 'rotate_image']
+__all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
 
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
