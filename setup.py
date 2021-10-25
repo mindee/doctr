@@ -17,7 +17,7 @@ from setuptools import find_packages, setup
 
 version = "0.4.1a0"
 sha = 'Unknown'
-package_name = 'doctr'
+package_name = 'python-doctr'
 
 cwd = Path(__file__).parent.absolute()
 
@@ -95,7 +95,7 @@ extras["all"] = (
 
 setup(
     # Metadata
-    name=os.getenv('PKG_INDEX') if os.getenv('PKG_INDEX') else package_name,
+    name=package_name,
     version=version,
     author='Mindee',
     author_email='contact@mindee.com',
