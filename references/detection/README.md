@@ -47,10 +47,13 @@ Each JSON file must be a dictionary, where the keys are the image file names and
 The order of the points does not matter inside a polygon. Points are (x, y) absolutes coordinates.
 
 ```shell
-image.json = {
-    'img_dimensions': (900, 600),
-    'img_hash': "theimagedumpmyhash",
-    'polygons': [[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], ...]
+labels.json 
+{
+    "sample_img_01.png" = {
+        'img_dimensions': (900, 600),
+        'img_hash': "theimagedumpmyhash",
+        'polygons': [[[x1, y1], [x2, y2], [x3, y3], [x4, y4]], ...]
+     }
 }
 ```
 
