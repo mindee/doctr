@@ -57,7 +57,7 @@ Supported datasets
 
 .. toctree::
    :maxdepth: 2
-   :caption: Using DocTR
+   :caption: Using docTR
    :hidden:
 
    using_models
