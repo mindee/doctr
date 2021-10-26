@@ -208,8 +208,7 @@ def test_page():
 
 def test_document():
     pages = _mock_pages()
-    hocr_page = ET.fromstring('<xml></xml>')
-    doc = elements.Document(pages, hocr_pages=[hocr_page])
+    doc = elements.Document(pages)
 
     # Attribute checks
     assert len(doc.pages) == len(pages)

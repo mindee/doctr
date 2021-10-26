@@ -5,12 +5,12 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 from xml.dom import minidom
 from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import Element as ETElement, SubElement
 
 import matplotlib.pyplot as plt
 import numpy as np
 from doctr.utils.common_types import BoundingBox, RotatedBbox
-from doctr.utils.geometry import (resolve_enclosing_bbox,
-                                  resolve_enclosing_rbbox)
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
 from doctr.utils.visualization import synthesize_page, visualize_page
 
@@ -255,6 +255,74 @@ class Page(Element):
 
         return synthesize_page(self.export(), **kwargs)
 
+    def export_as_xml(self, return_plain: bool = False, **kwargs) -> Union[bytes, ET.ElementTree]:
+        """Export the page as XML
+
+        Args:
+            return_plain: whether to return the plain (bytes) XML string or an ElementTree object
+            **kwargs: additional arguments to pass to the exporter
+
+        Returns:
+            the XML element
+        """
+        p_idx = self.page_idx
+        block_count: int = 1
+        line_count: int = 1
+        word_count: int = 1
+        width, height = self.dimensions
+        language = self.language if 'language' in self.language.keys() else 'en'
+        page_hocr = ETElement('html', attrib={'xmlns': 'http://www.w3.org/1999/xhtml', 'xml:lang': str(language)})
+        head = SubElement(page_hocr, 'head')
+        SubElement(head, 'title').text = 'docTR - hOCR'
+        SubElement(head, 'meta', attrib={'http-equiv': 'Content-Type', 'content': 'text/html; charset=utf-8'})
+        SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': 'doctr 0.5.0'})
+        SubElement(head, 'meta', attrib={'name': 'ocr-capabilities',
+                                         'content': 'ocr_page ocr_carea ocr_par ocr_line ocrx_word'})
+        body = SubElement(page_hocr, 'body')
+        SubElement(body, 'div', attrib={
+            'class': 'ocr_page',
+            'id': f'page_{p_idx + 1}',
+            'title': f'image; bbox 0 0 {width} {height}; ppageno 0'
+        })
+        for block in self.blocks:
+            xmin, ymin, xmax, ymax = [coord for coordinates in block.geometry for coord in coordinates]
+            block_div = SubElement(body, 'div', attrib={
+                'class': 'ocr_carea',
+                'id': f'block_1_{block_count}',
+                'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}'
+            })
+            paragraph = SubElement(block_div, 'p', attrib={
+                'class': 'ocr_par',
+                'id': f'par_1_{block_count}',
+                'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}'
+            })
+            block_count += 1
+            for line in block.lines:
+                xmin, ymin, xmax, ymax = [coord for coordinates in line.geometry for coord in coordinates]
+                # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
+                line_span = SubElement(paragraph, 'span', attrib={
+                    'class': 'ocr_line',
+                    'id': f'line_1_{line_count}',
+                    'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
+                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0'
+                })
+                line_count += 1
+                for word in line.words:
+                    xmin, ymin, xmax, ymax = [coord for coordinates in word.geometry for coord in coordinates]
+                    conf = word.confidence
+                    word_div = SubElement(line_span, 'span', attrib={
+                        'class': 'ocrx_word',
+                        'id': f'word_1_{word_count}',
+                        'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
+                            x_wconf {int(conf * 100)}'
+                    })
+                    word_div.text = word.value
+                    word_count += 1
+        if return_plain:
+            return ET.tostring(page_hocr, encoding='utf-8', method='xml')
+        else:
+            return ET.ElementTree(page_hocr)
+
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
@@ -275,10 +343,8 @@ class Document(Element):
     def __init__(
         self,
         pages: List[Page],
-        hocr_pages: List[ET.Element]
     ) -> None:
         super().__init__(pages=pages)
-        self.hocr_pages = hocr_pages
 
     def render(self, page_break: str = '\n\n\n\n') -> str:
         """Renders the full text of the element"""
@@ -302,18 +368,16 @@ class Document(Element):
 
         return [page.synthesize() for page in self.pages]
 
-    def export_as_xml(self, return_plain: bool = False, **kwargs):
-        """Export the document as a list of binary hocr (xml) strings or ElementTree objects
+    def export_as_xml(self, return_plain: bool = False, **kwargs) -> List[Union[bytes, ET.ElementTree]]:
+        """Export the document as XML
 
         Args:
-            return_plain: whether to return the plain text or the hocr
+            return_plain: whether to return the plain (bytes) XML string or an ElementTree object
+
         Returns:
-            list of binary hocr (xml) strings or ElementTree objects
+            list of XML (hOCR format) elements
         """
-        if return_plain:
-            return [ET.tostring(hocr_element, encoding='utf-8', method='xml') for hocr_element in self.hocr_pages]
-        else:
-            return [ET.ElementTree(hocr_element) for hocr_element in self.hocr_pages]
+        return [page.export_as_xml(return_plain, **kwargs) for page in self.pages]
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
