@@ -9,6 +9,7 @@ from xml.etree.ElementTree import Element as ETElement, SubElement
 
 import matplotlib.pyplot as plt
 import numpy as np
+import doctr
 from doctr.utils.common_types import BoundingBox, RotatedBbox
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
@@ -255,11 +256,13 @@ class Page(Element):
 
         return synthesize_page(self.export(), **kwargs)
 
-    def export_as_xml(self, return_plain: bool = False, **kwargs) -> Union[bytes, ET.ElementTree]:
+    def export_as_xml(self, return_plain: bool = False, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
+            -> Union[bytes, ET.ElementTree]:
         """Export the page as XML
 
         Args:
             return_plain: whether to return the plain (bytes) XML string or an ElementTree object
+            file_title: the title of the XML file
             **kwargs: additional arguments to pass to the exporter
 
         Returns:
@@ -271,19 +274,23 @@ class Page(Element):
         word_count: int = 1
         width, height = self.dimensions
         language = self.language if 'language' in self.language.keys() else 'en'
+        # Create the XML root element
         page_hocr = ETElement('html', attrib={'xmlns': 'http://www.w3.org/1999/xhtml', 'xml:lang': str(language)})
+        # Create the header / SubElements of the root element
         head = SubElement(page_hocr, 'head')
-        SubElement(head, 'title').text = 'docTR - hOCR'
+        SubElement(head, 'title').text = file_title
         SubElement(head, 'meta', attrib={'http-equiv': 'Content-Type', 'content': 'text/html; charset=utf-8'})
-        SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': 'doctr 0.5.0'})
+        SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': f"python-doctr {doctr.__version__}"})
         SubElement(head, 'meta', attrib={'name': 'ocr-capabilities',
                                          'content': 'ocr_page ocr_carea ocr_par ocr_line ocrx_word'})
+        # Create the body
         body = SubElement(page_hocr, 'body')
         SubElement(body, 'div', attrib={
             'class': 'ocr_page',
             'id': f'page_{p_idx + 1}',
             'title': f'image; bbox 0 0 {width} {height}; ppageno 0'
         })
+        # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
         for block in self.blocks:
             xmin, ymin, xmax, ymax = [coord for coordinates in block.geometry for coord in coordinates]
             block_div = SubElement(body, 'div', attrib={
@@ -316,6 +323,7 @@ class Page(Element):
                         'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
                             x_wconf {int(conf * 100)}'
                     })
+                    # set the text
                     word_div.text = word.value
                     word_count += 1
         if return_plain:
@@ -367,11 +375,13 @@ class Document(Element):
 
         return [page.synthesize() for page in self.pages]
 
-    def export_as_xml(self, return_plain: bool = False, **kwargs) -> List[Union[bytes, ET.ElementTree]]:
+    def export_as_xml(self, return_plain: bool = False, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
+            -> List[Union[bytes, ET.ElementTree]]:
         """Export the document as XML
 
         Args:
             return_plain: whether to return the plain (bytes) XML string or an ElementTree object
+            file_title: the title of the XML file
 
         Returns:
             list of XML (hOCR format) elements

@@ -1,7 +1,3 @@
-from typing import List
-from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import Element
-
 import numpy as np
 import pytest
 from doctr.io import elements
