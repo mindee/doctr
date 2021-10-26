@@ -26,8 +26,8 @@ class DocumentBuilder(NestedObject):
 
     def __init__(
         self,
-        resolve_lines: bool = False,
-        resolve_blocks: bool = False,
+        resolve_lines: bool = True,
+        resolve_blocks: bool = True,
         paragraph_break: float = 0.035,
         rotated_bbox: bool = False
     ) -> None:
