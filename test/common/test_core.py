@@ -10,4 +10,4 @@ def test_is_tf_available():
 
 
 def test_is_torch_available():
-    assert not doctr.is_torch_available()
+    assert doctr.is_torch_available()

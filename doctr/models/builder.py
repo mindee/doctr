@@ -4,13 +4,16 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
-import numpy as np
-from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
+from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import Element, SubElement
 
-from doctr.io.elements import Word, Line, Block, Page, Document
+import numpy as np
+from doctr.io.elements import Block, Document, Line, Page, Word
+from doctr.utils.geometry import (resolve_enclosing_bbox,
+                                  resolve_enclosing_rbbox)
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
+from scipy.cluster.hierarchy import fclusterdata
 
 __all__ = ['DocumentBuilder']
 
@@ -242,6 +245,72 @@ class DocumentBuilder(NestedObject):
 
         return blocks
 
+    def _generate_hocr(self, pages: List[Page]) -> List[Element]:
+        """Generate hOCR format from pages
+
+        Args:
+            pages: list of pages
+
+        Returns:
+            list of hOCR elements
+        """
+        hocr_pages: List[Element] = list()
+        for p_idx, page in enumerate(pages):
+            block_count: int = 1
+            line_count: int = 1
+            word_count: int = 1
+            width, height = page.dimensions
+            language = page.language if 'language' in page.language.keys() else 'en'
+            page_hocr = Element('html', attrib={'xmlns': 'http://www.w3.org/1999/xhtml', 'xml:lang': str(language)})
+            head = SubElement(page_hocr, 'head')
+            SubElement(head, 'title').text = 'docTR - hOCR'
+            SubElement(head, 'meta', attrib={'http-equiv': 'Content-Type', 'content': 'text/html; charset=utf-8'})
+            SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': 'doctr 0.5.0'})
+            SubElement(head, 'meta', attrib={'name': 'ocr-capabilities',
+                       'content': 'ocr_page ocr_carea ocr_par ocr_line ocrx_word'})
+            body = SubElement(page_hocr, 'body')
+            SubElement(body, 'div', attrib={
+                'class': 'ocr_page',
+                'id': f'page_{p_idx + 1}',
+                'title': f'image; bbox 0 0 {width} {height}; ppageno 0'
+            })
+            for block in page.blocks:
+                xmin, ymin, xmax, ymax = [coord for coordinates in block.geometry for coord in coordinates]
+                block_div = SubElement(body, 'div', attrib={
+                    'class': 'ocr_carea',
+                    'id': f'block_1_{block_count}',
+                    'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}'
+                })
+                paragraph = SubElement(block_div, 'p', attrib={
+                    'class': 'ocr_par',
+                    'id': f'par_1_{block_count}',
+                    'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}'
+                })
+                block_count += 1
+                for line in block.lines:
+                    xmin, ymin, xmax, ymax = [coord for coordinates in line.geometry for coord in coordinates]
+                    # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
+                    line_span = SubElement(paragraph, 'span', attrib={
+                        'class': 'ocr_line',
+                        'id': f'line_1_{line_count}',
+                        'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
+                            baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0'
+                    })
+                    line_count += 1
+                    for word in line.words:
+                        xmin, ymin, xmax, ymax = [coord for coordinates in word.geometry for coord in coordinates]
+                        conf = word.confidence
+                        word_div = SubElement(line_span, 'span', attrib={
+                            'class': 'ocrx_word',
+                            'id': f'word_1_{word_count}',
+                            'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
+                                x_wconf {int(conf * 100)}'
+                        })
+                        word_div.text = word.value
+                        word_count += 1
+            hocr_pages.append(page_hocr)
+        return hocr_pages
+
     def extra_repr(self) -> str:
         return (f"resolve_lines={self.resolve_lines}, resolve_blocks={self.resolve_blocks}, "
                 f"paragraph_break={self.paragraph_break}")
@@ -278,5 +347,5 @@ class DocumentBuilder(NestedObject):
             )
             for _idx, shape, page_boxes, word_preds in zip(range(len(boxes)), page_shapes, boxes, text_preds)
         ]
-
-        return Document(_pages)
+        hocr_pages = self._generate_hocr(_pages)
+        return Document(_pages, hocr_pages)

@@ -2,15 +2,17 @@
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+from typing import Any, Dict, List, Optional, Tuple, Union
+from xml.dom import minidom
+from xml.etree import ElementTree as ET
 
-import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple, Dict, List, Any, Optional, Union
-
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
-from doctr.utils.visualization import visualize_page, synthesize_page
+import numpy as np
 from doctr.utils.common_types import BoundingBox, RotatedBbox
+from doctr.utils.geometry import (resolve_enclosing_bbox,
+                                  resolve_enclosing_rbbox)
 from doctr.utils.repr import NestedObject
+from doctr.utils.visualization import synthesize_page, visualize_page
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 
@@ -269,12 +271,15 @@ class Document(Element):
 
     _children_names: List[str] = ['pages']
     pages: List[Page] = []
+    hocr_pages: List[ET.Element] = []
 
     def __init__(
         self,
         pages: List[Page],
+        hocr_pages: List[ET.Element]
     ) -> None:
         super().__init__(pages=pages)
+        self.hocr_pages = hocr_pages
 
     def render(self, page_break: str = '\n\n\n\n') -> str:
         """Renders the full text of the element"""
@@ -297,6 +302,19 @@ class Document(Element):
         """
 
         return [page.synthesize() for page in self.pages]
+
+    def export_as_xml(self, return_plain: bool = False, **kwargs):
+        """Export the document as a list of binary hocr (xml) strings or ElementTree objects
+
+        Args:
+            return_plain: whether to return the plain text or the hocr
+        Returns:
+            list of binary hocr (xml) strings or ElementTree objects
+        """
+        if return_plain:
+            return [ET.tostring(hocr_element, encoding='utf-8', method='xml') for hocr_element in self.hocr_pages]
+        else:
+            return [ET.ElementTree(hocr_element) for hocr_element in self.hocr_pages]
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
