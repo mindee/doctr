@@ -212,8 +212,8 @@ class MASTER(_MASTER, nn.Module):
     def make_mask(self, target: torch.Tensor) -> torch.Tensor:
         size = target.size(1)
         look_ahead_mask = ~ (torch.triu(torch.ones(size, size, device=target.device)) == 1).transpose(0, 1)[:, None]
-        target_padding_mask = ~ torch.eq(target, self.vocab_size + 2)  # Pad symbol
-        combined_mask = target_padding_mask & look_ahead_mask
+        target_padding_mask = torch.eq(target, self.vocab_size + 2)  # Pad symbol
+        combined_mask = target_padding_mask | look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
     def compute_loss(
@@ -315,21 +315,18 @@ class MASTER(_MASTER, nn.Module):
         """
         b = encoded.size(0)
 
-        # Padding symbol
-        ys = torch.full((b, self.max_length - 1), self.vocab_size + 2, dtype=torch.long, device=encoded.device)
-        start_vector = torch.full((b, 1), self.vocab_size + 1, dtype=torch.long, device=encoded.device)  # SOS
-        ys = torch.cat((start_vector, ys), dim=-1)
+        # Padding symbol + SOS at the beginning
+        ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)
+        ys[:, 0] = self.vocab_size + 1
 
         # Final dimension include EOS/SOS/PAD
-        logits = torch.zeros((b, self.max_length - 1, self.vocab_size + 3), dtype=torch.long, device=encoded.device)
-        # max_len = len + 2
         for i in range(self.max_length - 1):
             ys_mask = self.make_mask(ys)
             output = self.decoder(ys, encoded, ys_mask, None)
             logits = self.linear(output)
             prob = F.softmax(logits, dim=-1)
-            next_word = torch.max(prob, dim=-1).indices
-            ys[:, i + 1] = next_word[:, i]
+            _, next_word = torch.max(prob, dim=-1)
+            ys[:, i + 1] = next_word[:, i + 1]
 
         # Shape (N, max_length, vocab_size + 1)
         return logits
