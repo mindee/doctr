@@ -271,7 +271,6 @@ class Document(Element):
 
     _children_names: List[str] = ['pages']
     pages: List[Page] = []
-    hocr_pages: List[ET.Element] = []
 
     def __init__(
         self,
