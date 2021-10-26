@@ -325,7 +325,7 @@ class MASTER(_MASTER, nn.Module):
             output = self.decoder(ys, encoded, ys_mask, None)
             logits = self.linear(output)
             prob = F.softmax(logits, dim=-1)
-            _, next_word = torch.max(prob, dim=-1)
+            next_word = torch.max(prob, dim=-1).indices
             ys[:, i + 1] = next_word[:, i + 1]
 
         # Shape (N, max_length, vocab_size + 1)
