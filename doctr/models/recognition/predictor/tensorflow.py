@@ -10,7 +10,7 @@ from typing import List, Any, Union, Tuple
 from doctr.utils.repr import NestedObject
 from doctr.models.preprocessor import PreProcessor
 from ..core import RecognitionModel
-from .base import split_crops, remap_preds
+from ._utils import split_crops, remap_preds
 
 
 __all__ = ['RecognitionPredictor']
