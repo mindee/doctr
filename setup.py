@@ -17,7 +17,8 @@ from setuptools import find_packages, setup
 
 version = "0.4.1a0"
 sha = 'Unknown'
-package_name = 'doctr'
+src_folder = 'doctr'
+package_index = 'python-doctr'
 
 cwd = Path(__file__).parent.absolute()
 
@@ -29,9 +30,9 @@ elif sha != 'Unknown':
     except Exception:
         pass
     version += '+' + sha[:7]
-print(f"Building wheel {package_name}-{version}")
+print(f"Building wheel {package_index}-{version}")
 
-with open(cwd.joinpath(package_name, 'version.py'), 'w') as f:
+with open(cwd.joinpath(src_folder, 'version.py'), 'w') as f:
     f.write(f"__version__ = '{version}'\n")
 
 with open('README.md', 'r') as f:
@@ -95,12 +96,12 @@ extras["all"] = (
 
 setup(
     # Metadata
-    name=os.getenv('PKG_INDEX') if os.getenv('PKG_INDEX') else package_name,
+    name=package_index,
     version=version,
     author='Mindee',
     author_email='contact@mindee.com',
     maintainer='François-Guillaume Fernandez, Charles Gaillard',
-    description='Document Text Recognition (DocTR): deep Learning for high-performance OCR on documents.',
+    description='Document Text Recognition (docTR): deep Learning for high-performance OCR on documents.',
     long_description=readme,
     long_description_content_type="text/markdown",
     url='https://github.com/mindee/doctr',

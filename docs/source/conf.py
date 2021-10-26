@@ -21,7 +21,7 @@ import doctr
 # -- Project information -----------------------------------------------------
 
 master_doc = 'index'
-project = 'doctr'
+project = 'docTR'
 _copyright_str = f"-{datetime.now().year}" if datetime.now().year > 2021 else ""
 copyright = f"2021{_copyright_str}, Mindee"
 author = 'François-Guillaume Fernandez, Charles Gaillard'
