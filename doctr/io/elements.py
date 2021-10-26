@@ -320,8 +320,7 @@ class Page(Element):
                     word_count += 1
         if return_plain:
             return ET.tostring(page_hocr, encoding='utf-8', method='xml')
-        else:
-            return ET.ElementTree(page_hocr)
+        return ET.ElementTree(page_hocr)
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
