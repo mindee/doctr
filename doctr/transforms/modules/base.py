@@ -139,3 +139,68 @@ class RandomCrop(NestedObject):
         )
         croped_img, crop_boxes = F.crop_detection(img, target["boxes"], crop_box)
         return croped_img, dict(boxes=crop_boxes)
+
+
+class AddGuassianNoise(object):
+    """Add Gaussian-distributed additive noise to a tensor img
+
+    Args:
+        mean: float 
+        std: float
+    """
+    def __init__(self, mean:float, std:float) -> None:
+        super(AddGuassianNoise).__init__()
+        self.mean = mean
+        self.std = std
+       
+    
+    def extra_repr(self) -> str:
+        return f"mean={self.mean}, std={self.std}"
+    
+    def __call__(self, img: Any) -> Any:
+        return img + np.randn(img.size()) * self.std + self.mean
+        
+class SaltPepperNoise(object):
+    """Add s&p noise (replace random pixels with 0 or 1) to a tensor img
+
+    Args:
+        s_vs_p: float, probability for salt and (1 - s_vs_p) for pepper 
+        amount: float, amount of noise to be applied
+    """
+    def __init__(self, s_vs_p:float, amount:float) -> None:
+        super(SaltPepperNoise).__init__()
+        self.s_vs_p = s_vs_p
+        self.amount = amount
+       
+    def extra_repr(self) -> str:
+        return f"s_vs_p={self.s_vs_p}, amount={self.amount}"
+    
+    def __call__(self, img: Any) -> Any:
+        noisy_img = np.copy(img)
+        # Salt mode
+        num_salt = np.ceil(self.amount * img.size * self.s_vs_p)
+        coords = [np.random.randint(0, i - 1, int(num_salt))
+                for i in img.shape]
+        noisy_img[coords] = 1
+
+        # Pepper mode
+        num_pepper = np.ceil(self.amount* img.size * (1. - self.s_vs_p))
+        coords = [np.random.randint(0, i - 1, int(num_pepper))
+                for i in img.shape]
+        noisy_img[coords] = 0
+        return noisy_img    
+
+class AddPoissonNoise(object):
+    """Add Poisson-distributed noise generated from and to a tensor img
+    """
+    def __init__(self) -> None:
+        super(AddPoissonNoise).__init__()       
+    
+    def extra_repr(self) -> str:
+        return f"gamma={self.gamma}"
+    
+    def __call__(self, img: Any) -> Any:
+        vals = len(np.unique(img))
+        self.gamma = 2 ** np.ceil(np.log2(vals))
+        noisy_img = np.random.poisson(img * self.gamma) / float(self.gamma)
+        return noisy_img
