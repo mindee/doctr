@@ -12,7 +12,56 @@ from doctr.utils.repr import NestedObject
 from .. import functional as F
 
 
-__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
+__all__ = ['SampleCompose', 'ImageTransform', 'ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
+
+
+class SampleCompose(NestedObject):
+    """Implements a wrapper that will apply transformations sequentially on both image and target
+
+    Example::
+        >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
+        >>> import tensorflow as tf
+        >>> import numpy as np
+        >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
+        >>> out, out_boxes = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
+
+    Args:
+        transforms: list of transformation modules
+    """
+
+    _children_names: List[str] = ['transforms']
+
+    def __init__(self, transforms: List[Callable[[Any, Any], Tuple[Any, Any]]]) -> None:
+        self.transforms = transforms
+
+    def __call__(self, x: Any, target: Any) -> Tuple[Any, Any]:
+        for t in self.transforms:
+            x, target = t(x, target)
+
+        return x, target
+
+
+class ImageTransform(NestedObject):
+    """Implements a transform wrapper to turn an image-only transformation into an image+target transform
+
+    Example::
+        >>> from doctr.transforms import ImageTransform, ColorInversion
+        >>> import tensorflow as tf
+        >>> transfo = ImageTransform(ColorInversion((32, 32)))
+        >>> out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)
+
+    Args:
+        transform: the transformation module to wrap
+    """
+
+    _children_names: List[str] = ['transform']
+
+    def __init__(self, transform: Callable[[Any], Any]) -> None:
+        self.transform = transform
+
+    def __call__(self, img: Any, target: Any) -> Tuple[Any, Any]:
+        img = self.transform(img)
+        return img, target
 
 
 class ColorInversion(NestedObject):
