@@ -271,7 +271,7 @@ class DocumentBuilder(NestedObject):
         if self.export_as_straight_boxes:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes.shape[2] == 6:
-                straight_boxes =  []
+                straight_boxes = []
                 for box in boxes:
                     x, y, w, h, a, c = box
                     points = rbbox_to_polygon((x, y, w, h, a))
