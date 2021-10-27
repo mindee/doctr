@@ -38,6 +38,9 @@ jobs:
       - name: Build documentation
         run: cd docs && bash build.sh
 
+      - name: Documentation sanity check
+        run: test -e docs/build/index.html || exit
+
       - name: Install SSH Client 🔑
         uses: webfactory/ssh-agent@v0.4.1
         with:

@@ -92,6 +92,9 @@ class RandomApply(NestedObject):
 class RandomRotate(NestedObject):
     """Randomly rotate a tensor image and its boxes
 
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.4.0/rotation_illustration.png
+        :align: center
+
     Args:
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
             [-max_angle, max_angle]
@@ -104,10 +107,10 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
+    def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        r_img, r_boxes = F.rotate(img, target["boxes"], angle, self.expand)
-        return r_img, dict(boxes=r_boxes)
+        r_img, r_boxes = F.rotate(img, target, angle, self.expand)
+        return r_img, r_boxes
 
 
 class RandomCrop(NestedObject):

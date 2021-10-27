@@ -26,8 +26,8 @@ class DocumentBuilder(NestedObject):
 
     def __init__(
         self,
-        resolve_lines: bool = False,
-        resolve_blocks: bool = False,
+        resolve_lines: bool = True,
+        resolve_blocks: bool = True,
         paragraph_break: float = 0.035,
         rotated_bbox: bool = False
     ) -> None:
@@ -132,7 +132,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum = boxes[idxs[0]][1 if self.rotated_bbox else [1, 3]].mean()
+            y_center_sum += boxes[idx][1 if self.rotated_bbox else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -214,7 +214,7 @@ class DocumentBuilder(NestedObject):
         if self.resolve_lines:
             lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
-            if self.resolve_blocks:
+            if self.resolve_blocks and len(lines) > 1:
                 _blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
                 _blocks = [lines]

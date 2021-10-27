@@ -16,7 +16,7 @@ router = APIRouter()
 
 @router.post("/", response_model=List[DetectionOut], status_code=200, summary="Perform text detection")
 async def text_detection(file: UploadFile = File(...)):
-    """Runs DocTR text detection model to analyze the input"""
+    """Runs docTR text detection model to analyze the input"""
     img = decode_img_as_tensor(file.file.read())
     boxes, _ = det_predictor([img])[0]
     return [DetectionOut(box=box.tolist()) for box in boxes[:, :-1]]
