@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>doctr.models.recognition.crnn &mdash; docTR 0.1.1a0-git documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/clipboard.min.js"></script>
+        <script src="../../../../_static/copybutton.js"></script>
+        <script src="../../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/mindee.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> docTR
+          
+
+          
+            
+            <img src="../../../../_static/Logo-docTR-white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#file-reading">File reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../models.html">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#post-processing-detections">Post-processing detections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#model-export">Model export</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">docTR</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>doctr.models.recognition.crnn</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for doctr.models.recognition.crnn</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+
+<span class="c1"># This program is licensed under the Apache License version 2.</span>
+<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">vgg</span><span class="p">,</span> <span class="n">resnet</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CRNN&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_resnet31&#39;</span><span class="p">]</span>
+
+<span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
+        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;rnn_units&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;3K}7eé;5àÎYho]QwV6qU~W&quot;XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-&#39;</span>
+                  <span class="s1">&#39;kçHëÀÂ2É/ûIJ</span><span class="se">\&#39;</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.0/crnn_vgg16_bn-748c855f.zip&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;crnn_resnet31&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;resnet31&#39;</span><span class="p">,</span> <span class="s1">&#39;rnn_units&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;3K}7eé;5àÎYho]QwV6qU~W&quot;XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-&#39;</span>
+                  <span class="s1">&#39;kçHëÀÂ2É/ûIJ</span><span class="se">\&#39;</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">CRNN</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a CRNN architecture as described in `&quot;Convolutional RNN: an Enhanced Model for Extracting Features</span>
+<span class="sd">    from Sequential Data&quot; &lt;https://arxiv.org/pdf/1602.05875.pdf&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
+<span class="sd">        vocab_size: number of output classes</span>
+<span class="sd">        rnn_units: number of units in the LSTM layers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">feature_extractor</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span>
+        <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">118</span><span class="p">,</span>
+        <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span>
+
+        <span class="c1"># Initialize kernels</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+
+        <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># B x H x W x C --&gt; B x W x H x C</span>
+        <span class="n">transposed_feat</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">transposed_feat</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="c1"># B x W x H x C --&gt; B x W x H * C</span>
+        <span class="n">features_seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transposed_feat</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
+        <span class="n">decoded_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features_seq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">decoded_features</span>
+
+
+<span class="k">def</span> <span class="nf">_crnn_vgg</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+
+    <span class="c1"># Patch the config</span>
+    <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]))</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Feature extractor</span>
+    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">vgg</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+        <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Build the model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">CRNN</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Load pretrained parameters</span>
+    <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="k">def</span> <span class="nf">_crnn_resnet</span><span class="p">(</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+
+    <span class="c1"># Patch the config</span>
+    <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]))</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Feature extractor</span>
+    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">resnet</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+        <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Build the model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">CRNN</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Load pretrained parameters</span>
+    <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<div class="viewcode-block" id="crnn_vgg16_bn"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.crnn_vgg16_bn">[docs]</a><span class="k">def</span> <span class="nf">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;CRNN with a VGG-16 backbone as described in `&quot;Convolutional RNN: an Enhanced Model for Extracting Features</span>
+<span class="sd">    from Sequential Data&quot; &lt;https://arxiv.org/pdf/1602.05875.pdf&gt;`_.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_vgg16_bn</span>
+<span class="sd">        &gt;&gt;&gt; model = crnn_vgg16_bn(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        text recognition architecture</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_crnn_vgg</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">crnn_resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;CRNN with a resnet31 backbone as described in `&quot;Convolutional RNN: an Enhanced Model for Extracting Features</span>
+<span class="sd">    from Sequential Data&quot; &lt;https://arxiv.org/pdf/1602.05875.pdf&gt;`_.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_resnet31</span>
+<span class="sd">        &gt;&gt;&gt; model = crnn_resnet31(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        text recognition architecture</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_crnn_resnet</span><span class="p">(</span><span class="s1">&#39;crnn_resnet31&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Mindee
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'G-40DVRMX8T4', 'auto');
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>

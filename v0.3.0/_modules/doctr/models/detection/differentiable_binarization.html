@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>doctr.models.detection.differentiable_binarization &mdash; docTR 0.3.0a0-git documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/clipboard.min.js"></script>
+        <script src="../../../../_static/copybutton.js"></script>
+        <script src="../../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/mindee.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> docTR
+          
+
+          
+            
+            <img src="../../../../_static/Logo-docTR-white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#data-loading">Data Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../documents.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../documents.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../documents.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../documents.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../documents.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../documents.html#document">Document</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../documents.html#file-reading">File reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../models.html">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../transforms.html#composing-transformations">Composing transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">docTR</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>doctr.models.detection.differentiable_binarization</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for doctr.models.detection.differentiable_binarization</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+
+<span class="c1"># This program is licensed under the Apache License version 2.</span>
+<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+
+<span class="c1"># Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization</span>
+
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">Polygon</span>
+<span class="kn">import</span> <span class="nn">pyclipper</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow</span> <span class="kn">import</span> <span class="n">keras</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">DetectionModel</span><span class="p">,</span> <span class="n">DetectionPostProcessor</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">load_pretrained_params</span><span class="p">,</span> <span class="n">conv_sequence</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;DBPostProcessor&#39;</span><span class="p">,</span> <span class="s1">&#39;DBNet&#39;</span><span class="p">,</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">]</span>
+
+
+<span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;db_resnet50&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;ResNet50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;fpn_layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;conv2_block3_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv3_block4_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv4_block6_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv5_block3_out&quot;</span><span class="p">],</span>
+        <span class="s1">&#39;fpn_channels&#39;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;DBPostProcessor&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">DBPostProcessor</span><span class="p">(</span><span class="n">DetectionPostProcessor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a post processor for DBNet adapted from the implementation of `xuannianz</span>
+<span class="sd">    &lt;https://github.com/xuannianz/DifferentiableBinarization&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        unclip ratio: ratio used to unshrink polygons</span>
+<span class="sd">        min_size_box: minimal length (pix) to keep a box</span>
+<span class="sd">        max_candidates: maximum boxes to consider in a single page</span>
+<span class="sd">        box_thresh: minimal objectness score to consider a box</span>
+<span class="sd">        bin_thresh: threshold used to binzarized p_map at inference time</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">unclip_ratio</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
+        <span class="n">max_candidates</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">box_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">bin_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">box_thresh</span><span class="p">,</span>
+            <span class="n">bin_thresh</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unclip_ratio</span> <span class="o">=</span> <span class="n">unclip_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_candidates</span> <span class="o">=</span> <span class="n">max_candidates</span>
+
+    <span class="k">def</span> <span class="nf">polygon_to_box</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Expand a polygon (points) by a factor unclip_ratio, and returns a 4-points box</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            points: The first parameter.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a box in absolute coordinates (x, y, w, h)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">poly</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">area</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">unclip_ratio</span> <span class="o">/</span> <span class="n">poly</span><span class="o">.</span><span class="n">length</span>  <span class="c1"># compute distance to expand polygon</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">PyclipperOffset</span><span class="p">()</span>
+        <span class="n">offset</span><span class="o">.</span><span class="n">AddPath</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">JT_ROUND</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">ET_CLOSEDPOLYGON</span><span class="p">)</span>
+        <span class="n">_points</span> <span class="o">=</span> <span class="n">offset</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+        <span class="c1"># Take biggest stack of points</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">max_size</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">_idx</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_points</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_size</span><span class="p">:</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">_idx</span>
+                    <span class="n">max_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="c1"># We ensure that _points can be correctly casted to a ndarray</span>
+            <span class="n">_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">_points</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span>
+        <span class="n">expanded_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_points</span><span class="p">)</span>  <span class="c1"># expand polygon</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expanded_points</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">expanded_points</span><span class="p">)</span>  <span class="c1"># compute a 4-points box from expanded polygon</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+
+    <span class="k">def</span> <span class="nf">bitmap_to_boxes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">bitmap</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute boxes from a bitmap/pred_map</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pred: Pred map from differentiable binarization output</span>
+<span class="sd">            bitmap: Bitmap map computed from pred (binarized)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np tensor boxes for the bitmap, each box is a 5-element list</span>
+<span class="sd">                containing x, y, w, h, score for the box</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">bitmap</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">min_size_box</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">512</span><span class="p">)</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># get contours from connected components on the bitmap</span>
+        <span class="n">contours</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">findContours</span><span class="p">(</span><span class="n">bitmap</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">RETR_EXTERNAL</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CHAIN_APPROX_SIMPLE</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">contour</span> <span class="ow">in</span> <span class="n">contours</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">max_candidates</span><span class="p">]:</span>
+            <span class="c1"># Check whether smallest enclosing bounding box is not too small</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">contour</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">contour</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_size_box</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(</span><span class="n">contour</span><span class="p">)</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="n">y</span><span class="p">]])</span>
+            <span class="c1"># Compute objectness</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_score</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">box_thresh</span> <span class="o">&gt;</span> <span class="n">score</span><span class="p">:</span>   <span class="c1"># remove polygons with a weak objectness</span>
+                <span class="k">continue</span>
+            <span class="n">_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygon_to_box</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">_box</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_size_box</span> <span class="ow">or</span> <span class="n">_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">min_size_box</span><span class="p">:</span>  <span class="c1"># remove to small boxes</span>
+                <span class="k">continue</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">_box</span>
+            <span class="c1"># compute relative polygon to get rid of img shape</span>
+            <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">width</span><span class="p">,</span> <span class="n">y</span> <span class="o">/</span> <span class="n">height</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span><span class="p">,</span> <span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="n">height</span>
+            <span class="n">boxes</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">score</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">boxes</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">FeaturePyramidNetwork</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Feature Pyramid Network as described in `&quot;Feature Pyramid Networks for Object Detection&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1612.03144.pdf&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        channels: number of channel to output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">UpSampling2D</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inner_blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_blocks</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">build_upsampling</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">dilation_factor</span><span class="o">=</span><span class="mi">2</span> <span class="o">**</span> <span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">build_upsampling</span><span class="p">(</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dilation_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Module which performs a 3x3 convolution followed by up-sampling</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            channels: number of output channels</span>
+<span class="sd">            dilation_factor (int): dilation factor to scale the convolution output before concatenation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a keras.layers.Layer object, wrapping these operations in a sequential module</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_layers</span> <span class="o">=</span> <span class="n">conv_sequence</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dilation_factor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">UpSampling2D</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">dilation_factor</span><span class="p">,</span> <span class="n">dilation_factor</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">))</span>
+
+        <span class="n">module</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">module</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;channels=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+
+        <span class="c1"># Channel mapping</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">fmap</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">block</span><span class="p">,</span> <span class="n">fmap</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner_blocks</span><span class="p">,</span> <span class="n">x</span><span class="p">)]</span>
+        <span class="c1"># Upsample &amp; sum</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="c1"># Conv &amp; upsample</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">fmap</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">block</span><span class="p">,</span> <span class="n">fmap</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_blocks</span><span class="p">,</span> <span class="n">results</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">layers</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">DBNet</span><span class="p">(</span><span class="n">DetectionModel</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;DBNet as described in `&quot;Real-time Scene Text Detection with Differentiable Binarization&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        feature extractor: the backbone serving as feature extractor</span>
+<span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;feat_extractor&#39;</span><span class="p">,</span> <span class="s1">&#39;fpn&#39;</span><span class="p">,</span> <span class="s1">&#39;probability_head&#39;</span><span class="p">,</span> <span class="s1">&#39;threshold_head&#39;</span><span class="p">,</span> <span class="s1">&#39;postprocessor&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">feature_extractor</span><span class="p">:</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span>
+        <span class="n">fpn_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">shrink_ratio</span> <span class="o">=</span> <span class="mf">0.4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thresh_min</span> <span class="o">=</span> <span class="mf">0.3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thresh_max</span> <span class="o">=</span> <span class="mf">0.7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_size_box</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span> <span class="o">=</span> <span class="n">FeaturePyramidNetwork</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="n">fpn_channels</span><span class="p">)</span>
+        <span class="c1"># Initialize kernels</span>
+        <span class="n">_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">in_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">for</span> <span class="n">in_shape</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">]</span>
+        <span class="n">output_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="p">(</span><span class="n">_inputs</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_head</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">DBPostProcessor</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">compute_distance</span><span class="p">(</span>
+        <span class="n">xs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">ys</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-7</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute the distance for each point of the map (xs, ys) to the (a, b) segment</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xs : map of x coordinates (height, width)</span>
+<span class="sd">            ys : map of y coordinates (height, width)</span>
+<span class="sd">            a: first point defining the [ab] segment</span>
+<span class="sd">            b: second point defining the [ab] segment</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The computed distance</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">square_dist_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">xs</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">ys</span> <span class="o">-</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">square_dist_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">xs</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">ys</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">square_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">cosin</span> <span class="o">=</span> <span class="p">(</span><span class="n">square_dist</span> <span class="o">-</span> <span class="n">square_dist_1</span> <span class="o">-</span> <span class="n">square_dist_2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">square_dist_1</span> <span class="o">*</span> <span class="n">square_dist_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+        <span class="n">square_sin</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">cosin</span><span class="p">)</span>
+        <span class="n">square_sin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">square_sin</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">square_dist_1</span> <span class="o">*</span> <span class="n">square_dist_2</span> <span class="o">*</span> <span class="n">square_sin</span> <span class="o">/</span> <span class="n">square_dist</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">cosin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">square_dist_1</span><span class="p">,</span> <span class="n">square_dist_2</span><span class="p">))[</span><span class="n">cosin</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">draw_thresh_map</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">polygon</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">canvas</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Draw a polygon treshold map on a canvas, as described in the DB paper</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            polygon : array of coord., to draw the boundary of the polygon</span>
+<span class="sd">            canvas : threshold map to fill with polygons</span>
+<span class="sd">            mask : mask for training on threshold polygons</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">polygon</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">polygon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;polygon should be a 2 dimensional array of coords&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Augment polygon by shrink_ratio</span>
+        <span class="n">polygon_shape</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">polygon_shape</span><span class="o">.</span><span class="n">area</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shrink_ratio</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">polygon_shape</span><span class="o">.</span><span class="n">length</span>
+        <span class="n">subject</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coor</span><span class="p">)</span> <span class="k">for</span> <span class="n">coor</span> <span class="ow">in</span> <span class="n">polygon</span><span class="p">]</span>  <span class="c1"># Get coord as list of tuples</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">PyclipperOffset</span><span class="p">()</span>
+        <span class="n">padding</span><span class="o">.</span><span class="n">AddPath</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">JT_ROUND</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">ET_CLOSEDPOLYGON</span><span class="p">)</span>
+        <span class="n">padded_polygon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">padding</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="n">distance</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># Fill the mask with 1 on the new padded polygon</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="n">padded_polygon</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)],</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># Get min/max to recover polygon after distance computation</span>
+        <span class="n">xmin</span> <span class="o">=</span> <span class="n">padded_polygon</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">xmax</span> <span class="o">=</span> <span class="n">padded_polygon</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">ymin</span> <span class="o">=</span> <span class="n">padded_polygon</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">ymax</span> <span class="o">=</span> <span class="n">padded_polygon</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1"># Get absolute polygon for distance computation</span>
+        <span class="n">polygon</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">polygon</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">xmin</span>
+        <span class="n">polygon</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">polygon</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ymin</span>
+        <span class="c1"># Get absolute padded polygon</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">width</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">height</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+
+        <span class="c1"># Compute distance map to fill the padded polygon</span>
+        <span class="n">distance_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">polygon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">polygon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">polygon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">absolute_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_distance</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">polygon</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">polygon</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">distance_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">absolute_distance</span> <span class="o">/</span> <span class="n">distance</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">distance_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">distance_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Clip the padded polygon inside the canvas</span>
+        <span class="n">xmin_valid</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmin</span><span class="p">),</span> <span class="n">canvas</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">xmax_valid</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">xmax</span><span class="p">),</span> <span class="n">canvas</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ymin_valid</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">canvas</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ymax_valid</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="n">canvas</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Fill the canvas with the distances computed inside the valid padded polygon</span>
+        <span class="n">canvas</span><span class="p">[</span><span class="n">ymin_valid</span><span class="p">:</span><span class="n">ymax_valid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xmin_valid</span><span class="p">:</span><span class="n">xmax_valid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fmax</span><span class="p">(</span>
+            <span class="mi">1</span> <span class="o">-</span> <span class="n">distance_map</span><span class="p">[</span>
+                <span class="n">ymin_valid</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">:</span><span class="n">ymax_valid</span> <span class="o">-</span> <span class="n">ymin</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">xmin_valid</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">:</span><span class="n">xmax_valid</span> <span class="o">-</span> <span class="n">xmin</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="p">],</span>
+            <span class="n">canvas</span><span class="p">[</span><span class="n">ymin_valid</span><span class="p">:</span><span class="n">ymax_valid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xmin_valid</span><span class="p">:</span><span class="n">xmax_valid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">canvas</span><span class="p">,</span> <span class="n">mask</span>
+
+    <span class="k">def</span> <span class="nf">compute_target</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+        <span class="n">output_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+
+        <span class="n">seg_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">thresh_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+        <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">output_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">_target</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
+            <span class="c1"># Draw each polygon on gt</span>
+            <span class="k">if</span> <span class="n">_target</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Empty image, full masked</span>
+                <span class="n">seg_mask</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># Absolute bounding boxes</span>
+            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">_target</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">*=</span> <span class="n">output_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span> <span class="o">*=</span> <span class="n">output_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+            <span class="n">boxes_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">polys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span>
+                <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+                <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span>
+                <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span>
+                <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+            <span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">box</span><span class="p">,</span> <span class="n">box_size</span><span class="p">,</span> <span class="n">poly</span><span class="p">,</span> <span class="n">is_ambiguous</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">abs_boxes</span><span class="p">,</span> <span class="n">boxes_size</span><span class="p">,</span> <span class="n">polys</span><span class="p">,</span> <span class="n">_target</span><span class="p">[</span><span class="s1">&#39;flags&#39;</span><span class="p">]):</span>
+                <span class="c1"># Mask ambiguous boxes</span>
+                <span class="k">if</span> <span class="n">is_ambiguous</span><span class="p">:</span>
+                    <span class="n">seg_mask</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">continue</span>
+                <span class="c1"># Mask boxes that are too small</span>
+                <span class="k">if</span> <span class="n">box_size</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size_box</span><span class="p">:</span>
+                    <span class="n">seg_mask</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Negative shrink for gt, as described in paper</span>
+                <span class="n">polygon</span> <span class="o">=</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+                <span class="n">distance</span> <span class="o">=</span> <span class="n">polygon</span><span class="o">.</span><span class="n">area</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shrink_ratio</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="n">polygon</span><span class="o">.</span><span class="n">length</span>
+                <span class="n">subject</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">coor</span><span class="p">)</span> <span class="k">for</span> <span class="n">coor</span> <span class="ow">in</span> <span class="n">poly</span><span class="p">]</span>
+                <span class="n">padding</span> <span class="o">=</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">PyclipperOffset</span><span class="p">()</span>
+                <span class="n">padding</span><span class="o">.</span><span class="n">AddPath</span><span class="p">(</span><span class="n">subject</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">JT_ROUND</span><span class="p">,</span> <span class="n">pyclipper</span><span class="o">.</span><span class="n">ET_CLOSEDPOLYGON</span><span class="p">)</span>
+                <span class="n">shrinked</span> <span class="o">=</span> <span class="n">padding</span><span class="o">.</span><span class="n">Execute</span><span class="p">(</span><span class="o">-</span><span class="n">distance</span><span class="p">)</span>
+
+                <span class="c1"># Draw polygon on gt if it is valid</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shrinked</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">seg_mask</span><span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">continue</span>
+                <span class="n">shrinked</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shrinked</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">shrinked</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">Polygon</span><span class="p">(</span><span class="n">shrinked</span><span class="p">)</span><span class="o">.</span><span class="n">is_valid</span><span class="p">:</span>
+                    <span class="n">seg_mask</span><span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">continue</span>
+                <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="p">[</span><span class="n">shrinked</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="c1"># Draw on both thresh map and thresh mask</span>
+                <span class="n">poly</span><span class="p">,</span> <span class="n">thresh_target</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">thresh_mask</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_thresh_map</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">thresh_target</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                                                                                  <span class="n">thresh_mask</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+        <span class="n">thresh_target</span> <span class="o">=</span> <span class="n">thresh_target</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thresh_max</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">thresh_min</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thresh_min</span>
+
+        <span class="n">seg_target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">seg_target</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">seg_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">thresh_target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">thresh_target</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">thresh_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span><span class="p">,</span> <span class="n">thresh_target</span><span class="p">,</span> <span class="n">thresh_mask</span>
+
+    <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">out_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">thresh_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes</span>
+<span class="sd">        and a list of masks for each image. From there it computes the loss with the model output</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            out_map: output feature map of the model of shape (N, H, W, C)</span>
+<span class="sd">            thresh_map: threshold map of shape (N, H, W, C)</span>
+<span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A loss tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">out_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">thresh_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">thresh_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span><span class="p">,</span> <span class="n">thresh_target</span><span class="p">,</span> <span class="n">thresh_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+
+        <span class="c1"># Compute balanced BCE loss for proba_map</span>
+        <span class="n">bce_scale</span> <span class="o">=</span> <span class="mf">5.</span>
+        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">binary_crossentropy</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">out_map</span><span class="p">,</span> <span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="n">seg_mask</span><span class="p">]</span>
+
+        <span class="n">neg_target</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">]</span>
+        <span class="n">positive_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])</span>
+        <span class="n">negative_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">neg_target</span><span class="p">),</span> <span class="mf">3.</span> <span class="o">*</span> <span class="n">positive_count</span><span class="p">])</span>
+        <span class="n">negative_loss</span> <span class="o">=</span> <span class="n">bce_loss</span> <span class="o">*</span> <span class="n">neg_target</span>
+        <span class="n">negative_loss</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">top_k</span><span class="p">(</span><span class="n">negative_loss</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">negative_count</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+        <span class="n">sum_losses</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">bce_loss</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">negative_loss</span><span class="p">)</span>
+        <span class="n">balanced_bce_loss</span> <span class="o">=</span> <span class="n">sum_losses</span> <span class="o">/</span> <span class="p">(</span><span class="n">positive_count</span> <span class="o">+</span> <span class="n">negative_count</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)</span>
+
+        <span class="c1"># Compute dice loss for approxbin_map</span>
+        <span class="n">bin_map</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">50.</span> <span class="o">*</span> <span class="p">(</span><span class="n">prob_map</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">thresh_map</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])))</span>
+
+        <span class="n">bce_min</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">(</span><span class="n">bce_loss</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">bce_loss</span> <span class="o">-</span> <span class="n">bce_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">bce_loss</span><span class="p">)</span> <span class="o">-</span> <span class="n">bce_min</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.</span>
+        <span class="n">inter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">bin_map</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">weights</span><span class="p">)</span>
+        <span class="n">union</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">bin_map</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-8</span>
+        <span class="n">dice_loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">inter</span> <span class="o">/</span> <span class="n">union</span>
+
+        <span class="c1"># Compute l1 loss for thresh_map</span>
+        <span class="n">l1_scale</span> <span class="o">=</span> <span class="mf">10.</span>
+        <span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_any</span><span class="p">(</span><span class="n">thresh_mask</span><span class="p">):</span>
+            <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">thresh_map</span><span class="p">[</span><span class="n">thresh_mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">thresh_target</span><span class="p">[</span><span class="n">thresh_mask</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">l1_scale</span> <span class="o">*</span> <span class="n">l1_loss</span> <span class="o">+</span> <span class="n">bce_scale</span> <span class="o">*</span> <span class="n">balanced_bce_loss</span> <span class="o">+</span> <span class="n">dice_loss</span>
+
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_model_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+
+        <span class="n">feat_maps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">feat_concat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="p">(</span><span class="n">feat_maps</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">out</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_boxes</span><span class="p">:</span>
+            <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
+
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_boxes</span><span class="p">:</span>
+            <span class="c1"># Post-process boxes</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">thresh_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">thresh_map</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
+
+        <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">_db_resnet</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DBNet</span><span class="p">:</span>
+
+    <span class="c1"># Patch the config</span>
+    <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_channels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fpn_channels&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_channels&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Feature extractor</span>
+    <span class="n">resnet</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">applications</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span>
+        <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+        <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
+        <span class="n">resnet</span><span class="p">,</span>
+        <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_layers&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;fpn_channels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_channels&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Build the model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">DBNet</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1"># Load pretrained parameters</span>
+    <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<div class="viewcode-block" id="db_resnet50"><a class="viewcode-back" href="../../../../models.html#doctr.models.detection.db_resnet50">[docs]</a><span class="k">def</span> <span class="nf">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DBNet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;DBNet as described in `&quot;Real-time Scene Text Detection with Differentiable Binarization&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_, using a ResNet-50 backbone.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import db_resnet50</span>
+<span class="sd">        &gt;&gt;&gt; model = db_resnet50(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        text detection architecture</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_db_resnet</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Mindee
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'G-40DVRMX8T4', 'auto');
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>
