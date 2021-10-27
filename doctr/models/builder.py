@@ -178,6 +178,7 @@ class DocumentBuilder(NestedObject):
             ), axis=-1
         )
         # Compute clusters
+        print(box_features)
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
 
         _blocks: Dict[int, List[int]] = {}
@@ -215,7 +216,6 @@ class DocumentBuilder(NestedObject):
             lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
             if self.resolve_blocks:
-                print(boxes[:, :-1])
                 _blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
                 _blocks = [lines]
