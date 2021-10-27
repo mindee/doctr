@@ -2,3 +2,4 @@ sphinx<3.5.0
 sphinx-rtd-theme==0.4.3
 sphinxemoji
 sphinx-copybutton
+docutils<0.18

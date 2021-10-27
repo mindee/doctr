@@ -26,8 +26,8 @@ class DocumentBuilder(NestedObject):
 
     def __init__(
         self,
-        resolve_lines: bool = False,
-        resolve_blocks: bool = False,
+        resolve_lines: bool = True,
+        resolve_blocks: bool = True,
         paragraph_break: float = 0.035,
         rotated_bbox: bool = False
     ) -> None:
@@ -214,7 +214,7 @@ class DocumentBuilder(NestedObject):
         if self.resolve_lines:
             lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
-            if self.resolve_blocks:
+            if self.resolve_blocks and len(lines) > 1:
                 _blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
                 _blocks = [lines]
