@@ -32,3 +32,5 @@ It is common to require several transformations to be performed consecutively.
 .. autoclass:: Compose
 .. autoclass:: OneOf
 .. autoclass:: RandomApply
+.. autoclass:: SampleCompose
+.. autoclass:: ImageTransform
