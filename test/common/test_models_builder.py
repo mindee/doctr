@@ -35,7 +35,8 @@ def test_documentbuilder():
     assert len(out.pages[0].blocks) == 0
 
     # Repr
-    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, resolve_blocks=True, paragraph_break=0.035)"
+    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, " \
+                                "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False)"
 
 
 @pytest.mark.parametrize(
