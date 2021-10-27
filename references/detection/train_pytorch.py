@@ -91,7 +91,7 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
         rotated_bbox=args.rotation
     )
     val_loader = DataLoader(
@@ -147,11 +147,13 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, 'images'),
         label_path=os.path.join(args.train_path, 'labels.json'),
-        sample_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
-            # Augmentations
+        img_transforms=Compose([
             T.RandomApply(T.ColorInversion(), .1),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+        ]),
+        sample_transforms=T.SampleCompose([
+            T.RandomRotate(30, expand=True),
+            T.ImageTransform(T.Resize((args.input_size, args.input_size))),
         ]),
         rotated_bbox=args.rotation
     )
@@ -170,7 +172,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target, rotation=args.rotation)
+        plot_samples(x, target)
         return
 
     # Backbone freezing
