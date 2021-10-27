@@ -25,18 +25,21 @@ class DetectionDataset(AbstractDataset):
     Args:
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations of each image
-        sample_transforms: composable transformations that will be applied to each image
+        img_transforms: composable transformations that will be applied to each image
+        sample_transforms: composable transformations that will be applied to each image & target pair
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
     def __init__(
         self,
         img_folder: str,
         label_path: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        img_transforms: Optional[Callable[[Any], Any]] = None,
+        sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(img_folder, **kwargs)
+        self.img_transforms = img_transforms
         self.sample_transforms = sample_transforms
 
         # File existence check
@@ -65,13 +68,17 @@ class DetectionDataset(AbstractDataset):
 
         img, boxes = self._read_sample(index)
         h, w = self._get_img_shape(img)
-        if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
+
+        if self.img_transforms is not None:
+            img = self.img_transforms(img)
 
         # Boxes
         boxes = boxes.copy()
         boxes[..., [0, 2]] /= w
         boxes[..., [1, 3]] /= h
         boxes = boxes.clip(0, 1)
+
+        if self.sample_transforms is not None:
+            img, boxes = self.sample_transforms(img, boxes)
 
         return img, boxes
