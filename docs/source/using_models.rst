@@ -299,7 +299,10 @@ For reference, here is the JSON export for the same `Document` as above::
 
 To export the outpout as XML (hocr-format) you can use the `export_as_xml` method::
 
-  xml_output = result.export_as_xml(return_plain=True)
+  xml_output = result.export_as_xml()
+  for output in xml_output:
+    xml_bytes_string = output[0]
+    xml_element = output[1]
 
 For reference, here is a short snippet of the XML output::
 

@@ -256,8 +256,8 @@ class Page(Element):
 
         return synthesize_page(self.export(), **kwargs)
 
-    def export_as_xml(self, return_plain: bool = False, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
-            -> Union[bytes, ET.ElementTree]:
+    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
+            -> Tuple[bytes, ET.ElementTree]:
         """Export the page as XML
 
         Args:
@@ -326,9 +326,8 @@ class Page(Element):
                     # set the text
                     word_div.text = word.value
                     word_count += 1
-        if return_plain:
-            return ET.tostring(page_hocr, encoding='utf-8', method='xml')
-        return ET.ElementTree(page_hocr)
+
+        return (ET.tostring(page_hocr, encoding='utf-8', method='xml'), ET.ElementTree(page_hocr))
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
@@ -375,18 +374,17 @@ class Document(Element):
 
         return [page.synthesize() for page in self.pages]
 
-    def export_as_xml(self, return_plain: bool = False, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
-            -> List[Union[bytes, ET.ElementTree]]:
+    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
+            -> List[Tuple[bytes, ET.ElementTree]]:
         """Export the document as XML
 
         Args:
-            return_plain: whether to return the plain (bytes) XML string or an ElementTree object
             file_title: the title of the XML file
 
         Returns:
-            list of XML (hOCR format) elements
+            list of tuple of (bytes, ElementTree)
         """
-        return [page.export_as_xml(return_plain, **kwargs) for page in self.pages]
+        return [page.export_as_xml(file_title, **kwargs) for page in self.pages]
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):

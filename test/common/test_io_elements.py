@@ -190,6 +190,10 @@ def test_page():
     assert page.export() == {"blocks": [b.export() for b in blocks], "page_idx": page_idx, "dimensions": page_size,
                              "orientation": orientation, "language": language}
 
+    # Export XML
+    assert isinstance(page.export_as_xml(), tuple) and isinstance(
+        page.export_as_xml()[0], (bytes, bytearray))
+
     # Repr
     assert '\n'.join(repr(page).split('\n')[:2]) == f'Page(\n  dimensions={repr(page_size)}'
 
@@ -218,8 +222,7 @@ def test_document():
     assert doc.export() == {"pages": [p.export() for p in pages]}
 
     # Export XML
-    assert isinstance(doc.export_as_xml(return_plain=False), list) and isinstance(
-        doc.export_as_xml(return_plain=True)[0], (bytes, bytearray))
+    assert isinstance(doc.export_as_xml(), list)
 
     # Show
     doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)
