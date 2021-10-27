@@ -100,10 +100,10 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 3] if self.rotated_bbox else boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 3] if boxes.shape[1] == 5 else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
-        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if self.rotated_bbox else 3] / y_med).argsort()
+        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if boxes.shape[1] == 5 else 3] / y_med).argsort()
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
@@ -132,7 +132,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][1 if self.rotated_bbox else [1, 3]].mean()
+            y_center_sum += boxes[idx][1 if boxes.shape[1] == 5 else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
