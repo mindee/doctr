@@ -11,7 +11,7 @@ def test_documentbuilder():
     num_pages = 2
 
     # Don't resolve lines
-    doc_builder = builder.DocumentBuilder()
+    doc_builder = builder.DocumentBuilder(resolve_lines=False, resolve_blocks=False)
     boxes = np.random.rand(words_per_page, 6)
     boxes[:2] *= boxes[2:4]
 
