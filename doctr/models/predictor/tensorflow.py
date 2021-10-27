@@ -31,12 +31,13 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = False,
+        export_as_straight_boxes: bool = False,
     ) -> None:
 
         super().__init__()
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
-        self.doc_builder = DocumentBuilder()
+        self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
 
     def __call__(

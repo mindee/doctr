@@ -29,7 +29,7 @@ class _OCRPredictor:
         pages: List[np.ndarray],
         loc_preds: List[Tuple[np.ndarray, float]],
         channels_last: bool,
-        assume_straight_pages: bool = False
+        assume_straight_pages: bool = False,
     ) -> List[List[np.ndarray]]:
 
         if not assume_straight_pages:
