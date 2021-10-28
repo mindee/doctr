@@ -56,7 +56,7 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 result = model(doc)
 ```
 
-To make sense of your model's predictions, you can visualize them interactively as follows:
+To interpret your model's predictions, you can visualize them interactively as follows:
 
 ```python
 result.show(doc)
@@ -173,7 +173,7 @@ streamlit run demo/app.py
 
 ### Docker container
 
-If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
+If you wish to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
 
 ```shell
 docker build . -t <YOUR_IMAGE_TAG>
