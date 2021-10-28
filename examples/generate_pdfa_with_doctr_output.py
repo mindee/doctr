@@ -5,7 +5,7 @@
 import re
 import numpy as np
 from math import atan, cos, sin
-from typing import Any, NamedTuple, Optional, Tuple, Union, Dict
+from typing import Optional, Tuple, Dict
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element
 
@@ -70,7 +70,7 @@ class HocrParser():
     def export_pdfa(self,
                     out_filename: str,
                     hocr: ET.ElementTree,
-                    image: Optional[Image.Image] = None,
+                    image: Optional[np.ndarray] = None,
                     fontname: str = "Times-Roman",
                     fontsize: int = 12,
                     invisible_text: bool = True,
@@ -166,7 +166,8 @@ xml_outputs = result.export_as_xml()
 # init the above parser
 parser = HocrParser()
 
-# iterate through the xml outputs and
+# iterate through the xml outputs and images and export to pdf/a
+# the image is optional else you can set invisible_text=False and the text will be printed on a blank page
 for i, (xml, img) in enumerate(zip(xml_outputs, img_docs)):
     xml_element_tree = xml[1]
     parser.export_pdfa(f'{i}.pdf', hocr=xml_element_tree, image=img)
