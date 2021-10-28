@@ -73,7 +73,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             rboxes = [rotate_boxes(page_boxes, angle, expand=True, orig_shape=page.shape[:2], mask_shape=mask) for
                       page_boxes, page, angle, mask in zip(boxes, pages, page_orientations, page_shapes)]
             boxes = rboxes
-            self.doc_builder = DocumentBuilder(rotated_bbox=True)  # override the current doc_builder
+            self.doc_builder = DocumentBuilder(rotated_bbox=True, resolve_lines=False, resolve_blocks=False)  # override the current doc_builder
 
         out = self.doc_builder(boxes, text_preds, page_shapes)  # type: ignore[misc]
         return out
