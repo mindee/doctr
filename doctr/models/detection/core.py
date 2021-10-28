@@ -28,12 +28,14 @@ class DetectionPostProcessor(NestedObject):
         self,
         box_thresh: float = 0.5,
         bin_thresh: float = 0.5,
-        rotated_bbox: bool = False
+        rotated_bbox: bool = False,
+        min_size_box: int = 3
     ) -> None:
 
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
         self.rotated_bbox = rotated_bbox
+        self.min_size_box = min_size_box
 
     def extra_repr(self) -> str:
         return f"box_thresh={self.box_thresh}"
