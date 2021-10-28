@@ -9,7 +9,7 @@ from torch import nn
 from typing import List, Any, Union, Tuple
 
 from doctr.models.preprocessor import PreProcessor
-from .base import split_crops, remap_preds
+from ._utils import split_crops, remap_preds
 
 
 __all__ = ['RecognitionPredictor']
