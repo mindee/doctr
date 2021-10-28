@@ -75,6 +75,9 @@ class HocrParser():
                     fontsize: int = 12,
                     invisible_text: bool = True,
                     dpi: int = 300):
+        """
+        Generates a PDF/A document from a hOCR document.
+        """
 
         width, height = None, None
         # Get the image dimensions
