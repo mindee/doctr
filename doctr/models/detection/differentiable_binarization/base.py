@@ -280,11 +280,13 @@ class _DBNet:
 
             if abs_boxes.shape[1] == 5:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
+                # (N, 4, 2)
                 polys = np.stack([
                     rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
-                ], axis=1)
+                ], axis=0)
             else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                # --> (N, 4, 2)
                 polys = np.stack([
                     abs_boxes[:, [0, 1]],
                     abs_boxes[:, [0, 3]],
