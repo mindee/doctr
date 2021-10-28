@@ -298,6 +298,10 @@ class _DBNet:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
 
+                # Remove polygon of less than 3 points
+                if poly.shape[-1] < 3:
+                    continue
+
                 # Negative shrink for gt, as described in paper
                 polygon = Polygon(poly)
                 distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
