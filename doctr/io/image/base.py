@@ -69,12 +69,7 @@ def _resize_image(image, width: Optional[int] = None, height: Optional[int] = No
         (h, w) = image.shape[:2]
         r = width / float(w)
         dim = (width, int(h * r))
-    if dim:
-        if dim[0] < 1200:
-            inter = cv2.INTER_AREA
-        else:
-            inter = cv2.INTER_CUBIC
+    inter = cv2.INTER_AREA if dim[0] < 1200 else cv2.INTER_CUBIC
+    image = cv2.resize(image, dim, interpolation=inter)
 
-        image = cv2.resize(image, dim, interpolation=inter)
-
-        return image
+    return image
