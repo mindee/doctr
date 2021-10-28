@@ -14,7 +14,8 @@ __all__ = ['read_img_as_numpy']
 
 def read_img_as_numpy(
     file: AbstractFile,
-    output_size: Optional[Tuple[int, int]] = None,
+    output_width: Optional[int] = None,
+    output_height: Optional[int] = None,
     rgb_output: bool = True,
 ) -> np.ndarray:
     """Read an image file into numpy format
@@ -25,7 +26,8 @@ def read_img_as_numpy(
 
     Args:
         file: the path to the image file
-        output_size: the expected output size of each page in format H x W
+        output_width: the expected output width of each page keep ratio to height
+        output_height: the expected output height of each page keep ratio to width
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
     Returns:
         the page decoded as numpy ndarray of shape H x W x 3
@@ -45,9 +47,34 @@ def read_img_as_numpy(
     if img is None:
         raise ValueError("unable to read file.")
     # Resizing
-    if isinstance(output_size, tuple):
-        img = cv2.resize(img, output_size[::-1], interpolation=cv2.INTER_LINEAR)
+    if isinstance(output_width, int) or isinstance(output_height, int):
+        img = _resize_image(img, output_width, output_height)
     # Switch the channel order
     if rgb_output:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
+
+
+def _resize_image(image, width: Optional[int] = None, height: Optional[int] = None):
+    """
+    resize image and keep ratio
+    """
+    if width and height:
+        dim = (width, height)
+    elif height:
+        (h, w) = image.shape[:2]
+        r = height / float(h)
+        dim = (int(w * r), height)
+    elif width:
+        (h, w) = image.shape[:2]
+        r = width / float(w)
+        dim = (width, int(h * r))
+    if dim:
+        if dim[0] < 1200:
+            inter = cv2.INTER_AREA
+        else:
+            inter = cv2.INTER_CUBIC
+
+        image = cv2.resize(image, dim, interpolation=inter)
+
+        return image

@@ -86,9 +86,9 @@ def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
     assert np.all(page == bgr_page[..., ::-1])
 
     # Resize
-    target_size = (200, 150)
-    resized_page = io.read_img_as_numpy(tmp_path, target_size)
-    assert resized_page.shape[:2] == target_size
+    height, width = (400, 300)
+    resized_page = io.read_img_as_numpy(tmp_path, output_width=width, output_height=height)
+    assert resized_page.shape[:2] == (height, width)
 
 
 def test_read_html():
