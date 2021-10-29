@@ -268,18 +268,22 @@ class DocumentBuilder(NestedObject):
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
             raise ValueError("All arguments are expected to be lists of the same size")
 
-        if self.export_as_straight_boxes:
+        if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if boxes.shape[2] == 6:
+            if boxes[0].shape[-1] == 6:
                 straight_boxes = []
-                for box in boxes:
-                    x, y, w, h, a, c = box
-                    points = rbbox_to_polygon((x, y, w, h, a))
-                    x_coords, y_coords = zip(*points)
-                    xmin, xmax = min(x_coords), max(x_coords)
-                    ymin, ymax = min(y_coords), max(y_coords)
-                    straight_boxes.append([xmin, ymin, xmax, ymax, c])
-                boxes = np.asarray(straight_boxes)
+                # Iterate over pages
+                for page_boxes in boxes:
+                    straight_boxes_page = []
+                    # Iterate over boxes of the pages
+                    for box in page_boxes:
+                        x, y, w, h, a, c = box
+                        points = rbbox_to_polygon((x, y, w, h, a))
+                        x_coords, y_coords = zip(*points)
+                        xmin, xmax = min(x_coords), max(x_coords)
+                        ymin, ymax = min(y_coords), max(y_coords)
+                        straight_boxes_page.append([xmin, ymin, xmax, ymax, c])
+                    straight_boxes.append(np.asarray(straight_boxes_page))
 
         _pages = [
             Page(
