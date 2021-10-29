@@ -41,4 +41,4 @@ def test_headers():
             ):
                 invalid_files.append(source_path)
 
-    assert len(invalid_files) == 0, f"Invalider header in the following files: {invalid_files}"
+    assert len(invalid_files) == 0, f"Invalid header in the following files: {invalid_files}"
