@@ -39,7 +39,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
-        self.export_as_straight_boxes = export_as_straight_boxes
 
     @torch.no_grad()
     def forward(
@@ -63,10 +62,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        if self.export_as_straight_boxes:
-            boxes, text_preds = self._process_predictions(loc_preds, word_preds, allow_rotated_boxes=False)
-        else:
-            boxes, text_preds = self._process_predictions(loc_preds, word_preds, allow_rotated_boxes=True)
+        boxes, text_preds = self._process_predictions(
+            loc_preds, word_preds, allow_rotated_boxes=not self.doc_builder.export_as_straight_boxes
+        )
 
         out = self.doc_builder(
             boxes,

@@ -23,7 +23,7 @@ class DocumentBuilder(NestedObject):
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
         export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
-        box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
+            box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
     """
 
     def __init__(
