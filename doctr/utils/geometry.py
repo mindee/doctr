@@ -222,7 +222,7 @@ def rotate_image(
     image: np.ndarray,
     angle: float,
     expand: bool = False,
-    keep_original_size: bool = False
+    preserve_aspect_ratio: bool = False
 ) -> np.ndarray:
     """Rotate an image counterclockwise by an given angle.
 
@@ -230,7 +230,7 @@ def rotate_image(
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
-        keep_original_size: whether the image should be resized to the original image size after the rotation
+        preserve_aspect_ratio: whether the image should be resized to the original image size after the rotation
 
     Returns:
         Rotated array, padded by 0 by default.
@@ -247,7 +247,7 @@ def rotate_image(
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
     rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
-    if keep_original_size:
+    if preserve_aspect_ratio:
         # Pad to get the same aspect ratio
         if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
             # Pad width
