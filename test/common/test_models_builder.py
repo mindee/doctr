@@ -34,8 +34,22 @@ def test_documentbuilder():
     out = doc_builder([boxes, boxes], [[], []], [(100, 200), (100, 200)])
     assert len(out.pages[0].blocks) == 0
 
+    # Rotated boxes to export à straight boxes
+    boxes = np.array([
+        [0.25, 0.25, np.sqrt(2) / 4, np.sqrt(2) / 4, 45, 0.99],
+        [0.75, 0.75, np.sqrt(2) / 4, np.sqrt(2) / 4, 45, 0.99],
+    ])
+    doc_builder_2 = builder.DocumentBuilder(
+        resolve_blocks=False,
+        resolve_lines=False,
+        export_as_straight_boxes=True
+    )
+    out = doc_builder_2([boxes], [[("hello", 0.99), ("world", 0.99)]], [(100, 100)])
+    assert out.pages[0].blocks[0].lines[0].words[-1].geometry == ((0.5, 0.5), (1.0, 1.0))
+
     # Repr
-    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, resolve_blocks=True, paragraph_break=0.035)"
+    assert repr(doc_builder) == "DocumentBuilder(resolve_lines=True, " \
+                                "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False)"
 
 
 @pytest.mark.parametrize(
