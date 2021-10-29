@@ -70,10 +70,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            rboxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], mask_shape=mask) for
+            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], mask_shape=mask) for
                       page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
-            boxes = rboxes
-            self.doc_builder = DocumentBuilder(rotated_bbox=True, resolve_lines=False, resolve_blocks=False)  # override the current doc_builder
+            # override the current doc_builder with rotated_bbox
+            self.doc_builder = DocumentBuilder(rotated_bbox=True, resolve_lines=False, resolve_blocks=False)
 
         out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[misc]
         return out
