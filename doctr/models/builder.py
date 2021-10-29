@@ -286,6 +286,8 @@ class DocumentBuilder(NestedObject):
                         ymin, ymax = min(y_coords), max(y_coords)
                         straight_boxes_page.append([xmin, ymin, xmax, ymax, c])
                     straight_boxes.append(np.asarray(straight_boxes_page))
+                print("modified boxes")
+                boxes = straight_boxes
 
         _pages = [
             Page(
