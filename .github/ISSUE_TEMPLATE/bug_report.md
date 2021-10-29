@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve the library
 title: ''
 labels: bug
 assignees: ''
@@ -10,6 +10,12 @@ assignees: ''
 ## 🐛 Bug
 
 <!-- A clear and concise description of what the bug is. -->
+
+Sanity checks:
+- [ ] I have checked both opened & closed Github [issues](https://github.com/mindee/doctr/issues?q=is%3Aissue) and none of those address this topic
+- [ ] I have added a clear description of the bug
+- [ ] I have run the environment collection script and reported my config below
+- [ ] I am able to reproduce this bug, and added the full runnable snippet to reproduce this behaviour
 
 ## To Reproduce
 
@@ -38,12 +44,12 @@ wget https://raw.githubusercontent.com/mindee/doctr/main/scripts/collect_env.py
 python collect_env.py
 ```
 
- - DocTR Version (e.g., 0.1.0):
+ - docTR Version (e.g., 0.1.0):
  - TensorFlow Version (e.g., 2.5.0):
  - PyTorch & torchvision versions (e.g., 1.8.0 & 0.9.0):
  - OpenCV Version (e.g., 4.5.1):
  - OS (e.g., Linux):
- - How you installed DocTR (`conda`, `pip`, source):
+ - How you installed docTR (`conda`, `pip`, source):
  - Python version:
  - CUDA/cuDNN version:
  - GPU models and configuration:
