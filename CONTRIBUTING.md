@@ -87,7 +87,7 @@ The `mypy.ini` file will be read to check your typing.
 ### Modifying the documentation
 
 In order to check locally your modifications to the documentation:
-- install doctr
+- install docTR
 - install dependencies specific to documentation with:
 ```shell
 pip install -r docs/requirements.txt
@@ -97,3 +97,8 @@ pip install -r docs/requirements.txt
 sphinx-build docs/source docs/_build -a
 ```
 - you can now open your local version of the documentation located at `docs/_build/index.html` in your browser
+
+
+## Let's connect
+
+Should you wish to connect somewhere else than on GitHub, feel free to join us on [Slack](https://join.slack.com/t/mindee-community/shared_invite/zt-uzgmljfl-MotFVfH~IdEZxjp~0zldww), where you will find a `#doctr` channel!
