@@ -30,7 +30,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         self,
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
-        assume_straight_pages: bool = False,
+        assume_straight_pages: bool = True,
         export_as_straight_boxes: bool = False,
     ) -> None:
 
@@ -39,6 +39,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         self.reco_predictor = reco_predictor
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
+        self.export_as_straight_boxes = export_as_straight_boxes
 
     def __call__(
         self,
@@ -59,6 +60,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        boxes, text_preds = self._process_predictions(loc_preds, word_preds)
+        if self.export_as_straight_boxes:
+            boxes, text_preds = self._process_predictions(loc_preds, word_preds, allow_rotated_boxes=False)
+        else:
+            boxes, text_preds = self._process_predictions(loc_preds, word_preds, allow_rotated_boxes=True)
+
         out = self.doc_builder(boxes, text_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
         return out

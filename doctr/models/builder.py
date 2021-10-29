@@ -275,7 +275,7 @@ class DocumentBuilder(NestedObject):
                 for box in boxes:
                     x, y, w, h, a, c = box
                     points = rbbox_to_polygon((x, y, w, h, a))
-                    x_coords, y_coords = [x for x, _ in points], [y for _, y in points]
+                    x_coords, y_coords = zip(*points)
                     xmin, xmax = min(x_coords), max(x_coords)
                     ymin, ymax = min(y_coords), max(y_coords)
                     straight_boxes.append([xmin, ymin, xmax, ymax, c])
