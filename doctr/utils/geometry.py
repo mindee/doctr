@@ -179,7 +179,6 @@ def rotate_boxes(
     boxes: np.ndarray,
     angle: float = 0.,
     min_angle: float = 1.,
-    expand: bool = False,
     orig_shape: Optional[Tuple[int, int]] = None,
     mask_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
@@ -190,7 +189,6 @@ def rotate_boxes(
         boxes: (N, 4) array of RELATIVE boxes
         angle: angle between -90 and +90 degrees
         min_angle: minimum angle to rotate boxes
-        expand: whether the image should be padded before the rotation
         orig_shape: shape of the origin image
         mask_shape: shape of the mask if the image is cropped after the rotation
 
