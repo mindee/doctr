@@ -38,10 +38,6 @@ def polygon_to_rbbox(polygon: Polygon4P) -> RotatedBbox:
     return fit_rbbox(cnt)
 
 
-def bbox_to_rbbox(bbox: Bbox) -> RotatedBbox:
-    return (bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2, bbox[2] - bbox[0], bbox[3] - bbox[1], 0
-
-
 def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Union[BoundingBox, np.ndarray]:
     """Compute enclosing bbox either from:
 
@@ -196,7 +192,11 @@ def rotate_boxes(
         A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
     """
     # Change format of the boxes to rotated boxes
-    boxes = np.apply_along_axis(bbox_to_rbbox, 1, boxes)
+    boxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
+                             (boxes[:, 1] + boxes[:, 3]) / 2,
+                             boxes[:, 2] - boxes[:, 0],
+                             boxes[:, 3] - boxes[:, 1],
+                             np.zeros(boxes.shape[0])))
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return boxes
