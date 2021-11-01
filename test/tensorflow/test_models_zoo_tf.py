@@ -14,13 +14,14 @@ def test_ocrpredictor(
 
     predictor = OCRPredictor(
         test_detectionpredictor,
-        test_recognitionpredictor
+        test_recognitionpredictor,
+        assume_straight_pages=True,
     )
 
     r_predictor = OCRPredictor(
         test_rotated_detectionpredictor,
         test_recognitionpredictor,
-        rotated_bbox=True
+        assume_straight_pages=False,
     )
 
     doc = DocumentFile.from_pdf(mock_pdf).as_images()
