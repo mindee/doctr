@@ -13,7 +13,6 @@ from doctr.utils.common_types import BoundingBox, RotatedBbox
 from doctr.utils.repr import NestedObject
 
 import doctr
-from xml.dom import minidom
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement, SubElement
 
@@ -258,14 +257,12 @@ class Page(Element):
 
         return synthesize_page(self.export(), **kwargs)
 
-    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)', skip_rotated_boxes: bool = False) \
-            -> Tuple[bytes, ET.ElementTree]:
+    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)') -> Tuple[bytes, ET.ElementTree]:
         """Export the page as XML (hOCR-format)
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
         Args:
             file_title: the title of the XML file
-            skip_rotated_boxes: whether to skip rotated boxes in the XML export
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
@@ -294,6 +291,8 @@ class Page(Element):
         })
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
         for block in self.blocks:
+            if len(block.geometry) != 2:
+                raise ValueError("XML export is only available for straight bounding boxes for now.")
             (xmin, ymin), (xmax, ymax) = block.geometry  # type: ignore[misc]
             block_div = SubElement(body, 'div', attrib={
                 'class': 'ocr_carea',
@@ -322,12 +321,8 @@ class Page(Element):
                 for word in line.words:
                     (xmin, ymin), (xmax, ymax) = word.geometry  # type: ignore[misc]
                     conf = word.confidence
-                    # NOTE: rotated boxes are currently not supported in the XML export and can be skipped
-                    if (ymax - ymin) > (xmax - xmin) and not skip_rotated_boxes:
-                        raise ValueError(
-                            "Rotated boxes are currently not supported in XML export")
-                    elif (ymax - ymin) > (xmax - xmin) and skip_rotated_boxes:
-                        continue
+                    if (ymax - ymin) > (xmax - xmin):
+                        raise TypeError("XML export is currently not available for rotated bounding boxes.")
                     word_div = SubElement(line_span, 'span', attrib={
                         'class': 'ocrx_word',
                         'id': f'word_{word_count}',
@@ -386,8 +381,7 @@ class Document(Element):
 
         return [page.synthesize() for page in self.pages]
 
-    def export_as_xml(self, **kwargs) \
-            -> List[Tuple[bytes, ET.ElementTree]]:
+    def export_as_xml(self, **kwargs) -> List[Tuple[bytes, ET.ElementTree]]:
         """Export the document as XML (hOCR-format)
 
         Args:

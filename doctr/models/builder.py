@@ -300,4 +300,5 @@ class DocumentBuilder(NestedObject):
             )
             for _idx, shape, page_boxes, word_preds in zip(range(len(boxes)), page_shapes, boxes, text_preds)
         ]
+
         return Document(_pages)
