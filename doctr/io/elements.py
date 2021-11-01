@@ -2,18 +2,20 @@
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
-from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import Tuple, Dict, List, Any, Optional, Union
+
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
+from doctr.utils.visualization import visualize_page, synthesize_page
+from doctr.utils.common_types import BoundingBox, RotatedBbox
+from doctr.utils.repr import NestedObject
+
+import doctr
 from xml.dom import minidom
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement, SubElement
-
-import matplotlib.pyplot as plt
-import numpy as np
-import doctr
-from doctr.utils.common_types import BoundingBox, RotatedBbox
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
-from doctr.utils.repr import NestedObject
-from doctr.utils.visualization import synthesize_page, visualize_page
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 
@@ -256,17 +258,17 @@ class Page(Element):
 
         return synthesize_page(self.export(), **kwargs)
 
-    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
+    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)', skip_rotated_boxes: bool = False) \
             -> Tuple[bytes, ET.ElementTree]:
-        """Export the page as XML
+        """Export the page as XML (hOCR-format)
+        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
         Args:
-            return_plain: whether to return the plain (bytes) XML string or an ElementTree object
             file_title: the title of the XML file
-            **kwargs: additional arguments to pass to the exporter
+            skip_rotated_boxes: whether to skip rotated boxes in the XML export
 
         Returns:
-            the XML element
+            a tuple of the XML byte string, and its ElementTree
         """
         p_idx = self.page_idx
         block_count: int = 1
@@ -292,36 +294,46 @@ class Page(Element):
         })
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
         for block in self.blocks:
-            xmin, ymin, xmax, ymax = [coord for coordinates in block.geometry for coord in coordinates]
+            (xmin, ymin), (xmax, ymax) = block.geometry  # type: ignore[misc]
             block_div = SubElement(body, 'div', attrib={
                 'class': 'ocr_carea',
-                'id': f'block_1_{block_count}',
-                'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}'
+                'id': f'block_{block_count}',
+                'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    {int(round(xmax * width))} {int(round(ymax * height))}'
             })
             paragraph = SubElement(block_div, 'p', attrib={
                 'class': 'ocr_par',
-                'id': f'par_1_{block_count}',
-                'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}'
+                'id': f'par_{block_count}',
+                'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    {int(round(xmax * width))} {int(round(ymax * height))}'
             })
             block_count += 1
             for line in block.lines:
-                xmin, ymin, xmax, ymax = [coord for coordinates in line.geometry for coord in coordinates]
+                (xmin, ymin), (xmax, ymax) = line.geometry  # type: ignore[misc]
                 # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
                 line_span = SubElement(paragraph, 'span', attrib={
                     'class': 'ocr_line',
-                    'id': f'line_1_{line_count}',
-                    'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
+                    'id': f'line_{line_count}',
+                    'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}; \
                         baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0'
                 })
                 line_count += 1
                 for word in line.words:
-                    xmin, ymin, xmax, ymax = [coord for coordinates in word.geometry for coord in coordinates]
+                    (xmin, ymin), (xmax, ymax) = word.geometry  # type: ignore[misc]
                     conf = word.confidence
+                    # NOTE: rotated boxes are currently not supported in the XML export and can be skipped
+                    if (ymax - ymin) > (xmax - xmin) and not skip_rotated_boxes:
+                        raise ValueError(
+                            "Rotated boxes are currently not supported in XML export")
+                    elif (ymax - ymin) > (xmax - xmin) and skip_rotated_boxes:
+                        continue
                     word_div = SubElement(line_span, 'span', attrib={
                         'class': 'ocrx_word',
-                        'id': f'word_1_{word_count}',
-                        'title': f'bbox {int(xmin * width)} {int(ymin * height)} {int(xmax * width)} {int(ymax * height)}; \
-                            x_wconf {int(conf * 100)}'
+                        'id': f'word_{word_count}',
+                        'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                            {int(round(xmax * width))} {int(round(ymax * height))}; \
+                            x_wconf {int(round(conf * 100))}'
                     })
                     # set the text
                     word_div.text = word.value
@@ -374,17 +386,17 @@ class Document(Element):
 
         return [page.synthesize() for page in self.pages]
 
-    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)', **kwargs) \
+    def export_as_xml(self, **kwargs) \
             -> List[Tuple[bytes, ET.ElementTree]]:
-        """Export the document as XML
+        """Export the document as XML (hOCR-format)
 
         Args:
-            file_title: the title of the XML file
+            **kwargs: additional keyword arguments passed to the Page.export_as_xml method
 
         Returns:
             list of tuple of (bytes, ElementTree)
         """
-        return [page.export_as_xml(file_title, **kwargs) for page in self.pages]
+        return [page.export_as_xml(**kwargs) for page in self.pages]
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):

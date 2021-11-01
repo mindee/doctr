@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from doctr.io import elements
+from xml.etree.ElementTree import ElementTree
 
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
@@ -192,7 +193,7 @@ def test_page():
 
     # Export XML
     assert isinstance(page.export_as_xml(), tuple) and isinstance(
-        page.export_as_xml()[0], (bytes, bytearray))
+        page.export_as_xml()[0], (bytes, bytearray)) and isinstance(page.export_as_xml()[1], ElementTree)
 
     # Repr
     assert '\n'.join(repr(page).split('\n')[:2]) == f'Page(\n  dimensions={repr(page_size)}'
@@ -222,7 +223,7 @@ def test_document():
     assert doc.export() == {"pages": [p.export() for p in pages]}
 
     # Export XML
-    assert isinstance(doc.export_as_xml(), list)
+    assert isinstance(doc.export_as_xml(), list) and len(doc.export_as_xml()) == len(pages)
 
     # Show
     doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)

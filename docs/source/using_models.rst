@@ -304,7 +304,7 @@ To export the outpout as XML (hocr-format) you can use the `export_as_xml` metho
     xml_bytes_string = output[0]
     xml_element = output[1]
 
-For reference, here is a short snippet of the XML output::
+For reference, here is a sample XML byte string output::
 
   <?xml version="1.0" encoding="UTF-8"?>
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
