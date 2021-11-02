@@ -22,31 +22,31 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 try:
     import doctr
     DOCTR_AVAILABLE = True
-except (ImportError, NameError, AttributeError):
+except (ImportError, NameError, AttributeError, OSError):
     DOCTR_AVAILABLE = False
 
 try:
     import tensorflow as tf
     TF_AVAILABLE = True
-except (ImportError, NameError, AttributeError):
+except (ImportError, NameError, AttributeError, OSError):
     TF_AVAILABLE = False
 
 try:
     import torch
     TORCH_AVAILABLE = True
-except (ImportError, NameError, AttributeError):
+except (ImportError, NameError, AttributeError, OSError):
     TORCH_AVAILABLE = False
 
 try:
     import torchvision
     TV_AVAILABLE = True
-except (ImportError, NameError, AttributeError):
+except (ImportError, NameError, AttributeError, OSError):
     TV_AVAILABLE = False
 
 try:
     import cv2
     CV2_AVAILABLE = True
-except (ImportError, NameError, AttributeError):
+except (ImportError, NameError, AttributeError, OSError):
     CV2_AVAILABLE = False
 
 PY3 = sys.version_info >= (3, 0)
@@ -146,7 +146,7 @@ def get_cudnn_version(run_lambda):
     if len(out) == 0 or (rc != 1 and rc != 0):
         lib = os.environ.get('CUDNN_LIBRARY')
         if lib is not None and os.path.isfile(lib):
-            return os.path.realpath(l)
+            return os.path.realpath(lib)
         return None
     files = set()
     for fn in out.split('\n'):
@@ -257,7 +257,7 @@ def get_env_info():
         torch_version=torch_str,
         torchvision_version=tv_str,
         cv2_version=cv2_str,
-        python_version=f"{sys.version_info[0]}.{sys.version_info[1]}",
+        python_version=".".join(map(str, sys.version_info[:3])),,
         is_cuda_available_tf=tf_cuda_available_str,
         is_cuda_available_torch=torch_cuda_available_str,
         cuda_runtime_version=get_running_cuda_version(run_lambda),
