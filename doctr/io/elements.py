@@ -292,7 +292,7 @@ class Page(Element):
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
         for block in self.blocks:
             if len(block.geometry) != 2:
-                raise ValueError("XML export is only available for straight bounding boxes for now.")
+                raise TypeError("XML export is only available for straight bounding boxes for now.")
             (xmin, ymin), (xmax, ymax) = block.geometry  # type: ignore[misc]
             block_div = SubElement(body, 'div', attrib={
                 'class': 'ocr_carea',
@@ -321,8 +321,6 @@ class Page(Element):
                 for word in line.words:
                     (xmin, ymin), (xmax, ymax) = word.geometry  # type: ignore[misc]
                     conf = word.confidence
-                    if (ymax - ymin) > (xmax - xmin):
-                        raise TypeError("XML export is currently not available for rotated bounding boxes.")
                     word_div = SubElement(line_span, 'span', attrib={
                         'class': 'ocrx_word',
                         'id': f'word_{word_count}',
