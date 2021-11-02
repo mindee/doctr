@@ -770,6 +770,37 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
+  <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">xml_element</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For reference, here is a sample XML byte string output:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xml:lang=&quot;en&quot;&gt;
+  &lt;head&gt;
+    &lt;title&gt;docTR - hOCR&lt;/title&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+    &lt;meta name=&quot;ocr-system&quot; content=&quot;doctr 0.5.0&quot; /&gt;
+    &lt;meta name=&quot;ocr-capabilities&quot; content=&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot; /&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div class=&quot;ocr_page&quot; id=&quot;page_1&quot; title=&quot;image; bbox 0 0 3456 3456; ppageno 0&quot; /&gt;
+    &lt;div class=&quot;ocr_carea&quot; id=&quot;block_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
+      &lt;p class=&quot;ocr_par&quot; id=&quot;par_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
+        &lt;span class=&quot;ocr_line&quot; id=&quot;line_1_1&quot; title=&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;&gt;
+          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_1&quot; title=&quot;bbox 1552 540 1778 580; x_wconf 99&quot;&gt;Hello&lt;/span&gt;
+          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_2&quot; title=&quot;bbox 1782 529 1900 583; x_wconf 99&quot;&gt;XML&lt;/span&gt;
+          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_3&quot; title=&quot;bbox 1420 597 1684 641; x_wconf 81&quot;&gt;World&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
 </section>
 </section>
 </section>

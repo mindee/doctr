@@ -296,3 +296,34 @@ For reference, here is the JSON export for the same `Document` as above::
         }
     ]
   }
+
+To export the outpout as XML (hocr-format) you can use the `export_as_xml` method::
+
+  xml_output = result.export_as_xml()
+  for output in xml_output:
+    xml_bytes_string = output[0]
+    xml_element = output[1]
+
+For reference, here is a sample XML byte string output::
+
+  <?xml version="1.0" encoding="UTF-8"?>
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+      <title>docTR - hOCR</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <meta name="ocr-system" content="doctr 0.5.0" />
+      <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />
+    </head>
+    <body>
+      <div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0" />
+      <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
+        <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
+          <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
+            <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
+            <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
+            <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
+          </span>
+        </p>
+      </div>
+    </body>
+  </html>
