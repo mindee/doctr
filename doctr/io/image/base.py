@@ -46,8 +46,37 @@ def read_img_as_numpy(
         raise ValueError("unable to read file.")
     # Resizing
     if isinstance(output_size, tuple):
-        img = cv2.resize(img, output_size[::-1], interpolation=cv2.INTER_LINEAR)
+        #img = cv2.resize(img, output_size[::-1], interpolation=cv2.INTER_LINEAR)
+        img = _resize_image(img, output_size)
     # Switch the channel order
     if rgb_output:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     return img
+
+
+def _resize_image(image: np.ndarray, output_size: Tuple[int, int]) -> np.ndarray:
+    """Resize an image to the given size and keep ratio of the original image.
+
+    Args:
+        image: the image to be resized
+        output_size: the size of the output image in format H x W
+    Returns:
+        the resized image
+    """
+    width, height = output_size
+    if width and height:
+        dim = (width, height)
+    elif height:
+        (h, w) = image.shape[:2]
+        r = height / float(h)
+        dim = (int(round(w * r)), height)
+    elif width:
+        (h, w) = image.shape[:2]
+        r = width / float(w)
+        dim = (width, int(round(h * r)))
+    inter = cv2.INTER_AREA if dim[0] < w or dim[1] < h else cv2.INTER_CUBIC
+    image = cv2.resize(image, dim, interpolation=inter)
+
+    return image
+
+# TODO: needs some tests
