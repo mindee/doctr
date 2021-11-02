@@ -257,7 +257,7 @@ def get_env_info():
         torch_version=torch_str,
         torchvision_version=tv_str,
         cv2_version=cv2_str,
-        python_version=".".join(map(str, sys.version_info[:3])),,
+        python_version=".".join(map(str, sys.version_info[:3])),
         is_cuda_available_tf=tf_cuda_available_str,
         is_cuda_available_torch=torch_cuda_available_str,
         cuda_runtime_version=get_running_cuda_version(run_lambda),
