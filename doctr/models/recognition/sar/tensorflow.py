@@ -138,7 +138,7 @@ class SARDecoder(layers.Layer, NestedObject):
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
             # embeded_symbol: shape (N, embedding_units)
-            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 1), **kwargs)
+            embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 2), **kwargs)
             logits, states = self.lstm_decoder(embeded_symbol, states, **kwargs)
             glimpse = self.attention_module(
                 features, tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1), **kwargs,
