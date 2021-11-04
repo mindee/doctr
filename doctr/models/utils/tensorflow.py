@@ -10,7 +10,7 @@ from zipfile import ZipFile
 
 from tensorflow.keras import Model, layers
 
-from ..data_utils import download_from_url
+from doctr.utils.data import download_from_url
 
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 

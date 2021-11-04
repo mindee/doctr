@@ -9,7 +9,7 @@ from typing import Any, List, Optional
 import torch
 from torch import nn
 
-from ..data_utils import download_from_url
+from doctr.utils.data import download_from_url
 
 __all__ = ['load_pretrained_params', 'conv_sequence_pt']
 

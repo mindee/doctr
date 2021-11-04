@@ -5,7 +5,7 @@
 
 from typing import Any
 
-from doctr import is_tf_available
+from doctr.file_utils import is_tf_available
 from doctr.models.preprocessor import PreProcessor
 
 from .. import recognition

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
-from doctr.models.data_utils import download_from_url
+from doctr.utils.data import download_from_url
 
 __all__ = ['_AbstractDataset', '_VisionDataset']
 
