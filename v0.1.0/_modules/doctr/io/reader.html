@@ -194,13 +194,16 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractFile</span>
-<span class="kn">from</span> <span class="nn">.pdf</span> <span class="kn">import</span> <span class="n">read_pdf</span><span class="p">,</span> <span class="n">PDF</span>
+
 <span class="kn">from</span> <span class="nn">.html</span> <span class="kn">import</span> <span class="n">read_html</span>
 <span class="kn">from</span> <span class="nn">.image</span> <span class="kn">import</span> <span class="n">read_img_as_numpy</span>
+<span class="kn">from</span> <span class="nn">.pdf</span> <span class="kn">import</span> <span class="n">PDF</span><span class="p">,</span> <span class="n">read_pdf</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;DocumentFile&#39;</span><span class="p">]</span>
 
