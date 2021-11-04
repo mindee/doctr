@@ -63,7 +63,7 @@ class DocArtefacts(VisionDataset):
                     boxes[:, [1, 3]].mean(axis=1),
                     boxes[:, 2] - boxes[:, 0],
                     boxes[:, 3] - boxes[:, 1],
-                    0,
+                    np.zeros(boxes.shape[0], dtype=np.dtype),
                 ), axis=1)
             self.data.append((img_name, dict(boxes=boxes, labels=classes)))
         self.root = tmp_root
