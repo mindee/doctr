@@ -3,13 +3,16 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
 from pathlib import Path
-from typing import List, Union, Sequence
+from typing import List, Sequence, Union
+
+import numpy as np
+
 from doctr.utils.common_types import AbstractFile
-from .pdf import read_pdf, PDF
+
 from .html import read_html
 from .image import read_img_as_numpy
+from .pdf import PDF, read_pdf
 
 __all__ = ['DocumentFile']
 

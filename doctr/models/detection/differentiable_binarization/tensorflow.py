@@ -6,16 +6,18 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications import ResNet50
-from typing import List, Tuple, Optional, Any, Dict
+
+from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
+from doctr.utils.repr import NestedObject
 
 from ...backbones import mobilenet_v3_large
-from doctr.utils.repr import NestedObject
-from doctr.models.utils import IntermediateLayerGetter, load_pretrained_params, conv_sequence
 from .base import DBPostProcessor, _DBNet
 
 __all__ = ['DBNet', 'db_resnet50', 'db_mobilenet_v3_large']

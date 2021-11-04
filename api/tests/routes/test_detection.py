@@ -3,9 +3,10 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import pytest
 import numpy as np
+import pytest
 from scipy.optimize import linear_sum_assignment
+
 from doctr.utils.metrics import box_iou
 
 

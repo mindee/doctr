@@ -1,14 +1,15 @@
-from .utils import *
-from .vocabs import *
-from .funsd import *
+from doctr.file_utils import is_tf_available
+
+from .classification import *
 from .cord import *
 from .detection import *
-from .recognition import *
-from .ocr import *
-from .sroie import *
-from .classification import *
 from .doc_artefacts import *
-from doctr.file_utils import is_tf_available
+from .funsd import *
+from .ocr import *
+from .recognition import *
+from .sroie import *
+from .utils import *
+from .vocabs import *
 
 if is_tf_available():
     from .loader import *

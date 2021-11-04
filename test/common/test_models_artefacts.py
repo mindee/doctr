@@ -1,6 +1,7 @@
 import os
-from doctr.models.artefacts import BarCodeDetector, FaceDetector
+
 from doctr.io import DocumentFile
+from doctr.models.artefacts import BarCodeDetector, FaceDetector
 
 
 def test_qr_code_detector(mock_image_folder):

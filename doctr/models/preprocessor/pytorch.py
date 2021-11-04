@@ -4,12 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
+from typing import Any, List, Tuple, Union
+
+import numpy as np
 import torch
 from torch import nn
-import numpy as np
-from typing import List, Tuple, Union, Any
-from torchvision.transforms import transforms as T
 from torchvision.transforms import functional as F
+from torchvision.transforms import transforms as T
 
 from doctr.transforms import Resize
 from doctr.utils.multithreading import multithread_exec

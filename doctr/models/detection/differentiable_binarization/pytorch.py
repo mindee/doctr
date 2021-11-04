@@ -3,18 +3,19 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torchvision.models import resnet34, resnet50
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
-from torchvision.models import resnet34, resnet50
-from typing import List, Dict, Any, Optional
 
-from .base import DBPostProcessor, _DBNet
 from ...backbones import mobilenet_v3_large
 from ...utils import load_pretrained_params
+from .base import DBPostProcessor, _DBNet
 
 __all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large']
 

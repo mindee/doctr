@@ -1,8 +1,8 @@
+import numpy as np
 import pytest
 import torch
-import numpy as np
 
-from doctr.io import read_img_as_tensor, decode_img_as_tensor, tensor_from_numpy
+from doctr.io import decode_img_as_tensor, read_img_as_tensor, tensor_from_numpy
 
 
 def test_read_img_as_tensor(mock_image_path):

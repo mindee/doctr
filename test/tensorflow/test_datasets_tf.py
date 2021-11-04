@@ -1,11 +1,12 @@
-import pytest
-import numpy as np
-import tensorflow as tf
 from copy import deepcopy
 
+import numpy as np
+import pytest
+import tensorflow as tf
+
 from doctr import datasets
-from doctr.transforms import Resize
 from doctr.datasets import DataLoader
+from doctr.transforms import Resize
 
 
 @pytest.mark.parametrize(

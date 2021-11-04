@@ -3,12 +3,12 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Tuple, List
+from typing import List, Tuple
+
 import numpy as np
 
-from doctr.utils.repr import NestedObject
 from doctr.datasets import encode_sequences
-
+from doctr.utils.repr import NestedObject
 
 __all__ = ['RecognitionPostProcessor', 'RecognitionModel']
 

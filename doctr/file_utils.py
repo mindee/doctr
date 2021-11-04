@@ -5,10 +5,10 @@
 
 # Adapted from https://github.com/huggingface/transformers/blob/master/src/transformers/file_utils.py
 
+import importlib.util
+import logging
 import os
 import sys
-import logging
-import importlib.util
 
 if sys.version_info < (3, 8):
     import importlib_metadata
