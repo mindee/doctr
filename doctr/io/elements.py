@@ -4,6 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+from defusedxml import defuse_stdlib
+
+defuse_stdlib()
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement
 from xml.etree.ElementTree import SubElement

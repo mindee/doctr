@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import mplcursors
 import numpy as np
 from matplotlib.figure import Figure
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from unidecode import unidecode
 
 from .common_types import BoundingBox, RotatedBbox
