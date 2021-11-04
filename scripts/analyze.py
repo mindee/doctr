@@ -8,9 +8,9 @@ import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.models import ocr_predictor
-from doctr.io import DocumentFile
 from doctr.file_utils import is_tf_available
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
 
 # Enable GPU growth if using TF
 if is_tf_available():

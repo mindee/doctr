@@ -3,11 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
+from typing import Dict, List, Optional, Tuple
+
 import cv2
-from typing import List, Tuple, Dict, Optional
-from unidecode import unidecode
+import numpy as np
 from scipy.optimize import linear_sum_assignment
+from unidecode import unidecode
+
 from doctr.utils.geometry import rbbox_to_polygon
 
 __all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_to_mask',

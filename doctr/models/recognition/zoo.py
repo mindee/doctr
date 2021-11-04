@@ -6,10 +6,10 @@
 from typing import Any
 
 from doctr import is_tf_available
-from .predictor import RecognitionPredictor
 from doctr.models.preprocessor import PreProcessor
-from .. import recognition
 
+from .. import recognition
+from .predictor import RecognitionPredictor
 
 __all__ = ["recognition_predictor"]
 

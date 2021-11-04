@@ -1,8 +1,9 @@
-import pytest
+from copy import deepcopy
+
 import numpy as np
+import pytest
 import torch
 from torch.utils.data import DataLoader, RandomSampler
-from copy import deepcopy
 
 from doctr import datasets
 from doctr.transforms import Resize

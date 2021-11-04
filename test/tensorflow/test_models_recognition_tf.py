@@ -1,12 +1,12 @@
-import pytest
 import numpy as np
+import pytest
 import tensorflow as tf
 
+from doctr.io import DocumentFile
 from doctr.models import recognition
-from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models._utils import extract_crops
 from doctr.models.preprocessor import PreProcessor
-from doctr.io import DocumentFile
+from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 @pytest.mark.parametrize(

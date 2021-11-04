@@ -3,12 +3,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from fastapi import APIRouter, UploadFile, File
+from app.schemas import RecognitionOut
+from app.vision import reco_predictor
+from fastapi import APIRouter, File, UploadFile
 
 from doctr.io import decode_img_as_tensor
-from app.vision import reco_predictor
-from app.schemas import RecognitionOut
-
 
 router = APIRouter()
 

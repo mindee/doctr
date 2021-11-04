@@ -4,14 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import tensorflow as tf
-import numpy as np
-from typing import List, Tuple, Union, Any
+from typing import Any, List, Tuple, Union
 
-from doctr.utils.repr import NestedObject
+import numpy as np
+import tensorflow as tf
+
 from doctr.transforms import Normalize, Resize
 from doctr.utils.multithreading import multithread_exec
-
+from doctr.utils.repr import NestedObject
 
 __all__ = ['PreProcessor']
 

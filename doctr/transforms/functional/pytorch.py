@@ -3,11 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
+from typing import Tuple
+
+import numpy as np
 import torch
 from torchvision.transforms import functional as F
-from copy import deepcopy
-import numpy as np
-from typing import Tuple
+
 from doctr.utils.geometry import rotate_abs_boxes
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]

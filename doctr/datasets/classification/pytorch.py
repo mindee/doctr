@@ -4,8 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from torch.utils.data._utils.collate import default_collate
-from .base import _CharacterGenerator
 
+from .base import _CharacterGenerator
 
 __all__ = ['CharacterGenerator']
 

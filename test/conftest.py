@@ -1,7 +1,8 @@
-import pytest
 import json
-import requests
 from io import BytesIO
+
+import pytest
+import requests
 
 
 @pytest.fixture(scope="session")

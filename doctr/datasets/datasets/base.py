@@ -5,11 +5,10 @@
 
 import os
 from pathlib import Path
+from typing import Any, Callable, List, Optional, Tuple, Union
 from zipfile import ZipFile
-from typing import List, Any, Optional, Tuple, Callable, Union
 
 from doctr.models.data_utils import download_from_url
-
 
 __all__ = ['_AbstractDataset', '_VisionDataset']
 

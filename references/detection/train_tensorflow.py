@@ -8,25 +8,27 @@ import os
 os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-import time
 import datetime
-import numpy as np
-import tensorflow as tf
-import wandb
+import time
 from collections import deque
 from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
 from fastprogress.fastprogress import master_bar, progress_bar
+
+import wandb
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
+from utils import plot_samples
+
+from doctr import transforms as T
+from doctr.datasets import DataLoader, DetectionDataset
 from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
-from doctr.datasets import DetectionDataset, DataLoader
-from doctr import transforms as T
-
-from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):

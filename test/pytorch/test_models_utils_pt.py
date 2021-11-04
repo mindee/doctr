@@ -1,8 +1,9 @@
-import pytest
 import os
 
+import pytest
 from torch import nn
-from doctr.models.utils import load_pretrained_params, conv_sequence_pt
+
+from doctr.models.utils import conv_sequence_pt, load_pretrained_params
 
 
 def test_load_pretrained_params(tmpdir_factory):
