@@ -59,8 +59,8 @@ class DocArtefacts(VisionDataset):
             if rotated_bbox:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 boxes = np.stack((
-                    boxes[:, [0, 2]].mean(dim=1),
-                    boxes[:, [1, 3]].mean(dim=1),
+                    boxes[:, [0, 2]].mean(axis=1),
+                    boxes[:, [1, 3]].mean(axis=1),
                     boxes[:, 2] - boxes[:, 0],
                     boxes[:, 3] - boxes[:, 1],
                     0,
