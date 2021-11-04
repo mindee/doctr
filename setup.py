@@ -59,6 +59,7 @@ _deps = [
     "tqdm>=4.30.0",
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
+    "keras<2.7.0",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -86,8 +87,8 @@ install_requires = [
 ]
 
 extras = {}
-extras["tf"] = deps_list("tensorflow", "tensorflow-addons")
-extras["tf-cpu"] = deps_list("tensorflow-cpu", "tensorflow-addons")
+extras["tf"] = deps_list("tensorflow", "tensorflow-addons", "keras")
+extras["tf-cpu"] = deps_list("tensorflow-cpu", "tensorflow-addons", "keras")
 extras["torch"] = deps_list("torch", "torchvision")
 extras["all"] = (
     extras["tf"]
