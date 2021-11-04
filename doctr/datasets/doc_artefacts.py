@@ -1,10 +1,19 @@
+# Copyright (C) 2021, Mindee.
+
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+
 import os
 import json
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional, Callable
 from .datasets import VisionDataset
+
+
 __all__ = ['DocArtefacts']
+
+
 class DocArtefacts(VisionDataset):
     """Dataset containing ....
 
@@ -42,7 +51,7 @@ class DocArtefacts(VisionDataset):
         if len(labels) != len(img_list):
             raise AssertionError('the number of images and labels do not match')
         for img_name, label in labels.items():
-             # File existence check
+            # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
             boxes = np.asarray([obj['geometry'] for obj in label], dtype=np.float32)
@@ -58,5 +67,3 @@ class DocArtefacts(VisionDataset):
                 ), axis=1)
             self.data.append((img_name, dict(boxes=boxes, labels=classes)))
         self.root = tmp_root
-    def extra_repr(self) -> str:
-        return f"rotated_bbox={self.rotated_bbox}"
