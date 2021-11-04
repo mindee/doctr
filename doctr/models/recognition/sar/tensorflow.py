@@ -12,7 +12,7 @@ from tensorflow.keras import Model, Sequential, layers
 from doctr.utils.repr import NestedObject
 
 from ....datasets import VOCABS
-from ...backbones import resnet31, vgg16_bn
+from ...backbones import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
