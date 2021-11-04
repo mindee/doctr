@@ -49,11 +49,12 @@ class DocArtefacts(VisionDataset):
         img_list = os.listdir(tmp_root)
         if len(labels) != len(img_list):
             raise AssertionError('the number of images and labels do not match')
+        np_dtype = np.float16 if self.fp16 else np.float32
         for img_name, label in labels.items():
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
-            boxes = np.asarray([obj['geometry'] for obj in label], dtype=np.float32)
+            boxes = np.asarray([obj['geometry'] for obj in label], dtype=np_dtype)
             classes = [obj['label'] for obj in label]
             if rotated_bbox:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
