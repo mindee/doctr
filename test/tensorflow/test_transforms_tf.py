@@ -1,9 +1,11 @@
-import pytest
 import math
+
 import numpy as np
+import pytest
 import tensorflow as tf
+
 from doctr import transforms as T
-from doctr.transforms.functional import rotate, crop_detection
+from doctr.transforms.functional import crop_detection, rotate
 
 
 def test_resize():

@@ -4,15 +4,16 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
+from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple
+
 import torch
 from torch import nn
 from torch.nn import functional as F
-from copy import deepcopy
-from typing import Dict, Any, Tuple, Optional, List
 
 from ....datasets import VOCABS
-from ...utils import conv_sequence_pt, load_pretrained_params
 from ...backbones import resnet_stage
+from ...utils import conv_sequence_pt, load_pretrained_params
 from ..transformer import Decoder, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 

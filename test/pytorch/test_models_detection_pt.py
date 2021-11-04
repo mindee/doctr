@@ -1,6 +1,6 @@
+import numpy as np
 import pytest
 import torch
-import numpy as np
 
 from doctr.models import detection
 from doctr.models.detection.predictor import DetectionPredictor

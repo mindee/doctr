@@ -26,6 +26,24 @@ jobs:
           flake8 --version
           flake8 ./
 
+  isort-py3:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Run isort
+        run: |
+          pip install isort
+          isort **/*.py -c -v
+
   mypy-py3:
     runs-on: ${{ matrix.os }}
     strategy:

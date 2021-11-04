@@ -1,7 +1,9 @@
+from xml.etree.ElementTree import ElementTree
+
 import numpy as np
 import pytest
+
 from doctr.io import elements
-from xml.etree.ElementTree import ElementTree
 
 
 def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):

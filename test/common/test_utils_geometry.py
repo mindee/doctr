@@ -1,5 +1,6 @@
-from doctr.utils import geometry
 import numpy as np
+
+from doctr.utils import geometry
 
 
 def test_bbox_to_polygon():

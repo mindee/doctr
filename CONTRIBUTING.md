@@ -74,6 +74,15 @@ flake8 ./
 ```
 This will read the `.flake8` setting file and let you know whether your commits need some adjustments.
 
+#### Import order
+
+In order to ensure there is a common import order convention, run [isort](https://github.com/PyCQA/isort) as follows:
+
+```shell
+isort **/*.py
+```
+This will reorder the imports of your local files.
+
 #### Annotation typing
 
 Additionally, to catch type-related issues and have a cleaner codebase, annotation typing are expected. After installing [mypy](https://github.com/python/mypy), you can run the verifications as follows:

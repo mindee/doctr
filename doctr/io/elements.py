@@ -3,18 +3,19 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Tuple, Dict, List, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import Element as ETElement
+from xml.etree.ElementTree import SubElement
 
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
-from doctr.utils.visualization import visualize_page, synthesize_page
-from doctr.utils.common_types import BoundingBox, RotatedBbox
-from doctr.utils.repr import NestedObject
+import matplotlib.pyplot as plt
+import numpy as np
 
 import doctr
-from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import Element as ETElement, SubElement
+from doctr.utils.common_types import BoundingBox, RotatedBbox
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
+from doctr.utils.repr import NestedObject
+from doctr.utils.visualization import synthesize_page, visualize_page
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 

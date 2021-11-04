@@ -4,12 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import torch
-from torchvision.transforms import transforms as T
-from torchvision.transforms import functional as F
-from torch.nn.functional import pad
 from typing import Tuple
 
+import torch
+from torch.nn.functional import pad
+from torchvision.transforms import functional as F
+from torchvision.transforms import transforms as T
 
 __all__ = ['Resize']
 

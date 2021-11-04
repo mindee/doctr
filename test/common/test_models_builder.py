@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 
 from doctr.io import Document
 from doctr.models import builder

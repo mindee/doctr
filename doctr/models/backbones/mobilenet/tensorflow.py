@@ -5,13 +5,14 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from typing import Optional, Tuple, Any, Dict, List, Union
-from ...utils import conv_sequence, load_pretrained_params
-from ....datasets import VOCABS
 
+from ....datasets import VOCABS
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large",
            "mobilenet_v3_large_r"]

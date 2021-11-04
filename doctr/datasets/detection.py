@@ -3,13 +3,15 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import json
+import os
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
 import numpy as np
-from typing import List, Tuple, Dict, Any, Optional, Callable
+
+from doctr.utils.geometry import fit_rbbox
 
 from .datasets import AbstractDataset
-from doctr.utils.geometry import fit_rbbox
 
 __all__ = ["DetectionDataset"]
 

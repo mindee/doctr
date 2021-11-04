@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
+import pytest
 
-from doctr.models.recognition.predictor._utils import split_crops, remap_preds
+from doctr.models.recognition.predictor._utils import remap_preds, split_crops
 
 
 @pytest.mark.parametrize(

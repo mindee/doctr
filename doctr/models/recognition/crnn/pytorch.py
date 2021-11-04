@@ -5,15 +5,16 @@
 
 from copy import deepcopy
 from itertools import groupby
+from typing import Any, Dict, List, Optional, Tuple
+
 import torch
 from torch import nn
 from torch.nn import functional as F
-from typing import Tuple, Dict, Any, Optional, List
 
-from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small_r, mobilenet_v3_large_r
+from ....datasets import VOCABS
+from ...backbones import mobilenet_v3_large_r, mobilenet_v3_small_r, resnet31, vgg16_bn
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
-from ....datasets import VOCABS
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'CTCPostProcessor', 'crnn_mobilenet_v3_small',
            'crnn_mobilenet_v3_large']

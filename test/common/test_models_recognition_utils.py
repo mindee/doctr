@@ -1,5 +1,6 @@
 import pytest
-from doctr.models.recognition.utils import merge_strings, merge_multi_strings
+
+from doctr.models.recognition.utils import merge_multi_strings, merge_strings
 
 
 @pytest.mark.parametrize(

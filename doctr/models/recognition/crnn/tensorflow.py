@@ -4,15 +4,16 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple
+
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential, Model
-from typing import Tuple, Dict, Any, Optional, List
+from tensorflow.keras.models import Model, Sequential
 
-from ...backbones import vgg16_bn, resnet31, mobilenet_v3_small_r, mobilenet_v3_large_r
+from ....datasets import VOCABS
+from ...backbones import mobilenet_v3_large_r, mobilenet_v3_small_r, resnet31, vgg16_bn
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
-from ....datasets import VOCABS
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'CTCPostProcessor', 'crnn_mobilenet_v3_small',
            'crnn_mobilenet_v3_large']

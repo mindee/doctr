@@ -3,12 +3,12 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from typing import Any, Dict
+
 from torch import nn
 from torchvision.models import vgg as tv_vgg
-from typing import Dict, Any
 
 from ...utils import load_pretrained_params
-
 
 __all__ = ['vgg16_bn']
 

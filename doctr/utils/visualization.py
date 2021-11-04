@@ -3,16 +3,17 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-import matplotlib.patches as patches
-import mplcursors
-from PIL import ImageFont, ImageDraw, Image
 from copy import deepcopy
-import numpy as np
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import cv2
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import mplcursors
+import numpy as np
+from matplotlib.figure import Figure
+from PIL import Image, ImageDraw, ImageFont
 from unidecode import unidecode
-from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
 from .fonts import get_font

@@ -4,12 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
+from copy import deepcopy
+from typing import Tuple
+
+import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
-from copy import deepcopy
-import numpy as np
-from typing import Tuple
-from doctr.utils.geometry import rotate_abs_boxes, compute_expanded_shape
+
+from doctr.utils.geometry import compute_expanded_shape, rotate_abs_boxes
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]
 

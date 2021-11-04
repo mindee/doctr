@@ -3,13 +3,14 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
 from typing import List, Tuple
 
-from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import rotate_image, rotate_boxes
-from .._utils import extract_crops, extract_rcrops
+import numpy as np
 
+from doctr.models.builder import DocumentBuilder
+from doctr.utils.geometry import rotate_boxes, rotate_image
+
+from .._utils import extract_crops, extract_rcrops
 
 __all__ = ['_OCRPredictor']
 

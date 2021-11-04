@@ -3,10 +3,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
+from typing import Dict, List
+
 import cv2
 import matplotlib.pyplot as plt
-from typing import List, Dict
+import numpy as np
 
 
 def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
