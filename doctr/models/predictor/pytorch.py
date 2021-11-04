@@ -30,13 +30,15 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self,
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
-        rotated_bbox: bool = False
+        assume_straight_pages: bool = True,
+        export_as_straight_boxes: bool = False,
     ) -> None:
 
         super().__init__()
         self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
-        self.doc_builder = DocumentBuilder(rotated_bbox=rotated_bbox)
+        self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
+        self.assume_straight_pages = assume_straight_pages
 
     @torch.no_grad()
     def forward(
@@ -53,12 +55,17 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         loc_preds = self.det_predictor(pages, **kwargs)
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
-        # Crop images, rotate page if necessary
-        crops, loc_preds = self._prepare_crops(pages, loc_preds, channels_last=channels_last)
+        # Crop images
+        crops, loc_preds = self._prepare_crops(
+            pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages
+        )
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        boxes, text_preds = self._process_predictions(loc_preds, word_preds, self.doc_builder.rotated_bbox)
+        boxes, text_preds = self._process_predictions(
+            loc_preds, word_preds, allow_rotated_boxes=not self.doc_builder.export_as_straight_boxes
+        )
+
         out = self.doc_builder(
             boxes,
             text_preds,
