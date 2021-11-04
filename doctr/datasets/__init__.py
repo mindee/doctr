@@ -7,7 +7,7 @@ from .recognition import *
 from .ocr import *
 from .sroie import *
 from .classification import *
-
+from .doc_artefacts import *
 from doctr.file_utils import is_tf_available
 
 if is_tf_available():
