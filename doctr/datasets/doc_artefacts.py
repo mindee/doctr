@@ -3,12 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import json
-import numpy as np
-from typing import List, Dict, Any, Tuple, Optional, Callable
-from .datasets import VisionDataset
+import os
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import numpy as np
+
+from .datasets import VisionDataset
 
 __all__ = ['DocArtefacts']
 
