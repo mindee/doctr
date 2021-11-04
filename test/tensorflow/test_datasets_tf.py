@@ -30,7 +30,7 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     )
 
     assert len(ds) == size
-    assert repr(ds) == f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})"
+    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape == (*input_size, 3)
