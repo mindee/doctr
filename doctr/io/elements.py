@@ -211,7 +211,7 @@ class Page(Element):
     Args:
         blocks: list of block elements
         page_idx: the index of the page in the input raw document
-        dimensions: the page size in pixels in format (width, height)
+        dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
         language: a dictionary with the language value and confidence of the prediction
     """
@@ -276,7 +276,7 @@ class Page(Element):
         block_count: int = 1
         line_count: int = 1
         word_count: int = 1
-        width, height = self.dimensions
+        height, width = self.dimensions
         language = self.language if 'language' in self.language.keys() else 'en'
         # Create the XML root element
         page_hocr = ETElement('html', attrib={'xmlns': 'http://www.w3.org/1999/xhtml', 'xml:lang': str(language)})
