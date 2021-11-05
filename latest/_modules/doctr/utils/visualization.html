@@ -276,7 +276,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box of the element</span>
-<span class="sd">        page_dimensions: dimensions of the Page</span>
+<span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
 <span class="sd">        label: label to display when hovered</span>
 <span class="sd">        color: color to draw box</span>
 <span class="sd">        alpha: opacity parameter to fill the boxes, 0 = transparent</span>
@@ -322,7 +322,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box of the element</span>
-<span class="sd">        page_dimensions: dimensions of the Page</span>
+<span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
 <span class="sd">        label: label to display when hovered</span>
 <span class="sd">        color: color to draw box</span>
 <span class="sd">        alpha: opacity parameter to fill the boxes, 0 = transparent</span>
@@ -363,7 +363,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box (straight or rotated) of the element</span>
-<span class="sd">        page_dimensions: dimensions of the page</span>
+<span class="sd">        page_dimensions: dimensions of the page in format (height, width)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a matplotlib Patch</span>
@@ -515,8 +515,8 @@
             <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]:</span>
                 <span class="c1"># Get aboslute word geometry</span>
                 <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
-                <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmin</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmax</span><span class="p">)</span>
-                <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymin</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymax</span><span class="p">)</span>
+                <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmin</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmax</span><span class="p">))</span>
+                <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymin</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymax</span><span class="p">))</span>
 
                 <span class="c1"># White drawing context adapted to font size, 0.75 factor to convert pts --&gt; pix</span>
                 <span class="n">font</span> <span class="o">=</span> <span class="n">get_font</span><span class="p">(</span><span class="n">font_family</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.75</span> <span class="o">*</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)))</span>

@@ -408,7 +408,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        blocks: list of block elements</span>
 <span class="sd">        page_idx: the index of the page in the input raw document</span>
-<span class="sd">        dimensions: the page size in pixels in format (width, height)</span>
+<span class="sd">        dimensions: the page size in pixels in format (height, width)</span>
 <span class="sd">        orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction</span>
 <span class="sd">        language: a dictionary with the language value and confidence of the prediction</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -473,7 +473,7 @@
         <span class="n">block_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">line_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">word_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
+        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
         <span class="n">language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="k">if</span> <span class="s1">&#39;language&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;en&#39;</span>
         <span class="c1"># Create the XML root element</span>
         <span class="n">page_hocr</span> <span class="o">=</span> <span class="n">ETElement</span><span class="p">(</span><span class="s1">&#39;html&#39;</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;xmlns&#39;</span><span class="p">:</span> <span class="s1">&#39;http://www.w3.org/1999/xhtml&#39;</span><span class="p">,</span> <span class="s1">&#39;xml:lang&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span><span class="p">)})</span>
