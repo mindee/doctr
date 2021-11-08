@@ -4,15 +4,17 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-import tensorflow as tf
-from tensorflow.keras import Sequential, layers, Model
-from typing import Tuple, Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
-from ...backbones import vgg16_bn, resnet31
+import tensorflow as tf
+from tensorflow.keras import Model, Sequential, layers
+
+from doctr.utils.repr import NestedObject
+
+from ....datasets import VOCABS
+from ...backbones import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
-from doctr.utils.repr import NestedObject
-from ....datasets import VOCABS
 
 __all__ = ['SAR', 'SARPostProcessor', 'sar_resnet31']
 

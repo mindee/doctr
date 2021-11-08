@@ -7,26 +7,26 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
-import logging
-import time
 import datetime
+import logging
 import multiprocessing as mp
-import numpy as np
-from fastprogress.fastprogress import master_bar, progress_bar
-import torch
-from torchvision.transforms import Compose, Normalize, ColorJitter
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
-from contiguous_params import ContiguousParams
-import wandb
+import time
 from pathlib import Path
 
+import numpy as np
+import torch
+from contiguous_params import ContiguousParams
+from fastprogress.fastprogress import master_bar, progress_bar
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision.transforms import ColorJitter, Compose, Normalize
+from utils import plot_samples
+
+import wandb
+from doctr import transforms as T
+from doctr.datasets import VOCABS, RecognitionDataset
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
-from doctr.datasets import RecognitionDataset, VOCABS
-from doctr import transforms as T
-
-from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):

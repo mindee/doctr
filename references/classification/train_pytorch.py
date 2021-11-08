@@ -7,24 +7,24 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
-import time
 import datetime
 import multiprocessing as mp
+import time
+
 import numpy as np
-from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torch.nn.functional import cross_entropy
-from torchvision.transforms import Compose, Normalize, ColorJitter, RandomPerspective
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
-import wandb
-
+from fastprogress.fastprogress import master_bar, progress_bar
+from torch.nn.functional import cross_entropy
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision import models
-from doctr.datasets import CharacterGenerator, VOCABS
-from doctr import transforms as T
-
+from torchvision.transforms import ColorJitter, Compose, Normalize, RandomPerspective
 from utils import plot_samples
+
+import wandb
+from doctr import transforms as T
+from doctr.datasets import VOCABS, CharacterGenerator
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):

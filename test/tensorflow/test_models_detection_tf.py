@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
+import pytest
 import tensorflow as tf
 
+from doctr.io import DocumentFile
 from doctr.models import detection
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
-from doctr.io import DocumentFile
 
 
 @pytest.mark.parametrize(

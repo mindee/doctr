@@ -4,9 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
+from typing import Optional
+
 import torch
 from torch import nn
-from typing import Optional
 
 __all__ = ['Decoder', 'positional_encoding']
 

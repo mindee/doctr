@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
-
-from doctr import models
-from doctr.models.predictor import OCRPredictor
-from doctr.io import Document, DocumentFile
+import pytest
 from test_models_detection_tf import test_detectionpredictor, test_rotated_detectionpredictor
 from test_models_recognition_tf import test_recognitionpredictor
+
+from doctr import models
+from doctr.io import Document, DocumentFile
+from doctr.models.predictor import OCRPredictor
 
 
 def test_ocrpredictor(

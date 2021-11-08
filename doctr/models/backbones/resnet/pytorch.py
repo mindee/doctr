@@ -4,10 +4,11 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
+from typing import Any, Dict, List, Tuple
+
 from torch import nn
 from torchvision.models.resnet import BasicBlock
 
-from typing import Tuple, Dict, Any, List
 from ...utils import conv_sequence_pt, load_pretrained_params
 
 __all__ = ['ResNet', 'resnet31', 'resnet_stage']

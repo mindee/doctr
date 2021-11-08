@@ -5,17 +5,17 @@
 
 # Adapted from https://github.com/pytorch/vision/blob/master/torchvision/datasets/utils.py
 
-import re
-import os
 import hashlib
 import logging
+import os
+import re
 import urllib
-import urllib.request
 import urllib.error
-from tqdm.auto import tqdm
+import urllib.request
 from pathlib import Path
 from typing import Optional, Union
 
+from tqdm.auto import tqdm
 
 __all__ = ['download_from_url']
 
