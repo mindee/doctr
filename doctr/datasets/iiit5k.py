@@ -21,7 +21,7 @@ class IIIT5K(VisionDataset):
 
     Example::
         >>> from doctr.datasets import IIIT5K
-        >>> train_set = IIIT5K(train=True, download=True)
+        >>> train_set = IIIT5K(train=True, extract_archive=True, download=True)
         >>> img, target = train_set[0]
 
     Args:
@@ -40,7 +40,7 @@ class IIIT5K(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.DATA_URL, extract_archive=True, download=True, **kwargs)
+        super().__init__(url=self.DATA_URL, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 
