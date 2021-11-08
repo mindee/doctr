@@ -123,7 +123,7 @@ setup(
     keywords=['OCR', 'deep learning', 'computer vision', 'tensorflow', 'pytorch', 'text detection', 'text recognition'],
 
     # Package info
-    packages=find_packages(exclude=('test',)),
+    packages=find_packages(exclude=('tests',)),
     zip_safe=True,
     python_requires='>=3.6.0',
     include_package_data=True,
