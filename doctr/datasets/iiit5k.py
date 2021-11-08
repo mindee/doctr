@@ -5,8 +5,9 @@
 
 import os
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import numpy as np
 import scipy.io as sio
 
 from .datasets import VisionDataset
@@ -29,37 +30,48 @@ class IIIT5K(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    # TODO: add dataset
-    TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.4.1/IIIT-5K-train-reco.zip',
-             'd4fa9e60abb03500d83299c845b9c87fd9c9430d1aeac96b83c5d0bb0ab27f6f')
-    TEST = ('https://github.com/mindee/doctr/releases/download/v0.4.1/IIIT-5K-test-reco.zip',
-            '41b3c746a20226fddc80d86d4b2a903d43b5be4f521dd1bbe759dbf8844745e2')
+    DATA_URL = 'https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz'
 
     def __init__(
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
+        rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
-        url, sha256 = self.TRAIN if train else self.TEST
-        super().__init__(url, None, sha256, True, **kwargs)
+        super().__init__(url=self.DATA_URL, extract_archive=True, download=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 
         # Load mat data
-        mat_file = 'traindata' if self.train else 'testdata'
-        mat_data = sio.loadmat(os.path.join(self.root, f'{mat_file}.mat'))[mat_file][0]
-        tmp_root = os.path.join(self.root, 'train') if train else os.path.join(self.root, 'test')
-        img, label = zip(*[(x[0][0], x[1][0]) for x in mat_data])
+        dataset = 'IIIT5K'
+        tmp_root = os.path.join(self.root, dataset) if train else os.path.join(self.root, dataset)
+        mat_file = 'trainCharBound' if self.train else 'testCharBound'
+        mat_data = sio.loadmat(os.path.join(tmp_root, f'{mat_file}.mat'))[mat_file][0]
 
-        self.data: List[Tuple[Path, str]] = []
+        self.data: List[Tuple[Path, Dict[str, Any]]] = []
+        np_dtype = np.float16 if self.fp16 else np.float32
 
-        for img_path, label in zip(img, label):
+        for img_path, label, box_targets in mat_data:
+            _raw_path = img_path[0]
+            _raw_label = label[0]
+
             # File existence check
-            if not os.path.exists(os.path.join(tmp_root, img_path)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
-            self.data.append((img_path, label))
+            if not os.path.exists(os.path.join(tmp_root, _raw_path)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
+
+            if rotated_bbox:
+                # x, y, width, height -> x, y, width, height, alpha = 0
+                box_targets = [[box[0], box[1], box[2], box[3], 0] for box in box_targets]
+            else:
+                # x, y, width, height -> xmin, ymin, xmax, ymax
+                box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
+
+            if len(_raw_label) != len(box_targets):
+                raise ValueError(f"{_raw_label} and {box_targets} are not same length")
+
+            self.data.append((_raw_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=tuple(_raw_label))))
 
         self.root = tmp_root
 
