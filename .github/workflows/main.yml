@@ -97,7 +97,7 @@ jobs:
           pip install -r tests/requirements.txt
       - name: Run unittests
         run: |
-          coverage run -m pytest test/common/
+          coverage run -m pytest tests/common/
           coverage xml -o coverage-common.xml
       - uses: actions/upload-artifact@v2
         with:
@@ -137,7 +137,7 @@ jobs:
           pip install -r tests/requirements.txt
       - name: Run unittests
         run: |
-          coverage run -m pytest test/tensorflow/
+          coverage run -m pytest tests/tensorflow/
           coverage xml -o coverage-tf.xml
       - uses: actions/upload-artifact@v2
         with:
@@ -178,7 +178,7 @@ jobs:
 
       - name: Run unittests
         run: |
-          coverage run -m pytest test/pytorch/
+          coverage run -m pytest tests/pytorch/
           coverage xml -o coverage-pt.xml
 
       - uses: actions/upload-artifact@v2
