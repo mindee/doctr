@@ -21,16 +21,18 @@ class IIIT5K(VisionDataset):
 
     Example::
         >>> from doctr.datasets import IIIT5K
-        >>> train_set = IIIT5K(train=True, extract_archive=True, download=True)
+        >>> train_set = IIIT5K(train=True, download=True)
         >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
+        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    DATA_URL = 'https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz'
+    URL = 'https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz'
+    SHA256 = '7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e'
 
     def __init__(
         self,
@@ -40,7 +42,8 @@ class IIIT5K(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.DATA_URL, **kwargs)
+        super().__init__(url=self.URL, file_name='IIIT5K-Word-V3.tar',
+                         file_hash=self.SHA256, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 
@@ -60,12 +63,16 @@ class IIIT5K(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, _raw_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
+            # x, y, width, height -> xmin, ymin, xmax, ymax
+            box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
+
             if rotated_bbox:
-                # x, y, width, height -> x, y, width, height, alpha = 0
-                box_targets = [[box[0], box[1], box[2], box[3], 0] for box in box_targets]
-            else:
-                # x, y, width, height -> xmin, ymin, xmax, ymax
-                box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
+                # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
+                box_targets = [
+                    [
+                        (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                    ] for box in box_targets
+                ]
 
             if len(_raw_label) != len(box_targets):
                 raise ValueError(f"{_raw_label} and {box_targets} are not same length")
