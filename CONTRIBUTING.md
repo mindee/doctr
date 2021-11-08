@@ -7,12 +7,12 @@ Everything you need to know to contribute efficiently to the project.
 ## Codebase structure
 
 - [doctr](https://github.com/mindee/doctr/blob/main/doctr) - The package codebase
-- [test](https://github.com/mindee/doctr/blob/main/test) - Python unit tests
+- [tests](https://github.com/mindee/doctr/blob/main/tests) - Python unit tests
 - [docs](https://github.com/mindee/doctr/blob/main/docs) - Library documentation building
 - [scripts](https://github.com/mindee/doctr/blob/main/scripts) - Example scripts
 - [references](https://github.com/mindee/doctr/blob/main/references) - Reference training scripts
 - [demo](https://github.com/mindee/doctr/blob/main/demo) - Small demo app to showcase docTR capabilities 
-- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy an API with docTR
+- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy a REST API with docTR
 
 
 ## Continuous Integration
@@ -54,12 +54,12 @@ If you are wondering how to do something with docTR, or a more general question,
 In order to run the same unit tests as the CI workflows, you can run unittests locally:
 
 ```shell
-USE_TF='1' pytest test/ --ignore test/pytorch
+USE_TF='1' pytest tests/ --ignore tests/pytorch
 ```
 for TensorFlow,
 
 ```shell
-USE_TORCH='1' pytest test/ --ignore test/tensorflow
+USE_TORCH='1' pytest tests/ --ignore tests/tensorflow
 ```
 
 for PyTorch.
