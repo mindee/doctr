@@ -8,6 +8,7 @@ from .funsd import *
 from .ocr import *
 from .recognition import *
 from .sroie import *
+from .svt import *
 from .utils import *
 from .vocabs import *
 
