@@ -47,7 +47,7 @@ class DocArtefacts(VisionDataset):
         self.sample_transforms = sample_transforms
 
         # Update root
-        self.root = self.root.joinpath("train" if train else "val")
+        self.root = os.path.join(self.root, "train" if train else "val")
         # List images
         tmp_root = os.path.join(self.root, 'images')
         with open(os.path.join(self.root, "labels.json"), "rb") as f:
