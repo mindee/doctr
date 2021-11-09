@@ -21,8 +21,8 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from doctr.utils.visualization import visualize_page
 
-DET_ARCHS = ["db_resnet50"]
-RECO_ARCHS = ["crnn_vgg16_bn", "master", "sar_resnet31"]
+DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large"]
+RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
 
 
 def main():
