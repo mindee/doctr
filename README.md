@@ -69,7 +69,8 @@ Or even rebuild the original document from its predictions:
 ```python
 import matplotlib.pyplot as plt
 
-plt.imshow(result.synthesize()); plt.axis('off'); plt.show()
+synthetic_pages = result.synthesize()
+plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 ```
 
 ![Synthesis sample](https://github.com/mindee/doctr/releases/download/v0.3.1/synthesized_sample.png)
