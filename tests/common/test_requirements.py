@@ -1,23 +1,8 @@
 import re
 from pathlib import Path
+
 import requirements
 from requirements.requirement import Requirement
-
-
-# def parse_dep(dep: str) -> Tuple[str, List[str]]:
-#     version_constraints = []
-#     # Multi version constraints
-#     _split = dep.split(',')
-#     if len(_split) > 1:
-#         version_constraints.extend(_split[1:])
-#     _dep = _split[0]
-#     # Lib & Main constraint
-
-#     _split = re.split("[<>=]", dep)
-#     lib = _split[0]
-#     version_constraint = _split[-1] if len(_split) > 1 else ""
-
-#     return lib, version_constraints
 
 
 def test_deps_consistency():
