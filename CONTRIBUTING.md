@@ -41,29 +41,35 @@ If you are wondering how to do something with docTR, or a more general question,
 
 ## Developing docTR
 
+### Developer mode installation
+
+Install all additional dependencies with the following command:
+
+```shell
+pip install -e .[dev]
+```
 
 ### Commits
 
 - **Code**: ensure to provide docstrings to your Python code. In doing so, please follow [Google-style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) so it can ease the process of documentation later.
 - **Commit message**: please follow [Udacity guide](http://udacity.github.io/git-styleguide/)
 
-### Running CI verifications locally
 
-#### Unit tests
+### Unit tests
 
 In order to run the same unit tests as the CI workflows, you can run unittests locally:
 
 ```shell
-USE_TF='1' pytest tests/ --ignore tests/pytorch
+make test
 ```
-for TensorFlow,
+
+### Code quality
+
+To run all quality checks together
 
 ```shell
-USE_TORCH='1' pytest tests/ --ignore tests/tensorflow
+make quality
 ```
-
-for PyTorch.
-
 
 #### Lint verification
 
@@ -96,16 +102,10 @@ The `mypy.ini` file will be read to check your typing.
 ### Modifying the documentation
 
 In order to check locally your modifications to the documentation:
-- install docTR
-- install dependencies specific to documentation with:
 ```shell
-pip install -r docs/requirements.txt
+make docs-single-version
 ```
-- build the documentation
-```shell
-sphinx-build docs/source docs/_build -a
-```
-- you can now open your local version of the documentation located at `docs/_build/index.html` in your browser
+You can now open your local version of the documentation located at `docs/_build/index.html` in your browser
 
 
 ## Let's connect
