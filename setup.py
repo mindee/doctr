@@ -136,7 +136,7 @@ extras["quality"] = deps_list(
     "mypy"
 )
 
-extras["docs"] = deps_list(
+extras["docs_specific"] = deps_list(
     "sphinx",
     "sphinx-rtd-theme",
     "sphinxemoji",
@@ -146,11 +146,13 @@ extras["docs"] = deps_list(
     "sphinx-markdown-tables"
 )
 
+extras["docs"] = extras["all"] + extras["docs_specific"]
+
 extras["dev"] = (
     extras["all"]
     + extras["testing"]
     + extras["quality"]
-    + extras["docs"]
+    + extras["docs_specific"]
 )
 
 setup(

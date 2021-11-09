@@ -24,5 +24,9 @@ test-torch:
     USE_TORCH='1' coverage run -m pytest tests/pytorch/
 
 # Check that docs can build
+docs-single-version:
+    sphinx-build docs/source docs/_build -a
+
+# Check that docs can build
 docs:
     cd docs && bash build.sh
