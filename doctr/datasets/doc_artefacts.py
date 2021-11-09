@@ -32,6 +32,7 @@ class DocArtefacts(VisionDataset):
     URL = 'https://github.com/mindee/doctr/releases/download/v0.4.0/artefact_detection-13fab8ce.zip'
     SHA256 = '13fab8ced7f84583d9dccd0c634f046c3417e62a11fe1dea6efbbaba5052471b'
     FILE_NAME = 'artefact_detection-13fab8ce.zip'
+    CLASSES = ["background", "qr_code", "bar_code", "logo", "photo"]
 
     def __init__(
         self,
@@ -60,7 +61,7 @@ class DocArtefacts(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
             boxes = np.asarray([obj['geometry'] for obj in label], dtype=np_dtype)
-            classes = [obj['label'] for obj in label]
+            classes = np.asarray([self.CLASSES.index(obj['label']) for obj in label], dtype=np.long)
             if rotated_bbox:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 boxes = np.stack((
