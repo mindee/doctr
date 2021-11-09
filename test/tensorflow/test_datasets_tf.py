@@ -1,11 +1,12 @@
-import pytest
-import numpy as np
-import tensorflow as tf
 from copy import deepcopy
 
+import numpy as np
+import pytest
+import tensorflow as tf
+
 from doctr import datasets
-from doctr.transforms import Resize
 from doctr.datasets import DataLoader
+from doctr.transforms import Resize
 
 
 @pytest.mark.parametrize(
@@ -17,16 +18,19 @@ from doctr.datasets import DataLoader
         ['SROIE', False, [512, 512], 360, False],
         ['CORD', True, [512, 512], 800, True],
         ['CORD', False, [512, 512], 100, False],
+        ['DocArtefacts', None, [512, 512], 3000, False],
+        ['DocArtefacts', None, [512, 512], 3000, True],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
 
+    kwargs = {} if train is None else {"train": train}
     ds = datasets.__dict__[dataset_name](
-        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate
+        download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate, **kwargs,
     )
 
     assert len(ds) == size
-    assert repr(ds) == f"{dataset_name}(train={train})"
+    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape == (*input_size, 3)
@@ -39,7 +43,7 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
     # FP16
-    ds = datasets.__dict__[dataset_name](train=train, download=True, fp16=True)
+    ds = datasets.__dict__[dataset_name](download=True, fp16=True, **kwargs)
     img, target = ds[0]
     assert img.dtype == tf.float16
 

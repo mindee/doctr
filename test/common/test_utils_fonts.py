@@ -1,4 +1,4 @@
-from PIL.ImageFont import ImageFont, FreeTypeFont
+from PIL.ImageFont import FreeTypeFont, ImageFont
 
 from doctr.utils.fonts import get_font
 

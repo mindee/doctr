@@ -4,13 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
+from typing import Dict, List, Tuple
+
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Tuple, Dict
 
-from doctr.io.elements import Word, Line, Block, Page, Document
+from doctr.io.elements import Block, Document, Line, Page, Word
+from doctr.utils.geometry import rbbox_to_polygon, resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rbbox_to_polygon
 
 __all__ = ['DocumentBuilder']
 
@@ -286,7 +287,6 @@ class DocumentBuilder(NestedObject):
                         ymin, ymax = min(y_coords), max(y_coords)
                         straight_boxes_page.append([xmin, ymin, xmax, ymax, c])
                     straight_boxes.append(np.asarray(straight_boxes_page))
-                print("modified boxes")
                 boxes = straight_boxes
 
         _pages = [

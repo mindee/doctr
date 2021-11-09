@@ -3,13 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from PIL import ImageDraw, Image, ImageFont
-from typing import Any, Tuple, Optional, Callable, List
-import logging
-import platform
+from typing import Any, Callable, List, Optional, Tuple
+
+from PIL import Image, ImageDraw
 
 from doctr.io.image import tensor_from_pil
 from doctr.utils.fonts import get_font
+
 from ..datasets import AbstractDataset
 
 

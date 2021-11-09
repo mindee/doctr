@@ -5,11 +5,13 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
-from torchvision.models import mobilenetv3
 from typing import Any, Dict
-from doctr.datasets import VOCABS
-from ...utils import load_pretrained_params
 
+from torchvision.models import mobilenetv3
+
+from doctr.datasets import VOCABS
+
+from ...utils import load_pretrained_params
 
 __all__ = ["mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large", "mobilenet_v3_large_r"]
 

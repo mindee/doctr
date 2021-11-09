@@ -11,7 +11,6 @@ if any(gpu_devices):
 
 from doctr.models import ocr_predictor
 
-
 predictor = ocr_predictor(pretrained=True)
 det_predictor = predictor.det_predictor
 reco_predictor = predictor.reco_predictor

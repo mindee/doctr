@@ -1,8 +1,9 @@
-import requests
-import pytest
+from io import BytesIO
+
 import fitz
 import numpy as np
-from io import BytesIO
+import pytest
+import requests
 
 from doctr import io
 

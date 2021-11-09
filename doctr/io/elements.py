@@ -3,18 +3,23 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Tuple, Dict, List, Any, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
-from doctr.utils.visualization import visualize_page, synthesize_page
-from doctr.utils.common_types import BoundingBox, RotatedBbox
-from doctr.utils.repr import NestedObject
+from defusedxml import defuse_stdlib
+
+defuse_stdlib()
+from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import Element as ETElement
+from xml.etree.ElementTree import SubElement
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 import doctr
-from xml.etree import ElementTree as ET
-from xml.etree.ElementTree import Element as ETElement, SubElement
+from doctr.utils.common_types import BoundingBox, RotatedBbox
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
+from doctr.utils.repr import NestedObject
+from doctr.utils.visualization import synthesize_page, visualize_page
 
 __all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
 
@@ -206,7 +211,7 @@ class Page(Element):
     Args:
         blocks: list of block elements
         page_idx: the index of the page in the input raw document
-        dimensions: the page size in pixels in format (width, height)
+        dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
         language: a dictionary with the language value and confidence of the prediction
     """
@@ -271,7 +276,7 @@ class Page(Element):
         block_count: int = 1
         line_count: int = 1
         word_count: int = 1
-        width, height = self.dimensions
+        height, width = self.dimensions
         language = self.language if 'language' in self.language.keys() else 'en'
         # Create the XML root element
         page_hocr = ETElement('html', attrib={'xmlns': 'http://www.w3.org/1999/xhtml', 'xml:lang': str(language)})

@@ -4,17 +4,17 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import tensorflow as tf
-from tensorflow.keras import layers, Sequential, Model
-from typing import Tuple, List, Dict, Any, Optional
 from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple
 
+import tensorflow as tf
+from tensorflow.keras import Model, Sequential, layers
+
+from ....datasets import VOCABS
 from ...backbones.resnet import ResnetStage
 from ...utils import conv_sequence, load_pretrained_params
-from ..transformer import Decoder, positional_encoding, create_look_ahead_mask, create_padding_mask
-from ....datasets import VOCABS
+from ..transformer import Decoder, create_look_ahead_mask, create_padding_mask, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
-
 
 __all__ = ['MASTER', 'master', 'MASTERPostProcessor']
 
