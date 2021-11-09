@@ -2,7 +2,7 @@
   <img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="40%">
 </p>
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.4.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/osanseviero/doctr)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.4.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr)
 
 
 **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
@@ -158,19 +158,26 @@ The full package documentation is available [here](https://mindee.github.io/doct
 
 ### Demo app
 
-A minimal demo app is provided for you to play with the text detection model!
+A minimal demo app is provided for you to play with our end-to-end OCR models!
 
-You will need an extra dependency ([Streamlit](https://streamlit.io/)) for the app to run:
+![Demo app](https://github.com/mindee/doctr/releases/download/v0.3.0/demo_update.png)
+
+#### Live demo
+
+Courtesy of :hugs: [HuggingFace](https://huggingface.co/) :hugs:, docTR has now a fully deployed version available on [Spaces](https://huggingface.co/spaces)!
+Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr)
+
+#### Running it locally
+
+If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required:
 ```shell
 pip install -r demo/requirements.txt
 ```
-You can then easily run your app in your default browser by running:
+Then run your app in your default browser with:
 
 ```shell
 streamlit run demo/app.py
 ```
-
-![Demo app](https://github.com/mindee/doctr/releases/download/v0.3.0/demo_update.png)
 
 ### Docker container
 
