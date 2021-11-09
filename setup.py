@@ -145,6 +145,14 @@ extras["docs"] = deps_list(
     "recommonmark",
     "sphinx-markdown-tables"
 )
+
+extras["dev"] = (
+    extras["all"]
+    + extras["testing"]
+    + extras["quality"]
+    + extras["docs"]
+)
+
 setup(
     # Metadata
     name=package_index,
