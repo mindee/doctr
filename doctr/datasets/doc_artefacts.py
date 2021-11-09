@@ -23,17 +23,19 @@ class DocArtefacts(VisionDataset):
         >>> img, target = train_set[0]
 
     Args:
+        train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = 'https://github.com/mindee/doctr/releases/download/v0.4.0/artefact_detection-6c401d4d.zip'
-    SHA256 = '6c401d4d5d4ebaf086c3ed81a7d8142f48161420ab693bf8ac384e413a9c7d19'
-    FILE_NAME = 'artefact_detection-6c401d4d.zip'
+    URL = 'https://github.com/mindee/doctr/releases/download/v0.4.0/artefact_detection-13fab8ce.zip'
+    SHA256 = '13fab8ced7f84583d9dccd0c634f046c3417e62a11fe1dea6efbbaba5052471b'
+    FILE_NAME = 'artefact_detection-13fab8ce.zip'
 
     def __init__(
         self,
+        train: bool = True,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
@@ -42,6 +44,8 @@ class DocArtefacts(VisionDataset):
         super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
         self.sample_transforms = sample_transforms
 
+        # Update root
+        self.root = self.root.joinpath("train" if train else "val")
         # List images
         tmp_root = os.path.join(self.root, 'images')
         with open(os.path.join(self.root, "labels.json"), "rb") as f:
