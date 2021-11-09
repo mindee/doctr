@@ -20,8 +20,8 @@ from doctr.transforms import Resize
         ['CORD', False, [512, 512], 100, False],
         ['DocArtefacts', None, [512, 512], 3000, False],
         ['DocArtefacts', None, [512, 512], 3000, True],
-        ['IIIT5K', True, [32, 100], 2000, True],
-        ['IIIT5K', False, [32, 100], 3000, False],
+        ['IIIT5K', True, [32, 128], 2000, True],
+        ['IIIT5K', False, [32, 128], 3000, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):

@@ -16,10 +16,12 @@ __all__ = ['IIIT5K']
 
 
 class IIIT5K(VisionDataset):
-    """IIIT-5K dataset from `"BMVC 2012 Scene Text Recognition using Higher Order Language Priors"
+    """IIIT-5K character-level localization dataset from
+    `"BMVC 2012 Scene Text Recognition using Higher Order Language Priors"
     <https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf>`_.
 
     Example::
+        >>> # NOTE: this dataset is for character-level localization
         >>> from doctr.datasets import IIIT5K
         >>> train_set = IIIT5K(train=True, download=True)
         >>> img, target = train_set[0]
