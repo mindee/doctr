@@ -90,7 +90,7 @@ For examples & further details about the export format, please refer to [this se
 
 ### Prerequisites
 
-Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR. Additionally, you will need to install at least one of [TensorFlow](https://www.tensorflow.org/install/) or [PyTorch](https://pytorch.org/get-started/locally/#start-locally). If you use tensorflow, you will need to install the additional package `tensorflow-addons`
+Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR. 
 
 Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
 
@@ -105,11 +105,13 @@ For Windows users, those dependencies are included in GTK. You can find the late
 
 You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
+> :warning: Notice that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
+
 ```shell
 pip install python-doctr
 ```
 
-We try to keep framework-specific dependencies to a minimum. But if you encounter missing ones, you can install framework-specific builds as follows:
+We try to keep framework-specific dependencies to a minimum. You can install framework-specific builds as follows:
 
 ```shell
 # for TensorFlow
