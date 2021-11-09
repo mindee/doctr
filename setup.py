@@ -142,8 +142,6 @@ extras["docs_specific"] = deps_list(
     "sphinxemoji",
     "sphinx-copybutton",
     "docutils",
-    "recommonmark",
-    "sphinx-markdown-tables"
 )
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
