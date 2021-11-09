@@ -48,7 +48,7 @@ class SVT(VisionDataset):
         self.data: List[Tuple[Path, Dict[str, Any]]] = []
         np_dtype = np.float16 if self.fp16 else np.float32
 
-        # Load mat data
+        # Load xml data
         tmp_root = os.path.join(self.root, 'svt1')
         xml_tree = ET.parse(os.path.join(tmp_root, 'train.xml')) if self.train else ET.parse(
             os.path.join(tmp_root, 'test.xml'))
@@ -76,10 +76,12 @@ class SVT(VisionDataset):
                         _tmp_box_targets.append([xmin, ymin, xmax, ymax])
                     for label in rect_tag:
                         _tmp_labels.append(label.text)
-            # TODO: add and handle target_task text-recognition -> crop boxes with labels / change also read_image from array or path
-            self.data.append((_raw_path, dict(boxes=np.asarray(_tmp_box_targets, dtype=np_dtype), labels=_tmp_labels)))
 
-        print(self.data)
+            if len(_tmp_labels) != len(_tmp_box_targets):
+                raise ValueError(f"{_tmp_labels} and {_tmp_box_targets} are not same length")
+
+            self.data.append((Path(_raw_path), dict(boxes=np.asarray(
+                _tmp_box_targets, dtype=np_dtype), labels=_tmp_labels)))
 
         self.root = tmp_root
 
