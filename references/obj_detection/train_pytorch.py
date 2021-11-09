@@ -158,7 +158,8 @@ def train_faster(root_dir: str, label_path: str, num_epochs: int, early_stop=Fal
 
 def main(args):
     model = Faster_netv3()
-    root_dir = args.root_dir
+    train_dir = args.train_path
+    val_dir = args.val_path
     label_path = args.label_path
     new = os.listdir(root_dir)
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
@@ -167,7 +168,7 @@ def main(args):
     d_train, d_val = train_test_split(new, test_size=0.2, random_state=444, shuffle=True)
     global train_dataloader, val_dataloader, val_dataset, train_dataset
     train_dataset = Train_dataset(root_dir=root_dir, label_path=label_path, val=False)
-    train_set = DocArtefaxcts(, train=True, download=True)
+    train_set = DocArtefaxcts(train=True, download=True)
     train_dataloader = DataLoader(train_dataset, batch_size=1, num_workers=14, shuffle=False)
     val_dataset = Train_dataset(root_dir=root_dir, label_path=label_path, val=True)
     val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=14, shuffle=False)
@@ -175,7 +176,7 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR training script for text detection (PyTorch)',
+    parser = argparse.ArgumentParser(description='DocTR training script for object detection (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('train_path', type=str, help='path to training data folder')
@@ -183,9 +184,9 @@ def parse_args():
     parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
-    parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
+    # parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
-    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
+    # parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
