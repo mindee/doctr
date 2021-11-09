@@ -1,11 +1,11 @@
-import pytest
 import os
+
+import pytest
 import tensorflow as tf
-from tensorflow.keras import layers, Sequential
+from tensorflow.keras import Sequential, layers
 from tensorflow.keras.applications import ResNet50
 
-
-from doctr.models.utils import load_pretrained_params, conv_sequence, IntermediateLayerGetter
+from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 
 
 def test_load_pretrained_params(tmpdir_factory):

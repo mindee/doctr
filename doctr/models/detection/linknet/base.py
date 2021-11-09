@@ -5,14 +5,15 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-import numpy as np
+from typing import List, Tuple
+
 import cv2
-from typing import Tuple, List
+import numpy as np
 
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from doctr.models.core import BaseModel
-from ..core import DetectionPostProcessor
+from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
+from ..core import DetectionPostProcessor
 
 __all__ = ['_LinkNet', 'LinkNetPostProcessor']
 

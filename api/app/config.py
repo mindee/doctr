@@ -4,8 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-import doctr
 
+import doctr
 
 PROJECT_NAME: str = 'docTR API template'
 PROJECT_DESCRIPTION: str = 'Template API for Optical Character Recognition'

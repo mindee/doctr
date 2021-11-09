@@ -4,8 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_samples(images, targets):

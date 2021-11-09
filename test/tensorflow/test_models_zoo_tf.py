@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
-
-from doctr import models
-from doctr.models.predictor import OCRPredictor
-from doctr.io import Document, DocumentFile
+import pytest
 from test_models_detection_tf import test_detectionpredictor, test_rotated_detectionpredictor
 from test_models_recognition_tf import test_recognitionpredictor
+
+from doctr import models
+from doctr.io import Document, DocumentFile
+from doctr.models.predictor import OCRPredictor
 
 
 def test_ocrpredictor(
@@ -14,13 +14,14 @@ def test_ocrpredictor(
 
     predictor = OCRPredictor(
         test_detectionpredictor,
-        test_recognitionpredictor
+        test_recognitionpredictor,
+        assume_straight_pages=True,
     )
 
     r_predictor = OCRPredictor(
         test_rotated_detectionpredictor,
         test_recognitionpredictor,
-        rotated_bbox=True
+        assume_straight_pages=False,
     )
 
     doc = DocumentFile.from_pdf(mock_pdf).as_images()

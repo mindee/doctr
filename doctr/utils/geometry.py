@@ -4,9 +4,11 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-from typing import List, Union, Tuple
-import numpy as np
+from typing import List, Tuple, Union
+
 import cv2
+import numpy as np
+
 from .common_types import BoundingBox, Polygon4P, RotatedBbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',

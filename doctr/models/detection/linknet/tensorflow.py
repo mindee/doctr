@@ -6,15 +6,17 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers, Sequential
-from typing import Dict, Any, Tuple, Optional, List
+from tensorflow.keras import Sequential, layers
 
-from doctr.utils.repr import NestedObject
 from doctr.models.backbones import ResnetStage
 from doctr.models.utils import conv_sequence, load_pretrained_params
+from doctr.utils.repr import NestedObject
+
 from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ['LinkNet', 'linknet16']

@@ -4,10 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Any
-from .predictor import OCRPredictor
-from .detection.zoo import detection_predictor
-from .recognition.zoo import recognition_predictor
 
+from .detection.zoo import detection_predictor
+from .predictor import OCRPredictor
+from .recognition.zoo import recognition_predictor
 
 __all__ = ["ocr_predictor"]
 

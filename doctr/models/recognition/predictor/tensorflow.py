@@ -3,15 +3,16 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from typing import Any, List, Tuple, Union
+
 import numpy as np
 import tensorflow as tf
-from typing import List, Any, Union, Tuple
 
-from doctr.utils.repr import NestedObject
 from doctr.models.preprocessor import PreProcessor
-from ..core import RecognitionModel
-from ._utils import split_crops, remap_preds
+from doctr.utils.repr import NestedObject
 
+from ..core import RecognitionModel
+from ._utils import remap_preds, split_crops
 
 __all__ = ['RecognitionPredictor']
 

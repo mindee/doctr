@@ -6,8 +6,7 @@
 
 import multiprocessing as mp
 from multiprocessing.pool import ThreadPool
-from typing import Callable, Any, Optional, Iterable
-
+from typing import Any, Callable, Iterable, Optional
 
 __all__ = ['multithread_exec']
 

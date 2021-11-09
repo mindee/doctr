@@ -26,10 +26,17 @@ As a contributor, you will only have to ensure coverage of your code by adding a
 
 
 
-## Issues
+## Feedback
 
-Use Github [issues](https://github.com/mindee/doctr/issues) for feature requests, or bug reporting. When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.
+### Feature requests & bug report
 
+Whether you encountered a problem, or you have a feature suggestion, your input has value and can be used by contributors to reference it in their developments. For this purpose, we advise you to use Github [issues](https://github.com/mindee/doctr/issues). 
+
+First, check whether the topic wasn't already covered in an open / closed issue. If not, feel free to open a new one! When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.
+
+### Questions
+
+If you are wondering how to do something with docTR, or a more general question, you should consider checking out Github [discussions](https://github.com/mindee/doctr/discussions). See it as a Q&A forum, or the docTR-specific StackOverflow!
 
 
 ## Developing docTR
@@ -67,6 +74,15 @@ flake8 ./
 ```
 This will read the `.flake8` setting file and let you know whether your commits need some adjustments.
 
+#### Import order
+
+In order to ensure there is a common import order convention, run [isort](https://github.com/PyCQA/isort) as follows:
+
+```shell
+isort **/*.py
+```
+This will reorder the imports of your local files.
+
 #### Annotation typing
 
 Additionally, to catch type-related issues and have a cleaner codebase, annotation typing are expected. After installing [mypy](https://github.com/python/mypy), you can run the verifications as follows:
@@ -80,7 +96,7 @@ The `mypy.ini` file will be read to check your typing.
 ### Modifying the documentation
 
 In order to check locally your modifications to the documentation:
-- install doctr
+- install docTR
 - install dependencies specific to documentation with:
 ```shell
 pip install -r docs/requirements.txt
@@ -90,3 +106,8 @@ pip install -r docs/requirements.txt
 sphinx-build docs/source docs/_build -a
 ```
 - you can now open your local version of the documentation located at `docs/_build/index.html` in your browser
+
+
+## Let's connect
+
+Should you wish to connect somewhere else than on GitHub, feel free to join us on [Slack](https://join.slack.com/t/mindee-community/shared_invite/zt-uzgmljfl-MotFVfH~IdEZxjp~0zldww), where you will find a `#doctr` channel!

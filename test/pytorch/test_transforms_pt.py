@@ -1,10 +1,11 @@
-import pytest
-
 import math
-import torch
+
 import numpy as np
-from doctr.transforms import Resize, ColorInversion, RandomRotate, RandomCrop
-from doctr.transforms.functional import rotate, crop_detection
+import pytest
+import torch
+
+from doctr.transforms import ColorInversion, RandomCrop, RandomRotate, Resize
+from doctr.transforms.functional import crop_detection, rotate
 
 
 def test_resize():

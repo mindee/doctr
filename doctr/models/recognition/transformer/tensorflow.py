@@ -7,11 +7,10 @@
 # https://www.tensorflow.org/text/tutorials/transformer
 
 
-from typing import Tuple, Any
+from typing import Any, Tuple
 
-import tensorflow as tf
 import numpy as np
-
+import tensorflow as tf
 
 __all__ = ['Decoder', 'positional_encoding', 'create_look_ahead_mask', 'create_padding_mask']
 

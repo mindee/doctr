@@ -4,12 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import List, Any, Tuple
+from typing import Any, List, Tuple
+
 import tensorflow as tf
 
 from doctr.io import read_img_as_tensor
-from .base import _AbstractDataset, _VisionDataset
 
+from .base import _AbstractDataset, _VisionDataset
 
 __all__ = ['AbstractDataset', 'VisionDataset']
 

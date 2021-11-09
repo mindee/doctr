@@ -3,13 +3,13 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from typing import Any, List, Union
+
 import numpy as np
 import torch
 from torch import nn
-from typing import List, Any, Union
 
 from doctr.models.preprocessor import PreProcessor
-
 
 __all__ = ['DetectionPredictor']
 

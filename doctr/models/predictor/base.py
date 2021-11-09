@@ -3,13 +3,14 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
 from typing import List, Tuple
 
-from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import rotate_image, rotate_boxes
-from .._utils import extract_crops, extract_rcrops
+import numpy as np
 
+from doctr.models.builder import DocumentBuilder
+from doctr.utils.geometry import rotate_boxes, rotate_image
+
+from .._utils import extract_crops, extract_rcrops
 
 __all__ = ['_OCRPredictor']
 
@@ -29,10 +30,10 @@ class _OCRPredictor:
         pages: List[np.ndarray],
         loc_preds: List[Tuple[np.ndarray, float]],
         channels_last: bool,
-        allow_rotated_boxes: bool = False
+        assume_straight_pages: bool = False,
     ) -> List[List[np.ndarray]]:
 
-        if allow_rotated_boxes:
+        if not assume_straight_pages:
             crops = [
                 extract_rcrops(rotate_image(page, -angle, False), _boxes[:, :-1], channels_last=channels_last)
                 for page, (_boxes, angle) in zip(pages, loc_preds)
@@ -45,14 +46,15 @@ class _OCRPredictor:
 
         return crops
 
+    @staticmethod
     def _prepare_crops(
-        self,
         pages: List[np.ndarray],
         loc_preds: List[Tuple[np.ndarray, float]],
         channels_last: bool,
+        assume_straight_pages: bool = False,
     ) -> Tuple[List[List[np.ndarray]], List[Tuple[np.ndarray, float]]]:
 
-        crops = self._generate_crops(pages, loc_preds, channels_last, self.doc_builder.rotated_bbox)
+        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages)
 
         # Avoid sending zero-sized crops
         is_kept = [[all(s > 0 for s in crop.shape) for crop in page_crops] for page_crops in crops]
@@ -68,7 +70,7 @@ class _OCRPredictor:
     def _process_predictions(
         loc_preds: List[Tuple[np.ndarray, float]],
         word_preds: List[Tuple[str, float]],
-        allow_rotated_boxes: bool = False
+        allow_rotated_boxes: bool = False,
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
 
         boxes, text_preds = [], []

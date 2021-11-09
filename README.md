@@ -56,7 +56,7 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 result = model(doc)
 ```
 
-To make sense of your model's predictions, you can visualize them interactively as follows:
+To interpret your model's predictions, you can visualize them interactively as follows:
 
 ```python
 result.show(doc)
@@ -69,7 +69,8 @@ Or even rebuild the original document from its predictions:
 ```python
 import matplotlib.pyplot as plt
 
-plt.imshow(result.synthesize()); plt.axis('off'); plt.show()
+synthetic_pages = result.synthesize()
+plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 ```
 
 ![Synthesis sample](https://github.com/mindee/doctr/releases/download/v0.3.1/synthesized_sample.png)
@@ -173,7 +174,7 @@ streamlit run demo/app.py
 
 ### Docker container
 
-If you are to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
+If you wish to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
 
 ```shell
 docker build . -t <YOUR_IMAGE_TAG>

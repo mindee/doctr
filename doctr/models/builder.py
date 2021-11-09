@@ -4,13 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
+from typing import Dict, List, Tuple
+
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
-from typing import List, Tuple, Dict
 
-from doctr.io.elements import Word, Line, Block, Page, Document
+from doctr.io.elements import Block, Document, Line, Page, Word
+from doctr.utils.geometry import rbbox_to_polygon, resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 
 __all__ = ['DocumentBuilder']
 
@@ -22,6 +23,8 @@ class DocumentBuilder(NestedObject):
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
+        export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
+            box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
     """
 
     def __init__(
@@ -29,13 +32,13 @@ class DocumentBuilder(NestedObject):
         resolve_lines: bool = True,
         resolve_blocks: bool = True,
         paragraph_break: float = 0.035,
-        rotated_bbox: bool = False
+        export_as_straight_boxes: bool = False
     ) -> None:
 
         self.resolve_lines = resolve_lines
         self.resolve_blocks = resolve_blocks
         self.paragraph_break = paragraph_break
-        self.rotated_bbox = rotated_bbox
+        self.export_as_straight_boxes = export_as_straight_boxes
 
     def _sort_boxes(self, boxes: np.ndarray) -> np.ndarray:
         """Sort bounding boxes from top to bottom, left to right
@@ -46,7 +49,7 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
-        if self.rotated_bbox:
+        if boxes.shape[1] == 5:
             return (boxes[:, 0] + 2 * boxes[:, 1] / np.median(boxes[:, 3])).argsort()
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
@@ -73,7 +76,7 @@ class DocumentBuilder(NestedObject):
 
                 prev_box = boxes[sub_line[-1]]
                 # Compute distance between boxes
-                if self.rotated_bbox:
+                if boxes.shape[1] == 5:
                     dist = boxes[i, 0] - prev_box[2] / 2 - (prev_box[0] + prev_box[2] / 2)
                 else:
                     dist = boxes[i, 0] - prev_box[2]
@@ -100,15 +103,15 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 3] if self.rotated_bbox else boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 3] if boxes.shape[1] == 5 else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
-        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if self.rotated_bbox else 3] / y_med).argsort()
+        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if boxes.shape[1] == 5 else 3] / y_med).argsort()
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
-        if self.rotated_bbox:
+        if boxes.shape[1] == 5:
             y_center_sum = boxes[idxs[0]][1]
         else:
             y_center_sum = boxes[idxs[0]][[1, 3]].mean()
@@ -117,7 +120,7 @@ class DocumentBuilder(NestedObject):
             vert_break = True
 
             # Compute y_dist
-            if self.rotated_bbox:
+            if boxes.shape[1] == 5:
                 y_dist = abs(boxes[idx][1] - y_center_sum / len(words))
             else:
                 y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
@@ -132,7 +135,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][1 if self.rotated_bbox else [1, 3]].mean()
+            y_center_sum += boxes[idx][1 if boxes.shape[1] == 5 else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -152,7 +155,7 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
-        if self.rotated_bbox:
+        if boxes.shape[1] == 5:
             box_lines = np.asarray([
                 resolve_enclosing_rbbox([tuple(boxes[idx, :5]) for idx in line]) for line in lines  # type: ignore[misc]
             ])
@@ -230,7 +233,7 @@ class DocumentBuilder(NestedObject):
                         Word(
                             *word_preds[idx],
                             (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
-                        ) if self.rotated_bbox else
+                        ) if boxes.shape[1] == 6 else
                         Word(
                             *word_preds[idx],
                             ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
@@ -244,7 +247,8 @@ class DocumentBuilder(NestedObject):
 
     def extra_repr(self) -> str:
         return (f"resolve_lines={self.resolve_lines}, resolve_blocks={self.resolve_blocks}, "
-                f"paragraph_break={self.paragraph_break}")
+                f"paragraph_break={self.paragraph_break}, "
+                f"export_as_straight_boxes={self.export_as_straight_boxes}")
 
     def __call__(
         self,
@@ -266,6 +270,24 @@ class DocumentBuilder(NestedObject):
 
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
             raise ValueError("All arguments are expected to be lists of the same size")
+
+        if self.export_as_straight_boxes and len(boxes) > 0:
+            # If boxes are already straight OK, else fit a bounding rect
+            if boxes[0].shape[-1] == 6:
+                straight_boxes = []
+                # Iterate over pages
+                for page_boxes in boxes:
+                    straight_boxes_page = []
+                    # Iterate over boxes of the pages
+                    for box in page_boxes:
+                        x, y, w, h, a, c = box
+                        points = rbbox_to_polygon((x, y, w, h, a))
+                        x_coords, y_coords = zip(*points)
+                        xmin, xmax = min(x_coords), max(x_coords)
+                        ymin, ymax = min(y_coords), max(y_coords)
+                        straight_boxes_page.append([xmin, ymin, xmax, ymax, c])
+                    straight_boxes.append(np.asarray(straight_boxes_page))
+                boxes = straight_boxes
 
         _pages = [
             Page(
