@@ -15,7 +15,8 @@ __all__ = ['DocArtefacts']
 
 
 class DocArtefacts(VisionDataset):
-    """Dataset containing ....
+    """Object detection dataset for non-textual elements in documents.
+    The dataset includes a variety of synthetic document pages with non-textual elements.
 
     Example::
         >>> from doctr.datasets import DocArtefacts
