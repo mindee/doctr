@@ -129,8 +129,7 @@ def train_faster(root_dir: str, label_path: str, num_epochs: int, early_stop=Fal
             loss_dict = model(x, [d])
             loss = fl(loss_dict)
             mean_loss.append(loss)
-            loss.backward()
-            optimizer.step()
+            loss.backward()            optimizer.step()
             # lo1 = loss.cpu().clone().detach().numpy()
             tk0.set_postfix(loss=loss, eph_loss=epch_loss, prec=epch_precision,
                             rec=epch_recall, seg=epch_seg)
