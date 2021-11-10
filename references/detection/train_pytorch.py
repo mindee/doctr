@@ -29,7 +29,11 @@ from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -40,19 +44,34 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             images = images.cuda()
         images = batch_transforms(images)
 
-        train_loss = model(images, targets)['loss']
+        if amp:
+            with torch.cuda.amp.autocast():
+                train_loss = model(images, targets)['loss']
+        else:
+            train_loss = model(images, targets)['loss']
 
         optimizer.zero_grad()
-        train_loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-        optimizer.step()
+        if amp:
+            with torch.cuda.amp.autocast():
+                scaler.scale(train_loss).backward()
+                # Gradient clipping
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+                # Update the params
+                scaler.step(optimizer)
+                scaler.update()
+        else:
+
+            train_loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            optimizer.step()
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric):
+def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -64,7 +83,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        out = model(images, targets, return_boxes=True)
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images, targets, return_boxes=True)
+        else:
+            out = model(images, targets, return_boxes=True)
         # Compute metric
         loc_preds, _ = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
@@ -217,6 +240,7 @@ def main(args):
                 "val_hash": val_hash,
                 "pretrained": args.pretrained,
                 "rotation": args.rotation,
+                "amp": args.amp,
             }
         )
 
@@ -226,9 +250,9 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
         # Validation loop at the end of each epoch
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
@@ -282,6 +306,7 @@ def parse_args():
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated bbox')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args
