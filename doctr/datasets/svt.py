@@ -8,6 +8,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from defusedxml import defuse_stdlib
+
+defuse_stdlib()
+
 import numpy as np
 
 from .datasets import VisionDataset
