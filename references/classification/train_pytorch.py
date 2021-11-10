@@ -27,7 +27,11 @@ from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -36,19 +40,27 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         images = batch_transforms(images)
 
-        out = model(images)
-        train_loss = cross_entropy(out, targets)
-
         optimizer.zero_grad()
-        train_loss.backward()
-        optimizer.step()
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images)
+                train_loss = cross_entropy(out, targets)
+            scaler.scale(train_loss).backward()
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            out = model(images)
+            train_loss = cross_entropy(out, targets)
+            train_loss.backward()
+            optimizer.step()
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms):
+def evaluate(model, val_loader, batch_transforms, amp=False):
     # Model in eval mode
     model.eval()
     # Validation loop
@@ -56,8 +68,13 @@ def evaluate(model, val_loader, batch_transforms):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        out = model(images)
-        loss = cross_entropy(out, targets)
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images)
+                loss = cross_entropy(out, targets)
+        else:
+            out = model(images)
+            loss = cross_entropy(out, targets)
         # Compute metric
         correct += (out.argmax(dim=1) == targets).sum().item()
 
@@ -250,6 +267,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args

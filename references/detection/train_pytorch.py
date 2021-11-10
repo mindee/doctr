@@ -44,27 +44,23 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             images = images.cuda()
         images = batch_transforms(images)
 
-        if amp:
-            with torch.cuda.amp.autocast():
-                train_loss = model(images, targets)['loss']
-        else:
-            train_loss = model(images, targets)['loss']
-
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
-                scaler.scale(train_loss).backward()
-                # Gradient clipping
-                scaler.unscale_(optimizer)
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-                # Update the params
-                scaler.step(optimizer)
-                scaler.update()
+                train_loss = model(images, targets)['loss']
+            scaler.scale(train_loss).backward()
+            # Gradient clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
         else:
-
+            train_loss = model(images, targets)['loss']
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
+
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'

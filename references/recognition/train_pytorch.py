@@ -30,7 +30,11 @@ from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -44,16 +48,29 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         train_loss = model(images, targets)['loss']
 
         optimizer.zero_grad()
-        train_loss.backward()
-        optimizer.step()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+        if amp:
+            with torch.cuda.amp.autocast():
+                train_loss = model(images, targets)['loss']
+            scaler.scale(train_loss).backward()
+            # Gradient clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            train_loss = model(images, targets)['loss']
+            train_loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            optimizer.step()
+
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric):
+def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -65,7 +82,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        out = model(images, targets, return_preds=True)
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images, targets, return_preds=True)
+        else:
+            out = model(images, targets, return_preds=True)
         # Compute metric
         if len(out['preds']):
             words, _ = zip(*out['preds'])
@@ -278,6 +299,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args
