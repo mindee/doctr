@@ -21,7 +21,7 @@ class DetectionDataset(AbstractDataset):
 
     Example::
         >>> from doctr.datasets import DetectionDataset
-        >>> train_set = DetectionDataset(img_folder="/path/to/images", label_path="/path/to/labels.json")
+        >>> train_set = DetectionDataset(img_folder=True, label_path="/path/to/labels.json")
         >>> img, target = train_set[0]
 
     Args:
@@ -30,7 +30,6 @@ class DetectionDataset(AbstractDataset):
         sample_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
-
     def __init__(
         self,
         img_folder: str,

@@ -6,11 +6,8 @@
 import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
-from defusedxml import defuse_stdlib
 
-defuse_stdlib()
-import xml.etree.ElementTree as ET
-
+import defusedxml.ElementTree as ET
 import numpy as np
 
 from .datasets import VisionDataset
@@ -58,27 +55,31 @@ class SVT(VisionDataset):
         xml_root = xml_tree.getroot()
 
         for child in xml_root:
-            _tmp_box_targets = list()
-            _tmp_labels = list()
             for image_tag in child:
                 if image_tag.tag == 'imageName':
                     _raw_path = str(image_tag.text)
+
                     # File existence check
                     if not os.path.exists(os.path.join(tmp_root, _raw_path)):
                         raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
-                for rect_tag in image_tag:
-                    xmin, ymin, xmax, ymax = (int(rect_tag.attrib['x']), int(rect_tag.attrib['y']),
-                                              int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']),
-                                              int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']))
-                    if rotated_bbox:
-                        # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
-                        x, y, w, h, alpha = ((xmin + xmax) / 2, (ymin + ymax) / 2, xmax - xmin, ymax - ymin, 0)
-                        _tmp_box_targets.append([x, y, w, h, alpha])
-                    else:
-                        _tmp_box_targets.append([xmin, ymin, xmax, ymax])
-                    for label in rect_tag:
-                        _tmp_labels.append(label.text)
+                if rotated_bbox:
+                    # x_center, y_center, w, h, 0
+                    _tmp_box_targets = [
+                        (int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']) / 2,
+                         int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']) / 2,
+                         int(rect_tag.attrib['width']), int(rect_tag.attrib['height']), 0)
+                        for rect_tag in image_tag
+                    ]
+                else:
+                    # xmin, ymin, xmax, ymax
+                    _tmp_box_targets = [
+                        (int(rect_tag.attrib['x']), int(rect_tag.attrib['y']),  # type: ignore[misc]
+                         int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']),
+                         int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']))
+                        for rect_tag in image_tag
+                    ]
+            _tmp_labels = [lab.text for image_tag in child for rect_tag in image_tag for lab in rect_tag]
 
             if len(_tmp_labels) != len(_tmp_box_targets):
                 raise ValueError(f"{_tmp_labels} and {_tmp_box_targets} are not same length")
