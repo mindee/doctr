@@ -4,9 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import tensorflow as tf
+from typing import Callable, Optional
+
 import numpy as np
-from typing import Optional, Callable
+import tensorflow as tf
 
 from doctr.utils.multithreading import multithread_exec
 

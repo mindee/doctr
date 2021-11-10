@@ -3,10 +3,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
+from typing import Dict, List
+
 import cv2
 import matplotlib.pyplot as plt
-from typing import List, Dict
+import numpy as np
 
 
 def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
@@ -33,7 +34,8 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
                 target[int(box[1]): int(box[3]) + 1, int(box[0]): int(box[2]) + 1] = 1
 
         axes[0][idx].imshow(img)
-        axes[0][idx].axis('off')
         axes[1][idx].imshow(target.astype(bool))
-        axes[1][idx].axis('off')
+    # Disable axis
+    for ax in axes.ravel():
+        ax.axis('off')
     plt.show()

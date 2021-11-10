@@ -8,25 +8,28 @@ import os
 os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-import time
 import datetime
-import numpy as np
-import tensorflow as tf
+import hashlib
+import time
 from collections import deque
 from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
 from fastprogress.fastprogress import master_bar, progress_bar
+
 import wandb
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
+from utils import plot_samples
+
+from doctr import transforms as T
+from doctr.datasets import VOCABS, DataLoader, RecognitionDataset
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
-from doctr.datasets import RecognitionDataset, DataLoader, VOCABS
-from doctr import transforms as T
-
-from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):
@@ -94,9 +97,11 @@ def main(args):
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
+    with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     # Load doctr model
-    model = recognition.__dict__[args.model](
+    model = recognition.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(args.input_size, 4 * args.input_size, 3),
         vocab=VOCABS[args.vocab]
@@ -149,6 +154,8 @@ def main(args):
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
+    with open(parts[0].joinpath('labels.json'), 'rb') as f:
+        train_hash = hashlib.sha256(f.read()).hexdigest()
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -172,7 +179,7 @@ def main(args):
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # Tensorboard
     tb_writer = None
@@ -190,11 +197,17 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "text-recognition",
+                "framework": "tensorflow",
+                "scheduler": args.sched,
+                "vocab": args.vocab,
+                "train_hash": train_hash,
+                "val_hash": val_hash,
+                "pretrained": args.pretrained,
             }
         )
 
@@ -224,7 +237,6 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log({
-                'epochs': epoch + 1,
                 'val_loss': val_loss,
                 'exact_match': exact_match,
                 'partial_match': partial_match,
@@ -243,7 +255,7 @@ def parse_args():
 
     parser.add_argument('train_path', type=str, help='path to train data folder(s)')
     parser.add_argument('val_path', type=str, help='path to val data folder')
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')

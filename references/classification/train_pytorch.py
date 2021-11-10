@@ -7,27 +7,31 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
-import time
 import datetime
 import multiprocessing as mp
+import time
+
 import numpy as np
-from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torch.nn.functional import cross_entropy
-from torchvision.transforms import Compose, Normalize, ColorJitter, RandomPerspective
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
-import wandb
-
+from fastprogress.fastprogress import master_bar, progress_bar
+from torch.nn.functional import cross_entropy
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision import models
-from doctr.datasets import CharacterGenerator, VOCABS
-from doctr import transforms as T
-
+from torchvision.transforms import ColorJitter, Compose, Normalize, RandomPerspective
 from utils import plot_samples
 
+import wandb
+from doctr import transforms as T
+from doctr.datasets import VOCABS, CharacterGenerator
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):
+
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -36,19 +40,27 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         images = batch_transforms(images)
 
-        out = model(images)
-        train_loss = cross_entropy(out, targets)
-
         optimizer.zero_grad()
-        train_loss.backward()
-        optimizer.step()
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images)
+                train_loss = cross_entropy(out, targets)
+            scaler.scale(train_loss).backward()
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            out = model(images)
+            train_loss = cross_entropy(out, targets)
+            train_loss.backward()
+            optimizer.step()
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms):
+def evaluate(model, val_loader, batch_transforms, amp=False):
     # Model in eval mode
     model.eval()
     # Validation loop
@@ -56,8 +68,13 @@ def evaluate(model, val_loader, batch_transforms):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        out = model(images)
-        loss = cross_entropy(out, targets)
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images)
+                loss = cross_entropy(out, targets)
+        else:
+            out = model(images)
+            loss = cross_entropy(out, targets)
         # Compute metric
         correct += (out.argmax(dim=1) == targets).sum().item()
 
@@ -104,7 +121,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = models.__dict__[args.model](pretrained=args.pretrained, num_classes=len(vocab))
+    model = models.__dict__[args.arch](pretrained=args.pretrained, num_classes=len(vocab))
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -163,7 +180,7 @@ def main(args):
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
     if args.wb:
@@ -174,12 +191,15 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "character-classification",
                 "framework": "pytorch",
+                "vocab": args.vocab,
+                "scheduler": args.sched,
+                "pretrained": args.pretrained,
             }
         )
 
@@ -200,7 +220,6 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log({
-                'epochs': epoch + 1,
                 'val_loss': val_loss,
                 'acc': acc,
             })
@@ -214,7 +233,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for character classification (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
@@ -248,6 +267,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args

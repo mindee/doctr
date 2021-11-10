@@ -3,16 +3,17 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-import matplotlib.patches as patches
-import mplcursors
-from PIL import ImageFont, ImageDraw, Image
 from copy import deepcopy
-import numpy as np
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import cv2
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import mplcursors
+import numpy as np
+from matplotlib.figure import Figure
+from PIL import Image, ImageDraw
 from unidecode import unidecode
-from typing import Tuple, List, Dict, Any, Union, Optional
 
 from .common_types import BoundingBox, RotatedBbox
 from .fonts import get_font
@@ -33,7 +34,7 @@ def rect_patch(
 
     Args:
         geometry: bounding box of the element
-        page_dimensions: dimensions of the Page
+        page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
         color: color to draw box
         alpha: opacity parameter to fill the boxes, 0 = transparent
@@ -79,7 +80,7 @@ def polygon_patch(
 
     Args:
         geometry: bounding box of the element
-        page_dimensions: dimensions of the Page
+        page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
         color: color to draw box
         alpha: opacity parameter to fill the boxes, 0 = transparent
@@ -120,7 +121,7 @@ def create_obj_patch(
 
     Args:
         geometry: bounding box (straight or rotated) of the element
-        page_dimensions: dimensions of the page
+        page_dimensions: dimensions of the page in format (height, width)
 
     Returns:
         a matplotlib Patch
@@ -272,8 +273,8 @@ def synthesize_page(
             for word in line["words"]:
                 # Get aboslute word geometry
                 (xmin, ymin), (xmax, ymax) = word["geometry"]
-                xmin, xmax = int(w * xmin), int(w * xmax)
-                ymin, ymax = int(h * ymin), int(h * ymax)
+                xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
+                ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
 
                 # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
                 font = get_font(font_family, int(0.75 * (ymax - ymin)))

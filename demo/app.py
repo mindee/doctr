@@ -4,13 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-import streamlit as st
+
 import matplotlib.pyplot as plt
+import streamlit as st
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-import tensorflow as tf
 import cv2
+import tensorflow as tf
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
@@ -20,8 +21,8 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from doctr.utils.visualization import visualize_page
 
-DET_ARCHS = ["db_resnet50"]
-RECO_ARCHS = ["crnn_vgg16_bn", "master", "sar_resnet31"]
+DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large"]
+RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
     # Instructions
     st.markdown("*Hint: click on the top-right corner of an image to enlarge it!*")
     # Set the columns
-    cols = st.beta_columns((1, 1, 1, 1))
+    cols = st.columns((1, 1, 1, 1))
     cols[0].subheader("Input page")
     cols[1].subheader("Segmentation heatmap")
     cols[2].subheader("OCR output")

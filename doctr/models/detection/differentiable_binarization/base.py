@@ -5,14 +5,16 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
+from typing import List, Optional, Tuple, Union
+
 import cv2
 import numpy as np
-from shapely.geometry import Polygon
 import pyclipper
-from typing import Union, List, Tuple, Optional
+from shapely.geometry import Polygon
 
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 from doctr.utils.common_types import RotatedBbox
+from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
+
 from ..core import DetectionPostProcessor
 
 __all__ = ['DBPostProcessor']

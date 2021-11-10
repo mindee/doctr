@@ -1,8 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+from test_io_elements import _mock_pages
 
 from doctr.utils import visualization
-from test_io_elements import _mock_pages
 
 
 def test_visualize_page():

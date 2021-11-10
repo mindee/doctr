@@ -4,8 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-from PIL import Image
 import tensorflow as tf
+from PIL import Image
 
 if tf.__version__ >= '2.6.0':
     from tensorflow.keras.utils import img_to_array

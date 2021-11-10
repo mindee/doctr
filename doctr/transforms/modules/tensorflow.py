@@ -4,11 +4,11 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
+from typing import Any, Callable, List, Tuple
+
 import tensorflow as tf
-from typing import List, Any, Tuple, Callable
 
 from doctr.utils.repr import NestedObject
-
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
            'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality']

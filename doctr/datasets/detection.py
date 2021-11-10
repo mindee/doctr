@@ -3,13 +3,15 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import json
+import os
+from typing import Any, Callable, List, Optional, Tuple
+
 import numpy as np
-from typing import List, Tuple, Dict, Any, Optional, Callable
+
+from doctr.utils.geometry import fit_rbbox
 
 from .datasets import AbstractDataset
-from doctr.utils.geometry import fit_rbbox
 
 __all__ = ["DetectionDataset"]
 
@@ -19,7 +21,7 @@ class DetectionDataset(AbstractDataset):
 
     Example::
         >>> from doctr.datasets import DetectionDataset
-        >>> train_set = DetectionDataset(img_folder=True, label_path="/path/to/labels.json")
+        >>> train_set = DetectionDataset(img_folder="/path/to/images", label_path="/path/to/labels.json")
         >>> img, target = train_set[0]
 
     Args:
@@ -29,6 +31,7 @@ class DetectionDataset(AbstractDataset):
         sample_transforms: composable transformations that will be applied to each image & target pair
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
+
     def __init__(
         self,
         img_folder: str,

@@ -1,11 +1,12 @@
-import pytest
-import numpy as np
 from io import BytesIO
-import requests
-import cv2
 
-from doctr.io import reader, DocumentFile
-from doctr.models._utils import extract_crops, extract_rcrops, get_bitmap_angle, estimate_orientation
+import cv2
+import numpy as np
+import pytest
+import requests
+
+from doctr.io import DocumentFile, reader
+from doctr.models._utils import estimate_orientation, extract_crops, extract_rcrops, get_bitmap_angle
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
