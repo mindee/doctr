@@ -104,7 +104,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = models.__dict__[args.model](pretrained=args.pretrained, num_classes=len(vocab))
+    model = models.__dict__[args.arch](pretrained=args.pretrained, num_classes=len(vocab))
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -163,7 +163,7 @@ def main(args):
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
     if args.wb:
@@ -214,7 +214,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for character classification (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')

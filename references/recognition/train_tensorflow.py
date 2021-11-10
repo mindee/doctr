@@ -98,7 +98,7 @@ def main(args):
           f"{val_loader.num_batches} batches)")
 
     # Load doctr model
-    model = recognition.__dict__[args.model](
+    model = recognition.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(args.input_size, 4 * args.input_size, 3),
         vocab=VOCABS[args.vocab]
@@ -174,7 +174,7 @@ def main(args):
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # Tensorboard
     tb_writer = None
@@ -245,7 +245,7 @@ def parse_args():
 
     parser.add_argument('train_path', type=str, help='path to train data folder(s)')
     parser.add_argument('val_path', type=str, help='path to val data folder')
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
