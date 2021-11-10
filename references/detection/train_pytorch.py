@@ -175,7 +175,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target, rotation=args.rotation)
+        plot_samples(x, target)
         return
 
     # Backbone freezing
