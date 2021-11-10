@@ -45,7 +45,8 @@ def parse_args():
                         help='Text detection model to use for analysis')
     parser.add_argument('--recognition', type=str, default='crnn_vgg16_bn',
                         help='Text recognition model to use for analysis')
-    parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization", action="store_true")
+    parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization. Used only for CI.",
+                        action="store_true")
     parser.add_argument("--static", dest="static", help="Switches to static visualization", action="store_true")
     args = parser.parse_args()
 
