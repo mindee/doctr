@@ -105,11 +105,10 @@ For Windows users, those dependencies are included in GTK. You can find the late
 
 You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
 
-> :warning: Notice that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
-
 ```shell
 pip install python-doctr
 ```
+> :warning: Please note that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
 
 We try to keep framework-specific dependencies to a minimum. You can install framework-specific builds as follows:
 
