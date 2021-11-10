@@ -188,12 +188,17 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "text-detection",
                 "framework": "tensorflow",
+                "scheduler": args.sched,
+                "train_hash": train_hash,
+                "val_hash": val_hash,
+                "pretrained": args.pretrained,
+                "rotation": args.rotation,
             }
         )
 
