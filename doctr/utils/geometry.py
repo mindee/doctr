@@ -208,7 +208,7 @@ def rotate_image(
 
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
-    rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
+    rot_img = cv2.warpAffine(exp_img.astype(np.float32), rot_mat, (width, height))
     if expand:
         # Pad to get the same aspect ratio
         if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):

@@ -98,7 +98,7 @@ class DetectionPostProcessor(NestedObject):
 
         for p_, bitmap_ in zip(proba_map, bitmap):
             # Perform opening (erosion + dilatation)
-            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
+            bitmap_ = cv2.morphologyEx(bitmap_.astype(np.float32), cv2.MORPH_OPEN, kernel)
             # Rotate bitmap and proba_map
             angle = get_bitmap_angle(bitmap_)
             angles_batch.append(angle)
