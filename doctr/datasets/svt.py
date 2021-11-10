@@ -54,10 +54,10 @@ class SVT(VisionDataset):
             os.path.join(tmp_root, 'test.xml'))
         xml_root = xml_tree.getroot()
 
-        for child in xml_root:
-            for image_tag in child:
-                if image_tag.tag == 'imageName':
-                    _raw_path = str(image_tag.text)
+        for image in xml_root:
+            for image_attributes in image:
+                if image_attributes.tag == 'imageName':
+                    _raw_path = image_attributes.text
 
                     # File existence check
                     if not os.path.exists(os.path.join(tmp_root, _raw_path)):
@@ -69,7 +69,7 @@ class SVT(VisionDataset):
                         (int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']) / 2,
                          int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']) / 2,
                          int(rect_tag.attrib['width']), int(rect_tag.attrib['height']), 0)
-                        for rect_tag in image_tag
+                        for rect_tag in image_attributes
                     ]
                 else:
                     # xmin, ymin, xmax, ymax
@@ -77,9 +77,9 @@ class SVT(VisionDataset):
                         (int(rect_tag.attrib['x']), int(rect_tag.attrib['y']),  # type: ignore[misc]
                          int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']),
                          int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']))
-                        for rect_tag in image_tag
+                        for rect_tag in image_attributes
                     ]
-            _tmp_labels = [lab.text for image_tag in child for rect_tag in image_tag for lab in rect_tag]
+            _tmp_labels = [lab.text for image_attributes in image for rect_tag in image_attributes for lab in rect_tag]
 
             if len(_tmp_labels) != len(_tmp_box_targets):
                 raise ValueError(f"{_tmp_labels} and {_tmp_box_targets} are not same length")
