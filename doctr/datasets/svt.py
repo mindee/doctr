@@ -4,13 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
-
 from defusedxml import defuse_stdlib
 
 defuse_stdlib()
+import xml.etree.ElementTree as ET
 
 import numpy as np
 
