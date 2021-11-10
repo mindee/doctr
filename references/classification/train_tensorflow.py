@@ -100,7 +100,7 @@ def main(args):
           f"{val_loader.num_batches} batches)")
 
     # Load doctr model
-    model = backbones.__dict__[args.model](
+    model = backbones.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         num_classes=len(vocab),
@@ -170,7 +170,7 @@ def main(args):
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
     if args.wb:
@@ -181,12 +181,15 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "character-classification",
                 "framework": "tensorflow",
+                "vocab": args.vocab,
+                "scheduler": args.sched,
+                "pretrained": args.pretrained,
             }
         )
 
@@ -208,7 +211,6 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log({
-                'epochs': epoch + 1,
                 'val_loss': val_loss,
                 'acc': acc,
             })
@@ -222,7 +224,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for character classification (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
