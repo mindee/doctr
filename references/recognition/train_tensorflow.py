@@ -9,6 +9,7 @@ os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
+import hashlib
 import time
 from collections import deque
 from pathlib import Path
@@ -96,6 +97,8 @@ def main(args):
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
+    with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     # Load doctr model
     model = recognition.__dict__[args.arch](
@@ -151,6 +154,8 @@ def main(args):
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
+    with open(parts[0].joinpath('labels.json'), 'rb') as f:
+        train_hash = hashlib.sha256(f.read()).hexdigest()
 
     if args.show_samples:
         x, target = next(iter(train_loader))
