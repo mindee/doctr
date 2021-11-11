@@ -34,7 +34,8 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
                 target[int(box[1]): int(box[3]) + 1, int(box[0]): int(box[2]) + 1] = 1
 
         axes[0][idx].imshow(img)
-        axes[0][idx].axis('off')
         axes[1][idx].imshow(target.astype(bool))
-        axes[1][idx].axis('off')
+    # Disable axis
+    for ax in axes.ravel():
+        ax.axis('off')
     plt.show()
