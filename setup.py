@@ -74,6 +74,8 @@ _deps = [
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
     "docutils<0.18",
+    "recommonmark>=0.7.1",
+    "sphinx-markdown-tables>=0.0.15",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -142,6 +144,8 @@ extras["docs_specific"] = deps_list(
     "sphinxemoji",
     "sphinx-copybutton",
     "docutils",
+    "recommonmark",
+    "sphinx-markdown-tables",
 )
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
