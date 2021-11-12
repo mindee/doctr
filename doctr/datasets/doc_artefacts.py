@@ -74,3 +74,6 @@ class DocArtefacts(VisionDataset):
                 ), axis=1)
             self.data.append((img_name, dict(boxes=boxes, labels=classes)))
         self.root = tmp_root
+
+    def extra_repr(self) -> str:
+        return f"train={self.train}"
