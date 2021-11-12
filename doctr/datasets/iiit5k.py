@@ -67,7 +67,7 @@ class IIIT5K(VisionDataset):
 
             if rotated_bbox:
                 # x_center, y_center, w, h, alpha = 0
-                box_targets = [[(box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2], box[3], 0] for box in box_targets]
+                box_targets = [[box[0] + box[2] / 2, box[1] + box[3] / 2, box[2], box[3], 0] for box in box_targets]
             else:
                 # x, y, width, height -> xmin, ymin, xmax, ymax
                 box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
