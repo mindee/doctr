@@ -30,6 +30,7 @@ class IIIT5K(VisionDataset):
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        target_task: the task this dataset is used for
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -41,6 +42,7 @@ class IIIT5K(VisionDataset):
         train: bool = True,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
+        target_task: Optional[str] = "text-detection",
         **kwargs: Any,
     ) -> None:
 
@@ -65,21 +67,27 @@ class IIIT5K(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, _raw_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
-            # x, y, width, height -> xmin, ymin, xmax, ymax
-            box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
+            if target_task == "text-detection":
+                # x, y, width, height -> xmin, ymin, xmax, ymax
+                box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
-            if rotated_bbox:
-                # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
-                box_targets = [
-                    [
-                        (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
-                    ] for box in box_targets
-                ]
+                if rotated_bbox:
+                    # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
+                    box_targets = [
+                        [
+                            (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                        ] for box in box_targets
+                    ]
 
-            if len(_raw_label) != len(box_targets):
-                raise ValueError(f"{_raw_label} and {box_targets} are not same length")
+                if len(_raw_label) != len(box_targets):
+                    raise ValueError(f"{_raw_label} and {box_targets} are not same length")
 
-            self.data.append((_raw_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=tuple(_raw_label))))
+                self.data.append((_raw_path, dict(boxes=np.asarray(
+                    box_targets, dtype=np_dtype), labels=tuple(_raw_label))))
+            elif target_task == "text-recognition":
+                self.data.append((_raw_path, dict(labels=_raw_label)))
+            else:
+                raise ValueError(f"{target_task} is not supported")
 
         self.root = tmp_root
 
