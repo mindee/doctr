@@ -28,17 +28,16 @@ def test_visiondataset():
         ['SROIE', False, [512, 512], 360, False],
         ['CORD', True, [512, 512], 800, True],
         ['CORD', False, [512, 512], 100, False],
-        ['DocArtefacts', None, [512, 512], 3000, False],
-        ['DocArtefacts', None, [512, 512], 3000, True],
+        ['DocArtefacts', True, [512, 512], 2700, False],
+        ['DocArtefacts', False, [512, 512], 300, True],
         ['IIIT5K', True, [32, 128], 2000, True],
         ['IIIT5K', False, [32, 128], 3000, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
 
-    kwargs = {} if train is None else {"train": train}
     ds = datasets.__dict__[dataset_name](
-        download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate, **kwargs,
+        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
 
     assert len(ds) == size
@@ -58,7 +57,7 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
     # FP16 checks
-    ds = datasets.__dict__[dataset_name](download=True, fp16=True, **kwargs)
+    ds = datasets.__dict__[dataset_name](train=train, download=True, fp16=True)
     img, target = ds[0]
     assert img.dtype == torch.float16
 
