@@ -65,9 +65,6 @@ class IIIT5K(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, _raw_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
-            # x, y, width, height -> xmin, ymin, xmax, ymax
-            box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
-
             if rotated_bbox:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 box_targets = [
@@ -75,12 +72,13 @@ class IIIT5K(VisionDataset):
                         (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
                     ] for box in box_targets
                 ]
+            else:
+                # x, y, width, height -> xmin, ymin, xmax, ymax
+                box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
-            if len(_raw_label) != len(box_targets):
-                raise ValueError(f"{_raw_label} and {box_targets} are not same length")
-
+            # label are casted to list where each char corresponds to the character's bounding box
             self.data.append((_raw_path, dict(boxes=np.asarray(
-                box_targets, dtype=np_dtype), labels=tuple(_raw_label))))
+                box_targets, dtype=np_dtype), labels=list(_raw_label))))
 
         self.root = tmp_root
 
