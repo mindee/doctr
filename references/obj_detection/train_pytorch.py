@@ -7,20 +7,13 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
-import argparse
-import json
-
-import random
 import time
 
-import cv2
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from doctr.transforms.functional.pytorch import rotate
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from doctr.datasets import DocArtefacts
@@ -29,22 +22,30 @@ from utilities import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def fit_one_epoch(mymodel,images,targets,):
+
+def fit_one_epoch(model_, images, targets):
     x = images.to(device)
     height, width = x.shape[0], x.shape[1]
-    target_= [{i: torch.tensor(j, dtype=torch.float32).to(device)} for i, j in targets.items()]
-    loss_dict = mymodel(x, target_)
+    for i in targets["boxes"]:
+        i[0] = round(i[0] * width)
+        i[2] = round(i[2] * width)
+        i[1] = round(i[1] * height)
+        i[2] = round(i[3] * height)
+    target_ = [{i: torch.tensor(j, dtype=torch.float32).to(device)} for i, j in targets.items()]
+    loss_dict = model_(x, target_)
     loss = sum([l for k, l in loss_dict.items()])
     return loss
 
-def evaluate(images,targets,val_metric,mymodel):
+
+def evaluate(images, targets, val_metric, model_):
     x, y = images.to(device), targets
     targets = [torch.stack(j, dim=1)[0].to(device) for i, j in y.items()]
-    pq_metric, seg_quality, recall, precision = val_metric(targets=targets, model=mymodel, x=x)
-    return pq_metric,seg_quality,recall,precision
+    pq_metric, seg_quality, recall, precision = val_metric(targets=targets, model=model_, x=x)
+    return pq_metric, seg_quality, recall, precision
 
 
-def train_faster(train_dataloader,val_dataloader,mymodel:nn.Module,root_dir: str, label_path: str, num_epochs: int,val_metric):
+def train_faster(train_dataloader, val_dataloader, mymodel: nn.Module, root_dir: str, label_path: str, num_epochs: int,
+                 val_metric):
     """Training script
     Args:
         root_dir: location of image folder
@@ -53,8 +54,7 @@ def train_faster(train_dataloader,val_dataloader,mymodel:nn.Module,root_dir: str
     Returns:
         torch checkpoint
     """
-    model = mymodel
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
+    optimizer = optim.SGD(mymodel.parameters(), lr=0.01)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
     epch_pq = 0.0
     epch_precision = 0.0
@@ -68,12 +68,12 @@ def train_faster(train_dataloader,val_dataloader,mymodel:nn.Module,root_dir: str
         mean_precision = []
         mean_recall = []
         mean_seg = []
-        model.train()
+        mymodel.train()
         tk0 = tqdm(train_dataloader, total=int(len(train_dataloader)))
         for images, targets in tk0:
             tk0.set_description(f"Epoch:{i}_Train")
             optimizer.zero_grad()
-            loss = fit_one_epoch(mymodel, images, targets)
+            loss = fit_one_epoch(mymodel, images, targets, device)
             mean_loss.append(loss)
             loss.backward()
             optimizer.step()
@@ -85,10 +85,10 @@ def train_faster(train_dataloader,val_dataloader,mymodel:nn.Module,root_dir: str
         epch_train_loss = epch_loss.cpu().clone().detach().numpy()
         tk1 = tqdm(val_dataloader, total=int(len(val_dataloader)))
         scheduler.step()
-        for images,targets in tk1:
+        for images, targets in tk1:
             tk1.set_description(f"Epoch:{i}_Val")
-            model.eval()
-            pq_metric, seg_quality, recall, precision= evaluate(images, targets,val_metric, mymodel)
+            mymodel.eval()
+            pq_metric, seg_quality, recall, precision = evaluate(images, targets, val_metric, mymodel)
             mean_pq.append(pq_metric)
             mean_seg.append(seg_quality)
             mean_recall.append(recall)
@@ -97,21 +97,21 @@ def train_faster(train_dataloader,val_dataloader,mymodel:nn.Module,root_dir: str
         epch_precision = np.sum(np.array(mean_precision)) / len(val_dataloader)
         epch_recall = np.sum(np.array(mean_recall)) / len(val_dataloader)
         epch_seg = np.sum(np.array(mean_seg)) / len(val_dataloader)
-    # torch.save(model, "/home/siddhant/PycharmProjects/pythonProject/sid/nd_small_qr_dm_30.ckpt")
 
 
 def main(args):
     model = faster_model
     train_dir = args.train_path
     val_dir = args.val_path
-    use_DocArtefacts = args.use_DocArtefacts
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
     train_set = DocArtefacts(train=True, download=True)
     val_set = DocArtefacts(train=False, download=True)
     train_dataloader = DataLoader(train_set, batch_size=1, num_workers=14, shuffle=False)
     val_dataloader = DataLoader(val_set, batch_size=1, num_workers=14, shuffle=False)
-    train_faster(train_dataloader=train_dataloader,val_dataloader=val_dataloader,num_epochs=args.epochs,val_metric=val_metric)
+    train_faster(train_dataloader=train_dataloader, val_dataloader=val_dataloader, mymodel=model,
+                 num_epochs=args.epochs, val_metric=val_metric)
+
 
 def parse_args():
     import argparse
@@ -119,7 +119,7 @@ def parse_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # parser.add_argument('train_path', type=str, help='path to training data folder')
     # parser.add_argument('val_path', type=str, help='path to validation data folder')
-    #parser.add_argument('arch', type=str, help='text-detection model to train')
+    # parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     # parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
@@ -134,11 +134,9 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
-    args = parser.parse_args()
-    if args.use_DocArtefacts and (args.train_path is None):
-        parser.error("Please provide the path to the train+val datasets since you have opted to not use datasets provided by docTR."
 
     return args
+
 
 if __name__ == "__main__":
     args = parse_args()
