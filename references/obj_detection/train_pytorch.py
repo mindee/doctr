@@ -44,7 +44,8 @@ def evaluate(images, targets, val_metric, model_):
     return pq_metric, seg_quality, recall, precision
 
 
-def train_faster(train_dataloader, val_dataloader, mymodel: nn.Module, root_dir: str, label_path: str, num_epochs: int,
+def train_faster(optimizer, scheduler, train_dataloader, val_dataloader, mymodel: nn.Module, root_dir: str,
+                 label_path: str, num_epochs: int,
                  val_metric):
     """Training script
     Args:
@@ -54,8 +55,6 @@ def train_faster(train_dataloader, val_dataloader, mymodel: nn.Module, root_dir:
     Returns:
         torch checkpoint
     """
-    optimizer = optim.SGD(mymodel.parameters(), lr=0.01)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
     epch_pq = 0.0
     epch_precision = 0.0
     epch_recall = 0.0
@@ -78,8 +77,8 @@ def train_faster(train_dataloader, val_dataloader, mymodel: nn.Module, root_dir:
             loss.backward()
             optimizer.step()
             lo1 = loss.cpu().clone().detach().numpy()
-            tk0.set_postfix(loss=lo1, eph_loss=epch_train_loss, prec=epch_precision,
-                            rec=epch_recall, seg=epch_seg)
+            tk0.set_postfix(loss=lo1, eph_loss=epch_train_loss, prec=epch_precision, rec=epch_recall, seg=epch_seg,
+                            pq=epch_pq)
             time.sleep(0.1)
         epch_loss = torch.sum(torch.stack(mean_loss, dim=0), dim=0) / len(train_dataloader)
         epch_train_loss = epch_loss.cpu().clone().detach().numpy()
@@ -101,15 +100,14 @@ def train_faster(train_dataloader, val_dataloader, mymodel: nn.Module, root_dir:
 
 def main(args):
     model = faster_model
-    train_dir = args.train_path
-    val_dir = args.val_path
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
     train_set = DocArtefacts(train=True, download=True)
     val_set = DocArtefacts(train=False, download=True)
     train_dataloader = DataLoader(train_set, batch_size=1, num_workers=14, shuffle=False)
     val_dataloader = DataLoader(val_set, batch_size=1, num_workers=14, shuffle=False)
-    train_faster(train_dataloader=train_dataloader, val_dataloader=val_dataloader, mymodel=model,
+    train_faster(optimizer=optimizer, scheduler=scheduler, train_dataloader=train_dataloader,
+                 val_dataloader=val_dataloader, mymodel=model,
                  num_epochs=args.epochs, val_metric=val_metric)
 
 
