@@ -32,7 +32,6 @@ class DocArtefacts(VisionDataset):
 
     URL = 'https://github.com/mindee/doctr/releases/download/v0.4.0/artefact_detection-13fab8ce.zip'
     SHA256 = '13fab8ced7f84583d9dccd0c634f046c3417e62a11fe1dea6efbbaba5052471b'
-    FILE_NAME = 'artefact_detection-13fab8ce.zip'
     CLASSES = ["background", "qr_code", "bar_code", "logo", "photo"]
 
     def __init__(
@@ -43,7 +42,7 @@ class DocArtefacts(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
+        super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.sample_transforms = sample_transforms
 
         # Update root
