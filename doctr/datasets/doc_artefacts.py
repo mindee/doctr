@@ -43,6 +43,7 @@ class DocArtefacts(VisionDataset):
     ) -> None:
 
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
+        self.train = train
         self.sample_transforms = sample_transforms
 
         # Update root
