@@ -29,82 +29,22 @@ from utilities import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-
-class Train_dataset(Dataset):
-    """
-    Args:
-        root_dir: location of image folder
-        label_path: location of labels/annotations
-    Returns:
-        Iterable dataset accessible with integer indices.
-    """
-
-    def __init__(self, root_dir: str):
-        self.root_dir = root_dir
-        self.root = os.listdir(root_dir)
-        self.train_folder = "self.root_dir/images"
-        self.im_names = os.listdir(self.train_folder)
-        self.label_path = "self.root_dir/labels.json"
-        with open(self.label_path) as f:
-            self.my_json = dict(json.load(f))
-
-    def __len__(self):
-        return len(self.root)
-
-    def __getitem__(self, idx):
-        image = cv2.imread(os.path.join(self.train_folder, self.im_names[idx]))
-        image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
-        return (image,self.my_json,self.root[idx])
-
-class Val_dataset(Dataset):
-    """
-    Args:
-        root_dir: location of image folder
-        label_path: location of labels/annotations
-    Returns:
-        Iterable dataset accessible with integer indices.
-    """
-
-    def __init__(self, root_dir: str,):
-        self.root_dir = root_dir
-        self.root = os.listdir(root_dir)
-        self.val_folder = "self.root_dir/images"
-        self.im_names = os.listdir(self.val_folder)
-        self.label_path = "self.root_dir/labels.json"
-        with open(self.label_path) as f:
-            self.my_json = dict(json.load(f))
-
-    def __len__(self):
-        return len(self.root)
-
-    def __getitem__(self, idx):
-        image = cv2.imread(os.path.join(self.val_folder, self.im_names[idx]))
-        image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
-        return (image,self.my_json,self.root[idx])
-
-def fit_one_epoch(mymodel,images,targets,names,label_formatter):
+def fit_one_epoch(mymodel,images,targets,):
     x = images.to(device)
     height, width = x.shape[0], x.shape[1]
-    target_ = label_formatter({names: targets[names]}, width, height)
-    boxes = np.array(target_[names]['boxes'])
-    bbox = [torch.tensor(p, dtype=torch.float32) for p in boxes]
-    y = {"boxes": bbox, "labels": target_[names]['labels']}
-    targets = [torch.stack(j, dim=1)[0].to(device) for i, j in y.items()]
-    d = {}
-    d.update({"boxes": targets[0], "labels": targets[1]})
-    loss_dict = mymodel(x, [d])
+    target_= [{i: torch.tensor(j, dtype=torch.float32).to(device)} for i, j in targets.items()]
+    loss_dict = mymodel(x, target_)
     loss = sum([l for k, l in loss_dict.items()])
     return loss
 
-def evaluate(images,targets,names,val_metricm,mymodel):
+def evaluate(images,targets,val_metric,mymodel):
     x, y = images.to(device), targets
     targets = [torch.stack(j, dim=1)[0].to(device) for i, j in y.items()]
     pq_metric, seg_quality, recall, precision = val_metric(targets=targets, model=mymodel, x=x)
     return pq_metric,seg_quality,recall,precision
 
 
-def train_faster(mymodel:nn.Module,root_dir: str, label_path: str, num_epochs: int, early_stop=False):
+def train_faster(train_dataloader,val_dataloader,mymodel:nn.Module,root_dir: str, label_path: str, num_epochs: int,val_metric):
     """Training script
     Args:
         root_dir: location of image folder
@@ -130,10 +70,10 @@ def train_faster(mymodel:nn.Module,root_dir: str, label_path: str, num_epochs: i
         mean_seg = []
         model.train()
         tk0 = tqdm(train_dataloader, total=int(len(train_dataloader)))
-        for images, targets, names in tk0:
+        for images, targets in tk0:
             tk0.set_description(f"Epoch:{i}_Train")
             optimizer.zero_grad()
-            loss = fit_one_epoch(mymodel, images, targets, names, label_formatter)
+            loss = fit_one_epoch(mymodel, images, targets)
             mean_loss.append(loss)
             loss.backward()
             optimizer.step()
@@ -145,10 +85,10 @@ def train_faster(mymodel:nn.Module,root_dir: str, label_path: str, num_epochs: i
         epch_train_loss = epch_loss.cpu().clone().detach().numpy()
         tk1 = tqdm(val_dataloader, total=int(len(val_dataloader)))
         scheduler.step()
-        for images,targets,names in tk1:
+        for images,targets in tk1:
             tk1.set_description(f"Epoch:{i}_Val")
             model.eval()
-            pq_metric, seg_quality, recall, precision= evaluate(images, targets, names, val_metric, mymodel)
+            pq_metric, seg_quality, recall, precision= evaluate(images, targets,val_metric, mymodel)
             mean_pq.append(pq_metric)
             mean_seg.append(seg_quality)
             mean_recall.append(recall)
@@ -167,32 +107,21 @@ def main(args):
     use_DocArtefacts = args.use_DocArtefacts
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
-    global train_dataloader, val_dataloader, val_dataset, train_dataset
-    train_dataset = Train_dataset(root_dir=train_dir)
-    if use_DocArtefacts:
-        train_set = DocArtefacts(train=True, download=True)
-        val_set = DocArtefacts(train=False, download=True)
-        train_dataloader = DataLoader(train_set, batch_size=1, num_workers=14, shuffle=False)
-        val_dataloader = DataLoader(val_set, batch_size=1, num_workers=14, shuffle=False)
-    else:
-        train_dataset=Train_dataset(root_dir=train_dir)
-        val_dataset = Val_dataset(root_dir=val_dir)
-        train_dataloader = DataLoader(train_dataset batch_size=1, num_workers=14, shuffle=False)
-        val_dataloader = DataLoader(val_dataset, batch_size=1, num_workers=14, shuffle=False)
-    train_faster(root_dir=root_dir, label_path=label_path, num_epochs=args.epochs, early_stop=False)
+    train_set = DocArtefacts(train=True, download=True)
+    val_set = DocArtefacts(train=False, download=True)
+    train_dataloader = DataLoader(train_set, batch_size=1, num_workers=14, shuffle=False)
+    val_dataloader = DataLoader(val_set, batch_size=1, num_workers=14, shuffle=False)
+    train_faster(train_dataloader=train_dataloader,val_dataloader=val_dataloader,num_epochs=args.epochs,val_metric=val_metric)
 
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='DocTR training script for object detection (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    parser.add_argument('train_path', type=str, help='path to training data folder')
-    parser.add_argument('val_path', type=str, help='path to validation data folder')
+    # parser.add_argument('train_path', type=str, help='path to training data folder')
+    # parser.add_argument('val_path', type=str, help='path to validation data folder')
     #parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
-    parser.add_argument('--use_DocArtefacts', nargs='?', const=False, type=bool,
-                        help="Optional:If user wants to use DocArtefacts by DocTR")
     # parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
     # parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
