@@ -26,6 +26,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         det_predictor: detection module
         reco_predictor: recognition module
     """
+    _children_names = ['det_predictor', 'reco_predictor']
 
     def __init__(
         self,
