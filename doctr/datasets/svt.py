@@ -81,9 +81,6 @@ class SVT(VisionDataset):
                     ]
             _tmp_labels = [lab.text for image_attributes in image for rect_tag in image_attributes for lab in rect_tag]
 
-            if len(_tmp_labels) != len(_tmp_box_targets):
-                raise ValueError(f"{_tmp_labels} and {_tmp_box_targets} are not same length")
-
             self.data.append((Path(_raw_path), dict(boxes=np.asarray(
                 _tmp_box_targets, dtype=np_dtype), labels=_tmp_labels)))
 
