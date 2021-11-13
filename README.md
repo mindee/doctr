@@ -114,9 +114,9 @@ We try to keep framework-specific dependencies to a minimum. You can install fra
 
 ```shell
 # for TensorFlow
-pip install python-doctr[tf]
+pip install "python-doctr[tf]"
 # for PyTorch
-pip install python-doctr[torch]
+pip install "python-doctr[torch]"
 ```
 
 ### Developer mode
