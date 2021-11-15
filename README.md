@@ -225,10 +225,9 @@ Your API should now be running locally on your port 8002. Access your automatica
 ```python
 
 import requests
-import io
 with open('/path/to/your/doc.jpg', 'rb') as f:
     data = f.read()
-response = requests.post("http://localhost:8002/ocr", files={'file': io.BytesIO(data)}).json()
+response = requests.post("http://localhost:8002/ocr", files={'file': data}).json()
 ```
 
 
