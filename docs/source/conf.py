@@ -45,6 +45,8 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinxemoji.sphinxemoji',  # cf. https://sphinxemojicodes.readthedocs.io/en/stable/
     'sphinx_copybutton',
+    'recommonmark',
+    'sphinx_markdown_tables',
 ]
 
 napoleon_use_ivar = True
@@ -55,7 +57,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store', 'notebooks/*.rst']
 
 
 # The name of the Pygments (syntax highlighting) style to use.
