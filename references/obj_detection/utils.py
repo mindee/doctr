@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from operator import itemgetter
-from typing import List, Dict
+from typing import Dict, List
 
 import numpy as np
 import torch

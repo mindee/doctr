@@ -9,14 +9,14 @@ os.environ['USE_TORCH'] = '1'
 
 import torch
 import torch.optim as optim
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 import torchvision
-from fastprogress.fastprogress import master_bar, progress_bar
-from torchvision.ops import MultiScaleRoIAlign
 import wandb
+from fastprogress.fastprogress import master_bar, progress_bar
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision.ops import MultiScaleRoIAlign
+from utils import val_metric
 
 from doctr.datasets import DocArtefacts
-from utils import val_metric
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
