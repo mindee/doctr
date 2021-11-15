@@ -56,11 +56,6 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
-    # FP16 checks
-    ds = datasets.__dict__[dataset_name](train=train, download=True, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == torch.float16
-
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):
 
@@ -97,13 +92,6 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     _, r_target = rotated_ds[0]
     assert r_target.shape[1] == 5
 
-    # FP16
-    ds = datasets.DetectionDataset(img_folder=mock_image_folder, label_path=mock_detection_label, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == torch.float16
-    # Bounding boxes
-    assert target.dtype == np.float16
-
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     input_size = (32, 128)
@@ -123,14 +111,6 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     images, labels = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
-
-    # FP16
-    ds = datasets.RecognitionDataset(img_folder=mock_image_folder, labels_path=mock_recognition_label, fp16=True)
-    image, label = ds[0]
-    assert image.dtype == torch.float16
-    ds2, ds3 = deepcopy(ds), deepcopy(ds)
-    ds2.merge_dataset(ds3)
-    assert len(ds2) == 2 * len(ds)
 
 
 def test_ocrdataset(mock_ocrdataset):
@@ -160,13 +140,6 @@ def test_ocrdataset(mock_ocrdataset):
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
-
-    # FP16
-    ds = datasets.OCRDataset(*mock_ocrdataset, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == torch.float16
-    # Bounding boxes
-    assert target['boxes'].dtype == np.float16
 
 
 def test_charactergenerator():
