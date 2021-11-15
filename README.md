@@ -2,7 +2,7 @@
   <img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="40%">
 </p>
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.4.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/osanseviero/doctr)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.4.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr)
 
 
 **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
@@ -90,7 +90,7 @@ For examples & further details about the export format, please refer to [this se
 
 ### Prerequisites
 
-Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR. Additionally, you will need to install at least one of [TensorFlow](https://www.tensorflow.org/install/) or [PyTorch](https://pytorch.org/get-started/locally/#start-locally).
+Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR. 
 
 Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
 
@@ -108,14 +108,15 @@ You can then install the latest release of the package using [pypi](https://pypi
 ```shell
 pip install python-doctr
 ```
+> :warning: Please note that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
 
-We try to keep framework-specific dependencies to a minimum. But if you encounter missing ones, you can install framework-specific builds as follows:
+We try to keep framework-specific dependencies to a minimum. You can install framework-specific builds as follows:
 
 ```shell
 # for TensorFlow
-pip install python-doctr[tf]
+pip install "python-doctr[tf]"
 # for PyTorch
-pip install python-doctr[torch]
+pip install "python-doctr[torch]"
 ```
 
 ### Developer mode
@@ -140,13 +141,13 @@ pip install -e doctr/.[torch]
 Credits where it's due: this repository is implementing, among others, architectures from published research papers.
 
 ### Text Detection
-- [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
-- [LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
+- DBNet: [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
+- LinkNet: [LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
 
 ### Text Recognition
-- [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
-- [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
-- [MASTER: Multi-Aspect Non-local Network for Scene Text Recognition](https://arxiv.org/pdf/1910.02562.pdf).
+- CRNN: [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
+- SAR: [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
+- MASTER: [MASTER: Multi-Aspect Non-local Network for Scene Text Recognition](https://arxiv.org/pdf/1910.02562.pdf).
 
 
 ## More goodies
@@ -158,19 +159,26 @@ The full package documentation is available [here](https://mindee.github.io/doct
 
 ### Demo app
 
-A minimal demo app is provided for you to play with the text detection model!
+A minimal demo app is provided for you to play with our end-to-end OCR models!
 
-You will need an extra dependency ([Streamlit](https://streamlit.io/)) for the app to run:
+![Demo app](https://github.com/mindee/doctr/releases/download/v0.3.0/demo_update.png)
+
+#### Live demo
+
+Courtesy of :hugs: [HuggingFace](https://huggingface.co/) :hugs:, docTR has now a fully deployed version available on [Spaces](https://huggingface.co/spaces)!
+Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr)
+
+#### Running it locally
+
+If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required:
 ```shell
 pip install -r demo/requirements.txt
 ```
-You can then easily run your app in your default browser by running:
+Then run your app in your default browser with:
 
 ```shell
 streamlit run demo/app.py
 ```
-
-![Demo app](https://github.com/mindee/doctr/releases/download/v0.3.0/demo_update.png)
 
 ### Docker container
 

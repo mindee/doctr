@@ -24,8 +24,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
           restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
             ${{ runner.os }}-pkg-deps-
@@ -52,8 +53,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
           restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
             ${{ runner.os }}-pkg-deps-
@@ -81,8 +83,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
           restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
             ${{ runner.os }}-pkg-deps-
@@ -91,10 +94,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-          pip install -r test/requirements.txt
+          pip install -e .[testing]
       - name: Run unittests
         run: |
-          coverage run -m pytest test/common/
+          coverage run -m pytest tests/common/
           coverage xml -o coverage-common.xml
       - uses: actions/upload-artifact@v2
         with:
@@ -120,8 +123,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
           restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
             ${{ runner.os }}-pkg-deps-
@@ -130,10 +134,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-          pip install -r test/requirements.txt
+          pip install -e .[testing]
       - name: Run unittests
         run: |
-          coverage run -m pytest test/tensorflow/
+          coverage run -m pytest tests/tensorflow/
           coverage xml -o coverage-tf.xml
       - uses: actions/upload-artifact@v2
         with:
@@ -159,8 +163,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
           restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
             ${{ runner.os }}-pkg-deps-
@@ -169,11 +174,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
-          pip install -r test/requirements.txt
+          pip install -e .[testing]
 
       - name: Run unittests
         run: |
-          coverage run -m pytest test/pytorch/
+          coverage run -m pytest tests/pytorch/
           coverage xml -o coverage-pt.xml
 
       - uses: actions/upload-artifact@v2
@@ -208,8 +213,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('docs/requirements.txt') }}-${{ hashFiles('**/*.py') }}
           restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('docs/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
             ${{ runner.os }}-pkg-deps-
@@ -218,7 +224,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-          pip install -r docs/requirements.txt
+          pip install -e .[docs]
 
       - name: Build documentation
         run: cd docs && bash build.sh

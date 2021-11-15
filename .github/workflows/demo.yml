@@ -46,4 +46,4 @@ jobs:
           streamlit --version
           screen -dm streamlit run demo/app.py
           sleep 10
-          curl http://localhost:8501
+          curl http://localhost:8501/docs

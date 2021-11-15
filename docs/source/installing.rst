@@ -40,9 +40,9 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
 .. code:: bash
 
     # for TensorFlow
-    pip install python-doctr[tf]
+    pip install "python-doctr[tf]"
     # for PyTorch
-    pip install python-doctr[torch]
+    pip install "python-doctr[torch]"
 
 
 Via Git

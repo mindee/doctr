@@ -8,6 +8,7 @@ import os
 os.environ['USE_TORCH'] = '1'
 
 import datetime
+import hashlib
 import logging
 import multiprocessing as mp
 import time
@@ -29,7 +30,11 @@ from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -43,16 +48,29 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         train_loss = model(images, targets)['loss']
 
         optimizer.zero_grad()
-        train_loss.backward()
-        optimizer.step()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+        if amp:
+            with torch.cuda.amp.autocast():
+                train_loss = model(images, targets)['loss']
+            scaler.scale(train_loss).backward()
+            # Gradient clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            train_loss = model(images, targets)['loss']
+            train_loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            optimizer.step()
+
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric):
+def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -64,7 +82,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        out = model(images, targets, return_preds=True)
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images, targets, return_preds=True)
+        else:
+            out = model(images, targets, return_preds=True)
         # Compute metric
         if len(out['preds']):
             words, _ = zip(*out['preds'])
@@ -107,11 +129,13 @@ def main(args):
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{len(val_loader)} batches)")
+    with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = recognition.__dict__[args.model](pretrained=args.pretrained, vocab=VOCABS[args.vocab])
+    model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=VOCABS[args.vocab])
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -175,6 +199,8 @@ def main(args):
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
+    with open(parts[0].joinpath('labels.json'), 'rb') as f:
+        train_hash = hashlib.sha256(f.read()).hexdigest()
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -193,7 +219,7 @@ def main(args):
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
     if args.wb:
@@ -204,12 +230,17 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "text-recognition",
                 "framework": "pytorch",
+                "scheduler": args.sched,
+                "vocab": args.vocab,
+                "train_hash": train_hash,
+                "val_hash": val_hash,
+                "pretrained": args.pretrained,
             }
         )
 
@@ -231,7 +262,6 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log({
-                'epochs': epoch + 1,
                 'val_loss': val_loss,
                 'exact_match': exact_match,
                 'partial_match': partial_match,
@@ -250,7 +280,7 @@ def parse_args():
 
     parser.add_argument('train_path', type=str, help='path to train data folder(s)')
     parser.add_argument('val_path', type=str, help='path to val data folder')
-    parser.add_argument('model', type=str, help='text-recognition model to train')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
@@ -269,6 +299,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args
