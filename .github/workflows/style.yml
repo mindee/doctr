@@ -42,7 +42,7 @@ jobs:
       - name: Run isort
         run: |
           pip install isort
-          isort **/*.py -c -v
+          isort **/*.py --check-only --diff --skip "**/__init_.py" --filter-files
 
   mypy-py3:
     runs-on: ${{ matrix.os }}

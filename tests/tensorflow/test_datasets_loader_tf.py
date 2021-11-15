@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 import tensorflow as tf
 
 from doctr.datasets import DataLoader

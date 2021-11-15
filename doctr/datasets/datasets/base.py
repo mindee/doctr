@@ -4,9 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
-from zipfile import ZipFile
 
 from doctr.utils.data import download_from_url
 
@@ -100,7 +100,6 @@ class _VisionDataset(_AbstractDataset):
             archive_path = Path(archive_path)
             dataset_path = archive_path.parent.joinpath(archive_path.stem)
             if not dataset_path.is_dir() or overwrite:
-                with ZipFile(archive_path, 'r') as f:
-                    f.extractall(path=dataset_path)
+                shutil.unpack_archive(archive_path, dataset_path)
 
         super().__init__(dataset_path if extract_archive else archive_path, fp16)

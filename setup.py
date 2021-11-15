@@ -42,7 +42,7 @@ _deps = [
     "importlib_metadata",
     "numpy>=1.16.0",
     "scipy>=1.4.0",
-    "opencv-python>=4.2",
+    "opencv-python>=3.4.5.20",
     "tensorflow>=2.4.0",
     "PyMuPDF>=1.16.0,<1.18.11",
     "pyclipper>=1.2.0",
@@ -59,6 +59,23 @@ _deps = [
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
     "keras<2.7.0",
+    # Testing
+    "pytest>=5.3.2",
+    "coverage>=4.5.4",
+    "requests>=2.20.0",
+    "requirements-parser==0.2.0",
+    # Quality
+    "flake8>=3.9.0",
+    "isort>=5.7.0",
+    "mypy>=0.812",
+    # Docs
+    "sphinx<3.5.0",
+    "sphinx-rtd-theme==0.4.3",
+    "sphinxemoji>=0.1.8",
+    "sphinx-copybutton>=0.3.1",
+    "docutils<0.18",
+    "recommonmark>=0.7.1",
+    "sphinx-markdown-tables>=0.0.15",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -86,12 +103,58 @@ install_requires = [
 ]
 
 extras = {}
-extras["tf"] = deps_list("tensorflow", "tensorflow-addons", "keras")
-extras["tf-cpu"] = deps_list("tensorflow-cpu", "tensorflow-addons", "keras")
-extras["torch"] = deps_list("torch", "torchvision")
+extras["tf"] = deps_list(
+    "tensorflow",
+    "tensorflow-addons",
+    "keras",
+)
+
+extras["tf-cpu"] = deps_list(
+    "tensorflow-cpu",
+    "tensorflow-addons",
+    "keras",
+)
+
+extras["torch"] = deps_list(
+    "torch",
+    "torchvision",
+)
+
 extras["all"] = (
     extras["tf"]
     + extras["torch"]
+)
+
+extras["testing"] = deps_list(
+    "pytest",
+    "coverage",
+    "requests",
+    "requirements-parser",
+)
+
+extras["quality"] = deps_list(
+    "flake8",
+    "isort",
+    "mypy"
+)
+
+extras["docs_specific"] = deps_list(
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinxemoji",
+    "sphinx-copybutton",
+    "docutils",
+    "recommonmark",
+    "sphinx-markdown-tables",
+)
+
+extras["docs"] = extras["all"] + extras["docs_specific"]
+
+extras["dev"] = (
+    extras["all"]
+    + extras["testing"]
+    + extras["quality"]
+    + extras["docs_specific"]
 )
 
 setup(
@@ -123,7 +186,7 @@ setup(
     keywords=['OCR', 'deep learning', 'computer vision', 'tensorflow', 'pytorch', 'text detection', 'text recognition'],
 
     # Package info
-    packages=find_packages(exclude=('test',)),
+    packages=find_packages(exclude=('tests',)),
     zip_safe=True,
     python_requires='>=3.6.0',
     include_package_data=True,

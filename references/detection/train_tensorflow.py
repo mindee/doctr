@@ -9,6 +9,7 @@ os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
+import hashlib
 import time
 from collections import deque
 from pathlib import Path
@@ -95,13 +96,15 @@ def main(args):
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
+    with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     batch_transforms = T.Compose([
         T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
     ])
 
     # Load doctr model
-    model = detection.__dict__[args.model](
+    model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3)
     )
@@ -142,10 +145,12 @@ def main(args):
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
+    with open(os.path.join(args.train_path, 'labels.json'), 'rb') as f:
+        train_hash = hashlib.sha256(f.read()).hexdigest()
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target, rotation=args.rotation)
+        plot_samples(x, target)
         return
 
     # Optimizer
@@ -165,7 +170,7 @@ def main(args):
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # Tensorboard
     tb_writer = None
@@ -183,12 +188,17 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "text-detection",
                 "framework": "tensorflow",
+                "scheduler": args.sched,
+                "train_hash": train_hash,
+                "val_hash": val_hash,
+                "pretrained": args.pretrained,
+                "rotation": args.rotation,
             }
         )
 
@@ -225,7 +235,6 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log({
-                'epochs': epoch + 1,
                 'val_loss': val_loss,
                 'recall': recall,
                 'precision': precision,
@@ -245,7 +254,7 @@ def parse_args():
 
     parser.add_argument('train_path', type=str, help='path to training data folder')
     parser.add_argument('val_path', type=str, help='path to validation data folder')
-    parser.add_argument('model', type=str, help='text-detection model to train')
+    parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')

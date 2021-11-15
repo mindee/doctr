@@ -2,21 +2,11 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-import torch
-from torch.utils.data import DataLoader, RandomSampler
+import tensorflow as tf
 
 from doctr import datasets
+from doctr.datasets import DataLoader
 from doctr.transforms import Resize
-
-
-def test_visiondataset():
-    url = 'https://data.deepai.org/mnist.zip'
-    with pytest.raises(ValueError):
-        datasets.datasets.VisionDataset(url, download=False)
-
-    dataset = datasets.datasets.VisionDataset(url, download=True, extract_archive=True)
-    assert len(dataset) == 0
-    assert repr(dataset) == 'VisionDataset()'
 
 
 @pytest.mark.parametrize(
@@ -28,37 +18,37 @@ def test_visiondataset():
         ['SROIE', False, [512, 512], 360, False],
         ['CORD', True, [512, 512], 800, True],
         ['CORD', False, [512, 512], 100, False],
-        ['DocArtefacts', None, [512, 512], 3000, False],
-        ['DocArtefacts', None, [512, 512], 3000, True],
+        ['DocArtefacts', True, [512, 512], 2700, False],
+        ['DocArtefacts', False, [512, 512], 300, True],
+        ['IIIT5K', True, [32, 128], 2000, True],
+        ['IIIT5K', False, [32, 128], 3000, False],
+        ['SVT', True, [512, 512], 100, True],
+        ['SVT', False, [512, 512], 249, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
 
-    kwargs = {} if train is None else {"train": train}
     ds = datasets.__dict__[dataset_name](
-        download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate, **kwargs,
+        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
 
     assert len(ds) == size
     assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
     img, target = ds[0]
-    assert isinstance(img, torch.Tensor)
-    assert img.shape == (3, *input_size)
-    assert img.dtype == torch.float32
+    assert isinstance(img, tf.Tensor)
+    assert img.shape == (*input_size, 3)
+    assert img.dtype == tf.float32
     assert isinstance(target, dict)
 
-    loader = DataLoader(
-        ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
-        collate_fn=ds.collate_fn)
-
+    loader = datasets.DataLoader(ds, batch_size=2)
     images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
-    # FP16 checks
-    ds = datasets.__dict__[dataset_name](download=True, fp16=True, **kwargs)
+    # FP16
+    ds = datasets.__dict__[dataset_name](train=train, download=True, fp16=True)
     img, target = ds[0]
-    assert img.dtype == torch.float16
+    assert img.dtype == tf.float16
 
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):
@@ -73,17 +63,17 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     assert len(ds) == 5
     img, target = ds[0]
-    assert isinstance(img, torch.Tensor)
-    assert img.dtype == torch.float32
-    assert img.shape[-2:] == input_size
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
     # Bounding boxes
     assert isinstance(target, np.ndarray) and target.dtype == np.float32
     assert np.all(np.logical_and(target[:, :4] >= 0, target[:, :4] <= 1))
     assert target.shape[1] == 4
 
-    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    loader = DataLoader(ds, batch_size=2)
     images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
 
     # Rotated DS
@@ -99,8 +89,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     # FP16
     ds = datasets.DetectionDataset(img_folder=mock_image_folder, label_path=mock_detection_label, fp16=True)
     img, target = ds[0]
-    assert img.dtype == torch.float16
-    # Bounding boxes
+    assert img.dtype == tf.float16
     assert target.dtype == np.float16
 
 
@@ -113,20 +102,20 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     )
     assert len(ds) == 5
     image, label = ds[0]
-    assert isinstance(image, torch.Tensor)
-    assert image.shape[-2:] == input_size
-    assert image.dtype == torch.float32
+    assert isinstance(image, tf.Tensor)
+    assert image.shape[:2] == input_size
+    assert image.dtype == tf.float32
     assert isinstance(label, str)
 
-    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    loader = DataLoader(ds, batch_size=2)
     images, labels = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
 
     # FP16
     ds = datasets.RecognitionDataset(img_folder=mock_image_folder, labels_path=mock_recognition_label, fp16=True)
-    image, label = ds[0]
-    assert image.dtype == torch.float16
+    image, _ = ds[0]
+    assert image.dtype == tf.float16
     ds2, ds3 = deepcopy(ds), deepcopy(ds)
     ds2.merge_dataset(ds3)
     assert len(ds2) == 2 * len(ds)
@@ -140,12 +129,11 @@ def test_ocrdataset(mock_ocrdataset):
         *mock_ocrdataset,
         sample_transforms=Resize(input_size),
     )
-
     assert len(ds) == 3
     img, target = ds[0]
-    assert isinstance(img, torch.Tensor)
-    assert img.shape[-2:] == input_size
-    assert img.dtype == torch.float32
+    assert isinstance(img, tf.Tensor)
+    assert img.dtype == tf.float32
+    assert img.shape[:2] == input_size
     # Bounding boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
@@ -155,16 +143,15 @@ def test_ocrdataset(mock_ocrdataset):
     # Cardinality consistency
     assert target['boxes'].shape[0] == len(target['labels'])
 
-    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    loader = DataLoader(ds, batch_size=2)
     images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
     # FP16
     ds = datasets.OCRDataset(*mock_ocrdataset, fp16=True)
     img, target = ds[0]
-    assert img.dtype == torch.float16
-    # Bounding boxes
+    assert img.dtype == tf.float16
     assert target['boxes'].dtype == np.float16
 
 
@@ -182,13 +169,13 @@ def test_charactergenerator():
 
     assert len(ds) == 10
     image, label = ds[0]
-    assert isinstance(image, torch.Tensor)
-    assert image.shape[-2:] == input_size
-    assert image.dtype == torch.float32
+    assert isinstance(image, tf.Tensor)
+    assert image.shape[:2] == input_size
+    assert image.dtype == tf.float32
     assert isinstance(label, int) and label < len(vocab)
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
-    assert targets.dtype == torch.int64
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, tf.Tensor) and targets.shape == (2,)
+    assert targets.dtype == tf.int32
