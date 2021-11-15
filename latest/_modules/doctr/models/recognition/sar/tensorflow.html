@@ -374,7 +374,7 @@
         <span class="c1"># run first step of lstm</span>
         <span class="c1"># holistic: shape (N, rnn_units)</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstm_decoder</span><span class="p">(</span><span class="n">holistic</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c1"># Initialize with the index of virtual START symbol (placed after &lt;eos&gt;)</span>
+        <span class="c1"># Initialize with the index of virtual START symbol (placed after &lt;eos&gt; so that the one-hot is only zeros)</span>
         <span class="n">symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">logits_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">gt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
