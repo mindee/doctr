@@ -24,7 +24,7 @@ class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[tf.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=tf.float16 if self.fp16 else tf.float32)
+        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=tf.float32)
 
         return img, target
 
