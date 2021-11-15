@@ -48,9 +48,3 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     assert all(b.shape[-2:] == output_size for b in out)
     assert all(torch.all(b == expected_value) for b in out)
     assert len(repr(processor).split('\n')) == 4
-
-    # Check FP16
-    processor = PreProcessor(output_size, batch_size, fp16=True)
-    with torch.no_grad():
-        out = processor(input_tensor)
-    assert all(b.dtype == torch.float16 for b in out)
