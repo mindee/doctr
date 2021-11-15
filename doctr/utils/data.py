@@ -37,14 +37,10 @@ def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -
 
 
 def _check_integrity(file_path: Union[str, Path], hash_prefix: str) -> bool:
-    try:
-        with open(file_path, 'rb') as f:
-            sha_hash = hashlib.sha256(f.read()).hexdigest()
+    with open(file_path, 'rb') as f:
+        sha_hash = hashlib.sha256(f.read()).hexdigest()
 
-        return sha_hash[:len(hash_prefix)] == hash_prefix
-    # FIX: for big datasets
-    except MemoryError:
-        return True
+    return sha_hash[:len(hash_prefix)] == hash_prefix
 
 
 def download_from_url(
