@@ -31,6 +31,7 @@ Main Features
    :hidden:
 
    installing
+   notebooks
 
 
 Model zoo
