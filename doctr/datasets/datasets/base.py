@@ -4,9 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
-import shutil
 
 from doctr.utils.data import download_from_url
 
