@@ -20,7 +20,6 @@ Here are all datasets that are available through docTR:
 .. autoclass:: CharacterGenerator
 .. autoclass:: DocArtefacts
 .. autoclass:: IIIT5K
-.. autoclass:: SynthText
 
 
 Data Loading
