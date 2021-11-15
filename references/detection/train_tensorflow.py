@@ -11,8 +11,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import datetime
 import hashlib
 import time
-from collections import deque
-from pathlib import Path
 
 import numpy as np
 import tensorflow as tf

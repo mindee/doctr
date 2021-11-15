@@ -11,7 +11,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import datetime
 import hashlib
 import time
-from collections import deque
 from pathlib import Path
 
 import numpy as np
@@ -98,9 +97,6 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
-
-    # Tf variable to log steps
-    step = tf.Variable(0, dtype="int64")
 
     # Metrics
     val_metric = TextMatch()
