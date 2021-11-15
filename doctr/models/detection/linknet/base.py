@@ -111,8 +111,8 @@ class _LinkNet(BaseModel):
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t.dtype not in (np.float32, np.float16) for t in target):
-            raise AssertionError("the expected dtype of target 'boxes' entry is either 'np.float32' or 'np.float16'.")
+        if any(t.dtype != np.float32 for t in target):
+            raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
