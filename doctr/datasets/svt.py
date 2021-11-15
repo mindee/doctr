@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import defusedxml.ElementTree as ET
@@ -45,7 +44,7 @@ class SVT(VisionDataset):
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
-        self.data: List[Tuple[Path, Dict[str, Any]]] = []
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float16 if self.fp16 else np.float32
 
         # Load xml data
@@ -55,34 +54,36 @@ class SVT(VisionDataset):
         xml_root = xml_tree.getroot()
 
         for image in xml_root:
-            for image_attributes in image:
-                if image_attributes.tag == 'imageName':
-                    _raw_path = image_attributes.text
+            name, _, _, resolution, rectangles = image
 
-                    # File existence check
-                    if not os.path.exists(os.path.join(tmp_root, _raw_path)):
-                        raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
+            # File existence check
+            if not os.path.exists(os.path.join(tmp_root, name.text)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, name.text)}")
 
-                if rotated_bbox:
-                    # x_center, y_center, w, h, 0
-                    _tmp_box_targets = [
-                        (int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']) / 2,
-                         int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']) / 2,
-                         int(rect_tag.attrib['width']), int(rect_tag.attrib['height']), 0)
-                        for rect_tag in image_attributes
-                    ]
-                else:
-                    # xmin, ymin, xmax, ymax
-                    _tmp_box_targets = [
-                        (int(rect_tag.attrib['x']), int(rect_tag.attrib['y']),  # type: ignore[misc]
-                         int(rect_tag.attrib['x']) + int(rect_tag.attrib['width']),
-                         int(rect_tag.attrib['y']) + int(rect_tag.attrib['height']))
-                        for rect_tag in image_attributes
-                    ]
-            _tmp_labels = [lab.text for image_attributes in image for rect_tag in image_attributes for lab in rect_tag]
+            if rotated_bbox:
+                _boxes = [
+                    [float(rect.attrib['x']) + float(rect.attrib['width']) / 2,
+                     float(rect.attrib['y']) + float(rect.attrib['height']) / 2,
+                     float(rect.attrib['width']), float(rect.attrib['height'])]
+                    for rect in rectangles
+                ]
+            else:
+                _boxes = [
+                    [float(rect.attrib['x']), float(rect.attrib['y']),
+                     float(rect.attrib['x']) + float(rect.attrib['width']),
+                     float(rect.attrib['y']) + float(rect.attrib['height'])]
+                    for rect in rectangles
+                ]
+            # Convert them to relative
+            w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
+            boxes = np.asarray(_boxes, dtype=np_dtype)
+            boxes[:, [0, 2]] /= w
+            boxes[:, [1, 3]] /= h
 
-            self.data.append((Path(_raw_path), dict(boxes=np.asarray(
-                _tmp_box_targets, dtype=np_dtype), labels=_tmp_labels)))
+            # Get the labels
+            labels = [lab.text for rect in rectangles for lab in rect]
+
+            self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 
