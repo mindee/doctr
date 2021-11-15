@@ -232,6 +232,7 @@ def main(args):
                 tf.summary.scalar('recall', recall, step=step)
                 tf.summary.scalar('precision', precision, step=step)
                 tf.summary.scalar('mean_iou', mean_iou, step=step)
+        mb.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
