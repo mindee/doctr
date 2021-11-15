@@ -18,7 +18,7 @@ class RecognitionDataset(AbstractDataset):
 
     Example::
         >>> from doctr.datasets import RecognitionDataset
-        >>> train_set = RecognitionDataset(img_folder=True, labels_path="/path/to/labels.json")
+        >>> train_set = RecognitionDataset(img_folder="/path/to/images", labels_path="/path/to/labels.json")
         >>> img, target = train_set[0]
 
     Args:
@@ -26,6 +26,7 @@ class RecognitionDataset(AbstractDataset):
         labels_path: pathe to the json file containing all labels (character sequences)
         sample_transforms: composable transformations that will be applied to each image
     """
+
     def __init__(
         self,
         img_folder: str,

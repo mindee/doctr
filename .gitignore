@@ -132,3 +132,8 @@ dmypy.json
 doctr/version.py
 logs/
 wandb/
+
+# Checkpoints
+*.pt
+*.pb
+*.index
