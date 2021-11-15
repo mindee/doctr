@@ -132,7 +132,7 @@ class SARDecoder(layers.Layer, NestedObject):
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
-        # Initialize with the index of virtual START symbol (placed after <eos>)
+        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
         symbol = tf.fill(features.shape[0], self.vocab_size + 1)
         logits_list = []
         if kwargs.get('training') and gt is None:
