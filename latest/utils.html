@@ -421,7 +421,7 @@ g_X(y) = \left\{
 <dl class="py class">
 <dt id="doctr.utils.metrics.OCRMetric">
 <em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements end-to-end OCR metric.</p>
+<dd><p>Implements an end-to-end OCR metric.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,
@@ -470,7 +470,66 @@ h_{B,L}(b, l) = \left\{
 <dd><p>Computes the aggregated metrics</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a tuple with the recall &amp; precision for each string comparison flexibility and the mean IoU</p>
+<dd class="field-odd"><p>a tuple with the recall &amp; precision for each string comparison and the mean IoU</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.utils.metrics.DetectionMetric">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">DetectionMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements an object detection metric.</p>
+<p>The aggregated metrics are computed as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
+\forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\
+Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)\end{split}\]</div>
+<p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
+<span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(h_{B, C}\)</span> defined as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\forall (b, c) \in \mathcal{B} \times \mathcal{C},
+h_{B,C}(b, c) = \left\{
+    \begin{array}{ll}
+        1 &amp; \mbox{if } b\mbox{ has been assigned to a given }B_j\mbox{ with an } \\
+        &amp; IoU \geq 0.5 \mbox{ and that for this assignment, } c = C_j\\
+        0 &amp; \mbox{otherwise.}
+    \end{array}
+\right.\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathcal{B}\)</span> is the set of possible bounding boxes,
+<span class="math notranslate nohighlight">\(\mathcal{C}\)</span> is the set of possible class indices,
+<span class="math notranslate nohighlight">\(N\)</span> (number of ground truths) and <span class="math notranslate nohighlight">\(M\)</span> (number of predictions) are strictly positive integers.</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.utils</span> <span class="kn">import</span> <span class="n">DetectionMetric</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">DetectionMetric</span><span class="p">(</span><span class="n">iou_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">]]),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">70</span><span class="p">],</span> <span class="p">[</span><span class="mi">110</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">150</span><span class="p">]]),</span>
+<span class="go">np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="doctr.utils.metrics.DetectionMetric.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">gt_labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="doctr.utils.metrics.DetectionMetric.summary">
+<code class="sig-name descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>Optional<span class="p">[</span>float<span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the aggregated metrics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple with the recall &amp; precision for each class prediction and the mean IoU</p>
 </dd>
 </dl>
 </dd></dl>

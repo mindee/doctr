@@ -204,7 +204,7 @@
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">rbbox_to_polygon</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;box_ioa&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;rbox_to_mask&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">]</span>
+           <span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">,</span> <span class="s1">&#39;DetectionMetric&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
@@ -555,7 +555,7 @@
 
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements an end-to-end OCR metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
@@ -647,7 +647,7 @@
         <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            a tuple with the recall &amp; precision for each string comparison flexibility and the mean IoU</span>
+<span class="sd">            a tuple with the recall &amp; precision for each string comparison and the mean IoU</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Recall</span>
@@ -679,6 +679,115 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="DetectionMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric">[docs]</a><span class="k">class</span> <span class="nc">DetectionMetric</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements an object detection metric.</span>
+
+<span class="sd">    The aggregated metrics are computed as follows:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,</span>
+<span class="sd">        \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\</span>
+<span class="sd">        Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
+<span class="sd">        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
+<span class="sd">        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)</span>
+
+<span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
+<span class="sd">    :math:`y`, and the function :math:`h_{B, C}` defined as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \forall (b, c) \in \mathcal{B} \times \mathcal{C},</span>
+<span class="sd">        h_{B,C}(b, c) = \left\{</span>
+<span class="sd">            \begin{array}{ll}</span>
+<span class="sd">                1 &amp; \mbox{if } b\mbox{ has been assigned to a given }B_j\mbox{ with an } \\</span>
+<span class="sd">                &amp; IoU \geq 0.5 \mbox{ and that for this assignment, } c = C_j\\</span>
+<span class="sd">                0 &amp; \mbox{otherwise.}</span>
+<span class="sd">            \end{array}</span>
+<span class="sd">        \right.</span>
+
+<span class="sd">    where :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    :math:`\mathcal{C}` is the set of possible class indices,</span>
+<span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.utils import DetectionMetric</span>
+<span class="sd">        &gt;&gt;&gt; metric = DetectionMetric(iou_thresh=0.5)</span>
+<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">        np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
+<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span> <span class="o">=</span> <span class="n">mask_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DetectionMetric.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gt_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gt_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
+                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute IoU</span>
+        <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span><span class="p">:</span>
+                <span class="n">mask_gts</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
+                <span class="n">mask_preds</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">pred_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">mask_gts</span><span class="p">,</span> <span class="n">mask_preds</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+            <span class="c1"># Assign pairs</span>
+            <span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
+            <span class="n">is_kept</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span>
+            <span class="c1"># Category comparison</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">((</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]]</span> <span class="o">==</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]])</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DetectionMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a tuple with the recall &amp; precision for each class prediction and the mean IoU</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Recall</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Precision</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># mean IoU (overall detected boxes)</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
 </pre></div>
 
            </div>
