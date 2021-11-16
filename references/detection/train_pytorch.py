@@ -258,6 +258,7 @@ def main(args):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
+        mb.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
