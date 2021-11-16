@@ -31,12 +31,6 @@ def test_polygon_to_rbbox():
     assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
 
 
-def test_bbox_to_rbbox():
-    pred = geometry.bbox_to_rbbox((0, 0, 0.6, 0.4))
-    target = (0.3, 0.2, 0.6, 0.4, 0)
-    assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
-
-
 def test_resolve_enclosing_rbbox():
     pred = geometry.resolve_enclosing_rbbox([(.2, .2, .05, .05, 0), (.2, .2, .2, .2, 0)])[:4]
     target = (.2, .2, .2, .2)
@@ -121,7 +115,7 @@ def test_rotate_image():
     assert rotated[0, :, 0].sum() <= 1
 
     # Expand
-    rotated = geometry.rotate_image(img, 30., expand=True, preserve_aspect_ratio=True)
+    rotated = geometry.rotate_image(img, 30., expand=True, preserve_origin_shape=True)
     assert rotated.shape[:-1] == (32, 64)
     assert rotated[0, :, 0].sum() <= 1
 

@@ -146,8 +146,9 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
 
 
 def remap_boxes(boxes: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tuple[int, int]) -> np.ndarray:
-    """ Remaps a batch of RotatedBbox (x, y, w, h, alpha) expressed for an origin_shape to a destination_shape,
-    This does not impact the absolute shape of the boxes
+    """ Remaps a batch of RotatedBbox (x, y, w, h, alpha) expressed for an origin_shape to a destination_shape.
+    This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
+    coordinates after a resizing of the image.
 
     Args:
         boxes: (N, 5) array of RELATIVE RotatedBbox (x, y, w, h, alpha)
@@ -227,7 +228,7 @@ def rotate_image(
     image: np.ndarray,
     angle: float,
     expand: bool = False,
-    preserve_aspect_ratio: bool = False
+    preserve_origin_shape: bool = False,
 ) -> np.ndarray:
     """Rotate an image counterclockwise by an given angle.
 
@@ -235,7 +236,7 @@ def rotate_image(
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
-        preserve_aspect_ratio: whether the image should be resized to the original image size after the rotation
+        preserve_origin_shape: whether the image should be resized to the original image size after the rotation
 
     Returns:
         Rotated array, padded by 0 by default.
@@ -252,7 +253,7 @@ def rotate_image(
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
     rot_img = cv2.warpAffine(exp_img.astype(np.float32), rot_mat, (width, height))
-    if preserve_aspect_ratio:
+    if preserve_origin_shape:
         # Pad to get the same aspect ratio
         if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
             # Pad width
