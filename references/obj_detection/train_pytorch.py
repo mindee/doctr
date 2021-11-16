@@ -39,7 +39,7 @@ def convert_to_abs_coords(targets, img_shape):
     return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb,):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -54,7 +54,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb,):
         loss = sum(v for v in loss_dict.values())
         loss.backward()
         optimizer.step()
-        mb.child.comment = f'Train_loss: {loss.item()}'
+        mb.child.comment = f'Training loss: {loss.item()}'
     scheduler.step()
 
 
@@ -116,7 +116,7 @@ def main(args):
     elif torch.cuda.is_available():
         args.device = 0
     else:
-        logging.warning("No accessible GPU, targe device set to CPU.")
+        logging.warning("No accessible GPU, target device set to CPU.")
     if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
@@ -126,10 +126,12 @@ def main(args):
     train_set = DocArtefacts(train=True, download=True)
     val_set = DocArtefacts(train=False, download=True)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.workers,
-                              sampler=RandomSampler(train_set), pin_memory=True, collate_fn=train_set.collate_fn,
+                              sampler=RandomSampler(train_set), pin_memory=torch.cuda.is_available(),
+                              collate_fn=train_set.collate_fn,
                               drop_last=True)
     val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=args.workers,
-                            sampler=SequentialSampler(val_set), pin_memory=True, collate_fn=val_set.collate_fn,
+                            sampler=SequentialSampler(val_set), pin_memory=torch.cuda.is_available(),
+                            collate_fn=val_set.collate_fn,
                             drop_last=False)
 
     metric = DetectionMetric(iou_thresh=0.5)
@@ -163,12 +165,12 @@ def main(args):
         )
 
     mb = master_bar(range(args.epochs))
-    max_score = 0
+    max_score = 0.
 
     for epoch in mb:
         fit_one_epoch(model, train_loader, optimizer, scheduler, mb)
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
-        f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+        f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 
         mb.write(
             f"Epoch {epoch + 1}/{args.epochs} - "
