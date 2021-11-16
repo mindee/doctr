@@ -26,7 +26,6 @@ class PreProcessor(nn.Module):
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
-        fp16: whether returned batches should be in FP16
     """
 
     def __init__(
@@ -43,7 +42,6 @@ class PreProcessor(nn.Module):
         self.resize: T.Resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = T.Normalize(mean, std)
-        self.fp16 = fp16
 
     def batch_inputs(
         self,
@@ -70,7 +68,7 @@ class PreProcessor(nn.Module):
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
-            if x.dtype not in (np.uint8, np.float16, np.float32):
+            if x.dtype not in (np.uint8, np.float32):
                 raise TypeError("unsupported data type for numpy.ndarray")
             x = torch.from_numpy(x.copy()).permute(2, 0, 1)
         elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
@@ -80,7 +78,7 @@ class PreProcessor(nn.Module):
         # Data type
         if x.dtype == torch.uint8:
             x = x.to(dtype=torch.float32).div(255).clip(0, 1)
-        x = x.to(dtype=torch.float16 if self.fp16 else torch.float32)
+        x = x.to(dtype=torch.float32)
 
         return x
 
@@ -101,7 +99,7 @@ class PreProcessor(nn.Module):
             if x.ndim != 4:
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
-                if x.dtype not in (np.uint8, np.float16, np.float32):
+                if x.dtype not in (np.uint8, np.float32):
                     raise TypeError("unsupported data type for numpy.ndarray")
                 x = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)
             elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
@@ -112,7 +110,7 @@ class PreProcessor(nn.Module):
             # Data type
             if x.dtype == torch.uint8:
                 x = x.to(dtype=torch.float32).div(255).clip(0, 1)
-            x = x.to(dtype=torch.float16 if self.fp16 else torch.float32)
+            x = x.to(dtype=torch.float32)
             batches = [x]
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):

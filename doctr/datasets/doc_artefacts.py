@@ -56,7 +56,7 @@ class DocArtefacts(VisionDataset):
         img_list = os.listdir(tmp_root)
         if len(labels) != len(img_list):
             raise AssertionError('the number of images and labels do not match')
-        np_dtype = np.float16 if self.fp16 else np.float32
+        np_dtype = np.float32
         for img_name, label in labels.items():
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_name)):
@@ -70,7 +70,7 @@ class DocArtefacts(VisionDataset):
                     boxes[:, [1, 3]].mean(axis=1),
                     boxes[:, 2] - boxes[:, 0],
                     boxes[:, 3] - boxes[:, 1],
-                    np.zeros(boxes.shape[0], dtype=np.dtype),
+                    np.zeros(boxes.shape[0], dtype=np_dtype),
                 ), axis=1)
             self.data.append((img_name, dict(boxes=boxes, labels=classes)))
         self.root = tmp_root
