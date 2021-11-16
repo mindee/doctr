@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -51,15 +50,16 @@ class SynthText(VisionDataset):
         # Load mat data
         tmp_root = os.path.join(self.root, 'SynthText')
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
+        split = int(len(mat_data['imnames'][0]) * 0.9)
+        paths = mat_data['imnames'][0][:split] if self.train else mat_data['imnames'][0][split:]
+        boxes = mat_data['wordBB'][0][:split] if self.train else mat_data['wordBB'][0][split:]
+        labels = mat_data['txt'][0][:split] if self.train else mat_data['txt'][0][split:]
 
-        self.data: List[Tuple[Path, Dict[str, Any]]] = []
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float16 if self.fp16 else np.float32
 
-        for img_path, word_boxes, txt in tqdm(iterable=zip(
-                mat_data['imnames'][0],
-                mat_data['wordBB'][0],
-                mat_data['txt'][0]
-        ), desc='Load SynthText', total=len(mat_data['imnames'][0])):
+        for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
+                                              desc='Load SynthText', total=len(paths)):
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
@@ -79,10 +79,6 @@ class SynthText(VisionDataset):
 
             self.data.append((img_path[0], dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
 
-        if self.train:
-            self.data = self.data[:int(len(self.data) * 0.9)]
-        else:
-            self.data = self.data[int(len(self.data) * 0.9):]
         self.root = tmp_root
 
     def extra_repr(self) -> str:
