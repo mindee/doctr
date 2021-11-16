@@ -123,7 +123,7 @@ def main(args):
         drop_last=False,
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{len(val_loader)} batches)")
@@ -183,7 +183,7 @@ def main(args):
         drop_last=True,
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
