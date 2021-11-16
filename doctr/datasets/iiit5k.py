@@ -55,7 +55,7 @@ class IIIT5K(VisionDataset):
         mat_data = sio.loadmat(os.path.join(tmp_root, f'{mat_file}.mat'))[mat_file][0]
 
         self.data: List[Tuple[Path, Dict[str, Any]]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
+        np_dtype = np.float32
 
         for img_path, label, box_targets in mat_data:
             _raw_path = img_path[0]
