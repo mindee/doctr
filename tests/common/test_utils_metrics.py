@@ -180,6 +180,62 @@ def test_ocr_metric(
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.tot_iou == 0
     assert metric.raw_matches == metric.caseless_matches == metric.unidecode_matches == metric.unicase_matches == 0
+    # Shape check
+    with pytest.raises(AssertionError):
+        metric.update(
+            np.asarray(_gboxes),
+            np.zeros((0, 4)),
+            _gwords,
+            ["I", "have", "a", "bad", "feeling", "about", "this"],
+        )
+
+
+@pytest.mark.parametrize(
+    "gt_boxes, gt_classes, pred_boxes, pred_classes, iou_thresh, recall, precision, mean_iou",
+    [
+        [  # Perfect match
+            [[[0, 0, .5, .5]]], [[0]],
+            [[[0, 0, .5, .5]]], [[0]],
+            0.5, 1, 1, 1,
+        ],
+        [  # Bad match
+            [[[0, 0, .5, .5]]], [[0]],
+            [[[0, 0, .5, .5]]], [[1]],
+            0.5, 0, 0, 1,
+        ],
+        [  # No preds on 2nd sample
+            [[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [[0], [1]],
+            [[[0, 0, .5, .5]], None], [[0], []],
+            0.5, .5, 1, 1,
+        ],
+    ],
+)
+def test_detection_metric(
+    gt_boxes, gt_classes, pred_boxes, pred_classes, iou_thresh, recall, precision, mean_iou
+):
+    metric = metrics.DetectionMetric(iou_thresh)
+    for _gboxes, _gclasses, _pboxes, _pclasses in zip(gt_boxes, gt_classes, pred_boxes, pred_classes):
+        metric.update(
+            np.asarray(_gboxes),
+            np.zeros((0, 4)) if _pboxes is None else np.asarray(_pboxes),
+            np.array(_gclasses, dtype=np.int64),
+            np.array(_pclasses, dtype=np.int64),
+        )
+    _recall, _precision, _mean_iou = metric.summary()
+    assert _recall == recall
+    assert _precision == precision
+    assert _mean_iou == mean_iou
+    metric.reset()
+    assert metric.num_gts == metric.num_preds == metric.tot_iou == 0
+    assert metric.num_matches == 0
+    # Shape check
+    with pytest.raises(AssertionError):
+        metric.update(
+            np.asarray(_gboxes),
+            np.zeros((0, 4)),
+            np.array(_gclasses, dtype=np.int64),
+            np.array([1, 2], dtype=np.int64)
+        )
 
 
 def test_nms():
