@@ -37,9 +37,8 @@ class DetectionDataset(AbstractDataset):
         label_path: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
-        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder, **kwargs)
+        super().__init__(img_folder)
         self.sample_transforms = sample_transforms
 
         # File existence check
