@@ -7,6 +7,10 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
+import datetime
+import logging
+
+import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
@@ -14,41 +18,39 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.ops import MultiScaleRoIAlign
-from utils import val_metric
 
 from doctr.datasets import DocArtefacts
+from doctr.utils import DetectionMetric
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def absolute(images, targets):
-    height, width = images.shape[2], images.shape[3]
+def convert_to_abs_coords(targets, img_shape):
+    height, width = img_shape[-2:]
 
-    for idx in range(images.shape[0]):
+    for idx in range(len(targets)):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
 
     targets = [{
-        "boxes": torch.from_numpy(t['boxes']).to(device, dtype=torch.float32),
-        "labels": torch.tensor(t['labels']).to(device, dtype=torch.long)}
+        "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
+        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
         for t in targets
     ]
-
 
     return targets
 
 
-def fit_one_epoch(model_, train_loader, optimizer, scheduler, mb, ):
-    model_.train()
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb,):
+    model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
         optimizer.zero_grad()
-        target_ = absolute(images, targets)
-        
-        # import ipdb;
-        # ipdb.set_trace()
-        loss_dict = model_(images.to(device), target_)
+        targets = convert_to_abs_coords(targets, images.shape)
+        if torch.cuda.is_available():
+            images = images.cuda()
+            targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
+        loss_dict = model(images, targets)
         loss = sum(v for v in loss_dict.values())
         loss.backward()
         optimizer.step()
@@ -57,32 +59,33 @@ def fit_one_epoch(model_, train_loader, optimizer, scheduler, mb, ):
 
 
 @torch.no_grad()
-def evaluate(model_, val_loader, val_metric_, mb):
-    model_.eval()
+def evaluate(model, val_loader, metric):
+    model.eval()
+    metric.reset()
     val_iter = iter(val_loader)
-    pq, seg, rec, pre = 0, 0, 0, 0
-    for _ in progress_bar(range(len(val_loader)), parent=mb):
+    for images, targets in val_iter:
         images, targets = next(val_iter)
-        images = images.to(device)
-        targets = absolute(images, targets)
-        pq_metric, seg_quality, recall, precision = val_metric_(targets=targets, model=model_, x=images)
-        pq += pq_metric
-        seg += seg_quality
-        rec += recall
-        pre += precision
-    epch_pq = pq / len(val_loader)
-    epch_precision = pre / len(val_loader)
-    epch_recall = rec / len(val_loader)
-    epch_seg = seg / len(val_loader)
-    return epch_pq, epch_seg, epch_recall, epch_precision
+        targets = convert_to_abs_coords(targets, images.shape)
+        if torch.cuda.is_available():
+            images = images.cuda()
+        output = model(images)
+        pred_labels = np.concatenate([o['labels'].cpu().numpy() for o in output])
+        pred_boxes = np.concatenate([o['boxes'].cpu().numpy() for o in output])
+        gt_boxes = np.concatenate([o['boxes'].cpu().numpy() for o in targets])
+        gt_labels = np.concatenate([o['labels'].cpu().numpy() for o in targets])
+        metric.update(gt_boxes, pred_boxes, gt_labels, pred_labels)
+    recall, precision, mean_iou = metric.summary()
+    return recall, precision, mean_iou
 
 
 def main(args):
-
-    model = torchvision.models.detection.__dict__[args.arch](pretrained=True)
+    torch.backends.cudnn.benchmark = True
 
     # Filter keys
-    state_dict = {k: v for k, v in model.state_dict().items() if not k.startswith('roi_heads.')}
+    state_dict = {
+        k: v for k, v in torchvision.models.detection.__dict__[args.arch](pretrained=True).state_dict().items()
+        if not k.startswith('roi_heads.')
+    }
     defaults = {"min_size": 800, "max_size": 1300,
                 "box_fg_iou_thresh": 0.5,
                 "box_bg_iou_thresh": 0.5,
@@ -95,28 +98,55 @@ def main(args):
                 }
     kwargs = {**defaults}
 
-    faster_model = torchvision.models.detection.__dict__[args.arch](pretrained=False, num_classes=5, **kwargs)
-    faster_model.load_state_dict(state_dict, strict=False)
-    faster_model.roi_heads.box_roi_pool = MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'], output_size=(7, 7),
-                                                             sampling_ratio=2)
+    model = torchvision.models.detection.__dict__[args.arch](pretrained=False, num_classes=5, **kwargs)
+    model.load_state_dict(state_dict, strict=False)
+    model.roi_heads.box_roi_pool = MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'], output_size=(7, 7),
+                                                      sampling_ratio=2)
     anchor_sizes = ((16), (64), (128), (264))
     aspect_ratios = ((0.5, 1.0, 2.0, 3.0,)) * len(anchor_sizes)
-    faster_model.rpn.anchor_generator.sizes = anchor_sizes
-    faster_model.rpn.anchor_generator.aspect_ratios = aspect_ratios
-    faster_model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    model.rpn.anchor_generator.sizes = anchor_sizes
+    model.rpn.anchor_generator.aspect_ratios = aspect_ratios
+    # GPU
+    if isinstance(args.device, int):
+        if not torch.cuda.is_available():
+            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+        if args.device >= torch.cuda.device_count():
+            raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    else:
+        logging.warning("No accessible GPU, targe device set to CPU.")
+    if torch.cuda.is_available():
+        torch.cuda.set_device(args.device)
+        model = model.cuda()
+    optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
+                          lr=args.lr, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
     train_set = DocArtefacts(train=True, download=True)
     val_set = DocArtefacts(train=False, download=True)
-    train_dataloader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.workers,
-                                  sampler=RandomSampler(train_set), pin_memory=True, collate_fn=train_set.collate_fn)
-    val_dataloader = DataLoader(val_set, batch_size=args.batch_size, num_workers=args.workers,
-                                sampler=SequentialSampler(val_set), pin_memory=True, collate_fn=val_set.collate_fn)
+    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.workers,
+                              sampler=RandomSampler(train_set), pin_memory=True, collate_fn=train_set.collate_fn,
+                              drop_last=True)
+    val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=args.workers,
+                            sampler=SequentialSampler(val_set), pin_memory=True, collate_fn=val_set.collate_fn,
+                            drop_last=False)
+
+    metric = DetectionMetric(iou_thresh=0.5)
+    if args.test_only:
+        print("Running evaluation")
+        recall, precision, mean_iou = evaluate(model, val_loader, metric)
+        print(f"Recall: {recall:.2%} | Precision: {precision:.2%} |IoU: {mean_iou:.2%}")
+        return
+
+    # Training monitoring
+    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
     if args.wb:
         run = wandb.init(
-            name="Artefacts",
+            name=exp_name,
             project="object-detection",
             config={
                 "learning_rate": args.lr,
@@ -133,24 +163,28 @@ def main(args):
         )
 
     mb = master_bar(range(args.epochs))
+    max_score = 0
 
     for epoch in mb:
-        fit_one_epoch(model_=faster_model, train_loader=train_dataloader, optimizer=optimizer,
-                      scheduler=scheduler, mb=mb)
-        epch_pq, epch_seg, epch_recall, epch_precision = evaluate(model_=faster_model, val_loader=val_dataloader,
-                                                                  val_metric_=val_metric, mb=mb)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb)
+        recall, precision, mean_iou = evaluate(model, val_loader, metric)
+        f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+
         mb.write(
             f"Epoch {epoch + 1}/{args.epochs} - "
-            f"Recall: {epch_recall:.2%} | Precision: {epch_precision:.2%} "
-            f"|Segmentation: {epch_seg:.2%}| Panoptic_Q: {epch_pq:.2%}) |")
+            f"Recall: {recall:.2%} | Precision: {precision:.2%} "
+            f"|IoU: {mean_iou:.2%}")
         # W&B
         if args.wb:
             wandb.log({
-                'recall': epch_recall,
-                'precision': epch_precision,
-                'seg': epch_seg,
-                'pq': epch_pq,
+                'recall': recall,
+                'precision': precision,
+                'iou': mean_iou,
             })
+        if f1_score > max_score:
+            print(f"Validation metric increased {max_score:.6} --> {f1_score:.6}: saving state...")
+            torch.save(model.state_dict(), f"./{exp_name}.pt")
+            max_score = f1_score
 
     if args.wb:
         run.finish()
@@ -175,6 +209,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     args = parser.parse_args()
     return args
 
