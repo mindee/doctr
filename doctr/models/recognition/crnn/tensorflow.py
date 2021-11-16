@@ -56,7 +56,9 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
     def __call__(
         self,
-        logits: tf.Tensor
+        logits: tf.Tensor,
+        beam_width: int = 1,
+        top_paths: int = 1,
     ) -> List[Tuple[str, float]]:
         """
         Performs decoding of raw output with CTC and decoding of CTC predictions
@@ -73,10 +75,13 @@ class CTCPostProcessor(RecognitionPostProcessor):
         _decoded, _log_prob = tf.nn.ctc_beam_search_decoder(
             tf.transpose(logits, perm=[1, 0, 2]),
             tf.fill(logits.shape[0], logits.shape[1]),
-            beam_width=1, top_paths=1,
+            beam_width=beam_width, top_paths=top_paths,
         )
-        out_idxs = tf.sparse.to_dense(_decoded[0], default_value=len(self.vocab))
-        probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))
+
+        _decoded = tf.sparse.concat(1,
+                                    [tf.sparse.expand_dims(dec,axis=1) for dec in _decoded],
+                                    expand_nonconcat_dims=True) # dim : batchsize x beamwidth x actual_max_len_predictions
+        out_idxs = tf.sparse.to_dense(_decoded, default_value=len(self.vocab))
 
         # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
@@ -84,8 +89,16 @@ class CTCPostProcessor(RecognitionPostProcessor):
             axis=-1
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
-        decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
+        decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(),
+                                                  default_value='not valid')[:,:,0] # dim : batch_size x beam_width
+
+        
+        if top_paths==1 :
+            probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))# dim : batchsize
+            word_values = [word.decode() for word in tf.squeeze(decoded_strings_pred,axis=1).numpy().tolist()]
+        else :
+            probs = tf.math.exp(_log_prob)# dim : batchsize x beamwidth
+            word_values = decoded_strings_pred.numpy().astype(str).tolist()
 
         return list(zip(word_values, probs.numpy().tolist()))
 
@@ -158,6 +171,8 @@ class CRNN(RecognitionModel, Model):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        beam_width: int = 1,
+        top_paths: int = 1,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -175,7 +190,7 @@ class CRNN(RecognitionModel, Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(logits)
+            out["preds"] = self.postprocessor(logits,beam_width=beam_width,top_paths=top_paths)
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, target)
