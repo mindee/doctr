@@ -166,3 +166,32 @@ def test_charactergenerator():
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
     assert targets.dtype == torch.int64
+
+
+def test_wordgenerator():
+
+    size = (48, 160)
+    lang = 'english'
+    input_size = (32, 128)
+
+    ds = datasets.WordGenerator(
+        lang=lang,
+        num_samples=10,
+        size=size,
+        cache_samples=True,
+        sample_transforms=Resize(input_size),
+    )
+
+    assert len(ds) == 10
+    image, label = ds[0]
+    assert isinstance(image, torch.Tensor)
+    assert image.shape[-2:] == input_size
+    assert image.dtype == torch.float32
+    # TODO: check label and encoding
+    #assert isinstance(label, int) and label < len(vocab)
+
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
+    assert targets.dtype == torch.int64
