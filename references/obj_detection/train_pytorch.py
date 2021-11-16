@@ -20,7 +20,6 @@ from doctr.datasets import DocArtefacts
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
 def absolute(images, targets):
     height, width = images.shape[2], images.shape[3]
 
@@ -34,6 +33,7 @@ def absolute(images, targets):
         for t in targets
     ]
 
+
     return targets
 
 
@@ -45,8 +45,11 @@ def fit_one_epoch(model_, train_loader, optimizer, scheduler, mb, ):
         images, targets = next(train_iter)
         optimizer.zero_grad()
         target_ = absolute(images, targets)
-        loss_dict = model_(images, target_)
-        loss = sum([l for k, l in loss_dict.items()])
+        
+        # import ipdb;
+        # ipdb.set_trace()
+        loss_dict = model_(images.to(device), target_)
+        loss = sum(v for v in loss_dict.values())
         loss.backward()
         optimizer.step()
         mb.child.comment = f'Train_loss: {loss.item()}'
@@ -61,7 +64,7 @@ def evaluate(model_, val_loader, val_metric_, mb):
     for _ in progress_bar(range(len(val_loader)), parent=mb):
         images, targets = next(val_iter)
         images = images.to(device)
-        targets = [absolute(images_=images, targets_=targets)]
+        targets = absolute(images, targets)
         pq_metric, seg_quality, recall, precision = val_metric_(targets=targets, model=model_, x=images)
         pq += pq_metric
         seg += seg_quality
@@ -75,7 +78,9 @@ def evaluate(model_, val_loader, val_metric_, mb):
 
 
 def main(args):
+
     model = torchvision.models.detection.__dict__[args.arch](pretrained=True)
+
     # Filter keys
     state_dict = {k: v for k, v in model.state_dict().items() if not k.startswith('roi_heads.')}
     defaults = {"min_size": 800, "max_size": 1300,
@@ -89,6 +94,7 @@ def main(args):
                 "rpn_batch_size_per_image": 250
                 }
     kwargs = {**defaults}
+
     faster_model = torchvision.models.detection.__dict__[args.arch](pretrained=False, num_classes=5, **kwargs)
     faster_model.load_state_dict(state_dict, strict=False)
     faster_model.roi_heads.box_roi_pool = MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'], output_size=(7, 7),
@@ -97,6 +103,7 @@ def main(args):
     aspect_ratios = ((0.5, 1.0, 2.0, 3.0,)) * len(anchor_sizes)
     faster_model.rpn.anchor_generator.sizes = anchor_sizes
     faster_model.rpn.anchor_generator.aspect_ratios = aspect_ratios
+    faster_model.to(device)
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
     train_set = DocArtefacts(train=True, download=True)
