@@ -56,7 +56,7 @@ class SynthText(VisionDataset):
         labels = mat_data['txt'][0][:split] if self.train else mat_data['txt'][0][split:]
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
+        np_dtype = np.float32
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
                                               desc='Load SynthText', total=len(paths)):
