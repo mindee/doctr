@@ -45,7 +45,7 @@ class SVT(VisionDataset):
         self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
+        np_dtype = np.float32
 
         # Load xml data
         tmp_root = os.path.join(self.root, 'svt1')
