@@ -3,13 +3,15 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import json
+import os
+from typing import Any, Callable, List, Optional, Tuple
+
 import numpy as np
-from typing import List, Tuple, Dict, Any, Optional, Callable
+
+from doctr.utils.geometry import fit_rbbox
 
 from .datasets import AbstractDataset
-from doctr.utils.geometry import fit_rbbox
 
 __all__ = ["DetectionDataset"]
 
@@ -19,7 +21,7 @@ class DetectionDataset(AbstractDataset):
 
     Example::
         >>> from doctr.datasets import DetectionDataset
-        >>> train_set = DetectionDataset(img_folder=True, label_path="/path/to/labels.json")
+        >>> train_set = DetectionDataset(img_folder="/path/to/images", label_path="/path/to/labels.json")
         >>> img, target = train_set[0]
 
     Args:
@@ -28,15 +30,15 @@ class DetectionDataset(AbstractDataset):
         sample_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
+
     def __init__(
         self,
         img_folder: str,
         label_path: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
-        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder, **kwargs)
+        super().__init__(img_folder)
         self.sample_transforms = sample_transforms
 
         # File existence check
@@ -46,7 +48,6 @@ class DetectionDataset(AbstractDataset):
             labels = json.load(f)
 
         self.data: List[Tuple[str, np.ndarray]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
         for img_name, label in labels.items():
             polygons = np.asarray(label['polygons'])
             if rotated_bbox:
@@ -56,7 +57,7 @@ class DetectionDataset(AbstractDataset):
                 # Switch to xmin, ymin, xmax, ymax
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
-            self.data.append((img_name, np.asarray(boxes, dtype=np_dtype)))
+            self.data.append((img_name, np.asarray(boxes, dtype=np.float32)))
 
     def __getitem__(
         self,

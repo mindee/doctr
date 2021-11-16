@@ -3,14 +3,15 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
-import cv2
 from typing import List, Tuple
 
-from doctr.utils.repr import NestedObject
-from doctr.utils.geometry import rotate_image
-from .._utils import get_bitmap_angle
+import cv2
+import numpy as np
 
+from doctr.utils.geometry import rotate_image
+from doctr.utils.repr import NestedObject
+
+from .._utils import get_bitmap_angle
 
 __all__ = ['DetectionPostProcessor']
 
@@ -97,7 +98,7 @@ class DetectionPostProcessor(NestedObject):
 
         for p_, bitmap_ in zip(proba_map, bitmap):
             # Perform opening (erosion + dilatation)
-            bitmap_ = cv2.morphologyEx(bitmap_, cv2.MORPH_OPEN, kernel)
+            bitmap_ = cv2.morphologyEx(bitmap_.astype(np.float32), cv2.MORPH_OPEN, kernel)
             # Rotate bitmap and proba_map
             angle = get_bitmap_angle(bitmap_)
             angles_batch.append(angle)

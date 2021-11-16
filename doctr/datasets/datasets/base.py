@@ -4,12 +4,11 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+import shutil
 from pathlib import Path
-from zipfile import ZipFile
-from typing import List, Any, Optional, Tuple, Callable, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
-from doctr.models.data_utils import download_from_url
-
+from doctr.utils.data import download_from_url
 
 __all__ = ['_AbstractDataset', '_VisionDataset']
 
@@ -21,14 +20,12 @@ class _AbstractDataset:
     def __init__(
         self,
         root: Union[str, Path],
-        fp16: bool = False,
     ) -> None:
 
         if not Path(root).is_dir():
             raise ValueError(f'expected a path to a reachable folder: {root}')
 
         self.root = root
-        self.fp16 = fp16
 
     def __len__(self) -> int:
         return len(self.data)
@@ -71,7 +68,6 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: whether the downloaded file is an archive to be extracted
         download: whether the dataset should be downloaded if not present on disk
         overwrite: whether the archive should be re-extracted
-        fp16: should FP precision be switched to FP16
     """
 
     def __init__(
@@ -82,7 +78,6 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: bool = False,
         download: bool = False,
         overwrite: bool = False,
-        fp16: bool = False,
     ) -> None:
 
         dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
@@ -101,7 +96,6 @@ class _VisionDataset(_AbstractDataset):
             archive_path = Path(archive_path)
             dataset_path = archive_path.parent.joinpath(archive_path.stem)
             if not dataset_path.is_dir() or overwrite:
-                with ZipFile(archive_path, 'r') as f:
-                    f.extractall(path=dataset_path)
+                shutil.unpack_archive(archive_path, dataset_path)
 
-        super().__init__(dataset_path if extract_archive else archive_path, fp16)
+        super().__init__(dataset_path if extract_archive else archive_path)

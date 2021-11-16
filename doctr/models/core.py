@@ -4,7 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
+
 from doctr.utils.repr import NestedObject
 
 __all__ = ['BaseModel']

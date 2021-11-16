@@ -4,15 +4,16 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_samples(images, targets):
     # Unnormalize image
     num_samples = min(len(images), 12)
-    num_rows = min(len(images), 3)
-    num_cols = int(math.ceil(num_samples / num_rows))
+    num_cols = min(len(images), 8)
+    num_rows = int(math.ceil(num_samples / num_cols))
     _, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5))
     for idx in range(num_samples):
         img = (255 * images[idx].numpy()).round().clip(0, 255).astype(np.uint8)
@@ -22,7 +23,12 @@ def plot_samples(images, targets):
         row_idx = idx // num_cols
         col_idx = idx % num_cols
 
-        axes[row_idx][col_idx].imshow(img)
-        axes[row_idx][col_idx].axis('off')
-        axes[row_idx][col_idx].set_title(targets[idx])
+        ax = axes[row_idx] if num_rows > 1 else axes
+        ax = ax[col_idx] if num_cols > 1 else ax
+
+        ax.imshow(img)
+        ax.set_title(targets[idx])
+    # Disable axis
+    for ax in axes.ravel():
+        ax.axis('off')
     plt.show()

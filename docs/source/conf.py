@@ -6,8 +6,6 @@
 
 # -- Path setup --------------------------------------------------------------
 
-import sphinx_rtd_theme
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -15,6 +13,9 @@ import sphinx_rtd_theme
 import os
 import sys
 from datetime import datetime
+
+import sphinx_rtd_theme
+
 sys.path.insert(0, os.path.abspath('../..'))
 import doctr
 
@@ -44,6 +45,8 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinxemoji.sphinxemoji',  # cf. https://sphinxemojicodes.readthedocs.io/en/stable/
     'sphinx_copybutton',
+    'recommonmark',
+    'sphinx_markdown_tables',
 ]
 
 napoleon_use_ivar = True
@@ -54,7 +57,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [u'_build', 'Thumbs.db', '.DS_Store', 'notebooks/*.rst']
 
 
 # The name of the Pygments (syntax highlighting) style to use.

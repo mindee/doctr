@@ -3,8 +3,10 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
 from typing import List, Tuple, Union
+
+import numpy as np
+
 from ..utils import merge_multi_strings
 
 __all__ = ['split_crops', 'remap_preds']

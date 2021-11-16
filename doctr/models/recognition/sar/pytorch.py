@@ -4,16 +4,16 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
+from typing import Any, Dict, List, Optional, Tuple
+
 import torch
 from torch import nn
 from torch.nn import functional as F
-from typing import Tuple, Dict, List, Any, Optional
 
+from ....datasets import VOCABS
 from ...backbones import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
-from ....datasets import VOCABS
-
 
 __all__ = ['SAR', 'sar_resnet31']
 
@@ -98,7 +98,7 @@ class SARDecoder(nn.Module):
 
         # initialize states (each of shape (N, rnn_units))
         hx = [None, None]
-        # Initialize with the index of virtual START symbol (placed after <eos>)
+        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
         symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=features.dtype)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>

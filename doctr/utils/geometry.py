@@ -5,9 +5,11 @@
 
 from math import ceil
 from typing import List, Union, Tuple, Optional
-import numpy as np
+
 import cv2
-from .common_types import BoundingBox, Polygon4P, RotatedBbox, Bbox
+import numpy as np
+
+from .common_types import BoundingBox, Polygon4P, RotatedBbox
 
 __all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
            'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox', 'rotate_boxes', 'rotate_abs_boxes',
@@ -206,12 +208,15 @@ def rotate_boxes(
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
     ], dtype=boxes.dtype)
+    # Compute unrotated boxes
+    x_unrotated, y_unrotated = (boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2
+    width, height = boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]
     # Rotate centers
-    centers = np.stack((boxes[:, 0], boxes[:, 1]), axis=-1)
+    centers = np.stack((x_unrotated, y_unrotated), axis=-1)
     rotated_centers = .5 + np.matmul(centers - .5, rotation_mat)
     x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
     # Compute rotated boxes
-    rotated_boxes = np.stack((x_center, y_center, boxes[:, 2], boxes[:, 3], angle * np.ones_like(boxes[:, 0])), axis=1)
+    rotated_boxes = np.stack((x_center, y_center, width, height, angle * np.ones_like(boxes[:, 0])), axis=1)
     # Apply a mask if requested
     if mask_shape is not None:
         rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=mask_shape)
@@ -246,7 +251,7 @@ def rotate_image(
 
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
-    rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
+    rot_img = cv2.warpAffine(exp_img.astype(np.float32), rot_mat, (width, height))
     if preserve_aspect_ratio:
         # Pad to get the same aspect ratio
         if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):

@@ -4,14 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-import tensorflow as tf
-import numpy as np
-from typing import List, Tuple, Union, Any
+from typing import Any, List, Tuple, Union
 
-from doctr.utils.repr import NestedObject
+import numpy as np
+import tensorflow as tf
+
 from doctr.transforms import Normalize, Resize
 from doctr.utils.multithreading import multithread_exec
-
+from doctr.utils.repr import NestedObject
 
 __all__ = ['PreProcessor']
 
@@ -24,7 +24,6 @@ class PreProcessor(NestedObject):
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
-        fp16: whether returned batches should be in FP16
     """
 
     _children_names: List[str] = ['resize', 'normalize']
@@ -43,7 +42,6 @@ class PreProcessor(NestedObject):
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = Normalize(mean, std)
-        self.fp16 = fp16
 
     def batch_inputs(
         self,
@@ -70,7 +68,7 @@ class PreProcessor(NestedObject):
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
-            if x.dtype not in (np.uint8, np.float16, np.float32):
+            if x.dtype not in (np.uint8, np.float32):
                 raise TypeError("unsupported data type for numpy.ndarray")
             x = tf.convert_to_tensor(x)
         elif x.dtype not in (tf.uint8, tf.float16, tf.float32):
@@ -100,7 +98,7 @@ class PreProcessor(NestedObject):
             if x.ndim != 4:
                 raise AssertionError("expected 4D Tensor")
             if isinstance(x, np.ndarray):
-                if x.dtype not in (np.uint8, np.float16, np.float32):
+                if x.dtype not in (np.uint8, np.float32):
                     raise TypeError("unsupported data type for numpy.ndarray")
                 x = tf.convert_to_tensor(x)
             elif x.dtype not in (tf.uint8, tf.float16, tf.float32):
@@ -125,9 +123,5 @@ class PreProcessor(NestedObject):
 
         # Batch transforms (normalize)
         batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
-
-        # Resize outputs tf.float32
-        if self.fp16:
-            batches = [tf.cast(b, dtype=tf.float16) for b in batches]
 
         return batches

@@ -3,10 +3,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
-from PIL import Image
 from io import BytesIO
+
+import numpy as np
 import torch
+from PIL import Image
 from torchvision.transforms.functional import to_tensor
 
 from doctr.utils.common_types import AbstractPath

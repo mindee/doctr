@@ -4,12 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import List, Any, Tuple
+from typing import Any, List, Tuple
+
 import torch
 
 from doctr.io import read_img_as_tensor
-from .base import _AbstractDataset, _VisionDataset
 
+from .base import _AbstractDataset, _VisionDataset
 
 __all__ = ['AbstractDataset', 'VisionDataset']
 
@@ -23,7 +24,7 @@ class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[torch.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=torch.float16 if self.fp16 else torch.float32)
+        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=torch.float32)
 
         return img, target
 

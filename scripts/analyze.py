@@ -8,9 +8,9 @@ import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.models import ocr_predictor
-from doctr.io import DocumentFile
 from doctr.file_utils import is_tf_available
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
 
 # Enable GPU growth if using TF
 if is_tf_available():
@@ -45,7 +45,8 @@ def parse_args():
                         help='Text detection model to use for analysis')
     parser.add_argument('--recognition', type=str, default='crnn_vgg16_bn',
                         help='Text recognition model to use for analysis')
-    parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization", action="store_true")
+    parser.add_argument("--noblock", dest="noblock", help="Disables blocking visualization. Used only for CI.",
+                        action="store_true")
     parser.add_argument("--static", dest="static", help="Switches to static visualization", action="store_true")
     args = parser.parse_args()
 

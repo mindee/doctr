@@ -3,11 +3,12 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import csv
-import numpy as np
+import os
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import numpy as np
 
 from .datasets import VisionDataset
 
@@ -54,7 +55,7 @@ class SROIE(VisionDataset):
         # # List images
         tmp_root = os.path.join(self.root, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
+        np_dtype = np.float32
         for img_path in os.listdir(tmp_root):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):

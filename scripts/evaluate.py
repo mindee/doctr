@@ -10,11 +10,11 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import numpy as np
 from tqdm import tqdm
 
-from doctr.utils.metrics import LocalizationConfusion, TextMatch, OCRMetric
 from doctr import datasets
+from doctr.file_utils import is_tf_available
 from doctr.models import ocr_predictor
 from doctr.models._utils import extract_crops
-from doctr.file_utils import is_tf_available
+from doctr.utils.metrics import LocalizationConfusion, OCRMetric, TextMatch
 
 # Enable GPU growth if using TF
 if is_tf_available():

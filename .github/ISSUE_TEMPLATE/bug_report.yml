@@ -1,0 +1,63 @@
+name: 🐛 Bug report
+description: Create a report to help us improve the library
+labels: bug
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### Before reporting a bug, please check that the issue hasn't already been addressed in [the existing and past issues](https://github.com/mindee/doctr/issues?q=is%3Aissue).
+- type: textarea
+  attributes:
+    label: Bug description
+    description: |
+      A clear and concise description of what the bug is.
+
+      Please explain the result you observed and the behavior you were expecting.
+    placeholder: |
+      A clear and concise description of what the bug is.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Code snippet to reproduce the bug
+    description: |
+      Sample code to reproduce the problem.
+
+      Please wrap your code snippet with ```` ```triple quotes blocks``` ```` for readability.
+    placeholder: |
+      ```python
+      Sample code to reproduce the problem
+      ```
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Error traceback
+    description: |
+      The error message you received running the code snippet, with the full traceback.
+
+      Please wrap your error message with ```` ```triple quotes blocks``` ```` for readability.
+    placeholder: |
+      ```
+      The error message you got, with the full traceback.
+      ```
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Environment
+    description: |
+      Please run the following command and paste the output below.
+      ```sh
+      wget https://raw.githubusercontent.com/mindee/doctr/main/scripts/collect_env.py
+      # For security purposes, please check the contents of collect_env.py before running it.
+      python collect_env.py
+      ```
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    value: >
+      Thanks for helping us improve the library!

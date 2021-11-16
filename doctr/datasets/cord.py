@@ -3,14 +3,16 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
 import json
-import numpy as np
+import os
 from pathlib import Path
-from typing import List, Dict, Any, Tuple, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import numpy as np
+
+from doctr.utils.geometry import fit_rbbox
 
 from .datasets import VisionDataset
-from doctr.utils.geometry import fit_rbbox
 
 __all__ = ['CORD']
 
@@ -50,7 +52,6 @@ class CORD(VisionDataset):
         # # List images
         tmp_root = os.path.join(self.root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
         self.train = train
         self.sample_transforms = sample_transforms
         for img_path in os.listdir(tmp_root):
@@ -72,7 +73,7 @@ class CORD(VisionDataset):
                                     [x[1], y[1]],
                                     [x[2], y[2]],
                                     [x[3], y[3]],
-                                ], dtype=np_dtype)))
+                                ], dtype=np.float32)))
                             else:
                                 # Reduce 8 coords to 4
                                 box = [min(x), min(y), max(x), max(y)]

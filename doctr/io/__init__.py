@@ -1,5 +1,5 @@
 from .elements import *
-from .reader import *
+from .html import *
 from .image import *
 from .pdf import *
-from .html import *
+from .reader import *

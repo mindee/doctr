@@ -4,12 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import List, Any, Tuple
+from typing import Any, List, Tuple
+
 import tensorflow as tf
 
 from doctr.io import read_img_as_tensor
-from .base import _AbstractDataset, _VisionDataset
 
+from .base import _AbstractDataset, _VisionDataset
 
 __all__ = ['AbstractDataset', 'VisionDataset']
 
@@ -23,7 +24,7 @@ class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[tf.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=tf.float16 if self.fp16 else tf.float32)
+        img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=tf.float32)
 
         return img, target
 

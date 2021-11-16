@@ -7,12 +7,12 @@ Everything you need to know to contribute efficiently to the project.
 ## Codebase structure
 
 - [doctr](https://github.com/mindee/doctr/blob/main/doctr) - The package codebase
-- [test](https://github.com/mindee/doctr/blob/main/test) - Python unit tests
+- [tests](https://github.com/mindee/doctr/blob/main/tests) - Python unit tests
 - [docs](https://github.com/mindee/doctr/blob/main/docs) - Library documentation building
 - [scripts](https://github.com/mindee/doctr/blob/main/scripts) - Example scripts
 - [references](https://github.com/mindee/doctr/blob/main/references) - Reference training scripts
 - [demo](https://github.com/mindee/doctr/blob/main/demo) - Small demo app to showcase docTR capabilities 
-- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy an API with docTR
+- [api](https://github.com/mindee/doctr/blob/main/api) - A minimal template to deploy a REST API with docTR
 
 
 ## Continuous Integration
@@ -26,37 +26,50 @@ As a contributor, you will only have to ensure coverage of your code by adding a
 
 
 
-## Issues
+## Feedback
 
-Use Github [issues](https://github.com/mindee/doctr/issues) for feature requests, or bug reporting. When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.
+### Feature requests & bug report
 
+Whether you encountered a problem, or you have a feature suggestion, your input has value and can be used by contributors to reference it in their developments. For this purpose, we advise you to use Github [issues](https://github.com/mindee/doctr/issues). 
+
+First, check whether the topic wasn't already covered in an open / closed issue. If not, feel free to open a new one! When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.
+
+### Questions
+
+If you are wondering how to do something with docTR, or a more general question, you should consider checking out Github [discussions](https://github.com/mindee/doctr/discussions). See it as a Q&A forum, or the docTR-specific StackOverflow!
 
 
 ## Developing docTR
 
+### Developer mode installation
+
+Install all additional dependencies with the following command:
+
+```shell
+pip install -e .[dev]
+```
 
 ### Commits
 
 - **Code**: ensure to provide docstrings to your Python code. In doing so, please follow [Google-style](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html) so it can ease the process of documentation later.
 - **Commit message**: please follow [Udacity guide](http://udacity.github.io/git-styleguide/)
 
-### Running CI verifications locally
 
-#### Unit tests
+### Unit tests
 
 In order to run the same unit tests as the CI workflows, you can run unittests locally:
 
 ```shell
-USE_TF='1' pytest test/ --ignore test/pytorch
+make test
 ```
-for TensorFlow,
+
+### Code quality
+
+To run all quality checks together
 
 ```shell
-USE_TORCH='1' pytest test/ --ignore test/tensorflow
+make quality
 ```
-
-for PyTorch.
-
 
 #### Lint verification
 
@@ -66,6 +79,15 @@ To ensure that your incoming PR complies with the lint settings, you need to ins
 flake8 ./
 ```
 This will read the `.flake8` setting file and let you know whether your commits need some adjustments.
+
+#### Import order
+
+In order to ensure there is a common import order convention, run [isort](https://github.com/PyCQA/isort) as follows:
+
+```shell
+isort **/*.py
+```
+This will reorder the imports of your local files.
 
 #### Annotation typing
 
@@ -80,13 +102,12 @@ The `mypy.ini` file will be read to check your typing.
 ### Modifying the documentation
 
 In order to check locally your modifications to the documentation:
-- install doctr
-- install dependencies specific to documentation with:
 ```shell
-pip install -r docs/requirements.txt
+make docs-single-version
 ```
-- build the documentation
-```shell
-sphinx-build docs/source docs/_build -a
-```
-- you can now open your local version of the documentation located at `docs/_build/index.html` in your browser
+You can now open your local version of the documentation located at `docs/_build/index.html` in your browser
+
+
+## Let's connect
+
+Should you wish to connect somewhere else than on GitHub, feel free to join us on [Slack](https://join.slack.com/t/mindee-community/shared_invite/zt-uzgmljfl-MotFVfH~IdEZxjp~0zldww), where you will find a `#doctr` channel!

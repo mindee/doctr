@@ -3,11 +3,12 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import numpy as np
-import cv2
 from math import floor
-from typing import List
 from statistics import median_low
+from typing import List
+
+import cv2
+import numpy as np
 
 __all__ = ['estimate_orientation', 'extract_crops', 'extract_rcrops', 'get_bitmap_angle']
 

@@ -4,12 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import logging
+from typing import Any, List, Optional
+
 import torch
 from torch import nn
-from typing import Optional, List, Any
 
-from ..data_utils import download_from_url
-
+from doctr.utils.data import download_from_url
 
 __all__ = ['load_pretrained_params', 'conv_sequence_pt']
 

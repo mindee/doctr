@@ -4,8 +4,8 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List
-from rapidfuzz.string_metric import levenshtein
 
+from rapidfuzz.string_metric import levenshtein
 
 __all__ = ['merge_strings', 'merge_multi_strings']
 

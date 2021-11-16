@@ -7,28 +7,33 @@ import os
 
 os.environ['USE_TORCH'] = '1'
 
-import time
 import datetime
+import hashlib
 import logging
 import multiprocessing as mp
+import time
+
 import numpy as np
-from fastprogress.fastprogress import master_bar, progress_bar
 import torch
-from torchvision.transforms import Compose, Normalize, ColorJitter
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torch.optim.lr_scheduler import OneCycleLR, CosineAnnealingLR
 from contiguous_params import ContiguousParams
-import wandb
-
-from doctr.models import detection
-from doctr.utils.metrics import LocalizationConfusion
-from doctr.datasets import DetectionDataset
-from doctr import transforms as T
-
+from fastprogress.fastprogress import master_bar, progress_bar
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision.transforms import ColorJitter, Compose, Normalize
 from utils import plot_samples
 
+import wandb
+from doctr import transforms as T
+from doctr.datasets import DetectionDataset
+from doctr.models import detection
+from doctr.utils.metrics import LocalizationConfusion
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb):
+
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -39,19 +44,30 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             images = images.cuda()
         images = batch_transforms(images)
 
-        train_loss = model(images, targets)['loss']
-
         optimizer.zero_grad()
-        train_loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-        optimizer.step()
+        if amp:
+            with torch.cuda.amp.autocast():
+                train_loss = model(images, targets)['loss']
+            scaler.scale(train_loss).backward()
+            # Gradient clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            train_loss = model(images, targets)['loss']
+            train_loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            optimizer.step()
+
         scheduler.step()
 
         mb.child.comment = f'Training loss: {train_loss.item():.6}'
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric):
+def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -63,7 +79,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        out = model(images, targets, return_boxes=True)
+        if amp:
+            with torch.cuda.amp.autocast():
+                out = model(images, targets, return_boxes=True)
+        else:
+            out = model(images, targets, return_boxes=True)
         # Compute metric
         loc_preds, _ = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
@@ -105,11 +125,13 @@ def main(args):
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{len(val_loader)} batches)")
+    with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
     # Load doctr model
-    model = detection.__dict__[args.model](pretrained=args.pretrained)
+    model = detection.__dict__[args.arch](pretrained=args.pretrained)
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -167,10 +189,12 @@ def main(args):
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
+    with open(os.path.join(args.train_path, 'labels.json'), 'rb') as f:
+        train_hash = hashlib.sha256(f.read()).hexdigest()
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target, rotation=args.rotation)
+        plot_samples(x, target)
         return
 
     # Backbone freezing
@@ -190,7 +214,7 @@ def main(args):
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    exp_name = f"{args.model}_{current_time}" if args.name is None else args.name
+    exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
     if args.wb:
@@ -201,12 +225,18 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
+                "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
-                "architecture": args.model,
+                "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
-                "exp_type": "text-detection",
                 "framework": "pytorch",
+                "scheduler": args.sched,
+                "train_hash": train_hash,
+                "val_hash": val_hash,
+                "pretrained": args.pretrained,
+                "rotation": args.rotation,
+                "amp": args.amp,
             }
         )
 
@@ -216,9 +246,9 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
         # Validation loop at the end of each epoch
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
@@ -228,10 +258,10 @@ def main(args):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
+        mb.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
-                'epochs': epoch + 1,
                 'val_loss': val_loss,
                 'recall': recall,
                 'precision': precision,
@@ -251,7 +281,7 @@ def parse_args():
 
     parser.add_argument('train_path', type=str, help='path to training data folder')
     parser.add_argument('val_path', type=str, help='path to validation data folder')
-    parser.add_argument('model', type=str, help='text-detection model to train')
+    parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
@@ -273,6 +303,7 @@ def parse_args():
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated bbox')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args

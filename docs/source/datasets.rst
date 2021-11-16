@@ -18,6 +18,9 @@ Here are all datasets that are available through docTR:
 .. autoclass:: CORD
 .. autoclass:: OCRDataset
 .. autoclass:: CharacterGenerator
+.. autoclass:: DocArtefacts
+.. autoclass:: IIIT5K
+.. autoclass:: SVT
 
 
 Data Loading
