@@ -266,8 +266,6 @@ def main(args):
                 'exact_match': exact_match,
                 'partial_match': partial_match,
             })
-        #reset val metric
-        val_metric.reset()
 
     if args.wb:
         run.finish()

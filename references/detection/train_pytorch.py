@@ -267,8 +267,6 @@ def main(args):
                 'precision': precision,
                 'mean_iou': mean_iou,
             })
-        # Reset val metric
-        val_metric.reset()
 
     if args.wb:
         run.finish()
