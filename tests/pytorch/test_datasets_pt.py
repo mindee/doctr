@@ -30,6 +30,8 @@ def test_visiondataset():
         ['DocArtefacts', False, [512, 512], 300, True],
         ['IIIT5K', True, [32, 128], 2000, True],
         ['IIIT5K', False, [32, 128], 3000, False],
+        ['SVT', True, [512, 512], 100, True],
+        ['SVT', False, [512, 512], 249, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
