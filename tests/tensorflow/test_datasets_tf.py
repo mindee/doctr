@@ -44,6 +44,33 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
 
 
+@pytest.mark.parametrize(
+    "dataset_name, train, input_size, size, rotate",
+    [
+        ['SynthText', True, [512, 512], 27, False],
+        ['SynthText', False, [512, 512], 3, True],
+    ],
+)
+def test_dataset_without_download(dataset_name, train, input_size, size, rotate):
+
+    ds = datasets.__dict__[dataset_name](
+        train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape == (*input_size, 3)
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+
+    loader = datasets.DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
 def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     input_size = (1024, 1024)
