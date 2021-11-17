@@ -47,6 +47,8 @@ def test_decode_sequence():
     with pytest.raises(AssertionError):
         utils.decode_sequence(np.array([2, 4.5]), mapping)
 
+    assert utils.decode_sequence([3, 4, 3, 4], mapping) == "dede"
+
 
 @pytest.mark.parametrize(
     "sequences, vocab, target_size, sos, eos, pad, dynamic_len, error, out_shape, gts",
