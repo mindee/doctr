@@ -38,6 +38,16 @@ def test_encode_decode(input_str):
     assert decoded == input_str
 
 
+def test_decode_sequence():
+    mapping = "abcdef"
+    with pytest.raises(TypeError):
+        utils.decode_sequence(123, mapping)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence(np.array([2, 10]), mapping)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence(np.array([2, 4.5]), mapping)
+
+
 @pytest.mark.parametrize(
     "sequences, vocab, target_size, sos, eos, pad, dynamic_len, error, out_shape, gts",
     [
