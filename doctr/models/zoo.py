@@ -55,7 +55,7 @@ def ocr_predictor(
         assume_straight_pages: if you only pass straight pages with straight boxes, activate this arg.
             to speed up the pipeline!
         export_as_straight_boxes: output format of boxes: if True, boxes are always straight rectangles,
-            otherwise predicted boxes are rotated rectangles (except if you pass assume_straight_pages=True) 
+            otherwise predicted boxes are rotated rectangles (except if you pass assume_straight_pages=True)
 
     Returns:
         OCR predictor
