@@ -33,17 +33,12 @@ class _OCRPredictor:
         assume_straight_pages: bool = False,
     ) -> List[List[np.ndarray]]:
 
-        if not assume_straight_pages:
-            crops = [
-                extract_rcrops(rotate_image(page, -angle, False), _boxes[:, :-1], channels_last=channels_last)
-                for page, (_boxes, angle) in zip(pages, loc_preds)
-            ]
-        else:
-            crops = [
-                extract_crops(page, _boxes[:, :-1], channels_last=channels_last)
-                for page, (_boxes, _) in zip(pages, loc_preds)
-            ]
+        extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
 
+        crops = [
+            extraction_fn(page, _boxes[:, :-1], channels_last=channels_last)
+            for page, _boxes in zip(pages, loc_preds)
+        ]
         return crops
 
     @staticmethod
@@ -62,7 +57,7 @@ class _OCRPredictor:
             [crop for crop, _kept in zip(page_crops, page_kept) if _kept]
             for page_crops, page_kept in zip(crops, is_kept)
         ]
-        loc_preds = [(_boxes[_kept], angle) for (_boxes, angle), _kept in zip(loc_preds, is_kept)]
+        loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
 
         return crops, loc_preds
 
@@ -70,16 +65,12 @@ class _OCRPredictor:
     def _process_predictions(
         loc_preds: List[Tuple[np.ndarray, float]],
         word_preds: List[Tuple[str, float]],
-        allow_rotated_boxes: bool = False,
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
 
         boxes, text_preds = [], []
         if len(loc_preds) > 0:
             # Localization
-            boxes, angles = zip(*loc_preds)
-            # Rotate back boxes if necessary
-            if allow_rotated_boxes:
-                boxes = [rotate_boxes(page_boxes, angle) for page_boxes, angle in zip(boxes, angles)]
+            boxes = zip(*loc_preds)
             # Text
             _idx = 0
             for page_boxes in boxes:
