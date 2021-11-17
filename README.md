@@ -56,6 +56,22 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 result = model(doc)
 ```
 
+### Deal with the rotation issues
+You can provide rotated documents, and/or documents with different boxes orientations.
+We provide different options to deal with such cases:
+
+- If you will only use straight document pages with straight words (horizontal, same reading direction),
+pass `assume_straigth_pages=True` in the `ocr_predictor`, it will directly fit straight boxes to your pages
+and return straight boxes, it is the faster pipeline.
+
+- If you want the predictor to output straight boxes (no matter the orientation of your pages, it will approximate
+rotated boxes to straight ones), you need to pass `export_as_straight_boxes=True` in the predictor. Otherwise, it
+will always return rotated boxes (with an angle which can be 0) except if you passed `assume_straigth_pages=True`,
+in that case you end up with straight bounding boxes.
+
+If you deactivate those 2 options, the predictor will always fit and return rotated boxes.
+
+
 To interpret your model's predictions, you can visualize them interactively as follows:
 
 ```python
