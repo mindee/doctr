@@ -127,16 +127,15 @@ class SARDecoder(layers.Layer, NestedObject):
 
         # initialize states (each of shape (N, rnn_units))
         states = self.lstm_decoder.get_initial_state(
-            inputs=None, batch_size=features.shape[0], dtype=features.dtype
+            inputs=None, batch_size=tf.shape(features)[0], dtype=features.dtype
         )
         # run first step of lstm
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
         # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
-        symbol = tf.fill(features.shape[0], self.vocab_size + 1)
+        symbol = tf.fill(tf.shape(features)[:1], self.vocab_size + 1)
         logits_list = []
-        if kwargs.get('training') and gt is None:
-            raise ValueError('Need to provide labels during training for teacher forcing')
+
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
             # embeded_symbol: shape (N, embedding_units)
@@ -150,7 +149,8 @@ class SARDecoder(layers.Layer, NestedObject):
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            if kwargs.get('training'):
+            if kwargs.get('training') and gt is not None:
+                #'Need to provide labels during training for teacher forcing'
                 symbol = gt[:, t]  # type: ignore[index]
             else:
                 symbol = tf.argmax(logits, axis=-1)
@@ -276,6 +276,7 @@ class SAR(Model, RecognitionModel):
         return out
 
 
+
 class SARPostProcessor(RecognitionPostProcessor):
     """Post processor for SAR architectures
 
@@ -284,7 +285,6 @@ class SARPostProcessor(RecognitionPostProcessor):
         ignore_case: if True, ignore case of letters
         ignore_accents: if True, ignore accents of letters
     """
-
     def __call__(
         self,
         logits: tf.Tensor,
@@ -302,10 +302,11 @@ class SARPostProcessor(RecognitionPostProcessor):
         decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
-        return list(zip(word_values, probs.numpy().tolist()))
-
+        return {
+            "decoded_strings_pred":decoded_strings_pred,
+            "probs":probs,
+        }
 
 def _sar(
     arch: str,
