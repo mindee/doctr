@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List, Tuple
+from typing import Any, ChainMap, List, Tuple, Callable
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class _OCRPredictor:
     @staticmethod
     def _generate_crops(
         pages: List[np.ndarray],
-        loc_preds: List[Tuple[np.ndarray, float]],
+        loc_preds: List[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
     ) -> List[List[np.ndarray]]:
@@ -43,10 +43,10 @@ class _OCRPredictor:
     @staticmethod
     def _prepare_crops(
         pages: List[np.ndarray],
-        loc_preds: List[Tuple[np.ndarray, float]],
+        loc_preds: List[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
-    ) -> Tuple[List[List[np.ndarray]], List[Tuple[np.ndarray, float]]]:
+    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
 
         crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages)
 
@@ -62,18 +62,16 @@ class _OCRPredictor:
 
     @staticmethod
     def _process_predictions(
-        loc_preds: List[Tuple[np.ndarray, float]],
+        loc_preds: List[np.ndarray],
         word_preds: List[Tuple[str, float]],
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
 
-        boxes, text_preds = [], []
+        text_preds = []
         if len(loc_preds) > 0:
-            # Localization
-            boxes = zip(*loc_preds)
             # Text
             _idx = 0
-            for page_boxes in boxes:
+            for page_boxes in loc_preds:
                 text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
                 _idx += page_boxes.shape[0]
 
-        return boxes, text_preds
+        return loc_preds, text_preds

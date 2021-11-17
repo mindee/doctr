@@ -75,7 +75,7 @@ class DetectionPostProcessor(NestedObject):
     def __call__(
         self,
         proba_map: np.ndarray,
-    ) -> Tuple[List[np.ndarray], List[float]]:
+    ) -> List[np.ndarray]:
         """Performs postprocessing for a list of model outputs
 
         Args:
