@@ -47,9 +47,9 @@ def download_from_url(
     url: str,
     file_name: Optional[str] = None,
     hash_prefix: Optional[str] = None,
-    check_hash: Optional[bool] = True,
     cache_dir: Optional[str] = None,
     cache_subdir: Optional[str] = None,
+    check_hash: Optional[bool] = True,
 ) -> Path:
     """Download a file using its URL
 
@@ -61,9 +61,9 @@ def download_from_url(
         url: the URL of the file to download
         file_name: optional name of the file once downloaded
         hash_prefix: optional expected SHA256 hash of the file
-        check_hash: whether to check the SHA256 hash of the file
         cache_dir: cache directory
         cache_subdir: subfolder to use in the cache
+        check_hash: whether to check the SHA256 hash of the file
 
     Returns:
         the location of the downloaded file

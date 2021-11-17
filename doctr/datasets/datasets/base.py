@@ -65,10 +65,10 @@ class _VisionDataset(_AbstractDataset):
         url: URL of the dataset
         file_name: name of the file once downloaded
         file_hash: expected SHA256 of the file
-        check_hash: whether to check the file's hash
         extract_archive: whether the downloaded file is an archive to be extracted
         download: whether the dataset should be downloaded if not present on disk
         overwrite: whether the archive should be re-extracted
+        check_hash: whether to check the file's hash
     """
 
     def __init__(
@@ -76,10 +76,10 @@ class _VisionDataset(_AbstractDataset):
         url: str,
         file_name: Optional[str] = None,
         file_hash: Optional[str] = None,
-        check_hash: Optional[bool] = True,
         extract_archive: bool = False,
         download: bool = False,
         overwrite: bool = False,
+        check_hash: bool = True,
     ) -> None:
 
         dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
