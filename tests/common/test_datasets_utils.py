@@ -34,7 +34,7 @@ def test_encode_decode(input_str):
     mapping = """3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|
         za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l"""
     encoded = utils.encode_string(input_str, mapping)
-    decoded = utils.decode_sequence(np.array(encoded), mapping)
+    decoded = utils.decode_sequence(encoded, mapping)
     assert decoded == input_str
 
 
