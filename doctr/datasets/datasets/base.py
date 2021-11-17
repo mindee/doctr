@@ -91,7 +91,7 @@ class _VisionDataset(_AbstractDataset):
         if not os.path.exists(archive_path) and not download:
             raise ValueError("the dataset needs to be downloaded first with download=True")
 
-        archive_path = download_from_url(url, file_name, file_hash, check_hash, cache_subdir='datasets')
+        archive_path = download_from_url(url, file_name, file_hash, check_hash=check_hash, cache_subdir='datasets')
 
         # Extract the archive
         if extract_archive:

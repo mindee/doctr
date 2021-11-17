@@ -18,56 +18,28 @@ def test_visiondataset():
 
 
 @pytest.mark.parametrize(
-    "dataset_name, train, input_size, size, rotate",
+    "dataset_name, train, input_size, size, rotate, download",
     [
-        ['FUNSD', True, [512, 512], 149, False],
-        ['FUNSD', False, [512, 512], 50, True],
-        ['SROIE', True, [512, 512], 626, False],
-        ['SROIE', False, [512, 512], 360, False],
-        ['CORD', True, [512, 512], 800, True],
-        ['CORD', False, [512, 512], 100, False],
-        ['DocArtefacts', True, [512, 512], 2700, False],
-        ['DocArtefacts', False, [512, 512], 300, True],
-        ['IIIT5K', True, [32, 128], 2000, True],
-        ['IIIT5K', False, [32, 128], 3000, False],
-        ['SVT', True, [512, 512], 100, True],
-        ['SVT', False, [512, 512], 249, False],
+        ['FUNSD', True, [512, 512], 149, False, True],
+        ['FUNSD', False, [512, 512], 50, True, True],
+        ['SROIE', True, [512, 512], 626, False, True],
+        ['SROIE', False, [512, 512], 360, False, True],
+        ['CORD', True, [512, 512], 800, True, True],
+        ['CORD', False, [512, 512], 100, False, True],
+        ['DocArtefacts', True, [512, 512], 2700, False, True],
+        ['DocArtefacts', False, [512, 512], 300, True, True],
+        ['IIIT5K', True, [32, 128], 2000, True, True],
+        ['IIIT5K', False, [32, 128], 3000, False, True],
+        ['SVT', True, [512, 512], 100, True, True],
+        ['SVT', False, [512, 512], 249, False, True],
+        ['SynthText', True, [512, 512], 27, False, False],
+        ['SynthText', False, [512, 512], 3, True, False],
     ],
 )
-def test_dataset(dataset_name, train, input_size, size, rotate):
+def test_dataset(dataset_name, train, input_size, size, rotate, download):
 
     ds = datasets.__dict__[dataset_name](
-        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
-    )
-
-    assert len(ds) == size
-    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
-    img, target = ds[0]
-    assert isinstance(img, torch.Tensor)
-    assert img.shape == (3, *input_size)
-    assert img.dtype == torch.float32
-    assert isinstance(target, dict)
-
-    loader = DataLoader(
-        ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
-        collate_fn=ds.collate_fn)
-
-    images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
-
-
-@pytest.mark.parametrize(
-    "dataset_name, train, input_size, size, rotate",
-    [
-        ['SynthText', True, [512, 512], 27, False],
-        ['SynthText', False, [512, 512], 3, True],
-    ],
-)
-def test_dataset_without_download(dataset_name, train, input_size, size, rotate):
-
-    ds = datasets.__dict__[dataset_name](
-        train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=train, download=download, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
 
     assert len(ds) == size

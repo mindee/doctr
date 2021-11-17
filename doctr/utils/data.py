@@ -49,7 +49,7 @@ def download_from_url(
     hash_prefix: Optional[str] = None,
     cache_dir: Optional[str] = None,
     cache_subdir: Optional[str] = None,
-    check_hash: Optional[bool] = True,
+    check_hash: bool = True,
 ) -> Path:
     """Download a file using its URL
 
