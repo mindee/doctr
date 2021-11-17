@@ -8,7 +8,6 @@ from typing import List, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import rotate_boxes, rotate_image
 
 from .._utils import extract_crops, extract_rcrops
 

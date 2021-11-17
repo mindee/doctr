@@ -8,10 +8,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-from doctr.utils.geometry import rotate_image
 from doctr.utils.repr import NestedObject
-
-from .._utils import get_bitmap_angle
 
 __all__ = ['DetectionPostProcessor']
 

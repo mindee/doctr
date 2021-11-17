@@ -113,7 +113,10 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
 
-            _box = self.polygon_to_box(points) if self.assume_straight_pages else self.polygon_to_box(np.squeeze(contour))
+            if self.assume_straight_pages:
+                _box = self.polygon_to_box(points)
+            else:
+                self.polygon_to_box(np.squeeze(contour))
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
@@ -127,7 +130,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 x, y, w, h, alpha = _box  # type: ignore[misc]
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
-                boxes.append([x, y, w, h, alpha, score])         
+                boxes.append([x, y, w, h, alpha, score])
 
         if not self.assume_straight_pages:
             if len(boxes) == 0:
