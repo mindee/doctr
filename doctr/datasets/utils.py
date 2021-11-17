@@ -5,7 +5,7 @@
 
 import string
 import unicodedata
-from collections import Sequence
+from collections.abc import Sequence
 from functools import partial
 from typing import Any, List, Optional
 from typing import Sequence as SequenceType
