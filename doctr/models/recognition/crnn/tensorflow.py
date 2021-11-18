@@ -74,7 +74,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         # Decode CTC
         _decoded, _log_prob = tf.nn.ctc_beam_search_decoder(
             tf.transpose(logits, perm=[1, 0, 2]),
-            tf.fill(logits.shape[0], logits.shape[1]),
+            tf.fill(tf.shape(logits)[:1], tf.shape(logits)[1]),
             beam_width=beam_width, top_paths=top_paths,
         )
 
@@ -95,12 +95,14 @@ class CTCPostProcessor(RecognitionPostProcessor):
         
         if top_paths==1 :
             probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))# dim : batchsize
-            word_values = [word.decode() for word in tf.squeeze(decoded_strings_pred,axis=1).numpy().tolist()]
+            decoded_strings_pred = tf.squeeze(decoded_strings_pred,axis=1)
         else :
             probs = tf.math.exp(_log_prob)# dim : batchsize x beamwidth
-            word_values = decoded_strings_pred.numpy().astype(str).tolist()
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        return {
+            "decoded_strings_pred":decoded_strings_pred,
+            "probs":probs,
+        }
 
 
 class CRNN(RecognitionModel, Model):
@@ -122,6 +124,8 @@ class CRNN(RecognitionModel, Model):
         vocab: str,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
+        beam_width: int = 1,
+        top_paths: int = 1,
     ) -> None:
         # Initialize kernels
         h, w, c = feature_extractor.output_shape[1:]
@@ -142,6 +146,9 @@ class CRNN(RecognitionModel, Model):
         self.decoder.build(input_shape=(None, w, h * c))
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
+
+        self.beam_width = beam_width
+        self.top_paths = top_paths
 
     def compute_loss(
         self,
@@ -194,6 +201,27 @@ class CRNN(RecognitionModel, Model):
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, target)
+
+        return out
+
+    @tf.function(
+        input_signature=[
+            tf.TensorSpec([None,None,None,3],tf.float32),
+        ]
+    )
+    def serve(
+        self,
+        x: tf.Tensor,
+    ) -> Dict[str, Any]:
+
+        out = self.call(
+            x,
+            target = None,
+            return_model_output = False,
+            return_preds = False,
+            beam_width = self.beam_width,
+            top_paths = self.top_paths,
+        )
 
         return out
 
