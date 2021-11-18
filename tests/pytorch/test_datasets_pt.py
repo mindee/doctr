@@ -35,6 +35,8 @@ def test_visiondataset():
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
         ['SVT', False, [512, 512], 249, False],
+        ['SVHN', True, [32, 128], 33402, True],
+        ['SVHN', False, [32, 128], 13068, False],
         ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
         ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
         ['IC03', True, [512, 512], 246, True],
