@@ -177,7 +177,9 @@ def test_wordgenerator():
     ds = datasets.WordGenerator(
         lang=lang,
         num_samples=10,
+        max_length=10,
         size=size,
+        variable_length=True,
         cache_samples=True,
         sample_transforms=Resize(input_size),
     )
@@ -187,8 +189,7 @@ def test_wordgenerator():
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32
-    # TODO: check label and encoding
-    #assert isinstance(label, int) and label < len(vocab)
+    assert isinstance(label, np.ndarray)
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
