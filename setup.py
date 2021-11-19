@@ -42,6 +42,7 @@ _deps = [
     "importlib_metadata",
     "numpy>=1.16.0",
     "scipy>=1.4.0",
+    "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
     "tensorflow>=2.4.0",
     "PyMuPDF>=1.16.0,!=1.18.11,!=1.18.12",  # 18.11 and 18.12 fail (issue #222)
@@ -59,7 +60,6 @@ _deps = [
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
     "keras<2.7.0",
-    "h5py~=3.1.0",
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
@@ -91,6 +91,7 @@ install_requires = [
     deps["importlib_metadata"] + ";python_version<'3.8'",  # importlib_metadata for Python versions that don't have it
     deps["numpy"],
     deps["scipy"],
+    deps["h5py"],
     deps["opencv-python"],
     deps["PyMuPDF"],
     deps["pyclipper"],
@@ -102,7 +103,6 @@ install_requires = [
     deps["Pillow"],
     deps["tqdm"],
     deps["rapidfuzz"],
-    deps["h5py"],
 ]
 
 extras = {}
