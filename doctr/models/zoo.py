@@ -12,7 +12,14 @@ from .recognition.zoo import recognition_predictor
 __all__ = ["ocr_predictor"]
 
 
-def _predictor(det_arch: str, reco_arch: str, pretrained: bool, det_bs=2, reco_bs=128) -> OCRPredictor:
+def _predictor(
+    det_arch: str,
+    reco_arch: str,
+    pretrained: bool,
+    det_bs: int = 2,
+    reco_bs: int = 128,
+    **kwargs,
+) -> OCRPredictor:
 
     # Detection
     det_predictor = detection_predictor(det_arch, pretrained=pretrained, batch_size=det_bs)
@@ -20,13 +27,15 @@ def _predictor(det_arch: str, reco_arch: str, pretrained: bool, det_bs=2, reco_b
     # Recognition
     reco_predictor = recognition_predictor(reco_arch, pretrained=pretrained, batch_size=reco_bs)
 
-    return OCRPredictor(det_predictor, reco_predictor)
+    return OCRPredictor(det_predictor, reco_predictor, **kwargs)
 
 
 def ocr_predictor(
     det_arch: str = 'db_resnet50',
     reco_arch: str = 'crnn_vgg16_bn',
     pretrained: bool = False,
+    assume_straight_pages: bool = True,
+    export_as_straight_boxes: bool = False,
     **kwargs: Any
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -39,11 +48,23 @@ def ocr_predictor(
         >>> out = model([input_page])
 
     Args:
-        arch: name of the architecture to use ('db_sar_vgg', 'db_sar_resnet', 'db_crnn_vgg', 'db_crnn_resnet')
+        det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
+        reco_arch: name of the recognition architecture to use (e.g. 'crnn_vgg16_bn', 'sar_resnet31')
         pretrained: If True, returns a model pre-trained on our OCR dataset
+        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
+            without rotated textual elements.
+        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
+            (potentially rotated) as straight bounding boxes.
 
     Returns:
         OCR predictor
     """
 
-    return _predictor(det_arch, reco_arch, pretrained, **kwargs)
+    return _predictor(
+        det_arch,
+        reco_arch,
+        pretrained,
+        assume_straight_pages=assume_straight_pages,
+        export_as_straight_boxes=export_as_straight_boxes,
+        **kwargs,
+    )
