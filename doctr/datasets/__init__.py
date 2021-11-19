@@ -1,6 +1,7 @@
 from doctr.file_utils import is_tf_available
 
 from .classification import *
+from .recogeneration import *
 from .cord import *
 from .detection import *
 from .doc_artefacts import *

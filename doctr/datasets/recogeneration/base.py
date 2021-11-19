@@ -3,8 +3,8 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import random
 from typing import Any, Callable, List, Optional, Tuple
+from random import SystemRandom
 
 import cv2
 import numpy as np
@@ -16,6 +16,8 @@ from doctr.utils.fonts import get_font
 from ..datasets import AbstractDataset
 from ..utils import encode_sequences
 from ..vocabs import VOCABS
+
+save_rnd = SystemRandom()
 
 
 def generate_random_string(lang: str, length: int, variable_length: bool) -> str:
@@ -35,8 +37,8 @@ def generate_random_string(lang: str, length: int, variable_length: bool) -> str
 
     vocab = VOCABS[lang]
     rnd_string = ''
-    rnd_string += "".join([random.choice(vocab)
-                          for _ in range(0, random.randint(1, length) if variable_length else length)])
+    rnd_string += "".join([save_rnd.choice(vocab)
+                          for _ in range(0, save_rnd.randint(1, length) if variable_length else length)])
     return rnd_string
 
 
@@ -54,8 +56,9 @@ def synthesize_word_img(word: str, size: tuple, background: int,
     Returns:
         PIL image of the character
     """
+
     if background == 2:
-        background = random.randint(0, 1)
+        background = save_rnd.randint(0, 1)
 
     if background == 0:
         img = Image.new("L", (size[1], size[0]), 255).convert("RGBA")
