@@ -16,10 +16,9 @@ def _predictor(
     det_arch: str,
     reco_arch: str,
     pretrained: bool,
-    assume_straight_pages: bool = True,
-    export_as_straight_boxes: bool = False,
     det_bs: int = 2,
     reco_bs: int = 128,
+    **kwargs,
 ) -> OCRPredictor:
 
     # Detection
@@ -28,7 +27,7 @@ def _predictor(
     # Recognition
     reco_predictor = recognition_predictor(reco_arch, pretrained=pretrained, batch_size=reco_bs)
 
-    return OCRPredictor(det_predictor, reco_predictor, assume_straight_pages, export_as_straight_boxes)
+    return OCRPredictor(det_predictor, reco_predictor, **kwargs)
 
 
 def ocr_predictor(
@@ -49,18 +48,23 @@ def ocr_predictor(
         >>> out = model([input_page])
 
     Args:
-        det_arch: name of the detection architecture to use ('db_resnet50', 'db_mobilenet_v3_large')
-        reco_arch: name of the recognition architecture to use ('crnn_vgg16_bn', 'sar_resnet31')
+        det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
+        reco_arch: name of the recognition architecture to use (e.g. 'crnn_vgg16_bn', 'sar_resnet31')
         pretrained: If True, returns a model pre-trained on our OCR dataset
-        assume_straight_pages: if you only pass straight pages with straight boxes, activate this arg.
-            to speed up the pipeline!
-        export_as_straight_boxes: output format of boxes: if True, boxes are always straight rectangles,
-            otherwise predicted boxes are rotated rectangles (except if you pass assume_straight_pages=True)
+        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
+            without rotated textual elements.
+        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
+            (potentially rotated) as straight bounding boxes.
 
     Returns:
         OCR predictor
     """
 
     return _predictor(
-        det_arch, reco_arch, pretrained, assume_straight_pages, export_as_straight_boxes, **kwargs
+        det_arch,
+        reco_arch,
+        pretrained,
+        assume_straight_pages=assume_straight_pages,
+        export_as_straight_boxes=export_as_straight_boxes,
+        **kwargs,
     )
