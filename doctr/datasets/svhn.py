@@ -65,7 +65,7 @@ class SVHN(VisionDataset):
                 if not os.path.exists(os.path.join(tmp_root, img_name)):
                     raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
 
-                x, y, width, height, labels = _get_coords(f, idx)
+                x, y, width, height, labels = self._get_coords(f, idx)
                 label_targets = [str(label) for label in labels]
 
                 if rotated_bbox:
@@ -77,24 +77,21 @@ class SVHN(VisionDataset):
                     box_targets = [[x, y, x + width, y + height] for x, y, width, height in zip(x, y, width, height)]
                 self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=label_targets)))
 
-        print(len(self.data))
-
         self.root = tmp_root
+
+    @staticmethod
+    def _get_coords(f, idx: int) -> Tuple[List[int], List[int], List[int], List[int], List[int]]:
+        """Get coordinates of the bounding boxes and the labels of the image with index idx."""
+        meta: Dict[str, List[int]] = {key: [] for key in ['height', 'left', 'top', 'width', 'label']}
+
+        bboxes = f['digitStruct/bbox']
+        box = f[bboxes[idx][0]]
+        for k, v in box.items():
+            if v.shape[0] == 1:
+                meta[k].append(int(v[0][0]))
+            else:
+                meta[k].extend([int(f[box[0]][()].item()) for box in v])
+        return (meta['left'], meta['top'], meta['width'], meta['height'], meta['label'])
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
-
-
-def _get_coords(f, idx: int) -> Tuple[List[int], List[int], List[int], List[int], List[int]]:
-    """Get coordinates of the bounding boxes and the labels of the image with index idx."""
-    meta: Dict[str, List[int]] = {key: [] for key in ['height', 'left', 'top', 'width', 'label']}
-
-    bboxes = f['digitStruct/bbox']
-    box = f[bboxes[idx][0]]
-    for key in box.keys():
-        if box[key].shape[0] == 1:
-            meta[key].append(int(box[key][0][0]))
-        else:
-            for i in range(box[key].shape[0]):
-                meta[key].append(int(f[box[key][i][0]][()].item()))
-    return (meta['left'], meta['top'], meta['width'], meta['height'], meta['label'])

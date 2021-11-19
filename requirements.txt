@@ -14,3 +14,4 @@ tqdm>=4.30.0
 tensorflow-addons>=0.13.0
 rapidfuzz>=1.6.0
 keras<2.7.0
+h5py>=3.6.0
