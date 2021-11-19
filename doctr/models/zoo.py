@@ -61,5 +61,10 @@ def ocr_predictor(
     """
 
     return _predictor(
-        det_arch, reco_arch, pretrained, assume_straight_pages, export_as_straight_boxes, **kwargs
+        det_arch,
+        reco_arch,
+        pretrained,
+        assume_straight_pages=assume_straight_pages,
+        export_as_straight_boxes=export_as_straight_boxes,
+        **kwargs,
     )
