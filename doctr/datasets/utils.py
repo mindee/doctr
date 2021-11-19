@@ -5,8 +5,11 @@
 
 import string
 import unicodedata
+from collections.abc import Sequence
 from functools import partial
 from typing import Any, List, Optional
+from typing import Sequence as SequenceType
+from typing import Union
 
 import numpy as np
 
@@ -66,23 +69,25 @@ def encode_string(
 
 
 def decode_sequence(
-    input_array: np.array,
+    input_seq: Union[np.array, SequenceType[int]],
     mapping: str,
 ) -> str:
     """Given a predefined mapping, decode the sequence of numbers to a string
 
     Args:
-        input_array: array to decode
+        input_seq: array to decode
         mapping: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-        A string, decoded from input_array
+        A string, decoded from input_seq
     """
 
-    if not input_array.dtype == np.int_ or input_array.max() >= len(mapping):
+    if not isinstance(input_seq, (Sequence, np.ndarray)):
+        raise TypeError("Invalid sequence type")
+    if isinstance(input_seq, np.ndarray) and (input_seq.dtype != np.int_ or input_seq.max() >= len(mapping)):
         raise AssertionError("Input must be an array of int, with max less than mapping size")
 
-    return ''.join(map(mapping.__getitem__, input_array))
+    return ''.join(map(mapping.__getitem__, input_seq))
 
 
 def encode_sequences(

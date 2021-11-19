@@ -34,8 +34,20 @@ def test_encode_decode(input_str):
     mapping = """3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|
         za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l"""
     encoded = utils.encode_string(input_str, mapping)
-    decoded = utils.decode_sequence(np.array(encoded), mapping)
+    decoded = utils.decode_sequence(encoded, mapping)
     assert decoded == input_str
+
+
+def test_decode_sequence():
+    mapping = "abcdef"
+    with pytest.raises(TypeError):
+        utils.decode_sequence(123, mapping)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence(np.array([2, 10]), mapping)
+    with pytest.raises(AssertionError):
+        utils.decode_sequence(np.array([2, 4.5]), mapping)
+
+    assert utils.decode_sequence([3, 4, 3, 4], mapping) == "dede"
 
 
 @pytest.mark.parametrize(
