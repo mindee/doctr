@@ -79,7 +79,10 @@ class _OCRPredictor:
             boxes, angles = zip(*loc_preds)
             # Rotate back boxes if necessary
             if allow_rotated_boxes:
-                boxes = [rotate_boxes(page_boxes, angle) for page_boxes, angle in zip(boxes, angles)]
+                boxes = [rotate_boxes(page_boxes[:, :-1], angle) for page_boxes, angle in zip(boxes, angles)]
+            # if straight boxes, convert to bbox
+            else:
+                boxes = [page_boxes[:, :-1] for page_boxes in boxes]
             # Text
             _idx = 0
             for page_boxes in boxes:

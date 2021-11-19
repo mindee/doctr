@@ -6,8 +6,8 @@ import pytest
 import requests
 
 from doctr.io import DocumentFile, reader
-from doctr.utils import geometry
 from doctr.models._utils import estimate_orientation, extract_crops, extract_rcrops, get_bitmap_angle
+from doctr.utils import geometry
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811

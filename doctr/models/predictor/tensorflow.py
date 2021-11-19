@@ -9,12 +9,12 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.io.elements import Document
-from doctr.utils.geometry import rotate_boxes, rotate_image
+from doctr.models._utils import estimate_orientation
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.utils.geometry import rotate_boxes, rotate_image
 from doctr.utils.repr import NestedObject
-from doctr.models._utils import estimate_orientation
 
 from .base import _OCRPredictor
 
@@ -80,8 +80,6 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         if self.straighten_pages:
             boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], mask_shape=mask) for
                      page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
-            # override the current doc_builder with rotated_bbox
-            self.doc_builder = DocumentBuilder(export_as_straight_boxes=False, resolve_lines=False, resolve_blocks=False)
 
         out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[misc]
         return out

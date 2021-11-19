@@ -1,6 +1,7 @@
+from math import hypot
+
 import cv2
 import numpy as np
-from math import hypot
 
 from doctr.utils import geometry
 
@@ -74,14 +75,18 @@ def test_remap_boxes():
     len_dest = hypot(dest[0][0] - dest[2][0], dest[0][1] - dest[2][1])
     assert len_orig == len_dest
 
-    alpha_orig = np.rad2deg(np.arctan((orig[0][1] - orig[2][1])/ (orig[0][0] - orig[2][0])))
-    alpha_dest = np.rad2deg(np.arctan((dest[0][1] - dest[2][1])/ (dest[0][0] - dest[2][0])))
+    alpha_orig = np.rad2deg(np.arctan((orig[0][1] - orig[2][1]) / (orig[0][0] - orig[2][0])))
+    alpha_dest = np.rad2deg(np.arctan((dest[0][1] - dest[2][1]) / (dest[0][0] - dest[2][0])))
     assert alpha_orig == alpha_dest
 
 
 def test_rotate_boxes():
     boxes = np.array([[0.1, 0.1, 0.8, 0.3]])
-    rboxes = np.apply_along_axis(geometry.bbox_to_rbbox, 1, boxes)
+    rboxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
+                             (boxes[:, 1] + boxes[:, 3]) / 2,
+                             boxes[:, 2] - boxes[:, 0],
+                             boxes[:, 3] - boxes[:, 1],
+                             np.zeros(boxes.shape[0])))
     # Angle = 0
     rotated = geometry.rotate_boxes(boxes, angle=0.)
     assert rotated.all() == rboxes.all()
@@ -123,4 +128,3 @@ def test_rotate_image():
     rotated = geometry.rotate_image(img, 90., expand=True)
     assert rotated.shape[:-1] == (64, 64)
     assert rotated[0, :, 0].sum() <= 1
-

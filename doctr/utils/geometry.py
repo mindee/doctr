@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from math import ceil
-from typing import List, Union, Tuple, Optional
+from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -181,11 +181,11 @@ def rotate_boxes(
     orig_shape: Optional[Tuple[int, int]] = None,
     mask_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
-    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) of an angle,
-    if angle > min_angle, around the center of the page.
+    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) or rotated bounding boxes
+    (x, y, w, h, alpha) of an angle, if angle > min_angle, around the center of the page.
 
     Args:
-        boxes: (N, 4) array of RELATIVE boxes
+        boxes: (N, 4) or (N, 5) array of RELATIVE boxes
         angle: angle between -90 and +90 degrees
         min_angle: minimum angle to rotate boxes
         orig_shape: shape of the origin image
@@ -195,11 +195,12 @@ def rotate_boxes(
         A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
     """
     # Change format of the boxes to rotated boxes
-    boxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
-                             (boxes[:, 1] + boxes[:, 3]) / 2,
-                             boxes[:, 2] - boxes[:, 0],
-                             boxes[:, 3] - boxes[:, 1],
-                             np.zeros(boxes.shape[0])))
+    if boxes.shape[1] == 4:
+        boxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
+                                 (boxes[:, 1] + boxes[:, 3]) / 2,
+                                 boxes[:, 2] - boxes[:, 0],
+                                 boxes[:, 3] - boxes[:, 1],
+                                 np.zeros(boxes.shape[0])))
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return boxes
@@ -209,17 +210,14 @@ def rotate_boxes(
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
     ], dtype=boxes.dtype)
-    # Compute unrotated boxes
-    x_unrotated, y_unrotated = (boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2
-    width, height = boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1]
     # Rotate centers
-    centers = np.stack((x_unrotated, y_unrotated), axis=-1)
+    centers = np.stack((boxes[:, 0], boxes[:, 1]), axis=-1)
     rotated_centers = .5 + np.matmul(centers - .5, rotation_mat)
     x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
     # Compute rotated boxes
-    rotated_boxes = np.stack((x_center, y_center, width, height, angle * np.ones_like(boxes[:, 0])), axis=1)
+    rotated_boxes = np.stack((x_center, y_center, boxes[:, 2], boxes[:, 3], angle * np.ones_like(boxes[:, 0])), axis=1)
     # Apply a mask if requested
-    if mask_shape is not None:
+    if mask_shape is not None and orig_shape is not None:
         rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=mask_shape)
     return rotated_boxes
 
@@ -245,14 +243,15 @@ def rotate_image(
     # Compute the expanded padding
     if expand:
         exp_shape = compute_expanded_shape(image.shape[:-1], angle)
-        h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(max(0, ceil(exp_shape[1] - image.shape[1])))
+        h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(
+            max(0, ceil(exp_shape[1] - image.shape[1])))
         exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
     else:
         exp_img = image
 
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
-    rot_img = cv2.warpAffine(exp_img.astype(np.float32), rot_mat, (width, height))
+    rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
     if preserve_origin_shape:
         # Pad to get the same aspect ratio
         if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
