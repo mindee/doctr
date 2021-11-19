@@ -27,6 +27,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     Args:
         det_predictor: detection module
         reco_predictor: recognition module
+        straighten_pages: if True, evaluates the page general orientation based on the median of each line orientation.
+            Then, rotates page before using Detection and Recognition Predictors. Then rotates page back to original
+            orientation. This improves the Detection and Recognition Predictors predictions.
     """
 
     def __init__(
