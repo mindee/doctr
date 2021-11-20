@@ -56,6 +56,20 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf").as_images()
 result = model(doc)
 ```
 
+### Dealing with rotated documents
+Should you use docTR on documents that include rotated pages, or pages with multiple box orientations,
+you have multiple options to handle it:
+
+- If you only use straight document pages with straight words (horizontal, same reading direction),
+consider passing `assume_straight_boxes=True` to the ocr_predictor. It will directly fit straight boxes
+on your page and return straight boxes, which makes it the fastest option.
+
+- If you want the predictor to output straight boxes (no matter the orientation of your pages, the final localizations
+will be converted to straight boxes), you need to pass `export_as_straight_boxes=True` in the predictor. Otherwise, if `assume_straight_pages=False`, it will return rotated bounding boxes (potentially with an angle of 0°).
+
+If both options are set to False, the predictor will always fit and return rotated boxes.
+
+
 To interpret your model's predictions, you can visualize them interactively as follows:
 
 ```python
