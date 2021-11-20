@@ -195,4 +195,4 @@ def test_wordgenerator():
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, torch.Tensor) and targets.shape == (2, len(label))
-    assert targets.dtype == torch.int64
+    assert targets.dtype == torch.int32
