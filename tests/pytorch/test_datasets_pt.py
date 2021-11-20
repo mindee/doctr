@@ -171,7 +171,7 @@ def test_charactergenerator():
 def test_wordgenerator():
 
     size = (48, 160)
-    lang = 'english'
+    lang = 'latin'
     input_size = (32, 128)
 
     ds = datasets.WordGenerator(
@@ -194,5 +194,5 @@ def test_wordgenerator():
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
+    assert isinstance(targets, torch.Tensor) and targets.shape == (2, len(label))
     assert targets.dtype == torch.int64
