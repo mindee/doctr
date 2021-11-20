@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import os
 from typing import Any, Callable, List, Optional, Tuple
 from random import SystemRandom
 
@@ -18,6 +19,7 @@ from ..utils import encode_sequences
 from ..vocabs import VOCABS
 
 save_rnd = SystemRandom()
+os.environ["PYTHONIOENCODING"] = "utf-8"  # TODO: remove this for example with a set of language supported fonts ?
 
 
 def generate_random_string(lang: str, length: int, variable_length: bool) -> str:
