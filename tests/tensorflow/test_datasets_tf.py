@@ -175,7 +175,7 @@ def test_wordgenerator():
     assert isinstance(image, tf.Tensor)
     assert image.shape[:2] == input_size
     assert image.dtype == tf.float32
-    assert isinstance(label, np.ndarray())
+    assert isinstance(label, np.ndarray)
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))

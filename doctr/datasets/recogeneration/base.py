@@ -63,11 +63,11 @@ def synthesize_word_img(word: str, size: tuple, background: int,
         background = save_rnd.randint(0, 1)
 
     if background == 0:
-        img = Image.new("L", (size[1], size[0]), 255).convert("RGBA")
+        img = Image.new("L", (size[1], size[0]), 255).convert("RGB")
     elif background == 1:
         image = np.ones((size[0], size[1])) * 255
         cv2.randn(image, 235, 10)
-        img = Image.fromarray(image).convert("RGBA")
+        img = Image.fromarray(image).convert("RGB")
     else:
         raise ValueError(f'unknown background: {background}\nchoose one from: 0 - white, 1 - noisy, 2 - random')
 
