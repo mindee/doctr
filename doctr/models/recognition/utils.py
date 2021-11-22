@@ -34,9 +34,9 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
         return b if len(a) == 0 else b
 
     # Initialize merging index and corresponding score (mean Levenstein)
-    min_score, index = 1, 0  # No overlap, just concatenate
+    min_score, index = 1., 0  # No overlap, just concatenate
 
-    scores = [levenshtein(a[-i:], b[:i]) / i for i in range(1, seq_len + 1)]
+    scores = [levenshtein(a[-i:], b[:i], processor=None) / i for i in range(1, seq_len + 1)]
 
     # Edge case (split in the middle of char repetitions): if it starts with 2 or more 0
     if len(scores) > 1 and (scores[0], scores[1]) == (0, 0):
