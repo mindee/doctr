@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 from doctr.models.builder import DocumentBuilder
 from .._utils import extract_crops, extract_rcrops
@@ -33,7 +33,7 @@ class _OCRPredictor:
         extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
 
         crops = [
-            extraction_fn(page, _boxes[:, :-1], channels_last=channels_last)
+            extraction_fn(page, _boxes[:, :-1], channels_last=channels_last)  # type: ignore[operator]
             for page, _boxes in zip(pages, loc_preds)
         ]
         return crops
