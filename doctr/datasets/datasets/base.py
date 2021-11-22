@@ -60,6 +60,7 @@ class _AbstractDataset:
 
 class _VisionDataset(_AbstractDataset):
     """Implements an abstract dataset
+
     Args:
         url: URL of the dataset
         file_name: name of the file once downloaded
