@@ -49,22 +49,17 @@ def download_from_url(
     hash_prefix: Optional[str] = None,
     cache_dir: Optional[str] = None,
     cache_subdir: Optional[str] = None,
-    check_hash: bool = True,
 ) -> Path:
     """Download a file using its URL
-
     Example::
         >>> from doctr.models import download_from_url
         >>> download_from_url("https://yoursource.com/yourcheckpoint-yourhash.zip")
-
     Args:
         url: the URL of the file to download
         file_name: optional name of the file once downloaded
         hash_prefix: optional expected SHA256 hash of the file
         cache_dir: cache directory
         cache_subdir: subfolder to use in the cache
-        check_hash: whether to check the SHA256 hash of the file
-
     Returns:
         the location of the downloaded file
     """
@@ -83,7 +78,7 @@ def download_from_url(
     folder_path = Path(cache_dir) if cache_subdir is None else Path(cache_dir, cache_subdir)
     file_path = folder_path.joinpath(file_name)
     # Check file existence
-    if file_path.is_file() and (hash_prefix is None or not check_hash or _check_integrity(file_path, hash_prefix)):
+    if file_path.is_file() and (hash_prefix is None or _check_integrity(file_path, hash_prefix)):
         logging.info(f"Using downloaded & verified file: {file_path}")
         return file_path
 

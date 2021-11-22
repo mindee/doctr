@@ -18,25 +18,39 @@ def test_visiondataset():
 
 
 @pytest.mark.parametrize(
-    "dataset_name, train, input_size, size, rotate, download",
+    "dataset_name, train, input_size, size, rotate",
     [
-        ['FUNSD', True, [512, 512], 149, False, True],
-        ['FUNSD', False, [512, 512], 50, True, True],
-        ['SROIE', True, [512, 512], 626, False, True],
-        ['SROIE', False, [512, 512], 360, False, True],
-        ['CORD', True, [512, 512], 800, True, True],
-        ['CORD', False, [512, 512], 100, False, True],
-        ['DocArtefacts', True, [512, 512], 2700, False, True],
-        ['DocArtefacts', False, [512, 512], 300, True, True],
-        ['IIIT5K', True, [32, 128], 2000, True, True],
-        ['IIIT5K', False, [32, 128], 3000, False, True],
-        ['SVT', True, [512, 512], 100, True, True],
-        ['SVT', False, [512, 512], 249, False, True],
-        ['SynthText', True, [512, 512], 27, False, False],
-        ['SynthText', False, [512, 512], 3, True, False],
+        ['FUNSD', True, [512, 512], 149, False],
+        ['FUNSD', False, [512, 512], 50, True],
+        ['SROIE', True, [512, 512], 626, False],
+        ['SROIE', False, [512, 512], 360, False],
+        ['CORD', True, [512, 512], 800, True],
+        ['CORD', False, [512, 512], 100, False],
+        ['DocArtefacts', True, [512, 512], 2700, False],
+        ['DocArtefacts', False, [512, 512], 300, True],
+        ['IIIT5K', True, [32, 128], 2000, True],
+        ['IIIT5K', False, [32, 128], 3000, False],
+        ['SVT', True, [512, 512], 100, True],
+        ['SVT', False, [512, 512], 249, False],
+        ['SynthText', True, [512, 512], 27, True],  # org: 772875
+        ['SynthText', False, [512, 512], 3, False],  # org: 85875
     ],
 )
-def test_dataset(dataset_name, train, input_size, size, rotate, download):
+def test_dataset(dataset_name, train, input_size, size, rotate):
+
+    if dataset_name.lower() == 'synthtext':
+        download = False
+        monkeypatch = pytest.MonkeyPatch()
+
+        # download subsample of SynthText
+        # TODO: URL ?
+
+        def patch_file_hash():
+            return 'ff50d160b8276a77eb083283149543811a66161d1394d74bfd5e148e95b50234'
+
+        monkeypatch.setattr(datasets.datasets._VisionDataset, 'file_hash', patch_file_hash)
+    else:
+        download = True
 
     ds = datasets.__dict__[dataset_name](
         train=train, download=download, sample_transforms=Resize(input_size), rotated_bbox=rotate,

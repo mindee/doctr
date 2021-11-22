@@ -60,7 +60,6 @@ class _AbstractDataset:
 
 class _VisionDataset(_AbstractDataset):
     """Implements an abstract dataset
-
     Args:
         url: URL of the dataset
         file_name: name of the file once downloaded
@@ -68,7 +67,6 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: whether the downloaded file is an archive to be extracted
         download: whether the dataset should be downloaded if not present on disk
         overwrite: whether the archive should be re-extracted
-        check_hash: whether to check the file's hash
     """
 
     def __init__(
@@ -79,7 +77,6 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: bool = False,
         download: bool = False,
         overwrite: bool = False,
-        check_hash: bool = True,
     ) -> None:
 
         dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
@@ -91,7 +88,7 @@ class _VisionDataset(_AbstractDataset):
         if not os.path.exists(archive_path) and not download:
             raise ValueError("the dataset needs to be downloaded first with download=True")
 
-        archive_path = download_from_url(url, file_name, file_hash, check_hash=check_hash, cache_subdir='datasets')
+        archive_path = download_from_url(url, file_name, file_hash, cache_subdir='datasets')
 
         # Extract the archive
         if extract_archive:
