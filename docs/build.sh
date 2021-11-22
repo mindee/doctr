@@ -17,12 +17,12 @@ function deploy_doc(){
             echo "Pushing version" $2
             cp -r _static source/ && cp _conf.py source/conf.py
             sphinx-build source _build -a
-            mkdir build/$2 && cp -a _build/* build/$2/ && git checkout source/
+            mkdir build/$2 && cp -a _build/* build/$2/ && git checkout source/ && git clean -f source/
         fi
     else
         echo "Pushing stable"
         cp -r _static source/ && cp _conf.py source/conf.py
-        sphinx-build source build -a && git checkout source/
+        sphinx-build source build -a && git checkout source/ && git clean -f source/
     fi
 }
 
@@ -40,4 +40,4 @@ deploy_doc "3f051346" v0.3.0
 deploy_doc "369a787d" v0.3.1
 deploy_doc "51663ddf" v0.4.0
 deploy_doc "74ff9ffb" # v0.4.1 Latest stable release
-rm -rf _build _static
+rm -rf _build _static _conf.py
