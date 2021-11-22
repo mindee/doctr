@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.datasets &mdash; docTR 0.3.1a0-git documentation</title>
+  <title>doctr.datasets &mdash; docTR 0.4.0a0-git documentation</title>
   
 
   
@@ -44,7 +44,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="doctr.io" href="io.html" />
-    <link rel="prev" title="Changelog" href="changelog.html" /> 
+    <link rel="prev" title="Preparing your model for inference" href="using_model_export.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -88,7 +88,8 @@
               
             
             
-              <ul>
+              <p><span class="caption-text">Getting started</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
@@ -96,14 +97,35 @@
 </ul>
 </li>
 </ul>
-<p><span class="caption-text">Notes</span></p>
+<p><span class="caption-text">Using DocTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#available-architectures">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#id1">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#id3">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#model-compression">Model compression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#half-precision">Half-precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#using-savedmodel">Using SavedModel</a></li>
 </ul>
 </li>
 </ul>
@@ -129,28 +151,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#export-model-output">Export model output</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#model-compression">Model compression</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#using-savedmodel">Using SavedModel</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
@@ -161,6 +165,18 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -233,12 +249,6 @@
 can be a significant save of time.</p>
 <section id="available-datasets">
 <span id="datasets"></span><h2>Available Datasets<a class="headerlink" href="#available-datasets" title="Permalink to this headline">¶</a></h2>
-<p>The datasets from DocTR inherit from an abstract class that handles verified downloading from a given URL.</p>
-<dl class="py class">
-<dt id="doctr.datasets.datasets.VisionDataset">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.datasets.</code><code class="sig-name descname">VisionDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">file_name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">file_hash</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">extract_archive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">download</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">overwrite</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fp16</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/datasets/tensorflow.html#VisionDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.datasets.VisionDataset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <p>Here are all datasets that are available through DocTR:</p>
 <dl class="py class">
 <dt id="doctr.datasets.FUNSD">
@@ -314,7 +324,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.OCRDataset">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">OCRDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">OCRDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements an OCR dataset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -322,7 +332,6 @@ can be a significant save of time.</p>
 <li><p><strong>img_folder</strong> – local path to image folder (all jpg at the root)</p></li>
 <li><p><strong>label_file</strong> – local path to the label file</p></li>
 <li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -420,12 +429,32 @@ of vocabs.</p>
 <td><p>£€¥¢฿</p></td>
 </tr>
 <tr class="row-even"><td><p>latin</p></td>
-<td><p>96</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°</p></td>
+<td><p>94</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
+</tr>
+<tr class="row-odd"><td><p>english</p></td>
+<td><p>100</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>legacy_french</p></td>
+<td><p>123</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿</p></td>
 </tr>
 <tr class="row-odd"><td><p>french</p></td>
-<td><p>154</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿</p></td>
+<td><p>126</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ</p></td>
+</tr>
+<tr class="row-even"><td><p>portuguese</p></td>
+<td><p>131</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ¡¿</p></td>
+</tr>
+<tr class="row-odd"><td><p>spanish</p></td>
+<td><p>116</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ¡¿</p></td>
+</tr>
+<tr class="row-even"><td><p>german</p></td>
+<td><p>108</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ</p></td>
 </tr>
 </tbody>
 </table>
@@ -465,7 +494,7 @@ of vocabs.</p>
         <a href="io.html" class="btn btn-neutral float-right" title="doctr.io" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="changelog.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="using_model_export.html" class="btn btn-neutral float-left" title="Preparing your model for inference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

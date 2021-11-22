@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Choosing the right model &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>Choosing the right model &mdash; docTR 0.4.0a0-git documentation</title>
   
 
   
@@ -44,7 +44,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Preparing your model for inference" href="using_model_export.html" />
-    <link rel="prev" title="docTR Notebooks" href="notebooks.html" /> 
+    <link rel="prev" title="Installation" href="installing.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,9 +96,8 @@
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Using DocTR</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Choosing the right model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#text-detection">Text Detection</a><ul>
@@ -172,8 +171,6 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
@@ -250,7 +247,7 @@
 <h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Permalink to this headline">¶</a></h1>
 <p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
-<p>For a given task, docTR provides a Predictor, which is composed of 2 components:</p>
+<p>For a given task, DocTR provides a Predictor, which is composed of 2 components:</p>
 <ul class="simple">
 <li><p>PreProcessor: a module in charge of making inputs directly usable by the deep learning model.</p></li>
 <li><p>Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow &amp; PyTorch) along with its specific post-processor to make outputs structured and reusable.</p></li>
@@ -258,7 +255,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <section id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
 <p>The task consists of localizing textual elements in a given image.
-While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).</p>
+While those text elements can represent many things, in DocTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).</p>
 <section id="available-architectures">
 <h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this headline">¶</a></h3>
 <p>The following architectures are currently supported:</p>
@@ -377,15 +374,15 @@ Explanations about the metrics being used are available in <a class="reference i
 <tr class="row-odd"><td><p>crnn_mobilenet_v3_small</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>2.1M</p></td>
-<td><p>86.21</p></td>
-<td><p>90.56</p></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p>crnn_mobilenet_v3_large</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>4.5M</p></td>
-<td><p>86.95</p></td>
-<td><p>92.03</p></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p>sar_resnet31</p></td>
@@ -432,7 +429,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
 <section id="id3">
 <h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>You can use any combination of detection and recognition models supporte by docTR.</p>
+<p>You can use any combination of detection and recognition models supporte by DocTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -483,22 +480,6 @@ Explanations about the metric being used (exact match) are available in <a class
 <td><p><strong>81.96</strong></p></td>
 <td><p>0.83</p></td>
 </tr>
-<tr class="row-even"><td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
-<td><p>69.85</p></td>
-<td><p>74.80</p></td>
-<td></td>
-<td><p>80.85</p></td>
-<td><p>78.42</p></td>
-<td><p>0.83</p></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
-<td><p>70.57</p></td>
-<td><p>75.57</p></td>
-<td></td>
-<td><p>82.57</p></td>
-<td><p>80.08</p></td>
-<td><p>0.83</p></td>
-</tr>
 <tr class="row-even"><td><p>db_mobilenet_v3_large + crnn_vgg16_bn</p></td>
 <td><p>67.73</p></td>
 <td><p>71.73</p></td>
@@ -540,19 +521,15 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 22%" />
-<col style="width: 6%" />
-<col style="width: 7%" />
-<col style="width: 6%" />
-<col style="width: 7%" />
-<col style="width: 6%" />
-<col style="width: 7%" />
-<col style="width: 6%" />
-<col style="width: 7%" />
-<col style="width: 6%" />
-<col style="width: 7%" />
-<col style="width: 6%" />
-<col style="width: 7%" />
+<col style="width: 30%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
+<col style="width: 8%" />
+<col style="width: 10%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
@@ -560,16 +537,10 @@ Explanations about the metrics being used are available in <a class="reference i
 <th class="head" colspan="2"><p>Invoices</p></th>
 <th class="head" colspan="2"><p>IDs</p></th>
 <th class="head" colspan="2"><p>US Tax Forms</p></th>
-<th class="head" colspan="2"><p>Resumes</p></th>
-<th class="head" colspan="2"><p>Road Fines</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>Architecture</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
@@ -588,10 +559,6 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p>51.78</p></td>
 <td><p>79.08</p></td>
 <td><p>92.83</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
 </tr>
 <tr class="row-even"><td><p>db_resnet50 + master (ours)</p></td>
 <td><p><strong>79.00</strong></p></td>
@@ -602,10 +569,6 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p>52.90</p></td>
 <td><p>78.86</p></td>
 <td><p>92.57</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + sar_resnet31 (ours)</p></td>
 <td><p>78.94</p></td>
@@ -616,38 +579,6 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p><strong>53.35</strong></p></td>
 <td><p>79.04</p></td>
 <td><p>92.78</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>db_resnet50 + crnn_mobilenet_v3_small (ours)</p></td>
-<td><p>76.81</p></td>
-<td><p>79.15</p></td>
-<td><p>64.89</p></td>
-<td><p>69.61</p></td>
-<td><p>45.03</p></td>
-<td><p>46.38</p></td>
-<td><p>78.96</p></td>
-<td><p>92.11</p></td>
-<td><p>85.91</p></td>
-<td><p>87.20</p></td>
-<td><p>84.85</p></td>
-<td><p>85.86</p></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + crnn_mobilenet_v3_large (ours)</p></td>
-<td><p>78.01</p></td>
-<td><p>80.39</p></td>
-<td><p>65.36</p></td>
-<td><p>70.11</p></td>
-<td><p>48.00</p></td>
-<td><p>49.43</p></td>
-<td><p>79.39</p></td>
-<td><p>92.62</p></td>
-<td><p>87.68</p></td>
-<td><p>89.00</p></td>
-<td><p>85.65</p></td>
-<td><p>86.67</p></td>
 </tr>
 <tr class="row-even"><td><p>db_mobilenet_v3_large + crnn_vgg16_bn (ours)</p></td>
 <td><p>78.36</p></td>
@@ -658,10 +589,6 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p>41.75</p></td>
 <td><p>72.14</p></td>
 <td><p>89.97</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
 </tr>
 <tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
 <td><p>68.91</p></td>
@@ -672,10 +599,6 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p>29.21</p></td>
 <td><p>69.79</p></td>
 <td><p>65.68</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
 </tr>
 <tr class="row-even"><td><p>AWS textract</p></td>
 <td><p>75.77</p></td>
@@ -686,10 +609,6 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p>43.32</p></td>
 <td><p><strong>84.31</strong></p></td>
 <td><p><strong>98.11</strong></p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
 </tr>
 </tbody>
 </table>
@@ -772,37 +691,6 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
-  <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-  <span class="n">xml_element</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</pre></div>
-</div>
-<p>For reference, here is a sample XML byte string output:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xml:lang=&quot;en&quot;&gt;
-  &lt;head&gt;
-    &lt;title&gt;docTR - hOCR&lt;/title&gt;
-    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
-    &lt;meta name=&quot;ocr-system&quot; content=&quot;doctr 0.5.0&quot; /&gt;
-    &lt;meta name=&quot;ocr-capabilities&quot; content=&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot; /&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;div class=&quot;ocr_page&quot; id=&quot;page_1&quot; title=&quot;image; bbox 0 0 3456 3456; ppageno 0&quot; /&gt;
-    &lt;div class=&quot;ocr_carea&quot; id=&quot;block_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
-      &lt;p class=&quot;ocr_par&quot; id=&quot;par_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
-        &lt;span class=&quot;ocr_line&quot; id=&quot;line_1_1&quot; title=&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_1&quot; title=&quot;bbox 1552 540 1778 580; x_wconf 99&quot;&gt;Hello&lt;/span&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_2&quot; title=&quot;bbox 1782 529 1900 583; x_wconf 99&quot;&gt;XML&lt;/span&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_3&quot; title=&quot;bbox 1420 597 1684 641; x_wconf 81&quot;&gt;World&lt;/span&gt;
-        &lt;/span&gt;
-      &lt;/p&gt;
-    &lt;/div&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
-</pre></div>
-</div>
 </section>
 </section>
 </section>
@@ -818,7 +706,7 @@ To get a better understanding of our document model, check our <a class="referen
         <a href="using_model_export.html" class="btn btn-neutral float-right" title="Preparing your model for inference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="notebooks.html" class="btn btn-neutral float-left" title="docTR Notebooks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="installing.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

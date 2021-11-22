@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.transforms &mdash; docTR 0.3.1a0-git documentation</title>
+  <title>doctr.transforms &mdash; docTR 0.4.0a0-git documentation</title>
   
 
   
@@ -88,7 +88,8 @@
               
             
             
-              <ul>
+              <p><span class="caption-text">Getting started</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
@@ -96,14 +97,35 @@
 </ul>
 </li>
 </ul>
-<p><span class="caption-text">Notes</span></p>
+<p><span class="caption-text">Using DocTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#available-architectures">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#id1">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#id3">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#model-compression">Model compression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#half-precision">Half-precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#using-savedmodel">Using SavedModel</a></li>
 </ul>
 </li>
 </ul>
@@ -129,28 +151,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#export-model-output">Export model output</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#model-compression">Model compression</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#using-savedmodel">Using SavedModel</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.transforms</a><ul>
@@ -161,6 +165,18 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -465,14 +481,28 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt id="doctr.transforms.RandomRotate">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomRotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_angle</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">25.0</span></em>, <em class="sig-param"><span class="n">expand</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomRotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomRotate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Randomly rotate a tensor image</p>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomRotate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_angle</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">5.0</span></em>, <em class="sig-param"><span class="n">expand</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomRotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomRotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly rotate a tensor image and its boxes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>max_angle</strong> – maximum angle for rotation, in degrees. Angles will be uniformly picked in
 [-max_angle, max_angle]</p></li>
 <li><p><strong>expand</strong> – whether the image should be padded before the rotation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.RandomCrop">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomCrop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scale</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(0.08, 1.0)</span></em>, <em class="sig-param"><span class="n">ratio</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(0.75, 1.33)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/base.html#RandomCrop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomCrop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly crop a tensor image and its boxes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> – tuple of floats, relative (min_area, max_area) of the crop</p></li>
+<li><p><strong>ratio</strong> – tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</p></li>
 </ul>
 </dd>
 </dl>

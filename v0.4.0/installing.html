@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation &mdash; docTR 0.3.1a0-git documentation</title>
+  <title>Installation &mdash; docTR 0.4.0a0-git documentation</title>
   
 
   
@@ -43,7 +43,7 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="next" title="Choosing the right model" href="using_models.html" />
     <link rel="prev" title="DocTR: Document Text Recognition" href="index.html" /> 
 </head>
 
@@ -88,7 +88,8 @@
               
             
             
-              <ul class="current">
+              <p><span class="caption-text">Getting started</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#via-python-package">Via Python Package</a></li>
@@ -96,14 +97,35 @@
 </ul>
 </li>
 </ul>
-<p><span class="caption-text">Notes</span></p>
+<p><span class="caption-text">Using DocTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#available-architectures">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#id1">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#id3">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#model-compression">Model compression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#half-precision">Half-precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#using-savedmodel">Using SavedModel</a></li>
 </ul>
 </li>
 </ul>
@@ -129,28 +151,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#export-model-output">Export model output</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#model-compression">Model compression</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#using-savedmodel">Using SavedModel</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
@@ -161,6 +165,18 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -229,16 +245,16 @@
             
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>This library requires Python 3.6 or higher.</p>
+<p>This library requires <a class="reference external" href="https://www.python.org/downloads/">Python</a> 3.6 or higher.</p>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <p>Whichever OS you are running, you will need to install at least TensorFlow or PyTorch. You can refer to their corresponding installation pages to do so:</p>
 <ul class="simple">
-<li><p>TensorFlow: <a class="reference external" href="https://www.tensorflow.org/install/">installation page</a>.</p></li>
-<li><p>PyTorch: <a class="reference external" href="https://pytorch.org/get-started/locally/#start-locally">installation page</a>.</p></li>
+<li><p><a class="reference external" href="https://www.tensorflow.org/install/">TensorFlow 2</a></p></li>
+<li><p><a class="reference external" href="https://pytorch.org/get-started/locally/#start-locally">PyTorch</a></p></li>
 </ul>
 <p>If you are running another OS than Linux, you will need a few extra dependencies.</p>
-<p>For MacOS users, you can install them as follows:</p>
+<p>For MacOS users, you can install them using <a class="reference external" href="https://brew.sh/">Homebrew</a> as follows:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew install cairo pango gdk-pixbuf libffi
 </pre></div>
 </div>
@@ -246,7 +262,7 @@
 </section>
 <section id="via-python-package">
 <h2>Via Python Package<a class="headerlink" href="#via-python-package" title="Permalink to this headline">¶</a></h2>
-<p>Install the last stable release of the package using pip:</p>
+<p>Install the last stable release of the package using <a class="reference external" href="https://pip.pypa.io/en/stable/installation/">pip</a>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install python-doctr
 </pre></div>
 </div>
@@ -265,15 +281,14 @@ pip install python-doctr<span class="o">[</span>torch<span class="o">]</span>
 pip install -e doctr/.
 </pre></div>
 </div>
-<p>Again, for framework-specific builds:
-.. code:: bash</p>
-<blockquote>
-<div><p>git clone <a class="reference external" href="https://github.com/mindee/doctr.git">https://github.com/mindee/doctr.git</a>
-# for TensorFlow
-pip install -e doctr/.[tf]
-# for PyTorch
-pip install -e doctr/.[torch]</p>
-</div></blockquote>
+<p>Again, for framework-specific builds:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/mindee/doctr.git
+<span class="c1"># for TensorFlow</span>
+pip install -e doctr/.<span class="o">[</span>tf<span class="o">]</span>
+<span class="c1"># for PyTorch</span>
+pip install -e doctr/.<span class="o">[</span>torch<span class="o">]</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -285,7 +300,7 @@ pip install -e doctr/.[torch]</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="using_models.html" class="btn btn-neutral float-right" title="Choosing the right model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="DocTR: Document Text Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
