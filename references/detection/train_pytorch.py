@@ -85,7 +85,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         else:
             out = model(images, targets, return_boxes=True)
         # Compute metric
-        loc_preds, _ = out['preds']
+        loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
