@@ -43,18 +43,14 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
         download = False
         monkeypatch = pytest.MonkeyPatch()
 
-        url = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-ff50d160.zip'
-        file_hash = 'ff50d160b8276a77eb083283149543811a66161d1394d74bfd5e148e95b50234'
+        url = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
+        file_hash = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
         file_name = 'SynthText.zip'
         download_from_url(url, file_name, file_hash, cache_subdir='datasets')
 
         def patch_file_hash():
             return file_hash
 
-        def patch_path():
-            return '~/.cache/doctr/datasets/SynthText'
-
-        monkeypatch.setattr(datasets.datasets._AbstractDataset, 'root', patch_path)
         monkeypatch.setattr(datasets.datasets._VisionDataset, 'file_hash', patch_file_hash)
     else:
         download = True
