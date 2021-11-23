@@ -116,7 +116,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.assume_straight_pages:
                 _box = self.polygon_to_box(points)
             else:
-                self.polygon_to_box(np.squeeze(contour))
+                _box = self.polygon_to_box(np.squeeze(contour))
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue

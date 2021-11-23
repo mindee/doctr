@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import numpy as np
-from typing import Callable, List, Tuple
+from typing import List, Tuple
 
 from doctr.models.builder import DocumentBuilder
 from .._utils import extract_crops, extract_rcrops
