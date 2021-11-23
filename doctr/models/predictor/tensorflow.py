@@ -65,9 +65,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        boxes, text_preds = self._process_predictions(
-            loc_preds, word_preds, allow_rotated_boxes=not self.doc_builder.export_as_straight_boxes
-        )
+        boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
         out = self.doc_builder(boxes, text_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
         return out

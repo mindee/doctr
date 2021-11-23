@@ -36,7 +36,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if out_prob:
         assert torch.all((out['out_map'] >= 0) & (out['out_map'] <= 1))
     # Check boxes
-    for boxes in out['preds'][0]:
+    for boxes in out['preds']:
         assert boxes.shape[1] == 5
         assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
@@ -66,6 +66,4 @@ def test_detection_zoo(arch_name):
 
     with torch.no_grad():
         out = predictor(input_tensor)
-    assert all(isinstance(out_img, tuple) for out_img in out)
-    all_boxes, _ = zip(*out)
-    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in all_boxes)
+    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
