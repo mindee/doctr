@@ -48,4 +48,4 @@ class DetectionPredictor(nn.Module):
             self.model(batch, return_boxes=True, **kwargs)['preds']  # type:ignore[operator]
             for batch in processed_batches
         ]
-        return [pred for batch in predicted_batches for pred in zip(*batch)]
+        return [pred for batch in predicted_batches for pred in batch]
