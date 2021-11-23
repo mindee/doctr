@@ -8,9 +8,9 @@ import os
 os.environ['USE_TORCH'] = '1'
 
 import datetime
+import logging
 import multiprocessing as mp
 import time
-import logging
 
 import numpy as np
 import torch
