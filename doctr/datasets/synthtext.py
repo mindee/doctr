@@ -71,7 +71,8 @@ class SynthText(VisionDataset):
                 # x_center, y_center, w, h, alpha = 0
                 mins = word_boxes.min(axis=1)
                 maxs = word_boxes.max(axis=1)
-                box_targets = np.concatenate(((mins + maxs) / 2, maxs - mins, np.zeros(word_boxes.shape[0])), axis=1)
+                box_targets = np.concatenate(
+                    ((mins + maxs) / 2, maxs - mins, np.expand_dims(np.zeros(word_boxes.shape[0]), axis=1)), axis=1)
             else:
                 # xmin, ymin, xmax, ymax
                 box_targets = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)

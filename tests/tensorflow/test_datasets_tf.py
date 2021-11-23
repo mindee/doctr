@@ -31,17 +31,12 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
 
     if dataset_name.lower() == 'synthtext':
         download = False
-        #monkeypatch = pytest.MonkeyPatch()
 
-        url = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
-        file_hash = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
-        file_name = 'SynthText.zip'
-        download_from_url(url, file_name, file_hash, cache_subdir='datasets')
-
-        #def patch_file_hash():
-        #    return file_hash
-
-        #monkeypatch.setattr(datasets.datasets._VisionDataset, 'file_hash', patch_file_hash)
+        # Download the subsample of SynthText dataset and save in cache
+        URL = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
+        FILE_HASH = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
+        FILE_NAME = 'SynthText.zip'
+        download_from_url(URL, FILE_NAME, FILE_HASH, cache_subdir='datasets')
     else:
         download = True
 
