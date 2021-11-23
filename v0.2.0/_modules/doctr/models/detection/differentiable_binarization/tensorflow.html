@@ -328,7 +328,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
-<span class="sd">        rotated_bbox: whether the segmentation map can include rotated bounding boxes</span>
+<span class="sd">        assume_straight_pages: if True, fit straight bounding boxes only</span>
 <span class="sd">        cfg: the configuration dict of the model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -338,7 +338,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">feature_extractor</span><span class="p">:</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span>
         <span class="n">fpn_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>  <span class="c1"># to be set to 256 to represent the author&#39;s initial idea</span>
-        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
@@ -346,7 +346,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span> <span class="o">=</span> <span class="n">assume_straight_pages</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span> <span class="o">=</span> <span class="n">FeaturePyramidNetwork</span><span class="p">(</span><span class="n">channels</span><span class="o">=</span><span class="n">fpn_channels</span><span class="p">)</span>
         <span class="c1"># Initialize kernels</span>
@@ -372,7 +372,7 @@
             <span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">DBPostProcessor</span><span class="p">(</span><span class="n">rotated_bbox</span><span class="o">=</span><span class="n">rotated_bbox</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">DBPostProcessor</span><span class="p">(</span><span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

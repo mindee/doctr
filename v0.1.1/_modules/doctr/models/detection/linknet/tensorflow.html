@@ -294,12 +294,12 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span> <span class="o">=</span> <span class="n">assume_straight_pages</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">stem</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
             <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
@@ -330,7 +330,7 @@
             <span class="p">),</span>
         <span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LinkNetPostProcessor</span><span class="p">(</span><span class="n">rotated_bbox</span><span class="o">=</span><span class="n">rotated_bbox</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LinkNetPostProcessor</span><span class="p">(</span><span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
