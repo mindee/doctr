@@ -17,8 +17,8 @@ __all__ = ['SynthText']
 
 class SynthText(VisionDataset):
     """SynthText dataset from `"Synthetic Data for Text Localisation in Natural Images"
-    <https://arxiv.org/abs/1604.06646>`_ | `"repository" <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_ |
-    `"website" <https://github.com/ankush-me/SynthText>`_.
+    <https://arxiv.org/abs/1604.06646>`_ | `"repository" <https://github.com/ankush-me/SynthText>`_ |
+    `"website" <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_.
 
     Example::
         >>> from doctr.datasets import SynthText
