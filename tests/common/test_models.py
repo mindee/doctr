@@ -97,4 +97,4 @@ def test_estimate_orientation(mock_image):
 
     rotated = geometry.rotate_image(mock_image, -angle)
     angle_rotated = estimate_orientation(rotated)
-    assert abs(angle_rotated - 0.) < 1.
+    assert abs(angle_rotated) < 1.
