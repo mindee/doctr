@@ -16,18 +16,29 @@ def _predictor(
     det_arch: str,
     reco_arch: str,
     pretrained: bool,
+    assume_straight_pages: bool = True,
     det_bs: int = 2,
     reco_bs: int = 128,
     **kwargs,
 ) -> OCRPredictor:
 
     # Detection
-    det_predictor = detection_predictor(det_arch, pretrained=pretrained, batch_size=det_bs)
+    det_predictor = detection_predictor(
+        det_arch,
+        pretrained=pretrained,
+        batch_size=det_bs,
+        assume_straight_pages=assume_straight_pages
+    )
 
     # Recognition
     reco_predictor = recognition_predictor(reco_arch, pretrained=pretrained, batch_size=reco_bs)
 
-    return OCRPredictor(det_predictor, reco_predictor, **kwargs)
+    return OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=assume_straight_pages,
+        **kwargs
+    )
 
 
 def ocr_predictor(
