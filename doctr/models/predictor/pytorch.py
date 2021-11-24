@@ -31,9 +31,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             without rotated textual elements.
         export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
             (potentially rotated) as straight bounding boxes.
-        straighten_pages: if True, evaluates the page general orientation based on the median of each line orientation.
-            Then, rotates page before using Detection and Recognition Predictors. Then rotates page back to original
-            orientation. This improves the Detection and Recognition Predictors predictions.
+        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
+            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
+            accordingly. Doing so will improve performances for documents with page-uniform rotations.
 
     """
 
