@@ -21,6 +21,7 @@ Here are all datasets that are available through docTR:
 .. autoclass:: DocArtefacts
 .. autoclass:: IIIT5K
 .. autoclass:: SVT
+.. autoclass:: SynthText
 
 
 Data Loading
