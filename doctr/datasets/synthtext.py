@@ -58,7 +58,7 @@ class SynthText(VisionDataset):
         np_dtype = np.float32
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
-                                              desc='Load SynthText', total=len(paths)):
+                                              desc='Loading SynthText...', total=len(paths)):
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
@@ -72,7 +72,7 @@ class SynthText(VisionDataset):
                 mins = word_boxes.min(axis=1)
                 maxs = word_boxes.max(axis=1)
                 box_targets = np.concatenate(
-                    ((mins + maxs) / 2, maxs - mins, np.expand_dims(np.zeros(word_boxes.shape[0]), axis=1)), axis=1)
+                    ((mins + maxs) / 2, maxs - mins, np.zeros((word_boxes.shape[0], 1))), axis=1)
             else:
                 # xmin, ymin, xmax, ymax
                 box_targets = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)

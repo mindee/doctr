@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader, RandomSampler
 
 from doctr import datasets
 from doctr.transforms import Resize
-from doctr.utils.data import download_from_url
 
 
 def test_visiondataset():
@@ -33,25 +32,21 @@ def test_visiondataset():
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
         ['SVT', False, [512, 512], 249, False],
-        ['SynthText', True, [512, 512], 27, True],  # org: 772875
-        ['SynthText', False, [512, 512], 3, False],  # org: 85875
+        ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
+        ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
 
-    if dataset_name.lower() == 'synthtext':
-        download = False
-
-        # Download the subsample of SynthText dataset and save in cache
-        URL = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
-        FILE_HASH = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
-        FILE_NAME = 'SynthText.zip'
-        download_from_url(URL, FILE_NAME, FILE_HASH, cache_subdir='datasets')
-    else:
-        download = True
+    if dataset_name.lower() == "synthtext":
+        # Monkeypatch the class to download a subsample
+        datasets.__dict__[
+            dataset_name
+        ].URL = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
+        datasets.__dict__[dataset_name].SHA256 = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
 
     ds = datasets.__dict__[dataset_name](
-        train=train, download=download, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
 
     assert len(ds) == size
