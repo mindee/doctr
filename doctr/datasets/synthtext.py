@@ -51,9 +51,9 @@ class SynthText(VisionDataset):
         tmp_root = os.path.join(self.root, 'SynthText')
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
         split = int(len(mat_data['imnames'][0]) * 0.9)
-        paths = mat_data['imnames'][0][:split] if self.train else mat_data['imnames'][0][split:]
-        boxes = mat_data['wordBB'][0][:split] if self.train else mat_data['wordBB'][0][split:]
-        labels = mat_data['txt'][0][:split] if self.train else mat_data['txt'][0][split:]
+        paths = mat_data['imnames'][0][slice(split) if self.train else slice(split, None)]
+        boxes = mat_data['wordBB'][0][slice(split) if self.train else slice(split, None)]
+        labels = mat_data['txt'][0][slice(split) if self.train else slice(split, None)]
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
