@@ -235,7 +235,8 @@ def rotate_image(
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
-        preserve_origin_shape: whether the image should be resized to the original image size after the rotation
+        preserve_origin_shape: whether the image should be resized to the original image size after the rotation.
+            Only useful if expand is True.
 
     Returns:
         Rotated array, padded by 0 by default.
