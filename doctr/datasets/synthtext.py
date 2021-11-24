@@ -17,7 +17,8 @@ __all__ = ['SynthText']
 
 class SynthText(VisionDataset):
     """SynthText dataset from `"Synthetic Data for Text Localisation in Natural Images"
-    <https://arxiv.org/abs/1604.06646>`_.
+    <https://arxiv.org/abs/1604.06646>`_ | `"repository" <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_ |
+    `"website" <https://github.com/ankush-me/SynthText>`_.
 
     Example::
         >>> from doctr.datasets import SynthText
@@ -32,7 +33,7 @@ class SynthText(VisionDataset):
     """
 
     URL = 'https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip'
-    #SHA256 = '28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1'
+    SHA256 = '28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1'
 
     def __init__(
         self,
@@ -50,9 +51,9 @@ class SynthText(VisionDataset):
         tmp_root = os.path.join(self.root, 'SynthText')
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
         split = int(len(mat_data['imnames'][0]) * 0.9)
-        paths = mat_data['imnames'][0][:split] if self.train else mat_data['imnames'][0][split:]
-        boxes = mat_data['wordBB'][0][:split] if self.train else mat_data['wordBB'][0][split:]
-        labels = mat_data['txt'][0][:split] if self.train else mat_data['txt'][0][split:]
+        paths = mat_data['imnames'][0][:split if self.train else split:]
+        boxes = mat_data['wordBB'][0][:split if self.train else split:]
+        labels = mat_data['txt'][0][:split if self.train else split:]
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
