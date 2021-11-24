@@ -218,7 +218,7 @@ class DocumentBuilder(NestedObject):
             lines = self._resolve_lines(boxes)
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(boxes[:, :-1], lines)
+                _blocks = self._resolve_blocks(boxes, lines)
             else:
                 _blocks = [lines]
         else:

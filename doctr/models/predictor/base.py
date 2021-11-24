@@ -65,12 +65,13 @@ class _OCRPredictor:
         word_preds: List[Tuple[str, float]],
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
 
-        text_preds = []
+        boxes, text_preds = [], []
         if len(loc_preds) > 0:
             # Text
             _idx = 0
             for page_boxes in loc_preds:
+                boxes.append(page_boxes[:, :-1])
                 text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
                 _idx += page_boxes.shape[0]
 
-        return loc_preds, text_preds
+        return boxes, text_preds
