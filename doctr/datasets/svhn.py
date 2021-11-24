@@ -57,41 +57,51 @@ class SVHN(VisionDataset):
 
         # Load mat data (matlab v7.3 - can not be loaded with scipy)
         with h5py.File(os.path.join(tmp_root, 'digitStruct.mat'), 'r') as f:
-            names = f['digitStruct/name']
-            for idx in tqdm(iterable=range(len(names)), desc='Load SVHN', total=len(names)):
-                img_name = ''.join(map(chr, f[names[idx][0]][()].flatten()))
+            img_refs = f['digitStruct/name']
+            box_refs = f['digitStruct/bbox']
+            for img_ref, box_ref in tqdm(iterable=zip(img_refs, box_refs), desc='Loading SVHN...', total=len(img_refs)):
+                img_name = "".join(map(chr, f[img_ref[0]][()].flatten()))
 
                 # File existence check
                 if not os.path.exists(os.path.join(tmp_root, img_name)):
                     raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
 
-                x, y, width, height, labels = self._get_coords(f, idx)
-                label_targets = [str(label) for label in labels]
+                # Unpack the information
+                box = f[box_ref[0]]
+                if box['left'].shape[0] == 1:
+                    box_dict = {k: [int(vals[0][0])] for k, vals in box.items()}
+                else:
+                    box_dict = {k: [int(f[v[0]][()].item()) for v in vals] for k, vals in box.items()}
+
+                # Convert it to the right format
+                coords = np.array([
+                    box_dict['left'],
+                    box_dict['top'],
+                    box_dict['width'],
+                    box_dict['height']
+                ], dtype=np_dtype).transpose()
+                label_targets = list(map(str, box_dict['label']))
 
                 if rotated_bbox:
                     # x_center, y_center, w, h, alpha = 0
-                    box_targets = [[x + width / 2, y + height / 2, width, height, 0]
-                                   for x, y, width, height in zip(x, y, width, height)]
+                    box_targets = np.stack([
+                        coords[:, 0] + coords[:, 2] / 2,
+                        coords[:, 1] + coords[:, 3] / 2,
+                        coords[:, 2],
+                        coords[:, 3],
+                        np.zeros(coords.shape[0], dtype=np.dtype),
+                    ], axis=-1)
                 else:
                     # x, y, width, height -> xmin, ymin, xmax, ymax
-                    box_targets = [[x, y, x + width, y + height] for x, y, width, height in zip(x, y, width, height)]
-                self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=label_targets)))
+                    box_targets = np.stack([
+                        coords[:, 0],
+                        coords[:, 1],
+                        coords[:, 0] + coords[:, 2],
+                        coords[:, 1] + coords[:, 3],
+                    ], axis=-1)
+                self.data.append((img_name, dict(boxes=box_targets, labels=label_targets)))
 
         self.root = tmp_root
-
-    @staticmethod
-    def _get_coords(f, idx: int) -> Tuple[List[int], List[int], List[int], List[int], List[int]]:
-        """Get coordinates of the bounding boxes and the labels of the image with index idx."""
-        meta: Dict[str, List[int]] = {key: [] for key in ['height', 'left', 'top', 'width', 'label']}
-
-        bboxes = f['digitStruct/bbox']
-        box = f[bboxes[idx][0]]
-        for k, v in box.items():
-            if v.shape[0] == 1:
-                meta[k].append(int(v[0][0]))
-            else:
-                meta[k].extend([int(f[box[0]][()].item()) for box in v])
-        return (meta['left'], meta['top'], meta['width'], meta['height'], meta['label'])
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
