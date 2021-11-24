@@ -260,18 +260,29 @@
     <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">det_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="n">reco_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 
     <span class="c1"># Detection</span>
-    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">)</span>
+    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span>
+    <span class="p">)</span>
 
     <span class="c1"># Recognition</span>
     <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span><span class="n">det_predictor</span><span class="p">,</span> <span class="n">reco_predictor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span>
+        <span class="n">det_predictor</span><span class="p">,</span>
+        <span class="n">reco_predictor</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="ocr_predictor"><a class="viewcode-back" href="../../../models.html#doctr.models.ocr_predictor">[docs]</a><span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
