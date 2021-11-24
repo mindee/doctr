@@ -167,8 +167,10 @@ def remap_boxes(boxes: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tupl
     orig_height, orig_width = orig_shape
     dest_height, dest_width = dest_shape
     mboxes = boxes.copy()
+    # remaps position of the box center for the destination image shape
     mboxes[:, 0] = ((boxes[:, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
     mboxes[:, 1] = ((boxes[:, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
+    # remaps box dimension for the destination image shape
     mboxes[:, 2] = boxes[:, 2] * orig_width / dest_width
     mboxes[:, 3] = boxes[:, 3] * orig_height / dest_height
     return mboxes
