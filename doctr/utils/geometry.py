@@ -195,27 +195,28 @@ def rotate_boxes(
         A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
     """
     # Change format of the boxes to rotated boxes
-    if boxes.shape[1] == 4:
-        boxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
-                                 (boxes[:, 1] + boxes[:, 3]) / 2,
-                                 boxes[:, 2] - boxes[:, 0],
-                                 boxes[:, 3] - boxes[:, 1],
-                                 np.zeros(boxes.shape[0])))
+    _boxes = boxes.copy()
+    if _boxes.shape[1] == 4:
+        _boxes = np.column_stack(((_boxes[:, 0] + _boxes[:, 2]) / 2,
+                                  (_boxes[:, 1] + _boxes[:, 3]) / 2,
+                                  _boxes[:, 2] - _boxes[:, 0],
+                                  _boxes[:, 3] - _boxes[:, 1],
+                                  np.zeros(_boxes.shape[0])))
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
-        return boxes
+        return _boxes
     # Compute rotation matrix
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
     rotation_mat = np.array([
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
-    ], dtype=boxes.dtype)
+    ], dtype=_boxes.dtype)
     # Rotate centers
-    centers = np.stack((boxes[:, 0], boxes[:, 1]), axis=-1)
+    centers = np.stack((_boxes[:, 0], _boxes[:, 1]), axis=-1)
     rotated_centers = .5 + np.matmul(centers - .5, rotation_mat)
     x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
     # Compute rotated boxes
-    rotated_boxes = np.stack((x_center, y_center, boxes[:, 2], boxes[:, 3], angle * np.ones_like(boxes[:, 0])), axis=1)
+    rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0])), axis=1)
     # Apply a mask if requested
     if mask_shape is not None and orig_shape is not None:
         rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=mask_shape)
