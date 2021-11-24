@@ -268,7 +268,7 @@ class _DBNet:
 
         seg_target = np.zeros(output_shape, dtype=np.uint8)
         seg_mask = np.ones(output_shape, dtype=bool)
-        thresh_target = np.zeros(output_shape, dtype=np.uint8)
+        thresh_target = np.zeros(output_shape, dtype=np.float32)
         thresh_mask = np.ones(output_shape, dtype=np.uint8)
 
         for idx, _target in enumerate(target):
