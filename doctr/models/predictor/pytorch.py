@@ -27,9 +27,14 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     Args:
         det_predictor: detection module
         reco_predictor: recognition module
+        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
+            without rotated textual elements.
+        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
+            (potentially rotated) as straight bounding boxes.
         straighten_pages: if True, evaluates the page general orientation based on the median of each line orientation.
             Then, rotates page before using Detection and Recognition Predictors. Then rotates page back to original
             orientation. This improves the Detection and Recognition Predictors predictions.
+
     """
 
     def __init__(
@@ -77,9 +82,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
-        boxes, text_preds = self._process_predictions(
-            loc_preds, word_preds, allow_rotated_boxes=not self.doc_builder.export_as_straight_boxes
-        )
+        boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:

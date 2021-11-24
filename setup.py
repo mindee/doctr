@@ -14,7 +14,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-version = "0.4.1a0"
+version = "0.5.0a0"
 sha = 'Unknown'
 src_folder = 'doctr'
 package_index = 'python-doctr'

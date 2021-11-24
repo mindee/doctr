@@ -14,11 +14,11 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
-import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.ops import MultiScaleRoIAlign
 
+import wandb
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
 
