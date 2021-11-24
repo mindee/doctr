@@ -65,7 +65,7 @@ class SynthText(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
 
-            labels = '\n'.join(txt).split()
+            labels = [elt for word in txt.tolist() for elt in word.split()]
             word_boxes = word_boxes.transpose(2, 1, 0) if word_boxes.ndim == 3 else np.expand_dims(word_boxes, axis=0)
 
             if rotated_bbox:
