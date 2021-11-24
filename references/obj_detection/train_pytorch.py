@@ -9,6 +9,7 @@ os.environ['USE_TORCH'] = '1'
 
 import datetime
 import logging
+import random
 
 import numpy as np
 import torch
@@ -21,32 +22,57 @@ from torchvision.ops import MultiScaleRoIAlign
 
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
+from doctr.transforms.functional.pytorch import rotate
 
 
-def convert_to_abs_coords(targets, img_shape):
+def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
     height, width = img_shape[-2:]
-
     for idx in range(len(targets)):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
+    if is_transform:
+        if bool(random.getrandbits(1)):
+            angle = random.uniform(0.1, 5.0)
+        else:
+            angle = random.uniform(-0.1, -5.0)
+        bbox = np.array([i["boxes"] for i in targets], dtype=object)
+        images = kwargs.get('images',)
+        for id in range(len(bbox)):
+            images[id], bbox[id] = rotate(images[id], bbox[id], angle)
+            bbox_t = bbox[id][:, :4]
+            for z in range(len(bbox[id])):
+                bbox_t[z][0] = bbox[id][z][0] - bbox[id][z][2] / 2
+                bbox_t[z][1] = bbox[id][z][1] - bbox[id][z][3] / 2
+                bbox_t[z][2] = bbox_t[z][0] + bbox[id][z][2]
+                bbox_t[z][3] = bbox_t[z][1] + bbox[id][z][3]
+            bbox[id] = bbox_t
+        targets = [{
+            "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
+            "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
+            for bo, t in zip(bbox, targets)
+        ]
+        return images, targets
+    else:
+        targets = [{
+            "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
+            "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
+            for t in targets
+        ]
+        return targets
 
-    targets = [{
-        "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
-        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
-        for t in targets
-    ]
 
-    return targets
-
-
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, ):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=True, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
         optimizer.zero_grad()
-        targets = convert_to_abs_coords(targets, images.shape)
+        if is_transform:
+            kwargs = {"images": images}
+            images, targets = convert_to_abs_coords(targets, images.shape, is_transform=True, **kwargs)
+        else:
+            targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
@@ -65,6 +91,7 @@ def evaluate(model, val_loader, metric):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images, targets = next(val_iter)
+        # batch_transforms
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
@@ -86,7 +113,7 @@ def main(args):
         k: v for k, v in torchvision.models.detection.__dict__[args.arch](pretrained=True).state_dict().items()
         if not k.startswith('roi_heads.')
     }
-    defaults = {"min_size": 800, "max_size": 1300,
+    defaults = {"min_size": 700, "max_size": 1300,
                 "box_fg_iou_thresh": 0.5,
                 "box_bg_iou_thresh": 0.5,
                 "box_detections_per_img": 150, "box_score_thresh": 0.15, "box_positive_fraction": 0.35,
@@ -122,7 +149,7 @@ def main(args):
         model = model.cuda()
     optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
                           lr=args.lr, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     train_set = DocArtefacts(train=True, download=True)
     val_set = DocArtefacts(train=False, download=True)
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.workers,
@@ -138,7 +165,7 @@ def main(args):
     if args.test_only:
         print("Running evaluation")
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
-        print(f"Recall: {recall:.2%} | Precision: {precision:.2%} |IoU: {mean_iou:.2%}")
+        print(f"Recall: {recall:.2%} | Precision: {precision:.2%} | IoU: {mean_iou:.2%}")
         return
 
     # Training monitoring
@@ -168,7 +195,7 @@ def main(args):
     max_score = 0.
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=True)
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 
@@ -185,7 +212,8 @@ def main(args):
             })
         if f1_score > max_score:
             print(f"Validation metric increased {max_score:.6} --> {f1_score:.6}: saving state...")
-            torch.save(model.state_dict(), f"./{exp_name}.pt")
+            # torch.save(model.state_dict(), f"./{exp_name}.pt")
+            torch.save(model.state_dict(), f"./{epoch}.pt")
             max_score = f1_score
 
     if args.wb:
@@ -198,13 +226,13 @@ def parse_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
-    parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
-    parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
+    parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
+    parser.add_argument('-b', '--batch_size', type=int, default=8, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
-    # parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
+    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
-    parser.add_argument('-j', '--workers', type=int, default=14, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=2, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
