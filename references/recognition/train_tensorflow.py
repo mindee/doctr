@@ -10,6 +10,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
 import hashlib
+import multiprocessing as mp
 import time
 from pathlib import Path
 
@@ -74,6 +75,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 def main(args):
 
     print(args)
+
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
 
     # Load val data generator
     st = time.time()
@@ -229,7 +233,7 @@ def parse_args():
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
