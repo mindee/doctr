@@ -32,9 +32,18 @@ def test_visiondataset():
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
         ['SVT', False, [512, 512], 249, False],
+        ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
+        ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
+
+    if dataset_name.lower() == "synthtext":
+        # Monkeypatch the class to download a subsample
+        datasets.__dict__[
+            dataset_name
+        ].URL = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
+        datasets.__dict__[dataset_name].SHA256 = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
 
     ds = datasets.__dict__[dataset_name](
         train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,

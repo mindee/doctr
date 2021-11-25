@@ -20,13 +20,18 @@ elif is_torch_available():
     ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
 
 
-def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor:
+def _predictor(
+    arch: str,
+    pretrained: bool,
+    assume_straight_pages: bool = True,
+    **kwargs: Any
+) -> DetectionPredictor:
 
     if arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
     # Detection
-    _model = detection.__dict__[arch](pretrained=pretrained)
+    _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 1)
@@ -37,7 +42,12 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> DetectionPredictor
     return predictor
 
 
-def detection_predictor(arch: str = 'db_resnet50', pretrained: bool = False, **kwargs: Any) -> DetectionPredictor:
+def detection_predictor(
+    arch: str = 'db_resnet50',
+    pretrained: bool = False,
+    assume_straight_pages: bool = True,
+    **kwargs: Any
+) -> DetectionPredictor:
     """Text detection architecture.
 
     Example::
@@ -50,9 +60,10 @@ def detection_predictor(arch: str = 'db_resnet50', pretrained: bool = False, **k
     Args:
         arch: name of the architecture to use (e.g. 'db_resnet50')
         pretrained: If True, returns a model pre-trained on our text detection dataset
+        assume_straight_pages: If True, fit straight boxes to the page
 
     Returns:
         Detection predictor
     """
 
-    return _predictor(arch, pretrained, **kwargs)
+    return _predictor(arch, pretrained, assume_straight_pages, **kwargs)
