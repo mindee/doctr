@@ -67,24 +67,19 @@ class ICDAR2019(AbstractDataset):
                 _lines = [[x for x in line.split(',')] for line in f.readlines()]
                 labels = [line[9].strip() for line in _lines]
                 vocab_lang = [line[8] for line in _lines]
-                if not labels or not vocab_lang:
-                    continue
-                pts = [list(map(int, line[:8])) for line in _lines]
-                # xmin, ymin, xmax, ymax
-                coords = [[min(pt[0], pt[2], pt[4], pt[6]), min(pt[1], pt[3], pt[5], pt[7]),
-                           max(pt[0], pt[2], pt[4], pt[6]), max(pt[1], pt[3], pt[5], pt[7])]
-                          for pt in pts]
+                coords = np.array([np.array(list(map(int, line[:8]))).reshape((4, 2))
+                                  for line in _lines], dtype=np_dtype)
                 if rotated_bbox:
-                    # x_center, y_center, w, h, 0
-                    boxes = [[coord[0] + (coord[2] - coord[0]) / 2,
-                              coord[1] + (coord[3] - coord[1]) / 2,
-                              coord[2] - coord[0], coord[3] - coord[1], 0] for coord in coords]
+                    # x_center, y_center, w, h, alpha = 0
+                    mins = coords.min(axis=1)
+                    maxs = coords.max(axis=1)
+                    box_targets = np.concatenate(
+                        ((mins + maxs) / 2, maxs - mins, np.zeros((coords.shape[0], 1))), axis=1)
                 else:
                     # xmin, ymin, xmax, ymax
-                    boxes = [[coord[0], coord[1], coord[2], coord[3]] for coord in coords]
+                    box_targets = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
 
-                self.data.append((img_path, dict(boxes=np.asarray(
-                    boxes, dtype=np_dtype), languages=vocab_lang, labels=labels)))
+                self.data.append((img_path, dict(boxes=box_targets, languages=vocab_lang, labels=labels)))
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
         img, target = self._read_sample(index)
