@@ -194,6 +194,14 @@ Then run your app in your default browser with:
 streamlit run demo/app.py
 ```
 
+#### TensorFlow.js
+
+Instead of having your demo actually running Python, you would prefer to run everything in your web browser?
+Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to get started!
+
+![TFJS demo](https://github.com/mindee/doctr-tfjs-demo/releases/download/v0.1-models/demo_illustration_mini.png)
+
+
 ### Docker container
 
 If you wish to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
