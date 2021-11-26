@@ -80,11 +80,16 @@ class ICDAR2003(VisionDataset):
                      float(rect.attrib['y']) + float(rect.attrib['height'])]
                     for rect in rectangles
                 ]
+            # Convert them to relative
+            w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
+            boxes = np.asarray(_boxes, dtype=np_dtype)
+            boxes[:, [0, 2]] /= w
+            boxes[:, [1, 3]] /= h
 
             # Get the labels
             labels = [lab.text for rect in rectangles for lab in rect if lab.text]
 
-            self.data.append((name.text, dict(boxes=np.asarray(_boxes, dtype=np_dtype), labels=labels)))
+            self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 
