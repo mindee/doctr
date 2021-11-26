@@ -5,6 +5,7 @@ from .cord import *
 from .detection import *
 from .doc_artefacts import *
 from .funsd import *
+from .icdar19 import *
 from .iiit5k import *
 from .ocr import *
 from .recognition import *

@@ -22,6 +22,7 @@ Here are all datasets that are available through docTR:
 .. autoclass:: IIIT5K
 .. autoclass:: SVT
 .. autoclass:: SynthText
+.. autoclass:: ICDAR2019
 
 
 Data Loading

@@ -175,3 +175,32 @@ def test_charactergenerator():
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
     assert targets.dtype == torch.int64
+
+
+@pytest.mark.parametrize(
+    "train, size, rotate",
+    [
+        [True, 9, True],  # Actual set has 9000 samples
+        [False, 1, False],  # Actual set has 1000 samples
+    ],
+)
+def test_icdar19_dataset(mock_icdar19, train, size, rotate):
+    input_size = (512, 512)
+    ds = datasets.ICDAR2019(
+        *mock_icdar19,
+        sample_transforms=Resize(input_size),
+        train=train,
+        rotated_bbox=rotate,
+    )
+
+    assert len(ds) == size
+    img, target = ds[0]
+    assert isinstance(img, torch.Tensor)
+    assert img.shape[-2:] == input_size
+    assert img.dtype == torch.float32
+    assert isinstance(target, dict)
+
+    loader = DataLoader(ds, batch_size=1, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (1, 3, *input_size)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
