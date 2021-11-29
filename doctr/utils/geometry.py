@@ -218,7 +218,8 @@ def rotate_boxes(
     rotated_centers = .5 + np.matmul(centers - .5, rotation_mat)
     x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
     # Compute rotated boxes
-    rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0])), axis=1)
+    rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0])),
+                             axis=1)
     # Apply a mask if requested
     if mask_shape is not None and orig_shape is not None:
         rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=mask_shape)
