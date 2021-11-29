@@ -15,37 +15,37 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
-from torchvision import transforms
-import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision import transforms
 from torchvision.ops import MultiScaleRoIAlign
 
+import wandb
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
 
 
-def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray):
+def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray, width):
     if bool(random.getrandbits(1)):
         trans = transforms.RandomHorizontalFlip(p=1)
         transformed_ = trans(img)
         bbox_dup = bbox[:]
         for k in range(len(bbox)):
             for id in range(len(bbox[k])):
-                bbox_dup[k][id][0], bbox_dup[k][id][2] = 800 - bbox[k][id][2], 800 - bbox[k][id][0]
+                bbox_dup[k][id][0], bbox_dup[k][id][2] = width - bbox[k][id][2], width - bbox[k][id][0]
         return transformed_, bbox_dup
     else:
         return img, bbox
 
 
-def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray):
+def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray, height):
     if bool(random.getrandbits(1)):
         trans = transforms.RandomVerticalFlip(p=1.0)
         transformed_ = trans(img)
         bbox_dup = bbox[:]
         for k in range(len(bbox)):
             for id in range(len(bbox[k])):
-                bbox_dup[k][id][3], bbox_dup[k][id][1] = 1024 - bbox[k][id][1], 1024 - bbox[k][id][3]
+                bbox_dup[k][id][3], bbox_dup[k][id][1] = height - bbox[k][id][1], height - bbox[k][id][3]
         return (transformed_, bbox_dup)
     else:
         return img, bbox
@@ -59,8 +59,8 @@ def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
     if is_transform:
         bbox = np.array([i["boxes"] for i in targets], dtype=object)
         images = kwargs.get('images', )
-        images, bbox = random_vertical_flip(images, bbox)
-        images, bbox = random_horizontal_flip(images, bbox)
+        images, bbox = random_vertical_flip(images, bbox, height)
+        images, bbox = random_horizontal_flip(images, bbox, width)
         targets = [{
             "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
             "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
