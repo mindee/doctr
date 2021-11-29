@@ -313,6 +313,8 @@ class LocalizationConfusion:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
     """
 
     def __init__(
@@ -410,6 +412,8 @@ class OCRMetric:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
     """
 
     def __init__(
@@ -537,6 +541,8 @@ class DetectionMetric:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
     """
 
     def __init__(
