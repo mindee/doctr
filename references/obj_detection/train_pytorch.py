@@ -15,6 +15,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
+from torchvision import transforms
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -22,7 +23,32 @@ from torchvision.ops import MultiScaleRoIAlign
 
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
-from doctr.transforms.functional.pytorch import rotate
+
+
+def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray):
+    if bool(random.getrandbits(1)):
+        trans = transforms.RandomHorizontalFlip(p=1)
+        transformed_ = trans(img)
+        bbox_dup = bbox[:]
+        for k in range(len(bbox)):
+            for id in range(len(bbox[k])):
+                bbox_dup[k][id][0], bbox_dup[k][id][2] = 800 - bbox[k][id][2], 800 - bbox[k][id][0]
+        return transformed_, bbox_dup
+    else:
+        return img, bbox
+
+
+def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray):
+    if bool(random.getrandbits(1)):
+        trans = transforms.RandomVerticalFlip(p=1.0)
+        transformed_ = trans(img)
+        bbox_dup = bbox[:]
+        for k in range(len(bbox)):
+            for id in range(len(bbox[k])):
+                bbox_dup[k][id][3], bbox_dup[k][id][1] = 1024 - bbox[k][id][1], 1024 - bbox[k][id][3]
+        return (transformed_, bbox_dup)
+    else:
+        return img, bbox
 
 
 def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
@@ -31,26 +57,16 @@ def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
     if is_transform:
-        if bool(random.getrandbits(1)):
-            angle = random.uniform(0.1, 5.0)
-        else:
-            angle = random.uniform(-0.1, -5.0)
         bbox = np.array([i["boxes"] for i in targets], dtype=object)
-        images = kwargs.get('images',)
-        for id in range(len(bbox)):
-            images[id], bbox[id] = rotate(images[id], bbox[id], angle)
-            bbox_t = bbox[id][:, :4]
-            for z in range(len(bbox[id])):
-                bbox_t[z][0] = bbox[id][z][0] - bbox[id][z][2] / 2
-                bbox_t[z][1] = bbox[id][z][1] - bbox[id][z][3] / 2
-                bbox_t[z][2] = bbox_t[z][0] + bbox[id][z][2]
-                bbox_t[z][3] = bbox_t[z][1] + bbox[id][z][3]
-            bbox[id] = bbox_t
+        images = kwargs.get('images', )
+        images, bbox = random_vertical_flip(images, bbox)
+        images, bbox = random_horizontal_flip(images, bbox)
         targets = [{
             "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
             "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
             for bo, t in zip(bbox, targets)
         ]
+
         return images, targets
     else:
         targets = [{
@@ -76,6 +92,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=Tr
         if torch.cuda.is_available():
             images = images.cuda()
             targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
+
         loss_dict = model(images, targets)
         loss = sum(v for v in loss_dict.values())
         loss.backward()
@@ -195,7 +212,7 @@ def main(args):
     max_score = 0.
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=True)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=args.use_augmentations)
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 
@@ -229,6 +246,7 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=8, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
+    parser.add_argument('--use_augmentations', default=True, type=bool, help='augmentations')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
