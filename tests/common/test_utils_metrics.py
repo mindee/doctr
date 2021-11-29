@@ -68,6 +68,10 @@ def test_mask_iou(mask1, mask2, iou, abs_tol):
     if iou_mat.size > 0:
         assert abs(iou_mat - iou) <= abs_tol
 
+    # No broadcasting
+    iou_matbis = metrics.mask_iou(np.asarray(mask1), np.asarray(mask2), use_broadcasting=False)
+    assert np.all(iou_mat == iou_matbis)
+
     with pytest.raises(AssertionError):
         metrics.mask_iou(np.zeros((2, 3, 5), dtype=bool), np.ones((3, 2, 5), dtype=bool))
 
