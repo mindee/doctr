@@ -42,6 +42,7 @@ jobs:
       - name: Run isort
         run: |
           pip install isort
+          isort --version
           isort **/*.py --skip "**/__init_.py" --filter-files
           if [ -n "$(git status --porcelain --untracked-files=no)" ]; then exit 1; fi
 
