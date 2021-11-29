@@ -199,6 +199,8 @@ def test_icdar19_dataset(mock_icdar19, train, size, rotate):
     assert img.shape[-2:] == input_size
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
 
     loader = DataLoader(ds, batch_size=1, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
