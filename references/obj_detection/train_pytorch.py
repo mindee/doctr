@@ -123,6 +123,12 @@ def evaluate(model, val_loader, metric):
 
 
 def main(args):
+
+    print(args)
+
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
+
     torch.backends.cudnn.benchmark = True
 
     # Filter keys
@@ -250,7 +256,7 @@ def parse_args():
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
-    parser.add_argument('-j', '--workers', type=int, default=2, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')

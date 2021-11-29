@@ -97,12 +97,12 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         num_classes: int = 1,
         input_shape: Tuple[int, int, int] = (512, 512, 3),
-        rotated_bbox: bool = False,
+        assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
 
-        self.rotated_bbox = rotated_bbox
+        self.assume_straight_pages = assume_straight_pages
 
         self.stem = Sequential([
             *conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape),
@@ -133,7 +133,7 @@ class LinkNet(_LinkNet, keras.Model):
             ),
         ])
 
-        self.postprocessor = LinkNetPostProcessor(rotated_bbox=rotated_bbox)
+        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
 
     def compute_loss(
         self,

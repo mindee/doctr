@@ -11,7 +11,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from ....datasets import VOCABS
+from ....datasets import VOCABS, decode_sequence
 from ...backbones import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
@@ -69,20 +69,15 @@ class CTCPostProcessor(RecognitionPostProcessor):
         Returns:
             A list of tuples: (word, confidence)
         """
-        # compute softmax
-        probs = F.softmax(logits, dim=-1)
-        # get char indices along best path
-        best_path = torch.argmax(probs, dim=-1)
-        # define word proba as min proba of sequence
-        probs, _ = torch.max(probs, dim=-1)
-        probs, _ = torch.min(probs, dim=1)
 
-        words = []
-        for sequence in best_path:
-            # collapse best path (using itertools.groupby), map to chars, join char list to string
-            collapsed = [vocab[k] for k, _ in groupby(sequence) if k != blank]
-            res = ''.join(collapsed)
-            words.append(res)
+        # Gather the most confident characters, and assign the smallest conf among those to the sequence prob
+        probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
+
+        # collapse best path (using itertools.groupby), map to chars, join char list to string
+        words = [
+            decode_sequence([k for k, _ in groupby(seq.tolist()) if k != blank], vocab)
+            for seq in torch.argmax(logits, dim=-1)
+        ]
 
         return list(zip(words, probs.tolist()))
 
