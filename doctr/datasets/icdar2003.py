@@ -81,10 +81,18 @@ class ICDAR2003(VisionDataset):
                     for rect in rectangles
                 ]
 
-            # Get the labels
-            labels = [lab.text for rect in rectangles for lab in rect if lab.text]
+            # filter images without boxes
+            if _boxes:
+                # Convert them to relative
+                w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
+                boxes = np.asarray(_boxes, dtype=np_dtype)
+                boxes[:, [0, 2]] /= w
+                boxes[:, [1, 3]] /= h
 
-            self.data.append((name.text, dict(boxes=np.asarray(_boxes, dtype=np_dtype), labels=labels)))
+                # Get the labels
+                labels = [lab.text for rect in rectangles for lab in rect if lab.text]
+
+                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 

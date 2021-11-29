@@ -34,7 +34,7 @@ def test_visiondataset():
         ['SVT', False, [512, 512], 249, False],
         ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
         ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
-        ['ICDAR2003', True, [512, 512], 250, True],
+        ['ICDAR2003', True, [512, 512], 246, True],
         ['ICDAR2003', False, [512, 512], 249, False],
     ],
 )
