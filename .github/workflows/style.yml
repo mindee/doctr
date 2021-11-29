@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.7]
+        python: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -43,7 +43,7 @@ jobs:
         run: |
           pip install isort
           isort --version
-          isort **/*.py --skip "**/__init_.py" --filter-files --verbose
+          isort **/*.py --skip "**/__init_.py" --filter-files
           if [ -n "$(git status --porcelain --untracked-files=no)" ]; then exit 1; else echo "All clear"; fi
 
   mypy-py3:
