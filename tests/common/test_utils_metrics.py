@@ -68,12 +68,37 @@ def test_mask_iou(mask1, mask2, iou, abs_tol):
     if iou_mat.size > 0:
         assert abs(iou_mat - iou) <= abs_tol
 
-    # No broadcasting
-    iou_matbis = metrics.mask_iou(np.asarray(mask1), np.asarray(mask2), use_broadcasting=False)
-    assert np.all(iou_mat == iou_matbis)
-
+    # Incompatible spatial shapes
     with pytest.raises(AssertionError):
         metrics.mask_iou(np.zeros((2, 3, 5), dtype=bool), np.ones((3, 2, 5), dtype=bool))
+
+
+@pytest.mark.parametrize(
+    "rbox1, rbox2, iou, abs_tol",
+    [
+        [[[.25, .25, .5, .5, 0.]], [[.25, .25, .5, .5, 0.]], 1, 0],  # Perfect match
+        [[[.25, .25, .5, .5, 0.]], [[.75, .75, .5, .5, 0.]], 0, 1e-4],  # No match
+        [[[.5, .5, 1, 1, 0.]], [[.75, .75, .5, .5, 0.]], 0.25, 0],  # Partial match
+        [[[.4, .4, .4, .4, 0.]], [[.6, .6, .4, .4, 0.]], 4 / 28, 5e-3],  # Partial match
+        [[[.05, .05, .1, .1, 0.]], [[.95, .95, .1, .1, 0.]], 0, 0],  # Boxes far from each other
+        [np.zeros((0, 5)), [[.25, .25, .5, .5, 0.]], 0, 0],  # Zero-sized inputs
+        [[[.25, .25, .5, .5, 0.]], np.zeros((0, 5)), 0, 0],  # Zero-sized inputs
+    ],
+)
+def test_rbox_iou(rbox1, rbox2, iou, abs_tol):
+    mask_shape = (256, 256)
+    iou_mat = metrics.rbox_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape)
+    assert iou_mat.shape == (len(rbox1), len(rbox2))
+    if iou_mat.size > 0:
+        assert abs(iou_mat - iou) <= abs_tol
+
+    # Ensure broadcasting doesn't change the result
+    iou_matbis = metrics.rbox_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape, use_broadcasting=False)
+    assert np.all((iou_mat - iou_matbis) <= 1e-7)
+
+    # Incorrect boxes
+    with pytest.raises(AssertionError):
+        metrics.rbox_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float), mask_shape)
 
 
 @pytest.mark.parametrize(
