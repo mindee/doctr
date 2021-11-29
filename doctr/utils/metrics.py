@@ -175,12 +175,13 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     return ioa_mat
 
 
-def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
+def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray, use_broadcasting: bool = True) -> np.ndarray:
     """Compute the IoU between two sets of boolean masks
 
     Args:
         masks_1: boolean masks of shape (N, H, W)
         masks_2: boolean masks of shape (M, H, W)
+        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory
 
     Returns:
         the IoU matrix of shape (N, M)
@@ -192,10 +193,17 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     iou_mat = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
 
     if masks_1.shape[0] > 0 and masks_2.shape[0] > 0:
-        intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...])
-        union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...])
-        axes = tuple(range(2, masks_1.ndim + 1))
-        iou_mat = intersection.sum(axis=axes) / union.sum(axis=axes)
+        if use_broadcasting:
+            axes = tuple(range(2, masks_1.ndim + 1))
+            intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...]).sum(axis=axes)
+            union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...]).sum(axis=axes)
+            iou_mat = intersection / union
+        else:
+            axes = tuple(range(1, masks_1.ndim))
+            # Save memory by doing the computation for each pair
+            for idx, m1 in enumerate(masks_1):
+                for _idx, m2 in enumerate(masks_2):
+                    iou_mat[idx, _idx] = np.logical_and(m1, m2).sum() / np.logical_or(m1, m2).sum()
 
     return iou_mat
 
