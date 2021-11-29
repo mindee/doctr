@@ -83,7 +83,15 @@ class ICDAR2019(AbstractDataset):
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
         img, target = self._read_sample(index)
+        h, w = self._get_img_shape(img)
         if self.sample_transforms is not None:
             img = self.sample_transforms(img)
+
+        # Boxes
+        boxes = target['boxes'].copy()
+        boxes[..., [0, 2]] /= w
+        boxes[..., [1, 3]] /= h
+        boxes = boxes.clip(0, 1)
+        target['boxes'] = boxes
 
         return img, target
