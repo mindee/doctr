@@ -183,14 +183,14 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
+                "weight_decay": 0.,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
                 "framework": "tensorflow",
                 "vocab": args.vocab,
-                "scheduler": args.sched,
+                "scheduler": "exp_decay",
                 "pretrained": args.pretrained,
             }
         )
