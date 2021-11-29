@@ -17,7 +17,7 @@ __all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_iou',
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
-    """Perform string comparison with multiple levels of tolerance
+    """Performs string comparison with multiple levels of tolerance
 
     Args:
         word1: a string
@@ -119,7 +119,7 @@ class TextMatch:
 
 
 def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
-    """Compute the IoU between two sets of bounding boxes
+    """Computes the IoU between two sets of bounding boxes
 
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
@@ -147,7 +147,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
 
 
 def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
-    """Compute the IoA (intersection over area) between two sets of bounding boxes:
+    """Computes the IoA (intersection over area) between two sets of bounding boxes:
     ioa(i, j) = inter(i, j) / area(i)
 
     Args:
@@ -176,7 +176,7 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
 
 
 def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
-    """Compute the IoU between two sets of boolean masks
+    """Computes the IoU between two sets of boolean masks
 
     Args:
         masks_1: boolean masks of shape (N, H, W)
@@ -206,7 +206,7 @@ def rbox_iou(
     mask_shape: Tuple[int, int],
     use_broadcasting: bool = True
 ) -> np.ndarray:
-    """Compute the IoU between two sets of rotated bounding boxes
+    """Computes the IoU between two sets of rotated bounding boxes
 
     Args:
         boxes_1: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
@@ -240,7 +240,7 @@ def rbox_iou(
 
 
 def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
-    """Convert boxes to masks
+    """Converts a rotated bounding box to a boolean mask
 
     Args:
         box: rotated bounding box of shape (5,) in format (x, y, w, h, alpha)
@@ -268,7 +268,7 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
 
 
 def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
-    """Convert boxes to masks
+    """Converts rotated bounding boxes to boolean masks
 
     Args:
         boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
@@ -505,7 +505,7 @@ class OCRMetric:
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gts, preds, self.mask_shape, self.use_broadcasting)
+                iou_mat = rbox_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 
@@ -635,7 +635,7 @@ class DetectionMetric:
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gts, preds, self.mask_shape, self.use_broadcasting)
+                iou_mat = rbox_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 
