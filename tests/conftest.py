@@ -127,7 +127,7 @@ def mock_ocrdataset(tmpdir_factory, mock_image_stream):
 
 
 @pytest.fixture(scope="session")
-def mock_icdar19(tmpdir_factory, mock_image_stream):
+def mock_ic13(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
     image_folder = tmpdir_factory.mktemp("images")
     label_folder = tmpdir_factory.mktemp("labels")
