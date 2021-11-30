@@ -14,6 +14,7 @@ import time
 
 import numpy as np
 import torch
+import wandb
 from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.nn.functional import cross_entropy
@@ -21,11 +22,10 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision import models
 from torchvision.transforms import ColorJitter, Compose, Normalize, RandomPerspective
-from utils import plot_samples
 
-import wandb
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
