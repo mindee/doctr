@@ -6,8 +6,8 @@
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import numpy as np
 import h5py
+import numpy as np
 from tqdm import tqdm
 
 from .datasets import VisionDataset
