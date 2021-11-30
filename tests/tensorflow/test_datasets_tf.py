@@ -24,8 +24,8 @@ from doctr.transforms import Resize
         ['SVT', False, [512, 512], 249, False],
         ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
         ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
-        ['ICDAR2003', True, [512, 512], 246, True],
-        ['ICDAR2003', False, [512, 512], 249, False],
+        ['IC03', True, [512, 512], 246, True],
+        ['IC03', False, [512, 512], 249, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):

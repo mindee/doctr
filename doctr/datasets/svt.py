@@ -61,13 +61,15 @@ class SVT(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, name.text)}")
 
             if rotated_bbox:
+                # x_center, y_center, width, height, 0
                 _boxes = [
                     [float(rect.attrib['x']) + float(rect.attrib['width']) / 2,
                      float(rect.attrib['y']) + float(rect.attrib['height']) / 2,
-                     float(rect.attrib['width']), float(rect.attrib['height'])]
+                     float(rect.attrib['width']), float(rect.attrib['height']), 0.0]
                     for rect in rectangles
                 ]
             else:
+                # x_min, y_min, x_max, y_max
                 _boxes = [
                     [float(rect.attrib['x']), float(rect.attrib['y']),
                      float(rect.attrib['x']) + float(rect.attrib['width']),

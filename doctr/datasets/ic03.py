@@ -11,16 +11,16 @@ import numpy as np
 
 from .datasets import VisionDataset
 
-__all__ = ['ICDAR2003']
+__all__ = ['IC03']
 
 
-class ICDAR2003(VisionDataset):
-    """ICDAR2003 dataset from `"ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions"
+class IC03(VisionDataset):
+    """IC03 dataset from `"ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions"
     <http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions>`_.
 
     Example::
-        >>> from doctr.datasets import ICDAR2003
-        >>> train_set = ICDAR2003(train=True, download=True)
+        >>> from doctr.datasets import IC03
+        >>> train_set = IC03(train=True, download=True)
         >>> img, target = train_set[0]
 
     Args:
@@ -82,7 +82,7 @@ class ICDAR2003(VisionDataset):
                 ]
 
             # filter images without boxes
-            if _boxes:
+            if len(_boxes) > 0:
                 # Convert them to relative
                 w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
                 boxes = np.asarray(_boxes, dtype=np_dtype)
