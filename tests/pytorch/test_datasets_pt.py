@@ -204,18 +204,18 @@ def test_charactergenerator():
 
 
 @pytest.mark.parametrize(
-    "train, size, rotate",
+    "size, rotate",
     [
-        [True, 9, True],  # Actual set has 9000 samples
-        [False, 1, False],  # Actual set has 1000 samples
+        [5, True],  # Actual set has 229 train and 233 test samples
+        [5, False]
+
     ],
 )
-def test_ic13_dataset(mock_ic13, train, size, rotate):
+def test_ic13_dataset(mock_ic13, size, rotate):
     input_size = (512, 512)
     ds = datasets.IC13(
         *mock_ic13,
         sample_transforms=Resize(input_size),
-        train=train,
         rotated_bbox=rotate,
     )
 
