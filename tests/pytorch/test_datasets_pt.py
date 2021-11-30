@@ -25,7 +25,7 @@ def test_visiondataset():
     [
         ['FUNSD', True, [512, 512], 149, False],
         ['FUNSD', False, [512, 512], 50, True],
-        ['SROIE', True, [512, 512], 626, False],
+        ['SROIE', True, [512, 512], 626, True],
         ['SROIE', False, [512, 512], 360, False],
         ['CORD', True, [512, 512], 800, True],
         ['CORD', False, [512, 512], 100, False],
