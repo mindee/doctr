@@ -215,15 +215,15 @@ class DocumentBuilder(NestedObject):
 
         # Decide whether we try to form lines
         if self.resolve_lines:
-            lines = self._resolve_lines(boxes)
+            lines = self._resolve_lines(boxes[:, :-1])
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(boxes, lines)
+                _blocks = self._resolve_blocks(boxes[:, :-1], lines)
             else:
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(boxes)]
+            lines = [self._sort_boxes(boxes[:, :-1])]
             _blocks = [lines]
 
         blocks = [
@@ -233,7 +233,7 @@ class DocumentBuilder(NestedObject):
                         Word(
                             *word_preds[idx],
                             (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
-                        ) if boxes.shape[1] == 5 else
+                        ) if boxes.shape[1] == 6 else
                         Word(
                             *word_preds[idx],
                             ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
@@ -273,7 +273,7 @@ class DocumentBuilder(NestedObject):
 
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if boxes[0].shape[-1] == 5:
+            if boxes[0].shape[-1] == 6:
                 straight_boxes = []
                 # Iterate over pages
                 for page_boxes in boxes:

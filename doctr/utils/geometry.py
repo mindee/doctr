@@ -145,18 +145,18 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
     return rotated_boxes
 
 
-def remap_boxes(boxes: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tuple[int, int]) -> np.ndarray:
-    """ Remaps a batch of RotatedBbox (x, y, w, h, alpha) expressed for an origin_shape to a destination_shape.
+def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tuple[int, int]) -> np.ndarray:
+    """ Remaps a batch of rotated locpred (x, y, w, h, alpha, c) expressed for an origin_shape to a destination_shape.
     This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
     coordinates after a resizing of the image.
 
     Args:
-        boxes: (N, 5) array of RELATIVE RotatedBbox (x, y, w, h, alpha)
+        loc_preds: (N, 6) array of RELATIVE locpred (x, y, w, h, alpha, c)
         orig_shape: shape of the origin image
         dest_shape: shape of the destination image
 
     Returns:
-        A batch of rotated boxes (N, 5): (x, y, w, h, alpha) expressed in the destination referencial
+        A batch of rotated loc_preds (N, 6): (x, y, w, h, alpha, c) expressed in the destination referencial
 
     """
 
@@ -166,30 +166,30 @@ def remap_boxes(boxes: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tupl
         raise ValueError(f"Image_shape length should be 2, was found at: {len(orig_shape)}")
     orig_height, orig_width = orig_shape
     dest_height, dest_width = dest_shape
-    mboxes = boxes.copy()
+    mboxes = loc_preds.copy()
     # remaps position of the box center for the destination image shape
-    mboxes[:, 0] = ((boxes[:, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
-    mboxes[:, 1] = ((boxes[:, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
+    mboxes[:, 0] = ((loc_preds[:, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
+    mboxes[:, 1] = ((loc_preds[:, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
     # remaps box dimension for the destination image shape
-    mboxes[:, 2] = boxes[:, 2] * orig_width / dest_width
-    mboxes[:, 3] = boxes[:, 3] * orig_height / dest_height
+    mboxes[:, 2] = loc_preds[:, 2] * orig_width / dest_width
+    mboxes[:, 3] = loc_preds[:, 3] * orig_height / dest_height
     return mboxes
 
 
 def rotate_boxes(
-    boxes: np.ndarray,
+    loc_preds: np.ndarray,
     angle: float = 0.,
     min_angle: float = 1.,
     orig_shape: Optional[Tuple[int, int]] = None,
     target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
-    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax) or rotated bounding boxes
-    (x, y, w, h, alpha) of an angle, if angle > min_angle, around the center of the page.
+    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
+    (x, y, w, h, alpha, c) of an angle, if angle > min_angle, around the center of the page.
     If orig_shape and target_shape are specified, the boxes are remapped to the target shape after the rotation. This
     is done to remove the padding that is created by rotate_page(expand=True)
 
     Args:
-        boxes: (N, 4) or (N, 5) array of RELATIVE boxes
+        loc_preds: (N, 5) or (N, 6) array of RELATIVE boxes
         angle: angle between -90 and +90 degrees
         min_angle: minimum angle to rotate boxes
         orig_shape: shape of the origin image
@@ -199,13 +199,14 @@ def rotate_boxes(
         A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
     """
     # Change format of the boxes to rotated boxes
-    _boxes = boxes.copy()
-    if _boxes.shape[1] == 4:
+    _boxes = loc_preds.copy()
+    if _boxes.shape[1] == 5:
         _boxes = np.column_stack(((_boxes[:, 0] + _boxes[:, 2]) / 2,
                                   (_boxes[:, 1] + _boxes[:, 3]) / 2,
                                   _boxes[:, 2] - _boxes[:, 0],
                                   _boxes[:, 3] - _boxes[:, 1],
-                                  np.zeros(_boxes.shape[0])))
+                                  np.zeros(_boxes.shape[0]),
+                                  _boxes[:, 4]))
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return _boxes
@@ -220,8 +221,8 @@ def rotate_boxes(
     rotated_centers = .5 + np.matmul(centers - .5, rotation_mat)
     x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
     # Compute rotated boxes
-    rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0])),
-                             axis=1)
+    rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0]),
+                              _boxes[:, 5]), axis=1)
     # Apply a mask if requested
     if target_shape is not None and orig_shape is not None:
         rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=target_shape)

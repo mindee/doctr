@@ -39,12 +39,12 @@ def test_resolve_enclosing_rbbox():
 
 
 def test_remap_boxes():
-    pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0.]]), (10, 10), (20, 20))
-    target = np.array([[0.5, 0.5, 0.05, 0.05, 0.]])
+    pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0., 0.5]]), (10, 10), (20, 20))
+    target = np.array([[0.5, 0.5, 0.05, 0.05, 0., 0.5]])
     assert np.all(pred == target)
 
-    pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0.]]), (10, 10), (20, 10))
-    target = np.array([[0.5, 0.5, 0.1, 0.05, 0.]])
+    pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0., 0.5]]), (10, 10), (20, 10))
+    target = np.array([[0.5, 0.5, 0.1, 0.05, 0., 0.5]])
     assert np.all(pred == target)
 
     pred = geometry.remap_boxes(np.array([[0.25, 0.5, 0.5, 0.33, 0.]]), (80, 30), (160, 30))
@@ -53,19 +53,19 @@ def test_remap_boxes():
 
     orig_dimension = (100, 100)
     dest_dimensions = (100, 200)
-    orig_box = np.array([[0.5, 0.5, 0.2, 0., 45]])
+    orig_box = np.array([[0.5, 0.5, 0.2, 0., 45, 0.5]])
     # Unpack
     height_o, width_o = orig_dimension
     height_d, width_d = dest_dimensions
     pred = geometry.remap_boxes(orig_box, orig_dimension, dest_dimensions)
 
-    x, y, w, h, a = orig_box[0]
+    x, y, w, h, a, c = orig_box[0]
     # Switch to absolute coords
     x, w = x * width_o, w * width_o
     y, h = y * height_o, h * height_o
     orig = cv2.boxPoints(((x, y), (w, h), a))
 
-    x, y, w, h, a = pred[0]
+    x, y, w, h, a, c = pred[0]
     # Switch to absolute coords
     x, w = x * width_d, w * width_d
     y, h = y * height_d, h * height_d
@@ -81,12 +81,13 @@ def test_remap_boxes():
 
 
 def test_rotate_boxes():
-    boxes = np.array([[0.1, 0.1, 0.8, 0.3]])
+    boxes = np.array([[0.1, 0.1, 0.8, 0.3, 0.5]])
     rboxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
                              (boxes[:, 1] + boxes[:, 3]) / 2,
                              boxes[:, 2] - boxes[:, 0],
                              boxes[:, 3] - boxes[:, 1],
-                             np.zeros(boxes.shape[0])))
+                             np.zeros(boxes.shape[0]),
+                             boxes[:, 4]))
     # Angle = 0
     rotated = geometry.rotate_boxes(boxes, angle=0.)
     assert np.all(rotated == rboxes)
@@ -95,16 +96,16 @@ def test_rotate_boxes():
     assert np.all(rotated == rboxes)
     # Angle = 30
     rotated = geometry.rotate_boxes(boxes, angle=30)
-    assert rotated.shape == (1, 5)
+    assert rotated.shape == (1, 6)
     assert rotated[0, 4] == 30.
 
-    boxes = np.array([[0., 0., 0.6, 0.2]])
+    boxes = np.array([[0., 0., 0.6, 0.2, 0.5]])
     # Angle = -90:
     rotated = geometry.rotate_boxes(boxes, angle=-90, min_angle=0)
-    assert np.all(rotated == np.array([[0.9, 0.3, 0.6, 0.2, -90.]]))
+    assert np.allclose(rotated, np.array([[0.9, 0.3, 0.6, 0.2, -90., 0.5]]))
     # Angle = 90
     rotated = geometry.rotate_boxes(boxes, angle=+90, min_angle=0)
-    assert np.all(rotated == np.array([[0.9, 0.3, 0.6, 0.2, -90.]]))
+    assert np.allclose(rotated, np.array([[0.1, 0.7, 0.6, 0.2, +90., 0.5]]))
 
 
 def test_rotate_image():
