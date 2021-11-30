@@ -86,7 +86,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], mask_shape=mask) for
+            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], target_shape=mask) for
                      page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
         out = self.doc_builder(
