@@ -41,15 +41,15 @@ def test_resolve_enclosing_rbbox():
 def test_remap_boxes():
     pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0.]]), (10, 10), (20, 20))
     target = np.array([[0.5, 0.5, 0.05, 0.05, 0.]])
-    assert pred.all() == target.all()
+    assert np.all(pred == target)
 
     pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0.]]), (10, 10), (20, 10))
     target = np.array([[0.5, 0.5, 0.1, 0.05, 0.]])
-    assert pred.all() == target.all()
+    assert np.all(pred == target)
 
     pred = geometry.remap_boxes(np.array([[0.25, 0.5, 0.5, 0.33, 0.]]), (80, 30), (160, 30))
     target = np.array([[0.375, 0.5, 0.25, 0.1, 0.]])
-    assert pred.all() == target.all()
+    assert np.all(pred == target)
 
     orig_dimension = (100, 100)
     dest_dimensions = (100, 200)
@@ -89,10 +89,10 @@ def test_rotate_boxes():
                              np.zeros(boxes.shape[0])))
     # Angle = 0
     rotated = geometry.rotate_boxes(boxes, angle=0.)
-    assert rotated.all() == rboxes.all()
+    assert np.all(rotated == rboxes)
     # Angle < 1:
     rotated = geometry.rotate_boxes(boxes, angle=0.5)
-    assert rotated.all() == rboxes.all()
+    assert np.all(rotated == rboxes)
     # Angle = 30
     rotated = geometry.rotate_boxes(boxes, angle=30)
     assert rotated.shape == (1, 5)
@@ -101,10 +101,10 @@ def test_rotate_boxes():
     boxes = np.array([[0., 0., 0.6, 0.2]])
     # Angle = -90:
     rotated = geometry.rotate_boxes(boxes, angle=-90, min_angle=0)
-    assert rotated.all() == np.array([[0.1, 0.7, 0.6, 0.2, -90.]]).all()
+    assert np.all(rotated == np.array([[0.9, 0.3, 0.6, 0.2, -90.]]))
     # Angle = 90
     rotated = geometry.rotate_boxes(boxes, angle=+90, min_angle=0)
-    assert rotated.all() == np.array([[0.9, 0.3, 0.6, 0.2, 90.]]).all()
+    assert np.all(rotated == np.array([[0.9, 0.3, 0.6, 0.2, -90.]]))
 
 
 def test_rotate_image():
