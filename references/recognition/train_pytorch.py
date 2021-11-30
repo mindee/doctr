@@ -16,18 +16,18 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import wandb
 from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
-from utils import plot_samples
 
-import wandb
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
