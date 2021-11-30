@@ -187,3 +187,33 @@ def test_charactergenerator():
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, tf.Tensor) and targets.shape == (2,)
     assert targets.dtype == tf.int32
+
+
+@pytest.mark.parametrize(
+    "train, size, rotate",
+    [
+        [True, 9, True],  # Actual set has 9000 samples
+        [False, 1, False],  # Actual set has 1000 samples
+    ],
+)
+def test_icdar19_dataset(mock_ic13, train, size, rotate):
+    input_size = (512, 512)
+    ds = datasets.IC13(
+        *mock_ic13,
+        sample_transforms=Resize(input_size),
+        train=train,
+        rotated_bbox=rotate,
+    )
+    assert len(ds) == size
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+
+    loader = DataLoader(ds, batch_size=1)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (1, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

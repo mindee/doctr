@@ -124,3 +124,24 @@ def mock_ocrdataset(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
 
     return str(image_folder), str(label_file)
+
+
+@pytest.fixture(scope="session")
+def mock_icdar19(tmpdir_factory, mock_image_stream):
+    file = BytesIO(mock_image_stream)
+    image_folder = tmpdir_factory.mktemp("images")
+    label_folder = tmpdir_factory.mktemp("labels")
+    labels = ["0,168,48,166,43,219,2,216,Symbols,-\n",
+              "102,131,951,142,958,251,126,255,Latin,TENTURE\n",
+              "1030,146,1745,142,1747,241,1029,246,Latin,MURALE\n",
+              "72,653,786,648,787,793,85,812,Latin,L'atelier\n",
+              "839,648,1226,650,1228,784,843,788,Latin,Kern\n"]
+    for i in range(10):
+        # labels needs same name as image
+        fn_l = label_folder.join(f"mock_image_file_{i}.txt")
+        with open(fn_l, 'w') as f:
+            f.writelines(labels)
+        fn_i = image_folder.join(f"mock_image_file_{i}.jpg")
+        with open(fn_i, 'wb') as f:
+            f.write(file.getbuffer())
+    return str(image_folder), str(label_folder)
