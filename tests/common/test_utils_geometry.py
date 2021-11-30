@@ -47,8 +47,8 @@ def test_remap_boxes():
     target = np.array([[0.5, 0.5, 0.1, 0.05, 0., 0.5]])
     assert np.all(pred == target)
 
-    pred = geometry.remap_boxes(np.array([[0.25, 0.5, 0.5, 0.33, 0.]]), (80, 30), (160, 30))
-    target = np.array([[0.375, 0.5, 0.25, 0.1, 0.]])
+    pred = geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40), (160, 40))
+    target = np.array([[0.5, 0.25, 0.5, 0.125, 0., 0.5]])
     assert np.all(pred == target)
 
     orig_dimension = (100, 100)
