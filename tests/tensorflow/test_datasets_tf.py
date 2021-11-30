@@ -214,7 +214,7 @@ def test_ic13_dataset(mock_ic13, size, rotate):
     assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
 
-    loader = DataLoader(ds, batch_size=1)
+    loader = DataLoader(ds, batch_size=2)
     images, targets = next(iter(loader))
-    assert isinstance(images, tf.Tensor) and images.shape == (1, *input_size, 3)
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
