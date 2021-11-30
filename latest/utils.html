@@ -366,7 +366,7 @@ counterpart and its lower-case unidecode counterpart</p>
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.LocalizationConfusion">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">LocalizationConfusion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">LocalizationConfusion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em>, <em class="sig-param"><span class="n">use_broadcasting</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements common confusion metrics and mean IoU for localization evaluation.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
@@ -398,7 +398,12 @@ g_X(y) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
+<li><p><strong>rotated_bbox</strong> – if set to True, predictions and targets will be expected to have rotated format</p></li>
+<li><p><strong>mask_shape</strong> – if rotated_bbox is True, describes the spatial shape of the image used</p></li>
+<li><p><strong>use_broadcasting</strong> – if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -421,7 +426,7 @@ g_X(y) = \left\{
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.OCRMetric">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em>, <em class="sig-param"><span class="n">use_broadcasting</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements an end-to-end OCR metric.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
@@ -457,7 +462,12 @@ h_{B,L}(b, l) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
+<li><p><strong>rotated_bbox</strong> – if set to True, predictions and targets will be expected to have rotated format</p></li>
+<li><p><strong>mask_shape</strong> – if rotated_bbox is True, describes the spatial shape of the image used</p></li>
+<li><p><strong>use_broadcasting</strong> – if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -480,7 +490,7 @@ h_{B,L}(b, l) = \left\{
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.DetectionMetric">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">DetectionMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">DetectionMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em>, <em class="sig-param"><span class="n">use_broadcasting</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements an object detection metric.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
@@ -516,7 +526,12 @@ h_{B,C}(b, c) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
+<li><p><strong>rotated_bbox</strong> – if set to True, predictions and targets will be expected to have rotated format</p></li>
+<li><p><strong>mask_shape</strong> – if rotated_bbox is True, describes the spatial shape of the image used</p></li>
+<li><p><strong>use_broadcasting</strong> – if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">

@@ -203,12 +203,12 @@
 
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">rbbox_to_polygon</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;box_ioa&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;rbox_to_mask&#39;</span><span class="p">,</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;box_ioa&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;rbox_iou&#39;</span><span class="p">,</span>
            <span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">,</span> <span class="s1">&#39;DetectionMetric&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Perform string comparison with multiple levels of tolerance</span>
+    <span class="sd">&quot;&quot;&quot;Performs string comparison with multiple levels of tolerance</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        word1: a string</span>
@@ -310,7 +310,7 @@
 
 
 <span class="k">def</span> <span class="nf">box_iou</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of bounding boxes</span>
+    <span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of bounding boxes</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
@@ -338,7 +338,7 @@
 
 
 <span class="k">def</span> <span class="nf">box_ioa</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Compute the IoA (intersection over area) between two sets of bounding boxes:</span>
+    <span class="sd">&quot;&quot;&quot;Computes the IoA (intersection over area) between two sets of bounding boxes:</span>
 <span class="sd">    ioa(i, j) = inter(i, j) / area(i)</span>
 
 <span class="sd">    Args:</span>
@@ -367,7 +367,7 @@
 
 
 <span class="k">def</span> <span class="nf">mask_iou</span><span class="p">(</span><span class="n">masks_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">masks_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of boolean masks</span>
+    <span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of boolean masks</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        masks_1: boolean masks of shape (N, H, W)</span>
@@ -383,16 +383,83 @@
     <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">masks_1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">masks_2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
-        <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">masks_1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">masks_2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
         <span class="n">axes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">intersection</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span> <span class="o">/</span> <span class="n">union</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span>
+        <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">masks_1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">masks_2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span>
+        <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">masks_1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">masks_2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span>
+        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">intersection</span> <span class="o">/</span> <span class="n">union</span>
 
     <span class="k">return</span> <span class="n">iou_mat</span>
 
 
+<span class="k">def</span> <span class="nf">rbox_iou</span><span class="p">(</span>
+    <span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">use_broadcasting</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of rotated bounding boxes</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        boxes_1: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)</span>
+<span class="sd">        boxes_2: rotated bounding boxes of shape (M, 5) in format (x, y, w, h, alpha)</span>
+<span class="sd">        mask_shape: spatial shape of the intermediate masks</span>
+<span class="sd">        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the IoU matrix of shape (N, M)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">5</span> <span class="ow">or</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;expects boxes to be in format (x, y, w, h, alpha&quot;</span><span class="p">)</span>
+
+    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">use_broadcasting</span><span class="p">:</span>
+            <span class="n">masks_1</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">mask_shape</span><span class="p">)</span>
+            <span class="n">masks_2</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">boxes_2</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">mask_shape</span><span class="p">)</span>
+            <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">masks_1</span><span class="p">,</span> <span class="n">masks_2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Save memory by doing the computation for each pair</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">b1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">):</span>
+                <span class="n">m1</span> <span class="o">=</span> <span class="n">_rbox_to_mask</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">mask_shape</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">_idx</span><span class="p">,</span> <span class="n">b2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boxes_2</span><span class="p">):</span>
+                    <span class="n">m2</span> <span class="o">=</span> <span class="n">_rbox_to_mask</span><span class="p">(</span><span class="n">b2</span><span class="p">,</span> <span class="n">mask_shape</span><span class="p">)</span>
+                    <span class="n">iou_mat</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">iou_mat</span>
+
+
+<span class="k">def</span> <span class="nf">_rbox_to_mask</span><span class="p">(</span><span class="n">box</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts a rotated bounding box to a boolean mask</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        box: rotated bounding box of shape (5,) in format (x, y, w, h, alpha)</span>
+<span class="sd">        shape: spatial shapes of the output masks</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        the boolean mask of the specified shape</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="c1"># Get absolute coords</span>
+    <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">:</span>
+        <span class="n">abs_box</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">abs_box</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">abs_box</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">abs_box</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="n">abs_box</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">abs_box</span> <span class="o">=</span> <span class="n">abs_box</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">abs_box</span> <span class="o">=</span> <span class="n">box</span>
+        <span class="n">abs_box</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">=</span> <span class="n">abs_box</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c1"># Get the polygon and fill the mask</span>
+    <span class="n">polygon</span> <span class="o">=</span> <span class="n">rbbox_to_polygon</span><span class="p">(</span><span class="n">abs_box</span><span class="p">)</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">rbox_to_mask</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert boxes to masks</span>
+    <span class="sd">&quot;&quot;&quot;Converts rotated bounding boxes to boolean masks</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)</span>
@@ -417,8 +484,8 @@
 
         <span class="c1"># TODO: optimize slicing to improve vectorization</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">_box</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">abs_boxes</span><span class="p">):</span>
-            <span class="n">box</span> <span class="o">=</span> <span class="n">rbbox_to_polygon</span><span class="p">(</span><span class="n">_box</span><span class="p">)</span>
-            <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">masks</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">polygon</span> <span class="o">=</span> <span class="n">rbbox_to_polygon</span><span class="p">(</span><span class="n">_box</span><span class="p">)</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">masks</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">masks</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 
@@ -496,6 +563,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format</span>
+<span class="sd">        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used</span>
+<span class="sd">        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -503,10 +573,12 @@
         <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="n">use_broadcasting</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span> <span class="o">=</span> <span class="n">mask_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span> <span class="o">=</span> <span class="n">use_broadcasting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
 <div class="viewcode-block" id="LocalizationConfusion.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">preds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -514,9 +586,7 @@
         <span class="k">if</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Compute IoU</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span><span class="p">:</span>
-                <span class="n">mask_gts</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">mask_preds</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">mask_gts</span><span class="p">,</span> <span class="n">mask_preds</span><span class="p">)</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">rbox_iou</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
@@ -593,6 +663,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format</span>
+<span class="sd">        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used</span>
+<span class="sd">        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -600,10 +673,12 @@
         <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="n">use_broadcasting</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span> <span class="o">=</span> <span class="n">mask_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span> <span class="o">=</span> <span class="n">use_broadcasting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
 <div class="viewcode-block" id="OCRMetric.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
@@ -621,9 +696,7 @@
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span><span class="p">:</span>
-                <span class="n">mask_gts</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">mask_preds</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">pred_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">mask_gts</span><span class="p">,</span> <span class="n">mask_preds</span><span class="p">)</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">rbox_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
 
@@ -720,6 +793,9 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format</span>
+<span class="sd">        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used</span>
+<span class="sd">        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -727,10 +803,12 @@
         <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="n">use_broadcasting</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span> <span class="o">=</span> <span class="n">mask_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span> <span class="o">=</span> <span class="n">use_broadcasting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
 <div class="viewcode-block" id="DetectionMetric.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
@@ -748,9 +826,7 @@
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span><span class="p">:</span>
-                <span class="n">mask_gts</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">mask_preds</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">pred_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">mask_gts</span><span class="p">,</span> <span class="n">mask_preds</span><span class="p">)</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">rbox_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
 
