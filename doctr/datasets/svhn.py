@@ -59,7 +59,7 @@ class SVHN(VisionDataset):
         with h5py.File(os.path.join(tmp_root, 'digitStruct.mat'), 'r') as f:
             img_refs = f['digitStruct/name']
             box_refs = f['digitStruct/bbox']
-            for img_ref, box_ref in tqdm(iterable=zip(img_refs, box_refs), desc='Reading SVHN...', total=len(img_refs)):
+            for img_ref, box_ref in tqdm(iterable=zip(img_refs, box_refs), desc='Unpacking SVHN', total=len(img_refs)):
                 # convert ascii matrix to string
                 img_name = "".join(map(chr, f[img_ref[0]][()].flatten()))
 
