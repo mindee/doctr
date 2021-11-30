@@ -257,17 +257,18 @@ def rotate_image(
     height, width = exp_img.shape[:2]
     rot_mat = cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1.0)
     rot_img = cv2.warpAffine(exp_img, rot_mat, (width, height))
-    if preserve_origin_shape:
-        # Pad to get the same aspect ratio
-        if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
-            # Pad width
-            if (rot_img.shape[0] / rot_img.shape[1]) > (image.shape[0] / image.shape[1]):
-                h_pad, w_pad = 0, int(rot_img.shape[0] * image.shape[1] / image.shape[0] - rot_img.shape[1])
-            # Pad height
-            else:
-                h_pad, w_pad = int(rot_img.shape[1] * image.shape[0] / image.shape[1] - rot_img.shape[0]), 0
-            rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
-        # rescale
-        rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
+    if expand:
+        if preserve_origin_shape:
+            # Pad to get the same aspect ratio
+            if (image.shape[0] / image.shape[1]) != (rot_img.shape[0] / rot_img.shape[1]):
+                # Pad width
+                if (rot_img.shape[0] / rot_img.shape[1]) > (image.shape[0] / image.shape[1]):
+                    h_pad, w_pad = 0, int(rot_img.shape[0] * image.shape[1] / image.shape[0] - rot_img.shape[1])
+                # Pad height
+                else:
+                    h_pad, w_pad = int(rot_img.shape[1] * image.shape[0] / image.shape[1] - rot_img.shape[0]), 0
+                rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
+            # rescale
+            rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
 
     return rot_img
