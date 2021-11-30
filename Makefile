@@ -1,12 +1,12 @@
 # this target runs checks on all files
 quality:
-	isort **/*.py -c -v
+	isort . -c -v
 	flake8 ./
 	mypy doctr/
 
 # this target runs checks on all files and potentially modifies some of them
 style:
-	isort **/*.py
+	isort .
 
 # Run tests for the library
 test:
