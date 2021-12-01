@@ -37,7 +37,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter parent=mb):
+    for images, targets in progress_bar(train_iter, parent=mb):
 
         if torch.cuda.is_available():
             images = images.cuda()
