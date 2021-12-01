@@ -213,7 +213,7 @@ class LinkNet(nn.Module, _LinkNet):
         Returns:
             A loss tensor
         """
-        targets = self.compute_target(target, out_map.shape)  # type: ignore[arg-type]
+        targets = self.build_target(target, out_map.shape)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]).to(dtype=out_map.dtype), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)

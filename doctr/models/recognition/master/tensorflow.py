@@ -292,7 +292,7 @@ class MASTER(_MASTER, Model):
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, seq_len = self.compute_target(target)
+            gt, seq_len = self.build_target(target)
 
         if kwargs.get('training', False):
             if target is None:

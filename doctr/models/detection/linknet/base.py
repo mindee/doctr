@@ -105,7 +105,7 @@ class _LinkNet(BaseModel):
     min_size_box: int = 3
     assume_straight_pages: bool = True
 
-    def compute_target(
+    def build_target(
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int, int],

@@ -213,7 +213,7 @@ class DBNet(_DBNet, nn.Module):
         prob_map = torch.sigmoid(out_map.squeeze(1))
         thresh_map = torch.sigmoid(thresh_map.squeeze(1))
 
-        targets = self.compute_target(target, prob_map.shape)  # type: ignore[arg-type]
+        targets = self.build_target(target, prob_map.shape)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
