@@ -137,7 +137,7 @@ class DBNet(_DBNet, nn.Module):
             nn.ConvTranspose2d(head_chans // 4, head_chans // 4, 2, stride=2, bias=False),
             nn.BatchNorm2d(head_chans // 4),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(head_chans // 4, 1, 2, stride=2),
+            nn.ConvTranspose2d(head_chans // 4, num_classes, 2, stride=2),
         )
         self.thresh_head = nn.Sequential(
             conv_layer(head_chans, head_chans // 4, 3, padding=1, bias=False),

@@ -146,7 +146,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
+                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer='he_normal'),
             ]
         )
         self.threshold_head = keras.Sequential(
