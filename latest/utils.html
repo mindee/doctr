@@ -372,7 +372,7 @@ counterpart and its lower-case unidecode counterpart</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\forall Y \in \mathcal{B}^N, \forall X \in \mathcal{B}^M, \\
 Recall(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N g_{X}(Y_i) \\
-Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^N g_{X}(Y_i) \\
+Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M g_{X}(Y_i) \\
 meanIoU(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(X_i, Y_j)\end{split}\]</div>
 <p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(g_{X}\)</span> defined as:</p>
@@ -433,7 +433,7 @@ g_X(y) = \left\{
 \[\begin{split}\forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,
 \forall (\hat{B}, \hat{L}) \in \mathcal{B}^M \times \mathcal{L}^M, \\
 Recall(B, \hat{B}, L, \hat{L}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
-Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
+Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,L}(\hat{B}_i, \hat{L}_i) \\
 meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)\end{split}\]</div>
 <p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(h_{B, L}\)</span> defined as:</p>
@@ -497,7 +497,7 @@ h_{B,L}(b, l) = \left\{
 \[\begin{split}\forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
 \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\
 Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
-Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,C}(\hat{B}_i, \hat{C}_i) \\
 meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)\end{split}\]</div>
 <p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(h_{B, C}\)</span> defined as:</p>

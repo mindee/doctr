@@ -536,7 +536,7 @@
 <span class="sd">    .. math::</span>
 <span class="sd">        \forall Y \in \mathcal{B}^N, \forall X \in \mathcal{B}^M, \\</span>
 <span class="sd">        Recall(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N g_{X}(Y_i) \\</span>
-<span class="sd">        Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^N g_{X}(Y_i) \\</span>
+<span class="sd">        Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M g_{X}(Y_i) \\</span>
 <span class="sd">        meanIoU(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(X_i, Y_j)</span>
 
 <span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
@@ -633,7 +633,7 @@
 <span class="sd">        \forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,</span>
 <span class="sd">        \forall (\hat{B}, \hat{L}) \in \mathcal{B}^M \times \mathcal{L}^M, \\</span>
 <span class="sd">        Recall(B, \hat{B}, L, \hat{L}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\</span>
-<span class="sd">        Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\</span>
+<span class="sd">        Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,L}(\hat{B}_i, \hat{L}_i) \\</span>
 <span class="sd">        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)</span>
 
 <span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
@@ -763,7 +763,7 @@
 <span class="sd">        \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,</span>
 <span class="sd">        \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\</span>
 <span class="sd">        Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
-<span class="sd">        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
+<span class="sd">        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
 <span class="sd">        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)</span>
 
 <span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
