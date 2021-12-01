@@ -33,8 +33,7 @@ from utils import plot_samples
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
 
         images = batch_transforms(images)
 
