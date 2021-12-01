@@ -111,7 +111,6 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, args.input_size)),
-        rotated_bbox=args.rotation
     )
     val_loader = DataLoader(
         val_set,
@@ -130,7 +129,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
     # Load doctr model
-    model = detection.__dict__[args.arch](pretrained=args.pretrained)
+    model = detection.__dict__[args.arch](pretrained=args.pretrained, assume_straight_pages=not args.rotation)
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -174,7 +173,6 @@ def main(args):
             T.RandomApply(T.ColorInversion(), .1),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
         ]),
-        rotated_bbox=args.rotation
     )
 
     train_loader = DataLoader(
