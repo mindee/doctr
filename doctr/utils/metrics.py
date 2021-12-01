@@ -345,7 +345,7 @@ class LocalizationConfusion:
     .. math::
         \forall Y \in \mathcal{B}^N, \forall X \in \mathcal{B}^M, \\
         Recall(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N g_{X}(Y_i) \\
-        Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^N g_{X}(Y_i) \\
+        Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M g_{X}(Y_i) \\
         meanIoU(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(X_i, Y_j)
 
     with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
@@ -442,7 +442,7 @@ class OCRMetric:
         \forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,
         \forall (\hat{B}, \hat{L}) \in \mathcal{B}^M \times \mathcal{L}^M, \\
         Recall(B, \hat{B}, L, \hat{L}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
-        Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
+        Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,L}(\hat{B}_i, \hat{L}_i) \\
         meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)
 
     with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
@@ -572,7 +572,7 @@ class DetectionMetric:
         \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
         \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\
         Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
-        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,C}(\hat{B}_i, \hat{C}_i) \\
         meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)
 
     with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
