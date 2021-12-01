@@ -82,6 +82,8 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
+        angle_tol: float = 5.,
+        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
@@ -143,23 +145,23 @@ class DBPostProcessor(DetectionPostProcessor):
             [x, y, w, h, alpha, score] = box
             if mean_h >= mean_w:
                 # We are in the upper quadrant
-                if  .5 < h / w < 2:
+                if 1 / ratio_tol < h / w < ratio_tol:
                     # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
                     new_boxes.append([x, y, h, w, 90 + median_angle, score])
-                elif abs(90 - abs(alpha) - abs(median_angle)) <= 5:
+                elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
                     # We jumped to the next quadrant, rectify
                     new_boxes.append([x, y, w, h, alpha, score])
                 else:
                     new_boxes.append([x, y, h, w, 90 + alpha, score])
             else:
                 # We are in the lower quadrant.
-                if  .5 < h / w < 2:
+                if 1 / ratio_tol < h / w < ratio_tol:
                     # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
                     new_boxes.append([x, y, w, h, median_angle, score])
-                elif abs(90 - abs(alpha) - abs(median_angle)) <= 5:
+                elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
                     # We jumped to the next quadrant, rectify
                     new_boxes.append([x, y, h, w, 90 + alpha, score])
-                else: 
+                else:
                     new_boxes.append([x, y, w, h, alpha, score])
         boxes = new_boxes
 
