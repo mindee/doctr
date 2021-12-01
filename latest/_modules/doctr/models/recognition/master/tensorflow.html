@@ -472,8 +472,8 @@
         <span class="n">combined_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">target_padding_mask</span><span class="p">,</span> <span class="n">look_ahead_mask</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">combined_mask</span>
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
         <span class="n">model_output</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">gt</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">seq_len</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
