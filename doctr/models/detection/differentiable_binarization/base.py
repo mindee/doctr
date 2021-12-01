@@ -132,6 +132,37 @@ class DBPostProcessor(DetectionPostProcessor):
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
 
+        # Compute median angle and mean aspect ratio to resolve quadrants
+        median_angle = np.median(np.float32(boxes)[:, -2])
+        mean_w = np.mean(np.float32(boxes)[:, 2])
+        mean_h = np.mean(np.float32(boxes)[:, 3])
+
+        # Rectify angles
+        new_boxes = []
+        for box in boxes:
+            [x, y, w, h, alpha, score] = box
+            if mean_h >= mean_w:
+                # We are in the upper quadrant
+                if  .5 < h / w < 2:
+                    # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                    new_boxes.append([x, y, h, w, 90 + median_angle, score])
+                elif abs(90 - abs(alpha) - abs(median_angle)) <= 5:
+                    # We jumped to the next quadrant, rectify
+                    new_boxes.append([x, y, w, h, alpha, score])
+                else:
+                    new_boxes.append([x, y, h, w, 90 + alpha, score])
+            else:
+                # We are in the lower quadrant.
+                if  .5 < h / w < 2:
+                    # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                    new_boxes.append([x, y, w, h, median_angle, score])
+                elif abs(90 - abs(alpha) - abs(median_angle)) <= 5:
+                    # We jumped to the next quadrant, rectify
+                    new_boxes.append([x, y, h, w, 90 + alpha, score])
+                else: 
+                    new_boxes.append([x, y, w, h, alpha, score])
+        boxes = new_boxes
+
         if not self.assume_straight_pages:
             if len(boxes) == 0:
                 return np.zeros((0, 6), dtype=pred.dtype)
