@@ -27,9 +27,9 @@ def test_ocrpredictor(
     )
 
     s_predictor = OCRPredictor(
-        test_rotated_detectionpredictor,
+        test_detectionpredictor,
         test_recognitionpredictor,
-        assume_straight_pages=False,
+        assume_straight_pages=True,
         straighten_pages=True,
     )
 

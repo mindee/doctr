@@ -59,13 +59,13 @@ def test_remap_boxes():
     height_d, width_d = dest_dimensions
     pred = geometry.remap_boxes(orig_box, orig_dimension, dest_dimensions)
 
-    x, y, w, h, a, c = orig_box[0]
+    x, y, w, h, a, _ = orig_box[0]
     # Switch to absolute coords
     x, w = x * width_o, w * width_o
     y, h = y * height_o, h * height_o
     orig = cv2.boxPoints(((x, y), (w, h), a))
 
-    x, y, w, h, a, c = pred[0]
+    x, y, w, h, a, _ = pred[0]
     # Switch to absolute coords
     x, w = x * width_d, w * width_d
     y, h = y * height_d, h * height_d

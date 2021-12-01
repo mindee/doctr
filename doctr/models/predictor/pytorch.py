@@ -47,8 +47,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     ) -> None:
 
         super().__init__()
-        self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
-        self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
+        self.det_predictor = det_predictor  # type: ignore[attr-defined]
+        self.reco_predictor = reco_predictor  # type: ignore[attr-defined]
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
@@ -64,7 +64,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
-        origin_page_shapes = [page.shape[:2] for page in pages]
+        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
         # Detect document rotation and rotate pages
         if self.straighten_pages:
@@ -86,7 +86,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], target_shape=mask) for
+            boxes = [rotate_boxes(page_boxes,
+                                  angle,
+                                  orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
+                                  target_shape=mask) for
                      page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
         out = self.doc_builder(
