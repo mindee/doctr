@@ -9,23 +9,22 @@ os.environ['USE_TF'] = '1'
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
+import multiprocessing as mp
 import time
 
 import numpy as np
 import tensorflow as tf
-from fastprogress.fastprogress import master_bar, progress_bar
-
 import wandb
+from fastprogress.fastprogress import master_bar, progress_bar
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from utils import plot_samples
-
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import backbones
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
@@ -76,6 +75,9 @@ def collate_fn(samples):
 def main(args):
 
     print(args)
+
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
 
     vocab = VOCABS[args.vocab]
 
@@ -181,14 +183,14 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
+                "weight_decay": 0.,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
                 "framework": "tensorflow",
                 "vocab": args.vocab,
-                "scheduler": args.sched,
+                "scheduler": "exp_decay",
                 "pretrained": args.pretrained,
             }
         )
@@ -230,7 +232,7 @@ def parse_args():
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--font', type=str, default="FreeMono.ttf", help='Font family to be used')
     parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')

@@ -8,11 +8,13 @@ import os
 os.environ['USE_TORCH'] = '1'
 
 import datetime
+import logging
 import multiprocessing as mp
 import time
 
 import numpy as np
 import torch
+import wandb
 from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.nn.functional import cross_entropy
@@ -20,11 +22,10 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision import models
 from torchvision.transforms import ColorJitter, Compose, Normalize, RandomPerspective
-from utils import plot_samples
 
-import wandb
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
@@ -37,6 +38,10 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     # Iterate over the batches of the dataset
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
+
+        if torch.cuda.is_available():
+            images = images.cuda()
+            targets = targets.cuda()
 
         images = batch_transforms(images)
 
@@ -68,6 +73,11 @@ def evaluate(model, val_loader, batch_transforms, amp=False):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
+
+        if torch.cuda.is_available():
+            images = images.cuda()
+            targets = targets.cuda()
+
         if amp:
             with torch.cuda.amp.autocast():
                 out = model(images)
@@ -113,7 +123,7 @@ def main(args):
         drop_last=False,
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{len(val_loader)} batches)")
@@ -128,6 +138,21 @@ def main(args):
         print(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint)
+
+    # GPU
+    if isinstance(args.device, int):
+        if not torch.cuda.is_available():
+            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+        if args.device >= torch.cuda.device_count():
+            raise ValueError("Invalid device index")
+    # Silent default switch to GPU if available
+    elif torch.cuda.is_available():
+        args.device = 0
+    else:
+        logging.warning("No accessible GPU, targe device set to CPU.")
+    if torch.cuda.is_available():
+        torch.cuda.set_device(args.device)
+        model = model.cuda()
 
     if args.test_only:
         print("Running evaluation")
@@ -158,7 +183,7 @@ def main(args):
         drop_last=True,
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")

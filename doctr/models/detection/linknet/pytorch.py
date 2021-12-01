@@ -119,7 +119,7 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         feat_extractor: IntermediateLayerGetter,
         num_classes: int = 1,
-        rotated_bbox: bool = False,
+        assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -149,7 +149,7 @@ class LinkNet(nn.Module, _LinkNet):
             nn.ConvTranspose2d(32, num_classes, kernel_size=2, stride=2),
         )
 
-        self.postprocessor = LinkNetPostProcessor(rotated_bbox=rotated_bbox)
+        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
 
         for m in self.modules():
             if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):

@@ -31,12 +31,12 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         bin_thresh: float = 0.15,
         box_thresh: float = 0.1,
-        rotated_bbox: bool = False,
+        assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(
             box_thresh,
             bin_thresh,
-            rotated_bbox
+            assume_straight_pages
         )
 
     def bitmap_to_boxes(
@@ -64,27 +64,27 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
-            if self.rotated_bbox:
-                score = self.box_score(pred, contour, rotated_bbox=True)
-            else:
+            if self.assume_straight_pages:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
-                score = self.box_score(pred, points, rotated_bbox=False)
+                score = self.box_score(pred, points, assume_straight_pages=True)
+            else:
+                score = self.box_score(pred, contour, assume_straight_pages=False)
 
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
 
-            if self.rotated_bbox:
+            if self.assume_straight_pages:
+                # compute relative polygon to get rid of img shape
+                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+                boxes.append([xmin, ymin, xmax, ymax, score])
+            else:
                 x, y, w, h, alpha = fit_rbbox(contour)
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
-            else:
-                # compute relative polygon to get rid of img shape
-                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-                boxes.append([xmin, ymin, xmax, ymax, score])
 
-        if self.rotated_bbox:
+        if not self.assume_straight_pages:
             if len(boxes) == 0:
                 return np.zeros((0, 6), dtype=pred.dtype)
             coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
@@ -103,7 +103,7 @@ class _LinkNet(BaseModel):
     """
 
     min_size_box: int = 3
-    rotated_bbox: bool = False
+    assume_straight_pages: bool = True
 
     def compute_target(
         self,
@@ -111,16 +111,17 @@ class _LinkNet(BaseModel):
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t.dtype not in (np.float32, np.float16) for t in target):
-            raise AssertionError("the expected dtype of target 'boxes' entry is either 'np.float32' or 'np.float16'.")
+        if any(t.dtype != np.float32 for t in target):
+            raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
-        if self.rotated_bbox:
-            seg_target = np.zeros(output_shape, dtype=np.uint8)
-        else:
+        if self.assume_straight_pages:
             seg_target = np.zeros(output_shape, dtype=bool)
             edge_mask = np.zeros(output_shape, dtype=bool)
+        else:
+            seg_target = np.zeros(output_shape, dtype=np.uint8)
+
         seg_mask = np.ones(output_shape, dtype=bool)
 
         for idx, _target in enumerate(target):
@@ -150,7 +151,7 @@ class _LinkNet(BaseModel):
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 # Fill polygon with 1
-                if self.rotated_bbox:
+                if not self.assume_straight_pages:
                     cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
                 else:
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True

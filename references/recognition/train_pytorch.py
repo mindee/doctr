@@ -16,18 +16,18 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import wandb
 from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
-from utils import plot_samples
 
-import wandb
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
@@ -38,8 +38,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for _ in progress_bar(range(len(train_loader)), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
 
         if torch.cuda.is_available():
             images = images.cuda()
@@ -124,7 +123,7 @@ def main(args):
         drop_last=False,
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -194,7 +193,7 @@ def main(args):
         drop_last=True,
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
-        pin_memory=True,
+        pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -266,8 +265,6 @@ def main(args):
                 'exact_match': exact_match,
                 'partial_match': partial_match,
             })
-        #reset val metric
-        val_metric.reset()
 
     if args.wb:
         run.finish()

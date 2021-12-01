@@ -105,7 +105,7 @@ class DBNet(_DBNet, nn.Module):
         head_chans: int = 256,
         deform_conv: bool = False,
         num_classes: int = 1,
-        rotated_bbox: bool = False,
+        assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -114,7 +114,7 @@ class DBNet(_DBNet, nn.Module):
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
-        self.rotated_bbox = rotated_bbox
+        self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
         # Identify the number of channels for the head initialization
@@ -149,7 +149,7 @@ class DBNet(_DBNet, nn.Module):
             nn.ConvTranspose2d(head_chans // 4, num_classes, 2, stride=2),
         )
 
-        self.postprocessor = DBPostProcessor(rotated_bbox=rotated_bbox)
+        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages)
 
         for m in self.modules():
             if isinstance(m, (nn.Conv2d, DeformConv2d)):

@@ -10,33 +10,30 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
 import hashlib
+import multiprocessing as mp
 import time
-from collections import deque
 from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from fastprogress.fastprogress import master_bar, progress_bar
-
 import wandb
+from fastprogress.fastprogress import master_bar, progress_bar
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from utils import plot_samples
-
 from doctr import transforms as T
 from doctr.datasets import VOCABS, DataLoader, RecognitionDataset
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
+from utils import plot_samples
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
 
         images = batch_transforms(images)
 
@@ -46,17 +43,6 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, 
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
         mb.child.comment = f'Training loss: {train_loss.numpy().mean():.6}'
-        # Update steps
-        step.assign_add(args.batch_size)
-        # Add loss to queue
-        loss_q.append(np.mean(train_loss))
-        # Log loss and save weights every 100 batch step
-        if batch_step % 100 == 0:
-            # Compute loss
-            loss = sum(loss_q) / len(loss_q)
-            if tb_writer is not None:
-                with tb_writer.as_default():
-                    tf.summary.scalar('train_loss', loss, step=step)
 
 
 def evaluate(model, val_loader, batch_transforms, val_metric):
@@ -87,6 +73,9 @@ def main(args):
 
     print(args)
 
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
+
     # Load val data generator
     st = time.time()
     val_set = RecognitionDataset(
@@ -109,9 +98,6 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
-
-    # Tf variable to log steps
-    step = tf.Variable(0, dtype="int64")
 
     # Metrics
     val_metric = TextMatch()
@@ -181,13 +167,6 @@ def main(args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
-    # Tensorboard
-    tb_writer = None
-    if args.tb:
-        log_dir = Path('logs', exp_name)
-        log_dir.mkdir(parents=True, exist_ok=True)
-        tb_writer = tf.summary.create_file_writer(str(log_dir))
-
     # W&B
     if args.wb:
 
@@ -197,13 +176,13 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
+                "weight_decay": 0.,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
                 "framework": "tensorflow",
-                "scheduler": args.sched,
+                "scheduler": "exp_decay",
                 "vocab": args.vocab,
                 "train_hash": train_hash,
                 "val_hash": val_hash,
@@ -211,14 +190,12 @@ def main(args):
             }
         )
 
-    # Create loss queue
-    loss_q = deque(maxlen=100)
     min_loss = np.inf
 
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
@@ -228,12 +205,6 @@ def main(args):
             min_loss = val_loss
         mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                  f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
-        # Tensorboard
-        if args.tb:
-            with tb_writer.as_default():
-                tf.summary.scalar('val_loss', val_loss, step=step)
-                tf.summary.scalar('exact_match', exact_match, step=step)
-                tf.summary.scalar('partial_match', partial_match, step=step)
         # W&B
         if args.wb:
             wandb.log({
@@ -241,8 +212,6 @@ def main(args):
                 'exact_match': exact_match,
                 'partial_match': partial_match,
             })
-        #reset val metric
-        val_metric.reset()
 
     if args.wb:
         run.finish()
@@ -261,14 +230,12 @@ def parse_args():
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
-    parser.add_argument('--tb', dest='tb', action='store_true',
-                        help='Log to Tensorboard')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',

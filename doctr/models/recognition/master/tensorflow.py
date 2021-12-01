@@ -228,8 +228,8 @@ class MASTER(_MASTER, Model):
         combined_mask = tf.maximum(target_padding_mask, look_ahead_mask)
         return combined_mask
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: tf.Tensor,
         gt: tf.Tensor,
         seq_len: List[int],

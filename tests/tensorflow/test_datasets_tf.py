@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import numpy as np
 import pytest
 import tensorflow as tf
@@ -22,9 +20,22 @@ from doctr.transforms import Resize
         ['DocArtefacts', False, [512, 512], 300, True],
         ['IIIT5K', True, [32, 128], 2000, True],
         ['IIIT5K', False, [32, 128], 3000, False],
+        ['SVT', True, [512, 512], 100, True],
+        ['SVT', False, [512, 512], 249, False],
+        ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
+        ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
+        ['IC03', True, [512, 512], 246, True],
+        ['IC03', False, [512, 512], 249, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
+
+    if dataset_name.lower() == "synthtext":
+        # Monkeypatch the class to download a subsample
+        datasets.__dict__[
+            dataset_name
+        ].URL = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
+        datasets.__dict__[dataset_name].SHA256 = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
 
     ds = datasets.__dict__[dataset_name](
         train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
@@ -42,11 +53,6 @@ def test_dataset(dataset_name, train, input_size, size, rotate):
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
-
-    # FP16
-    ds = datasets.__dict__[dataset_name](train=train, download=True, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == tf.float16
 
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):
@@ -84,12 +90,6 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     _, r_target = rotated_ds[0]
     assert r_target.shape[1] == 5
 
-    # FP16
-    ds = datasets.DetectionDataset(img_folder=mock_image_folder, label_path=mock_detection_label, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == tf.float16
-    assert target.dtype == np.float16
-
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     input_size = (32, 128)
@@ -109,14 +109,6 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     images, labels = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
-
-    # FP16
-    ds = datasets.RecognitionDataset(img_folder=mock_image_folder, labels_path=mock_recognition_label, fp16=True)
-    image, _ = ds[0]
-    assert image.dtype == tf.float16
-    ds2, ds3 = deepcopy(ds), deepcopy(ds)
-    ds2.merge_dataset(ds3)
-    assert len(ds2) == 2 * len(ds)
 
 
 def test_ocrdataset(mock_ocrdataset):
@@ -145,12 +137,6 @@ def test_ocrdataset(mock_ocrdataset):
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
-
-    # FP16
-    ds = datasets.OCRDataset(*mock_ocrdataset, fp16=True)
-    img, target = ds[0]
-    assert img.dtype == tf.float16
-    assert target['boxes'].dtype == np.float16
 
 
 def test_charactergenerator():

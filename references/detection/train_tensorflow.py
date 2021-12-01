@@ -10,33 +10,29 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
 import hashlib
+import multiprocessing as mp
 import time
-from collections import deque
-from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from fastprogress.fastprogress import master_bar, progress_bar
-
 import wandb
+from fastprogress.fastprogress import master_bar, progress_bar
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from utils import plot_samples
-
 from doctr import transforms as T
 from doctr.datasets import DataLoader, DetectionDataset
 from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
+from utils import plot_samples
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer=None):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for batch_step in progress_bar(range(train_loader.num_batches), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
 
         images = batch_transforms(images)
 
@@ -46,17 +42,6 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, 
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
         mb.child.comment = f'Training loss: {train_loss.numpy():.6}'
-        # Update steps
-        step.assign_add(args.batch_size)
-        # Add loss to queue
-        loss_q.append(np.mean(train_loss))
-        # Log loss and save weights every 100 batch step
-        if batch_step % 100 == 0:
-            # Compute loss
-            loss = sum(loss_q) / len(loss_q)
-            if tb_writer is not None:
-                with tb_writer.as_default():
-                    tf.summary.scalar('train_loss', loss, step=step)
 
 
 def evaluate(model, val_loader, batch_transforms, val_metric):
@@ -69,7 +54,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         images = batch_transforms(images)
         out = model(images, targets, training=False, return_boxes=True)
         # Compute metric
-        loc_preds, _ = out['preds']
+        loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
@@ -86,12 +71,14 @@ def main(args):
 
     print(args)
 
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
+
     st = time.time()
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, args.input_size)),
-        rotated_bbox=args.rotation
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -106,15 +93,13 @@ def main(args):
     # Load doctr model
     model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
-        input_shape=(args.input_size, args.input_size, 3)
+        input_shape=(args.input_size, args.input_size, 3),
+        assume_straight_pages=not args.rotation,
     )
 
     # Resume weights
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
-
-    # Tf variable to log steps
-    step = tf.Variable(0, dtype="int64")
 
     # Metrics
     val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
@@ -140,7 +125,6 @@ def main(args):
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
         ]),
-        rotated_bbox=args.rotation
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -172,13 +156,6 @@ def main(args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
-    # Tensorboard
-    tb_writer = None
-    if args.tb:
-        log_dir = Path('logs', exp_name)
-        log_dir.mkdir(parents=True, exist_ok=True)
-        tb_writer = tf.summary.create_file_writer(str(log_dir))
-
     # W&B
     if args.wb:
 
@@ -188,13 +165,13 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
+                "weight_decay": 0.,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
                 "framework": "tensorflow",
-                "scheduler": args.sched,
+                "scheduler": "exp_decay",
                 "train_hash": train_hash,
                 "val_hash": val_hash,
                 "pretrained": args.pretrained,
@@ -206,14 +183,12 @@ def main(args):
         for layer in model.feat_extractor.layers:
             layer.trainable = False
 
-    # Create loss queue
-    loss_q = deque(maxlen=100)
     min_loss = np.inf
 
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, loss_q, mb, step, tb_writer)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
@@ -225,13 +200,7 @@ def main(args):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
-        # Tensorboard
-        if args.tb:
-            with tb_writer.as_default():
-                tf.summary.scalar('val_loss', val_loss, step=step)
-                tf.summary.scalar('recall', recall, step=step)
-                tf.summary.scalar('precision', precision, step=step)
-                tf.summary.scalar('mean_iou', mean_iou, step=step)
+        mb.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
@@ -240,8 +209,6 @@ def main(args):
                 'precision': precision,
                 'mean_iou': mean_iou,
             })
-        # Reset val metric
-        val_metric.reset()
 
     if args.wb:
         run.finish()
@@ -260,15 +227,13 @@ def parse_args():
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('-j', '--workers', type=int, default=4, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
                         help='freeze model backbone for fine-tuning')
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
-    parser.add_argument('--tb', dest='tb', action='store_true',
-                        help='Log to Tensorboard')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
