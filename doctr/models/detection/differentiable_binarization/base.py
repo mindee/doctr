@@ -36,23 +36,17 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         box_thresh: float = 0.1,
         bin_thresh: float = 0.3,
-<<<<<<< HEAD
         rotated_bbox: bool = False,
         min_size_box: int = 3,
-=======
         assume_straight_pages: bool = True,
->>>>>>> 7244d43e16bf473409ef8b169ed97fe2f3198dc2
     ) -> None:
 
         super().__init__(
             box_thresh,
             bin_thresh,
-<<<<<<< HEAD
             rotated_bbox,
             min_size_box,
-=======
             assume_straight_pages
->>>>>>> 7244d43e16bf473409ef8b169ed97fe2f3198dc2
         )
         self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
