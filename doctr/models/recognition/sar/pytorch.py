@@ -206,8 +206,8 @@ class SAR(nn.Module, RecognitionModel):
 
         return out
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,
