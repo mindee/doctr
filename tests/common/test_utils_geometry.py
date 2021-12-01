@@ -1,8 +1,8 @@
 from math import hypot
-import pytest
 
 import cv2
 import numpy as np
+import pytest
 
 from doctr.utils import geometry
 
