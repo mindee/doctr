@@ -10,6 +10,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
+from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
@@ -166,5 +167,11 @@ class _LinkNet(BaseModel):
                     edge_mask[idx, box[1]: min(box[3] + 1, h), box[0]] = True
                     # right edge
                     edge_mask[idx, box[1]: min(box[3] + 1, h), min(box[2], w - 1)] = True
+
+        # Don't forget to switch back to channel first if PyTorch is used
+        if not is_tf_available():
+            seg_target = seg_target.transpose(0, 3, 1, 2)
+            seg_mask = seg_mask.transpose(0, 3, 1, 2)
+            edge_mask = edge_mask.transpose(0, 3, 1, 2)
 
         return seg_target, seg_mask, edge_mask
