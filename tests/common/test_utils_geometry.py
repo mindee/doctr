@@ -1,4 +1,5 @@
 from math import hypot
+import pytest
 
 import cv2
 import numpy as np
@@ -50,6 +51,12 @@ def test_remap_boxes():
     pred = geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40), (160, 40))
     target = np.array([[0.5, 0.25, 0.5, 0.125, 0., 0.5]])
     assert np.all(pred == target)
+
+    with pytest.raises(ValueError):
+        geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40, 150), (160, 40))
+
+    with pytest.raises(ValueError):
+        geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40), (160,))
 
     orig_dimension = (100, 100)
     dest_dimensions = (100, 200)

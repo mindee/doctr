@@ -86,12 +86,21 @@ def mock_bitmap(mock_image):
     return bitmap
 
 
+@pytest.fixture(scope="function")
+def mock_unreadable_image(mock_image):
+    image = mock_image * 0
+    return image
+
+
 def test_get_bitmap_angle(mock_bitmap):
     angle = get_bitmap_angle(mock_bitmap)
     assert abs(angle - 30.) < 1.
 
 
-def test_estimate_orientation(mock_image):
+def test_estimate_orientation(mock_image, mock_unreadable_image):
+    angle = estimate_orientation(mock_unreadable_image)
+    assert angle == 0
+
     angle = estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
 
