@@ -85,6 +85,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
     return predictor
 
+
 @pytest.mark.parametrize(
     "arch_name",
     [

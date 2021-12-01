@@ -7,6 +7,7 @@ from doctr.models import detection
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
 
+
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob",
     [
@@ -88,6 +89,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
         _ = predictor([input_page])
 
     return predictor
+
 
 @pytest.mark.parametrize(
     "arch_name",
