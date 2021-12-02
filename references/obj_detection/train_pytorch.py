@@ -8,6 +8,7 @@ import os
 os.environ['USE_TORCH'] = '1'
 
 import datetime
+import multiprocessing as mp
 import logging
 import random
 
@@ -25,32 +26,35 @@ from doctr.utils import DetectionMetric
 from doctr.transforms.functional.pytorch import rotate
 
 
-def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
+def data_augmentations(targets, max_angle, **kwargs):
+    bbox = np.array([i["boxes"] for i in targets], dtype=object)
+    images = kwargs.get('images', )
+    angle = 2 * max_angle * (np.random.rand(len(targets)) - 1)
+    for id in range(len(bbox)):
+        images[id], bbox[id] = rotate(images[id], bbox[id], angle[id] if bool(
+            random.getrandbits(1)) else -angle[id])
+        bbox_t = bbox[id][:, :4]
+        for z in range(len(bbox[id])):
+            bbox_t[z][0] = bbox[id][z][0] - bbox[id][z][2] / 2
+            bbox_t[z][1] = bbox[id][z][1] - bbox[id][z][3] / 2
+            bbox_t[z][2] = bbox_t[z][0] + bbox[id][z][2]
+            bbox_t[z][3] = bbox_t[z][1] + bbox[id][z][3]
+        bbox[id] = bbox_t
+    targets = [{
+        "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
+        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
+        for bo, t in zip(bbox, targets)
+    ]
+    return images, targets
+
+
+def convert_to_abs_coords(targets, img_shape, use_aug=False, **kwargs):
     height, width = img_shape[-2:]
     for idx in range(len(targets)):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
-    if is_transform:
-        if bool(random.getrandbits(1)):
-            angle = random.uniform(0.1, 5.0)
-        else:
-            angle = random.uniform(-0.1, -5.0)
-        bbox = np.array([i["boxes"] for i in targets], dtype=object)
-        images = kwargs.get('images',)
-        for id in range(len(bbox)):
-            images[id], bbox[id] = rotate(images[id], bbox[id], angle)
-            bbox_t = bbox[id][:, :4]
-            for z in range(len(bbox[id])):
-                bbox_t[z][0] = bbox[id][z][0] - bbox[id][z][2] / 2
-                bbox_t[z][1] = bbox[id][z][1] - bbox[id][z][3] / 2
-                bbox_t[z][2] = bbox_t[z][0] + bbox[id][z][2]
-                bbox_t[z][3] = bbox_t[z][1] + bbox[id][z][3]
-            bbox[id] = bbox_t
-        targets = [{
-            "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
-            "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
-            for bo, t in zip(bbox, targets)
-        ]
+    if use_aug:
+        images, targets = data_augmentations(targets, 5, **kwargs)
         return images, targets
     else:
         targets = [{
@@ -61,16 +65,16 @@ def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
         return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=True, ):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug=True, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
         optimizer.zero_grad()
-        if is_transform:
+        if use_aug:
             kwargs = {"images": images}
-            images, targets = convert_to_abs_coords(targets, images.shape, is_transform=True, **kwargs)
+            images, targets = convert_to_abs_coords(targets, images.shape, use_aug=True, **kwargs)
         else:
             targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
@@ -107,6 +111,9 @@ def evaluate(model, val_loader, metric):
 
 def main(args):
     torch.backends.cudnn.benchmark = True
+
+    if not isinstance(args.workers, int):
+        args.workers = min(16, mp.cpu_count())
 
     # Filter keys
     state_dict = {
@@ -152,6 +159,7 @@ def main(args):
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
     train_set = DocArtefacts(train=True, download=True)
     val_set = DocArtefacts(train=False, download=True)
+
     train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.workers,
                               sampler=RandomSampler(train_set), pin_memory=torch.cuda.is_available(),
                               collate_fn=train_set.collate_fn,
@@ -195,7 +203,7 @@ def main(args):
     max_score = 0.
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=True)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug=args.use_augmentations)
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 
@@ -212,8 +220,7 @@ def main(args):
             })
         if f1_score > max_score:
             print(f"Validation metric increased {max_score:.6} --> {f1_score:.6}: saving state...")
-            # torch.save(model.state_dict(), f"./{exp_name}.pt")
-            torch.save(model.state_dict(), f"./{epoch}.pt")
+            torch.save(model.state_dict(), f"./{exp_name}.pt")
             max_score = f1_score
 
     if args.wb:
@@ -229,10 +236,11 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=8, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
+    parser.add_argument('--use_augmentations', default=True, type=bool, help='augmentations')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
-    parser.add_argument('-j', '--workers', type=int, default=2, help='number of workers used for dataloading')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
