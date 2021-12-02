@@ -5,8 +5,8 @@ import torch
 from doctr.io import DocumentFile
 from doctr.models import recognition
 from doctr.models._utils import extract_crops
-from doctr.models.preprocessor import PreProcessor
-from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models.preprocessor.pytorch import PreProcessor
+from doctr.models.recognition.predictor.pytorch import RecognitionPredictor
 
 
 @pytest.mark.parametrize(
@@ -59,7 +59,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 
 
 @pytest.fixture(scope="session")
-def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
+def test_recognitionpredictor_pt(mock_pdf, mock_vocab):  # noqa: F811
 
     batch_size = 4
     predictor = RecognitionPredictor(

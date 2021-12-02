@@ -47,8 +47,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     ) -> None:
 
         super().__init__()
-        self.det_predictor = det_predictor  # type: ignore[attr-defined]
-        self.reco_predictor = reco_predictor  # type: ignore[attr-defined]
+        self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
+        self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
