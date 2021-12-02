@@ -43,6 +43,7 @@ class RecognitionDataset(AbstractDataset):
             # File existence check
             if not os.path.exists(os.path.join(self.root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
+
             label = labels.get(img_path)
             if not isinstance(label, str):
                 raise KeyError("Image is not in referenced in label file")
