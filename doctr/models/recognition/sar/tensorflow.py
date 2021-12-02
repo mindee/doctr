@@ -213,8 +213,8 @@ class SAR(Model, RecognitionModel):
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: tf.Tensor,
         gt: tf.Tensor,
         seq_len: tf.Tensor,

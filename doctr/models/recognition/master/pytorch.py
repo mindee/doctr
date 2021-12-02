@@ -217,8 +217,8 @@ class MASTER(_MASTER, nn.Module):
         combined_mask = target_padding_mask | look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,

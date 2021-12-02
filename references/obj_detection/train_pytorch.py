@@ -27,9 +27,9 @@ from doctr.utils import DetectionMetric
 def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
 
-    for idx in range(len(targets)):
-        targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
-        targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
+    for idx, t in enumerate(targets):
+        targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
+        targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
 
     targets = [{
         "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
@@ -44,8 +44,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for _ in progress_bar(range(len(train_loader)), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
         optimizer.zero_grad()
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
