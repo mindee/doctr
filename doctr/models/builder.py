@@ -40,7 +40,8 @@ class DocumentBuilder(NestedObject):
         self.paragraph_break = paragraph_break
         self.export_as_straight_boxes = export_as_straight_boxes
 
-    def _sort_boxes(self, boxes: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def _sort_boxes(boxes: np.ndarray) -> np.ndarray:
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
@@ -144,7 +145,8 @@ class DocumentBuilder(NestedObject):
 
         return lines
 
-    def _resolve_blocks(self, boxes: np.ndarray, lines: List[List[int]]) -> List[List[List[int]]]:
+    @staticmethod
+    def _resolve_blocks(boxes: np.ndarray, lines: List[List[int]]) -> List[List[List[int]]]:
         """Order lines to group them in blocks
 
         Args:

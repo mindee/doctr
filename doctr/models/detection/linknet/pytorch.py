@@ -119,7 +119,7 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         feat_extractor: IntermediateLayerGetter,
         num_classes: int = 1,
-        rotated_bbox: bool = False,
+        assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -149,7 +149,7 @@ class LinkNet(nn.Module, _LinkNet):
             nn.ConvTranspose2d(32, num_classes, kernel_size=2, stride=2),
         )
 
-        self.postprocessor = LinkNetPostProcessor(rotated_bbox=rotated_bbox)
+        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
 
         for m in self.modules():
             if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
@@ -213,7 +213,7 @@ class LinkNet(nn.Module, _LinkNet):
         Returns:
             A loss tensor
         """
-        targets = self.compute_target(target, out_map.shape)  # type: ignore[arg-type]
+        targets = self.build_target(target, out_map.shape)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]).to(dtype=out_map.dtype), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)

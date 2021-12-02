@@ -12,12 +12,12 @@ from unidecode import unidecode
 
 from doctr.utils.geometry import rbbox_to_polygon
 
-__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_to_mask',
-           'nms', 'LocalizationConfusion', 'OCRMetric']
+__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_iou',
+           'nms', 'LocalizationConfusion', 'OCRMetric', 'DetectionMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
-    """Perform string comparison with multiple levels of tolerance
+    """Performs string comparison with multiple levels of tolerance
 
     Args:
         word1: a string
@@ -38,26 +38,26 @@ def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
 
 
 class TextMatch:
-    """Implements text match metric (word-level accuracy) for recognition task.
+    r"""Implements text match metric (word-level accuracy) for recognition task.
 
     The raw aggregated metric is computed as follows:
 
     .. math::
-        \\forall X, Y \\in \\mathcal{W}^N,
-        TextMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)
+        \forall X, Y \in \mathcal{W}^N,
+        TextMatch(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N f_{Y_i}(X_i)
 
     with the indicator function :math:`f_{a}` defined as:
 
     .. math::
-        \\forall a, x \\in \\mathcal{W},
-        f_a(x) = \\left\\{
-            \\begin{array}{ll}
-                1 & \\mbox{if } x = a \\\\
-                0 & \\mbox{otherwise.}
-            \\end{array}
-        \\right.
+        \forall a, x \in \mathcal{W},
+        f_a(x) = \left\{
+            \begin{array}{ll}
+                1 & \mbox{if } x = a \\
+                0 & \mbox{otherwise.}
+            \end{array}
+        \right.
 
-    where :math:`\\mathcal{W}` is the set of all possible character sequences,
+    where :math:`\mathcal{W}` is the set of all possible character sequences,
     :math:`N` is a strictly positive integer.
 
     Example::
@@ -119,7 +119,7 @@ class TextMatch:
 
 
 def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
-    """Compute the IoU between two sets of bounding boxes
+    """Computes the IoU between two sets of bounding boxes
 
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
@@ -147,7 +147,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
 
 
 def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
-    """Compute the IoA (intersection over area) between two sets of bounding boxes:
+    """Computes the IoA (intersection over area) between two sets of bounding boxes:
     ioa(i, j) = inter(i, j) / area(i)
 
     Args:
@@ -176,7 +176,7 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
 
 
 def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
-    """Compute the IoU between two sets of boolean masks
+    """Computes the IoU between two sets of boolean masks
 
     Args:
         masks_1: boolean masks of shape (N, H, W)
@@ -192,16 +192,83 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     iou_mat = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
 
     if masks_1.shape[0] > 0 and masks_2.shape[0] > 0:
-        intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...])
-        union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...])
         axes = tuple(range(2, masks_1.ndim + 1))
-        iou_mat = intersection.sum(axis=axes) / union.sum(axis=axes)
+        intersection = np.logical_and(masks_1[:, None, ...], masks_2[None, ...]).sum(axis=axes)
+        union = np.logical_or(masks_1[:, None, ...], masks_2[None, ...]).sum(axis=axes)
+        iou_mat = intersection / union
 
     return iou_mat
 
 
+def rbox_iou(
+    boxes_1: np.ndarray,
+    boxes_2: np.ndarray,
+    mask_shape: Tuple[int, int],
+    use_broadcasting: bool = True
+) -> np.ndarray:
+    """Computes the IoU between two sets of rotated bounding boxes
+
+    Args:
+        boxes_1: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
+        boxes_2: rotated bounding boxes of shape (M, 5) in format (x, y, w, h, alpha)
+        mask_shape: spatial shape of the intermediate masks
+        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory
+
+    Returns:
+        the IoU matrix of shape (N, M)
+    """
+
+    if boxes_1.shape[1] != 5 or boxes_2.shape[1] != 5:
+        raise AssertionError("expects boxes to be in format (x, y, w, h, alpha")
+
+    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+
+    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
+        if use_broadcasting:
+            masks_1 = rbox_to_mask(boxes_1, shape=mask_shape)
+            masks_2 = rbox_to_mask(boxes_2, shape=mask_shape)
+            iou_mat = mask_iou(masks_1, masks_2)
+        else:
+            # Save memory by doing the computation for each pair
+            for idx, b1 in enumerate(boxes_1):
+                m1 = _rbox_to_mask(b1, mask_shape)
+                for _idx, b2 in enumerate(boxes_2):
+                    m2 = _rbox_to_mask(b2, mask_shape)
+                    iou_mat[idx, _idx] = np.logical_and(m1, m2).sum() / np.logical_or(m1, m2).sum()
+
+    return iou_mat
+
+
+def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
+    """Converts a rotated bounding box to a boolean mask
+
+    Args:
+        box: rotated bounding box of shape (5,) in format (x, y, w, h, alpha)
+        shape: spatial shapes of the output masks
+
+    Returns:
+        the boolean mask of the specified shape
+    """
+
+    mask = np.zeros(shape, dtype=np.uint8)
+    # Get absolute coords
+    if box.dtype != np.int:
+        abs_box = box.copy()
+        abs_box[[0, 2]] = abs_box[[0, 2]] * shape[1]
+        abs_box[[1, 3]] = abs_box[[1, 3]] * shape[0]
+        abs_box = abs_box.round().astype(np.int)
+    else:
+        abs_box = box
+        abs_box[2:] = abs_box[2:] + 1
+    # Get the polygon and fill the mask
+    polygon = rbbox_to_polygon(abs_box)
+    cv2.fillPoly(mask, [np.array(polygon, np.int32)], 1)
+
+    return mask.astype(bool)
+
+
 def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
-    """Convert boxes to masks
+    """Converts rotated bounding boxes to boolean masks
 
     Args:
         boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
@@ -226,8 +293,8 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
 
         # TODO: optimize slicing to improve vectorization
         for idx, _box in enumerate(abs_boxes):
-            box = rbbox_to_polygon(_box)
-            cv2.fillPoly(masks[idx], [np.array(box, np.int32)], 1)
+            polygon = rbbox_to_polygon(_box)
+            cv2.fillPoly(masks[idx], [np.array(polygon, np.int32)], 1)
 
     return masks.astype(bool)
 
@@ -271,29 +338,29 @@ def nms(boxes: np.ndarray, thresh: float = .5) -> List[int]:
 
 
 class LocalizationConfusion:
-    """Implements common confusion metrics and mean IoU for localization evaluation.
+    r"""Implements common confusion metrics and mean IoU for localization evaluation.
 
     The aggregated metrics are computed as follows:
 
     .. math::
-        \\forall Y \\in \\mathcal{B}^N, \\forall X \\in \\mathcal{B}^M, \\\\
-        Recall(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\
-        Precision(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\
-        meanIoU(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(X_i, Y_j)
+        \forall Y \in \mathcal{B}^N, \forall X \in \mathcal{B}^M, \\
+        Recall(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N g_{X}(Y_i) \\
+        Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M g_{X}(Y_i) \\
+        meanIoU(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(X_i, Y_j)
 
     with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
     :math:`y`, and the function :math:`g_{X}` defined as:
 
     .. math::
-        \\forall y \\in \\mathcal{B},
-        g_X(y) = \\left\\{
-            \\begin{array}{ll}
-                1 & \\mbox{if } y\\mbox{ has been assigned to any }(X_i)_i\\mbox{ with an }IoU \\geq 0.5 \\\\
-                0 & \\mbox{otherwise.}
-            \\end{array}
-        \\right.
+        \forall y \in \mathcal{B},
+        g_X(y) = \left\{
+            \begin{array}{ll}
+                1 & \mbox{if } y\mbox{ has been assigned to any }(X_i)_i\mbox{ with an }IoU \geq 0.5 \\
+                0 & \mbox{otherwise.}
+            \end{array}
+        \right.
 
-    where :math:`\\mathcal{B}` is the set of possible bounding boxes,
+    where :math:`\mathcal{B}` is the set of possible bounding boxes,
     :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
     Example::
@@ -305,6 +372,9 @@ class LocalizationConfusion:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
+        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory
     """
 
     def __init__(
@@ -312,10 +382,12 @@ class LocalizationConfusion:
         iou_thresh: float = 0.5,
         rotated_bbox: bool = False,
         mask_shape: Tuple[int, int] = (1024, 1024),
+        use_broadcasting: bool = True,
     ) -> None:
         self.iou_thresh = iou_thresh
         self.rotated_bbox = rotated_bbox
         self.mask_shape = mask_shape
+        self.use_broadcasting = use_broadcasting
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
@@ -323,9 +395,7 @@ class LocalizationConfusion:
         if preds.shape[0] > 0:
             # Compute IoU
             if self.rotated_bbox:
-                mask_gts = rbox_to_mask(gts, shape=self.mask_shape)
-                mask_preds = rbox_to_mask(preds, shape=self.mask_shape)
-                iou_mat = mask_iou(mask_gts, mask_preds)
+                iou_mat = rbox_iou(gts, preds, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=1).sum())
@@ -364,32 +434,32 @@ class LocalizationConfusion:
 
 
 class OCRMetric:
-    """Implements end-to-end OCR metric.
+    r"""Implements an end-to-end OCR metric.
 
     The aggregated metrics are computed as follows:
 
     .. math::
-        \\forall (B, L) \\in \\mathcal{B}^N \\times \\mathcal{L}^N,
-        \\forall (\\hat{B}, \\hat{L}) \\in \\mathcal{B}^M \\times \\mathcal{L}^M, \\\\
-        Recall(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{N} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\
-        Precision(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{M} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\
-        meanIoU(B, \\hat{B}) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(\\hat{B}_i, B_j)
+        \forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,
+        \forall (\hat{B}, \hat{L}) \in \mathcal{B}^M \times \mathcal{L}^M, \\
+        Recall(B, \hat{B}, L, \hat{L}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
+        Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,L}(\hat{B}_i, \hat{L}_i) \\
+        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)
 
     with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
     :math:`y`, and the function :math:`h_{B, L}` defined as:
 
     .. math::
-        \\forall (b, l) \\in \\mathcal{B} \\times \\mathcal{L},
-        h_{B,L}(b, l) = \\left\\{
-            \\begin{array}{ll}
-                1 & \\mbox{if } b\\mbox{ has been assigned to a given }B_j\\mbox{ with an } \\\\
-                & IoU \\geq 0.5 \\mbox{ and that for this assignment, } l = L_j\\\\
-                0 & \\mbox{otherwise.}
-            \\end{array}
-        \\right.
+        \forall (b, l) \in \mathcal{B} \times \mathcal{L},
+        h_{B,L}(b, l) = \left\{
+            \begin{array}{ll}
+                1 & \mbox{if } b\mbox{ has been assigned to a given }B_j\mbox{ with an } \\
+                & IoU \geq 0.5 \mbox{ and that for this assignment, } l = L_j\\
+                0 & \mbox{otherwise.}
+            \end{array}
+        \right.
 
-    where :math:`\\mathcal{B}` is the set of possible bounding boxes,
-    :math:`\\mathcal{L}` is the set of possible character sequences,
+    where :math:`\mathcal{B}` is the set of possible bounding boxes,
+    :math:`\mathcal{L}` is the set of possible character sequences,
     :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
     Example::
@@ -402,6 +472,9 @@ class OCRMetric:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
+        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory
     """
 
     def __init__(
@@ -409,10 +482,12 @@ class OCRMetric:
         iou_thresh: float = 0.5,
         rotated_bbox: bool = False,
         mask_shape: Tuple[int, int] = (1024, 1024),
+        use_broadcasting: bool = True,
     ) -> None:
         self.iou_thresh = iou_thresh
         self.rotated_bbox = rotated_bbox
         self.mask_shape = mask_shape
+        self.use_broadcasting = use_broadcasting
         self.reset()
 
     def update(
@@ -430,9 +505,7 @@ class OCRMetric:
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             if self.rotated_bbox:
-                mask_gts = rbox_to_mask(gt_boxes, shape=self.mask_shape)
-                mask_preds = rbox_to_mask(pred_boxes, shape=self.mask_shape)
-                iou_mat = mask_iou(mask_gts, mask_preds)
+                iou_mat = rbox_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 
@@ -456,7 +529,7 @@ class OCRMetric:
         """Computes the aggregated metrics
 
         Returns:
-            a tuple with the recall & precision for each string comparison flexibility and the mean IoU
+            a tuple with the recall & precision for each string comparison and the mean IoU
         """
 
         # Recall
@@ -488,3 +561,115 @@ class OCRMetric:
         self.caseless_matches = 0
         self.unidecode_matches = 0
         self.unicase_matches = 0
+
+
+class DetectionMetric:
+    r"""Implements an object detection metric.
+
+    The aggregated metrics are computed as follows:
+
+    .. math::
+        \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
+        \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\
+        Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)
+
+    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and
+    :math:`y`, and the function :math:`h_{B, C}` defined as:
+
+    .. math::
+        \forall (b, c) \in \mathcal{B} \times \mathcal{C},
+        h_{B,C}(b, c) = \left\{
+            \begin{array}{ll}
+                1 & \mbox{if } b\mbox{ has been assigned to a given }B_j\mbox{ with an } \\
+                & IoU \geq 0.5 \mbox{ and that for this assignment, } c = C_j\\
+                0 & \mbox{otherwise.}
+            \end{array}
+        \right.
+
+    where :math:`\mathcal{B}` is the set of possible bounding boxes,
+    :math:`\mathcal{C}` is the set of possible class indices,
+    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
+
+    Example::
+        >>> import numpy as np
+        >>> from doctr.utils import DetectionMetric
+        >>> metric = DetectionMetric(iou_thresh=0.5)
+        >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
+        np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))
+        >>> metric.summary()
+
+    Args:
+        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
+        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
+        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory
+    """
+
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        rotated_bbox: bool = False,
+        mask_shape: Tuple[int, int] = (1024, 1024),
+        use_broadcasting: bool = True,
+    ) -> None:
+        self.iou_thresh = iou_thresh
+        self.rotated_bbox = rotated_bbox
+        self.mask_shape = mask_shape
+        self.use_broadcasting = use_broadcasting
+        self.reset()
+
+    def update(
+        self,
+        gt_boxes: np.ndarray,
+        pred_boxes: np.ndarray,
+        gt_labels: np.ndarray,
+        pred_labels: np.ndarray,
+    ) -> None:
+
+        if gt_boxes.shape[0] != gt_labels.shape[0] or pred_boxes.shape[0] != pred_labels.shape[0]:
+            raise AssertionError("there should be the same number of boxes and string both for the ground truth "
+                                 "and the predictions")
+
+        # Compute IoU
+        if pred_boxes.shape[0] > 0:
+            if self.rotated_bbox:
+                iou_mat = rbox_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
+            else:
+                iou_mat = box_iou(gt_boxes, pred_boxes)
+
+            self.tot_iou += float(iou_mat.max(axis=1).sum())
+
+            # Assign pairs
+            gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
+            is_kept = iou_mat[gt_indices, pred_indices] >= self.iou_thresh
+            # Category comparison
+            self.num_matches += int((gt_labels[gt_indices[is_kept]] == pred_labels[pred_indices[is_kept]]).sum())
+
+        self.num_gts += gt_boxes.shape[0]
+        self.num_preds += pred_boxes.shape[0]
+
+    def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+        """Computes the aggregated metrics
+
+        Returns:
+            a tuple with the recall & precision for each class prediction and the mean IoU
+        """
+
+        # Recall
+        recall = self.num_matches / self.num_gts if self.num_gts > 0 else None
+
+        # Precision
+        precision = self.num_matches / self.num_preds if self.num_preds > 0 else None
+
+        # mean IoU (overall detected boxes)
+        mean_iou = self.tot_iou / self.num_preds if self.num_preds > 0 else None
+
+        return recall, precision, mean_iou
+
+    def reset(self) -> None:
+        self.num_gts = 0
+        self.num_preds = 0
+        self.tot_iou = 0.
+        self.num_matches = 0

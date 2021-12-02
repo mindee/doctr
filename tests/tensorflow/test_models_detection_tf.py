@@ -4,6 +4,7 @@ import tensorflow as tf
 
 from doctr.io import DocumentFile
 from doctr.models import detection
+from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
 
@@ -37,7 +38,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if out_prob:
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
-    for boxes in out['preds'][0]:
+    for boxes in out['preds']:
         assert boxes.shape[1] == 5
         assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
@@ -70,7 +71,6 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
-    out, _ = zip(*out)
     # The input PDF has 8 pages
     assert len(out) == 8
 
@@ -88,7 +88,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(rotated_bbox=True, input_shape=(512, 512, 3))
+        detection.db_resnet50(assume_straight_pages=False, input_shape=(512, 512, 3))
     )
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
@@ -120,9 +120,7 @@ def test_detection_zoo(arch_name):
     assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
-    assert all(isinstance(out_img, tuple) for out_img in out)
-    all_boxes, _ = zip(*out)
-    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in all_boxes)
+    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
 
 
 def test_detection_zoo_error():
@@ -142,3 +140,21 @@ def test_linknet_focal_loss():
     # test focal loss
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)
     assert isinstance(out['loss'], tf.Tensor)
+
+
+def test_erode():
+    x = np.zeros((1, 3, 3, 1), dtype=np.float32)
+    x[:, 1, 1] = 1
+    x = tf.convert_to_tensor(x)
+    expected = tf.zeros((1, 3, 3, 1))
+    out = erode(x, 3)
+    assert tf.math.reduce_all(out == expected)
+
+
+def test_dilate():
+    x = np.zeros((1, 3, 3, 1), dtype=np.float32)
+    x[:, 1, 1] = 1
+    x = tf.convert_to_tensor(x)
+    expected = tf.ones((1, 3, 3, 1))
+    out = dilate(x, 3)
+    assert tf.math.reduce_all(out == expected)

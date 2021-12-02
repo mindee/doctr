@@ -42,7 +42,9 @@ jobs:
       - name: Run isort
         run: |
           pip install isort
-          isort **/*.py -c -v
+          isort --version
+          isort .
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then exit 1; else echo "All clear"; fi
 
   mypy-py3:
     runs-on: ${{ matrix.os }}

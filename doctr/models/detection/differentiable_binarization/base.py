@@ -38,6 +38,7 @@ class DBPostProcessor(DetectionPostProcessor):
         bin_thresh: float = 0.3,
         rotated_bbox: bool = False,
         min_size_box: int = 3,
+        assume_straight_pages: bool = True,
     ) -> None:
 
         super().__init__(
@@ -45,8 +46,9 @@ class DBPostProcessor(DetectionPostProcessor):
             bin_thresh,
             rotated_bbox,
             min_size_box,
+            assume_straight_pages
         )
-        self.unclip_ratio = 2.2 if self.rotated_bbox else 1.5
+        self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
     def polygon_to_box(
         self,
@@ -78,7 +80,7 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        return fit_rbbox(expanded_points) if self.rotated_bbox else cv2.boundingRect(expanded_points)
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else fit_rbbox(expanded_points)
 
     def bitmap_to_boxes(
         self,
@@ -108,33 +110,36 @@ class DBPostProcessor(DetectionPostProcessor):
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
-            if self.rotated_bbox:
-                score = self.box_score(pred, contour, rotated_bbox=True)
-            else:
+            if self.assume_straight_pages:
                 x, y, w, h = cv2.boundingRect(contour)
                 points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
-                score = self.box_score(pred, points, rotated_bbox=False)
+                score = self.box_score(pred, points, assume_straight_pages=True)
+            else:
+                score = self.box_score(pred, contour, assume_straight_pages=False)
 
             if self.box_thresh > score:   # remove polygons with a weak objectness
                 continue
 
-            _box = self.polygon_to_box(np.squeeze(contour)) if self.rotated_bbox else self.polygon_to_box(points)
+            if self.assume_straight_pages:
+                _box = self.polygon_to_box(points)
+            else:
+                _box = self.polygon_to_box(np.squeeze(contour))
 
             if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
                 continue
 
-            if self.rotated_bbox:
-                x, y, w, h, alpha = _box  # type: ignore[misc]
-                # compute relative box to get rid of img shape
-                x, y, w, h = x / width, y / height, w / width, h / height
-                boxes.append([x, y, w, h, alpha, score])
-            else:
+            if self.assume_straight_pages:
                 x, y, w, h = _box  # type: ignore[misc]
                 # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
+            else:
+                x, y, w, h, alpha = _box  # type: ignore[misc]
+                # compute relative box to get rid of img shape
+                x, y, w, h = x / width, y / height, w / width, h / height
+                boxes.append([x, y, w, h, alpha, score])
 
-        if self.rotated_bbox:
+        if not self.assume_straight_pages:
             if len(boxes) == 0:
                 return np.zeros((0, 6), dtype=pred.dtype)
             coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
@@ -157,7 +162,7 @@ class _DBNet:
     thresh_min = 0.3
     thresh_max = 0.7
     min_size_box = 3
-    rotated_bbox: bool = False
+    assume_straight_pages: bool = True
 
     @staticmethod
     def compute_distance(
@@ -255,14 +260,14 @@ class _DBNet:
 
         return polygon, canvas, mask
 
-    def compute_target(
+    def build_target(
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t.dtype not in (np.float32, np.float16) for t in target):
-            raise AssertionError("the expected dtype of target 'boxes' entry is either 'np.float32' or 'np.float16'.")
+        if any(t.dtype != np.float32 for t in target):
+            raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
@@ -270,7 +275,7 @@ class _DBNet:
 
         seg_target = np.zeros(output_shape, dtype=np.uint8)
         seg_mask = np.ones(output_shape, dtype=bool)
-        thresh_target = np.zeros(output_shape, dtype=np.uint8)
+        thresh_target = np.zeros(output_shape, dtype=np.float32)
         thresh_mask = np.ones(output_shape, dtype=np.uint8)
 
         for idx, _target in enumerate(target):

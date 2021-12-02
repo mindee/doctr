@@ -4,11 +4,11 @@ from doctr.models import detection
 
 
 def test_dbpostprocessor():
-    postprocessor = detection.DBPostProcessor(rotated_bbox=False)
-    r_postprocessor = detection.DBPostProcessor(rotated_bbox=True)
+    postprocessor = detection.DBPostProcessor(assume_straight_pages=True)
+    r_postprocessor = detection.DBPostProcessor(assume_straight_pages=False)
     mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
-    out, _ = postprocessor(mock_batch)
-    r_out, _ = r_postprocessor(mock_batch)
+    out = postprocessor(mock_batch)
+    r_out = r_postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2
@@ -55,10 +55,10 @@ def test_dbpostprocessor():
 
 def test_linknet_postprocessor():
     postprocessor = detection.LinkNetPostProcessor()
-    r_postprocessor = detection.LinkNetPostProcessor(rotated_bbox=True)
+    r_postprocessor = detection.LinkNetPostProcessor(assume_straight_pages=False)
     mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
-    out, _ = postprocessor(mock_batch)
-    r_out, _ = r_postprocessor(mock_batch)
+    out = postprocessor(mock_batch)
+    r_out = r_postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2

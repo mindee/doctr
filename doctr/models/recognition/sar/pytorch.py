@@ -98,7 +98,7 @@ class SARDecoder(nn.Module):
 
         # initialize states (each of shape (N, rnn_units))
         hx = [None, None]
-        # Initialize with the index of virtual START symbol (placed after <eos>)
+        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
         symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=features.dtype)
         logits_list = []
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
@@ -188,7 +188,7 @@ class SAR(nn.Module, RecognitionModel):
         _, (encoded, _) = self.encoder(pooled_features)
         encoded = encoded[-1]
         if target is not None:
-            _gt, _seq_len = self.compute_target(target)
+            _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)  # type: ignore[assignment]
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
@@ -206,8 +206,8 @@ class SAR(nn.Module, RecognitionModel):
 
         return out
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,

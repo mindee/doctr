@@ -22,7 +22,6 @@ class OCRDataset(AbstractDataset):
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
         sample_transforms: composable transformations that will be applied to each image
-        **kwargs: keyword arguments from `VisionDataset`.
     """
 
     def __init__(
@@ -30,14 +29,13 @@ class OCRDataset(AbstractDataset):
         img_folder: str,
         label_file: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
-        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder, **kwargs)
+        super().__init__(img_folder)
         self.sample_transforms = sample_transforms
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
-        np_dtype = np.float16 if self.fp16 else np.float32
+        np_dtype = np.float32
         with open(label_file, 'rb') as f:
             data = json.load(f)
 
