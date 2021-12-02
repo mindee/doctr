@@ -113,6 +113,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     Args:
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
+        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         cfg: the configuration dict of the model
     """
@@ -123,6 +124,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
+        num_classes: int = 1,
         assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -144,7 +146,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
+                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer='he_normal'),
             ]
         )
         self.threshold_head = keras.Sequential(
@@ -153,7 +155,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
                 layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
                 layers.BatchNormalization(),
                 layers.Activation('relu'),
-                layers.Conv2DTranspose(1, 2, strides=2, kernel_initializer='he_normal'),
+                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer='he_normal'),
             ]
         )
 
