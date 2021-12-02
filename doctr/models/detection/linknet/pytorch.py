@@ -166,7 +166,6 @@ class LinkNet(nn.Module, _LinkNet):
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
-        focal_loss: bool = True,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -185,7 +184,7 @@ class LinkNet(nn.Module, _LinkNet):
             out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().cpu().numpy())
 
         if target is not None:
-            loss = self.compute_loss(logits, target, focal_loss)
+            loss = self.compute_loss(logits, target)
             out['loss'] = loss
 
         return out
@@ -194,53 +193,34 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         out_map: torch.Tensor,
         target: List[np.ndarray],
-        focal_loss: bool = False,
-        alpha: float = .5,
-        gamma: float = 2.,
         edge_factor: float = 2.,
     ) -> torch.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
 
         Args:
-            out_map: output feature map of the model of shape N x H x W x 1
+            out_map: output feature map of the model of shape (N, 1, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            focal_loss: if True, use focal loss instead of BCE
             edge_factor: boost factor for box edges (in case of BCE)
-            alpha: balancing factor in the focal loss formula
-            gamma: modulating factor in the focal loss formula
 
         Returns:
             A loss tensor
         """
-        targets = self.build_target(target, out_map.shape)  # type: ignore[arg-type]
+        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
 
-        seg_target, seg_mask = torch.from_numpy(targets[0]).to(dtype=out_map.dtype), torch.from_numpy(targets[1])
+        seg_target, seg_mask = torch.from_numpy(seg_target).to(dtype=out_map.dtype), torch.from_numpy(seg_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
-        edge_mask = torch.from_numpy(targets[2]).to(out_map.device)
+        if edge_factor > 0:
+            edge_mask = torch.from_numpy(edge_mask).to(dtype=out_map.dtype, device=out_map.device)
 
         # Get the cross_entropy for each entry
-        bce = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')[seg_mask]
+        loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
 
-        if focal_loss:
-            if gamma and gamma < 0:
-                raise ValueError("Value of gamma should be greater than or equal to zero.")
-
-            # Convert logits to prob, compute gamma factor
-            pred_prob = torch.sigmoid(out_map)[seg_mask]
-            p_t = (seg_target[seg_mask] * pred_prob) + ((1 - seg_target[seg_mask]) * (1 - pred_prob))
-
-            # Compute alpha factor
-            alpha_factor = seg_target[seg_mask] * alpha + (1 - seg_target[seg_mask]) * (1 - alpha)
-
-            # compute the final loss
-            loss = (alpha_factor * (1. - p_t) ** gamma * bce).mean()
-
-        else:
-            # Compute BCE loss with highlighted edges
-            loss = ((1 + (edge_factor - 1) * edge_mask) * bce).mean()
-
-        return loss
+        # Compute BCE loss with highlighted edges
+        if edge_factor > 0:
+            loss = ((1 + (edge_factor - 1) * edge_mask) * loss)
+        # Only consider contributions overlaping the mask
+        return loss[seg_mask].mean()
 
 
 def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwargs: Any) -> LinkNet:

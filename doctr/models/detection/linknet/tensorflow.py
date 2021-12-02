@@ -139,9 +139,6 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         out_map: tf.Tensor,
         target: List[np.ndarray],
-        focal_loss: bool = False,
-        alpha: float = .5,
-        gamma: float = 2.,
         edge_factor: float = 2.,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
@@ -150,49 +147,29 @@ class LinkNet(_LinkNet, keras.Model):
         Args:
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            focal_loss: if True, use focal loss instead of BCE
             edge_factor: boost factor for box edges (in case of BCE)
-            alpha: balancing factor in the focal loss formula
-            gammma: modulating factor in the focal loss formula
 
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[:3])
+        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[1:3])
+
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
-        edge_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+        if edge_factor > 0:
+            edge_mask = tf.convert_to_tensor(edge_mask, dtype=tf.bool)
 
         # Get the cross_entropy for each entry
-        bce = tf.keras.losses.binary_crossentropy(
-            seg_target[seg_mask],
-            tf.squeeze(out_map, axis=[-1])[seg_mask],
-            from_logits=True)
+        loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
 
-        if focal_loss:
-            if gamma and gamma < 0:
-                raise ValueError("Value of gamma should be greater than or equal to zero.")
-
-            # Convert logits to prob, compute gamma factor
-            pred_prob = tf.sigmoid(tf.squeeze(out_map, axis=[-1])[seg_mask])
-            p_t = (seg_target[seg_mask] * pred_prob) + ((1 - seg_target[seg_mask]) * (1 - pred_prob))
-            modulating_factor = tf.pow((1.0 - p_t), gamma)
-
-            # Compute alpha factor
-            alpha_factor = seg_target[seg_mask] * alpha + (1 - seg_target[seg_mask]) * (1 - alpha)
-
-            # compute the final loss
-            loss = tf.reduce_mean(alpha_factor * modulating_factor * bce)
-
-        else:
-            # Compute BCE loss with highlighted edges
+        # Compute BCE loss with highlighted edges
+        if edge_factor > 0:
             loss = tf.math.multiply(
                 1 + (edge_factor - 1) * tf.cast(edge_mask, out_map.dtype),
-                bce
+                loss
             )
-            loss = tf.reduce_mean(loss)
 
-        return loss
+        return tf.reduce_mean(loss[seg_mask])
 
     def call(
         self,
@@ -200,7 +177,6 @@ class LinkNet(_LinkNet, keras.Model):
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
-        focal_loss: bool = True,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -219,7 +195,7 @@ class LinkNet(_LinkNet, keras.Model):
             out["preds"] = self.postprocessor(tf.squeeze(prob_map, axis=-1).numpy())
 
         if target is not None:
-            loss = self.compute_loss(logits, target, focal_loss)
+            loss = self.compute_loss(logits, target)
             out['loss'] = loss
 
         return out
