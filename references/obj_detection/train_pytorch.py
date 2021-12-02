@@ -16,12 +16,12 @@ import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
+import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision import transforms
 from torchvision.ops import MultiScaleRoIAlign
 
-import wandb
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
 from doctr.transforms.functional.pytorch import rotate
@@ -95,13 +95,11 @@ def convert_to_abs_coords(targets, img_shape, use_aug=False, **kwargs):
         ]
         return targets
 
-
 def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug=True, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for _ in progress_bar(range(len(train_loader)), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
         optimizer.zero_grad()
         if use_aug:
             height, width = images.shape[-2:]

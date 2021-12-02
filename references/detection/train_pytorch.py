@@ -15,18 +15,18 @@ import time
 
 import numpy as np
 import torch
+import wandb
 from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
-from utils import plot_samples
 
-import wandb
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
 from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
@@ -37,8 +37,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for _ in progress_bar(range(len(train_loader)), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
 
         if torch.cuda.is_available():
             images = images.cuda()
@@ -112,7 +111,6 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, args.input_size)),
-        rotated_bbox=args.rotation
     )
     val_loader = DataLoader(
         val_set,
@@ -131,7 +129,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
     # Load doctr model
-    model = detection.__dict__[args.arch](pretrained=args.pretrained)
+    model = detection.__dict__[args.arch](pretrained=args.pretrained, assume_straight_pages=not args.rotation)
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -175,7 +173,6 @@ def main(args):
             T.RandomApply(T.ColorInversion(), .1),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
         ]),
-        rotated_bbox=args.rotation
     )
 
     train_loader = DataLoader(

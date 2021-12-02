@@ -147,7 +147,7 @@ class CRNN(RecognitionModel, Model):
         Returns:
             The loss of the model on the batch
         """
-        gt, seq_len = self.compute_target(target)
+        gt, seq_len = self.build_target(target)
         batch_len = model_output.shape[0]
         input_length = tf.fill((batch_len,), model_output.shape[1])
         ctc_loss = tf.nn.ctc_loss(

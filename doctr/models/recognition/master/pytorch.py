@@ -217,8 +217,8 @@ class MASTER(_MASTER, nn.Module):
         combined_mask = target_padding_mask | look_ahead_mask
         return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,
@@ -278,7 +278,7 @@ class MASTER(_MASTER, nn.Module):
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            _gt, _seq_len = self.compute_target(target)
+            _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
