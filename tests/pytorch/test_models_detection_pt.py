@@ -3,6 +3,7 @@ import pytest
 import torch
 
 from doctr.models import detection
+from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
 
 
@@ -67,3 +68,19 @@ def test_detection_zoo(arch_name):
     with torch.no_grad():
         out = predictor(input_tensor)
     assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
+
+
+def test_erode():
+    x = torch.zeros((1, 1, 3, 3))
+    x[..., 1, 1] = 1
+    expected = torch.zeros((1, 1, 3, 3))
+    out = erode(x, 3)
+    assert torch.equal(out, expected)
+
+
+def test_dilate():
+    x = torch.zeros((1, 1, 3, 3))
+    x[..., 1, 1] = 1
+    expected = torch.ones((1, 1, 3, 3))
+    out = dilate(x, 3)
+    assert torch.equal(out, expected)
