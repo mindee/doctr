@@ -2,7 +2,7 @@ import pytest
 import torch
 
 from doctr.models import recognition
-from doctr.models.recognition.predictor.pytorch import RecognitionPredictor
+from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 @pytest.mark.parametrize(

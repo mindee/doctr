@@ -3,7 +3,7 @@ import pytest
 import torch
 
 from doctr.models import detection
-from doctr.models.detection.predictor.pytorch import DetectionPredictor
+from doctr.models.detection.predictor import DetectionPredictor
 
 
 @pytest.mark.parametrize(
