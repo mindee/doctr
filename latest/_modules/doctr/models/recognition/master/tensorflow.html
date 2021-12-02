@@ -536,7 +536,7 @@
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Compute target: tensor of gts and sequence lengths</span>
-            <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
