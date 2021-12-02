@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from test_models_detection_pt import test_detectionpredictor_pt  # noqa: F401
-from test_models_recognition_pt import test_recognitionpredictor_pt # noqa: F401
+from test_models_recognition_pt import test_recognitionpredictor_pt  # noqa: F401
 
 from doctr import models
 from doctr.io import Document, DocumentFile
