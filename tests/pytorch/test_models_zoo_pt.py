@@ -4,9 +4,9 @@ import pytest
 from doctr import models
 from doctr.io import Document, DocumentFile
 from doctr.models import detection, recognition
+from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.predictor import OCRPredictor
 from doctr.models.preprocessor import PreProcessor
-from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 
 
