@@ -253,7 +253,7 @@ class _DBNet:
 
         return polygon, canvas, mask
 
-    def compute_target(
+    def build_target(
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int, int],

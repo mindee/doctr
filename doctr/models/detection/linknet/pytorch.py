@@ -206,12 +206,12 @@ class LinkNet(nn.Module, _LinkNet):
         Returns:
             A loss tensor
         """
-        targets = self.compute_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
+        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
 
-        seg_target, seg_mask = torch.from_numpy(targets[0]).to(dtype=out_map.dtype), torch.from_numpy(targets[1])
+        seg_target, seg_mask = torch.from_numpy(seg_target).to(dtype=out_map.dtype), torch.from_numpy(seg_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         if edge_factor > 0:
-            edge_mask = torch.from_numpy(targets[2]).to(dtype=out_map.dtype, device=out_map.device)
+            edge_mask = torch.from_numpy(edge_mask).to(dtype=out_map.dtype, device=out_map.device)
 
         # Get the cross_entropy for each entry
         loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')

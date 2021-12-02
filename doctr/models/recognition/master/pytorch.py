@@ -278,7 +278,7 @@ class MASTER(_MASTER, nn.Module):
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            _gt, _seq_len = self.compute_target(target)
+            _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
