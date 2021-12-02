@@ -2,10 +2,8 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.io import DocumentFile
 from doctr.models import detection
 from doctr.models.detection.predictor.pytorch import DetectionPredictor
-from doctr.models.preprocessor.pytorch import PreProcessor
 
 
 @pytest.mark.parametrize(
@@ -44,28 +42,6 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out['loss'], torch.Tensor)
-
-
-@pytest.fixture(scope="session")
-def test_detectionpredictor_pt(mock_pdf):  # noqa: F811
-
-    batch_size = 4
-    predictor = DetectionPredictor(
-        PreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(pretrained=False).eval()
-    )
-
-    pages = DocumentFile.from_pdf(mock_pdf).as_images()
-    out = predictor(pages)
-    # The input PDF has 8 pages
-    assert len(out) == 8
-
-    # # Dimension check
-    # with pytest.raises(ValueError):
-    #     input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
-    #     _ = predictor([input_page])
-
-    return predictor
 
 
 @pytest.mark.parametrize(

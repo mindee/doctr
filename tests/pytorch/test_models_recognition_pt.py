@@ -1,11 +1,7 @@
-import numpy as np
 import pytest
 import torch
 
-from doctr.io import DocumentFile
 from doctr.models import recognition
-from doctr.models._utils import extract_crops
-from doctr.models.preprocessor.pytorch import PreProcessor
 from doctr.models.recognition.predictor.pytorch import RecognitionPredictor
 
 
@@ -56,34 +52,6 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert all(char in mock_vocab for word, _ in decoded for char in word)
     # Repr
     assert repr(processor) == f'{post_processor}(vocab_size={len(mock_vocab)})'
-
-
-@pytest.fixture(scope="session")
-def test_recognitionpredictor_pt(mock_pdf, mock_vocab):  # noqa: F811
-
-    batch_size = 4
-    predictor = RecognitionPredictor(
-        PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),
-        recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
-    )
-
-    pages = DocumentFile.from_pdf(mock_pdf).as_images()
-    # Create bounding boxes
-    boxes = np.array([[.5, .5, 0.75, 0.75], [0.5, 0.5, 1., 1.]], dtype=np.float32)
-    crops = extract_crops(pages[0], boxes)
-
-    out = predictor(crops)
-
-    # One prediction per crop
-    assert len(out) == boxes.shape[0]
-    assert all(isinstance(val, str) and isinstance(conf, float) for val, conf in out)
-
-    # Dimension check
-    with pytest.raises(ValueError):
-        input_crop = (255 * np.random.rand(1, 128, 64, 3)).astype(np.uint8)
-        _ = predictor([input_crop])
-
-    return predictor
 
 
 @pytest.mark.parametrize(

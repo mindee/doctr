@@ -1,27 +1,37 @@
 import numpy as np
 import pytest
-from test_models_detection_pt import test_detectionpredictor_pt  # noqa: F401
-from test_models_recognition_pt import test_recognitionpredictor_pt  # noqa: F401
 
 from doctr import models
 from doctr.io import Document, DocumentFile
-from doctr.models.predictor.pytorch import OCRPredictor
+from doctr.models import detection, recognition
+from doctr.models.predictor import OCRPredictor
+from doctr.models.preprocessor import PreProcessor
+from doctr.models.detection.predictor import DetectionPredictor
+from doctr.models.recognition.predictor import RecognitionPredictor
 
 
-def test_ocrpredictor(
-    mock_pdf, test_detectionpredictor_pt, test_recognitionpredictor_pt  # noqa: F811
-):
+def test_ocrpredictor(mock_pdf, mock_vocab):
+    batch_size = 4
+    detectionpredictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=batch_size),
+        detection.db_resnet50(pretrained=False).eval()
+    )
+
+    recognitionpredictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
+    )
 
     predictor = OCRPredictor(
-        test_detectionpredictor_pt,
-        test_recognitionpredictor_pt,
+        detectionpredictor,
+        recognitionpredictor,
         assume_straight_pages=True,
         straighten_pages=False,
     )
 
     s_predictor = OCRPredictor(
-        test_detectionpredictor_pt,
-        test_recognitionpredictor_pt,
+        detectionpredictor,
+        recognitionpredictor,
         assume_straight_pages=True,
         straighten_pages=True,
     )
