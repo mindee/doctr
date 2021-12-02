@@ -61,6 +61,7 @@ class DocArtefacts(VisionDataset):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
+
             boxes = np.asarray([obj['geometry'] for obj in label], dtype=np_dtype)
             classes = np.asarray([self.CLASSES.index(obj['label']) for obj in label], dtype=np.long)
             if rotated_bbox:

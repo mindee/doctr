@@ -79,7 +79,6 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         sample_transforms=T.Resize((args.input_size, args.input_size)),
-        rotated_bbox=args.rotation
     )
     val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -94,7 +93,8 @@ def main(args):
     # Load doctr model
     model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
-        input_shape=(args.input_size, args.input_size, 3)
+        input_shape=(args.input_size, args.input_size, 3),
+        assume_straight_pages=not args.rotation,
     )
 
     # Resume weights
@@ -125,7 +125,6 @@ def main(args):
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
         ]),
-        rotated_bbox=args.rotation
     )
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "

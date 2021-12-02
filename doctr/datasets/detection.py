@@ -49,6 +49,10 @@ class DetectionDataset(AbstractDataset):
 
         self.data: List[Tuple[str, np.ndarray]] = []
         for img_name, label in labels.items():
+            # File existence check
+            if not os.path.exists(os.path.join(self.root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+
             polygons = np.asarray(label['polygons'])
             if rotated_bbox:
                 # Switch to rotated rects

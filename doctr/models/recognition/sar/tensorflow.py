@@ -258,7 +258,7 @@ class SAR(Model, RecognitionModel):
         pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
         encoded = self.encoder(pooled_features, **kwargs)
         if target is not None:
-            gt, seq_len = self.compute_target(target)
+            gt, seq_len = self.build_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
 
