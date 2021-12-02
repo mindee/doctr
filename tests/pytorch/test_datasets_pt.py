@@ -1,3 +1,6 @@
+import os
+from shutil import move
+
 import numpy as np
 import pytest
 import torch
@@ -103,6 +106,13 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     _, r_target = rotated_ds[0]
     assert r_target.shape[1] == 5
 
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.DetectionDataset(mock_image_folder, mock_detection_label)
+    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
+
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     input_size = (32, 128)
@@ -122,6 +132,13 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     images, labels = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
+
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.RecognitionDataset(mock_image_folder, mock_recognition_label)
+    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
 def test_ocrdataset(mock_ocrdataset):
@@ -151,6 +168,13 @@ def test_ocrdataset(mock_ocrdataset):
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.OCRDataset(*mock_ocrdataset)
+    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
 def test_charactergenerator():

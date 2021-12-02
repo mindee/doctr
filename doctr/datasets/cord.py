@@ -58,6 +58,7 @@ class CORD(VisionDataset):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
+
             stem = Path(img_path).stem
             _targets = []
             with open(os.path.join(self.root, 'json', f"{stem}.json"), 'rb') as f:
