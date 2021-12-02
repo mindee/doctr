@@ -4,6 +4,7 @@ import tensorflow as tf
 
 from doctr.io import DocumentFile
 from doctr.models import detection
+from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
 
@@ -139,3 +140,21 @@ def test_linknet_focal_loss():
     # test focal loss
     out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)
     assert isinstance(out['loss'], tf.Tensor)
+
+
+def test_erode():
+    x = np.zeros((1, 3, 3, 1), dtype=np.float32)
+    x[:, 1, 1] = 1
+    x = tf.convert_to_tensor(x)
+    expected = tf.zeros((1, 3, 3, 1))
+    out = erode(x, 3)
+    assert tf.math.reduce_all(out == expected)
+
+
+def test_dilate():
+    x = np.zeros((1, 3, 3, 1), dtype=np.float32)
+    x[:, 1, 1] = 1
+    x = tf.convert_to_tensor(x)
+    expected = tf.ones((1, 3, 3, 1))
+    out = dilate(x, 3)
+    assert tf.math.reduce_all(out == expected)

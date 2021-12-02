@@ -19,7 +19,7 @@ class RecognitionModel(NestedObject):
     vocab: str
     max_length: int
 
-    def compute_target(
+    def build_target(
         self,
         gts: List[str],
     ) -> Tuple[np.ndarray, List[int]]:
