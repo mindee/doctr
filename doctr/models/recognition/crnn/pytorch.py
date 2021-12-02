@@ -160,7 +160,7 @@ class CRNN(RecognitionModel, nn.Module):
         Returns:
             The loss of the model on the batch
         """
-        gt, seq_len = self.compute_target(target)
+        gt, seq_len = self.build_target(target)
         batch_len = model_output.shape[0]
         input_length = model_output.shape[1] * torch.ones(size=(batch_len,), dtype=torch.int32)
         # N x T x C -> T x N x C

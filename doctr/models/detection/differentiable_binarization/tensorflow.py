@@ -182,7 +182,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         prob_map = tf.math.sigmoid(tf.squeeze(out_map, axis=[-1]))
         thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
 
-        seg_target, seg_mask, thresh_target, thresh_mask = self.compute_target(target, out_map.shape[:3])
+        seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape[:3])
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
