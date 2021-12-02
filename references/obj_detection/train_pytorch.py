@@ -8,6 +8,7 @@ import os
 os.environ['USE_TORCH'] = '1'
 
 import datetime
+import multiprocessing as mp
 import logging
 import random
 
@@ -23,6 +24,7 @@ from torchvision.ops import MultiScaleRoIAlign
 import wandb
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
+from doctr.transforms.functional.pytorch import rotate
 
 
 def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray, width):
@@ -51,22 +53,39 @@ def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray, height):
         return img, bbox
 
 
-def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
+def data_augmentations(targets, max_angle, **kwargs):
+    bbox = np.array([i["boxes"] for i in targets], dtype=object)
+    images = kwargs.get('images', )
+    height = kwargs.get('height', )
+    width = kwargs.get('width', )
+    angle = 2 * max_angle * (np.random.rand(len(targets)) - 1)
+    for id in range(len(bbox)):
+        images[id], bbox[id] = rotate(images[id], bbox[id], angle[id] if bool(
+            random.getrandbits(1)) else -angle[id])
+        bbox_t = bbox[id][:, :4]
+        for z in range(len(bbox[id])):
+            bbox_t[z][0] = bbox[id][z][0] - bbox[id][z][2] / 2
+            bbox_t[z][1] = bbox[id][z][1] - bbox[id][z][3] / 2
+            bbox_t[z][2] = bbox_t[z][0] + bbox[id][z][2]
+            bbox_t[z][3] = bbox_t[z][1] + bbox[id][z][3]
+        bbox[id] = bbox_t
+    images, bbox = random_vertical_flip(images, bbox, height)
+    images, bbox = random_horizontal_flip(images, bbox, width)
+    targets = [{
+        "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
+        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
+        for bo, t in zip(bbox, targets)
+    ]
+    return images, targets
+
+
+def convert_to_abs_coords(targets, img_shape, use_aug=False, **kwargs):
     height, width = img_shape[-2:]
     for idx in range(len(targets)):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
-    if is_transform:
-        bbox = np.array([i["boxes"] for i in targets], dtype=object)
-        images = kwargs.get('images', )
-        images, bbox = random_vertical_flip(images, bbox, height)
-        images, bbox = random_horizontal_flip(images, bbox, width)
-        targets = [{
-            "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
-            "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
-            for bo, t in zip(bbox, targets)
-        ]
-
+    if use_aug:
+        images, targets = data_augmentations(targets, 5, **kwargs)
         return images, targets
     else:
         targets = [{
@@ -77,16 +96,17 @@ def convert_to_abs_coords(targets, img_shape, is_transform=False, **kwargs):
         return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=True, ):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug=True, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for _ in progress_bar(range(len(train_loader)), parent=mb):
         images, targets = next(train_iter)
         optimizer.zero_grad()
-        if is_transform:
-            kwargs = {"images": images}
-            images, targets = convert_to_abs_coords(targets, images.shape, is_transform=True, **kwargs)
+        if use_aug:
+            height, width = images.shape[-2:]
+            kwargs = {"images": images, "height": height, "width": width, }
+            images, targets = convert_to_abs_coords(targets, images.shape, use_aug=True, **kwargs)
         else:
             targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
@@ -123,13 +143,10 @@ def evaluate(model, val_loader, metric):
 
 
 def main(args):
-
-    print(args)
+    torch.backends.cudnn.benchmark = True
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
-
-    torch.backends.cudnn.benchmark = True
 
     # Filter keys
     state_dict = {
@@ -218,7 +235,7 @@ def main(args):
     max_score = 0.
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, is_transform=args.use_augmentations)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug=args.use_augmentations)
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 
