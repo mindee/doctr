@@ -44,7 +44,7 @@ _deps = [
     "scipy>=1.4.0",
     "opencv-python>=3.4.5.20",
     "tensorflow>=2.4.0",
-    "PyMuPDF>=1.16.0,<=1.18.15",
+    "PyMuPDF>=1.18.13,<=1.18.15",
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0,<3.4.3",
