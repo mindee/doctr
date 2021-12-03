@@ -110,7 +110,7 @@ class DBPostProcessor(DetectionPostProcessor):
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
 
-            if self.box_thresh > score:   # remove polygons with a weak objectness
+            if score < self.box_thresh:   # remove polygons with a weak objectness
                 continue
 
             if self.assume_straight_pages:
@@ -253,7 +253,7 @@ class _DBNet:
 
         return polygon, canvas, mask
 
-    def compute_target(
+    def build_target(
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int, int],
