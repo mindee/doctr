@@ -138,12 +138,12 @@ class DBPostProcessor(DetectionPostProcessor):
             # Compute median angle and mean aspect ratio to resolve quadrants
             np_boxes = np.asarray(boxes, dtype=np.float32)
             median_angle = np.median(np_boxes[:, -2])
-            mean_w, mean_h = np_boxes[:, 2].mean(), np_boxes[:, 3].mean()
+            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
 
             # Rectify angles
             new_boxes = []
             for x, y, w, h, alpha, score in boxes:
-                if mean_h >= mean_w:
+                if median_h >= median_w:
                     # We are in the upper quadrant
                     if 1 / ratio_tol < h / w < ratio_tol:
                         # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
