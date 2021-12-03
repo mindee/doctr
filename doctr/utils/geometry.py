@@ -240,7 +240,7 @@ def rotate_image(
     Args:
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
-        expand: whether the image should be padded before the rotation,
+        expand: whether the image should be padded before the rotation
         preserve_origin_shape: if expand is set to True, resizes the final output to the original image size
 
     Returns:
