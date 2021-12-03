@@ -124,7 +124,7 @@ def test_rotate_image():
 
     # Expand
     rotated = geometry.rotate_image(img, 30., expand=True)
-    assert rotated.shape[:-1] == (60, 72)
+    assert rotated.shape[:-1] == (60, 120)
     assert rotated[0, :, 0].sum() <= 1
 
     # Expand
@@ -134,5 +134,5 @@ def test_rotate_image():
 
     # Expand with 90° rotation
     rotated = geometry.rotate_image(img, 90., expand=True)
-    assert rotated.shape[:-1] == (64, 64)
+    assert rotated.shape[:-1] == (64, 128)
     assert rotated[0, :, 0].sum() <= 1
