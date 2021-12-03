@@ -147,23 +147,23 @@ class DBPostProcessor(DetectionPostProcessor):
                     # We are in the upper quadrant
                     if 1 / ratio_tol < h / w < ratio_tol:
                         # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _box = [x, y, h, w, 90 + median_angle, score]
+                        _rbox = [x, y, h, w, 90 + median_angle, score]
                     elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
                         # We jumped to the next quadrant, rectify
-                        _box = [x, y, w, h, alpha, score]
+                        _rbox = [x, y, w, h, alpha, score]
                     else:
-                        _box = [x, y, h, w, 90 + alpha, score]
+                        _rbox = [x, y, h, w, 90 + alpha, score]
                 else:
                     # We are in the lower quadrant.
                     if 1 / ratio_tol < h / w < ratio_tol:
                         # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _box = [x, y, w, h, median_angle, score]
+                        _rbox = [x, y, w, h, median_angle, score]
                     elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
                         # We jumped to the next quadrant, rectify
-                        _box = [x, y, h, w, 90 + alpha, score]
+                        _rbox = [x, y, h, w, 90 + alpha, score]
                     else:
-                        _box = [x, y, w, h, alpha, score]
-                new_boxes.append(_box)
+                        _rbox = [x, y, w, h, alpha, score]
+                new_boxes.append(_rbox)
             boxes = new_boxes
 
         if not self.assume_straight_pages:
