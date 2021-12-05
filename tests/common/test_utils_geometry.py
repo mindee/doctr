@@ -96,22 +96,22 @@ def test_rotate_boxes():
                              np.zeros(boxes.shape[0]),
                              boxes[:, 4]))
     # Angle = 0
-    rotated = geometry.rotate_boxes(boxes, angle=0.)
+    rotated = geometry.rotate_boxes(boxes, angle=0., orig_shape=(1, 1))
     assert np.all(rotated == rboxes)
     # Angle < 1:
-    rotated = geometry.rotate_boxes(boxes, angle=0.5)
+    rotated = geometry.rotate_boxes(boxes, angle=0.5, orig_shape=(1, 1))
     assert np.all(rotated == rboxes)
     # Angle = 30
-    rotated = geometry.rotate_boxes(boxes, angle=30)
+    rotated = geometry.rotate_boxes(boxes, angle=30, orig_shape=(1, 1))
     assert rotated.shape == (1, 6)
     assert rotated[0, 4] == 30.
 
     boxes = np.array([[0., 0., 0.6, 0.2, 0.5]])
     # Angle = -90:
-    rotated = geometry.rotate_boxes(boxes, angle=-90, min_angle=0)
+    rotated = geometry.rotate_boxes(boxes, angle=-90, orig_shape=(1, 1), min_angle=0)
     assert np.allclose(rotated, np.array([[0.9, 0.3, 0.6, 0.2, -90., 0.5]]))
     # Angle = 90
-    rotated = geometry.rotate_boxes(boxes, angle=+90, min_angle=0)
+    rotated = geometry.rotate_boxes(boxes, angle=+90, orig_shape=(1, 1), min_angle=0)
     assert np.allclose(rotated, np.array([[0.1, 0.7, 0.6, 0.2, +90., 0.5]]))
 
 

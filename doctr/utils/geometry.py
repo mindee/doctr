@@ -178,9 +178,9 @@ def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: 
 
 def rotate_boxes(
     loc_preds: np.ndarray,
-    angle: float = 0.,
+    angle: float,
+    orig_shape: Tuple[int, int],
     min_angle: float = 1.,
-    orig_shape: Tuple[int, int] = (1, 1),
     target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
@@ -191,13 +191,14 @@ def rotate_boxes(
     Args:
         loc_preds: (N, 5) or (N, 6) array of RELATIVE boxes
         angle: angle between -90 and +90 degrees
-        min_angle: minimum angle to rotate boxes
         orig_shape: shape of the origin image
+        min_angle: minimum angle to rotate boxes
         target_shape: shape of the target image
 
     Returns:
         A batch of rotated boxes (N, 5): (x, y, w, h, alpha) or a batch of straight bounding boxes
     """
+
     # Change format of the boxes to rotated boxes
     _boxes = loc_preds.copy()
     if _boxes.shape[1] == 5:
