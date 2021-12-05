@@ -216,10 +216,11 @@ def rotate_boxes(
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
     ], dtype=_boxes.dtype)
-    # Rotate centers
-    centers = np.stack((_boxes[:, 0], _boxes[:, 1]), axis=-1)
-    rotated_centers = .5 + np.matmul(centers - .5, rotation_mat)
-    x_center, y_center = rotated_centers[:, 0], rotated_centers[:, 1]
+    # Rotate absolute centers
+    centers = np.stack((_boxes[:, 0] * orig_shape[1], _boxes[:, 1] * orig_shape[0]), axis=-1)
+    image_center = (orig_shape[1] // 2, orig_shape[0] // 2)
+    rotated_centers = image_center + np.matmul(centers - image_center, rotation_mat)
+    x_center, y_center = rotated_centers[:, 0] / orig_shape[1], rotated_centers[:, 1] / orig_shape[0]
     # Compute rotated boxes
     rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0]),
                               _boxes[:, 5]), axis=1)
