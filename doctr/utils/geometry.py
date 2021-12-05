@@ -180,12 +180,12 @@ def rotate_boxes(
     loc_preds: np.ndarray,
     angle: float = 0.,
     min_angle: float = 1.,
-    orig_shape: Optional[Tuple[int, int]] = None,
+    orig_shape: Tuple[int, int] = (1, 1),
     target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
     (x, y, w, h, alpha, c) of an angle, if angle > min_angle, around the center of the page.
-    If orig_shape and target_shape are specified, the boxes are remapped to the target shape after the rotation. This
+    If target_shape is specified, the boxes are remapped to the target shape after the rotation. This
     is done to remove the padding that is created by rotate_page(expand=True)
 
     Args:
@@ -218,14 +218,14 @@ def rotate_boxes(
     ], dtype=_boxes.dtype)
     # Rotate absolute centers
     centers = np.stack((_boxes[:, 0] * orig_shape[1], _boxes[:, 1] * orig_shape[0]), axis=-1)
-    image_center = (orig_shape[1] // 2, orig_shape[0] // 2)
+    image_center = (orig_shape[1] / 2, orig_shape[0] / 2)
     rotated_centers = image_center + np.matmul(centers - image_center, rotation_mat)
     x_center, y_center = rotated_centers[:, 0] / orig_shape[1], rotated_centers[:, 1] / orig_shape[0]
     # Compute rotated boxes
     rotated_boxes = np.stack((x_center, y_center, _boxes[:, 2], _boxes[:, 3], angle * np.ones_like(_boxes[:, 0]),
                               _boxes[:, 5]), axis=1)
     # Apply a mask if requested
-    if target_shape is not None and orig_shape is not None:
+    if target_shape is not None:
         rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=target_shape)
     return rotated_boxes
 
