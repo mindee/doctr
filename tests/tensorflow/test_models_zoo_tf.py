@@ -16,24 +16,37 @@ def test_ocrpredictor(
         test_detectionpredictor,
         test_recognitionpredictor,
         assume_straight_pages=True,
+        straighten_pages=False,
     )
 
     r_predictor = OCRPredictor(
         test_rotated_detectionpredictor,
         test_recognitionpredictor,
         assume_straight_pages=False,
+        straighten_pages=False,
+    )
+
+    s_predictor = OCRPredictor(
+        test_detectionpredictor,
+        test_recognitionpredictor,
+        assume_straight_pages=True,
+        straighten_pages=True,
     )
 
     doc = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(doc)
     r_out = r_predictor(doc)
+    s_out = s_predictor(doc)
 
     # Document
     assert isinstance(out, Document)
     assert isinstance(r_out, Document)
+    assert isinstance(s_out, Document)
 
     # The input PDF has 8 pages
     assert len(out.pages) == 8
+    assert len(r_out.pages) == 8
+    assert len(s_out.pages) == 8
     # Dimension check
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
