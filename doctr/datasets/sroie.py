@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import csv
 import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -60,23 +61,24 @@ class SROIE(VisionDataset):
 
             stem = Path(img_path).stem
             with open(os.path.join(self.root, 'annotations', f"{stem}.txt"), encoding='latin') as f:
-                _lines = [[x.strip() for x in line.split(',')] for line in f.readlines()]
-                labels = [",".join(line[8:]) for line in _lines if len(line) >= 9]
-                # reorder coordinates (8 -> (4,2)) and filter empty lines
-                coords = np.array([np.array(list(map(int, line[:8]))).reshape((4, 2))
-                                  for line in _lines if len(line) >= 9], dtype=np_dtype)
+                _rows = [row for row in list(csv.reader(f, delimiter=',')) if len(row) > 0]
 
-                if rotated_bbox:
-                    # x_center, y_center, w, h, alpha = 0
-                    mins = coords.min(axis=1)
-                    maxs = coords.max(axis=1)
-                    box_targets = np.concatenate(
-                        ((mins + maxs) / 2, maxs - mins, np.zeros((coords.shape[0], 1))), axis=1)
-                else:
-                    # xmin, ymin, xmax, ymax
-                    box_targets = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
+            labels = [",".join(row[8:]) for row in _rows]
+            # reorder coordinates (8 -> (4,2)) and filter empty lines
+            coords = np.stack([np.array(list(map(int, row[:8])), dtype=np_dtype).reshape((4, 2))
+                              for row in _rows], axis=0)
 
-                self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
+            if rotated_bbox:
+                # x_center, y_center, w, h, alpha = 0
+                mins = coords.min(axis=1)
+                maxs = coords.max(axis=1)
+                box_targets = np.concatenate(
+                    ((mins + maxs) / 2, maxs - mins, np.zeros((coords.shape[0], 1))), axis=1)
+            else:
+                # xmin, ymin, xmax, ymax
+                box_targets = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
+
+            self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
 
         self.root = tmp_root
 
