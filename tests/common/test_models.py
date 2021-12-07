@@ -7,6 +7,7 @@ import requests
 
 from doctr.io import DocumentFile, reader
 from doctr.models._utils import estimate_orientation, extract_crops, extract_rcrops, get_bitmap_angle
+from doctr.utils import geometry
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
@@ -91,5 +92,11 @@ def test_get_bitmap_angle(mock_bitmap):
 
 
 def test_estimate_orientation(mock_image):
+    assert estimate_orientation(mock_image * 0) == 0
+
     angle = estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
+
+    rotated = geometry.rotate_image(mock_image, -angle)
+    angle_rotated = estimate_orientation(rotated)
+    assert abs(angle_rotated) < 1.

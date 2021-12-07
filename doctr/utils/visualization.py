@@ -100,7 +100,7 @@ def polygon_patch(
     # Switch to absolute coords
     x, w = x * width, w * width
     y, h = y * height, h * height
-    points = cv2.boxPoints(((x, y), (w, h), a))
+    points = cv2.boxPoints(((x, y), (w, h), -a))
 
     return patches.Polygon(
         points,
