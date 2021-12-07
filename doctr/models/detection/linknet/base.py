@@ -52,7 +52,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         Args:
             pred: Pred map from differentiable linknet output
             bitmap: Bitmap map computed from pred (binarized)
-            angle_tol: Tolerancy to compare the angle to the median angle of the page
+            angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
