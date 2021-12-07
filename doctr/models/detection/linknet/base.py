@@ -44,6 +44,8 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
+        angle_tol: float = 5.,
+        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
@@ -84,6 +86,38 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
+
+        if not self.assume_straight_pages:
+            # Compute median angle and mean aspect ratio to resolve quadrants
+            np_boxes = np.asarray(boxes, dtype=np.float32)
+            median_angle = np.median(np_boxes[:, -2])
+            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
+
+            # Rectify angles
+            new_boxes = []
+            for x, y, w, h, alpha, score in boxes:
+                if median_h >= median_w:
+                    # We are in the upper quadrant
+                    if 1 / ratio_tol < h / w < ratio_tol:
+                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                        _rbox = [x, y, h, w, 90 + median_angle, score]
+                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                        # We jumped to the next quadrant, rectify
+                        _rbox = [x, y, w, h, alpha, score]
+                    else:
+                        _rbox = [x, y, h, w, 90 + alpha, score]
+                else:
+                    # We are in the lower quadrant.
+                    if 1 / ratio_tol < h / w < ratio_tol:
+                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                        _rbox = [x, y, w, h, median_angle, score]
+                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                        # We jumped to the next quadrant, rectify
+                        _rbox = [x, y, h, w, 90 + alpha, score]
+                    else:
+                        _rbox = [x, y, w, h, alpha, score]
+                new_boxes.append(_rbox)
+            boxes = new_boxes
 
         if not self.assume_straight_pages:
             if len(boxes) == 0:
