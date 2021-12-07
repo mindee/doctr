@@ -38,7 +38,7 @@ class RecognitionPredictor(nn.Module):
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
-        self.target_ar = 4  # Target aspect ratio
+        self.target_ar = 6  # Target aspect ratio
 
     @torch.no_grad()
     def forward(
