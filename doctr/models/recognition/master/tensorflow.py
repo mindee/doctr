@@ -228,8 +228,8 @@ class MASTER(_MASTER, Model):
         combined_mask = tf.maximum(target_padding_mask, look_ahead_mask)
         return combined_mask
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: tf.Tensor,
         gt: tf.Tensor,
         seq_len: List[int],
@@ -292,7 +292,7 @@ class MASTER(_MASTER, Model):
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
-            gt, seq_len = self.compute_target(target)
+            gt, seq_len = self.build_target(target)
 
         if kwargs.get('training', False):
             if target is None:

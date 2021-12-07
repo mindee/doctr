@@ -10,23 +10,22 @@ os.environ['USE_TORCH'] = '1'
 import datetime
 import multiprocessing as mp
 import logging
-import random
 
 import numpy as np
 import torch
 import torch.optim as optim
 import torchvision
+import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision import transforms
 from torchvision.ops import MultiScaleRoIAlign
 
-import wandb
 from doctr.datasets import DocArtefacts
 from doctr.utils import DetectionMetric
-from references.obj_detection.utils import *
+from references.obj_detection.utils import data_augmentations
 
-def convert_to_abs_coords(targets, img_shape, use_aug= False, **kwargs):
+
+def convert_to_abs_coords(targets, img_shape, use_aug=False, **kwargs):
     height, width = img_shape[-2:]
     for idx in range(len(targets)):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
@@ -47,13 +46,12 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug, ):
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for _ in progress_bar(range(len(train_loader)), parent=mb):
-        images, targets = next(train_iter)
+    for images, targets in progress_bar(train_iter, parent=mb):
         optimizer.zero_grad()
         if use_aug:
             height, width = images.shape[-2:]
             kwargs = {"images": images, "height": height, "width": width, }
-            images, targets = convert_to_abs_coords(targets, images.shape, use_aug= True, **kwargs)
+            images, targets = convert_to_abs_coords(targets, images.shape, use_aug=True, **kwargs)
         else:
             targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
@@ -182,7 +180,7 @@ def main(args):
     max_score = 0.
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug= args.use_augmentations)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, use_aug=args.use_augmentations)
         recall, precision, mean_iou = evaluate(model, val_loader, metric)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 

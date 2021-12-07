@@ -158,7 +158,7 @@ class LinkNet(_LinkNet, keras.Model):
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask, edge_mask = self.compute_target(target, out_map.shape[:3])
+        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[:3])
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         edge_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)

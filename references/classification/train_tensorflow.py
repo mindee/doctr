@@ -14,19 +14,17 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from fastprogress.fastprogress import master_bar, progress_bar
-
 import wandb
+from fastprogress.fastprogress import master_bar, progress_bar
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from utils import plot_samples
-
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import backbones
+from utils import plot_samples
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
@@ -185,14 +183,14 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
+                "weight_decay": 0.,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
                 "optimizer": "adam",
                 "framework": "tensorflow",
                 "vocab": args.vocab,
-                "scheduler": args.sched,
+                "scheduler": "exp_decay",
                 "pretrained": args.pretrained,
             }
         )
