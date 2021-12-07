@@ -19,7 +19,7 @@ from torchvision import transforms
 
 
 def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray, width):
-    if bool(random.getrandbits(1)):
+    if np.random.rand() > .5:
         trans = transforms.RandomHorizontalFlip(p=1)
         transformed_ = trans(img)
         bbox_dup = bbox[:]
@@ -32,7 +32,7 @@ def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray, width):
 
 
 def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray, height):
-    if bool(random.getrandbits(1)):
+    if np.random.rand() > .5:
         trans = transforms.RandomVerticalFlip(p=1.0)
         transformed_ = trans(img)
         bbox_dup = bbox[:]
@@ -61,8 +61,8 @@ def data_augmentations(targets, max_angle, **kwargs):
     images = torch.from_numpy(images).permute(0, 3, 1, 2)
     # rotations as augmentations
     for ids in range(len(bbox)):
-        images[ids], bbox[ids] = rotate(images[ids], bbox[ids], angle[ids] if bool(
-            random.getrandbits(1)) else -1 * angle[ids])
+        images[ids], bbox[ids] = rotate(images[ids], bbox[ids],
+                                        angle[ids] if np.random.rand() > .5 else -1 * angle[ids])
         bbox_t = bbox[ids][:, :4]
         for z in range(len(bbox[ids])):
             bbox_t[z][0] = bbox[ids][z][0] - bbox[ids][z][2] / 2
