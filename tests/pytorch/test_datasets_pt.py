@@ -35,8 +35,6 @@ def test_visiondataset():
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
         ['SVT', False, [512, 512], 249, False],
-        ['SVHN', True, [32, 128], 33402, True],
-        ['SVHN', False, [32, 128], 13068, False],
         ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
         ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
         ['IC03', True, [512, 512], 246, True],
@@ -231,6 +229,35 @@ def test_ic13_dataset(mock_ic13, size, rotate):
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "dataset_name, train, input_size, size, rotate",
+    [
+        ['SVHN', True, [32, 128], 3, True],  # Actual set has 33402 samples
+        ['SVHN', False, [32, 128], 3, False],  # Actual set has 13068 samples
+    ],
+)
+def test_mock_dataset(dataset_name, train, input_size, size, rotate, mock_svhn_dataset):
+    ds = datasets.__dict__[dataset_name](
+        train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+    )
+
+    assert len(ds) == 3
+    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
+    img, target = ds[0]
+    assert isinstance(img, torch.Tensor)
+    assert img.shape == (3, *input_size)
+    assert img.dtype == torch.float32
+    assert isinstance(target, dict)
+
+    loader = DataLoader(
+        ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
+        collate_fn=ds.collate_fn)
+
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

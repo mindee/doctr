@@ -132,6 +132,7 @@ extras["testing"] = deps_list(
     "pytest",
     "coverage",
     "requests",
+    "hdf5storage",
     "requirements-parser",
 )
 
