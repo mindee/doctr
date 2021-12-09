@@ -61,7 +61,7 @@ class MAGC(layers.Layer):
             kernel_initializer=tf.initializers.he_normal()
         )
 
-        self.transform = tf.keras.Sequential(
+        self.transform = Sequential(
             [
                 layers.Conv2D(
                     filters=self.planes,
