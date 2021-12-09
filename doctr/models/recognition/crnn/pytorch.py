@@ -136,7 +136,10 @@ class CRNN(RecognitionModel, nn.Module):
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
 
-        for m in self.modules():
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith('feat_extractor.'):
+                continue
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight.data, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:

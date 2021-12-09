@@ -205,7 +205,10 @@ class MASTER(_MASTER, nn.Module):
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
-        for m in self.modules():
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith('feat_extractor.'):
+                continue
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
