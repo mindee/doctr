@@ -160,7 +160,9 @@ class MASTER(_MASTER, nn.Module):
         num_heads: number of heads for the mutli-head attention module
         num_layers: number of decoder layers to stack
         max_length: maximum length of character sequence handled by the model
-        input_size: size of the image inputs
+        dropout: dropout probability of the decoder
+        input_shape: size of the image inputs
+        cfg: config dictionary
     """
 
     feature_pe: torch.Tensor
@@ -263,7 +265,7 @@ class MASTER(_MASTER, nn.Module):
             return_model_output: if True, return logits
             return_preds: if True, decode logits
 
-        Return:
+        Returns:
             A torch tensor, containing logits
         """
 
