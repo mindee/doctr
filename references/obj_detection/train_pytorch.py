@@ -79,9 +79,6 @@ def evaluate(model, val_loader, metric):
 
 
 def main(args):
-
-    print(args)
-
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
