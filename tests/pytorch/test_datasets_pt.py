@@ -242,11 +242,13 @@ def test_ic13_dataset(mock_ic13, size, rotate):
     ],
 )
 def test_mock_dataset(dataset_name, train, input_size, size, rotate, mock_svhn_dataset):
+    # TODO: how to handle new path to temporary mock dataset?
+
     ds = datasets.__dict__[dataset_name](
         train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
 
-    assert len(ds) == 3
+    assert len(ds) == size
     assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
     img, target = ds[0]
     assert isinstance(img, torch.Tensor)

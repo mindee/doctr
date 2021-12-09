@@ -63,6 +63,7 @@ _deps = [
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
+    "hdf5storage",
     "requests>=2.20.0",
     "requirements-parser==0.2.0",
     # Quality

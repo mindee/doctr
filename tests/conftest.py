@@ -1,5 +1,4 @@
 import json
-import os
 from io import BytesIO
 
 import hdf5storage
@@ -150,28 +149,33 @@ def mock_ic13(tmpdir_factory, mock_image_stream):
 
 
 @pytest.fixture(scope="session")
-def mock_svhn_dataset(tmpdir_factory, mock_image_stream) -> None:
-    # get cache path
-    root = tmpdir_factory.mktemp(os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets'))
+def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    svhn_root = root.mkdir('svhn')
     file = BytesIO(mock_image_stream)
     # ascii image names
-    first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)
-    second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)
-    third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)
+    first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 0.png
+    second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
+    third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
     # labels: label is also ascii
-    label = {'height': [35, 35, 35, 35], 'label': [1, 1, 3, 7], 'left': [
-        116, 128, 137, 151], 'top': [27, 29, 29, 26], 'width': [15, 10, 17, 17]}
+    label = {'height': [35, 35, 35, 35], 'label': [1, 1, 3, 7],
+             'left': [116, 128, 137, 151], 'top': [27, 29, 29, 26],
+             'width': [15, 10, 17, 17]}
 
     matcontent = {'digitStruct': {'name': [first, second, third], 'bbox': [label, label, label]}}
     # mock train data
-    hdf5storage.write(matcontent, path=os.path.join(root, 'train'), filename='digitStruct.mat')
+    root = svhn_root.mkdir('train')
+    hdf5storage.write(matcontent, path=root, filename='digitStruct.mat')
     for i in range(3):
-        fn = root.join('svhn_train/train/{i}.png')
+        fn = root.join(f'{i}.png')
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # mock test data
-    hdf5storage.write(matcontent, path=os.path.join(root, 'test'), filename='digitStruct.mat')
+    root = svhn_root.mkdir('test')
+    hdf5storage.write(matcontent, path=root, filename='digitStruct.mat')
     for i in range(3):
-        fn = root.join('svhn_train/test/{i}.png')
+        fn = root.join(f'{i}.png')
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
+
+    return str(svhn_root)
