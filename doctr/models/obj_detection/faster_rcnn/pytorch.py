@@ -6,8 +6,6 @@
 from typing import Any, Dict
 
 from torchvision.models.detection import FasterRCNN, faster_rcnn
-from torchvision.models.detection.anchor_utils import AnchorGenerator
-from torchvision.models.detection.rpn import RPNHead
 
 from ...utils import load_pretrained_params
 
