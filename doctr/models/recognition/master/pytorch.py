@@ -148,7 +148,7 @@ class MASTER(_MASTER, nn.Module):
             return_model_output: if True, return logits
             return_preds: if True, decode logits
 
-        Return:
+        Returns:
             A torch tensor, containing logits
         """
 
