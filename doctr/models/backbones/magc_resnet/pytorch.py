@@ -19,7 +19,7 @@ __all__ = ['MAGCResNet', 'magc_resnet31']
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'magc_resnet31': {
         'num_blocks': (1, 2, 5, 3),
-        'output_channels': (256, 256, 512, 512),
+        'output_channels': (256, 512, 512, 512),
         'url': None
     },
 }

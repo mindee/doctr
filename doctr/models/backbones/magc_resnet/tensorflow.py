@@ -20,7 +20,7 @@ __all__ = ['MAGCResNet', 'magc_resnet31']
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'magc_resnet31': {
         'num_blocks': (1, 2, 5, 3),
-        'output_channels': (256, 256, 512, 512),
+        'output_channels': (256, 512, 512, 512),
         'url': None
     },
 }
@@ -148,31 +148,23 @@ class MAGCResNet(Sequential):
             *conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
             layers.MaxPooling2D((2, 2), (2, 2)),
             # Stage 1
-            Sequential([
-                ResnetStage(num_blocks[0], output_channels[0]),
-                MAGC(output_channels[0], headers=headers, att_scale=True),
-                *conv_sequence(out_channels=output_channels[0], activation='relu', bn=True, kernel_size=3),
-            ]),
+            ResnetStage(num_blocks[0], output_channels[0]),
+            MAGC(output_channels[0], headers=headers, att_scale=True),
+            *conv_sequence(out_channels=output_channels[0], activation='relu', bn=True, kernel_size=3),
             layers.MaxPooling2D((2, 2), (2, 2)),
             # Stage 2
-            Sequential([
-                ResnetStage(num_blocks[1], output_channels[1]),
-                MAGC(output_channels[1], headers=headers, att_scale=True),
-                *conv_sequence(out_channels=output_channels[1], activation='relu', bn=True, kernel_size=3),
-            ]),
+            ResnetStage(num_blocks[1], output_channels[1]),
+            MAGC(output_channels[1], headers=headers, att_scale=True),
+            *conv_sequence(out_channels=output_channels[1], activation='relu', bn=True, kernel_size=3),
             layers.MaxPooling2D((2, 1), (2, 1)),
             # Stage 3
-            Sequential([
-                ResnetStage(num_blocks[2], output_channels[2]),
-                MAGC(output_channels[2], headers=headers, att_scale=True),
-                *conv_sequence(out_channels=output_channels[2], activation='relu', bn=True, kernel_size=3),
-            ]),
+            ResnetStage(num_blocks[2], output_channels[2]),
+            MAGC(output_channels[2], headers=headers, att_scale=True),
+            *conv_sequence(out_channels=output_channels[2], activation='relu', bn=True, kernel_size=3),
             # Stage 4
-            Sequential([
-                ResnetStage(num_blocks[3], output_channels[3]),
-                MAGC(output_channels[3], headers=headers, att_scale=True),
-                *conv_sequence(out_channels=output_channels[3], activation='relu', bn=True, kernel_size=3),
-            ]),
+            ResnetStage(num_blocks[3], output_channels[3]),
+            MAGC(output_channels[3], headers=headers, att_scale=True),
+            *conv_sequence(out_channels=output_channels[3], activation='relu', bn=True, kernel_size=3),
         ]
         super().__init__(_layers)
 
