@@ -323,7 +323,8 @@
 
 <span class="sd">        Args:</span>
 <span class="sd">            gt: list of groung-truth character sequences</span>
-<span class="sd">            pred: list of predicted character sequences&quot;&quot;&quot;</span>
+<span class="sd">            pred: list of predicted character sequences</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;prediction size does not match with ground-truth labels size&quot;</span><span class="p">)</span>
@@ -635,6 +636,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
 <div class="viewcode-block" id="LocalizationConfusion.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">preds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Updates the metric</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
+<span class="sd">            preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Compute IoU</span>
@@ -741,6 +748,14 @@
         <span class="n">gt_labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pred_labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Updates the metric</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
+<span class="sd">            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
+<span class="sd">            gt_labels: a list of N string labels</span>
+<span class="sd">            pred_labels: a list of M string labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
@@ -871,6 +886,14 @@
         <span class="n">gt_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">pred_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Updates the metric</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
+<span class="sd">            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
+<span class="sd">            gt_labels: an array of class indices of shape (N,)</span>
+<span class="sd">            pred_labels: an array of class indices of shape (M,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>

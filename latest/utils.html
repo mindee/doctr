@@ -409,7 +409,16 @@ g_X(y) = \left\{
 <dl class="py method">
 <dt id="doctr.utils.metrics.LocalizationConfusion.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">preds</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gts</strong> – a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</p></li>
+<li><p><strong>preds</strong> – a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="doctr.utils.metrics.LocalizationConfusion.summary">
@@ -473,7 +482,18 @@ h_{B,L}(b, l) = \left\{
 <dl class="py method">
 <dt id="doctr.utils.metrics.OCRMetric.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">gt_labels</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">pred_labels</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt_boxes</strong> – a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</p></li>
+<li><p><strong>pred_boxes</strong> – a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p></li>
+<li><p><strong>gt_labels</strong> – a list of N string labels</p></li>
+<li><p><strong>pred_labels</strong> – a list of M string labels</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="doctr.utils.metrics.OCRMetric.summary">
@@ -537,7 +557,18 @@ h_{B,C}(b, c) = \left\{
 <dl class="py method">
 <dt id="doctr.utils.metrics.DetectionMetric.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">gt_labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt_boxes</strong> – a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</p></li>
+<li><p><strong>pred_boxes</strong> – a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p></li>
+<li><p><strong>gt_labels</strong> – an array of class indices of shape (N,)</p></li>
+<li><p><strong>pred_labels</strong> – an array of class indices of shape (M,)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="doctr.utils.metrics.DetectionMetric.summary">
