@@ -3,6 +3,9 @@ import torch
 
 from doctr.models import recognition
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models.recognition.sar.pytorch import SARPostProcessor
+from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
+from doctr.models.recognition.master.pytorch import MASTERPostProcessor
 
 
 @pytest.mark.parametrize(
@@ -39,12 +42,12 @@ def test_recognition_models(arch_name, input_shape, mock_vocab):
 @pytest.mark.parametrize(
     "post_processor, input_shape",
     [
-        ["CTCPostProcessor", [2, 119, 30]],
-        ["MASTERPostProcessor", [2, 119, 30]],
+        [CTCPostProcessor, [2, 119, 30]],
+        [MASTERPostProcessor, [2, 119, 30]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
-    processor = recognition.__dict__[post_processor](mock_vocab)
+    processor = post_processor(mock_vocab)
     decoded = processor(torch.rand(*input_shape))
     assert isinstance(decoded, list)
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in decoded)

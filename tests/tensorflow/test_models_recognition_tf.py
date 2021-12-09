@@ -7,6 +7,9 @@ from doctr.models import recognition
 from doctr.models._utils import extract_crops
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models.recognition.sar.tensorflow import SARPostProcessor
+from doctr.models.recognition.crnn.tensorflow import CTCPostProcessor
+from doctr.models.recognition.master.tensorflow import MASTERPostProcessor
 
 
 @pytest.mark.parametrize(
@@ -40,13 +43,13 @@ def test_recognition_models(arch_name, input_shape):
 @pytest.mark.parametrize(
     "post_processor, input_shape",
     [
-        ["SARPostProcessor", [2, 30, 119]],
-        ["CTCPostProcessor", [2, 30, 119]],
-        ["MASTERPostProcessor", [2, 30, 119]],
+        [SARPostProcessor, [2, 30, 119]],
+        [CTCPostProcessor, [2, 30, 119]],
+        [MASTERPostProcessor, [2, 30, 119]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
-    processor = recognition.__dict__[post_processor](mock_vocab)
+    processor = post_processor(mock_vocab)
     decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in decoded)
