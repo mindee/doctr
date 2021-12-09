@@ -127,6 +127,7 @@ def test_detection_zoo_error():
     with pytest.raises(ValueError):
         _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
 
+
 def test_erode():
     x = np.zeros((1, 3, 3, 1), dtype=np.float32)
     x[:, 1, 1] = 1
