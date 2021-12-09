@@ -15,7 +15,7 @@ import torch
 import torchvision
 from torchvision.ops import MultiScaleRoIAlign
 
-from doctr.models.artefacts.utils import inference_script
+from doctr.scripts.utils import inference_script
 
 
 def main(args):
