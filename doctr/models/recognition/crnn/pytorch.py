@@ -56,7 +56,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
     """
     @staticmethod
     def ctc_best_path(
-        logits: torch.Tensor, vocab: str = VOCABS['french'], blank: int = 0
+        logits: torch.Tensor, vocab: str = VOCABS['french'], blank: int = 0,
     ) -> List[Tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
