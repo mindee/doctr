@@ -127,21 +127,6 @@ def test_detection_zoo_error():
     with pytest.raises(ValueError):
         _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
 
-
-def test_linknet_focal_loss():
-    batch_size = 2
-    input_shape = (1024, 1024, 3)
-    model = detection.linknet16(pretrained=True)
-    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
-    target = [
-        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32),
-        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
-    ]
-    # test focal loss
-    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True, focal_loss=True)
-    assert isinstance(out['loss'], tf.Tensor)
-
-
 def test_erode():
     x = np.zeros((1, 3, 3, 1), dtype=np.float32)
     x[:, 1, 1] = 1
