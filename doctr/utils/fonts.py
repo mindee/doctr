@@ -13,6 +13,15 @@ __all__ = ['get_font']
 
 
 def get_font(font_family: Optional[str] = None, font_size: int = 13) -> ImageFont.ImageFont:
+    """Resolves a compatible ImageFont for the system
+
+    Args:
+        font_family: the font family to use
+        font_size: the size of the font upon rendering
+
+    Returns:
+        the Pillow font
+    """
 
     # Font selection
     if font_family is None:
