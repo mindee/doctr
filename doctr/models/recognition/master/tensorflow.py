@@ -11,6 +11,7 @@ from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models import backbones
+
 from ...utils import load_pretrained_params
 from ..transformer import Decoder, create_look_ahead_mask, create_padding_mask, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor

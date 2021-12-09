@@ -12,6 +12,7 @@ from torch.nn import functional as F
 
 from doctr.datasets import VOCABS
 from doctr.models import backbones
+
 from ...utils import load_pretrained_params
 from ..transformer import Decoder, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
