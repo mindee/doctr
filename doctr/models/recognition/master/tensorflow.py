@@ -150,7 +150,7 @@ class MASTER(_MASTER, Model):
         feature = self.feat_extractor(x, **kwargs)
         b, h, w, c = (tf.shape(feature)[i] for i in range(4))
         feature = tf.reshape(feature, shape=(b, h * w, c))
-        encoded = feature + self.feature_pe[:, :h * w, :]
+        encoded = feature + tf.cast(self.feature_pe[:, :h * w, :], dtype=feature.dtype)
 
         out: Dict[str, tf.Tensor] = {}
 
