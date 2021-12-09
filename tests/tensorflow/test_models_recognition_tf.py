@@ -49,7 +49,7 @@ def test_recognition_models(arch_name, input_shape):
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
-    processor = recognition.__dict__[post_processor](mock_vocab)
+    processor = post_processor(mock_vocab)
     decoded = processor(tf.random.uniform(shape=input_shape, minval=0, maxval=1, dtype=tf.float32))
     assert isinstance(decoded, list)
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in decoded)
