@@ -26,7 +26,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class MAGC(nn.Module):
-
     """Implements the Multi-Aspect Global Context Attention, as described in
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
@@ -34,6 +33,7 @@ class MAGC(nn.Module):
         inplanes: input channels
         headers: number of headers to split channels
         att_scale: if True, re-scale attention to counteract the variance distibutions
+        ratio: bottleneck ratio
         **kwargs
     """
 
