@@ -305,7 +305,7 @@ def synthesize_page(
 def draw_boxes(
     boxes: np.ndarray,
     image: np.ndarray,
-    color: Optional[Tuple] = None,
+    color: Optional[Tuple[int, int, int]] = None,
     **kwargs
 ) -> None:
     """Draw an array of relative straight boxes on an image
@@ -313,6 +313,7 @@ def draw_boxes(
     Args:
         boxes: array of relative boxes, of shape (*, 4)
         image: np array, float32 or uint8
+        color: color to use for bounding box edges
     """
     h, w = image.shape[:2]
     # Convert boxes to absolute coords

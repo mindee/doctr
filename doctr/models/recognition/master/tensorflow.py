@@ -182,7 +182,9 @@ class MASTER(_MASTER, Model):
         num_heads: number of heads for the mutli-head attention module
         num_layers: number of decoder layers to stack
         max_length: maximum length of character sequence handled by the model
-        input_size: size of the image inputs
+        dropout: dropout probability of the decoder
+        input_shape: size of the image inputs
+        cfg: config dictionary
     """
 
     def __init__(
