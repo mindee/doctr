@@ -53,7 +53,7 @@ def test_extract_rcrops(mock_pdf):  # noqa: F811
                            int((idx / num_crops + .1) * doc_img.shape[0]),
                            int(.1 * doc_img.shape[1]),
                            int(.1 * doc_img.shape[0]), 0]
-                          for idx in range(num_crops)], dtype=np.int)
+                          for idx in range(num_crops)], dtype=int)
 
     with pytest.raises(AssertionError):
         extract_rcrops(doc_img, np.zeros((1, 8)))
