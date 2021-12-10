@@ -22,15 +22,19 @@ def test_resolve_enclosing_bbox():
 
 
 def test_rbbox_to_polygon():
+    # Non-rotated
     assert (
         geometry.rbbox_to_polygon((.1, .1, .2, .2, 0)) == np.array([[0, .2], [0, 0], [.2, 0], [.2, .2]], np.float32)
     ).all()
+    # Rotate by 90° a non-squared rectangle
+    poly = geometry.rbbox_to_polygon((100, 100, 40, 10, 90))
+    assert (poly == np.array([[105, 120], [95, 120], [95, 80], [105, 80]])).all()
 
 
 def test_polygon_to_rbbox():
-    pred = geometry.polygon_to_rbbox([[.2, 0], [0, 0], [0, .2], [.2, .2]])[:4]
-    target = (.1, .1, .2, .2)
-    assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
+    pred = geometry.polygon_to_rbbox([[105, 120], [95, 120], [95, 80], [105, 80]])
+    # Accept both possibilities
+    assert (pred == (100, 100, 10, 40, 0)) or (pred == (100, 100, 40, 10, 90))
 
 
 def test_resolve_enclosing_rbbox():
