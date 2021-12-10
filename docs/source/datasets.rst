@@ -23,6 +23,7 @@ Here are all datasets that are available through docTR:
 .. autoclass:: SVT
 .. autoclass:: SynthText
 .. autoclass:: IC03
+.. autoclass:: IC13
 
 
 Data Loading
