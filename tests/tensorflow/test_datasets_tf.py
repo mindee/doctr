@@ -220,24 +220,23 @@ def test_ic13_dataset(mock_ic13, size, rotate):
 
 
 @pytest.mark.parametrize(
-    "dataset_name, train, input_size, size, rotate",
+    "train, input_size, size, rotate",
     [
-        ['SVHN', True, [32, 128], 3, True],  # Actual set has 33402 samples
-        ['SVHN', False, [32, 128], 3, False],  # Actual set has 13068 samples
+        [True, [32, 128], 3, True],  # Actual set has 33402 samples
+        [False, [32, 128], 3, False],  # Actual set has 13068 samples
     ],
 )
-def test_mock_dataset(dataset_name, train, input_size, size, rotate, mock_svhn_dataset):
+def test_svhn(train, input_size, size, rotate, mock_svhn_dataset):
     # monkeypatch the path to temporary dataset
-    if dataset_name.lower() == 'svhn':
-        dataset_path = mock_svhn_dataset
+    datasets.SVHN.TRAIN = (mock_svhn_dataset, None, "svhn_train.tar")
+    datasets.SVHN.TEST = (mock_svhn_dataset, None, "svhn_test.tar")
 
-    datasets.__dict__[dataset_name].MOCK_PATH = dataset_path
-    ds = datasets.__dict__[dataset_name](
+    ds = datasets.SVHN(
         train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
 
     assert len(ds) == size
-    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
+    assert repr(ds) == f"SVHN(train={train})"
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape == (*input_size, 3)
