@@ -19,6 +19,18 @@ def split_crops(
     dilation: float,
     channels_last: bool = True,
 ) -> Tuple[List[np.ndarray], List[Union[int, Tuple[int, int]]], bool]:
+    """Chunk crops horizontally to match a given aspect ratio
+
+    Args:
+        crops: list of numpy array of shape (H, W, 3) if channels_last or (3, H, W) otherwise
+        max_ratio: the maximum aspect ratio that won't trigger the chunk
+        target_ratio: when crops are chunked, they will be chunked to match this aspect ratio
+        dilation: the width dilation of final chunks (to provide some overlaps)
+        channels_last: whether the numpy array has dimensions in channels last order
+
+    Returns:
+        a tuple with the new crops, their mapping, and a boolean specifying whether any remap is required
+    """
 
     _remap_required = False
     crop_map: List[Union[int, Tuple[int, int]]] = []
