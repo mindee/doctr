@@ -48,14 +48,15 @@ class SVHN(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        url, sha256, name = self.TRAIN if train else self.TEST
-        super().__init__(url=url, file_name=name, file_hash=sha256, extract_archive=True, **kwargs)
+        if self.MOCK_PATH:
+            self.root = self.MOCK_PATH
+        else:
+            url, sha256, name = self.TRAIN if train else self.TEST
+            super().__init__(url=url, file_name=name, file_hash=sha256, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
-        if self.MOCK_PATH:
-            self.root = self.MOCK_PATH
 
         tmp_root = os.path.join(self.root, 'train' if train else 'test')
 
