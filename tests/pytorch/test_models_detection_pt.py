@@ -10,10 +10,10 @@ from doctr.models.detection.predictor import DetectionPredictor
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob",
     [
-        ["db_resnet34", (3, 1024, 1024), (1, 1024, 1024), True],
-        ["db_resnet50", (3, 1024, 1024), (1, 1024, 1024), True],
-        ["db_mobilenet_v3_large", (3, 1024, 1024), (1, 1024, 1024), True],
-        ["linknet16", (3, 1024, 1024), (1, 1024, 1024), False],
+        ["db_resnet34", (3, 512, 512), (1, 512, 512), True],
+        ["db_resnet50", (3, 512, 512), (1, 512, 512), True],
+        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True],
+        ["linknet16", (3, 512, 512), (1, 512, 512), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
@@ -22,8 +22,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [
-        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32),
-        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
+        np.array([[.5, .5, 1, 1], [.5, .5, .8, .8]], dtype=np.float32),
+        np.array([[.5, .5, 1, 1], [.5, .5, .8, .9]], dtype=np.float32),
     ]
     if torch.cuda.is_available():
         model.cuda()

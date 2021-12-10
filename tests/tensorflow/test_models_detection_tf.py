@@ -12,9 +12,9 @@ from doctr.models.preprocessor import PreProcessor
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob",
     [
-        ["db_resnet50", (1024, 1024, 3), (1024, 1024, 1), True],
-        ["db_mobilenet_v3_large", (1024, 1024, 3), (1024, 1024, 1), True],
-        ["linknet16", (1024, 1024, 3), (1024, 1024, 1), False],
+        ["db_resnet50", (512, 512, 3), (512, 512, 1), True],
+        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True],
+        ["linknet16", (512, 512, 3), (512, 512, 1), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
