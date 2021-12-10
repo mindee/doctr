@@ -1,6 +1,6 @@
 # this target runs checks on all files
 quality:
-	isort . -c -v
+	isort . -c
 	flake8 ./
 	mypy doctr/
 	pydocstyle doctr/
