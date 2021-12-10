@@ -43,6 +43,12 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out['loss'], torch.Tensor)
+    # Check the rotated case
+    target = [
+        np.array([[.75, .75, .5, .5, 0], [.65, .65, .3, .3, 0]], dtype=np.float32),
+        np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
+    ]
+    assert isinstance(model(input_tensor, target)['loss'], torch.Tensor)
 
 
 @pytest.mark.parametrize(

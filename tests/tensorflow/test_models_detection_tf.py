@@ -59,6 +59,13 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     with pytest.raises(ValueError):
         out = model(input_tensor, target, training=True)
 
+    # Check the rotated case
+    target = [
+        np.array([[.75, .75, .5, .5, 0], [.65, .65, .3, .3, 0]], dtype=np.float32),
+        np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
+    ]
+    assert isinstance(model(input_tensor, target, training=True)['loss'], tf.Tensor)
+
 
 @pytest.fixture(scope="session")
 def test_detectionpredictor(mock_pdf):  # noqa: F811
