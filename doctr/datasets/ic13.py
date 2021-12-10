@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import csv
 import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -57,19 +58,22 @@ class IC13(AbstractDataset):
             img_path = Path(img_folder, img_name)
             label_path = Path(label_folder, "gt_" + Path(img_name).stem + ".txt")
 
-            with open(label_path, "r") as f:
-                _lines = [[x.replace("\"", "").replace(",", "") for x in line.split()] for line in f.readlines()]
-                labels = [line[4].strip() for line in _lines]
-                # xmin, ymin, xmax, ymax
-                box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
-                if rotated_bbox:
-                    # x_center, y_center, width, height, 0
-                    box_targets = np.array([[coords[0] + (coords[2] - coords[0]) / 2,
-                                             coords[1] + (coords[3] - coords[1]) / 2,
-                                             (coords[2] - coords[0]),
-                                             (coords[3] - coords[1]), 0.0] for coords in box_targets], dtype=np_dtype)
+            with open(label_path, newline='\n') as f:
+                _lines = [
+                    [val[:-1] if val.endswith(",") else val for val in row]
+                    for row in csv.reader(f, delimiter=' ', quotechar="'")
+                ]
+            labels = [line[-1] for line in _lines]
+            # xmin, ymin, xmax, ymax
+            box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
+            if rotated_bbox:
+                # x_center, y_center, width, height, 0
+                box_targets = np.array([[coords[0] + (coords[2] - coords[0]) / 2,
+                                         coords[1] + (coords[3] - coords[1]) / 2,
+                                         (coords[2] - coords[0]),
+                                         (coords[3] - coords[1]), 0.0] for coords in box_targets], dtype=np_dtype)
 
-                self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
+            self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
         img, target = self._read_sample(index)
