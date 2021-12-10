@@ -63,7 +63,7 @@ class DocArtefacts(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
 
             boxes = np.asarray([obj['geometry'] for obj in label], dtype=np_dtype)
-            classes = np.asarray([self.CLASSES.index(obj['label']) for obj in label], dtype=np.long)
+            classes = np.asarray([self.CLASSES.index(obj['label']) for obj in label], dtype=np.int64)
             if rotated_bbox:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 boxes = np.stack((
