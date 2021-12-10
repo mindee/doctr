@@ -165,15 +165,15 @@ def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     matcontent = {'digitStruct': {'name': [first, second, third], 'bbox': [label, label, label]}}
     # mock train data
     root = svhn_root.mkdir('train')
-    hdf5storage.write(matcontent, path=root, filename='digitStruct.mat')
-    for i in range(3):
+    hdf5storage.write(matcontent, filename=root.join('digitStruct.mat'))
+    for i in range(4):
         fn = root.join(f'{i}.png')
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # mock test data
     root = svhn_root.mkdir('test')
-    hdf5storage.write(matcontent, path=root, filename='digitStruct.mat')
-    for i in range(3):
+    hdf5storage.write(matcontent, filename=root.join('digitStruct.mat'))
+    for i in range(4):
         fn = root.join(f'{i}.png')
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())

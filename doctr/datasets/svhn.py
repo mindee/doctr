@@ -38,6 +38,8 @@ class SVHN(VisionDataset):
             '57ac9ceb530e4aa85b55d991be8fc49c695b3d71c6f6a88afea86549efde7fb5',
             'svhn_test.tar')
 
+    MOCK_PATH = ''
+
     def __init__(
         self,
         train: bool = True,
@@ -52,6 +54,8 @@ class SVHN(VisionDataset):
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
+        if self.MOCK_PATH:
+            self.root = self.MOCK_PATH
 
         tmp_root = os.path.join(self.root, 'train' if train else 'test')
 

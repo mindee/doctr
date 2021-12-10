@@ -227,8 +227,11 @@ def test_ic13_dataset(mock_ic13, size, rotate):
     ],
 )
 def test_mock_dataset(dataset_name, train, input_size, size, rotate, mock_svhn_dataset):
-    # TODO: how to handle new path to temporary mock dataset?
+    # monkeypatch the path to temporary dataset
+    if dataset_name.lower() == 'svhn':
+        dataset_path = mock_svhn_dataset
 
+    datasets.__dict__[dataset_name].MOCK_PATH = dataset_path
     ds = datasets.__dict__[dataset_name](
         train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
     )
