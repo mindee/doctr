@@ -56,7 +56,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
     """
     @staticmethod
     def ctc_best_path(
-        logits: torch.Tensor, vocab: str = VOCABS['french'], blank: int = 0
+        logits: torch.Tensor, vocab: str = VOCABS['french'], blank: int = 0,
     ) -> List[Tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
@@ -136,7 +136,10 @@ class CRNN(RecognitionModel, nn.Module):
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
 
-        for m in self.modules():
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith('feat_extractor.'):
+                continue
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight.data, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:

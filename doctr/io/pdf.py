@@ -74,7 +74,7 @@ def convert_page_to_numpy(
     transform_matrix = fitz.Matrix(*scales)
 
     # Generate the pixel map using the transformation matrix
-    pixmap = page.getPixmap(matrix=transform_matrix)
+    pixmap = page.get_pixmap(matrix=transform_matrix)
     # Decode it into a numpy
     img = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(pixmap.height, pixmap.width, 3)
 

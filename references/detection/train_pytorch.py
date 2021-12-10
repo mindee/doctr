@@ -157,7 +157,7 @@ def main(args):
 
     if args.test_only:
         print("Running evaluation")
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         print(f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
               f"Mean IoU: {mean_iou:.2%})")
         return
