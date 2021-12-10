@@ -19,6 +19,18 @@ def split_crops(
     dilation: float,
     channels_last: bool = True,
 ) -> Tuple[List[np.ndarray], List[Union[int, Tuple[int, int]]], bool]:
+    """Chunk crops horizontally to match a given aspect ratio
+
+    Args:
+        crops: list of numpy array of shape (H, W, 3) if channels_last or (3, H, W) otherwise
+        max_ratio: the maximum aspect ratio that won't trigger the chunk
+        target_ratio: when crops are chunked, they will be chunked to match this aspect ratio
+        dilation: the width dilation of final chunks (to provide some overlaps)
+        channels_last: whether the numpy array has dimensions in channels last order
+
+    Returns:
+        a tuple with the new crops, their mapping, and a boolean specifying whether any remap is required
+    """
 
     _remap_required = False
     crop_map: List[Union[int, Tuple[int, int]]] = []
@@ -31,19 +43,23 @@ def split_crops(
             num_subcrops = int(aspect_ratio // target_ratio)
             # Find the new widths, additional dilation factor to overlap crops
             width = dilation * w / num_subcrops
-            centers = [(w / num_subcrops) * (1 / 2 + i) for i in range(num_subcrops)]
-            # Record the slice of crops
-            crop_map.append((len(new_crops), len(new_crops) + len(centers)))
+            centers = [(w / num_subcrops) * (1 / 2 + idx) for idx in range(num_subcrops)]
+            # Get the crops
             if channels_last:
-                new_crops.extend(
+                _crops = [
                     crop[:, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2))), :]
                     for center in centers
-                )
+                ]
             else:
-                new_crops.extend(
+                _crops = [
                     crop[:, :, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2)))]
                     for center in centers
-                )
+                ]
+            # Avoid sending zero-sized crops
+            _crops = [crop for crop in _crops if all(s > 0 for s in crop.shape)]
+            # Record the slice of crops
+            crop_map.append((len(new_crops), len(new_crops) + len(_crops)))
+            new_crops.extend(_crops)
             # At least one crop will require merging
             _remap_required = True
         else:
