@@ -5,8 +5,6 @@ from doctr.models import recognition
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
 from doctr.models.recognition.master.pytorch import MASTERPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
-from doctr.models.recognition.master.pytorch import MASTERPostProcessor
 
 
 @pytest.mark.parametrize(
