@@ -243,7 +243,7 @@ def main(args):
             wandb.log({
                 'recall': recall,
                 'precision': precision,
-                'iou': mean_iou,
+                'mean_iou': mean_iou,
             })
 
     if args.wb:
