@@ -177,7 +177,6 @@ class LinkNet(_LinkNet, keras.Model):
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_boxes: bool = False,
-        **kwargs: Any,
     ) -> Dict[str, Any]:
 
         logits = self.stem(x)

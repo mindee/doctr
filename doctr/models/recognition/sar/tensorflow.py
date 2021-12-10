@@ -16,7 +16,7 @@ from ...backbones import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ['SAR', 'SARPostProcessor', 'sar_resnet31']
+__all__ = ['SAR', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_resnet31': {
