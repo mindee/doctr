@@ -22,12 +22,15 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
 
 def rbbox_to_polygon(rbbox: RotatedBbox) -> Polygon4P:
     (x, y, w, h, alpha) = rbbox
-    return cv2.boxPoints(((float(x), float(y)), (float(w), float(h)), float(alpha)))
+    return cv2.boxPoints(((float(x), float(y)), (float(w), float(h)), -float(alpha)))
 
 
 def fit_rbbox(pts: np.ndarray) -> RotatedBbox:
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
-    return x, y, w, h, alpha
+    if abs(alpha) > 45:
+        alpha = (90 - alpha) if alpha > 0 else alpha - 90
+        w, h = h, w
+    return x, y, w, h, -alpha
 
 
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
