@@ -19,7 +19,7 @@ from doctr.models.preprocessor import PreProcessor
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
     batch_size = 2
-    model = detection.__dict__[arch_name](pretrained=True)
+    model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
@@ -64,7 +64,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[.75, .75, .5, .5, 0], [.65, .65, .3, .3, 0]], dtype=np.float32),
         np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
     ]
-    assert isinstance(model(input_tensor, target, training=True)['loss'], tf.Tensor)
+    loss = model(input_tensor, target, training=True)['loss']
+    assert isinstance(loss, tf.Tensor) and ((loss - out['loss']) / loss).numpy() < 1e-1
 
 
 @pytest.fixture(scope="session")
