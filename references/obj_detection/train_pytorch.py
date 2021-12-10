@@ -213,7 +213,7 @@ def main(args):
                 "input_size": args.input_size,
                 "optimizer": "sgd",
                 "framework": "pytorch",
-                "scheduler": args.sched,
+                "scheduler": "step",
                 "pretrained": args.pretrained,
                 "amp": args.amp,
             }
