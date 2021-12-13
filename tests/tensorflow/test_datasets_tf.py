@@ -221,23 +221,23 @@ def test_ic13_dataset(mock_ic13, size, rotate):
 
 
 @pytest.mark.parametrize(
-    "train, input_size, size, rotate",
+    "input_size, size, rotate",
     [
-        [True, [32, 128], 3, True],  # Actual set has 33402 samples
-        [False, [32, 128], 3, False],  # Actual set has 13068 samples
+        [[32, 128], 3, True],  # Actual set has 33402 training samples and 13068 test samples
+        [[32, 128], 3, False],
     ],
 )
-def test_svhn(train, input_size, size, rotate, mock_svhn_dataset):
+def test_svhn(input_size, size, rotate, mock_svhn_dataset):
     # monkeypatch the path to temporary dataset
     datasets.SVHN.TRAIN = (mock_svhn_dataset, None, "svhn_train.tar")
-    datasets.SVHN.TEST = (mock_svhn_dataset, None, "svhn_test.tar")
 
     ds = datasets.SVHN(
-        train=train, download=False, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_svhn_dataset, cache_subdir="svhn",
     )
 
     assert len(ds) == size
-    assert repr(ds) == f"SVHN(train={train})"
+    assert repr(ds) == f"SVHN(train={True})"
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
     assert img.shape == (*input_size, 3)
