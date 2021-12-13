@@ -38,7 +38,8 @@ def record_lr(
     num_it: int = 100,
     amp: bool = False,
 ):
-    """Gridsearch the optimal learning rate for the training
+    """Gridsearch the optimal learning rate for the training.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
 
     Args:
        freeze_until (str, optional): last layer to freeze

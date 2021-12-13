@@ -8,7 +8,8 @@ import numpy as np
 
 
 def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> None:
-    """Display the results of the LR grid search
+    """Display the results of the LR grid search.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
 
     Args:
         lr_recorder: list of LR values
