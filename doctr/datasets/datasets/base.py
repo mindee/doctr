@@ -8,6 +8,8 @@ import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
+import numpy as np
+
 from doctr.utils.data import download_from_url
 
 __all__ = ['_AbstractDataset', '_VisionDataset']
@@ -48,6 +50,17 @@ class _AbstractDataset:
         if self.sample_transforms is not None:
             # typing issue cf. https://github.com/python/mypy/issues/5485
             img = self.sample_transforms(img)  # type: ignore[call-arg]
+
+        if isinstance(target, dict) and 'boxes' in target.keys() and \
+                not np.all((target['boxes'] <= 1) & (target['boxes'] >= 0)):
+            h, w = self._get_img_shape(img)
+
+            # Boxes
+            boxes = target['boxes'].copy()
+            boxes[..., [0, 2]] //= w
+            boxes[..., [1, 3]] //= h
+            boxes = boxes.clip(0, 1)
+            target['boxes'] = boxes
 
         return img, target
 

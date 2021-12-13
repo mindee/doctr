@@ -5,7 +5,7 @@
 
 import json
 import os
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -47,7 +47,7 @@ class DetectionDataset(AbstractDataset):
         with open(label_path, 'rb') as f:
             labels = json.load(f)
 
-        self.data: List[Tuple[str, np.ndarray]] = []
+        self.data: List[Tuple[str, Dict[str, np.ndarray]]] = []
         for img_name, label in labels.items():
             # File existence check
             if not os.path.exists(os.path.join(self.root, img_name)):
@@ -61,22 +61,23 @@ class DetectionDataset(AbstractDataset):
                 # Switch to xmin, ymin, xmax, ymax
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
-            self.data.append((img_name, np.asarray(boxes, dtype=np.float32)))
+            self.data.append((img_name, dict(boxes=np.asarray(boxes, dtype=np.float32))))
 
     def __getitem__(
         self,
         index: int
     ) -> Tuple[Any, np.ndarray]:
 
-        img, boxes = self._read_sample(index)
+        img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
         if self.sample_transforms is not None:
             img = self.sample_transforms(img)
 
         # Boxes
-        boxes = boxes.copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
+        boxes = target['boxes'].copy()
+        boxes[..., [0, 2]] //= w
+        boxes[..., [1, 3]] //= h
         boxes = boxes.clip(0, 1)
+        target['boxes'] = boxes
 
-        return img, boxes
+        return img, target

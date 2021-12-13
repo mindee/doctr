@@ -83,8 +83,8 @@ class IC13(AbstractDataset):
 
         # Boxes
         boxes = target['boxes'].copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
+        boxes[..., [0, 2]] //= w
+        boxes[..., [1, 3]] //= h
         boxes = boxes.clip(0, 1)
         target['boxes'] = boxes
 

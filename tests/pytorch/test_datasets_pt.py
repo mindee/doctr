@@ -63,14 +63,14 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert img.dtype == torch.float32
     assert img.shape[-2:] == input_size
     # Bounding boxes
-    assert isinstance(target, np.ndarray) and target.dtype == np.float32
-    assert np.all(np.logical_and(target[:, :4] >= 0, target[:, :4] <= 1))
-    assert target.shape[1] == 4
+    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
+    assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
+    assert target['boxes'].shape[1] == 4
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
+    assert isinstance(targets, list) and all(isinstance(elt['boxes'], np.ndarray) for elt in targets)
 
     # Rotated DS
     rotated_ds = datasets.DetectionDataset(
@@ -80,7 +80,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
         rotated_bbox=True
     )
     _, r_target = rotated_ds[0]
-    assert r_target.shape[1] == 5
+    assert r_target['boxes'].shape[1] == 5
 
     # File existence check
     img_name, _ = ds.data[0]

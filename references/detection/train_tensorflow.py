@@ -38,7 +38,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=Fals
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)['loss']
+            train_loss = model(images, targets['boxes'], training=True)['loss']
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
@@ -55,10 +55,10 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        out = model(images, targets, training=False, return_boxes=True)
+        out = model(images, targets['boxes'], training=False, return_boxes=True)
         # Compute metric
         loc_preds = out['preds']
-        for boxes_gt, boxes_pred in zip(targets, loc_preds):
+        for boxes_gt, boxes_pred in zip(targets['boxes'], loc_preds):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
@@ -141,7 +141,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        plot_samples(x, target['boxes'])
         return
 
     # Optimizer
