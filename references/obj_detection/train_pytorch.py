@@ -24,18 +24,17 @@ from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
-from references.obj_detection.utils import plot_samples
-from utils import plot_recorder
+from utils import plot_recorder, plot_samples
 
 
 def record_lr(
-        model: torch.nn.Module,
-        train_loader: DataLoader,
-        optimizer,
-        start_lr: float = 1e-7,
-        end_lr: float = 1,
-        num_it: int = 100,
-        amp: bool = False,
+    model: torch.nn.Module,
+    train_loader: DataLoader,
+    optimizer,
+    start_lr: float = 1e-7,
+    end_lr: float = 1,
+    num_it: int = 100,
+    amp: bool = False,
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
@@ -261,7 +260,7 @@ def main(args):
     if args.show_samples:
         images, targets = next(iter(train_loader))
         targets = convert_to_abs_coords(targets, images.shape)
-        plot_samples(images, targets, 4)
+        plot_samples(images, targets, train_set.CLASSES)
         return
 
     # Backbone freezing
