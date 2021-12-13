@@ -23,11 +23,11 @@ from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
+from references.obj_detection.utils import plot_samples
 
 
 def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
-
     for idx, t in enumerate(targets):
         targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
@@ -182,6 +182,13 @@ def main(args):
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
 
+    if args.show_samples:
+        images, targets = next(iter(train_loader))
+        print(images.shape)
+        targets = convert_to_abs_coords(targets, images.shape)
+        plot_samples(images, targets, 4)
+        return
+
     # Backbone freezing
     if args.freeze_backbone:
         for p in model.backbone.parameters():
@@ -264,6 +271,8 @@ def parse_args():
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
+    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
+                        help='Display unormalized training samples')
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
                         help='freeze model backbone for fine-tuning')
     parser.add_argument('--wb', dest='wb', action='store_true',
