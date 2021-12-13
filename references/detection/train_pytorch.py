@@ -77,7 +77,7 @@ def record_lr(
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
-                train_loss = model(images, targets['boxes'])['loss']
+                train_loss = model(images, targets)['loss']
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
@@ -86,7 +86,7 @@ def record_lr(
             scaler.step(optimizer)
             scaler.update()
         else:
-            train_loss = model(images, targets['boxes'])['loss']
+            train_loss = model(images, targets)['loss']
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -158,12 +158,12 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         images = batch_transforms(images)
         if amp:
             with torch.cuda.amp.autocast():
-                out = model(images, targets['boxes'], return_boxes=True)
+                out = model(images, targets, return_boxes=True)
         else:
-            out = model(images, targets['boxes'], return_boxes=True)
+            out = model(images, targets, return_boxes=True)
         # Compute metric
         loc_preds = out['preds']
-        for boxes_gt, boxes_pred in zip(targets['boxes'], loc_preds):
+        for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
@@ -269,7 +269,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target['boxes'])
+        plot_samples(x, target)
         return
 
     # Backbone freezing
