@@ -6,6 +6,7 @@
 from typing import Dict, List
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.cm import get_cmap
 
@@ -38,10 +39,6 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]], num_classes, alph
     for ax in axes.ravel():
         ax.axis('off')
     plt.show()
-
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 
 def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> None:
