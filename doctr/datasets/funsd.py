@@ -53,6 +53,8 @@ class FUNSD(VisionDataset):
         # # List images
         tmp_root = os.path.join(self.root, subfolder, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
+        np_dtype = np.float32
+
         for img_path in os.listdir(tmp_root):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
@@ -73,7 +75,7 @@ class FUNSD(VisionDataset):
                     ] for box in box_targets
                 ]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=list(text_targets))))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets))))
 
         self.root = tmp_root
 

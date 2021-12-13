@@ -40,6 +40,7 @@ class DetectionDataset(AbstractDataset):
     ) -> None:
         super().__init__(img_folder)
         self.sample_transforms = sample_transforms
+        np_dtype = np.float32
 
         # File existence check
         if not os.path.exists(label_path):
@@ -61,7 +62,7 @@ class DetectionDataset(AbstractDataset):
                 # Switch to xmin, ymin, xmax, ymax
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
-            self.data.append((img_name, dict(boxes=np.asarray(boxes, dtype=np.float32))))
+            self.data.append((img_name, dict(boxes=np.asarray(boxes, dtype=np_dtype))))
 
     def __getitem__(
         self,
@@ -75,8 +76,8 @@ class DetectionDataset(AbstractDataset):
 
         # Boxes
         boxes = target['boxes'].copy()
-        boxes[..., [0, 2]] //= w
-        boxes[..., [1, 3]] //= h
+        boxes[..., [0, 2]] /= w
+        boxes[..., [1, 3]] /= h
         boxes = boxes.clip(0, 1)
         target['boxes'] = boxes
 

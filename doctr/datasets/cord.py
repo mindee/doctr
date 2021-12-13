@@ -54,6 +54,8 @@ class CORD(VisionDataset):
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         self.train = train
         self.sample_transforms = sample_transforms
+        np_dtype = np.float32
+
         for img_path in os.listdir(tmp_root):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
@@ -74,7 +76,7 @@ class CORD(VisionDataset):
                                     [x[1], y[1]],
                                     [x[2], y[2]],
                                     [x[3], y[3]],
-                                ], dtype=np.float32)))
+                                ], dtype=np_dtype)))
                             else:
                                 # Reduce 8 coords to 4
                                 box = [min(x), min(y), max(x), max(y)]
@@ -84,7 +86,7 @@ class CORD(VisionDataset):
 
             self.data.append((
                 img_path,
-                dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets))
+                dict(boxes=np.asarray(box_targets, dtype=np_dtype).clip(min=0), labels=list(text_targets))
             ))
         self.root = tmp_root
 
