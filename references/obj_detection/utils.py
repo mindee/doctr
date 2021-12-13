@@ -24,7 +24,7 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]], classes: List[str
         for box, class_idx in zip(targets[idx]['boxes'].numpy(), targets[idx]['labels']):
             r, g, b, _ = cmap(class_idx.numpy())
             color = int(round(255 * r)), int(round(255 * g)), int(round(255 * b))
-            cv2.rectangle(target, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 1)
+            cv2.rectangle(target, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
             text_size, _ = cv2.getTextSize(classes[class_idx], cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
             text_w, text_h = text_size
             cv2.rectangle(target, (int(box[0]), int(box[1])), (int(box[0]) + text_w, int(box[1]) - text_h), color, -1)
