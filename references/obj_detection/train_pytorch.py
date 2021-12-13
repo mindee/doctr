@@ -260,7 +260,6 @@ def main(args):
 
     if args.show_samples:
         images, targets = next(iter(train_loader))
-        print(images.shape)
         targets = convert_to_abs_coords(targets, images.shape)
         plot_samples(images, targets, 4)
         return
