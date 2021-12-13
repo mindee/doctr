@@ -120,7 +120,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        targets = [[v for k, v in t.items()] for t in targets]
+        targets = [t['boxes'] for t in targets]
 
         optimizer.zero_grad()
         if amp:
@@ -157,7 +157,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        targets = [[v for k, v in t.items()] for t in targets]
+        targets = [t['boxes'] for t in targets]
         if amp:
             with torch.cuda.amp.autocast():
                 out = model(images, targets, return_boxes=True)

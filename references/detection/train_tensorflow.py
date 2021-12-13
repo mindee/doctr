@@ -36,7 +36,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=Fals
     for images, targets in progress_bar(train_iter, parent=mb):
 
         images = batch_transforms(images)
-        targets = [[v for k, v in t.items()] for t in targets]
+        targets = [t['boxes'] for t in targets]
 
         with tf.GradientTape() as tape:
             train_loss = model(images, targets, training=True)['loss']
@@ -56,7 +56,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        targets = [[v for k, v in t.items()] for t in targets]
+        targets = [t['boxes'] for t in targets]
         out = model(images, targets, training=False, return_boxes=True)
         # Compute metric
         loc_preds = out['preds']
