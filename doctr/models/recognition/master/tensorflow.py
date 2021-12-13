@@ -3,24 +3,25 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential, layers
+from tensorflow.keras import Model, layers
 
-from ....datasets import VOCABS
-from ...backbones.resnet import ResnetStage
-from ...utils import conv_sequence, load_pretrained_params
+from doctr.datasets import VOCABS
+from doctr.models import backbones
+
+from ...utils import load_pretrained_params
 from ..transformer import Decoder, create_look_ahead_mask, create_padding_mask, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'master', 'MASTERPostProcessor']
+__all__ = ['MASTER', 'master']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
+        'backbone': 'magc_resnet31',
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 128, 3),
@@ -30,166 +31,29 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class MAGC(layers.Layer):
-
-    """Implements the Multi-Aspect Global Context Attention, as described in
-    <https://arxiv.org/pdf/1910.02562.pdf>`_.
-
-    Args:
-        inplanes: input channels
-        headers: number of headers to split channels
-        att_scale: if True, re-scale attention to counteract the variance distibutions
-        **kwargs
-    """
-
-    def __init__(
-        self,
-        inplanes: int,
-        headers: int = 8,
-        att_scale: bool = False,
-        ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
-        **kwargs
-    ) -> None:
-        super().__init__(**kwargs)
-
-        self.headers = headers  # h
-        self.inplanes = inplanes  # C
-        self.att_scale = att_scale
-        self.planes = int(inplanes * ratio)
-
-        self.single_header_inplanes = int(inplanes / headers)  # C / h
-
-        self.conv_mask = tf.keras.layers.Conv2D(
-            filters=1,
-            kernel_size=1,
-            kernel_initializer=tf.initializers.he_normal()
-        )
-
-        self.transform = tf.keras.Sequential(
-            [
-                tf.keras.layers.Conv2D(
-                    filters=self.planes,
-                    kernel_size=1,
-                    kernel_initializer=tf.initializers.he_normal()
-                ),
-                tf.keras.layers.LayerNormalization([1, 2, 3]),
-                tf.keras.layers.ReLU(),
-                tf.keras.layers.Conv2D(
-                    filters=self.inplanes,
-                    kernel_size=1,
-                    kernel_initializer=tf.initializers.he_normal()
-                ),
-            ],
-            name='transform'
-        )
-
-    def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
-        b, h, w, c = (tf.shape(inputs)[i] for i in range(4))
-
-        # B, H, W, C -->> B*h, H, W, C/h
-        x = tf.reshape(inputs, shape=(b, h, w, self.headers, self.single_header_inplanes))
-        x = tf.transpose(x, perm=(0, 3, 1, 2, 4))
-        x = tf.reshape(x, shape=(b * self.headers, h, w, self.single_header_inplanes))
-
-        # Compute shorcut
-        shortcut = x
-        # B*h, 1, H*W, C/h
-        shortcut = tf.reshape(shortcut, shape=(b * self.headers, 1, h * w, self.single_header_inplanes))
-        # B*h, 1, C/h, H*W
-        shortcut = tf.transpose(shortcut, perm=[0, 1, 3, 2])
-
-        # Compute context mask
-        # B*h, H, W, 1,
-        context_mask = self.conv_mask(x)
-        # B*h, 1, H*W, 1
-        context_mask = tf.reshape(context_mask, shape=(b * self.headers, 1, h * w, 1))
-        # scale variance
-        if self.att_scale and self.headers > 1:
-            context_mask = context_mask / math.sqrt(self.single_header_inplanes)
-        # B*h, 1, H*W, 1
-        context_mask = tf.keras.activations.softmax(context_mask, axis=2)
-
-        # Compute context
-        # B*h, 1, C/h, 1
-        context = tf.matmul(shortcut, context_mask)
-        context = tf.reshape(context, shape=(b, 1, c, 1))
-        # B, 1, 1, C
-        context = tf.transpose(context, perm=(0, 1, 3, 2))
-        # Set shape to resolve shape when calling this module in the Sequential MAGCResnet
-        batch, chan = inputs.get_shape().as_list()[0], inputs.get_shape().as_list()[-1]
-        context.set_shape([batch, 1, 1, chan])
-        return context
-
-    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
-        # Context modeling: B, H, W, C  ->  B, 1, 1, C
-        context = self.context_modeling(inputs)
-        # Transform: B, 1, 1, C  ->  B, 1, 1, C
-        transformed = self.transform(context)
-        return inputs + transformed
-
-
-class MAGCResnet(Sequential):
-
-    """Implements the modified resnet with MAGC layers, as described in paper.
-
-    Args:
-        headers: number of header to split channels in MAGC layers
-        input_shape: shape of the model input (without batch dim)
-    """
-
-    def __init__(
-        self,
-        headers: int = 8,
-        input_shape: Tuple[int, int, int] = (32, 128, 3),
-    ) -> None:
-        _layers = [
-            # conv_1x
-            *conv_sequence(out_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_shape),
-            *conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPooling2D((2, 2), (2, 2)),
-            # conv_2x
-            ResnetStage(num_blocks=1, output_channels=256),
-            MAGC(inplanes=256, headers=headers, att_scale=True),
-            *conv_sequence(out_channels=256, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPooling2D((2, 2), (2, 2)),
-            # conv_3x
-            ResnetStage(num_blocks=2, output_channels=512),
-            MAGC(inplanes=512, headers=headers, att_scale=True),
-            *conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPooling2D((2, 1), (2, 1)),
-            # conv_4x
-            ResnetStage(num_blocks=5, output_channels=512),
-            MAGC(inplanes=512, headers=headers, att_scale=True),
-            *conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
-            # conv_5x
-            ResnetStage(num_blocks=3, output_channels=512),
-            MAGC(inplanes=512, headers=headers, att_scale=True),
-            *conv_sequence(out_channels=512, activation='relu', bn=True, kernel_size=3),
-        ]
-        super().__init__(_layers)
-
-
 class MASTER(_MASTER, Model):
 
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
 
     Args:
+        feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary, (without EOS, SOS, PAD)
         d_model: d parameter for the transformer decoder
-        headers: headers for the MAGC module
         dff: depth of the pointwise feed-forward layer
         num_heads: number of heads for the mutli-head attention module
         num_layers: number of decoder layers to stack
         max_length: maximum length of character sequence handled by the model
-        input_size: size of the image inputs
+        dropout: dropout probability of the decoder
+        input_shape: size of the image inputs
+        cfg: dictionary containing information about the model
     """
 
     def __init__(
         self,
+        feature_extractor: tf.keras.Model,
         vocab: str,
         d_model: int = 512,
-        headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
         num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
@@ -205,7 +69,7 @@ class MASTER(_MASTER, Model):
         self.cfg = cfg
         self.vocab_size = len(vocab)
 
-        self.feat_extractor = MAGCResnet(headers=headers, input_shape=input_shape)
+        self.feat_extractor = feature_extractor
         self.seq_embedding = layers.Embedding(self.vocab_size + 3, d_model)  # 3 more classes: EOS/PAD/SOS
 
         self.decoder = Decoder(
@@ -286,7 +150,7 @@ class MASTER(_MASTER, Model):
         feature = self.feat_extractor(x, **kwargs)
         b, h, w, c = (tf.shape(feature)[i] for i in range(4))
         feature = tf.reshape(feature, shape=(b, h * w, c))
-        encoded = feature + self.feature_pe[:, :h * w, :]
+        encoded = feature + tf.cast(self.feature_pe[:, :h * w, :], dtype=feature.dtype)
 
         out: Dict[str, tf.Tensor] = {}
 
@@ -386,7 +250,15 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> MASTER:
+def _master(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> MASTER:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -396,7 +268,11 @@ def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = Non
     kwargs['vocab'] = _cfg['vocab']
 
     # Build the model
-    model = MASTER(cfg=_cfg, **kwargs)
+    model = MASTER(
+        backbones.__dict__[_cfg['backbone']](pretrained=pretrained_backbone, input_shape=_cfg['input_shape']),
+        cfg=_cfg,
+        **kwargs,
+    )
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])

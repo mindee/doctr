@@ -79,7 +79,8 @@ class TextMatch:
 
         Args:
             gt: list of groung-truth character sequences
-            pred: list of predicted character sequences"""
+            pred: list of predicted character sequences
+        """
 
         if len(gt) != len(pred):
             raise AssertionError("prediction size does not match with ground-truth labels size")
@@ -252,11 +253,11 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
 
     mask = np.zeros(shape, dtype=np.uint8)
     # Get absolute coords
-    if box.dtype != np.int:
+    if box.dtype != int:
         abs_box = box.copy()
         abs_box[[0, 2]] = abs_box[[0, 2]] * shape[1]
         abs_box[[1, 3]] = abs_box[[1, 3]] * shape[0]
-        abs_box = abs_box.round().astype(np.int)
+        abs_box = abs_box.round().astype(int)
     else:
         abs_box = box
         abs_box[2:] = abs_box[2:] + 1
@@ -391,6 +392,12 @@ class LocalizationConfusion:
         self.reset()
 
     def update(self, gts: np.ndarray, preds: np.ndarray) -> None:
+        """Updates the metric
+
+        Args:
+            gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
+            preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
+        """
 
         if preds.shape[0] > 0:
             # Compute IoU
@@ -497,6 +504,14 @@ class OCRMetric:
         gt_labels: List[str],
         pred_labels: List[str],
     ) -> None:
+        """Updates the metric
+
+        Args:
+            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
+            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
+            gt_labels: a list of N string labels
+            pred_labels: a list of M string labels
+        """
 
         if gt_boxes.shape[0] != len(gt_labels) or pred_boxes.shape[0] != len(pred_labels):
             raise AssertionError("there should be the same number of boxes and string both for the ground truth "
@@ -627,6 +642,14 @@ class DetectionMetric:
         gt_labels: np.ndarray,
         pred_labels: np.ndarray,
     ) -> None:
+        """Updates the metric
+
+        Args:
+            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
+            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
+            gt_labels: an array of class indices of shape (N,)
+            pred_labels: an array of class indices of shape (M,)
+        """
 
         if gt_boxes.shape[0] != gt_labels.shape[0] or pred_boxes.shape[0] != pred_labels.shape[0]:
             raise AssertionError("there should be the same number of boxes and string both for the ground truth "

@@ -68,6 +68,7 @@ _deps = [
     "flake8>=3.9.0",
     "isort>=5.7.0",
     "mypy>=0.812",
+    "pydocstyle>=6.1.1",
     # Docs
     "sphinx<3.5.0",
     "sphinx-rtd-theme==0.4.3",
@@ -135,7 +136,8 @@ extras["testing"] = deps_list(
 extras["quality"] = deps_list(
     "flake8",
     "isort",
-    "mypy"
+    "mypy",
+    "pydocstyle",
 )
 
 extras["docs_specific"] = deps_list(
