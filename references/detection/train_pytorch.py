@@ -120,6 +120,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
+        targets = targets['boxes']
 
         optimizer.zero_grad()
         if amp:
@@ -156,6 +157,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
+        targets = targets['boxes']
         if amp:
             with torch.cuda.amp.autocast():
                 out = model(images, targets, return_boxes=True)
@@ -269,7 +271,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        plot_samples(x, target['boxes'])
         return
 
     # Backbone freezing
