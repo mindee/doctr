@@ -232,3 +232,36 @@ def test_ic13_dataset(mock_ic13, size, rotate):
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[32, 128], 3, True],  # Actual set has 33402 training samples and 13068 test samples
+        [[32, 128], 3, False],
+    ],
+)
+def test_svhn(input_size, size, rotate, mock_svhn_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.SVHN.TRAIN = (mock_svhn_dataset, None, "svhn_train.tar")
+
+    ds = datasets.SVHN(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_svhn_dataset, cache_subdir="svhn",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"SVHN(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, torch.Tensor)
+    assert img.shape == (3, *input_size)
+    assert img.dtype == torch.float32
+    assert isinstance(target, dict)
+
+    loader = DataLoader(
+        ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
+        collate_fn=ds.collate_fn)
+
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

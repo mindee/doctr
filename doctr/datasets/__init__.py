@@ -11,6 +11,7 @@ from .iiit5k import *
 from .ocr import *
 from .recognition import *
 from .sroie import *
+from .svhn import *
 from .svt import *
 from .synthtext import *
 from .utils import *
