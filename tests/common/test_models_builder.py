@@ -34,7 +34,7 @@ def test_documentbuilder():
     out = doc_builder([boxes, boxes], [[], []], [(100, 200), (100, 200)])
     assert len(out.pages[0].blocks) == 0
 
-    # Rotated boxes to export à straight boxes
+    # Rotated boxes to export as straight boxes
     boxes = np.array([
         [0.25, 0.25, np.sqrt(2) / 4, np.sqrt(2) / 4, 45, 0.99],
         [0.75, 0.75, np.sqrt(2) / 4, np.sqrt(2) / 4, 45, 0.99],
@@ -61,6 +61,7 @@ def test_documentbuilder():
         [[[0, 0.5, 0.1, 0.6], [0.2, 0.49, 0.35, 0.59], [0.8, 0.52, 0.9, 0.63]], [0, 1, 2]],  # ~same line
         [[[0, 0.3, 0.4, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
         [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [0, 1, 2]],  # 2 lines
+        [[[.4, .4, .2, .1, 25], [.7, .3, .2, .1, 25], [.6, .6, .2, .1, 25]], [0, 1, 2]],  # rot
     ],
 )
 def test_sort_boxes(input_boxes, sorted_idxs):
@@ -78,6 +79,7 @@ def test_sort_boxes(input_boxes, sorted_idxs):
         [[[0, 0.5, 0.18, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [[0, 1], [2]]],  # ~same line
         [[[0, 0.3, 0.48, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [[0, 1], [2]]],  # 2 lines
         [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [[0], [1], [2]]],  # 2 lines
+        [[[.4, .4, .2, .1, 25], [.7, .3, .2, .1, 25], [.6, .6, .2, .1, 25]], [[0], [1], [2]]],  # rot
     ],
 )
 def test_resolve_lines(input_boxes, lines):

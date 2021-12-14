@@ -9,9 +9,11 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.io.elements import Document
+from doctr.models._utils import estimate_orientation
 from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.utils.geometry import rotate_boxes, rotate_image
 from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
@@ -29,6 +31,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             without rotated textual elements.
         export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
             (potentially rotated) as straight bounding boxes.
+        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
+            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
+            accordingly. Doing so will improve performances for documents with page-uniform rotations.
     """
     _children_names = ['det_predictor', 'reco_predictor']
 
@@ -38,6 +43,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         export_as_straight_boxes: bool = False,
+        straighten_pages: bool = False,
     ) -> None:
 
         super().__init__()
@@ -45,6 +51,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         self.reco_predictor = reco_predictor
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
+        self.straighten_pages = straighten_pages
 
     def __call__(
         self,
@@ -55,6 +62,13 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
+
+        origin_page_shapes = [page.shape[:2] for page in pages]
+
+        # Detect document rotation and rotate pages
+        if self.straighten_pages:
+            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
@@ -67,5 +81,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
-        out = self.doc_builder(boxes, text_preds, [page.shape[:2] for page in pages])  # type: ignore[misc]
+        # Rotate back pages and boxes while keeping original image size
+        if self.straighten_pages:
+            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], target_shape=mask) for
+                     page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
+
+        out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[misc]
         return out

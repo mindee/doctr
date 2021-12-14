@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -11,165 +10,52 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from ....datasets import VOCABS
-from ...backbones import resnet_stage
-from ...utils import conv_sequence_pt, load_pretrained_params
+from doctr.datasets import VOCABS
+from doctr.models import backbones
+
+from ...utils import load_pretrained_params
 from ..transformer import Decoder, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'master', 'MASTERPostProcessor']
+__all__ = ['MASTER', 'master']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
+        'backbone': 'magc_resnet31',
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'input_shape': (3, 48, 160),
-        'vocab': VOCABS['legacy_french'],
+        'vocab': VOCABS['french'],
         'url': None,
     },
 }
 
 
-class MAGC(nn.Module):
-
-    """Implements the Multi-Aspect Global Context Attention, as described in
-    <https://arxiv.org/pdf/1910.02562.pdf>`_.
-
-    Args:
-        inplanes: input channels
-        headers: number of headers to split channels
-        att_scale: if True, re-scale attention to counteract the variance distibutions
-        **kwargs
-    """
-
-    def __init__(
-        self,
-        inplanes: int,
-        headers: int = 8,
-        att_scale: bool = False,
-        ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
-    ) -> None:
-        super().__init__()
-
-        self.headers = headers  # h
-        self.inplanes = inplanes  # C
-        self.att_scale = att_scale
-        self.planes = int(inplanes * ratio)
-
-        self.single_header_inplanes = int(inplanes / headers)  # C / h
-
-        self.conv_mask = nn.Conv2d(self.single_header_inplanes, 1, kernel_size=1)
-        self.softmax = nn.Softmax(dim=2)
-
-        self.channel_add_conv = nn.Sequential(
-            nn.Conv2d(self.inplanes, self.planes, kernel_size=1),
-            nn.LayerNorm([self.planes, 1, 1]),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(self.planes, self.inplanes, kernel_size=1)
-        )
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-
-        batch, _, height, width = inputs.size()
-        # [N*headers, C', H , W] C = headers * C'
-        x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
-        shortcut = x
-
-        # [N*headers, C', H * W] C = headers * C'
-        # input_x = input_x.view(batch, channel, height * width)
-        shortcut = shortcut.view(batch * self.headers, self.single_header_inplanes, height * width)
-
-        # [N*headers, 1, C', H * W]
-        shortcut = shortcut.unsqueeze(1)
-        # [N*headers, 1, H, W]
-        context_mask = self.conv_mask(x)
-        # [N*headers, 1, H * W]
-        context_mask = context_mask.view(batch * self.headers, 1, height * width)
-
-        # scale variance
-        if self.att_scale and self.headers > 1:
-            context_mask = context_mask / math.sqrt(self.single_header_inplanes)
-
-        # [N*headers, 1, H * W]
-        context_mask = self.softmax(context_mask)
-
-        # [N*headers, 1, H * W, 1]
-        context_mask = context_mask.unsqueeze(-1)
-        # [N*headers, 1, C', 1] = [N*headers, 1, C', H * W] * [N*headers, 1, H * W, 1]
-        context = torch.matmul(shortcut, context_mask)
-
-        # [N, headers * C', 1, 1]
-        context = context.view(batch, self.headers * self.single_header_inplanes, 1, 1)
-
-        # Transform: B, C, 1, 1 ->  B, C, 1, 1
-        transformed = self.channel_add_conv(context)
-        return inputs + transformed
-
-
-class MAGCResnet(nn.Sequential):
-
-    """Implements the modified resnet with MAGC layers, as described in paper.
-
-    Args:
-        headers: number of header to split channels in MAGC layers
-        input_shape: shape of the model input (without batch dim)
-    """
-
-    def __init__(
-        self,
-        headers: int = 8,
-    ) -> None:
-        _layers = [
-            # conv_1x
-            *conv_sequence_pt(3, 64, relu=True, bn=True, kernel_size=3, padding=1),
-            *conv_sequence_pt(64, 128, relu=True, bn=True, kernel_size=3, padding=1),
-            nn.MaxPool2d(2),
-            # conv_2x
-            *resnet_stage(128, 256, num_blocks=1),
-            MAGC(inplanes=256, headers=headers, att_scale=True),
-            *conv_sequence_pt(256, 256, relu=True, bn=True, kernel_size=3, padding=1),
-            nn.MaxPool2d(2),
-            # conv_3x
-            *resnet_stage(256, 512, num_blocks=2),
-            MAGC(inplanes=512, headers=headers, att_scale=True),
-            *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
-            nn.MaxPool2d((2, 1)),
-            # conv_4x
-            *resnet_stage(512, 512, num_blocks=5),
-            MAGC(inplanes=512, headers=headers, att_scale=True),
-            *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
-            # conv_5x
-            *resnet_stage(512, 512, num_blocks=3),
-            MAGC(inplanes=512, headers=headers, att_scale=True),
-            *conv_sequence_pt(512, 512, relu=True, bn=True, kernel_size=3, padding=1),
-        ]
-        super().__init__(*_layers)
-
-
 class MASTER(_MASTER, nn.Module):
-
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official Pytorch implementation: <https://github.com/wenwenyu/MASTER-pytorch>`_.
 
     Args:
+        feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary, (without EOS, SOS, PAD)
         d_model: d parameter for the transformer decoder
-        headers: headers for the MAGC module
         dff: depth of the pointwise feed-forward layer
         num_heads: number of heads for the mutli-head attention module
         num_layers: number of decoder layers to stack
         max_length: maximum length of character sequence handled by the model
-        input_size: size of the image inputs
+        dropout: dropout probability of the decoder
+        input_shape: size of the image inputs
+        cfg: dictionary containing information about the model
     """
 
     feature_pe: torch.Tensor
 
     def __init__(
         self,
+        feature_extractor: nn.Module,
         vocab: str,
         d_model: int = 512,
-        headers: int = 8,  # number of multi-aspect context
         dff: int = 2048,
         num_heads: int = 8,  # number of heads in the transformer decoder
         num_layers: int = 3,
@@ -186,7 +72,7 @@ class MASTER(_MASTER, nn.Module):
         self.vocab_size = len(vocab)
         self.num_heads = num_heads
 
-        self.feat_extractor = MAGCResnet(headers=headers)
+        self.feat_extractor = feature_extractor
         self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
@@ -203,7 +89,10 @@ class MASTER(_MASTER, nn.Module):
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
-        for m in self.modules():
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith('feat_extractor.'):
+                continue
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
@@ -263,7 +152,7 @@ class MASTER(_MASTER, nn.Module):
             return_model_output: if True, return logits
             return_preds: if True, decode logits
 
-        Return:
+        Returns:
             A torch tensor, containing logits
         """
 
@@ -357,7 +246,15 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> MASTER:
+def _master(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = True,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> MASTER:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -367,7 +264,11 @@ def _master(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = Non
     kwargs['vocab'] = _cfg['vocab']
 
     # Build the model
-    model = MASTER(cfg=_cfg, **kwargs)
+    model = MASTER(
+        backbones.__dict__[_cfg['backbone']](pretrained=pretrained_backbone),
+        cfg=_cfg,
+        **kwargs,
+    )
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])

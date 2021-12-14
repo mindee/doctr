@@ -10,6 +10,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
+from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
 from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
@@ -43,12 +44,16 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
+        angle_tol: float = 5.,
+        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
             pred: Pred map from differentiable linknet output
             bitmap: Bitmap map computed from pred (binarized)
+            angle_tol: Comparison tolerance of the angle with the median angle across the page
+            ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
             np tensor boxes for the bitmap, each box is a 6-element list
@@ -71,7 +76,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
 
-            if self.box_thresh > score:   # remove polygons with a weak objectness
+            if score < self.box_thresh:   # remove polygons with a weak objectness
                 continue
 
             if self.assume_straight_pages:
@@ -83,6 +88,38 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
+
+        if not self.assume_straight_pages:
+            # Compute median angle and mean aspect ratio to resolve quadrants
+            np_boxes = np.asarray(boxes, dtype=np.float32)
+            median_angle = np.median(np_boxes[:, -2])
+            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
+
+            # Rectify angles
+            new_boxes = []
+            for x, y, w, h, alpha, score in boxes:
+                if median_h >= median_w:
+                    # We are in the upper quadrant
+                    if 1 / ratio_tol < h / w < ratio_tol:
+                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                        _rbox = [x, y, h, w, 90 + median_angle, score]
+                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                        # We jumped to the next quadrant, rectify
+                        _rbox = [x, y, w, h, alpha, score]
+                    else:
+                        _rbox = [x, y, h, w, 90 + alpha, score]
+                else:
+                    # We are in the lower quadrant.
+                    if 1 / ratio_tol < h / w < ratio_tol:
+                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                        _rbox = [x, y, w, h, median_angle, score]
+                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                        # We jumped to the next quadrant, rectify
+                        _rbox = [x, y, h, w, 90 + alpha, score]
+                    else:
+                        _rbox = [x, y, w, h, alpha, score]
+                new_boxes.append(_rbox)
+            boxes = new_boxes
 
         if not self.assume_straight_pages:
             if len(boxes) == 0:
@@ -108,7 +145,7 @@ class _LinkNet(BaseModel):
     def build_target(
         self,
         target: List[np.ndarray],
-        output_shape: Tuple[int, int, int],
+        output_shape: Tuple[int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
         if any(t.dtype != np.float32 for t in target):
@@ -116,13 +153,16 @@ class _LinkNet(BaseModel):
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
-        if self.assume_straight_pages:
-            seg_target = np.zeros(output_shape, dtype=bool)
-            edge_mask = np.zeros(output_shape, dtype=bool)
-        else:
-            seg_target = np.zeros(output_shape, dtype=np.uint8)
+        h, w = output_shape
+        target_shape = (len(target), h, w, 1)
 
-        seg_mask = np.ones(output_shape, dtype=bool)
+        if self.assume_straight_pages:
+            seg_target = np.zeros(target_shape, dtype=bool)
+            edge_mask = np.zeros(target_shape, dtype=bool)
+        else:
+            seg_target = np.zeros(target_shape, dtype=np.uint8)
+
+        seg_mask = np.ones(target_shape, dtype=bool)
 
         for idx, _target in enumerate(target):
             # Draw each polygon on gt
@@ -132,15 +172,16 @@ class _LinkNet(BaseModel):
 
             # Absolute bounding boxes
             abs_boxes = _target.copy()
-            abs_boxes[:, [0, 2]] *= output_shape[-1]
-            abs_boxes[:, [1, 3]] *= output_shape[-2]
+            abs_boxes[:, [0, 2]] *= w
+            abs_boxes[:, [1, 3]] *= h
             abs_boxes = abs_boxes.round().astype(np.int32)
 
+            # Convert to polygons --> (N, 4, 2)
             if abs_boxes.shape[1] == 5:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
                 polys = np.stack([
                     rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
-                ], axis=1)
+                ], axis=0)
             else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = [None] * abs_boxes.shape[0]  # Unused
@@ -155,11 +196,19 @@ class _LinkNet(BaseModel):
                     cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
                 else:
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
-                    # fill the 2 vertical edges
-                    edge_mask[idx, max(0, box[1] - 1): min(box[1] + 1, box[3]), box[0]: box[2] + 1] = True
-                    edge_mask[idx, max(box[1] + 1, box[3]): min(output_shape[1], box[3] + 2), box[0]: box[2] + 1] = True
-                    # fill the 2 horizontal edges
-                    edge_mask[idx, box[1]: box[3] + 1, max(0, box[0] - 1): min(box[0] + 1, box[2])] = True
-                    edge_mask[idx, box[1]: box[3] + 1, max(box[0] + 1, box[2]): min(output_shape[2], box[2] + 2)] = True
+                    # top edge
+                    edge_mask[idx, box[1], box[0]: min(box[2] + 1, w)] = True
+                    # bot edge
+                    edge_mask[idx, min(box[3], h - 1), box[0]: min(box[2] + 1, w)] = True
+                    # left edge
+                    edge_mask[idx, box[1]: min(box[3] + 1, h), box[0]] = True
+                    # right edge
+                    edge_mask[idx, box[1]: min(box[3] + 1, h), min(box[2], w - 1)] = True
+
+        # Don't forget to switch back to channel first if PyTorch is used
+        if not is_tf_available():
+            seg_target = seg_target.transpose(0, 3, 1, 2)
+            seg_mask = seg_mask.transpose(0, 3, 1, 2)
+            edge_mask = edge_mask.transpose(0, 3, 1, 2)
 
         return seg_target, seg_mask, edge_mask

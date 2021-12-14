@@ -33,7 +33,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
     # Project relative coordinates
     _boxes = boxes.copy()
     h, w = img.shape[:2] if channels_last else img.shape[-2:]
-    if _boxes.dtype != np.int:
+    if _boxes.dtype != int:
         _boxes[:, [0, 2]] *= w
         _boxes[:, [1, 3]] *= h
         _boxes = _boxes.round().astype(int)
@@ -150,7 +150,11 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
             angles.append(angle)
         elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
             angles.append(angle - 90)
-    return -median_low(angles)
+
+    if len(angles) == 0:
+        return 0  # in case no angles is found
+    else:
+        return -median_low(angles)
 
 
 def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) -> float:

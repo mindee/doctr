@@ -98,6 +98,15 @@ mypy --config-file mypy.ini doctr/
 ```
 The `mypy.ini` file will be read to check your typing.
 
+#### Docstring format
+
+To keep a sane docstring structure, if you install [pydocstyle](https://github.com/PyCQA/pydocstyle), you can verify your docstrings as follows:
+
+```shell
+pydocstyle doctr/
+```
+The `.pydocstyle` file will be read to configure this operation.
+
 
 ### Modifying the documentation
 

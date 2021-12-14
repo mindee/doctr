@@ -78,3 +78,22 @@ jobs:
         run: |
           mypy --version
           mypy --config-file mypy.ini doctr/
+
+  pydocstyle-py3:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Run isort
+        run: |
+          pip install pydocstyle
+          pydocstyle --version
+          pydocstyle doctr/

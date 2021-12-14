@@ -10,23 +10,100 @@ os.environ['USE_TORCH'] = '1'
 import datetime
 import logging
 import multiprocessing as mp
+import time
 
 import numpy as np
 import torch
 import torch.optim as optim
-import torchvision
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
+from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.ops import MultiScaleRoIAlign
 
+from doctr import transforms as T
 from doctr.datasets import DocArtefacts
+from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
+from utils import plot_recorder, plot_samples
+
+
+def record_lr(
+    model: torch.nn.Module,
+    train_loader: DataLoader,
+    optimizer,
+    start_lr: float = 1e-7,
+    end_lr: float = 1,
+    num_it: int = 100,
+    amp: bool = False,
+):
+    """Gridsearch the optimal learning rate for the training.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
+
+    Args:
+       freeze_until (str, optional): last layer to freeze
+       start_lr (float, optional): initial learning rate
+       end_lr (float, optional): final learning rate
+       num_it (int, optional): number of iterations to perform
+    """
+
+    if num_it > len(train_loader):
+        raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
+
+    model = model.train()
+    # Update param groups & LR
+    optimizer.defaults['lr'] = start_lr
+    for pgroup in optimizer.param_groups:
+        pgroup['lr'] = start_lr
+
+    gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
+    scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
+
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    loss_recorder = []
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
+    for batch_idx, (images, targets) in enumerate(train_loader):
+        targets = convert_to_abs_coords(targets, images.shape)
+        if torch.cuda.is_available():
+            images = images.cuda()
+            targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
+
+        # Forward, Backward & update
+        optimizer.zero_grad()
+        if amp:
+            with torch.cuda.amp.autocast():
+                loss_dict = model(images, targets)
+                train_loss = sum(v for v in loss_dict.values())
+            scaler.scale(train_loss).backward()
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss_dict = model(images, targets)
+            train_loss = sum(v for v in loss_dict.values())
+            train_loss.backward()
+            optimizer.step()
+        # Update LR
+        scheduler.step()
+
+        # Record
+        if not torch.isfinite(train_loss):
+            if batch_idx == 0:
+                raise ValueError("loss value is NaN or inf.")
+            else:
+                break
+        loss_recorder.append(train_loss.item())
+        # Stop after the number of iterations
+        if batch_idx + 1 == num_it:
+            break
+
+    return lr_recorder[:len(loss_recorder)], loss_recorder
 
 
 def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
-
     for idx, t in enumerate(targets):
         targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
@@ -40,46 +117,68 @@ def convert_to_abs_coords(targets, img_shape):
     return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, ):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_iter, parent=mb):
-        optimizer.zero_grad()
+
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
-        loss_dict = model(images, targets)
-        loss = sum(v for v in loss_dict.values())
-        loss.backward()
-        optimizer.step()
+
+        optimizer.zero_grad()
+        if amp:
+            with torch.cuda.amp.autocast():
+                loss_dict = model(images, targets)
+                loss = sum(v for v in loss_dict.values())
+            scaler.scale(loss).backward()
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss_dict = model(images, targets)
+            loss = sum(v for v in loss_dict.values())
+            loss.backward()
+            optimizer.step()
+
         mb.child.comment = f'Training loss: {loss.item()}'
     scheduler.step()
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, metric):
+def evaluate(model, val_loader, metric, amp=False):
     model.eval()
     metric.reset()
     val_iter = iter(val_loader)
     for images, targets in val_iter:
+
         images, targets = next(val_iter)
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
-        output = model(images)
+
+        if amp:
+            with torch.cuda.amp.autocast():
+                output = model(images)
+        else:
+            output = model(images)
+
+        # Compute metric
         pred_labels = np.concatenate([o['labels'].cpu().numpy() for o in output])
         pred_boxes = np.concatenate([o['boxes'].cpu().numpy() for o in output])
         gt_boxes = np.concatenate([o['boxes'].cpu().numpy() for o in targets])
         gt_labels = np.concatenate([o['labels'].cpu().numpy() for o in targets])
         metric.update(gt_boxes, pred_boxes, gt_labels, pred_labels)
-    recall, precision, mean_iou = metric.summary()
-    return recall, precision, mean_iou
+
+    return metric.summary()
 
 
 def main(args):
-
     print(args)
 
     if not isinstance(args.workers, int):
@@ -87,31 +186,33 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
-    # Filter keys
-    state_dict = {
-        k: v for k, v in torchvision.models.detection.__dict__[args.arch](pretrained=True).state_dict().items()
-        if not k.startswith('roi_heads.')
-    }
-    defaults = {"min_size": 800, "max_size": 1300,
-                "box_fg_iou_thresh": 0.5,
-                "box_bg_iou_thresh": 0.5,
-                "box_detections_per_img": 150, "box_score_thresh": 0.15, "box_positive_fraction": 0.35,
-                "box_nms_thresh": 0.2,
-                "rpn_pre_nms_top_n_train": 2000, "rpn_pre_nms_top_n_test": 1000,
-                "rpn_post_nms_top_n_train": 2000, "rpn_post_nms_top_n_test": 1000,
-                "rpn_nms_thresh": 0.2,
-                "rpn_batch_size_per_image": 250
-                }
-    kwargs = {**defaults}
+    st = time.time()
+    val_set = DocArtefacts(
+        train=False,
+        download=True,
+        sample_transforms=T.Resize((args.input_size, args.input_size)),
+    )
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        sampler=SequentialSampler(val_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
+    )
+    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
+          f"{len(val_loader)} batches)")
 
-    model = torchvision.models.detection.__dict__[args.arch](pretrained=False, num_classes=5, **kwargs)
-    model.load_state_dict(state_dict, strict=False)
-    model.roi_heads.box_roi_pool = MultiScaleRoIAlign(featmap_names=['0', '1', '2', '3'], output_size=(7, 7),
-                                                      sampling_ratio=2)
-    anchor_sizes = ((16), (64), (128), (264))
-    aspect_ratios = ((0.5, 1.0, 2.0, 3.0,)) * len(anchor_sizes)
-    model.rpn.anchor_generator.sizes = anchor_sizes
-    model.rpn.anchor_generator.aspect_ratios = aspect_ratios
+    # Load doctr model
+    model = obj_detection.__dict__[args.arch](pretrained=args.pretrained, num_classes=5)
+
+    # Resume weights
+    if isinstance(args.resume, str):
+        print(f"Resuming {args.resume}")
+        checkpoint = torch.load(args.resume, map_location='cpu')
+        model.load_state_dict(checkpoint)
+
     # GPU
     if isinstance(args.device, int):
         if not torch.cuda.is_available():
@@ -126,26 +227,57 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
-    optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
-                          lr=args.lr, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
-    train_set = DocArtefacts(train=True, download=True)
-    val_set = DocArtefacts(train=False, download=True)
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, num_workers=args.workers,
-                              sampler=RandomSampler(train_set), pin_memory=torch.cuda.is_available(),
-                              collate_fn=train_set.collate_fn,
-                              drop_last=True)
-    val_loader = DataLoader(val_set, batch_size=args.batch_size, num_workers=args.workers,
-                            sampler=SequentialSampler(val_set), pin_memory=torch.cuda.is_available(),
-                            collate_fn=val_set.collate_fn,
-                            drop_last=False)
 
+    # Metrics
     metric = DetectionMetric(iou_thresh=0.5)
+
     if args.test_only:
         print("Running evaluation")
-        recall, precision, mean_iou = evaluate(model, val_loader, metric)
+        recall, precision, mean_iou = evaluate(model, val_loader, metric, amp=args.amp)
         print(f"Recall: {recall:.2%} | Precision: {precision:.2%} |IoU: {mean_iou:.2%}")
         return
+
+    st = time.time()
+    # Load both train and val data generators
+    train_set = DocArtefacts(
+        train=True,
+        download=True,
+        sample_transforms=T.Resize((args.input_size, args.input_size)),
+    )
+
+    train_loader = DataLoader(
+        train_set,
+        batch_size=args.batch_size,
+        drop_last=True,
+        num_workers=args.workers,
+        sampler=RandomSampler(train_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=train_set.collate_fn,
+    )
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
+          f"{len(train_loader)} batches)")
+
+    if args.show_samples:
+        images, targets = next(iter(train_loader))
+        targets = convert_to_abs_coords(targets, images.shape)
+        plot_samples(images, targets, train_set.CLASSES)
+        return
+
+    # Backbone freezing
+    if args.freeze_backbone:
+        for p in model.backbone.parameters():
+            p.reguires_grad_(False)
+
+    # Optimizer
+    optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
+                          lr=args.lr, weight_decay=args.weight_decay)
+    # LR Finder
+    if args.find_lr:
+        lrs, losses = record_lr(model, train_loader, optimizer, amp=args.amp)
+        plot_recorder(lrs, losses)
+        return
+    # Scheduler
+    scheduler = StepLR(optimizer, step_size=8, gamma=0.7)
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -165,8 +297,9 @@ def main(args):
                 "input_size": args.input_size,
                 "optimizer": "sgd",
                 "framework": "pytorch",
-                "scheduler": args.sched,
+                "scheduler": "step",
                 "pretrained": args.pretrained,
+                "amp": args.amp,
             }
         )
 
@@ -174,25 +307,28 @@ def main(args):
     max_score = 0.
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb)
-        recall, precision, mean_iou = evaluate(model, val_loader, metric)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=args.amp)
+        # Validation loop at the end of each epoch
+        recall, precision, mean_iou = evaluate(model, val_loader, metric, amp=args.amp)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
 
-        mb.write(
-            f"Epoch {epoch + 1}/{args.epochs} - "
-            f"Recall: {recall:.2%} | Precision: {precision:.2%} "
-            f"|IoU: {mean_iou:.2%}")
+        if f1_score > max_score:
+            print(f"Validation metric increased {max_score:.6} --> {f1_score:.6}: saving state...")
+            torch.save(model.state_dict(), f"./{exp_name}.pt")
+            max_score = f1_score
+        log_msg = f"Epoch {epoch + 1}/{args.epochs} - "
+        if any(val is None for val in (recall, precision, mean_iou)):
+            log_msg += "Undefined metric value, caused by empty GTs or predictions"
+        else:
+            log_msg += f"Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%}"
+        mb.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
                 'recall': recall,
                 'precision': precision,
-                'iou': mean_iou,
+                'mean_iou': mean_iou,
             })
-        if f1_score > max_score:
-            print(f"Validation metric increased {max_score:.6} --> {f1_score:.6}: saving state...")
-            torch.save(model.state_dict(), f"./{exp_name}.pt")
-            max_score = f1_score
 
     if args.wb:
         run.finish()
@@ -207,17 +343,22 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
-    # parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
+    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
+    parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
+    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
+                        help='Display unormalized training samples')
+    parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
+                        help='freeze model backbone for fine-tuning')
     parser.add_argument('--wb', dest='wb', action='store_true',
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
-    parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
-    parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()
     return args
 
