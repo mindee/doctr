@@ -612,7 +612,28 @@ all lines and artefacts in it.</p></li>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.getTextWords</cite></p>
+<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.get_text_words</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the list of pages annotations, represented as a list of tuple (bounding box, value)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="doctr.io.PDF.get_lines">
+<code class="sig-name descname">get_lines</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>List<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/io/pdf.html#PDF.get_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.PDF.get_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the annotations for all lines in the document</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lines</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_lines</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.get_text_words</cite></p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>the list of pages annotations, represented as a list of tuple (bounding box, value)</p>
