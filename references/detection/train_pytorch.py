@@ -72,6 +72,7 @@ def record_lr(
             images = images.cuda()
 
         images = batch_transforms(images)
+        targets = [t['boxes'] for t in targets]
 
         # Forward, Backward & update
         optimizer.zero_grad()
