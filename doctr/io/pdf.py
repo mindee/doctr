@@ -110,17 +110,16 @@ class PDF:
 
     def get_page_lines(self, idx, **kwargs) -> List[Tuple[Bbox, str]]:
         """Get the annotations for all lines of a given page"""
-        lines = []
+        lines: List[Tuple[Bbox, str]] = []
         prev_block, prev_line = -1, -1
         current_line = []
+        xmin, ymin, xmax, ymax = 0, 0, 0, 0
         # xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx
         for info in self.doc[idx].get_text_words(**kwargs):
             if prev_block == info[-3] and prev_line == info[-2]:
                 current_line.append(info[4])
-                xmin = min(xmin, info[0])
-                ymin = min(ymin, info[1])
-                xmax = max(xmax, info[2])
-                ymax = max(ymax, info[3])
+                xmin, ymin = min(xmin, info[0]), min(ymin, info[1])
+                xmax, ymax = max(xmax, info[2]), max(ymax, info[3])
             else:
                 if len(current_line) > 0:
                     lines.append(((xmin, ymin, xmax, ymax), " ".join(current_line)))
