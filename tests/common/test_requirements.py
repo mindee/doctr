@@ -6,7 +6,7 @@ from requirements.requirement import Requirement
 
 def test_deps_consistency():
 
-    IGNORE = ["flake8", "isort", "mypy", "importlib_metadata", "tensorflow-cpu"]
+    IGNORE = ["flake8", "isort", "mypy", "pydocstyle", "importlib_metadata", "tensorflow-cpu"]
     # Collect the deps from all requirements.txt
     REQ_FILES = ["requirements.txt", "requirements-pt.txt", "tests/requirements.txt", "docs/requirements.txt"]
     folder = Path(__file__).parent.parent.parent.absolute()

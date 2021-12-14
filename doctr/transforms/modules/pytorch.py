@@ -34,9 +34,9 @@ class Resize(T.Resize):
         else:
             # Resize
             if actual_ratio > target_ratio:
-                tmp_size = (self.size[0], int(self.size[0] / actual_ratio))
+                tmp_size = (self.size[0], max(int(self.size[0] / actual_ratio), 1))
             else:
-                tmp_size = (int(self.size[1] * actual_ratio), self.size[1])
+                tmp_size = (max(int(self.size[1] * actual_ratio), 1), self.size[1])
 
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)

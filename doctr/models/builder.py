@@ -10,7 +10,7 @@ import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
 from doctr.io.elements import Block, Document, Line, Page, Word
-from doctr.utils.geometry import rbbox_to_polygon, resolve_enclosing_bbox, resolve_enclosing_rbbox
+from doctr.utils.geometry import rbbox_to_polygon, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
 __all__ = ['DocumentBuilder']
@@ -32,7 +32,7 @@ class DocumentBuilder(NestedObject):
         resolve_lines: bool = True,
         resolve_blocks: bool = True,
         paragraph_break: float = 0.035,
-        export_as_straight_boxes: bool = False
+        export_as_straight_boxes: bool = False,
     ) -> None:
 
         self.resolve_lines = resolve_lines
@@ -51,6 +51,12 @@ class DocumentBuilder(NestedObject):
             indices of ordered boxes of shape (N,)
         """
         if boxes.shape[1] == 5:
+            boxes = rotate_boxes(
+                loc_preds=np.concatenate((boxes, np.zeros((boxes.shape[0], 1))), -1),
+                angle=-np.median(boxes[:, 4]),
+                orig_shape=(1024, 1024),
+                min_angle=5.,
+            )
             return (boxes[:, 0] + 2 * boxes[:, 1] / np.median(boxes[:, 3])).argsort()
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
@@ -107,7 +113,7 @@ class DocumentBuilder(NestedObject):
         y_med = np.median(boxes[:, 3] if boxes.shape[1] == 5 else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
-        idxs = (boxes[:, 0] + 2 * boxes[:, 1 if boxes.shape[1] == 5 else 3] / y_med).argsort()
+        idxs = self._sort_boxes(boxes)
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
@@ -216,16 +222,17 @@ class DocumentBuilder(NestedObject):
             return []
 
         # Decide whether we try to form lines
+        _boxes = boxes
         if self.resolve_lines:
-            lines = self._resolve_lines(boxes[:, :-1])
+            lines = self._resolve_lines(_boxes[:, :-1])
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(boxes[:, :-1], lines)
+                _blocks = self._resolve_blocks(_boxes[:, :-1], lines)
             else:
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(boxes[:, :-1])]
+            lines = [self._sort_boxes(_boxes[:, :-1])]
             _blocks = [lines]
 
         blocks = [

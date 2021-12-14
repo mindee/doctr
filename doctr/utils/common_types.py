@@ -6,7 +6,7 @@
 from pathlib import Path
 from typing import List, Tuple, Union
 
-__all__ = ['Point2D', 'BoundingBox', 'RotatedBbox', 'Polygon4P', 'Polygon']
+__all__ = ['Point2D', 'BoundingBox', 'RotatedBbox', 'Polygon4P', 'Polygon', 'Bbox']
 
 
 Point2D = Tuple[float, float]

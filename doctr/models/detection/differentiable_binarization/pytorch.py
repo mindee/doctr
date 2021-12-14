@@ -151,7 +151,10 @@ class DBNet(_DBNet, nn.Module):
 
         self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages)
 
-        for m in self.modules():
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith('feat_extractor.'):
+                continue
             if isinstance(m, (nn.Conv2d, DeformConv2d)):
                 nn.init.kaiming_normal_(m.weight.data, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:

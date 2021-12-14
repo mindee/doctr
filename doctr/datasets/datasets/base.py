@@ -68,6 +68,8 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: whether the downloaded file is an archive to be extracted
         download: whether the dataset should be downloaded if not present on disk
         overwrite: whether the archive should be re-extracted
+        cache_dir: cache directory
+        cache_subdir: subfolder to use in the cache
     """
 
     def __init__(
@@ -78,18 +80,21 @@ class _VisionDataset(_AbstractDataset):
         extract_archive: bool = False,
         download: bool = False,
         overwrite: bool = False,
+        cache_dir: Optional[str] = None,
+        cache_subdir: Optional[str] = None,
     ) -> None:
 
-        dataset_cache = os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'datasets')
+        cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr') if cache_dir is None else cache_dir
+        cache_subdir = 'datasets' if cache_subdir is None else cache_subdir
 
         file_name = file_name if isinstance(file_name, str) else os.path.basename(url)
         # Download the file if not present
-        archive_path: Union[str, Path] = os.path.join(dataset_cache, file_name)
+        archive_path: Union[str, Path] = os.path.join(cache_dir, cache_subdir, file_name)
 
         if not os.path.exists(archive_path) and not download:
             raise ValueError("the dataset needs to be downloaded first with download=True")
 
-        archive_path = download_from_url(url, file_name, file_hash, cache_subdir='datasets')
+        archive_path = download_from_url(url, file_name, file_hash, cache_dir=cache_dir, cache_subdir=cache_subdir)
 
         # Extract the archive
         if extract_archive:

@@ -9,6 +9,7 @@ from doctr.models import backbones
     [
         ["vgg16_bn", (3, 224, 224), (512, 7, 56)],
         ["resnet31", (3, 32, 128), (512, 4, 32)],
+        ["magc_resnet31", (3, 32, 128), (512, 4, 32)],
         ["mobilenet_v3_small", (3, 32, 32), (123,)],
         ["mobilenet_v3_large", (3, 32, 32), (123,)],
     ],
