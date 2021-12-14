@@ -59,7 +59,7 @@ class SynthText(VisionDataset):
         np_dtype = np.float32
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
-                                              desc='Loading SynthText...', total=len(paths)):
+                                              desc='Unpacking SynthText', total=len(paths)):
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
