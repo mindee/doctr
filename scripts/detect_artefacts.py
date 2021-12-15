@@ -43,9 +43,9 @@ def pre_filter(scores: List, labels: List, ):
     lc = [i for i in labels if i not in g]
     jo = [duplicates(labels, q) for q in
           g]  # returns [ [],[],[] ] where sub-arrays repeating labels of individual classes
-    for i in range(len(jo)):
+    for ind, val in enumerate(jo):
         temp_dic = {}
-        for j in jo[i]:  # indices of the repeated elements
+        for j in val:  # indices of the repeated elements
             temp_dic.update({scores[j]: j})
         # at a position to choose among logo or a code/take into account relative area as well.
         # take relative intensity into account as well
@@ -162,8 +162,8 @@ def inference_script(artefact, root_dir, test_list, code_KIE, save_image, save_t
     art_class = []
     code_info = []
     c_score = []
-    for j in range(len(test_list)):
-        im_read = cv2.imread(os.path.join(root_dir, test_list[j]))
+    for ind, val in enumerate(test_list):
+        im_read = cv2.imread(os.path.join(root_dir, val))
         kold = im_read.copy()
         kold = cv2.cvtColor(kold, cv2.COLOR_BGR2GRAY)
         imm = cv2.cvtColor(im_read, cv2.COLOR_BGR2RGB)
@@ -176,19 +176,20 @@ def inference_script(artefact, root_dir, test_list, code_KIE, save_image, save_t
         art_class.append(tg1)
         c_score.append(tg2)
         if save_image:
-            for i in range(len(tg)):
+            for ind_2, val_2 in enumerate(tg):
                 ji = {'1': [(0, 150, 150)], '2': [(0, 0, 0)], '3': [(0, 150, 0)], '4': [(150, 0, 0)]}
                 juj = {'1': "QR_Code", "2": "Bar_Code", "3": "Logo", "4": "Photo"}
-                cv2.rectangle(imm, (int(tg[i][0]), int(tg[i][1])), (int(tg[i][2]), int(tg[i][3])),
-                              ji[str(int(tg1[i]))][0], 2)
-                imm = cv2.putText(imm, str(tg2[i]), (int(tg[i][0]), int(tg[i][3]) + 5), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
-                                  ji[str(int(tg1[i]))][0], 2, )
-                imm = cv2.putText(imm, juj[str(int(tg1[i]))], (int(tg[i][0]), int(tg[i][1])), cv2.FONT_HERSHEY_SIMPLEX,
+                cv2.rectangle(imm, (int(val_2[0]), int(val_2[1])), (int(val_2[2]), int(val_2[3])),
+                              ji[str(int(tg1[ind_2]))][0], 2)
+                imm = cv2.putText(imm, str(tg2[ind_2]), (int(val_2[0]), int(val_2[3]) + 5), cv2.FONT_HERSHEY_SIMPLEX,
                                   1.5,
-                                  ji[str(int(tg1[i]))][0], 2, )
+                                  ji[str(int(tg1[ind_2]))][0], 2, )
+                imm = cv2.putText(imm, juj[str(int(tg1[ind_2]))], (int(val_2[0]), int(val_2[1])),
+                                  cv2.FONT_HERSHEY_SIMPLEX,
+                                  1.5,
+                                  ji[str(int(tg1[ind_2]))][0], 2, )
             theimagee = Image.fromarray((imm * 255).astype(np.uint8))
-            ll = test_list[j]
-            theimagee.save(f'{save_to_folder}/{ll}')
+            theimagee.save(f'{save_to_folder}/{val}')
         if code_KIE:
             for i in range(len(tg)):
                 txt = []
