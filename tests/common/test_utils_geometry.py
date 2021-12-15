@@ -34,7 +34,7 @@ def test_rbbox_to_polygon():
 def test_polygon_to_rbbox():
     pred = geometry.polygon_to_rbbox([[105, 120], [95, 120], [95, 80], [105, 80]])
     # Accept both possibilities
-    assert (pred == (100, 100, 10, 40, 0)) or (pred == (100, 100, 40, 10, 90))
+    assert (pred == (100, 100, 10, 40, 180)) or (pred == (100, 100, 40, 10, 90))
 
 
 def test_resolve_enclosing_rbbox():
