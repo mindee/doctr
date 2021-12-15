@@ -174,3 +174,51 @@ def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     # Packing data into an archive to simulate the real data set and bypass archive extraction
     shutil.make_archive(svhn_root.join('svhn_train'), 'tar', str(svhn_root))
     return str(root)
+
+
+@pytest.fixture(scope="session")
+def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    doc_root = root.mkdir('artefact_detection')
+    labels = {
+        '0.jpg':
+        [
+            {'geometry': [0.94375, 0.4013671875, 0.99375, 0.4365234375],
+             'label': 'bar_code'},
+            {'geometry': [0.03125, 0.6923828125, 0.07875, 0.7294921875],
+             'label': 'qr_code'},
+            {'geometry': [0.1975, 0.1748046875, 0.39875, 0.2216796875],
+             'label': 'bar_code'}
+        ],
+        '1.jpg': [
+            {'geometry': [0.94375, 0.4013671875, 0.99375, 0.4365234375],
+             'label': 'bar_code'},
+            {'geometry': [0.03125, 0.6923828125, 0.07875, 0.7294921875],
+             'label': 'qr_code'},
+            {'geometry': [0.1975, 0.1748046875, 0.39875, 0.2216796875],
+             'label': 'background'}
+        ],
+        '2.jpg': [
+            {'geometry': [0.94375, 0.4013671875, 0.99375, 0.4365234375],
+             'label': 'logo'},
+            {'geometry': [0.03125, 0.6923828125, 0.07875, 0.7294921875],
+             'label': 'qr_code'},
+            {'geometry': [0.1975, 0.1748046875, 0.39875, 0.2216796875],
+             'label': 'photo'}
+        ]
+    }
+    train_root = doc_root.mkdir('train')
+    label_file = train_root.join("labels.json")
+
+    with open(label_file, 'w') as f:
+        json.dump(labels, f)
+
+    image_folder = train_root.mkdir("images")
+    file = BytesIO(mock_image_stream)
+    for i in range(3):
+        fn = image_folder.join(f"{i}.jpg")
+        with open(fn, 'wb') as f:
+            f.write(file.getbuffer())
+    # Packing data into an archive to simulate the real data set and bypass archive extraction
+    shutil.make_archive(doc_root.join('artefact_detection'), 'zip', str(doc_root))
+    return str(doc_root)

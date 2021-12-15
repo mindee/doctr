@@ -29,8 +29,6 @@ def test_visiondataset():
         ['SROIE', False, [512, 512], 360, False],
         ['CORD', True, [512, 512], 800, True],
         ['CORD', False, [512, 512], 100, False],
-        ['DocArtefacts', True, [512, 512], 2700, False],
-        ['DocArtefacts', False, [512, 512], 300, True],
         ['IIIT5K', True, [32, 128], 2000, True],
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
@@ -257,6 +255,42 @@ def test_svhn(input_size, size, rotate, mock_svhn_dataset):
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
+
+    loader = DataLoader(
+        ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
+        collate_fn=ds.collate_fn)
+
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 2700 training samples and 300 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
+    # monkeypatch the path to temporary dataset
+    datasets.DocArtefacts.URL = mock_doc_artefacts
+    datasets.DocArtefacts.SHA256 = None
+
+    ds = datasets.DocArtefacts(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_doc_artefacts, cache_subdir="artefact_detection",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"DocArtefacts(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, torch.Tensor)
+    assert img.shape == (3, *input_size)
+    assert img.dtype == torch.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], np.ndarray)
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,

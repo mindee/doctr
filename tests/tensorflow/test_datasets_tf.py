@@ -248,3 +248,36 @@ def test_svhn(input_size, size, rotate, mock_svhn_dataset):
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 2700 training samples and 300 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
+    # monkeypatch the path to temporary dataset
+    datasets.DocArtefacts.URL = mock_doc_artefacts
+    datasets.DocArtefacts.SHA256 = None
+
+    ds = datasets.DocArtefacts(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_doc_artefacts, cache_subdir="artefact_detection",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"DocArtefacts(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], np.ndarray)
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
