@@ -19,8 +19,6 @@ from doctr.transforms import Resize
         ['SROIE', False, [512, 512], 360, False],
         ['CORD', True, [512, 512], 800, True],
         ['CORD', False, [512, 512], 100, False],
-        ['DocArtefacts', True, [512, 512], 2700, False],
-        ['DocArtefacts', False, [512, 512], 300, True],
         ['IIIT5K', True, [32, 128], 2000, True],
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
@@ -261,6 +259,7 @@ def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
     # monkeypatch the path to temporary dataset
     datasets.DocArtefacts.URL = mock_doc_artefacts
     datasets.DocArtefacts.SHA256 = None
+    datasets.DocArtefacts.FILE_NAME = "artefact_detection.zip"
 
     ds = datasets.DocArtefacts(
         train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,

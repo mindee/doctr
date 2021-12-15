@@ -221,4 +221,4 @@ def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
     shutil.make_archive(doc_root.join('artefact_detection'), 'zip', str(doc_root))
-    return str(doc_root)
+    return str(root)

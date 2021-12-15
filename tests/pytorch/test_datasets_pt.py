@@ -276,6 +276,7 @@ def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
     # monkeypatch the path to temporary dataset
     datasets.DocArtefacts.URL = mock_doc_artefacts
     datasets.DocArtefacts.SHA256 = None
+    datasets.DocArtefacts.FILE_NAME = "artefact_detection.zip"
 
     ds = datasets.DocArtefacts(
         train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
