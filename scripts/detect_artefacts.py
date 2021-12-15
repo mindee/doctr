@@ -11,15 +11,16 @@ from typing import List
 os.environ['USE_TORCH'] = '1'
 
 import argparse
-import cv2
-import numpy as np
 import json
 import logging
+
+import cv2
+import numpy as np
+import torch
+import torchvision
 from PIL import Image
 from pyzbar.pyzbar import decode
 from pyzxing import BarCodeReader
-import torch
-import torchvision
 from torchvision.ops import MultiScaleRoIAlign
 
 from doctr.utils.metrics import LocalizationConfusion
