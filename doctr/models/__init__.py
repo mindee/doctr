@@ -3,3 +3,5 @@ from .backbones import *
 from .detection import *
 from .recognition import *
 from .zoo import *
+from .classification import *
+

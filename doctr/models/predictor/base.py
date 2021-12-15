@@ -6,10 +6,13 @@
 from typing import List, Tuple
 
 import numpy as np
+import math
+
+from numpy.lib.financial import nper
 
 from doctr.models.builder import DocumentBuilder
-
 from .._utils import extract_crops, extract_rcrops
+from ..classification import mobilenet_v3_small
 
 __all__ = ['_OCRPredictor']
 
@@ -23,6 +26,55 @@ class _OCRPredictor:
     """
 
     doc_builder: DocumentBuilder
+    def __init__(self) -> None:
+        self.classifier = mobilenet_v3_small(pretrained=True)
+    
+    def _rectify_crops(
+        self,
+        crops: List[List[np.ndarray]]
+    ) -> List[List[np.ndarray]]:
+
+        # Batch
+        batch_size = 64
+        # flatten crops
+        num_batches = int(math.ceil(len(samples) / batch_size))
+        batches = [
+            np.stack(samples[idx * self.batch_size: min((idx + 1) * self.batch_size, len(samples))], axis=0)
+            for idx in range(int(num_batches))
+        ]
+
+        batches = batch(padded)
+
+        # Pad
+        padded = []
+        target_size = 128
+        for batch in batches:
+            batch = []
+            for crop in batch:
+                h, w, _ = crop.shape
+                if h > w:
+                    resize_target = [target_size, round(target_size * w / h), 3]
+                    pad = round(target_size * (1 - w / h) / 2)
+                    padding_target = [[0, 0], [pad, target_size - pad - round(target_size * w / h)], [0, 0]]
+                else:
+                    resize_target = [round(target_size * h / w), target_size, 3]
+                    pad = round(target_size * (1 - h / w) / 2)
+                    padding_target = [[pad, target_size - pad - round(target_size * h / w)], [0, 0], [0, 0]]
+                crop = np.resize(crop, resize_target)
+                crop = np.pad(crop, padding_target)
+                batch.append(crop)
+            padded.append(batch)
+
+        # Send to classifier
+        rectified_batches = []
+        for i, padded_batch in padded:
+            directions = self.classifier(padded_batch)
+            rect_batch = [np.rot90(batch[i][j], direction) for j, direction in enumerate(directions)]
+            rectified_batches.append(rect_batch)
+
+        #Rema batched to pages
+
+        return crops
 
     @staticmethod
     def _generate_crops(
@@ -56,6 +108,9 @@ class _OCRPredictor:
             [crop for crop, _kept in zip(page_crops, page_kept) if _kept]
             for page_crops, page_kept in zip(crops, is_kept)
         ]
+
+        crops = _OCRPredictor._rectify_crops(crops)
+
         loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
 
         return crops, loc_preds
