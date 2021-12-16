@@ -56,8 +56,6 @@ class _OCRPredictor:
             for page_crops, page_kept in zip(crops, is_kept)
         ]
 
-        crops = _OCRPredictor._rectify_crops(crops)
-
         loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
 
         return crops, loc_preds
