@@ -49,14 +49,14 @@ class DBPostProcessor(DetectionPostProcessor):
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Optional[Union[RotatedBbox, Tuple[float, float, float, float]]]:
-        """Expand a polygon (points) by a factor unclip_ratio, and returns a rotated box: x, y, w, h, alpha
+    ) -> Optional[Union[np.ndarray, Tuple[float, float, float, float]]]:
+        """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
             points: The first parameter.
 
         Returns:
-            a box in absolute coordinates (xmin, ymin, xmax, ymax) or (x, y, w, h, alpha)
+            a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         poly = Polygon(points)
         distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
@@ -76,14 +76,12 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else fit_rbbox(expanded_points)
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else expanded_points
 
     def bitmap_to_boxes(
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-        angle_tol: float = 5.,
-        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
@@ -131,49 +129,13 @@ class DBPostProcessor(DetectionPostProcessor):
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
-                x, y, w, h, alpha = _box  # type: ignore[misc]
-                # compute relative box to get rid of img shape
-                x, y, w, h = x / width, y / height, w / width, h / height
-                boxes.append([x, y, w, h, alpha, score])
+                # compute relative box to get rid of img shape, in that case _box is a 4pt polygon
+                _box[:, 0] /= width
+                _box[:, 1] /= height
+                boxes.append(_box)
 
         if not self.assume_straight_pages:
-            # Compute median angle and mean aspect ratio to resolve quadrants
-            np_boxes = np.asarray(boxes, dtype=np.float32)
-            median_angle = np.median(np_boxes[:, -2])
-            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
-
-            # Rectify angles
-            new_boxes = []
-            for x, y, w, h, alpha, score in boxes:
-                if median_h >= median_w:
-                    # We are in the upper quadrant
-                    if 1 / ratio_tol < h / w < ratio_tol:
-                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _rbox = [x, y, h, w, 90 + median_angle, score]
-                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                        # We jumped to the next quadrant, rectify
-                        _rbox = [x, y, w, h, alpha, score]
-                    else:
-                        _rbox = [x, y, h, w, 90 + alpha, score]
-                else:
-                    # We are in the lower quadrant.
-                    if 1 / ratio_tol < h / w < ratio_tol:
-                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _rbox = [x, y, w, h, median_angle, score]
-                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                        # We jumped to the next quadrant, rectify
-                        _rbox = [x, y, h, w, 90 + alpha, score]
-                    else:
-                        _rbox = [x, y, w, h, alpha, score]
-                new_boxes.append(_rbox)
-            boxes = new_boxes
-
-        if not self.assume_straight_pages:
-            if len(boxes) == 0:
-                return np.zeros((0, 6), dtype=pred.dtype)
-            coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
-            boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
-            return boxes
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 4, 2), dtype=pred.dtype)
         else:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 

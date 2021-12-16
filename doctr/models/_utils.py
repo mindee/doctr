@@ -65,38 +65,29 @@ def extract_rcrops(
     """
     if boxes.shape[0] == 0:
         return []
-    if boxes.shape[1] != 5:
-        raise AssertionError("boxes are expected to be relative and in order (x, y, w, h, alpha)")
+    if boxes.shape[1] != 4:
+        raise AssertionError("boxes are expected to be relative and quadrangles")
 
     # Project relative coordinates
     _boxes = boxes.copy()
     height, width = img.shape[:2] if channels_last else img.shape[-2:]
     if _boxes.dtype != np.int:
-        _boxes[:, [0, 2]] *= width
-        _boxes[:, [1, 3]] *= height
+        _boxes[:, :, 0] *= width
+        _boxes[:, :, 1] *= height
 
     crops = []
-    # Determine rotation direction (clockwise/counterclockwise)
-    # Angle coverage: [-90°, +90°], half of the quadrant
-    clockwise = False
-    if np.sum(boxes[:, 2]) > np.sum(boxes[:, 3]):
-        clockwise = True
 
     for box in _boxes:
-        x, y, w, h, alpha = box.astype(dtype)
-        src_pts = cv2.boxPoints(((x, y), (w, h), alpha))[1:, :]
+        src_pts = box[1:, :]
         # Preserve size
-        if clockwise:
-            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
-        else:
-            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=dtype)
+        _, (w, h), _ = cv2.minAreaRect(box)
+        dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
+        # dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=dtype)
         # The transformation matrix
         M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
-        if clockwise:
-            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
-        else:
-            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(h), int(w)))
+        crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
+        # crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(h), int(w)))
         crops.append(crop)
 
     return crops
