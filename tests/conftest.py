@@ -330,7 +330,7 @@ def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
         "txt": np.array([['I      ', 'am\na      ', 'Jedi   ', '!'] for _ in range(3)])
     }
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
-    with tempfile.NamedTemporaryFile(mode='wb', suffix='.mat', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='wb', delete=True) as f:
         sio.savemat(f.name, labels)
         shutil.copy(f.name, str(annotation_file))
 
@@ -390,4 +390,30 @@ def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
     shutil.make_archive(doc_root.join('artefact_detection'), 'zip', str(doc_root))
+    return str(root)
+
+
+@pytest.fixture(scope="session")
+def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    iiit5k_root = root.mkdir('IIIT5K')
+    image_folder = iiit5k_root.mkdir('train')
+    annotation_file = iiit5k_root.join('trainCharBound.mat')
+    labels = {'trainCharBound':
+              {"ImgName": ["train/0.png"], "chars": ["I"], "charBB": [7., 12., 28., 35.]},
+              }
+
+    # hacky trick to write file into a LocalPath object with scipy.io.savemat
+    with tempfile.NamedTemporaryFile(mode='wb', delete=True) as f:
+        sio.savemat(f.name, labels)
+        shutil.copy(f.name, str(annotation_file))
+
+    file = BytesIO(mock_image_stream)
+    for i in range(1):
+        fn_i = image_folder.join(f"{i}.png")
+        with open(fn_i, 'wb') as f:
+            f.write(file.getbuffer())
+
+    # Packing data into an archive to simulate the real data set and bypass archive extraction
+    shutil.make_archive(iiit5k_root.join('IIIT5K-Word-V3'), 'tar', str(iiit5k_root))
     return str(root)

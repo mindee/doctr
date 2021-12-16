@@ -23,8 +23,6 @@ def test_visiondataset():
 @pytest.mark.parametrize(
     "dataset_name, train, input_size, size, rotate",
     [
-        ['IIIT5K', True, [32, 128], 2000, True],
-        ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
         ['SVT', False, [512, 512], 249, False],
         ['IC03', True, [512, 512], 246, True],
@@ -210,6 +208,7 @@ def test_ic13_dataset(mock_ic13, size, rotate):
     assert isinstance(target, dict)
     assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
@@ -240,6 +239,10 @@ def test_svhn(input_size, size, rotate, mock_svhn_dataset):
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
+    # depends on #702
+    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
@@ -274,8 +277,9 @@ def test_sroie(input_size, size, rotate, mock_sroie_dataset):
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
     # depends on #702
-    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
@@ -312,8 +316,9 @@ def test_funsd(input_size, size, rotate, mock_funsd_dataset):
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
     # depends on #702
-    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], tuple) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
@@ -348,8 +353,9 @@ def test_cord(input_size, size, rotate, mock_cord_dataset):
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
     # depends on #702
-    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], tuple) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
@@ -385,9 +391,9 @@ def test_synthtext(input_size, size, rotate, mock_synthtext_dataset):
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
-    # depends on #702
-    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
@@ -425,6 +431,7 @@ def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
     assert isinstance(target, dict)
     assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], np.ndarray)
+    assert len(target['labels']) == len(target['boxes'])
 
     loader = DataLoader(
         ds, batch_size=2, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
@@ -432,4 +439,43 @@ def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
 
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[32, 128], 1, True],  # Actual set has 2000 training samples and 3000 test samples
+        [[32, 128], 1, False],
+    ],
+)
+def test_iiit5k(input_size, size, rotate, mock_iiit5k_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.IIIT5K.URL = mock_iiit5k_dataset
+    datasets.IIIT5K.SHA256 = None
+    datasets.IIIT5K.FILE_NAME = "IIIT5K-Word-V3.tar"
+
+    ds = datasets.IIIT5K(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_iiit5k_dataset, cache_subdir="IIIT5K",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"IIIT5K(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, torch.Tensor)
+    assert img.shape == (3, *input_size)
+    assert img.dtype == torch.float32
+    assert isinstance(target, dict)
+    # depends on #702
+    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
+
+    loader = DataLoader(
+        ds, batch_size=1, drop_last=True, sampler=RandomSampler(ds), num_workers=0, pin_memory=True,
+        collate_fn=ds.collate_fn)
+
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (1, 3, *input_size)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

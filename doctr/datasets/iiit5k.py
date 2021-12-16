@@ -51,7 +51,7 @@ class IIIT5K(VisionDataset):
         self.train = train
 
         # Load mat data
-        tmp_root = os.path.join(self.root, 'IIIT5K')
+        tmp_root = os.path.join(self.root, 'IIIT5K') if self.SHA256 else self.root
         mat_file = 'trainCharBound' if self.train else 'testCharBound'
         mat_data = sio.loadmat(os.path.join(tmp_root, f'{mat_file}.mat'))[mat_file][0]
 
