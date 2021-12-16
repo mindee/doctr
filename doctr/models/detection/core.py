@@ -8,9 +8,7 @@ from typing import List
 import cv2
 import numpy as np
 
-from doctr.file_utils import is_tf_available
 from doctr.utils.repr import NestedObject
-
 
 __all__ = ['DetectionPostProcessor']
 
