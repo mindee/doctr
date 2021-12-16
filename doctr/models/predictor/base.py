@@ -6,13 +6,9 @@
 from typing import List, Tuple
 
 import numpy as np
-import math
-
-from numpy.lib.financial import nper
 
 from doctr.models.builder import DocumentBuilder
 from .._utils import extract_crops, extract_rcrops
-from ..classification import mobilenet_v3_small
 
 __all__ = ['_OCRPredictor']
 

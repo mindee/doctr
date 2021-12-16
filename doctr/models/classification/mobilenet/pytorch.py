@@ -20,9 +20,10 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 128, 128),
-        'url': ''
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-24f8ff57.pt'
     },
 }
+
 
 def _classif_mobilenet_v3_small(
     arch: str,

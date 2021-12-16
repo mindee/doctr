@@ -20,7 +20,7 @@ elif is_torch_available():
     ARCHS = ['classif_mobilenet_v3_small']
 
 
-def _predictor(
+def _orientation_classifier(
     arch: str,
     pretrained: bool,
     **kwargs: Any
@@ -42,7 +42,7 @@ def _predictor(
     return predictor
 
 
-def detection_predictor(
+def orientation_classifier(
     arch: str = 'classif_mobilenet_v3_small',
     pretrained: bool = False,
     **kwargs: Any
@@ -64,4 +64,4 @@ def detection_predictor(
         Orientation classifier
     """
 
-    return _predictor(arch, pretrained, **kwargs)
+    return _orientation_classifier(arch, pretrained, **kwargs)
