@@ -8,7 +8,10 @@ from typing import List
 import cv2
 import numpy as np
 
+from doctr.file_utils import is_tf_available
 from doctr.utils.repr import NestedObject
+
+from ._utils import generate_bin_map
 
 __all__ = ['DetectionPostProcessor']
 
@@ -72,31 +75,37 @@ class DetectionPostProcessor(NestedObject):
     ) -> np.ndarray:
         raise NotImplementedError
 
+    def locate_boxes(self, prob_map: np.ndarray, bin_map: np.ndarray) -> np.ndarray:
+        """Locate bounding boxes in predicted maps
+
+        Args:
+            prob_map: prob map of shape (C, H, W)
+            bin_map: bin map of shape (C, H, W)
+
+        Returns:
+            box tensors of shape (*, 5) or (*, 6)
+        """
+
+        # Assume there is only 1 output class
+        return self.bitmap_to_boxes(np.squeeze(prob_map, 0), np.squeeze(bin_map, 0))
+
     def __call__(
         self,
-        proba_map: np.ndarray,
+        proba_map,
     ) -> List[np.ndarray]:
         """Performs postprocessing for a list of model outputs
 
         Args:
-            proba_map: probability map of shape (N, H, W)
+            proba_map: probability map of shape (N, C, H, W) for PyTorch or (N, H, W, C) for TensorFlow
 
         returns:
             list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6)
         """
 
-        bitmap = (proba_map > self.bin_thresh).astype(proba_map.dtype)
+        # Erosion + dilation on the binary map
+        bin_map = generate_bin_map(proba_map, self.bin_thresh)
+        # (N, C, H, W)
+        bin_map = bin_map.numpy().transpose(0, 3, 1, 2) if is_tf_available() else bin_map.cpu().numpy()
+        proba_map = proba_map.numpy().transpose(0, 3, 1, 2) if is_tf_available() else proba_map.cpu().numpy()
 
-        boxes_batch = []
-        # Kernel for opening, empirical law for ksize
-        k_size = 1 + int(proba_map[0].shape[0] / 512)
-        kernel = np.ones((k_size, k_size), np.uint8)
-
-        for p_, bitmap_ in zip(proba_map, bitmap):
-            # Perform opening (erosion + dilatation)
-            bitmap_ = cv2.morphologyEx(bitmap_.astype(np.float32), cv2.MORPH_OPEN, kernel)
-            # Rotate bitmap and proba_map
-            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-            boxes_batch.append(boxes)
-
-        return boxes_batch
+        return [self.locate_boxes(pmap, bmap) for pmap, bmap in zip(proba_map, bin_map)]

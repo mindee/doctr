@@ -240,7 +240,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["preds"] = self.postprocessor(tf.squeeze(prob_map, axis=-1).numpy())
+            out["preds"] = self.postprocessor(prob_map)
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
