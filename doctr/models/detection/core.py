@@ -11,7 +11,6 @@ import numpy as np
 from doctr.file_utils import is_tf_available
 from doctr.utils.repr import NestedObject
 
-from ._utils import generate_bin_map
 
 __all__ = ['DetectionPostProcessor']
 
@@ -35,6 +34,7 @@ class DetectionPostProcessor(NestedObject):
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
         self.assume_straight_pages = assume_straight_pages
+        self._opening_kernel = np.ones((3, 3), dtype=np.uint8)
 
     def extra_repr(self) -> str:
         return f"box_thresh={self.box_thresh}"
@@ -75,37 +75,30 @@ class DetectionPostProcessor(NestedObject):
     ) -> np.ndarray:
         raise NotImplementedError
 
-    def locate_boxes(self, prob_map: np.ndarray, bin_map: np.ndarray) -> np.ndarray:
-        """Locate bounding boxes in predicted maps
-
-        Args:
-            prob_map: prob map of shape (C, H, W)
-            bin_map: bin map of shape (C, H, W)
-
-        Returns:
-            box tensors of shape (*, 5) or (*, 6)
-        """
-
-        # Assume there is only 1 output class
-        return self.bitmap_to_boxes(np.squeeze(prob_map, 0), np.squeeze(bin_map, 0))
-
     def __call__(
         self,
         proba_map,
-    ) -> List[np.ndarray]:
+    ) -> List[List[np.ndarray]]:
         """Performs postprocessing for a list of model outputs
 
         Args:
-            proba_map: probability map of shape (N, C, H, W) for PyTorch or (N, H, W, C) for TensorFlow
+            proba_map: probability map of shape (N, H, W, C)
 
-        returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6)
+        Returns:
+            list of N class predictions (for each input sample), where each class predictions is a list of C tensors
+        of shape (*, 5) or (*, 6)
         """
 
-        # Erosion + dilation on the binary map
-        bin_map = generate_bin_map(proba_map, self.bin_thresh)
-        # (N, C, H, W)
-        bin_map = bin_map.numpy().transpose(0, 3, 1, 2) if is_tf_available() else bin_map.cpu().numpy()
-        proba_map = proba_map.numpy().transpose(0, 3, 1, 2) if is_tf_available() else proba_map.cpu().numpy()
+        if proba_map.ndim != 4:
+            raise AssertionError(f"arg `proba_map` is expected to be 4-dimensional, got {proba_map.ndim}.")
 
-        return [self.locate_boxes(pmap, bmap) for pmap, bmap in zip(proba_map, bin_map)]
+        # Erosion + dilation on the binary map
+        bin_map = [
+            cv2.morphologyEx(bmap, cv2.MORPH_OPEN, self._opening_kernel)
+            for bmap in (proba_map >= self.bin_thresh).astype(np.uint8)
+        ]
+
+        return [
+            [self.bitmap_to_boxes(pmap[..., idx], bmap[..., idx]) for idx in range(proba_map.shape[-1])]
+            for pmap, bmap in zip(proba_map, bin_map)
+        ]
