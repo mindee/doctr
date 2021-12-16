@@ -36,13 +36,14 @@ def _classif_mobilenet_v3_small(
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or _cfg['input_shape']
 
-    kwargs['input_shape'] = _cfg['input_shape']
     # Build the model
-    model = mobilenetv3.mobilenet_v3_small(input_shape=input_shape, num_classes=4)
+    model = mobilenetv3.mobilenet_v3_small(input_shape=_cfg['input_shape'], num_classes=4)
 
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg['url'])
+
+    model.cfg = _cfg
 
     return model
 
@@ -66,4 +67,4 @@ def classif_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> mobil
         a keras.Model
     """
 
-    return _classif_mobilenet_v3_small('mobilenet_v3_small', pretrained, **kwargs)
+    return _classif_mobilenet_v3_small('classif_mobilenet_v3_small', pretrained, **kwargs)
