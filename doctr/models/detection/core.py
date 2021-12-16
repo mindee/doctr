@@ -92,11 +92,14 @@ class DetectionPostProcessor(NestedObject):
 
         # Erosion + dilation on the binary map
         bin_map = [
-            cv2.morphologyEx(bmap, cv2.MORPH_OPEN, self._opening_kernel)
+            [
+                cv2.morphologyEx(bmap[..., idx], cv2.MORPH_OPEN, self._opening_kernel)
+                for idx in range(proba_map.shape[-1])
+            ]
             for bmap in (proba_map >= self.bin_thresh).astype(np.uint8)
         ]
 
         return [
-            [self.bitmap_to_boxes(pmap[..., idx], bmap[..., idx]) for idx in range(proba_map.shape[-1])]
-            for pmap, bmap in zip(proba_map, bin_map)
+            [self.bitmap_to_boxes(pmaps[..., idx], bmaps[idx]) for idx in range(proba_map.shape[-1])]
+            for pmaps, bmaps in zip(proba_map, bin_map)
         ]
