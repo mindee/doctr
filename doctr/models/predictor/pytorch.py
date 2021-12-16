@@ -79,6 +79,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages
         )
+        # Rectify crop orientation
+        crops, loc_preds = self._rectify_crops(crops, loc_preds)
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 

@@ -8,8 +8,8 @@ from typing import List, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-
-from .._utils import extract_crops, extract_rcrops
+from ..classification import orientation_classifier
+from .._utils import extract_crops, extract_rcrops, rectify_crops, rectify_loc_preds
 
 __all__ = ['_OCRPredictor']
 
@@ -23,6 +23,9 @@ class _OCRPredictor:
     """
 
     doc_builder: DocumentBuilder
+
+    def __init__(self) -> None:
+        self.orientation_classifier = orientation_classifier(pretrained=True)
 
     @staticmethod
     def _generate_crops(
@@ -59,6 +62,19 @@ class _OCRPredictor:
         loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
 
         return crops, loc_preds
+
+    def _rectify_crops(
+        self,
+        crops: List[List[np.ndarray]],
+        loc_preds: List[np.ndarray],
+    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
+        # Work at a page level
+        rect_crops, rect_loc_preds = [], []
+        for page_crops, page_loc_preds in zip(crops, loc_preds):
+            orientations = self.orientation_classifier(page_crops)
+            rect_crops.append(rectify_crops(page_crops, orientations))
+            rect_loc_preds.append(rectify_loc_preds(page_loc_preds, orientations))
+        return rect_crops, rect_loc_preds
 
     @staticmethod
     def _process_predictions(

@@ -208,3 +208,19 @@ def rectify_crops(
     # Inverse predictions (if angle of +90 is detected, rotate by -90)
     orientations = [4 - pred for pred in orientations if pred != 0]
     return [np.rot90(crop, orientation) for orientation, crop in zip(orientations, crops)]
+
+
+def rectify_loc_preds(
+    page_loc_preds: np.ndarray,
+    orientations: List[int],
+) -> np.ndarray:
+    """Orient the quadrangle (Polygon4P) according to the predicted orientation,
+    so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
+    """
+    return np.stack(
+        [np.roll(
+            page_loc_pred,
+            orientation,
+            axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
+        axis=0
+    )
