@@ -13,32 +13,15 @@ from doctr.transforms import Resize
 @pytest.mark.parametrize(
     "dataset_name, train, input_size, size, rotate",
     [
-        ['FUNSD', True, [512, 512], 149, False],
-        ['FUNSD', False, [512, 512], 50, True],
-        ['SROIE', True, [512, 512], 626, True],
-        ['SROIE', False, [512, 512], 360, False],
-        ['CORD', True, [512, 512], 800, True],
-        ['CORD', False, [512, 512], 100, False],
-        ['DocArtefacts', True, [512, 512], 2700, False],
-        ['DocArtefacts', False, [512, 512], 300, True],
         ['IIIT5K', True, [32, 128], 2000, True],
         ['IIIT5K', False, [32, 128], 3000, False],
         ['SVT', True, [512, 512], 100, True],
         ['SVT', False, [512, 512], 249, False],
-        ['SynthText', True, [512, 512], 27, True],  # Actual set has 772875 samples
-        ['SynthText', False, [512, 512], 3, False],  # Actual set has 85875 samples
         ['IC03', True, [512, 512], 246, True],
         ['IC03', False, [512, 512], 249, False],
     ],
 )
 def test_dataset(dataset_name, train, input_size, size, rotate):
-
-    if dataset_name.lower() == "synthtext":
-        # Monkeypatch the class to download a subsample
-        datasets.__dict__[
-            dataset_name
-        ].URL = 'https://github.com/mindee/doctr/releases/download/v0.4.1/synthtext_samples-89fd1445.zip'
-        datasets.__dict__[dataset_name].SHA256 = '89fd1445457b9ad8391e17620c6ae1b45134be2bf5449f36e7e4275176cc16ac'
 
     ds = datasets.__dict__[dataset_name](
         train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
@@ -245,6 +228,176 @@ def test_svhn(input_size, size, rotate, mock_svhn_dataset):
     assert isinstance(target, dict)
 
     loader = datasets.DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 626 training samples and 360 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_sroie(input_size, size, rotate, mock_sroie_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.SROIE.TRAIN = (mock_sroie_dataset, None, "sroie2019_train_task1.zip")
+
+    ds = datasets.SROIE(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_sroie_dataset, cache_subdir="sroie2019_train_task1",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"SROIE(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    # depends on #702
+    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 149 training samples and 50 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_funsd(input_size, size, rotate, mock_funsd_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.FUNSD.URL = mock_funsd_dataset
+    datasets.FUNSD.SHA256 = None
+    datasets.FUNSD.FILE_NAME = "funsd.zip"
+
+    ds = datasets.FUNSD(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_funsd_dataset, cache_subdir="funsd",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"FUNSD(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    # depends on #702
+    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], tuple) and all(isinstance(s, str) for s in target['labels'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 800 training samples and 100 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_cord(input_size, size, rotate, mock_cord_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.CORD.TRAIN = (mock_cord_dataset, None, "cord_train.zip")
+
+    ds = datasets.CORD(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_cord_dataset, cache_subdir="cord_train",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"CORD(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    # depends on #702
+    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], tuple) and all(isinstance(s, str) for s in target['labels'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 2, True],  # Actual set has 772875 training samples and 85875 test samples
+        [[512, 512], 2, False],
+    ],
+)
+def test_synthtext(input_size, size, rotate, mock_synthtext_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.SynthText.URL = mock_synthtext_dataset
+    datasets.SynthText.SHA256 = None
+    datasets.SynthText.FILE_NAME = "SynthText.zip"
+
+    ds = datasets.SynthText(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_synthtext_dataset, cache_subdir="SynthText",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"SynthText(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    # depends on #702
+    #assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 2700 training samples and 300 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_artefact_detection(input_size, size, rotate, mock_doc_artefacts):
+    # monkeypatch the path to temporary dataset
+    datasets.DocArtefacts.URL = mock_doc_artefacts
+    datasets.DocArtefacts.SHA256 = None
+    datasets.DocArtefacts.FILE_NAME = "artefact_detection.zip"
+
+    ds = datasets.DocArtefacts(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_doc_artefacts, cache_subdir="artefact_detection",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"DocArtefacts(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], np.ndarray)
+
+    loader = DataLoader(ds, batch_size=2)
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
