@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 
-__all__ = ['erode', 'dilate', 'generate_bin_map']
+__all__ = ['erode', 'dilate']
 
 
 def erode(x: tf.Tensor, kernel_size: int) -> tf.Tensor:
@@ -32,17 +32,3 @@ def dilate(x: tf.Tensor, kernel_size: int) -> tf.Tensor:
     """
 
     return tf.nn.max_pool2d(x, kernel_size, strides=1, padding="SAME")
-
-
-def generate_bin_map(prob_map: tf.Tensor, bin_thresh: float) -> tf.Tensor:
-    """Binarized a probability map
-
-    Args:
-        prob_map: probability tensor of shape (N, H, W, C)
-        bin_thresh: the minimum confidence to consider a prediction as positive
-
-    Returns:
-        binary tensor of shape (N, H, W, C)
-    """
-
-    return dilate(erode(tf.cast(prob_map >= bin_thresh, dtype=tf.float32), 3), 3)
