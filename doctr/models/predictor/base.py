@@ -8,6 +8,7 @@ from typing import List, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
+
 from .._utils import extract_crops, extract_rcrops
 
 __all__ = ['_OCRPredictor']
@@ -55,7 +56,6 @@ class _OCRPredictor:
             [crop for crop, _kept in zip(page_crops, page_kept) if _kept]
             for page_crops, page_kept in zip(crops, is_kept)
         ]
-
         loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
 
         return crops, loc_preds
