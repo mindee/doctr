@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
+from copy import deepcopy
 
 from ....datasets import VOCABS
 from ...utils import conv_sequence, load_pretrained_params
@@ -185,6 +186,7 @@ class MobileNetV3(Sequential):
         include_top: bool = False,
         head_chans: int = 1024,
         num_classes: int = 1000,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         _layers = [
@@ -213,6 +215,7 @@ class MobileNetV3(Sequential):
             ])
 
         super().__init__(_layers)
+        self.cfg = cfg
 
 
 def _mobilenet_v3(
@@ -221,7 +224,8 @@ def _mobilenet_v3(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> MobileNetV3:
-    input_shape = input_shape or default_cfgs[arch]['input_shape']
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
@@ -259,13 +263,14 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    kwargs['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
+    _cfg['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
 
     # Build the model
     model = MobileNetV3(
         inverted_residual_setting,
         input_shape,
         head_chans=head_chans,
+        cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters

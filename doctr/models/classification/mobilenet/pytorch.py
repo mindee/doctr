@@ -87,6 +87,8 @@ def _mobilenet_v3(
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
+    model.cfg = default_cfgs[arch]
+
     return model
 
 
