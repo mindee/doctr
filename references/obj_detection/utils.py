@@ -3,31 +3,35 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
+from typing import Dict, List
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.cm import get_cmap
 
 
-def plot_samples(images, targets):
+def plot_samples(images, targets: List[Dict[str, np.ndarray]], classes: List[str]) -> None:
+    cmap = get_cmap('gist_rainbow', len(classes))
     # Unnormalize image
-    num_samples = min(len(images), 12)
-    num_cols = min(len(images), 8)
-    num_rows = int(math.ceil(num_samples / num_cols))
-    _, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5))
-    for idx in range(num_samples):
+    nb_samples = min(len(images), 4)
+    _, axes = plt.subplots(1, nb_samples, figsize=(20, 5))
+    for idx in range(nb_samples):
         img = (255 * images[idx].numpy()).round().clip(0, 255).astype(np.uint8)
         if img.shape[0] == 3 and img.shape[2] != 3:
             img = img.transpose(1, 2, 0)
+        target = img.copy()
+        for box, class_idx in zip(targets[idx]['boxes'].numpy(), targets[idx]['labels']):
+            r, g, b, _ = cmap(class_idx.numpy())
+            color = int(round(255 * r)), int(round(255 * g)), int(round(255 * b))
+            cv2.rectangle(target, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
+            text_size, _ = cv2.getTextSize(classes[class_idx], cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+            text_w, text_h = text_size
+            cv2.rectangle(target, (int(box[0]), int(box[1])), (int(box[0]) + text_w, int(box[1]) - text_h), color, -1)
+            cv2.putText(target, classes[class_idx], (int(box[0]), int(box[1])), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        (255, 255, 255), 2)
 
-        row_idx = idx // num_cols
-        col_idx = idx % num_cols
-
-        ax = axes[row_idx] if num_rows > 1 else axes
-        ax = ax[col_idx] if num_cols > 1 else ax
-
-        ax.imshow(img)
-        ax.set_title(targets[idx])
+        axes[idx].imshow(target)
     # Disable axis
     for ax in axes.ravel():
         ax.axis('off')

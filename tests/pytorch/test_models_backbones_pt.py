@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from doctr.models import backbones
+from doctr.models import classification
 
 
 @pytest.mark.parametrize(
@@ -17,7 +17,7 @@ from doctr.models import backbones
 def test_classification_architectures(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    model = backbones.__dict__[arch_name](pretrained=True).eval()
+    model = classification.__dict__[arch_name](pretrained=True).eval()
     # Forward
     with torch.no_grad():
         out = model(torch.rand((batch_size, *input_shape), dtype=torch.float32))

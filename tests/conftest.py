@@ -1,6 +1,9 @@
 import json
+import shutil
 from io import BytesIO
 
+import hdf5storage
+import numpy as np
 import pytest
 import requests
 
@@ -144,3 +147,30 @@ def mock_ic13(tmpdir_factory, mock_image_stream):
         with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
     return str(image_folder), str(label_folder)
+
+
+@pytest.fixture(scope="session")
+def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    svhn_root = root.mkdir('svhn')
+    file = BytesIO(mock_image_stream)
+    # ascii image names
+    first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
+    second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
+    third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 3.png
+    # labels: label is also ascii
+    label = {'height': [35, 35, 35, 35], 'label': [1, 1, 3, 7],
+             'left': [116, 128, 137, 151], 'top': [27, 29, 29, 26],
+             'width': [15, 10, 17, 17]}
+
+    matcontent = {'digitStruct': {'name': [first, second, third], 'bbox': [label, label, label]}}
+    # Mock train data
+    train_root = svhn_root.mkdir('train')
+    hdf5storage.write(matcontent, filename=train_root.join('digitStruct.mat'))
+    for i in range(3):
+        fn = train_root.join(f'{i+1}.png')
+        with open(fn, 'wb') as f:
+            f.write(file.getbuffer())
+    # Packing data into an archive to simulate the real data set and bypass archive extraction
+    shutil.make_archive(svhn_root.join('svhn_train'), 'tar', str(svhn_root))
+    return str(root)

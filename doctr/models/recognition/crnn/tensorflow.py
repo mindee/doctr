@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Model, Sequential
 
 from ....datasets import VOCABS
-from ...backbones import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
+from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 

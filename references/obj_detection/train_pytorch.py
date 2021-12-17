@@ -17,17 +17,93 @@ import torch
 import torch.optim as optim
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
+from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
+from utils import plot_recorder, plot_samples
+
+
+def record_lr(
+    model: torch.nn.Module,
+    train_loader: DataLoader,
+    optimizer,
+    start_lr: float = 1e-7,
+    end_lr: float = 1,
+    num_it: int = 100,
+    amp: bool = False,
+):
+    """Gridsearch the optimal learning rate for the training.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
+
+    Args:
+       freeze_until (str, optional): last layer to freeze
+       start_lr (float, optional): initial learning rate
+       end_lr (float, optional): final learning rate
+       num_it (int, optional): number of iterations to perform
+    """
+
+    if num_it > len(train_loader):
+        raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
+
+    model = model.train()
+    # Update param groups & LR
+    optimizer.defaults['lr'] = start_lr
+    for pgroup in optimizer.param_groups:
+        pgroup['lr'] = start_lr
+
+    gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
+    scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
+
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    loss_recorder = []
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
+    for batch_idx, (images, targets) in enumerate(train_loader):
+        targets = convert_to_abs_coords(targets, images.shape)
+        if torch.cuda.is_available():
+            images = images.cuda()
+            targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
+
+        # Forward, Backward & update
+        optimizer.zero_grad()
+        if amp:
+            with torch.cuda.amp.autocast():
+                loss_dict = model(images, targets)
+                train_loss = sum(v for v in loss_dict.values())
+            scaler.scale(train_loss).backward()
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss_dict = model(images, targets)
+            train_loss = sum(v for v in loss_dict.values())
+            train_loss.backward()
+            optimizer.step()
+        # Update LR
+        scheduler.step()
+
+        # Record
+        if not torch.isfinite(train_loss):
+            if batch_idx == 0:
+                raise ValueError("loss value is NaN or inf.")
+            else:
+                break
+        loss_recorder.append(train_loss.item())
+        # Stop after the number of iterations
+        if batch_idx + 1 == num_it:
+            break
+
+    return lr_recorder[:len(loss_recorder)], loss_recorder
 
 
 def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
-
     for idx, t in enumerate(targets):
         targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
@@ -42,7 +118,6 @@ def convert_to_abs_coords(targets, img_shape):
 
 
 def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
-
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
@@ -104,7 +179,6 @@ def evaluate(model, val_loader, metric, amp=False):
 
 
 def main(args):
-
     print(args)
 
     if not isinstance(args.workers, int):
@@ -183,6 +257,12 @@ def main(args):
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
 
+    if args.show_samples:
+        images, targets = next(iter(train_loader))
+        targets = convert_to_abs_coords(targets, images.shape)
+        plot_samples(images, targets, train_set.CLASSES)
+        return
+
     # Backbone freezing
     if args.freeze_backbone:
         for p in model.backbone.parameters():
@@ -191,8 +271,13 @@ def main(args):
     # Optimizer
     optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
                           lr=args.lr, weight_decay=args.weight_decay)
+    # LR Finder
+    if args.find_lr:
+        lrs, losses = record_lr(model, train_loader, optimizer, amp=args.amp)
+        plot_recorder(lrs, losses)
+        return
     # Scheduler
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.7)
+    scheduler = StepLR(optimizer, step_size=8, gamma=0.7)
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -200,7 +285,6 @@ def main(args):
 
     # W&B
     if args.wb:
-
         run = wandb.init(
             name=exp_name,
             project="object-detection",
@@ -265,6 +349,8 @@ def parse_args():
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
+    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
+                        help='Display unormalized training samples')
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
                         help='freeze model backbone for fine-tuning')
     parser.add_argument('--wb', dest='wb', action='store_true',
@@ -272,6 +358,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()
     return args
 

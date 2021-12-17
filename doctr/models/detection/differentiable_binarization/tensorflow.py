@@ -17,7 +17,7 @@ from tensorflow.keras.applications import ResNet50
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
-from ...backbones import mobilenet_v3_large
+from ...classification import mobilenet_v3_large
 from .base import DBPostProcessor, _DBNet
 
 __all__ = ['DBNet', 'db_resnet50', 'db_mobilenet_v3_large']
