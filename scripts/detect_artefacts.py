@@ -226,7 +226,7 @@ def inference_script(artefact, root_dir, test_list, code_KIE, save_image, save_t
 def main(args):
     print(args)
 
-    model = obj_detection.__dict__[args.arch](num_classes=5)
+    model = obj_detection.__dict__[args.arch](pretrained=True, num_classes=5)
     # GPU
     if isinstance(args.device, int):
         if not torch.cuda.is_available():
@@ -241,7 +241,6 @@ def main(args):
     if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
-    model.load_state_dict(torch.load(args.checkpoint_path))
     model.eval()
     inf_dic = inference_script(model, args.root_dir, os.listdir(args.root_dir), args.KIE,
                                args.plot, args.save_to)
