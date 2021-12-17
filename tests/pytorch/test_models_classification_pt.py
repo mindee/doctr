@@ -8,7 +8,7 @@ from doctr.models.classification.predictor import OrientationClassifier
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
-        ["classif_mobilenet_v3_small", (3, 128, 128)],
+        ["mobilenet_v3_small_orientation", (3, 128, 128)],
     ],
 )
 def test_classification_models(arch_name, input_shape):
@@ -28,7 +28,7 @@ def test_classification_models(arch_name, input_shape):
 @pytest.mark.parametrize(
     "arch_name",
     [
-        "classif_mobilenet_v3_small",
+        "mobilenet_v3_small_orientation",
     ],
 )
 def test_recognition_zoo(arch_name):
