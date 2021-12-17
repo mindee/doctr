@@ -64,7 +64,7 @@ def _mobilenet_v3(
     **kwargs: Any
 ) -> mobilenetv3.MobileNetV3:
 
-    num_classes = default_cfgs[arch]['num_classes'] or len(default_cfgs[arch]['vocab'])
+    num_classes = default_cfgs[arch].get(['num_classes'], len(default_cfgs[arch]['vocab']))
     kwargs['num_classes'] = kwargs.get('num_classes', num_classes)
 
     if arch.startswith("mobilenet_v3_small"):
