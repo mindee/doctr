@@ -24,6 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
+        'num_classes': len(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
     'mobilenet_v3_large_r': {
@@ -31,6 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
+        'num_classes': len(VOCABS['french']),
         'url': None,
     },
     'mobilenet_v3_small': {
@@ -38,6 +40,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
+        'num_classes': len(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
     },
     'mobilenet_v3_small_r': {
@@ -45,6 +48,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
+        'num_classes': len(VOCABS['french']),
         'url': None,
     },
     'mobilenet_v3_small_orientation': {
@@ -255,8 +259,7 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    num_classes = default_cfgs[arch].get('num_classes', len(default_cfgs[arch]['vocab']))
-    kwargs['num_classes'] = kwargs.get('num_classes', num_classes)
+    kwargs['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
 
     # Build the model
     model = MobileNetV3(
