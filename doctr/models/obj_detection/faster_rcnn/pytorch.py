@@ -20,7 +20,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'anchor_sizes': [32, 64, 128, 256, 512],
         'anchor_aspect_ratios': (0.5, 1., 2.),
         'num_classes': 5,
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/fasterrcnn_mobilenet_v3_large_fpn-8bc7ff9e.pt',
     },
 }
 
