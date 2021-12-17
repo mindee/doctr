@@ -7,8 +7,8 @@ from doctr.models import obj_detection
 @pytest.mark.parametrize(
     "arch_name, input_shape, pretrained",
     [
-        ["fasterrcnn_mobilenet_v3_large_fpn", (3, 512, 512), False],
         ["fasterrcnn_mobilenet_v3_large_fpn", (3, 512, 512), True],
+        ["fasterrcnn_mobilenet_v3_large_fpn", (3, 512, 512), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, pretrained):
