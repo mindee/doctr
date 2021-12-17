@@ -197,7 +197,7 @@ def test_svhn(input_size, size, rotate, mock_svhn_dataset):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     # depends on #702
-    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray)  # and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
@@ -231,7 +231,7 @@ def test_sroie(input_size, size, rotate, mock_sroie_dataset):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     # depends on #702
-    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray)  # and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
@@ -267,7 +267,7 @@ def test_funsd(input_size, size, rotate, mock_funsd_dataset):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     # depends on #702
-    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray)  # and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], tuple) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
@@ -301,7 +301,7 @@ def test_cord(input_size, size, rotate, mock_cord_dataset):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     # depends on #702
-    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray)  # and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], tuple) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
@@ -337,7 +337,7 @@ def test_synthtext(input_size, size, rotate, mock_synthtext_dataset):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     # depends on #702
-    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray)  # and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
@@ -408,7 +408,7 @@ def test_iiit5k(input_size, size, rotate, mock_iiit5k_dataset):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     # depends on #702
-    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['boxes'], np.ndarray)  # and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
