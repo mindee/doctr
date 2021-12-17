@@ -108,11 +108,49 @@ class PDF:
         """
         return [convert_page_to_numpy(page, **kwargs) for page in self.doc]
 
+    def get_page_lines(self, idx, **kwargs) -> List[Tuple[Bbox, str]]:
+        """Get the annotations for all lines of a given page"""
+        lines: List[Tuple[Bbox, str]] = []
+        prev_block, prev_line = -1, -1
+        current_line = []
+        xmin, ymin, xmax, ymax = 0, 0, 0, 0
+        # xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx
+        for info in self.doc[idx].get_text_words(**kwargs):
+            if prev_block == info[-3] and prev_line == info[-2]:
+                current_line.append(info[4])
+                xmin, ymin = min(xmin, info[0]), min(ymin, info[1])
+                xmax, ymax = max(xmax, info[2]), max(ymax, info[3])
+            else:
+                if len(current_line) > 0:
+                    lines.append(((xmin, ymin, xmax, ymax), " ".join(current_line)))
+                current_line = [info[4]]
+                prev_block, prev_line = info[-3], info[-2]
+                xmin, ymin, xmax, ymax = info[:4]
+
+        if len(current_line) > 0:
+            lines.append(((xmin, ymin, xmax, ymax), " ".join(current_line)))
+
+        return lines
+
+    def get_lines(self, **kwargs) -> List[List[Tuple[Bbox, str]]]:
+        """Get the annotations for all lines in the document
+
+        Example::
+            >>> from doctr.documents import DocumentFile
+            >>> lines = DocumentFile.from_pdf("path/to/your/doc.pdf").get_lines()
+
+        Args:
+            kwargs: keyword arguments of `fitz.Page.get_text_words`
+        Returns:
+            the list of pages annotations, represented as a list of tuple (bounding box, value)
+        """
+        return [self.get_page_lines(idx, **kwargs) for idx in range(len(self.doc))]
+
     def get_page_words(self, idx, **kwargs) -> List[Tuple[Bbox, str]]:
         """Get the annotations for all words of a given page"""
 
         # xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx
-        return [(info[:4], info[4]) for info in self.doc[idx].getTextWords(**kwargs)]
+        return [(info[:4], info[4]) for info in self.doc[idx].get_text_words(**kwargs)]
 
     def get_words(self, **kwargs) -> List[List[Tuple[Bbox, str]]]:
         """Get the annotations for all words in the document
@@ -122,14 +160,14 @@ class PDF:
             >>> words = DocumentFile.from_pdf("path/to/your/doc.pdf").get_words()
 
         Args:
-            kwargs: keyword arguments of `fitz.Page.getTextWords`
+            kwargs: keyword arguments of `fitz.Page.get_text_words`
         Returns:
             the list of pages annotations, represented as a list of tuple (bounding box, value)
         """
         return [self.get_page_words(idx, **kwargs) for idx in range(len(self.doc))]
 
     def get_page_artefacts(self, idx) -> List[Tuple[float, float, float, float]]:
-        return [tuple(self.doc[idx].getImageBbox(artefact))  # type: ignore[misc]
+        return [tuple(self.doc[idx].get_image_bbox(artefact))  # type: ignore[misc]
                 for artefact in self.doc[idx].get_images(full=True)]
 
     def get_artefacts(self) -> List[List[Tuple[float, float, float, float]]]:

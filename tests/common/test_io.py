@@ -121,6 +121,13 @@ def test_pdf(mock_pdf):
                for page_words in words for (bbox, value) in page_words)
     assert all(all(isinstance(coord, float) for coord in bbox) for page_words in words for (bbox, value) in page_words)
 
+    # Get lines
+    lines = doc.get_lines()
+    assert isinstance(lines, list) and len(lines) == 8
+    assert all(isinstance(bbox, tuple) and isinstance(value, str)
+               for page_lines in lines for (bbox, value) in page_lines)
+    assert all(all(isinstance(coord, float) for coord in bbox) for page_lines in lines for (bbox, value) in page_lines)
+
     # Get artefacts
     artefacts = doc.get_artefacts()
     assert isinstance(artefacts, list) and len(artefacts) == 8
