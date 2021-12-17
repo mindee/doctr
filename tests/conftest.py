@@ -1,9 +1,9 @@
 import json
 import shutil
 import tempfile
-import defusedxml.ElementTree as ET
 from io import BytesIO
 
+import defusedxml.ElementTree as ET
 import hdf5storage
 import numpy as np
 import pytest
