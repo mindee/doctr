@@ -15,9 +15,9 @@ __all__ = ["orientation_classifier"]
 
 
 if is_tf_available():
-    ARCHS = ['classif_mobilenet_v3_small']
+    ARCHS = ['mobilenet_v3_small_orientation']
 elif is_torch_available():
-    ARCHS = ['classif_mobilenet_v3_small']
+    ARCHS = ['mobilenet_v3_small_orientation']
 
 
 def _orientation_classifier(
