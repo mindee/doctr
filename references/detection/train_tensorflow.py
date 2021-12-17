@@ -17,6 +17,7 @@ import numpy as np
 import tensorflow as tf
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
+from tensorflow.keras import mixed_precision
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
@@ -29,7 +30,7 @@ from doctr.utils.metrics import LocalizationConfusion
 from utils import plot_samples
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=False):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_iter, parent=mb):
@@ -39,6 +40,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb):
         with tf.GradientTape() as tape:
             train_loss = model(images, targets, training=True)['loss']
         grads = tape.gradient(train_loss, model.trainable_weights)
+        if amp:
+            grads = optimizer.get_unscaled_gradients(grads)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
         mb.child.comment = f'Training loss: {train_loss.numpy():.6}'
@@ -73,6 +76,10 @@ def main(args):
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
+
+    # AMP
+    if args.amp:
+        mixed_precision.set_global_policy('mixed_float16')
 
     st = time.time()
     val_set = DetectionDataset(
@@ -151,6 +158,8 @@ def main(args):
         epsilon=1e-6,
         clipnorm=5
     )
+    if args.amp:
+        optimizer = mixed_precision.LossScaleOptimizer(optimizer)
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -188,7 +197,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, args.amp)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
@@ -240,6 +249,7 @@ def parse_args():
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated bbox')
+    parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 
     return args

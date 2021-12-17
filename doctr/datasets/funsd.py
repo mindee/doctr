@@ -57,6 +57,7 @@ class FUNSD(VisionDataset):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
+
             stem = Path(img_path).stem
             with open(os.path.join(self.root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
                 data = json.load(f)

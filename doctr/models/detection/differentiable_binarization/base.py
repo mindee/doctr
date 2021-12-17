@@ -82,12 +82,16 @@ class DBPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
+        angle_tol: float = 5.,
+        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
         Args:
             pred: Pred map from differentiable binarization output
             bitmap: Bitmap map computed from pred (binarized)
+            angle_tol: Comparison tolerance of the angle with the median angle across the page
+            ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
             np tensor boxes for the bitmap, each box is a 5-element list
@@ -110,7 +114,7 @@ class DBPostProcessor(DetectionPostProcessor):
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
 
-            if self.box_thresh > score:   # remove polygons with a weak objectness
+            if score < self.box_thresh:   # remove polygons with a weak objectness
                 continue
 
             if self.assume_straight_pages:
@@ -131,6 +135,38 @@ class DBPostProcessor(DetectionPostProcessor):
                 # compute relative box to get rid of img shape
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
+
+        if not self.assume_straight_pages:
+            # Compute median angle and mean aspect ratio to resolve quadrants
+            np_boxes = np.asarray(boxes, dtype=np.float32)
+            median_angle = np.median(np_boxes[:, -2])
+            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
+
+            # Rectify angles
+            new_boxes = []
+            for x, y, w, h, alpha, score in boxes:
+                if median_h >= median_w:
+                    # We are in the upper quadrant
+                    if 1 / ratio_tol < h / w < ratio_tol:
+                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                        _rbox = [x, y, h, w, 90 + median_angle, score]
+                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                        # We jumped to the next quadrant, rectify
+                        _rbox = [x, y, w, h, alpha, score]
+                    else:
+                        _rbox = [x, y, h, w, 90 + alpha, score]
+                else:
+                    # We are in the lower quadrant.
+                    if 1 / ratio_tol < h / w < ratio_tol:
+                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                        _rbox = [x, y, w, h, median_angle, score]
+                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                        # We jumped to the next quadrant, rectify
+                        _rbox = [x, y, h, w, 90 + alpha, score]
+                    else:
+                        _rbox = [x, y, w, h, alpha, score]
+                new_boxes.append(_rbox)
+            boxes = new_boxes
 
         if not self.assume_straight_pages:
             if len(boxes) == 0:
@@ -283,11 +319,12 @@ class _DBNet:
             abs_boxes[:, [1, 3]] *= output_shape[-2]
             abs_boxes = abs_boxes.round().astype(np.int32)
 
+            # Convert to polygons --> (N, 4, 2)
             if abs_boxes.shape[1] == 5:
                 boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
                 polys = np.stack([
                     rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
-                ], axis=1)
+                ], axis=0)
             else:
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = np.stack([

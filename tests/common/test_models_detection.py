@@ -1,11 +1,12 @@
 import numpy as np
 
-from doctr.models import detection
+from doctr.models.detection.differentiable_binarization.base import DBPostProcessor
+from doctr.models.detection.linknet.base import LinkNetPostProcessor
 
 
 def test_dbpostprocessor():
-    postprocessor = detection.DBPostProcessor(assume_straight_pages=True)
-    r_postprocessor = detection.DBPostProcessor(assume_straight_pages=False)
+    postprocessor = DBPostProcessor(assume_straight_pages=True)
+    r_postprocessor = DBPostProcessor(assume_straight_pages=False)
     mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
     out = postprocessor(mock_batch)
     r_out = r_postprocessor(mock_batch)
@@ -54,8 +55,8 @@ def test_dbpostprocessor():
 
 
 def test_linknet_postprocessor():
-    postprocessor = detection.LinkNetPostProcessor()
-    r_postprocessor = detection.LinkNetPostProcessor(assume_straight_pages=False)
+    postprocessor = LinkNetPostProcessor()
+    r_postprocessor = LinkNetPostProcessor(assume_straight_pages=False)
     mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
     out = postprocessor(mock_batch)
     r_out = r_postprocessor(mock_batch)

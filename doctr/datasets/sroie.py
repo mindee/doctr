@@ -49,35 +49,37 @@ class SROIE(VisionDataset):
         self.sample_transforms = sample_transforms
         self.train = train
 
-        if rotated_bbox:
-            raise NotImplementedError
-
-        # # List images
         tmp_root = os.path.join(self.root, 'images')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
+
         for img_path in os.listdir(tmp_root):
+
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
+
             stem = Path(img_path).stem
-            _targets = []
             with open(os.path.join(self.root, 'annotations', f"{stem}.txt"), encoding='latin') as f:
-                for row in csv.reader(f, delimiter=','):
-                    # Safeguard for blank lines
-                    if len(row) > 0:
-                        # Label may contain commas
-                        label = ",".join(row[8:])
-                        # Reduce 8 coords to 4
-                        p1_x, p1_y, p2_x, p2_y, p3_x, p3_y, p4_x, p4_y = map(int, row[:8])
-                        left, right = min(p1_x, p2_x, p3_x, p4_x), max(p1_x, p2_x, p3_x, p4_x)
-                        top, bot = min(p1_y, p2_y, p3_y, p4_y), max(p1_y, p2_y, p3_y, p4_y)
-                        if len(label) > 0:
-                            _targets.append((label, [left, top, right, bot]))
+                _rows = [row for row in list(csv.reader(f, delimiter=',')) if len(row) > 0]
 
-            text_targets, box_targets = zip(*_targets)
+            labels = [",".join(row[8:]) for row in _rows]
+            # reorder coordinates (8 -> (4,2)) and filter empty lines
+            coords = np.stack([np.array(list(map(int, row[:8])), dtype=np_dtype).reshape((4, 2))
+                              for row in _rows], axis=0)
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=text_targets)))
+            if rotated_bbox:
+                # x_center, y_center, w, h, alpha = 0
+                mins = coords.min(axis=1)
+                maxs = coords.max(axis=1)
+                box_targets = np.concatenate(
+                    ((mins + maxs) / 2, maxs - mins, np.zeros((coords.shape[0], 1))), axis=1)
+            else:
+                # xmin, ymin, xmax, ymax
+                box_targets = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
+
+            self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
+
         self.root = tmp_root
 
     def extra_repr(self) -> str:

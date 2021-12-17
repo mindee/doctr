@@ -39,14 +39,12 @@ class RecognitionDataset(AbstractDataset):
         self.data: List[Tuple[str, str]] = []
         with open(labels_path) as f:
             labels = json.load(f)
-        for img_path in os.listdir(self.root):
-            # File existence check
-            if not os.path.exists(os.path.join(self.root, img_path)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_path)}")
-            label = labels.get(img_path)
-            if not isinstance(label, str):
-                raise KeyError("Image is not in referenced in label file")
-            self.data.append((img_path, label))
+
+        for img_name, label in labels.items():
+            if not os.path.exists(os.path.join(self.root, img_name)):
+                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+
+            self.data.append((img_name, label))
 
     def merge_dataset(self, ds: AbstractDataset) -> None:
         # Update data with new root for self
