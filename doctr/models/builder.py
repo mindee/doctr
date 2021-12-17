@@ -10,7 +10,7 @@ import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
 from doctr.io.elements import Block, Document, Line, Page, Word
-from doctr.utils.geometry import rbbox_to_polygon, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
 __all__ = ['DocumentBuilder']
@@ -57,7 +57,8 @@ class DocumentBuilder(NestedObject):
                 orig_shape=(1024, 1024),
                 min_angle=5.,
             )
-            return (boxes[:, 0] + 2 * boxes[:, 1] / np.median(boxes[:, 3])).argsort()
+            # Points are in this order: top left, top right, bot right, bot left
+            return (boxes[:, 0, 0] + 2 * boxes[:, 1, 2] / np.median(boxes[:, 1, 2] - boxes[:, 1, 1])).argsort()
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
@@ -84,7 +85,7 @@ class DocumentBuilder(NestedObject):
                 prev_box = boxes[sub_line[-1]]
                 # Compute distance between boxes
                 if len(boxes.shape) == 3:
-                    dist = boxes[i, 0] - prev_box[2] / 2 - (prev_box[0] + prev_box[2] / 2)
+                    dist = boxes[i, 0, 0] - prev_box[0, 1]
                 else:
                     dist = boxes[i, 0] - prev_box[2]
                 # If distance between boxes is lower than paragraph break, same sub-line
@@ -110,7 +111,7 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 3] if len(boxes.shape) == 3 else boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 1, 2] - boxes[:, 1, 1] if len(boxes.shape) == 3 else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
         idxs = self._sort_boxes(boxes)
@@ -119,7 +120,7 @@ class DocumentBuilder(NestedObject):
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
         if len(boxes.shape) == 3:
-            y_center_sum = boxes[idxs[0]][1]
+            y_center_sum = boxes[idxs[0]][[[1, 2], [1, 1]]].mean()
         else:
             y_center_sum = boxes[idxs[0]][[1, 3]].mean()
 
@@ -128,7 +129,7 @@ class DocumentBuilder(NestedObject):
 
             # Compute y_dist
             if len(boxes.shape) == 3:
-                y_dist = abs(boxes[idx][1] - y_center_sum / len(words))
+                y_dist = abs(boxes[idx][[[1, 2], [1, 1]]].mean() - y_center_sum / len(words))
             else:
                 y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
             # If y-center of the box is close enough to mean y-center of the line, same line
@@ -142,7 +143,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][1 if len(boxes.shape) == 3 else [1, 3]].mean()
+            y_center_sum += boxes[idx][[[1, 2], [1, 1]] if len(boxes.shape) == 3 else [1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -241,7 +242,7 @@ class DocumentBuilder(NestedObject):
                     [
                         Word(
                             *word_preds[idx],
-                            (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
+                            tuple(boxes[idx].tolist())
                         ) if len(boxes.shape) == 3 else
                         Word(
                             *word_preds[idx],

@@ -20,11 +20,13 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
     return bbox[0], (bbox[1][0], bbox[0][1]), (bbox[0][0], bbox[1][1]), bbox[1]
 
 
+# TODO: deprecation warning (a rbbox is now a polygon)
 def rbbox_to_polygon(rbbox: RotatedBbox) -> Polygon4P:
     (x, y, w, h, alpha) = rbbox
     return cv2.boxPoints(((float(x), float(y)), (float(w), float(h)), -float(alpha)))
 
 
+# TODO: deprecation warning (a rbbox is now a polygon)
 def fit_rbbox(pts: np.ndarray) -> RotatedBbox:
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
     return x, y, h, w, 90 - alpha
@@ -35,6 +37,7 @@ def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
     return (min(x), min(y)), (max(x), max(y))
 
 
+# TODO: deprecation warning (a rbbox is now a polygon)
 def polygon_to_rbbox(polygon: Polygon4P) -> RotatedBbox:
     cnt = np.array(polygon).reshape((-1, 1, 2)).astype(np.float32)
     return fit_rbbox(cnt)
@@ -58,9 +61,10 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
         return (min(x), min(y)), (max(x), max(y))
 
 
-def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> RotatedBbox:
-    pts = np.asarray([pt for rbbox in rbboxes for pt in rbbox_to_polygon(rbbox)], np.float32)
-    return fit_rbbox(pts)
+def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> Polygon4P:
+    cloud = np.concatenate(rbboxes, axis=0)
+    rect = cv2.minAreaRect(cloud)
+    return cv2.boxPoints(rect)
 
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:
