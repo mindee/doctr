@@ -68,7 +68,7 @@ def rect_patch(
 
 
 def polygon_patch(
-    geometry: RotatedBbox,
+    geometry: np.ndarray,
     page_dimensions: Tuple[int, int],
     label: Optional[str] = None,
     color: Tuple[float, float, float] = (0, 0, 0),
@@ -91,19 +91,16 @@ def polygon_patch(
         a polygon Patch
     """
 
-    if len(geometry) != 5 or any(not isinstance(elt, float) for elt in geometry):
+    if not geometry.shape == (4, 2):
         raise ValueError("invalid geometry format")
 
     # Unpack
     height, width = page_dimensions
-    x, y, w, h, a = geometry
-    # Switch to absolute coords
-    x, w = x * width, w * width
-    y, h = y * height, h * height
-    points = cv2.boxPoints(((x, y), (w, h), -a))
+    geometry[:, 0] = geometry[:, 0] * width
+    geometry[:, 1] = geometry[:, 1] * height
 
     return patches.Polygon(
-        points,
+        geometry,
         fill=fill,
         linewidth=linewidth,
         edgecolor=(*color, alpha),
@@ -113,7 +110,7 @@ def polygon_patch(
 
 
 def create_obj_patch(
-    geometry: Union[BoundingBox, RotatedBbox],
+    geometry: Union[BoundingBox, np.ndarray],
     page_dimensions: Tuple[int, int],
     **kwargs: Any,
 ) -> patches.Patch:
@@ -129,8 +126,8 @@ def create_obj_patch(
     if isinstance(geometry, tuple):
         if len(geometry) == 2:
             return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
-        elif len(geometry) == 5:
-            return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
+    elif isinstance(geometry, np.ndarray):
+        return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
 
     raise ValueError("invalid geometry format")
 

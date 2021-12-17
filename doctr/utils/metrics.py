@@ -210,8 +210,8 @@ def rbox_iou(
     """Computes the IoU between two sets of rotated bounding boxes
 
     Args:
-        boxes_1: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
-        boxes_2: rotated bounding boxes of shape (M, 5) in format (x, y, w, h, alpha)
+        boxes_1: rotated bounding boxes of shape (N, 4, 2)
+        boxes_2: rotated bounding boxes of shape (M, 4, 2)
         mask_shape: spatial shape of the intermediate masks
         use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory
 
@@ -219,8 +219,8 @@ def rbox_iou(
         the IoU matrix of shape (N, M)
     """
 
-    if boxes_1.shape[1] != 5 or boxes_2.shape[1] != 5:
-        raise AssertionError("expects boxes to be in format (x, y, w, h, alpha")
+    if len(boxes_1.shape) != 3 or len(boxes_2.shape) != 3:
+        raise AssertionError("expects boxes to be in format (N, 4, 2)")
 
     iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
@@ -244,7 +244,7 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     """Converts a rotated bounding box to a boolean mask
 
     Args:
-        box: rotated bounding box of shape (5,) in format (x, y, w, h, alpha)
+        box: rotated bounding box of shape (4, 2)
         shape: spatial shapes of the output masks
 
     Returns:
@@ -255,15 +255,13 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     # Get absolute coords
     if box.dtype != int:
         abs_box = box.copy()
-        abs_box[[0, 2]] = abs_box[[0, 2]] * shape[1]
-        abs_box[[1, 3]] = abs_box[[1, 3]] * shape[0]
+        abs_box[:, 0] = abs_box[:, 0] * shape[1]
+        abs_box[:, 1] = abs_box[:, 1] * shape[0]
         abs_box = abs_box.round().astype(int)
     else:
         abs_box = box
         abs_box[2:] = abs_box[2:] + 1
-    # Get the polygon and fill the mask
-    polygon = rbbox_to_polygon(abs_box)
-    cv2.fillPoly(mask, [np.array(polygon, np.int32)], 1)
+    cv2.fillPoly(mask, [abs_box], 1)
 
     return mask.astype(bool)
 
@@ -272,7 +270,7 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     """Converts rotated bounding boxes to boolean masks
 
     Args:
-        boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)
+        boxes: rotated bounding boxes of shape (N, 4, 2)
         shape: spatial shapes of the output masks
 
     Returns:
@@ -285,8 +283,8 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
         # Get absolute coordinates
         if boxes.dtype != np.int:
             abs_boxes = boxes.copy()
-            abs_boxes[:, [0, 2]] = abs_boxes[:, [0, 2]] * shape[1]
-            abs_boxes[:, [1, 3]] = abs_boxes[:, [1, 3]] * shape[0]
+            abs_boxes[:, :, 0] = abs_boxes[:, :, 0] * shape[1]
+            abs_boxes[:, :, 1] = abs_boxes[:, :, 1] * shape[0]
             abs_boxes = abs_boxes.round().astype(np.int)
         else:
             abs_boxes = boxes
@@ -294,8 +292,7 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
 
         # TODO: optimize slicing to improve vectorization
         for idx, _box in enumerate(abs_boxes):
-            polygon = rbbox_to_polygon(_box)
-            cv2.fillPoly(masks[idx], [np.array(polygon, np.int32)], 1)
+            cv2.fillPoly(masks[idx], [abs_boxes], 1)
 
     return masks.astype(bool)
 
