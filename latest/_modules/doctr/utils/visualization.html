@@ -344,7 +344,7 @@
     <span class="c1"># Switch to absolute coords</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="n">w</span> <span class="o">*</span> <span class="n">width</span>
     <span class="n">y</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">height</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">height</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boxPoints</span><span class="p">(((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="o">-</span><span class="n">a</span><span class="p">))</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boxPoints</span><span class="p">(((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">a</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">patches</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span>
         <span class="n">points</span><span class="p">,</span>
