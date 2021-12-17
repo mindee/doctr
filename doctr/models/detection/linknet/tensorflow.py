@@ -191,7 +191,7 @@ class LinkNet(_LinkNet, keras.Model):
 
         if target is None or return_boxes:
             # Post-process boxes
-            out["preds"] = self.postprocessor(tf.squeeze(prob_map, axis=-1).numpy())
+            out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             loss = self.compute_loss(logits, target)

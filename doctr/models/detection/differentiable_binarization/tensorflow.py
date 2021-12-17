@@ -239,8 +239,8 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             out["out_map"] = prob_map
 
         if target is None or return_boxes:
-            # Post-process boxes
-            out["preds"] = self.postprocessor(tf.squeeze(prob_map, axis=-1).numpy())
+            # Post-process boxes (keep only text predictions)
+            out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)

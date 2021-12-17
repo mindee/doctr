@@ -185,8 +185,10 @@ class DBNet(_DBNet, nn.Module):
             out["out_map"] = prob_map
 
         if target is None or return_boxes:
-            # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().cpu().numpy())
+            # Post-process boxes (keep only text predictions)
+            out["preds"] = [
+                preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+            ]
 
         if target is not None:
             thresh_map = self.thresh_head(feat_concat)
