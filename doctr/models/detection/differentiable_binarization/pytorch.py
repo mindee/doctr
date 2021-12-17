@@ -227,31 +227,33 @@ class DBNet(_DBNet, nn.Module):
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.
-        bce_loss = F.binary_cross_entropy_with_logits(out_map.squeeze(1), seg_target, reduction='none')[seg_mask]
+        balanced_bce_loss = torch.zeros(1, device=out_map.device)
+        dice_loss = torch.zeros(1, device=out_map.device)
+        l1_loss = torch.zeros(1, device=out_map.device)
+        if torch.any(seg_mask):
+            bce_loss = F.binary_cross_entropy_with_logits(out_map.squeeze(1), seg_target, reduction='none')[seg_mask]
 
-        neg_target = 1 - seg_target[seg_mask]
-        positive_count = seg_target[seg_mask].sum()
-        negative_count = torch.minimum(neg_target.sum(), 3. * positive_count)
-        negative_loss = bce_loss * neg_target
-        negative_loss = negative_loss.sort().values[-int(negative_count.item()):]
-        sum_losses = torch.sum(bce_loss * seg_target[seg_mask]) + torch.sum(negative_loss)
-        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
+            neg_target = 1 - seg_target[seg_mask]
+            positive_count = seg_target[seg_mask].sum()
+            negative_count = torch.minimum(neg_target.sum(), 3. * positive_count)
+            negative_loss = bce_loss * neg_target
+            negative_loss = negative_loss.sort().values[-int(negative_count.item()):]
+            sum_losses = torch.sum(bce_loss * seg_target[seg_mask]) + torch.sum(negative_loss)
+            balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
 
-        # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + torch.exp(-50. * (prob_map[seg_mask] - thresh_map[seg_mask])))
+            # Compute dice loss for approxbin_map
+            bin_map = 1 / (1 + torch.exp(-50. * (prob_map[seg_mask] - thresh_map[seg_mask])))
 
-        bce_min = bce_loss.min()
-        weights = (bce_loss - bce_min) / (bce_loss.max() - bce_min) + 1.
-        inter = torch.sum(bin_map * seg_target[seg_mask] * weights)
-        union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8
-        dice_loss = 1 - 2.0 * inter / union
+            bce_min = bce_loss.min()
+            weights = (bce_loss - bce_min) / (bce_loss.max() - bce_min) + 1.
+            inter = torch.sum(bin_map * seg_target[seg_mask] * weights)
+            union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8
+            dice_loss = 1 - 2.0 * inter / union
 
         # Compute l1 loss for thresh_map
         l1_scale = 10.
         if torch.any(thresh_mask):
             l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
-        else:
-            l1_loss = torch.zeros(1)
 
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
