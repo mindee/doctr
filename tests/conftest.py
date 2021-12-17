@@ -1,7 +1,7 @@
 import json
 import shutil
 import tempfile
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from io import BytesIO
 
 import hdf5storage
