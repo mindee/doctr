@@ -3,7 +3,6 @@ import shutil
 import tempfile
 from io import BytesIO
 
-import defusedxml.ElementTree as ET
 import hdf5storage
 import numpy as np
 import pytest
@@ -435,9 +434,8 @@ def mock_svt_dataset(tmpdir_factory, mock_image_stream):
     <taggedRectangles><taggedRectangle height="100" width="250" x="350" y="220"><tag>COST</tag></taggedRectangle>
     </taggedRectangles></image></tagset>"""
 
-    tree = ET.ElementTree(ET.fromstring(labels))
-    label_file = svt_root.join("train.xml")
-    tree.write(label_file)
+    with open(svt_root.join("train.xml"), "w") as f:
+        f.write(labels)
 
     image_folder = svt_root.mkdir("img")
     file = BytesIO(mock_image_stream)
@@ -464,9 +462,8 @@ def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
     <taggedRectangle x="180.0" y="400.0" width="280.0" height="250.0" offset="0.0" rotation="0.0"><tag>COST</tag>
     </taggedRectangle></taggedRectangles></image></tagset>"""
 
-    tree = ET.ElementTree(ET.fromstring(labels))
-    label_file = ic03_root.join("words.xml")
-    tree.write(label_file)
+    with open(ic03_root.join("words.xml"), "w") as f:
+        f.write(labels)
 
     image_folder = ic03_root.mkdir("images")
     file = BytesIO(mock_image_stream)
