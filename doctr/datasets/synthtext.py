@@ -34,7 +34,6 @@ class SynthText(VisionDataset):
 
     URL = 'https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip'
     SHA256 = '28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1'
-    FILE_NAME = 'SynthText.zip'
 
     def __init__(
         self,
@@ -44,7 +43,7 @@ class SynthText(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.URL, file_name=self.FILE_NAME, file_hash=None, extract_archive=True, **kwargs)
+        super().__init__(self.URL, None, file_hash=None, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 

@@ -35,7 +35,6 @@ class IIIT5K(VisionDataset):
 
     URL = 'https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz'
     SHA256 = '7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e'
-    FILE_NAME = 'IIIT5K-Word-V3.tar'
 
     def __init__(
         self,
@@ -45,8 +44,7 @@ class IIIT5K(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.URL, file_name=self.FILE_NAME,
-                         file_hash=self.SHA256, extract_archive=True, **kwargs)
+        super().__init__(self.URL, None, file_hash=self.SHA256, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 

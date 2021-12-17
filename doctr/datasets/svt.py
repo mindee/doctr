@@ -32,7 +32,6 @@ class SVT(VisionDataset):
 
     URL = 'http://vision.ucsd.edu/~kai/svt/svt.zip'
     SHA256 = '63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf'
-    FILE_NAME = 'svt.zip'
 
     def __init__(
         self,
@@ -42,7 +41,7 @@ class SVT(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
+        super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []

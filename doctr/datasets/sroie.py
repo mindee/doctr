@@ -32,11 +32,9 @@ class SROIE(VisionDataset):
     """
 
     TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.1.1/sroie2019_train_task1.zip',
-             'd4fa9e60abb03500d83299c845b9c87fd9c9430d1aeac96b83c5d0bb0ab27f6f',
-             'sroie2019_train_task1.zip')
+             'd4fa9e60abb03500d83299c845b9c87fd9c9430d1aeac96b83c5d0bb0ab27f6f')
     TEST = ('https://github.com/mindee/doctr/releases/download/v0.1.1/sroie2019_test.zip',
-            '41b3c746a20226fddc80d86d4b2a903d43b5be4f521dd1bbe759dbf8844745e2',
-            'sroie2019_test.zip')
+            '41b3c746a20226fddc80d86d4b2a903d43b5be4f521dd1bbe759dbf8844745e2')
 
     def __init__(
         self,
@@ -46,8 +44,8 @@ class SROIE(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        url, sha256, file_name = self.TRAIN if train else self.TEST
-        super().__init__(url, file_name, sha256, True, **kwargs)
+        url, sha256 = self.TRAIN if train else self.TEST
+        super().__init__(url, None, sha256, True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 
