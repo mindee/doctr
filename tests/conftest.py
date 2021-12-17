@@ -174,8 +174,9 @@ def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(svhn_root.join('svhn_train'), 'tar', str(svhn_root))
-    return str(root)
+    archive_path = root.join('svhn_train.tar')
+    shutil.make_archive(root.join('svhn_train'), 'tar', str(svhn_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -200,8 +201,9 @@ def mock_sroie_dataset(tmpdir_factory, mock_image_stream):
             f.writelines(labels)
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(sroie_root.join('sroie2019_train_task1'), 'zip', str(sroie_root))
-    return str(root)
+    archive_path = root.join('sroie2019_train_task1.zip')
+    shutil.make_archive(root.join('sroie2019_train_task1'), 'zip', str(sroie_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -249,8 +251,9 @@ def mock_funsd_dataset(tmpdir_factory, mock_image_stream):
             json.dump(labels, f)
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(funsd_root.join('funsd'), 'zip', str(funsd_root))
-    return str(root)
+    archive_path = root.join('funsd.zip')
+    shutil.make_archive(root.join('funsd'), 'zip', str(funsd_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -313,17 +316,18 @@ def mock_cord_dataset(tmpdir_factory, mock_image_stream):
             json.dump(labels, f)
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(cord_root.join('cord_train'), 'zip', str(cord_root))
-    return str(root)
+    archive_path = root.join('cord_train.zip')
+    shutil.make_archive(root.join('cord_train'), 'zip', str(cord_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     synthtext_root = root.mkdir('SynthText')
-    sub_root = synthtext_root.mkdir('SynthText')
-    image_folder = sub_root.mkdir("8")
-    annotation_file = sub_root.join('gt.mat')
+    # sub_root = synthtext_root.mkdir('SynthText')
+    image_folder = synthtext_root.mkdir("8")
+    annotation_file = synthtext_root.join('gt.mat')
     labels = {
         "imnames": [[["8/ballet_106_0.jpg"], ["8/ballet_106_1.jpg"], ["8/ballet_106_2.jpg"]]],
         "wordBB": [np.random.randint(1000, size=(2, 4, 3)) for _ in range(3)],
@@ -341,8 +345,9 @@ def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(synthtext_root.join('SynthText'), 'zip', str(synthtext_root))
-    return str(root)
+    archive_path = root.join('SynthText.zip')
+    shutil.make_archive(root.join('SynthText'), 'zip', str(synthtext_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -389,8 +394,9 @@ def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(doc_root.join('artefact_detection'), 'zip', str(doc_root))
-    return str(root)
+    archive_path = root.join('artefact_detection.zip')
+    shutil.make_archive(root.join('artefact_detection'), 'zip', str(doc_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -415,8 +421,9 @@ def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(iiit5k_root.join('IIIT5K-Word-V3'), 'tar', str(iiit5k_root))
-    return str(root)
+    archive_path = root.join('IIIT5K-Word-V3.tar')
+    shutil.make_archive(root.join('IIIT5K-Word-V3'), 'tar', str(iiit5k_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -444,8 +451,9 @@ def mock_svt_dataset(tmpdir_factory, mock_image_stream):
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(svt_root.join('svt'), 'zip', str(svt_root))
-    return str(root)
+    archive_path = root.join('svt.zip')
+    shutil.make_archive(root.join('svt'), 'zip', str(svt_root))
+    return str(archive_path)
 
 
 @pytest.fixture(scope="session")
@@ -472,5 +480,6 @@ def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
         with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    shutil.make_archive(ic03_root.join('ic03_train'), 'zip', str(ic03_root))
-    return str(root)
+    archive_path = root.join('ic03_train.zip')
+    shutil.make_archive(root.join('ic03_train'), 'zip', str(ic03_root))
+    return str(archive_path)
