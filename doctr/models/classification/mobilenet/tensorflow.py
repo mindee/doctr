@@ -255,7 +255,7 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    num_classes = default_cfgs[arch].get(['num_classes'], len(default_cfgs[arch]['vocab']))
+    num_classes = default_cfgs[arch].get('num_classes', len(default_cfgs[arch]['vocab']))
     kwargs['num_classes'] = kwargs.get('num_classes', num_classes)
 
     # Build the model
