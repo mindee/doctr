@@ -1,6 +1,7 @@
 import json
 import shutil
 import tempfile
+import xml.etree.ElementTree as ET
 from io import BytesIO
 
 import hdf5storage
@@ -326,7 +327,7 @@ def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
     annotation_file = sub_root.join('gt.mat')
     labels = {
         "imnames": [[["8/ballet_106_0.jpg"], ["8/ballet_106_1.jpg"], ["8/ballet_106_2.jpg"]]],
-        "wordBB": [np.random.rand(2, 4, 3) for _ in range(3)],
+        "wordBB": [np.random.randint(1000, size=(2, 4, 3)) for _ in range(3)],
         "txt": np.array([['I      ', 'am\na      ', 'Jedi   ', '!'] for _ in range(3)])
     }
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
@@ -400,7 +401,7 @@ def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
     image_folder = iiit5k_root.mkdir('train')
     annotation_file = iiit5k_root.join('trainCharBound.mat')
     labels = {'trainCharBound':
-              {"ImgName": ["train/0.png"], "chars": ["I"], "charBB": [7., 12., 28., 35.]},
+              {"ImgName": ["train/0.png"], "chars": ["I"], "charBB": np.random.randint(50, size=(1, 4))},
               }
 
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
@@ -416,4 +417,63 @@ def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
     shutil.make_archive(iiit5k_root.join('IIIT5K-Word-V3'), 'tar', str(iiit5k_root))
+    return str(root)
+
+
+@pytest.fixture(scope="session")
+def mock_svt_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    svt_root = root.mkdir('svt1')
+    labels = """<tagset><image><imageName>img/00_00.jpg</imageName>
+    <address>341 Southwest 10th Avenue Portland OR</address><lex>LIVING,ROOM,THEATERS</lex>
+    <Resolution x="1280" y="880"/><taggedRectangles><taggedRectangle height="75" width="236" x="375" y="253">
+    <tag>LIVING</tag></taggedRectangle></taggedRectangles></image><image><imageName>img/00_01.jpg</imageName>
+    <address>1100 Southwest 6th Avenue Portland OR</address><lex>LULA</lex><Resolution x="1650" y="500"/>
+    <taggedRectangles><taggedRectangle height="80" width="250" x="450" y="242"><tag>HOUSE</tag></taggedRectangle>
+    </taggedRectangles></image><image><imageName>img/00_02.jpg</imageName>
+    <address>341 Southwest 10th Avenue Portland OR</address><lex>LIVING,ROOM,THEATERS</lex><Resolution x="850" y="420"/>
+    <taggedRectangles><taggedRectangle height="100" width="250" x="350" y="220"><tag>COST</tag></taggedRectangle>
+    </taggedRectangles></image></tagset>"""
+
+    tree = ET.ElementTree(ET.fromstring(labels))
+    label_file = svt_root.join("train.xml")
+    tree.write(label_file)
+
+    image_folder = svt_root.mkdir("img")
+    file = BytesIO(mock_image_stream)
+    for i in range(3):
+        fn = image_folder.join(f"00_0{i}.jpg")
+        with open(fn, 'wb') as f:
+            f.write(file.getbuffer())
+    # Packing data into an archive to simulate the real data set and bypass archive extraction
+    shutil.make_archive(svt_root.join('svt'), 'zip', str(svt_root))
+    return str(root)
+
+
+@pytest.fixture(scope="session")
+def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    ic03_root = root.mkdir('SceneTrialTrain')
+    labels = """<tagset><image><imageName>images/0.jpg</imageName><Resolution x="1280" y="880"/><taggedRectangles>
+    <taggedRectangle x="174.0" y="392.0" width="274.0" height="195.0" offset="0.0" rotation="0.0"><tag>LIVING</tag>
+    </taggedRectangle></taggedRectangles></image><image><imageName>images/1.jpg</imageName>
+    <Resolution x="1650" y="500"/>
+    <taggedRectangles><taggedRectangle x="244.0" y="440.0" width="300.0" height="220.0" offset="0.0" rotation="0.0">
+    <tag>HOUSE</tag></taggedRectangle></taggedRectangles></image><image><imageName>images/2.jpg</imageName>
+    <Resolution x="850" y="420"/><taggedRectangles>
+    <taggedRectangle x="180.0" y="400.0" width="280.0" height="250.0" offset="0.0" rotation="0.0"><tag>COST</tag>
+    </taggedRectangle></taggedRectangles></image></tagset>"""
+
+    tree = ET.ElementTree(ET.fromstring(labels))
+    label_file = ic03_root.join("words.xml")
+    tree.write(label_file)
+
+    image_folder = ic03_root.mkdir("images")
+    file = BytesIO(mock_image_stream)
+    for i in range(3):
+        fn = image_folder.join(f"{i}.jpg")
+        with open(fn, 'wb') as f:
+            f.write(file.getbuffer())
+    # Packing data into an archive to simulate the real data set and bypass archive extraction
+    shutil.make_archive(ic03_root.join('ic03_train'), 'zip', str(ic03_root))
     return str(root)

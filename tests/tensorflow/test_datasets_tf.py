@@ -10,35 +10,6 @@ from doctr.datasets import DataLoader
 from doctr.transforms import Resize
 
 
-@pytest.mark.parametrize(
-    "dataset_name, train, input_size, size, rotate",
-    [
-        ['SVT', True, [512, 512], 100, True],
-        ['SVT', False, [512, 512], 249, False],
-        ['IC03', True, [512, 512], 246, True],
-        ['IC03', False, [512, 512], 249, False],
-    ],
-)
-def test_dataset(dataset_name, train, input_size, size, rotate):
-
-    ds = datasets.__dict__[dataset_name](
-        train=train, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
-    )
-
-    assert len(ds) == size
-    assert repr(ds) == (f"{dataset_name}()" if train is None else f"{dataset_name}(train={train})")
-    img, target = ds[0]
-    assert isinstance(img, tf.Tensor)
-    assert img.shape == (*input_size, 3)
-    assert img.dtype == tf.float32
-    assert isinstance(target, dict)
-
-    loader = datasets.DataLoader(ds, batch_size=2)
-    images, targets = next(iter(loader))
-    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
-
-
 def test_detection_dataset(mock_image_folder, mock_detection_label):
 
     input_size = (1024, 1024)
@@ -365,7 +336,8 @@ def test_synthtext(input_size, size, rotate, mock_synthtext_dataset):
     assert img.shape[:2] == input_size
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
-    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    # depends on #702
+    # assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
     assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
     assert len(target['labels']) == len(target['boxes'])
 
@@ -443,4 +415,72 @@ def test_iiit5k(input_size, size, rotate, mock_iiit5k_dataset):
     loader = DataLoader(ds, batch_size=1)
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (1, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 100 training samples and 249 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_svt(input_size, size, rotate, mock_svt_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.SVT.URL = mock_svt_dataset
+    datasets.SVT.SHA256 = None
+    datasets.SVT.FILE_NAME = "svt.zip"
+
+    ds = datasets.SVT(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_svt_dataset, cache_subdir="svt1",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"SVT(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+
+
+@pytest.mark.parametrize(
+    "input_size, size, rotate",
+    [
+        [[512, 512], 3, True],  # Actual set has 246 training samples and 249 test samples
+        [[512, 512], 3, False],
+    ],
+)
+def test_ic03(input_size, size, rotate, mock_ic03_dataset):
+    # monkeypatch the path to temporary dataset
+    datasets.IC03.TRAIN = (mock_ic03_dataset, None, "ic03_train.zip")
+
+    ds = datasets.IC03(
+        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        cache_dir=mock_ic03_dataset, cache_subdir="SceneTrialTrain",
+    )
+
+    assert len(ds) == size
+    assert repr(ds) == f"IC03(train={True})"
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.shape[:2] == input_size
+    assert img.dtype == tf.float32
+    assert isinstance(target, dict)
+    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
+    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)

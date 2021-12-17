@@ -49,7 +49,7 @@ class SVT(VisionDataset):
         np_dtype = np.float32
 
         # Load xml data
-        tmp_root = os.path.join(self.root, 'svt1')
+        tmp_root = os.path.join(self.root, 'svt1') if self.SHA256 else self.root
         xml_tree = ET.parse(os.path.join(tmp_root, 'train.xml')) if self.train else ET.parse(
             os.path.join(tmp_root, 'test.xml'))
         xml_root = xml_tree.getroot()
