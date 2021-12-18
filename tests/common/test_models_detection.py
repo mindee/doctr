@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from doctr.models.detection.differentiable_binarization.base import DBPostProcessor
 from doctr.models.detection.linknet.base import LinkNetPostProcessor
@@ -7,18 +8,20 @@ from doctr.models.detection.linknet.base import LinkNetPostProcessor
 def test_dbpostprocessor():
     postprocessor = DBPostProcessor(assume_straight_pages=True)
     r_postprocessor = DBPostProcessor(assume_straight_pages=False)
-    mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
+    with pytest.raises(AssertionError):
+        postprocessor(np.random.rand(2, 512, 512).astype(np.float32))
+    mock_batch = np.random.rand(2, 512, 512, 1).astype(np.float32)
     out = postprocessor(mock_batch)
     r_out = r_postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2
-    assert all(isinstance(sample, np.ndarray) for sample in out)
-    assert all(sample.shape[1] == 5 for sample in out)
-    assert all(sample.shape[1] == 6 for sample in r_out)
+    assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
+    assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
+    assert all(all(v.shape[1] == 6 for v in sample) for sample in r_out)
     # Relative coords
-    assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in out)
-    assert all(np.all(np.logical_and(sample[:, :4] >= 0, sample[:, :4] <= 1)) for sample in r_out)
+    assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in out)
+    assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in r_out)
     # Repr
     assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1)'
     # Edge case when the expanded points of the polygon has two lists
@@ -57,14 +60,16 @@ def test_dbpostprocessor():
 def test_linknet_postprocessor():
     postprocessor = LinkNetPostProcessor()
     r_postprocessor = LinkNetPostProcessor(assume_straight_pages=False)
-    mock_batch = np.random.rand(2, 512, 512).astype(np.float32)
+    with pytest.raises(AssertionError):
+        postprocessor(np.random.rand(2, 512, 512).astype(np.float32))
+    mock_batch = np.random.rand(2, 512, 512, 1).astype(np.float32)
     out = postprocessor(mock_batch)
     r_out = r_postprocessor(mock_batch)
     # Batch composition
     assert isinstance(out, list)
     assert len(out) == 2
-    assert all(isinstance(sample, np.ndarray) for sample in out)
-    assert all(sample.shape[1] == 5 for sample in out)
-    assert all(sample.shape[1] == 6 for sample in r_out)
+    assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
+    assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
+    assert all(all(v.shape[1] == 6 for v in sample) for sample in r_out)
     # Relative coords
-    assert all(np.all(np.logical_and(sample[:4] >= 0, sample[:4] <= 1)) for sample in out)
+    assert all(all(np.all(np.logical_and(v[:4] >= 0, v[:4] <= 1)) for v in sample) for sample in out)
