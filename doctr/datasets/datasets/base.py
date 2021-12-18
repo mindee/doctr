@@ -22,12 +22,14 @@ class _AbstractDataset:
     def __init__(
         self,
         root: Union[str, Path],
+        convert_to_relative: bool = True,
     ) -> None:
 
         if not Path(root).is_dir():
             raise ValueError(f'expected a path to a reachable folder: {root}')
 
         self.root = root
+        self.convert_to_relative = convert_to_relative
 
     def __len__(self) -> int:
         return len(self.data)
@@ -51,16 +53,17 @@ class _AbstractDataset:
             # typing issue cf. https://github.com/python/mypy/issues/5485
             img = self.sample_transforms(img)  # type: ignore[call-arg]
 
-        if isinstance(target, dict) and 'boxes' in target.keys() and \
-                not np.all((target['boxes'] <= 1) & (target['boxes'] >= 0)):
-            h, w = self._get_img_shape(img)
+        if isinstance(target, dict) and 'boxes' in target.keys() and self.convert_to_relative:
+            # Convert to relative coordinates if not already
+            if not np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0)):
+                h, w = self._get_img_shape(img)
 
-            # Boxes
-            boxes = target['boxes'].copy()
-            boxes[..., [0, 2]] /= w
-            boxes[..., [1, 3]] /= h
-            boxes = boxes.clip(0, 1)
-            target['boxes'] = boxes
+                # Boxes
+                boxes = target['boxes'].copy()
+                boxes[..., [0, 2]] /= w
+                boxes[..., [1, 3]] /= h
+                boxes = boxes.clip(0, 1)
+                target['boxes'] = boxes
 
         return img, target
 
