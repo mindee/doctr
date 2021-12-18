@@ -32,6 +32,7 @@ class DetectionPostProcessor(NestedObject):
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
         self.assume_straight_pages = assume_straight_pages
+        self._opening_kernel = np.ones((3, 3), dtype=np.uint8)
 
     def extra_repr(self) -> str:
         return f"box_thresh={self.box_thresh}"
@@ -74,29 +75,31 @@ class DetectionPostProcessor(NestedObject):
 
     def __call__(
         self,
-        proba_map: np.ndarray,
-    ) -> List[np.ndarray]:
+        proba_map,
+    ) -> List[List[np.ndarray]]:
         """Performs postprocessing for a list of model outputs
 
         Args:
-            proba_map: probability map of shape (N, H, W)
+            proba_map: probability map of shape (N, H, W, C)
 
-        returns:
-            list of N tensors (for each input sample), with each tensor of shape (*, 5) or (*, 6)
+        Returns:
+            list of N class predictions (for each input sample), where each class predictions is a list of C tensors
+        of shape (*, 5) or (*, 6)
         """
 
-        bitmap = (proba_map > self.bin_thresh).astype(proba_map.dtype)
+        if proba_map.ndim != 4:
+            raise AssertionError(f"arg `proba_map` is expected to be 4-dimensional, got {proba_map.ndim}.")
 
-        boxes_batch = []
-        # Kernel for opening, empirical law for ksize
-        k_size = 1 + int(proba_map[0].shape[0] / 512)
-        kernel = np.ones((k_size, k_size), np.uint8)
+        # Erosion + dilation on the binary map
+        bin_map = [
+            [
+                cv2.morphologyEx(bmap[..., idx], cv2.MORPH_OPEN, self._opening_kernel)
+                for idx in range(proba_map.shape[-1])
+            ]
+            for bmap in (proba_map >= self.bin_thresh).astype(np.uint8)
+        ]
 
-        for p_, bitmap_ in zip(proba_map, bitmap):
-            # Perform opening (erosion + dilatation)
-            bitmap_ = cv2.morphologyEx(bitmap_.astype(np.float32), cv2.MORPH_OPEN, kernel)
-            # Rotate bitmap and proba_map
-            boxes = self.bitmap_to_boxes(pred=p_, bitmap=bitmap_)
-            boxes_batch.append(boxes)
-
-        return boxes_batch
+        return [
+            [self.bitmap_to_boxes(pmaps[..., idx], bmaps[idx]) for idx in range(proba_map.shape[-1])]
+            for pmaps, bmaps in zip(proba_map, bin_map)
+        ]

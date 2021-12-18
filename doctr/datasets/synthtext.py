@@ -43,12 +43,12 @@ class SynthText(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.URL, file_name=None, file_hash=None, extract_archive=True, **kwargs)
+        super().__init__(self.URL, None, file_hash=None, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 
         # Load mat data
-        tmp_root = os.path.join(self.root, 'SynthText')
+        tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
         split = int(len(mat_data['imnames'][0]) * 0.9)
         paths = mat_data['imnames'][0][slice(split) if self.train else slice(split, None)]
@@ -60,7 +60,6 @@ class SynthText(VisionDataset):
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
                                               desc='Unpacking SynthText', total=len(paths)):
-
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
