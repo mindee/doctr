@@ -23,7 +23,7 @@ doctr.models.backbones
 doctr.models.detection
 ----------------------
 
-.. autofunction:: doctr.models.detection.linknet16
+.. autofunction:: doctr.models.detection.linknet_resnet18
 
 .. autofunction:: doctr.models.detection.db_resnet50
 
