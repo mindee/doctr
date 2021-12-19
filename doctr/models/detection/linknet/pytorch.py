@@ -9,73 +9,25 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torchvision.models import resnet18
 from torchvision.models._utils import IntermediateLayerGetter
 
 from ...utils import load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet16']
+__all__ = ['LinkNet', 'linknet_resnet18']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'linknet16': {
-        'layout': [64, 128, 256, 512],
+    'linknet_resnet18': {
+        'backbone': resnet18,
+        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'url': None,
     },
 }
-
-
-class LinkNetEncoder(nn.Module):
-    def __init__(self, in_chans: int, out_chans: int):
-        super().__init__()
-        self.stage1 = nn.Sequential(
-            nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1, stride=2, bias=False),
-            nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(out_chans),
-        )
-
-        self.shortcut = nn.Sequential(
-            nn.Conv2d(in_chans, out_chans, kernel_size=1, stride=2, bias=False),
-            nn.BatchNorm2d(out_chans),
-        ) if in_chans != out_chans else None
-
-        self.stage2 = nn.Sequential(
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.stage1(x)
-        if self.shortcut is not None:
-            out += self.shortcut(x)
-        out = F.relu(out, inplace=True)
-        out = self.stage2(out) + out
-
-        return out
-
-
-def linknet_backbone(layout: List[int], in_channels: int = 3, stem_channels: int = 64) -> nn.Sequential:
-    # Stem
-    _layers: List[nn.Module] = [
-        nn.Conv2d(in_channels, stem_channels, kernel_size=7, stride=2, padding=3, bias=False),
-        nn.BatchNorm2d(stem_channels),
-        nn.ReLU(inplace=True),
-        nn.MaxPool2d(2),
-    ]
-    # Encoders
-    for in_chan, out_chan in zip([stem_channels] + layout[:-1], layout):
-        _layers.append(LinkNetEncoder(in_chan, out_chan))
-
-    return nn.Sequential(*_layers)
 
 
 class LinkNetFPN(nn.Module):
@@ -233,13 +185,12 @@ def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **k
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Build the feature extractor
-    backbone = linknet_backbone(default_cfgs[arch]['layout'])
+    backbone = default_cfgs[arch]['backbone']()
     if pretrained_backbone:
         load_pretrained_params(backbone, None)
-
     feat_extractor = IntermediateLayerGetter(
         backbone,
-        {str(layer): str(idx) for idx, layer in enumerate(range(4, 4 + len(default_cfgs[arch]['layout'])))},
+        {layer_name: str(idx) for idx, layer_name in enumerate(default_cfgs[arch]['fpn_layers'])},
     )
 
     # Build the model
@@ -251,14 +202,14 @@ def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **k
     return model
 
 
-def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Example::
         >>> import torch
-        >>> from doctr.models import linknet16
-        >>> model = linknet16(pretrained=True).eval()
+        >>> from doctr.models import linknet_resnet18
+        >>> model = linknet_resnet18(pretrained=True).eval()
         >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
         >>> with torch.no_grad(): out = model(input_tensor)
 
@@ -269,4 +220,4 @@ def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet16', pretrained, **kwargs)
+    return _linknet('linknet_resnet18', pretrained, **kwargs)
