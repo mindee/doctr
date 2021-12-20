@@ -53,7 +53,8 @@ class IC03(VisionDataset):
         np_dtype = np.float32
 
         # Load xml data
-        tmp_root = os.path.join(self.root, 'SceneTrialTrain' if self.train else 'SceneTrialTest')
+        tmp_root = os.path.join(
+            self.root, 'SceneTrialTrain' if self.train else 'SceneTrialTest') if sha256 else self.root
         xml_tree = ET.parse(os.path.join(tmp_root, 'words.xml'))
         xml_root = xml_tree.getroot()
 
