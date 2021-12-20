@@ -182,7 +182,7 @@ class MobileNetV3(Sequential):
     def __init__(
         self,
         layout: List[InvertedResidualConfig],
-        input_shape: Tuple[int, int, int],
+        input_shape: Optional[Tuple[int, int, int]],
         include_top: bool = False,
         head_chans: int = 1024,
         num_classes: int = 1000,
@@ -226,6 +226,7 @@ def _mobilenet_v3(
 ) -> MobileNetV3:
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
+    _cfg['num_classes'] = len(kwargs.get('classes', default_cfgs[arch]['classes']))
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
@@ -263,7 +264,8 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    _cfg['num_classes'] = len(kwargs.get('classes', default_cfgs[arch]['classes']))
+    kwargs['num_classes'] = _cfg['num_classes']
+    input_shape = _cfg['input_shape']
 
     # Build the model
     model = MobileNetV3(
@@ -385,4 +387,4 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> M
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, **kwargs)
+    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, include_top=True, **kwargs)
