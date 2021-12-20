@@ -30,7 +30,7 @@ class OCRDataset(AbstractDataset):
         label_file: str,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
     ) -> None:
-        super().__init__(img_folder)
+        super().__init__(img_folder, convert_to_relative=True)
         self.sample_transforms = sample_transforms
 
         # List images
