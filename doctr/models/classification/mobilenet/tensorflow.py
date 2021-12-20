@@ -5,12 +5,12 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from copy import deepcopy
 
 from ....datasets import VOCABS
 from ...utils import conv_sequence, load_pretrained_params
