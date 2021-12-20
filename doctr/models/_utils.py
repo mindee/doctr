@@ -55,8 +55,7 @@ def extract_rcrops(
 
     Args:
         img: input image
-        boxes: bounding boxes of shape (N, 5) where N is the number of boxes, and the relative
-            coordinates (x, y, w, h, alpha)
+        boxes: bounding boxes of shape (N, 4, 2)
         dtype: target data type of bounding boxes
         channels_last: whether the channel dimensions is the last one instead of the last one
 
@@ -78,7 +77,9 @@ def extract_rcrops(
     crops = []
 
     for box in _boxes:
-        src_pts = box[1:, :]
+        src_pts = box[1:, :].astype(np.float32)
+        print(src_pts.dtype)
+        print(src_pts)
         # Preserve size
         _, (w, h), _ = cv2.minAreaRect(box)
         dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)

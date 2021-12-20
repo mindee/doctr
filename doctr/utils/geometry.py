@@ -12,7 +12,7 @@ import numpy as np
 from .common_types import BoundingBox, Polygon4P
 
 __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
-           'rotate_boxes', 'rotate_abs_boxes', 'compute_expanded_shape', 'rotate_image']
+           'rotate_boxes', 'rotate_abs_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -168,7 +168,6 @@ def rotate_boxes(
     angle: float,
     orig_shape: Tuple[int, int],
     min_angle: float = 1.,
-    target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
     (4, 2) of an angle, if angle > min_angle, around the center of the page.
@@ -211,11 +210,8 @@ def rotate_boxes(
     points = np.stack((_boxes[:, :, 0] * orig_shape[1], _boxes[:, :, 1] * orig_shape[0]), axis=-1)
     image_center = (orig_shape[1] / 2, orig_shape[0] / 2)
     rotated_points = image_center + np.matmul(points - image_center, rotation_mat)
-    rotated_boxes = rotated_points[:, :, 0] / orig_shape[1], rotated_points[:, :, 1] / orig_shape[0]
+    rotated_boxes = np.stack((rotated_points[:, :, 0] / orig_shape[1], rotated_points[:, :, 1] / orig_shape[0]), axis=-1)
 
-    # Apply a mask if requested
-    if target_shape is not None:
-        rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=target_shape)
     return rotated_boxes
 
 
@@ -264,3 +260,13 @@ def rotate_image(
             rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
 
     return rot_img
+
+
+def estimate_page_angle(boxes: np.ndarray) -> float:
+    """Takes a batch of rotated previously ORIENTED boxes (N, 4, 2) (rectified by the classifier) and return the
+    estimated angle ccw in degrees 
+    """
+    return np.mean(np.arctan2(
+        (boxes[:, 1, 1] - boxes[:, 0, 1]),
+        (boxes[:, 1, 0] - boxes[:, 0, 0])
+    )) * 180 / np.pi

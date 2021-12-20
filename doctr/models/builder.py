@@ -10,7 +10,7 @@ import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
 from doctr.io.elements import Block, Document, Line, Page, Word
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
+from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes, estimate_page_angle
 from doctr.utils.repr import NestedObject
 
 __all__ = ['DocumentBuilder']
@@ -50,15 +50,15 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
-        if len(boxes.shape) == 3:
+        if len(boxes.shape) == 3: 
             boxes = rotate_boxes(
-                loc_preds=np.concatenate((boxes, np.zeros((boxes.shape[0], 1))), -1),
-                angle=-np.median(boxes[:, 4]),
+                loc_preds=boxes,
+                angle=-estimate_page_angle(boxes),
                 orig_shape=(1024, 1024),
                 min_angle=5.,
             )
             # Points are in this order: top left, top right, bot right, bot left
-            return (boxes[:, 0, 0] + 2 * boxes[:, 1, 2] / np.median(boxes[:, 1, 2] - boxes[:, 1, 1])).argsort()
+            return (boxes[:, 0, 0] + 2 * boxes[:, 2, 1] / np.median(boxes[:, 2, 1] - boxes[:, 1, 1])).argsort()
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
@@ -73,7 +73,9 @@ class DocumentBuilder(NestedObject):
         """
         lines = []
         # Sort words horizontally
-        words = [words[j] for j in np.argsort([boxes[i, 0, 0] for i in words]).tolist()]
+        words = [words[j] for j in np.argsort(
+            [boxes[i, 0, 0] if len(boxes.shape) == 3 else boxes[i, 0] for i in words]
+        ).tolist()]
         # Eventually split line horizontally
         if len(words) < 2:
             lines.append(words)
@@ -111,7 +113,7 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 1, 2] - boxes[:, 1, 1] if len(boxes.shape) == 3 else boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 2, 1] - boxes[:, 1, 1] if len(boxes.shape) == 3 else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
         idxs = self._sort_boxes(boxes)
@@ -120,7 +122,7 @@ class DocumentBuilder(NestedObject):
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
         if len(boxes.shape) == 3:
-            y_center_sum = boxes[idxs[0]][[[1, 2], [1, 1]]].mean()
+            y_center_sum = boxes[idxs[0]][[[2, 1], [1, 1]]].mean()
         else:
             y_center_sum = boxes[idxs[0]][[1, 3]].mean()
 
@@ -129,7 +131,7 @@ class DocumentBuilder(NestedObject):
 
             # Compute y_dist
             if len(boxes.shape) == 3:
-                y_dist = abs(boxes[idx][[[1, 2], [1, 1]]].mean() - y_center_sum / len(words))
+                y_dist = abs(boxes[idx][[[2, 1], [1, 1]]].mean() - y_center_sum / len(words))
             else:
                 y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
             # If y-center of the box is close enough to mean y-center of the line, same line
@@ -144,7 +146,7 @@ class DocumentBuilder(NestedObject):
 
             words.append(idx)
             if len(boxes.shape) == 3:
-                y_center_sum += boxes[idx][[[1, 2], [1, 1]]].mean()
+                y_center_sum += boxes[idx][[[2, 1], [1, 1]]].mean()
             else:
                 y_center_sum += boxes[idx][[1, 3]].mean()
 

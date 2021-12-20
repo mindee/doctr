@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pytest
 import requests
+from copy import deepcopy
 
 from doctr.io import DocumentFile, reader
 from doctr.models._utils import estimate_orientation, extract_crops, extract_rcrops, get_bitmap_angle
@@ -47,13 +48,15 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 def test_extract_rcrops(mock_pdf):  # noqa: F811
     doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
     num_crops = 2
-    rel_boxes = np.array([[idx / num_crops + .1, idx / num_crops + .1, .1, .1, 0]
-                          for idx in range(num_crops)], dtype=np.float32)
-    abs_boxes = np.array([[int((idx / num_crops + .1) * doc_img.shape[1]),
-                           int((idx / num_crops + .1) * doc_img.shape[0]),
-                           int(.1 * doc_img.shape[1]),
-                           int(.1 * doc_img.shape[0]), 0]
-                          for idx in range(num_crops)], dtype=int)
+    rel_boxes = np.array([[[idx / num_crops, idx / num_crops],
+                           [idx / num_crops + .1, idx / num_crops],
+                           [idx / num_crops + .1, idx / num_crops + .1],
+                           [idx / num_crops, idx / num_crops]]
+                           for idx in range(num_crops)], dtype=np.float32)
+    abs_boxes = deepcopy(rel_boxes)
+    abs_boxes[:, :, 0] *= doc_img.shape[1]
+    abs_boxes[:, :, 1] *= doc_img.shape[0]
+    abs_boxes = abs_boxes.astype(np.int)
 
     with pytest.raises(AssertionError):
         extract_rcrops(doc_img, np.zeros((1, 8)))
@@ -66,7 +69,7 @@ def test_extract_rcrops(mock_pdf):  # noqa: F811
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # No box
-    assert extract_rcrops(doc_img, np.zeros((0, 5))) == []
+    assert extract_rcrops(doc_img, np.zeros((0, 4, 2))) == []
 
 
 @pytest.fixture(scope="function")

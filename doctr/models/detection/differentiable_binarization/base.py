@@ -84,7 +84,7 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else expanded_points
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else cv2.boxPoints(cv2.minAreaRect(expanded_points))
 
     def bitmap_to_boxes(
         self,
@@ -128,7 +128,11 @@ class DBPostProcessor(DetectionPostProcessor):
             else:
                 _box = self.polygon_to_box(np.squeeze(contour))
 
-            if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
+            # Remove too small boxes
+            if self.assume_straight_pages:
+                if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
+                    continue
+            elif abs(_box[0, 0] - _box[2, 0]) < min_size_box or abs(_box[0, 1] - _box[2, 1]) < min_size_box:
                 continue
 
             if self.assume_straight_pages:
