@@ -222,7 +222,7 @@ class MobileNetV3(Sequential):
 def _mobilenet_v3(
     arch: str,
     pretrained: bool,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
 ) -> MobileNetV3:
     _cfg = deepcopy(default_cfgs[arch])
