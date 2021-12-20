@@ -5,6 +5,7 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
@@ -15,7 +16,7 @@ from ....datasets import VOCABS
 from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large",
-           "mobilenet_v3_large_r"]
+           "mobilenet_v3_large_r", "mobilenet_v3_small_orientation"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -24,6 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
+        'classes': list(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
     'mobilenet_v3_large_r': {
@@ -31,6 +33,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
+        'classes': list(VOCABS['french']),
         'url': None,
     },
     'mobilenet_v3_small': {
@@ -38,6 +41,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
+        'classes': list(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
     },
     'mobilenet_v3_small_r': {
@@ -45,8 +49,16 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
+        'classes': list(VOCABS['french']),
         'url': None,
-    }
+    },
+    'mobilenet_v3_small_orientation': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (128, 128, 3),
+        'classes': [0, 90, 180, 270],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip'
+    },
 }
 
 
@@ -170,10 +182,11 @@ class MobileNetV3(Sequential):
     def __init__(
         self,
         layout: List[InvertedResidualConfig],
-        input_shape: Tuple[int, int, int],
+        input_shape: Optional[Tuple[int, int, int]],
         include_top: bool = False,
         head_chans: int = 1024,
         num_classes: int = 1000,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         _layers = [
@@ -202,6 +215,7 @@ class MobileNetV3(Sequential):
             ])
 
         super().__init__(_layers)
+        self.cfg = cfg
 
 
 def _mobilenet_v3(
@@ -210,7 +224,9 @@ def _mobilenet_v3(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> MobileNetV3:
-    input_shape = input_shape or default_cfgs[arch]['input_shape']
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
+    _cfg['num_classes'] = len(kwargs.get('classes', default_cfgs[arch]['classes']))
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
@@ -248,13 +264,15 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['vocab']))
+    kwargs['num_classes'] = _cfg['num_classes']
+    input_shape = _cfg['input_shape']
 
     # Build the model
     model = MobileNetV3(
         inverted_residual_setting,
         input_shape,
         head_chans=head_chans,
+        cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters
@@ -348,3 +366,25 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
         a keras.Model
     """
     return _mobilenet_v3('mobilenet_v3_large_r', pretrained, **kwargs)
+
+
+def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
+    """MobileNetV3-Small architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import mobilenet_v3_small_orientation
+        >>> model = mobilenet_v3_small_orientation(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        a keras.Model
+    """
+
+    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, include_top=True, **kwargs)

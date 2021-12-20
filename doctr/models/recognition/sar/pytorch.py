@@ -11,7 +11,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from ....datasets import VOCABS
-from ...backbones import resnet31
+from ...classification import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 

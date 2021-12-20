@@ -12,7 +12,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from ....datasets import VOCABS, decode_sequence
-from ...backbones import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
+from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
