@@ -9,9 +9,9 @@ from doctr.file_utils import is_tf_available, is_torch_available
 
 from .. import classification
 from ..preprocessor import PreProcessor
-from .predictor import OrientationClassifier
+from .predictor import CropOrientationPredictor
 
-__all__ = ["orientation_classifier"]
+__all__ = ["crop_orientation_predictor"]
 
 
 if is_tf_available():
@@ -20,11 +20,11 @@ elif is_torch_available():
     ARCHS = ['mobilenet_v3_small_orientation']
 
 
-def _orientation_classifier(
+def _crop_orientation_predictor(
     arch: str,
     pretrained: bool,
     **kwargs: Any
-) -> OrientationClassifier:
+) -> CropOrientationPredictor:
 
     if arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
@@ -35,24 +35,24 @@ def _orientation_classifier(
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 64)
     input_shape = _model.cfg['input_shape'][:-1] if is_tf_available() else _model.cfg['input_shape'][1:]
-    predictor = OrientationClassifier(
+    predictor = CropOrientationPredictor(
         PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs),
         _model
     )
     return predictor
 
 
-def orientation_classifier(
+def crop_orientation_predictor(
     arch: str = 'classif_mobilenet_v3_small',
     pretrained: bool = False,
     **kwargs: Any
-) -> OrientationClassifier:
+) -> CropOrientationPredictor:
     """Orientation classification architecture.
 
     Example::
         >>> import numpy as np
-        >>> from doctr.models import orientation_classifier
-        >>> model = orientaztion_classifier(arch='classif_mobilenet_v3_small', pretrained=True)
+        >>> from doctr.models import crop_orientation_predictor
+        >>> model = crop_orientation_predictor(arch='classif_mobilenet_v3_small', pretrained=True)
         >>> input_crop = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
         >>> out = model([input_crop])
 
@@ -61,7 +61,7 @@ def orientation_classifier(
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
 
     Returns:
-        Orientation classifier
+        CropOrientationPredictor
     """
 
-    return _orientation_classifier(arch, pretrained, **kwargs)
+    return _crop_orientation_predictor(arch, pretrained, **kwargs)

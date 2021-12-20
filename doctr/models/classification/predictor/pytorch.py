@@ -11,10 +11,10 @@ from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
 
-__all__ = ['OrientationClassifier']
+__all__ = ['CropOrientationPredictor']
 
 
-class OrientationClassifier(nn.Module):
+class CropOrientationPredictor(nn.Module):
     """Implements an object able to detect the reading direction of a text box.
     4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
 
