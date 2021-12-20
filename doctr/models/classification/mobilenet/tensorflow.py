@@ -268,7 +268,6 @@ def _mobilenet_v3(
     # Build the model
     model = MobileNetV3(
         inverted_residual_setting,
-        input_shape,
         head_chans=head_chans,
         cfg=_cfg,
         **kwargs,
