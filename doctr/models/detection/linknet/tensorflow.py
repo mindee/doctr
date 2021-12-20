@@ -13,7 +13,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Sequential, layers
 
-from doctr.models.backbones import ResnetStage
+from doctr.models.classification import ResnetStage
 from doctr.models.utils import conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
