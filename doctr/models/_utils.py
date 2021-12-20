@@ -206,8 +206,11 @@ def rectify_crops(
     3: 270 ccw, rotate 1 time ccw
     """
     # Inverse predictions (if angle of +90 is detected, rotate by -90)
-    orientations = [4 - pred for pred in orientations if pred != 0]
-    return [np.rot90(crop, orientation) for orientation, crop in zip(orientations, crops)]
+    orientations = [4 - pred if pred != 0 else 0 for pred in orientations]
+    return [
+        crop if orientation == 0 else np.rot90(crop, orientation)
+        for orientation, crop in zip(orientations, crops)
+    ]
 
 
 def rectify_loc_preds(
@@ -218,7 +221,7 @@ def rectify_loc_preds(
     so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
     """
     return np.stack(
-        [np.roll(
+        [page_loc_pred if orientation == 0 else np.roll(
             page_loc_pred,
             orientation,
             axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
