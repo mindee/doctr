@@ -70,11 +70,12 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
         # Work at a page level
-        rect_crops, rect_loc_preds = [], []
-        for page_crops, page_loc_preds in zip(crops, loc_preds):
-            orientations = self.crop_orientation_predictor(page_crops)
-            rect_crops.append(rectify_crops(page_crops, orientations))
-            rect_loc_preds.append(rectify_loc_preds(page_loc_preds, orientations))
+        orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]
+        rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
+        rect_loc_preds = [
+            rectify_loc_preds(page_loc_preds, orientation) for page_loc_preds, orientation
+            in zip(loc_preds, orientations)
+        ]
         return rect_crops, rect_loc_preds
 
     @staticmethod
