@@ -44,13 +44,12 @@ class IIIT5K(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.URL, file_name='IIIT5K-Word-V3.tar',
-                         file_hash=self.SHA256, extract_archive=True, **kwargs)
+        super().__init__(self.URL, None, file_hash=self.SHA256, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 
         # Load mat data
-        tmp_root = os.path.join(self.root, 'IIIT5K')
+        tmp_root = os.path.join(self.root, 'IIIT5K') if self.SHA256 else self.root
         mat_file = 'trainCharBound' if self.train else 'testCharBound'
         mat_data = sio.loadmat(os.path.join(tmp_root, f'{mat_file}.mat'))[mat_file][0]
 
