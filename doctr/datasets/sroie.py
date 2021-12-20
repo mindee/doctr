@@ -45,7 +45,7 @@ class SROIE(VisionDataset):
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
-        super().__init__(url, None, sha256, True, **kwargs)
+        super().__init__(url, None, sha256, True, convert_to_relative=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 

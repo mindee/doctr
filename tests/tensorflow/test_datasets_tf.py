@@ -51,6 +51,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     assert img.shape[:2] == input_size
     assert img.dtype == tf.float32
     # Bounding boxes
+    assert isinstance(target, dict)
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
     assert target['boxes'].shape[1] == 4

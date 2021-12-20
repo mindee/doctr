@@ -40,7 +40,7 @@ class IC13(AbstractDataset):
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
     ) -> None:
-        super().__init__(img_folder)
+        super().__init__(img_folder, convert_to_relative=True)
         self.sample_transforms = sample_transforms
 
         # File existence check
@@ -74,18 +74,3 @@ class IC13(AbstractDataset):
                                          (coords[3] - coords[1]), 0.0] for coords in box_targets], dtype=np_dtype)
 
             self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
-
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
-        img, target = self._read_sample(index)
-        h, w = self._get_img_shape(img)
-        if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
-
-        # Boxes
-        boxes = target['boxes'].copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
-        boxes = boxes.clip(0, 1)
-        target['boxes'] = boxes
-
-        return img, target

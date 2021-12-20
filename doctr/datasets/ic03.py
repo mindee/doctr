@@ -46,7 +46,7 @@ class IC03(VisionDataset):
     ) -> None:
 
         url, sha256, file_name = self.TRAIN if train else self.TEST
-        super().__init__(url, file_name, sha256, True, **kwargs)
+        super().__init__(url, file_name, sha256, True, convert_to_relative=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
@@ -84,16 +84,10 @@ class IC03(VisionDataset):
 
             # filter images without boxes
             if len(_boxes) > 0:
-                # Convert them to relative
-                w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
-                boxes = np.asarray(_boxes, dtype=np_dtype)
-                boxes[:, [0, 2]] /= w
-                boxes[:, [1, 3]] /= h
-
                 # Get the labels
                 labels = [lab.text for rect in rectangles for lab in rect if lab.text]
 
-                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
+                self.data.append((name.text, dict(boxes=np.asarray(_boxes, dtype=np_dtype), labels=labels)))
 
         self.root = tmp_root
 

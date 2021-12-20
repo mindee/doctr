@@ -52,6 +52,7 @@ class _CharacterGenerator(AbstractDataset):
         self.vocab = vocab
         self._num_samples = num_samples
         self.font_family = font_family
+        self.convert_to_relative = False
 
         self._data: List[Image.Image] = []
         if cache_samples:

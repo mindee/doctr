@@ -8,8 +8,6 @@ import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-import numpy as np
-
 from doctr.utils.data import download_from_url
 
 __all__ = ['_AbstractDataset', '_VisionDataset']
@@ -22,7 +20,7 @@ class _AbstractDataset:
     def __init__(
         self,
         root: Union[str, Path],
-        convert_to_relative: bool = True,
+        convert_to_relative: bool = False,
     ) -> None:
 
         if not Path(root).is_dir():
@@ -53,17 +51,15 @@ class _AbstractDataset:
             # typing issue cf. https://github.com/python/mypy/issues/5485
             img = self.sample_transforms(img)  # type: ignore[call-arg]
 
-        if isinstance(target, dict) and 'boxes' in target.keys() and self.convert_to_relative:
-            # Convert to relative coordinates if not already
-            if not np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0)):
-                h, w = self._get_img_shape(img)
+        if self.convert_to_relative:
+            h, w = self._get_img_shape(img)
 
-                # Boxes
-                boxes = target['boxes'].copy()
-                boxes[..., [0, 2]] /= w
-                boxes[..., [1, 3]] /= h
-                boxes = boxes.clip(0, 1)
-                target['boxes'] = boxes
+            # Boxes
+            boxes = target['boxes'].copy()
+            boxes[..., [0, 2]] /= w
+            boxes[..., [1, 3]] /= h
+            boxes = boxes.clip(0, 1)
+            target['boxes'] = boxes
 
         return img, target
 
@@ -86,6 +82,7 @@ class _VisionDataset(_AbstractDataset):
         overwrite: whether the archive should be re-extracted
         cache_dir: cache directory
         cache_subdir: subfolder to use in the cache
+        **kwargs: keyword arguments from `_AbstractDataset`.
     """
 
     def __init__(
@@ -98,6 +95,7 @@ class _VisionDataset(_AbstractDataset):
         overwrite: bool = False,
         cache_dir: Optional[str] = None,
         cache_subdir: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
 
         cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr') if cache_dir is None else cache_dir
@@ -119,4 +117,4 @@ class _VisionDataset(_AbstractDataset):
             if not dataset_path.is_dir() or overwrite:
                 shutil.unpack_archive(archive_path, dataset_path)
 
-        super().__init__(dataset_path if extract_archive else archive_path)
+        super().__init__(dataset_path if extract_archive else archive_path, **kwargs)

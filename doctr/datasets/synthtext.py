@@ -43,7 +43,7 @@ class SynthText(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, None, file_hash=None, extract_archive=True, **kwargs)
+        super().__init__(self.URL, None, file_hash=None, extract_archive=True, convert_to_relative=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
 

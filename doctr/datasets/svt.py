@@ -41,7 +41,7 @@ class SVT(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, None, self.SHA256, True, **kwargs)
+        super().__init__(self.URL, None, self.SHA256, True, convert_to_relative=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
@@ -76,16 +76,11 @@ class SVT(VisionDataset):
                      float(rect.attrib['y']) + float(rect.attrib['height'])]
                     for rect in rectangles
                 ]
-            # Convert them to relative
-            w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
-            boxes = np.asarray(_boxes, dtype=np_dtype)
-            boxes[:, [0, 2]] /= w
-            boxes[:, [1, 3]] /= h
 
             # Get the labels
             labels = [lab.text for rect in rectangles for lab in rect]
 
-            self.data.append((name.text, dict(boxes=boxes, labels=labels)))
+            self.data.append((name.text, dict(boxes=np.asarray(_boxes, dtype=np_dtype), labels=labels)))
 
         self.root = tmp_root
 

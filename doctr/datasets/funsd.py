@@ -43,7 +43,7 @@ class FUNSD(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
+        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, convert_to_relative=True, **kwargs)
         self.train = train
         self.sample_transforms = sample_transforms
 

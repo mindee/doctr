@@ -38,7 +38,7 @@ class DetectionDataset(AbstractDataset):
         sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
     ) -> None:
-        super().__init__(img_folder)
+        super().__init__(img_folder, convert_to_relative=True)
         self.sample_transforms = sample_transforms
         np_dtype = np.float32
 
@@ -63,22 +63,3 @@ class DetectionDataset(AbstractDataset):
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
             self.data.append((img_name, dict(boxes=np.asarray(boxes, dtype=np_dtype))))
-
-    def __getitem__(
-        self,
-        index: int
-    ) -> Tuple[Any, np.ndarray]:
-
-        img, target = self._read_sample(index)
-        h, w = self._get_img_shape(img)
-        if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
-
-        # Boxes
-        boxes = target['boxes'].copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
-        boxes = boxes.clip(0, 1)
-        target['boxes'] = boxes
-
-        return img, target
