@@ -8,8 +8,9 @@ from typing import List, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from ..classification import orientation_classifier
+
 from .._utils import extract_crops, extract_rcrops, rectify_crops, rectify_loc_preds
+from ..classification import orientation_classifier
 
 __all__ = ['_OCRPredictor']
 
