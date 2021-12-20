@@ -182,7 +182,7 @@ class MobileNetV3(Sequential):
     def __init__(
         self,
         layout: List[InvertedResidualConfig],
-        input_shape: Tuple[int, int, int],
+        input_shape: Optional[Tuple[int, int, int]],
         include_top: bool = False,
         head_chans: int = 1024,
         num_classes: int = 1000,
@@ -221,7 +221,7 @@ class MobileNetV3(Sequential):
 def _mobilenet_v3(
     arch: str,
     pretrained: bool,
-    input_shape: Tuple[int, int, int] = None,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> MobileNetV3:
     _cfg = deepcopy(default_cfgs[arch])
