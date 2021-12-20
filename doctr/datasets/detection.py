@@ -9,7 +9,6 @@ from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 
-from doctr.utils.geometry import fit_rbbox
 
 from .datasets import AbstractDataset
 
@@ -55,8 +54,7 @@ class DetectionDataset(AbstractDataset):
 
             polygons = np.asarray(label['polygons'])
             if rotated_bbox:
-                # Switch to rotated rects
-                boxes = np.asarray([list(fit_rbbox(poly)) for poly in polygons])
+                boxes = polygons
             else:
                 # Switch to xmin, ymin, xmax, ymax
                 boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)

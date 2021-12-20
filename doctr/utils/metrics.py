@@ -10,7 +10,6 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from unidecode import unidecode
 
-from doctr.utils.geometry import rbbox_to_polygon
 
 __all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_iou',
            'nms', 'LocalizationConfusion', 'OCRMetric', 'DetectionMetric']

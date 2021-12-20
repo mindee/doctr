@@ -10,8 +10,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from doctr.utils.geometry import fit_rbbox
-
 from .datasets import VisionDataset
 
 __all__ = ['CORD']
@@ -69,12 +67,12 @@ class CORD(VisionDataset):
                             x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
                             y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
                             if rotated_bbox:
-                                box = list(fit_rbbox(np.array([
+                                box = np.array([
                                     [x[0], y[0]],
                                     [x[1], y[1]],
                                     [x[2], y[2]],
                                     [x[3], y[3]],
-                                ], dtype=np.float32)))
+                                ], dtype=np.float32)
                             else:
                                 # Reduce 8 coords to 4
                                 box = [min(x), min(y), max(x), max(y)]

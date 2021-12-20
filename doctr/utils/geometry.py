@@ -9,38 +9,19 @@ from typing import List, Optional, Tuple, Union
 import cv2
 import numpy as np
 
-from .common_types import BoundingBox, Polygon4P, RotatedBbox
+from .common_types import BoundingBox, Polygon4P
 
-__all__ = ['rbbox_to_polygon', 'bbox_to_polygon', 'polygon_to_bbox', 'polygon_to_rbbox',
-           'resolve_enclosing_bbox', 'resolve_enclosing_bbox', 'fit_rbbox', 'rotate_boxes', 'rotate_abs_boxes',
-           'compute_expanded_shape', 'rotate_image']
+__all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
+           'rotate_boxes', 'rotate_abs_boxes', 'compute_expanded_shape', 'rotate_image']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
     return bbox[0], (bbox[1][0], bbox[0][1]), (bbox[0][0], bbox[1][1]), bbox[1]
 
 
-# TODO: deprecation warning (a rbbox is now a polygon)
-def rbbox_to_polygon(rbbox: RotatedBbox) -> Polygon4P:
-    (x, y, w, h, alpha) = rbbox
-    return cv2.boxPoints(((float(x), float(y)), (float(w), float(h)), -float(alpha)))
-
-
-# TODO: deprecation warning (a rbbox is now a polygon)
-def fit_rbbox(pts: np.ndarray) -> RotatedBbox:
-    ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
-    return x, y, h, w, 90 + alpha
-
-
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
     x, y = zip(*polygon)
     return (min(x), min(y)), (max(x), max(y))
-
-
-# TODO: deprecation warning (a rbbox is now a polygon)
-def polygon_to_rbbox(polygon: Polygon4P) -> RotatedBbox:
-    cnt = np.array(polygon).reshape((-1, 1, 2)).astype(np.float32)
-    return fit_rbbox(cnt)
 
 
 def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Union[BoundingBox, np.ndarray]:
@@ -61,7 +42,7 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
         return (min(x), min(y)), (max(x), max(y))
 
 
-def resolve_enclosing_rbbox(rbboxes: List[RotatedBbox]) -> Polygon4P:
+def resolve_enclosing_rbbox(rbboxes: List[np.ndarray]) -> Polygon4P:
     cloud = np.concatenate(rbboxes, axis=0)
     rect = cv2.minAreaRect(cloud)
     return cv2.boxPoints(rect)
@@ -209,14 +190,14 @@ def rotate_boxes(
     _boxes = loc_preds.copy()
     if _boxes.shape[1] == 5:
         _boxes = np.stack(
-        [
-            _boxes[:, [0, 1]],
-            _boxes[:, [2, 1]],
-            _boxes[:, [2, 3]],
-            _boxes[:, [0, 3]],
-        ],
-        axis=1
-    )
+            [
+                _boxes[:, [0, 1]],
+                _boxes[:, [2, 1]],
+                _boxes[:, [2, 3]],
+                _boxes[:, [0, 3]],
+            ],
+            axis=1
+        )
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return _boxes

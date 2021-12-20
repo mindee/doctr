@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 from PIL import Image, ImageDraw
 from unidecode import unidecode
 
-from .common_types import BoundingBox, RotatedBbox
+from .common_types import BoundingBox
 from .fonts import get_font
 
 __all__ = ['visualize_page', 'synthesize_page', 'draw_boxes']

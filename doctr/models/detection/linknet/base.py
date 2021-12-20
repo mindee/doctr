@@ -12,7 +12,6 @@ import numpy as np
 
 from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 from ..core import DetectionPostProcessor
 
@@ -135,17 +134,15 @@ class _LinkNet(BaseModel):
 
             # Absolute bounding boxes
             abs_boxes = _target.copy()
-            abs_boxes[:, [0, 2]] *= w
-            abs_boxes[:, [1, 3]] *= h
-            abs_boxes = abs_boxes.round().astype(np.int32)
 
-            # Convert to polygons --> (N, 4, 2)
-            if abs_boxes.shape[1] == 5:
-                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([
-                    rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
-                ], axis=0)
+            if len(abs_boxes.shape()) == 3:
+                abs_boxes[:, :, 0] *= w
+                abs_boxes[:, :, 1] *= h
+                polys = abs_boxes
             else:
+                abs_boxes[:, [0, 2]] *= w
+                abs_boxes[:, [1, 3]] *= h
+                abs_boxes = abs_boxes.round().astype(np.int32)
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = [None] * abs_boxes.shape[0]  # Unused
 

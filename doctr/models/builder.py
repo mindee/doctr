@@ -143,7 +143,10 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][[[1, 2], [1, 1]] if len(boxes.shape) == 3 else [1, 3]].mean()
+            if len(boxes.shape) == 3:
+                y_center_sum += boxes[idx][[[1, 2], [1, 1]]].mean()
+            else:
+                y_center_sum += boxes[idx][[1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -166,7 +169,8 @@ class DocumentBuilder(NestedObject):
         # Resolve enclosing boxes of lines
         if len(boxes.shape) == 3:
             box_lines = np.asarray([
-                resolve_enclosing_rbbox([tuple(boxes[idx, :5]) for idx in line]) for line in lines  # type: ignore[misc]
+                resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])
+                for line in lines  # type: ignore[misc]
             ])
         else:
             _box_lines = [
