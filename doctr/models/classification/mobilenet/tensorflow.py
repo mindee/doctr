@@ -57,7 +57,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (128, 128, 3),
         'classes': [0, 90, 180, 270],
-        'include_top': True,
         'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip'
     },
 }
@@ -228,7 +227,6 @@ def _mobilenet_v3(
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
     _cfg['num_classes'] = len(kwargs.get('classes', default_cfgs[arch]['classes']))
-    _cfg['include_top'] = len(kwargs.get('include_top', default_cfgs[arch]['include_top']))
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
@@ -266,7 +264,6 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    kwargs['incude_top'] = _cfg['include_top']
     kwargs['num_classes'] = _cfg['num_classes']
     input_shape = _cfg['input_shape']
 
@@ -390,4 +387,4 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> M
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, **kwargs)
+    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, include_top=True, **kwargs)
