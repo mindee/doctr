@@ -12,10 +12,10 @@ from tensorflow import keras
 from doctr.models.preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 
-__all__ = ['OrientationClassifier']
+__all__ = ['CropOrientationPredictor']
 
 
-class OrientationClassifier(NestedObject):
+class CropOrientationPredictor(NestedObject):
     """Implements an object able to detect the reading direction of a text box.
     4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
 

@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
-        'num_classes': len(VOCABS['legacy_french']),
+        'classes': list(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
     },
     'mobilenet_v3_large_r': {
@@ -33,7 +33,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
-        'num_classes': len(VOCABS['french']),
+        'classes': list(VOCABS['french']),
         'url': None,
     },
     'mobilenet_v3_small': {
@@ -41,7 +41,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
-        'num_classes': len(VOCABS['legacy_french']),
+        'classes': list(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
     },
     'mobilenet_v3_small_r': {
@@ -49,14 +49,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
-        'num_classes': len(VOCABS['french']),
+        'classes': list(VOCABS['french']),
         'url': None,
     },
     'mobilenet_v3_small_orientation': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (128, 128, 3),
-        'num_classes': 4,
+        'classes': [0, 90, 180, 270],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip'
     },
 }
@@ -263,7 +263,7 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    _cfg['num_classes'] = kwargs.get('num_classes', default_cfgs[arch]['num_classes'])
+    _cfg['num_classes'] = len(kwargs.get('classes', default_cfgs[arch]['classes']))
 
     # Build the model
     model = MobileNetV3(
