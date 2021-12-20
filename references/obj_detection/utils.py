@@ -16,7 +16,6 @@ import references.obj_detection.shadow_ellipse as ellipse
 import references.obj_detection.shadow_polygon as polygon
 import references.obj_detection.shadow_single as single
 import torch
-from doctr.transforms.functional.pytorch import rotate
 from matplotlib.cm import get_cmap
 from torchvision import transforms
 
@@ -50,33 +49,15 @@ def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray, height):
 def data_augmentations(targets, max_angle, **kwargs):
     bbox = np.array([i["boxes"] for i in targets])
     images = kwargs.get('images', )
-    height = kwargs.get('height', )
-    width = kwargs.get('width', )
-    angle = 2 * max_angle * (np.random.rand(len(targets)) - 1)
     images = images.permute(0, 2, 3, 1).numpy()
     images = images * 255
-    # shadows
-    for val in images:
-        if np.random.rand() > .5:
-            val = add_n_random_shadows(val)
+    # shadows and speckle noise
+    for val in range(len(images)):
+        if np.random.rand() > 0.5:
+            images[val] = add_n_random_shadows(images[val])
         else:
-            val = get_random_speckle_noise(val)
+            images[val] = get_random_speckle_noise(images[val])
     images = torch.from_numpy(images).permute(0, 3, 1, 2)
-    bb_new = []
-    for ids, vals in enumerate(bbox):
-        images[ids], bb = rotate(images[ids], vals,
-                                 angle[ids] if np.random.rand() > .5 else -1 * angle[ids])
-        bbox_t = bb[:, :4]
-        for z in range(len(vals)):
-            bbox_t[z][0] = vals[z][0] - vals[z][2] / 2
-            bbox_t[z][1] = vals[z][1] - vals[z][3] / 2
-            bbox_t[z][2] = bbox_t[z][0] + vals[z][2]
-            bbox_t[z][3] = bbox_t[z][1] + vals[z][3]
-        bb = bbox_t
-        bb_new.append(bb)
-    del bbox
-    images, bbox = random_vertical_flip(images, bb_new, height)
-    images, bbox = random_horizontal_flip(images, bbox, width)
     images = images / 255
     targets = [{
         "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
