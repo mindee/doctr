@@ -92,7 +92,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - name: Run isort
+      - name: Run pydocstyle
         run: |
           pip install pydocstyle
           pydocstyle --version

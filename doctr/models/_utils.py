@@ -184,3 +184,18 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
             angle = 90 + angle
 
     return angle
+
+
+def rectify_crops(
+    crops: List[np.ndarray],
+    orientations: List[int],
+) -> List[np.ndarray]:
+    """Rotate each crop of the list according to the predicted orientation:
+    0: already straight, no rotation
+    1: 90 ccw, rotate 3 times ccw
+    2: 180, rotate 2 times ccw
+    3: 270 ccw, rotate 1 time ccw
+    """
+    # Inverse predictions (if angle of +90 is detected, rotate by -90)
+    orientations = [4 - pred for pred in orientations if pred != 0]
+    return [np.rot90(crop, orientation) for orientation, crop in zip(orientations, crops)]
