@@ -47,7 +47,7 @@ class SVHN(VisionDataset):
     ) -> None:
 
         url, sha256, name = self.TRAIN if train else self.TEST
-        super().__init__(url=url, file_name=name, file_hash=sha256, extract_archive=True, **kwargs)
+        super().__init__(url, file_name=name, file_hash=sha256, extract_archive=True, **kwargs)
         self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []

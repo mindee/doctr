@@ -73,7 +73,7 @@ class FUNSD(VisionDataset):
                     ] for box in box_targets
                 ]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=text_targets)))
+            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=list(text_targets))))
 
         self.root = tmp_root
 

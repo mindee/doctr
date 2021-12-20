@@ -44,7 +44,7 @@ class DBPostProcessor(DetectionPostProcessor):
             bin_thresh,
             assume_straight_pages
         )
-        self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
+        self.unclip_ratio = 1.5
 
     def polygon_to_box(
         self,
@@ -58,8 +58,18 @@ class DBPostProcessor(DetectionPostProcessor):
         Returns:
             a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
-        poly = Polygon(points)
-        distance = poly.area * self.unclip_ratio / poly.length  # compute distance to expand polygon
+        if not self.assume_straight_pages:
+            # Compute the rectangle polygon enclosing the raw polygon
+            rect = cv2.minAreaRect(points)
+            points = cv2.boxPoints(rect)
+            # Add 1 pixel to correct cv2 approx
+            area = (rect[1][0] + 1) * (1 + rect[1][1])
+            length = 2 * (rect[1][0] + rect[1][1]) + 2
+        else:
+            poly = Polygon(points)
+            area = poly.area
+            length = poly.length
+        distance = area * self.unclip_ratio / length  # compute distance to expand polygon
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
         _points = offset.Execute(distance)

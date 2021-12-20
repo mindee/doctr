@@ -29,7 +29,7 @@ def rbbox_to_polygon(rbbox: RotatedBbox) -> Polygon4P:
 # TODO: deprecation warning (a rbbox is now a polygon)
 def fit_rbbox(pts: np.ndarray) -> RotatedBbox:
     ((x, y), (w, h), alpha) = cv2.minAreaRect(pts)
-    return x, y, h, w, 90 - alpha
+    return x, y, h, w, 90 + alpha
 
 
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
