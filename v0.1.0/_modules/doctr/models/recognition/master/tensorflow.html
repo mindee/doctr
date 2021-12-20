@@ -201,7 +201,7 @@
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">layers</span>
 
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
-<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">backbones</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">classification</span>
 
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">..transformer</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">create_look_ahead_mask</span><span class="p">,</span> <span class="n">create_padding_mask</span><span class="p">,</span> <span class="n">positional_encoding</span>
@@ -460,7 +460,7 @@
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">MASTER</span><span class="p">(</span>
-        <span class="n">backbones</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]),</span>
+        <span class="n">classification</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]),</span>
         <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
