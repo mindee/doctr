@@ -32,7 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def decoder_block(in_chan: int, out_chan: int) -> Sequential:
+def decoder_block(in_chan: int, out_chan: int, stride: int) -> Sequential:
     """Creates a LinkNet decoder block"""
 
     return Sequential([
@@ -40,7 +40,7 @@ def decoder_block(in_chan: int, out_chan: int) -> Sequential:
         layers.Conv2DTranspose(
             filters=in_chan // 4,
             kernel_size=3,
-            strides=2,
+            strides=stride,
             padding="same",
             use_bias=False,
             kernel_initializer='he_normal'
@@ -59,14 +59,14 @@ class LinkNetFPN(layers.Layer, NestedObject):
     ) -> None:
 
         super().__init__()
-        self.encoder_1 = ResnetStage(num_blocks=2, output_channels=64, downsample=True)
+        self.encoder_1 = ResnetStage(num_blocks=2, output_channels=64, downsample=False)
         self.encoder_2 = ResnetStage(num_blocks=2, output_channels=128, downsample=True)
         self.encoder_3 = ResnetStage(num_blocks=2, output_channels=256, downsample=True)
         self.encoder_4 = ResnetStage(num_blocks=2, output_channels=512, downsample=True)
-        self.decoder_1 = decoder_block(in_chan=64, out_chan=64)
-        self.decoder_2 = decoder_block(in_chan=128, out_chan=64)
-        self.decoder_3 = decoder_block(in_chan=256, out_chan=128)
-        self.decoder_4 = decoder_block(in_chan=512, out_chan=256)
+        self.decoder_1 = decoder_block(in_chan=64, out_chan=64, stride=1)
+        self.decoder_2 = decoder_block(in_chan=128, out_chan=64, stride=2)
+        self.decoder_3 = decoder_block(in_chan=256, out_chan=128, stride=2)
+        self.decoder_4 = decoder_block(in_chan=512, out_chan=256, stride=2)
 
     def call(
         self,
