@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from io import BytesIO
 
+import fitz
 import hdf5storage
 import numpy as np
 import pytest
@@ -17,15 +18,33 @@ def mock_vocab():
 
 
 @pytest.fixture(scope="session")
-def mock_pdf_stream():
-    url = 'https://arxiv.org/pdf/1911.08947.pdf'
+def mock_pdf(tmpdir_factory):
+
+    doc = fitz.open()
+
+    page = doc.newPage()
+    page.insertText(fitz.Point(50, 100), "I am a jedi!", fontsize=20)
+    page = doc.newPage()
+    page.insertText(fitz.Point(50, 100), "No, I am your father.", fontsize=20)
+
+    # Save the PDF
+    fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
+    with open(fn, 'wb') as f:
+        doc.save(f)
+
+    return str(fn)
+
+
+@pytest.fixture(scope="session")
+def mock_text_box_stream():
+    url = 'https://www.pngitem.com/pimgs/m/357-3579845_love-neon-loveislove-word-text-typography-freetoedit-picsart.png'
     return requests.get(url).content
 
 
 @pytest.fixture(scope="session")
-def mock_pdf(mock_pdf_stream, tmpdir_factory):
-    file = BytesIO(mock_pdf_stream)
-    fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
+def mock_text_box(mock_text_box_stream, tmpdir_factory):
+    file = BytesIO(mock_text_box_stream)
+    fn = tmpdir_factory.mktemp("data").join("mock_text_box_file.png")
     with open(fn, 'wb') as f:
         f.write(file.getbuffer())
     return str(fn)

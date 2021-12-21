@@ -13,7 +13,8 @@ from doctr.datasets import VOCABS
 
 from ...utils import load_pretrained_params
 
-__all__ = ["mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large", "mobilenet_v3_large_r"]
+__all__ = ["mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large",
+           "mobilenet_v3_large_r", "mobilenet_v3_small_orientation"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -22,6 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
         'vocab': VOCABS['legacy_french'],
+        'classes': list(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-a0aea820.pt',
     },
     'mobilenet_v3_large_r': {
@@ -30,6 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 32, 32),
         'rect_stride': ['features.4.block.1.0', 'features.7.block.1.0', 'features.13.block.1.0'],
         'vocab': VOCABS['french'],
+        'classes': list(VOCABS['french']),
         'url': None,
     },
     'mobilenet_v3_small': {
@@ -37,6 +40,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
         'vocab': VOCABS['legacy_french'],
+        'classes': list(VOCABS['legacy_french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-69c7267d.pt',
     },
     'mobilenet_v3_small_r': {
@@ -45,7 +49,15 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 32, 32),
         'rect_stride': ['features.2.block.1.0', 'features.4.block.1.0', 'features.9.block.1.0'],
         'vocab': VOCABS['french'],
+        'classes': list(VOCABS['french']),
         'url': None,
+    },
+    'mobilenet_v3_small_orientation': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 128, 128),
+        'classes': [0, 90, 180, 270],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-24f8ff57.pt'
     },
 }
 
@@ -56,7 +68,7 @@ def _mobilenet_v3(
     **kwargs: Any
 ) -> mobilenetv3.MobileNetV3:
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['vocab']))
+    kwargs['num_classes'] = len(kwargs.get('classes', default_cfgs[arch]['classes']))
 
     if arch.startswith("mobilenet_v3_small"):
         model = mobilenetv3.mobilenet_v3_small(**kwargs)
@@ -74,6 +86,8 @@ def _mobilenet_v3(
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    model.cfg = default_cfgs[arch]
 
     return model
 
@@ -162,3 +176,25 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
         a torch.nn.Module
     """
     return _mobilenet_v3('mobilenet_v3_large_r', pretrained, **kwargs)
+
+
+def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.MobileNetV3:
+    """MobileNetV3-Small architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import mobilenet_v3_small_orientation
+        >>> model = mobilenet_v3_small_orientation(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        a torch.nn.Module
+    """
+
+    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, **kwargs)

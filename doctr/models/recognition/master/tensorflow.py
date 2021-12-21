@@ -10,7 +10,7 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
-from doctr.models import backbones
+from doctr.models import classification
 
 from ...utils import load_pretrained_params
 from ..transformer import Decoder, create_look_ahead_mask, create_padding_mask, positional_encoding
@@ -269,7 +269,7 @@ def _master(
 
     # Build the model
     model = MASTER(
-        backbones.__dict__[_cfg['backbone']](pretrained=pretrained_backbone, input_shape=_cfg['input_shape']),
+        classification.__dict__[_cfg['backbone']](pretrained=pretrained_backbone, input_shape=_cfg['input_shape']),
         cfg=_cfg,
         **kwargs,
     )
