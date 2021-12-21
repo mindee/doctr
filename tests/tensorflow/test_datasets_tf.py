@@ -18,7 +18,7 @@ def _validate_dataset(ds, input_size, batch_size=2, relative_coords=True, class_
     assert img.shape == (*input_size, 3)
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
-    assert isinstance(target['boxes'], np.ndarray)
+    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     if relative_coords:
         assert np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0))
     if class_indices:

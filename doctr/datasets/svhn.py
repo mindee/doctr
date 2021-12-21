@@ -91,7 +91,7 @@ class SVHN(VisionDataset):
                         coords[:, 1] + coords[:, 3] / 2,
                         coords[:, 2],
                         coords[:, 3],
-                        np.zeros(coords.shape[0], dtype=np.dtype),
+                        np.zeros(coords.shape[0], dtype=np_dtype),
                     ], axis=-1)
                 else:
                     # x, y, width, height -> xmin, ymin, xmax, ymax

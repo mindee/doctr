@@ -65,8 +65,7 @@ class SROIE(VisionDataset):
 
             labels = [",".join(row[8:]) for row in _rows]
             # reorder coordinates (8 -> (4,2)) and filter empty lines
-            coords = np.stack([np.array(list(map(int, row[:8])), dtype=np_dtype).reshape((4, 2))
-                              for row in _rows], axis=0)
+            coords = np.stack([np.array(list(map(int, row[:8]))).reshape((4, 2)) for row in _rows], axis=0)
 
             if rotated_bbox:
                 # x_center, y_center, w, h, alpha = 0
@@ -78,7 +77,7 @@ class SROIE(VisionDataset):
                 # xmin, ymin, xmax, ymax
                 box_targets = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
 
-            self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
+            self.data.append((img_path, dict(boxes=box_targets.astype(np_dtype), labels=labels)))
 
         self.root = tmp_root
 
