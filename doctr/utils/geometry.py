@@ -42,10 +42,12 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
         return (min(x), min(y)), (max(x), max(y))
 
 
-def resolve_enclosing_rbbox(rbboxes: List[np.ndarray]) -> Polygon4P:
+def resolve_enclosing_rbbox(rbboxes: List[np.ndarray]) -> np.ndarray:
     cloud = np.concatenate(rbboxes, axis=0)
-    rect = cv2.minAreaRect(cloud)
-    return cv2.boxPoints(rect)
+    # Convert to absolute for minAreaRect
+    cloud *= 1024
+    rect = cv2.minAreaRect(cloud.astype(np.int32))
+    return cv2.boxPoints(rect) / 1024
 
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:

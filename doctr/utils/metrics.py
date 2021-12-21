@@ -291,8 +291,7 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
 
         # TODO: optimize slicing to improve vectorization
         for idx, _box in enumerate(abs_boxes):
-            cv2.fillPoly(masks[idx], [abs_boxes], 1)
-
+            cv2.fillPoly(masks[idx], [_box], 1)
     return masks.astype(bool)
 
 

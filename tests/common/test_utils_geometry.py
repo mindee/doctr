@@ -21,26 +21,13 @@ def test_resolve_enclosing_bbox():
     assert pred.all() == np.array([0.1, 0.1, 0.2, 0.2, 0.85]).all()
 
 
-def test_rbbox_to_polygon():
-    # Non-rotated
-    assert (
-        geometry.rbbox_to_polygon((.1, .1, .2, .2, 0)) == np.array([[0, .2], [0, 0], [.2, 0], [.2, .2]], np.float32)
-    ).all()
-    # Rotate by 90° a non-squared rectangle
-    poly = geometry.rbbox_to_polygon((100, 100, 40, 10, 90))
-    assert (poly == np.array([[105, 120], [95, 120], [95, 80], [105, 80]])).all()
-
-
-def test_polygon_to_rbbox():
-    pred = geometry.polygon_to_rbbox([[105, 120], [95, 120], [95, 80], [105, 80]])
-    # Accept both possibilities
-    assert (pred == (100, 100, 10, 40, 180)) or (pred == (100, 100, 40, 10, 90))
-
-
 def test_resolve_enclosing_rbbox():
-    pred = geometry.resolve_enclosing_rbbox([(.2, .2, .05, .05, 0), (.2, .2, .2, .2, 0)])[:4]
-    target = (.2, .2, .2, .2)
-    assert all(abs(i - j) <= 1e-7 for (i, j) in zip(pred, target))
+    pred = geometry.resolve_enclosing_rbbox([
+        np.asarray([[.1, .1], [.2, .2], [.15, .25], [.05, .15]]),
+        np.asarray([[.5, .5], [.6, .6], [.55, .65], [.45, .55]])
+    ])
+    target = np.asarray([[.55, .65], [.05, .15], [.1, .1], [.6, .6]])
+    assert np.all(target - pred <= 1e-3)
 
 
 def test_remap_boxes():
@@ -93,12 +80,7 @@ def test_remap_boxes():
 
 def test_rotate_boxes():
     boxes = np.array([[0.1, 0.1, 0.8, 0.3, 0.5]])
-    rboxes = np.column_stack(((boxes[:, 0] + boxes[:, 2]) / 2,
-                             (boxes[:, 1] + boxes[:, 3]) / 2,
-                             boxes[:, 2] - boxes[:, 0],
-                             boxes[:, 3] - boxes[:, 1],
-                             np.zeros(boxes.shape[0]),
-                             boxes[:, 4]))
+    rboxes = np.array([[0.1, 0.1], [0.8, 0.1], [0.8, 0.3], [0.1, 0.3]])
     # Angle = 0
     rotated = geometry.rotate_boxes(boxes, angle=0., orig_shape=(1, 1))
     assert np.all(rotated == rboxes)
@@ -107,16 +89,15 @@ def test_rotate_boxes():
     assert np.all(rotated == rboxes)
     # Angle = 30
     rotated = geometry.rotate_boxes(boxes, angle=30, orig_shape=(1, 1))
-    assert rotated.shape == (1, 6)
-    assert rotated[0, 4] == 30.
+    assert rotated.shape == (1, 4, 2)
 
     boxes = np.array([[0., 0., 0.6, 0.2, 0.5]])
     # Angle = -90:
     rotated = geometry.rotate_boxes(boxes, angle=-90, orig_shape=(1, 1), min_angle=0)
-    assert np.allclose(rotated, np.array([[0.9, 0.3, 0.6, 0.2, -90., 0.5]]))
+    assert np.allclose(rotated, np.array([[[1. , 0. ], [1. , 0.6], [0.8, 0.6], [0.8, 0. ]]]))
     # Angle = 90
     rotated = geometry.rotate_boxes(boxes, angle=+90, orig_shape=(1, 1), min_angle=0)
-    assert np.allclose(rotated, np.array([[0.1, 0.7, 0.6, 0.2, +90., 0.5]]))
+    assert np.allclose(rotated, np.array([[[0. , 1. ], [0. , 0.4], [0.2, 0.4], [0.2, 1. ]]]))
 
 
 def test_rotate_image():
