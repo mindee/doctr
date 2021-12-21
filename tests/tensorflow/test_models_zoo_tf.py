@@ -22,10 +22,15 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
     det_bsize = 4
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
-        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, input_shape=(512, 512, 3))
+        detection.db_mobilenet_v3_large(
+            pretrained=False,
+            pretrained_backbone=False,
+            input_shape=(512, 512, 3),
+            assume_straight_pages=assume_straight_pages,
+        )
     )
 
-    reco_bsize = 32
+    reco_bsize = 16
     reco_predictor = RecognitionPredictor(
         PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
         recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)

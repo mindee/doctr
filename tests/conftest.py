@@ -23,9 +23,9 @@ def mock_pdf(tmpdir_factory):
     doc = fitz.open()
 
     page = doc.newPage()
-    page.insertText(fitz.Point(50, 100), "I am a jedi!", fontsize=50)
+    page.insertText(fitz.Point(50, 100), "I am a jedi!", fontsize=20)
     page = doc.newPage()
-    page.insertText(fitz.Point(50, 100), "No, I am your father.", fontsize=50)
+    page.insertText(fitz.Point(50, 100), "No, I am your father.", fontsize=20)
 
     # Save the PDF
     fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
