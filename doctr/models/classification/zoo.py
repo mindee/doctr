@@ -43,7 +43,7 @@ def _crop_orientation_predictor(
 
 
 def crop_orientation_predictor(
-    arch: str = 'classif_mobilenet_v3_small',
+    arch: str = 'mobilenet_v3_small_orientation',
     pretrained: bool = False,
     **kwargs: Any
 ) -> CropOrientationPredictor:
