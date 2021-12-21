@@ -10,43 +10,42 @@ from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 
 
-def test_ocrpredictor(mock_pdf, mock_vocab):
-    batch_size = 4
-    detectionpredictor = DetectionPredictor(
-        PreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(pretrained=False).eval()
+@pytest.mark.parametrize(
+    "assume_straight_pages, straighten_pages",
+    [
+        [True, False],
+        [True, True],
+    ]
+)
+def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
+    det_bsize = 4
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=det_bsize),
+        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False)
     )
 
-    recognitionpredictor = RecognitionPredictor(
-        PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),
-        recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3))
+    assert not det_predictor.model.training
+
+    reco_bsize = 32
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
     )
 
-    predictor = OCRPredictor(
-        detectionpredictor,
-        recognitionpredictor,
-        assume_straight_pages=True,
-        straighten_pages=False,
-    )
-
-    s_predictor = OCRPredictor(
-        detectionpredictor,
-        recognitionpredictor,
-        assume_straight_pages=True,
-        straighten_pages=True,
-    )
+    assert not reco_predictor.model.training
 
     doc = DocumentFile.from_pdf(mock_pdf).as_images()
+
+    predictor = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=assume_straight_pages,
+        straighten_pages=straighten_pages,
+    )
+
     out = predictor(doc)
-    s_out = s_predictor(doc)
-
-    # Document
     assert isinstance(out, Document)
-    assert isinstance(s_out, Document)
-
-    # The input PDF has 8 pages
-    assert len(out.pages) == 8
-    assert len(s_out.pages) == 8
+    assert len(out.pages) == 2
     # Dimension check
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
@@ -70,7 +69,7 @@ def test_zoo_models(det_arch, reco_arch):
     # Document
     assert isinstance(out, Document)
 
-    # The input PDF has 8 pages
+    # The input doc has 1 page
     assert len(out.pages) == 1
     # Dimension check
     with pytest.raises(ValueError):

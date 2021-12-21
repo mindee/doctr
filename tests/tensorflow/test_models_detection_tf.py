@@ -79,8 +79,8 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
-    # The input PDF has 8 pages
-    assert len(out) == 8
+    # The input PDF has 2 pages
+    assert len(out) == 2
 
     # Dimension check
     with pytest.raises(ValueError):
@@ -102,8 +102,8 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
 
-    # The input PDF has 8 pages
-    assert len(out) == 8
+    # The input PDF has 2 pages
+    assert len(out) == 2
 
     # Dimension check
     with pytest.raises(ValueError):

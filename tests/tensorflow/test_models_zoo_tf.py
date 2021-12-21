@@ -1,52 +1,48 @@
 import numpy as np
 import pytest
-from test_models_detection_tf import test_detectionpredictor, test_rotated_detectionpredictor  # noqa: F401
-from test_models_recognition_tf import test_recognitionpredictor  # noqa: F401
 
 from doctr import models
 from doctr.io import Document, DocumentFile
+from doctr.models import detection, recognition
+from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.predictor import OCRPredictor
+from doctr.models.preprocessor import PreProcessor
+from doctr.models.recognition.predictor import RecognitionPredictor
 
 
-def test_ocrpredictor(
-    mock_pdf, test_detectionpredictor, test_recognitionpredictor, test_rotated_detectionpredictor  # noqa: F811
-):
-
-    predictor = OCRPredictor(
-        test_detectionpredictor,
-        test_recognitionpredictor,
-        assume_straight_pages=True,
-        straighten_pages=False,
+@pytest.mark.parametrize(
+    "assume_straight_pages, straighten_pages",
+    [
+        [True, False],
+        [False, False],
+        [True, True],
+    ]
+)
+def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
+    det_bsize = 4
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=det_bsize),
+        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, input_shape=(512, 512, 3))
     )
 
-    r_predictor = OCRPredictor(
-        test_rotated_detectionpredictor,
-        test_recognitionpredictor,
-        assume_straight_pages=False,
-        straighten_pages=False,
-    )
-
-    s_predictor = OCRPredictor(
-        test_detectionpredictor,
-        test_recognitionpredictor,
-        assume_straight_pages=True,
-        straighten_pages=True,
+    reco_bsize = 32
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
     )
 
     doc = DocumentFile.from_pdf(mock_pdf).as_images()
+
+    predictor = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=assume_straight_pages,
+        straighten_pages=straighten_pages,
+    )
+
     out = predictor(doc)
-    r_out = r_predictor(doc)
-    s_out = s_predictor(doc)
-
-    # Document
     assert isinstance(out, Document)
-    assert isinstance(r_out, Document)
-    assert isinstance(s_out, Document)
-
-    # The input PDF has 8 pages
-    assert len(out.pages) == 8
-    assert len(r_out.pages) == 8
-    assert len(s_out.pages) == 8
+    assert len(out.pages) == 2
     # Dimension check
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
@@ -56,8 +52,7 @@ def test_ocrpredictor(
 @pytest.mark.parametrize(
     "det_arch, reco_arch",
     [
-        ["db_resnet50", "crnn_vgg16_bn"],
-        ["db_resnet50", "sar_resnet31"],
+        ["db_mobilenet_v3_large", "crnn_vgg16_bn"],
     ],
 )
 def test_zoo_models(det_arch, reco_arch):
@@ -65,3 +60,15 @@ def test_zoo_models(det_arch, reco_arch):
     predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
     # Output checks
     assert isinstance(predictor, OCRPredictor)
+
+    doc = [np.zeros((512, 512, 3), dtype=np.uint8)]
+    out = predictor(doc)
+    # Document
+    assert isinstance(out, Document)
+
+    # The input doc has 1 page
+    assert len(out.pages) == 1
+    # Dimension check
+    with pytest.raises(ValueError):
+        input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
+        _ = predictor([input_page])
