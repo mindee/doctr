@@ -126,8 +126,8 @@ def test_rbox_to_mask(box, shape, mask):
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
         [[[[0, 0, .5, .5]]], [[[0, 0, .5, .5]]], 0.5, 1, 1, 1],  # Perfect match
-        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.2, 1, 0.5, 0.125],  # Bad match
-        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.5, 0, 0, 0.125],  # Bad match
+        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.2, 1, 0.5, 0.13],  # Bad match
+        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.5, 0, 0, 0.13],  # Bad match
         [[[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [[[0, 0, .5, .5]], None], 0.5, 0.5, 1, 1],  # No preds on 2nd sample
     ],
 )
@@ -197,7 +197,7 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
             0.2,
             {"raw": 0, "caseless": 0, "unidecode": 1, "unicase": 1},
             {"raw": 0, "caseless": 0, "unidecode": .5, "unicase": .5},
-            0.125,
+            0.13,
         ],
         [  # No preds on 2nd sample
             [[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [["Elephant"], ["elephant"]],

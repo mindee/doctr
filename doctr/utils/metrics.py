@@ -399,7 +399,7 @@ class LocalizationConfusion:
                 iou_mat = rbox_iou(gts, preds, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gts, preds)
-            self.tot_iou += float(iou_mat.max(axis=1).sum())
+            self.tot_iou += float(iou_mat.max(axis=0).sum())
 
             # Assign pairs
             gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
@@ -518,7 +518,7 @@ class OCRMetric:
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 
-            self.tot_iou += float(iou_mat.max(axis=1).sum())
+            self.tot_iou += float(iou_mat.max(axis=0).sum())
 
             # Assign pairs
             gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
@@ -656,7 +656,7 @@ class DetectionMetric:
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 
-            self.tot_iou += float(iou_mat.max(axis=1).sum())
+            self.tot_iou += float(iou_mat.max(axis=0).sum())
 
             # Assign pairs
             gt_indices, pred_indices = linear_sum_assignment(-iou_mat)
