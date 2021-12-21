@@ -1,7 +1,7 @@
-import pytest
-import torch
 import cv2
 import numpy as np
+import pytest
+import torch
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
