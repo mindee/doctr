@@ -151,11 +151,13 @@ def post_nms(pred: List[dict], img: torch.tensor):
     return logo_thresh(single_b, single_s, single_l, img)
 
 
-def inference_script(artefact, root_dir, test_list, code_KIE, save_to_folder):
+def inference_script(artefact, root_dir, test_list, read_codes, save_to_folder):
     '''
-    {"geometry": <*,4>,"class": <*>,"KIE": <*>,"score": <*>}
+    {"geometry": <*,4>,"class": <*>,"codes": <*>,"score": <*>}
     qr_code = 1, bar_code = 2, logo = 3, photo = 4
     '''
+    cm = {'1': [(0, 0, 150)], '2': [(0, 0, 0)], '3': [(0, 150, 0)], '4': [(150, 0, 0)]}
+    cl_map = {'1': "QR_Code", "2": "Bar_Code", "3": "Logo", "4": "Photo"}
     reader = BarCodeReader()
     inf_dic = {}
     bbox = []
@@ -181,20 +183,17 @@ def inference_script(artefact, root_dir, test_list, code_KIE, save_to_folder):
         c_score.append(tg2)
         if isinstance(args.save_to, str):
             for ind_2, val_2 in enumerate(tg):
-                ji = {'1': [(0, 150, 150)], '2': [(0, 0, 0)], '3': [(0, 150, 0)], '4': [(150, 0, 0)]}
-                juj = {'1': "QR_Code", "2": "Bar_Code", "3": "Logo", "4": "Photo"}
                 cv2.rectangle(imm, (int(val_2[0]), int(val_2[1])), (int(val_2[2]), int(val_2[3])),
-                              ji[str(int(tg1[ind_2]))][0], 2)
-                imm = cv2.putText(imm, str(tg2[ind_2]), (int(val_2[0]), int(val_2[3]) + 5), cv2.FONT_HERSHEY_SIMPLEX,
-                                  1.5,
-                                  ji[str(int(tg1[ind_2]))][0], 2, )
-                imm = cv2.putText(imm, juj[str(int(tg1[ind_2]))], (int(val_2[0]), int(val_2[1])),
-                                  cv2.FONT_HERSHEY_SIMPLEX,
-                                  1.5,
-                                  ji[str(int(tg1[ind_2]))][0], 2, )
+                                  cm[str(int(tg1[ind_2]))][0], 2)
+                text_size, _ = cv2.getTextSize(cl_map[str(int(tg1[ind_2]))], cv2.FONT_HERSHEY_SIMPLEX, 2, 2)
+                text_w, text_h = text_size
+                cv2.rectangle(imm, (int(val_2[0]), int(val_2[1])), (int(val_2[0]) + text_w, int(val_2[1]) - text_h),
+                                  cm[str(int(tg1[ind_2]))][0], -1)
+                cv2.putText(imm, cl_map[str(int(tg1[ind_2]))], (int(val_2[0]), int(val_2[1])),
+                                cv2.FONT_HERSHEY_SIMPLEX, 2,  (255, 255, 255), 3)
             theimagee = Image.fromarray((imm * 255).astype(np.uint8))
             theimagee.save(f'{save_to_folder}/{val}')
-        if code_KIE:
+        if read_codes:
             for i in range(len(tg)):
                 txt = []
                 if int(tg1[i]) == 1:
@@ -217,7 +216,7 @@ def inference_script(artefact, root_dir, test_list, code_KIE, save_to_folder):
                         code_info.append(["Unreadable/Not a code"])
 
             inf_dic.update(
-                {"geometry": str(bbox), "class": str(art_class), "score": str(c_score), "KIE": str(code_info)})
+                {"geometry": str(bbox), "class": str(art_class), "score": str(c_score), "codes": str(code_info)})
         else:
             inf_dic.update({"geometry": str(bbox), "class": str(art_class), "score": str(c_score)})
     return inf_dic
@@ -242,7 +241,7 @@ def main(args):
         torch.cuda.set_device(args.device)
         model = model.cuda()
     model.eval()
-    inf_dic = inference_script(model, args.root_dir, os.listdir(args.root_dir), args.KIE, args.save_to)
+    inf_dic = inference_script(model, args.root_dir, os.listdir(args.root_dir), args.read_codes, args.save_to)
     if isinstance(args.save_json, str):
         with open(args.save_json, 'w', encoding='utf-8') as f:
             json.dump(inf_dic, f)
@@ -258,7 +257,7 @@ def parse_args():
                         help="Use this along with --plot True to save images to the desired location")
     parser.add_argument('-save_json', type=str, required=False, default=None,
                         help="Use this along with --json True")
-    parser.add_argument('--KIE', default=False, type=bool,
+    parser.add_argument('--read_codes', default=False, type=bool,
                         help="Optional:If user wants to extract information from codes")
     args = parser.parse_args()
     return args
