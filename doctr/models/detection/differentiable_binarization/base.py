@@ -143,7 +143,8 @@ class DBPostProcessor(DetectionPostProcessor):
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
                 # compute relative box to get rid of img shape, in that case _box is a 4pt polygon
-                assert isinstance(_box, np.ndarray) and _box.shape == (4, 2)
+                if not isinstance(_box, np.ndarray) and _box.shape == (4, 2):
+                    raise AssertionError("When assume straight pages is false a box is a (4, 2) array (polygon)")
                 _box[:, 0] /= width
                 _box[:, 1] /= height
                 boxes.append(_box)

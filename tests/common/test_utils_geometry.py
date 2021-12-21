@@ -26,8 +26,9 @@ def test_resolve_enclosing_rbbox():
         np.asarray([[.1, .1], [.2, .2], [.15, .25], [.05, .15]]),
         np.asarray([[.5, .5], [.6, .6], [.55, .65], [.45, .55]])
     ])
-    target = np.asarray([[.55, .65], [.05, .15], [.1, .1], [.6, .6]])
-    assert np.all(target - pred <= 1e-3)
+    target1 = np.asarray([[.55, .65], [.05, .15], [.1, .1], [.6, .6]])
+    target2 = np.asarray([[.05, .15], [.1, .1], [.6, .6], [.55, .65]])
+    assert np.all(target1 - pred <= 1e-3) or np.all(target2 - pred <= 1e-3)
 
 
 def test_remap_boxes():

@@ -64,8 +64,8 @@ def extract_rcrops(
     """
     if boxes.shape[0] == 0:
         return []
-    if boxes.shape[1] != 4:
-        raise AssertionError("boxes are expected to be relative and quadrangles")
+    if boxes.shape[1:] != (4, 2) or boxes.dtype != np.float32:
+        raise AssertionError("boxes are expected to be quadrilateral, of shape (N, 4, 2) in relative coordinates")
 
     # Project relative coordinates
     _boxes = boxes.copy()
@@ -78,17 +78,13 @@ def extract_rcrops(
 
     for box in _boxes:
         src_pts = box[1:, :].astype(np.float32)
-        print(src_pts.dtype)
-        print(src_pts)
         # Preserve size
         _, (w, h), _ = cv2.minAreaRect(box)
         dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
-        # dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=dtype)
         # The transformation matrix
         M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
         crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
-        # crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(h), int(w)))
         crops.append(crop)
 
     return crops

@@ -58,7 +58,9 @@ class DocumentBuilder(NestedObject):
                 min_angle=5.,
             )
             # Points are in this order: top left, top right, bot right, bot left
-            return (boxes[:, 0, 0] + 2 * boxes[:, 2, 1] / np.median(boxes[:, 2, 1] - boxes[:, 1, 1])).argsort()
+            return (boxes[:, 0, 0] + 2 * boxes[:, 2, 1] / np.median(
+                np.linalg.norm(boxes[:, 2, :] - boxes[:, 1, :])
+            )).argsort()
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
@@ -185,16 +187,28 @@ class DocumentBuilder(NestedObject):
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
-        box_features = np.stack(
-            (
-                (box_lines[:, 0] + box_lines[:, 3]) / 2,
-                (box_lines[:, 1] + box_lines[:, 2]) / 2,
-                (box_lines[:, 0] + box_lines[:, 2]) / 2,
-                (box_lines[:, 1] + box_lines[:, 3]) / 2,
-                box_lines[:, 0],
-                box_lines[:, 1],
-            ), axis=-1
-        )
+        if len(box_lines.shape) == 3:
+            box_features = np.stack(
+                (
+                    (box_lines[:, 0, 0] + box_lines[:, 0, 1]) / 2,
+                    (box_lines[:, 0, 0] + box_lines[:, 2, 0]) / 2,
+                    (box_lines[:, 0, 0] + box_lines[:, 2, 1]) / 2,
+                    (box_lines[:, 0, 1] + box_lines[:, 2, 1]) / 2,
+                    (box_lines[:, 0, 1] + box_lines[:, 2, 0]) / 2,
+                    (box_lines[:, 2, 0] + box_lines[:, 2, 1]) / 2,
+                ), axis=-1
+            )
+        else:
+            box_features = np.stack(
+                (
+                    (box_lines[:, 0] + box_lines[:, 3]) / 2,
+                    (box_lines[:, 1] + box_lines[:, 2]) / 2,
+                    (box_lines[:, 0] + box_lines[:, 2]) / 2,
+                    (box_lines[:, 1] + box_lines[:, 3]) / 2,
+                    box_lines[:, 0],
+                    box_lines[:, 1],
+                ), axis=-1
+            )
         # Compute clusters
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
 
