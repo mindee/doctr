@@ -18,6 +18,7 @@ def _validate_dataset(ds, input_size, rotate, batch_size=2, relative_coords=True
     assert img.shape == (*input_size, 3)
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
+    # test boxes
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     if rotate:
         assert target['boxes'].shape[1] == 5
@@ -25,10 +26,12 @@ def _validate_dataset(ds, input_size, rotate, batch_size=2, relative_coords=True
         assert target['boxes'].shape[1] == 4
     if relative_coords:
         assert np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0))
+    # test labels
     if class_indices:
         assert isinstance(target['labels'], np.ndarray) and target['labels'].dtype == np.int64
     else:
         assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) > 0 and len(target['boxes']) > 0
     assert len(target['labels']) == len(target['boxes'])
 
     # Check batching
