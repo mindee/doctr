@@ -35,7 +35,9 @@ class _OCRPredictor:
         extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
 
         crops = [
-            extraction_fn(page, _boxes[:, :-1], channels_last=channels_last)  # type: ignore[operator]
+            extraction_fn(
+                page, _boxes[:, :-1] if assume_straight_pages else _boxes, channels_last=channels_last
+            )  # type: ignore[operator]
             for page, _boxes in zip(pages, loc_preds)
         ]
         return crops

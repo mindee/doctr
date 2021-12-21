@@ -1,10 +1,10 @@
+from copy import deepcopy
 from io import BytesIO
 
 import cv2
 import numpy as np
 import pytest
 import requests
-from copy import deepcopy
 
 from doctr.io import DocumentFile, reader
 from doctr.models._utils import estimate_orientation, extract_crops, extract_rcrops, get_bitmap_angle
@@ -52,7 +52,7 @@ def test_extract_rcrops(mock_pdf):  # noqa: F811
                            [idx / num_crops + .1, idx / num_crops],
                            [idx / num_crops + .1, idx / num_crops + .1],
                            [idx / num_crops, idx / num_crops]]
-                           for idx in range(num_crops)], dtype=np.float32)
+                          for idx in range(num_crops)], dtype=np.float32)
     abs_boxes = deepcopy(rel_boxes)
     abs_boxes[:, :, 0] *= doc_img.shape[1]
     abs_boxes[:, :, 1] *= doc_img.shape[0]

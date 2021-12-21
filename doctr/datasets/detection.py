@@ -9,7 +9,6 @@ from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 
-
 from .datasets import AbstractDataset
 
 __all__ = ["DetectionDataset"]
@@ -73,8 +72,8 @@ class DetectionDataset(AbstractDataset):
 
         # Boxes
         boxes = boxes.copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
+        boxes[..., 0] /= w
+        boxes[..., 1] /= h
         boxes = boxes.clip(0, 1)
 
         return img, boxes

@@ -118,7 +118,6 @@ def test_random_rotate():
     ])
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
-    assert abs(r_boxes[-1, -1]) <= 10.
 
     rotator = RandomRotate(max_angle=10., expand=True)
     r_img, r_boxes = rotator(input_t, boxes)

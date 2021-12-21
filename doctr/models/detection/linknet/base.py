@@ -135,16 +135,21 @@ class _LinkNet(BaseModel):
             # Absolute bounding boxes
             abs_boxes = _target.copy()
 
-            if len(abs_boxes.shape()) == 3:
+            if len(abs_boxes.shape) == 3:
                 abs_boxes[:, :, 0] *= w
                 abs_boxes[:, :, 1] *= h
+                abs_boxes = abs_boxes.round().astype(np.int32)
                 polys = abs_boxes
+                boxes_size = np.minimum(
+                    abs(abs_boxes[:, 0, 0] - abs_boxes[:, 2, 0]),
+                    abs(abs_boxes[:, 0, 1] - abs_boxes[:, 2, 1])
+                )
             else:
                 abs_boxes[:, [0, 2]] *= w
                 abs_boxes[:, [1, 3]] *= h
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = [None] * abs_boxes.shape[0]  # Unused
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
                 # Mask boxes that are too small
@@ -155,6 +160,8 @@ class _LinkNet(BaseModel):
                 if not self.assume_straight_pages:
                     cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
                 else:
+                    if box.shape == (4, 2):
+                        box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
                     # top edge
                     edge_mask[idx, box[1], box[0]: min(box[2] + 1, w)] = True

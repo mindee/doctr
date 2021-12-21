@@ -94,10 +94,10 @@ def test_rotate_boxes():
     boxes = np.array([[0., 0., 0.6, 0.2, 0.5]])
     # Angle = -90:
     rotated = geometry.rotate_boxes(boxes, angle=-90, orig_shape=(1, 1), min_angle=0)
-    assert np.allclose(rotated, np.array([[[1. , 0. ], [1. , 0.6], [0.8, 0.6], [0.8, 0. ]]]))
+    assert np.allclose(rotated, np.array([[[1, 0.], [1, 0.6], [0.8, 0.6], [0.8, 0.]]]))
     # Angle = 90
     rotated = geometry.rotate_boxes(boxes, angle=+90, orig_shape=(1, 1), min_angle=0)
-    assert np.allclose(rotated, np.array([[[0. , 1. ], [0. , 0.4], [0.2, 0.4], [0.2, 1. ]]]))
+    assert np.allclose(rotated, np.array([[[0, 1.], [0, 0.4], [0.2, 0.4], [0.2, 1.]]]))
 
 
 def test_rotate_image():

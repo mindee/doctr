@@ -68,7 +68,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
         rotated_bbox=True
     )
     _, r_target = rotated_ds[0]
-    assert r_target.shape[1] == 5
+    assert r_target.shape[1:] == (4, 2)
 
     # File existence check
     img_name, _ = ds.data[0]

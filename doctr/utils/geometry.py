@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from math import ceil
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -51,14 +51,17 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray]) -> np.ndarray:
 
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:
-    """Rotate points counter-clockwise"""
+    """Rotate points counter-clockwise.
+    Points: array of size (N, 2) or (N, 4, 2) if we want to rotate a batch of polygons
+    """
 
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
     rotation_mat = np.array([
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
     ], dtype=points.dtype)
-
+    if len(points.shape) == 3:
+        return np.matmul(points, rotation_mat.T[None, ...])
     return np.matmul(points, rotation_mat.T)
 
 
@@ -81,7 +84,7 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     rotated_points = rotate_abs_points(points, angle)
 
     wh_shape = 2 * np.abs(rotated_points).max(axis=0)
-
+    print(wh_shape)
     return wh_shape[1], wh_shape[0]
 
 
@@ -110,25 +113,25 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
     )
     img_corners = np.array([[0, 0], [0, img_shape[0]], [*img_shape[::-1]], [img_shape[1], 0]], dtype=boxes.dtype)
 
-    stacked_points = np.concatenate((img_corners, np.expand_dims(box_corners, 0)), axis=0)
+    stacked_points = np.concatenate((img_corners[None, ...], box_corners), axis=0)
     # Y-axis is inverted by conversion
     stacked_rel_points = np.stack(
-        (stacked_points[:, :, 0] - img_shape[1] / 2, img_shape[0] / 2 - stacked_points[:, :, 1]),
-        axis=1
+        (stacked_points[..., 0] - img_shape[1] / 2, img_shape[0] / 2 - stacked_points[..., 1]),
+        axis=-1
     )
 
-    # Rotate them around image center
+    # Rotate them around image center, shape (N+1, 4, 2)
     rot_points = rotate_abs_points(stacked_rel_points, angle)
-    img_rot_corners, box_rot_corners = rot_points[:4], rot_points[4:]
+    img_rot_corners, box_rot_corners = rot_points[:1], rot_points[1:]
 
     # Expand the image to fit all the original info
     if expand:
         new_corners = np.abs(img_rot_corners).max(axis=0)
-        box_rot_corners[:, :, 0] += new_corners[0]
-        box_rot_corners[:, :, 1] = new_corners[1] - box_rot_corners[:, :, 1]
+        box_rot_corners[..., 0] += new_corners[:, 0]
+        box_rot_corners[..., 1] = new_corners[:, 1] - box_rot_corners[..., 1]
     else:
-        box_rot_corners[:, :, 0] += img_shape[1] / 2
-        box_rot_corners[:, :, 1] = img_shape[0] / 2 - box_rot_corners[:, :, 1]
+        box_rot_corners[..., 0] += img_shape[1] / 2
+        box_rot_corners[..., 1] = img_shape[0] / 2 - box_rot_corners[..., 1]
 
     return box_rot_corners
 
@@ -212,7 +215,9 @@ def rotate_boxes(
     points = np.stack((_boxes[:, :, 0] * orig_shape[1], _boxes[:, :, 1] * orig_shape[0]), axis=-1)
     image_center = (orig_shape[1] / 2, orig_shape[0] / 2)
     rotated_points = image_center + np.matmul(points - image_center, rotation_mat)
-    rotated_boxes = np.stack((rotated_points[:, :, 0] / orig_shape[1], rotated_points[:, :, 1] / orig_shape[0]), axis=-1)
+    rotated_boxes = np.stack(
+        (rotated_points[:, :, 0] / orig_shape[1], rotated_points[:, :, 1] / orig_shape[0]), axis=-1
+    )
 
     return rotated_boxes
 
@@ -266,7 +271,7 @@ def rotate_image(
 
 def estimate_page_angle(boxes: np.ndarray) -> float:
     """Takes a batch of rotated previously ORIENTED boxes (N, 4, 2) (rectified by the classifier) and return the
-    estimated angle ccw in degrees 
+    estimated angle ccw in degrees
     """
     return np.mean(np.arctan2(
         (boxes[:, 1, 1] - boxes[:, 0, 1]),

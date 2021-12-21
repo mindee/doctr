@@ -10,7 +10,7 @@ import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
 from doctr.io.elements import Block, Document, Line, Page, Word
-from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes, estimate_page_angle
+from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
 __all__ = ['DocumentBuilder']
@@ -50,7 +50,7 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
-        if len(boxes.shape) == 3: 
+        if len(boxes.shape) == 3:
             boxes = rotate_boxes(
                 loc_preds=boxes,
                 angle=-estimate_page_angle(boxes),

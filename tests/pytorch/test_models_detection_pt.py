@@ -45,8 +45,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out['loss'], torch.Tensor)
     # Check the rotated case (same targets)
     target = [
-        np.array([[.75, .75, .5, .5, 0], [.65, .65, .3, .3, 0]], dtype=np.float32),
-        np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
+        np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .8], [.5, .8]]], dtype=np.float32),
+        np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .9], [.5, .9]]], dtype=np.float32),
     ]
     loss = model(input_tensor, target)['loss']
     assert isinstance(loss, torch.Tensor) and ((loss - out['loss']).abs() / loss).item() < 5e-2

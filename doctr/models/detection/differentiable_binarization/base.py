@@ -5,13 +5,12 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple
 
 import cv2
 import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
-
 
 from ..core import DetectionPostProcessor
 
@@ -47,7 +46,7 @@ class DBPostProcessor(DetectionPostProcessor):
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Optional[Union[np.ndarray, Tuple[float, float, float, float]]]:
+    ) -> np.ndarray:
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
@@ -84,7 +83,9 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else cv2.boxPoints(cv2.minAreaRect(expanded_points))
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else cv2.boxPoints(
+            cv2.minAreaRect(expanded_points)
+        )
 
     def bitmap_to_boxes(
         self,
@@ -290,21 +291,25 @@ class _DBNet:
 
             # Absolute bounding boxes
             abs_boxes = _target.copy()
-            if len(abs_boxes.shape()) == 3:
+            if len(abs_boxes.shape) == 3:
                 abs_boxes[:, :, 0] *= output_shape[-1]
                 abs_boxes[:, :, 1] *= output_shape[-2]
                 polys = abs_boxes
+                boxes_size = np.minimum(
+                    abs(abs_boxes[:, 0, 0] - abs_boxes[:, 2, 0]),
+                    abs(abs_boxes[:, 0, 1] - abs_boxes[:, 2, 1])
+                )
             else:
                 abs_boxes[:, [0, 2]] *= output_shape[-1]
                 abs_boxes[:, [1, 3]] *= output_shape[-2]
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
                 polys = np.stack([
                     abs_boxes[:, [0, 1]],
                     abs_boxes[:, [0, 3]],
                     abs_boxes[:, [2, 3]],
                     abs_boxes[:, [2, 1]],
                 ], axis=1)
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
                 # Mask boxes that are too small
