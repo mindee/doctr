@@ -13,7 +13,7 @@ from torchvision.models import resnet34, resnet50
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 
-from ...backbones import mobilenet_v3_large
+from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 

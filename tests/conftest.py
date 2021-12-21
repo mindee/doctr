@@ -32,6 +32,21 @@ def mock_pdf(mock_pdf_stream, tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
+def mock_text_box_stream():
+    url = 'https://www.pngitem.com/pimgs/m/357-3579845_love-neon-loveislove-word-text-typography-freetoedit-picsart.png'
+    return requests.get(url).content
+
+
+@pytest.fixture(scope="session")
+def mock_text_box(mock_text_box_stream, tmpdir_factory):
+    file = BytesIO(mock_text_box_stream)
+    fn = tmpdir_factory.mktemp("data").join("mock_text_box_file.png")
+    with open(fn, 'wb') as f:
+        f.write(file.getbuffer())
+    return str(fn)
+
+
+@pytest.fixture(scope="session")
 def mock_image_stream():
     url = "https://miro.medium.com/max/3349/1*mk1-6aYaf_Bes1E3Imhc0A.jpeg"
     return requests.get(url).content

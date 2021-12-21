@@ -24,7 +24,7 @@ if any(gpu_devices):
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
-from doctr.models import backbones
+from doctr.models import classification
 from utils import plot_samples
 
 
@@ -109,7 +109,7 @@ def main(args):
           f"{val_loader.num_batches} batches)")
 
     # Load doctr model
-    model = backbones.__dict__[args.arch](
+    model = classification.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         num_classes=len(vocab),
