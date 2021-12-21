@@ -10,7 +10,7 @@ from doctr import datasets
 from doctr.transforms import Resize
 
 
-def _validate_dataset(ds, input_size, batch_size=2, relative_coords=True, class_indices=False):
+def _validate_dataset(ds, input_size, rotate, batch_size=2, relative_coords=True, class_indices=False):
 
     # Fetch one sample
     img, target = ds[0]
@@ -19,6 +19,10 @@ def _validate_dataset(ds, input_size, batch_size=2, relative_coords=True, class_
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
     assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
+    if rotate:
+        assert target['boxes'].shape[1] == 5
+    else:
+        assert target['boxes'].shape[1] == 4
     if relative_coords:
         assert np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0))
     if class_indices:
@@ -128,7 +132,7 @@ def test_ocrdataset(mock_ocrdataset):
     )
 
     assert len(ds) == 3
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate=True)
 
     # File existence check
     img_name, _ = ds.data[0]
@@ -181,7 +185,7 @@ def test_ic13_dataset(num_samples, rotate, mock_ic13):
     )
 
     assert len(ds) == num_samples
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -202,7 +206,7 @@ def test_svhn(input_size, num_samples, rotate, mock_svhn_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SVHN(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -223,7 +227,7 @@ def test_sroie(input_size, num_samples, rotate, mock_sroie_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SROIE(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -246,7 +250,7 @@ def test_funsd(input_size, num_samples, rotate, mock_funsd_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"FUNSD(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -267,7 +271,7 @@ def test_cord(input_size, num_samples, rotate, mock_cord_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"CORD(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -289,7 +293,7 @@ def test_synthtext(input_size, num_samples, rotate, mock_synthtext_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SynthText(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -311,7 +315,7 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
 
     assert len(ds) == num_samples
     assert repr(ds) == f"DocArtefacts(train={True})"
-    _validate_dataset(ds, input_size, class_indices=True)
+    _validate_dataset(ds, input_size, rotate, class_indices=True)
 
 
 @pytest.mark.parametrize(
@@ -333,7 +337,7 @@ def test_iiit5k(input_size, num_samples, rotate, mock_iiit5k_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"IIIT5K(train={True})"
-    _validate_dataset(ds, input_size, batch_size=1)
+    _validate_dataset(ds, input_size, rotate, batch_size=1)
 
 
 @pytest.mark.parametrize(
@@ -355,7 +359,7 @@ def test_svt(input_size, num_samples, rotate, mock_svt_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SVT(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)
 
 
 @pytest.mark.parametrize(
@@ -376,4 +380,4 @@ def test_ic03(input_size, num_samples, rotate, mock_ic03_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"IC03(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, rotate)

@@ -330,7 +330,7 @@ def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
     annotation_file = synthtext_root.join('gt.mat')
     labels = {
         "imnames": [[["8/ballet_106_0.jpg"], ["8/ballet_106_1.jpg"], ["8/ballet_106_2.jpg"]]],
-        "wordBB": [np.random.randint(1000, size=(2, 4, 3)) for _ in range(3)],
+        "wordBB": [np.random.uniform(low=100., high=600., size=(2, 4, 2)) for _ in range(3)],
         "txt": np.array([['I      ', 'am\na      ', 'Jedi   ', '!'] for _ in range(3)])
     }
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
