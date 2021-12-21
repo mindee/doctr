@@ -99,16 +99,16 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
         sample_transforms=Resize(input_size, preserve_aspect_ratio=True),
     )
     assert len(ds) == 5
-    image, label = ds[0]
+    image, target = ds[0]
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32
-    assert isinstance(label, str)
+    assert isinstance(target['labels'], str)
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
-    images, labels = next(iter(loader))
+    images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
+    assert isinstance(targets, list) and all(isinstance(elt['labels'], str) for elt in targets)
 
     # File existence check
     img_name, _ = ds.data[0]

@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .datasets import AbstractDataset
 
@@ -36,7 +36,7 @@ class RecognitionDataset(AbstractDataset):
         super().__init__(img_folder)
         self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
 
-        self.data: List[Tuple[str, str]] = []
+        self.data: List[Tuple[str, Dict[str, str]]] = []
         with open(labels_path) as f:
             labels = json.load(f)
 
@@ -44,7 +44,7 @@ class RecognitionDataset(AbstractDataset):
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 
-            self.data.append((img_name, label))
+            self.data.append((img_name, dict(labels=label)))
 
     def merge_dataset(self, ds: AbstractDataset) -> None:
         # Update data with new root for self
@@ -52,5 +52,5 @@ class RecognitionDataset(AbstractDataset):
         # Define new root
         self.root = Path("/")
         # Merge with ds data
-        for img_path, label in ds.data:
-            self.data.append((str(Path(ds.root).joinpath(img_path)), label))
+        for img_path, target in ds.data:
+            self.data.append((str(Path(ds.root).joinpath(img_path)), target['labels']))

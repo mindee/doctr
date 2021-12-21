@@ -73,6 +73,7 @@ def record_lr(
             images = images.cuda()
 
         images = batch_transforms(images)
+        targets = [t['labels'] for t in targets]
 
         # Forward, Backward & update
         optimizer.zero_grad()
@@ -121,6 +122,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
+        targets = [t['labels'] for t in targets]
 
         train_loss = model(images, targets)['loss']
 
@@ -156,6 +158,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
     for images, targets in val_iter:
+        targets = [t['labels'] for t in targets]
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -281,7 +284,7 @@ def main(args):
 
     if args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        plot_samples(x, target['labels'])
         return
 
     # Optimizer
