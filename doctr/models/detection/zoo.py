@@ -15,9 +15,9 @@ __all__ = ["detection_predictor"]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
+    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18']
 elif is_torch_available():
-    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
+    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18']
 
 
 def _predictor(
