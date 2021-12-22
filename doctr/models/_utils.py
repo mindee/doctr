@@ -79,12 +79,13 @@ def extract_rcrops(
     for box in _boxes:
         src_pts = box[1:, :].astype(np.float32)
         # Preserve size
-        _, (w, h), _ = cv2.minAreaRect(box)
-        dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
+        d1 = np.linalg.norm(src_pts[0, :] - src_pts[1, :], axis=-1)
+        d2 = np.linalg.norm(src_pts[1, :] - src_pts[2, :], axis=-1)
+        dst_pts = np.array([[0, 0], [d1 - 1, 0], [d1 - 1, d2 - 1]], dtype=dtype)
         # The transformation matrix
         M = cv2.getAffineTransform(src_pts, dst_pts)
         # Warp the rotated rectangle
-        crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
+        crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(d1), int(d2)))
         crops.append(crop)
 
     return crops

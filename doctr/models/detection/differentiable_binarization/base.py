@@ -133,7 +133,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.assume_straight_pages:
                 if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
                     continue
-            elif abs(_box[0, 0] - _box[2, 0]) < min_size_box or abs(_box[0, 1] - _box[2, 1]) < min_size_box:
+            elif np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
                 continue
 
             if self.assume_straight_pages:

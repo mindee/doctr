@@ -277,8 +277,10 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = True, **kwar
     model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
-
+        state_dict = torch.load("/home/laptopmindee/Téléchargements/db_resnet50_20211130-090054.pt", map_location='cpu')
+        # Load weights
+        model.load_state_dict(state_dict)
+        
     return model
 
 

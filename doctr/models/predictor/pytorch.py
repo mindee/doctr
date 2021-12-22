@@ -15,6 +15,7 @@ from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
+from ..classification import crop_orientation_predictor
 
 from .base import _OCRPredictor
 
@@ -52,6 +53,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
+        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
 
     @torch.no_grad()
     def forward(

@@ -126,9 +126,8 @@ def create_obj_patch(
     if isinstance(geometry, tuple):
         if len(geometry) == 2:
             return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
-    elif isinstance(geometry, np.ndarray):
-        return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
-
+        elif len(geometry) == 4:
+            return polygon_patch(np.asarray(geometry), page_dimensions, **kwargs)  # type: ignore[arg-type]
     raise ValueError("invalid geometry format")
 
 
