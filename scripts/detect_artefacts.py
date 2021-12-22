@@ -20,6 +20,7 @@ from doctr.models import obj_detection
 
 
 def inference(artefact, root_dir, test_list, visualize):
+
     '''
     {"geometry": <*,4>,"class": <*>,"codes": <*>,"score": <*>}
     qr_code = 1, bar_code = 2, logo = 3, photo = 4
@@ -30,7 +31,7 @@ def inference(artefact, root_dir, test_list, visualize):
     bbox = []
     art_class = []
     c_score = []
-    for ind, val in enumerate(test_list):
+    for val in test_list:
         im_read = cv2.imread(os.path.join(root_dir, val))
         imm = cv2.cvtColor(im_read, cv2.COLOR_BGR2RGB)
         imm2 = imm / 255
