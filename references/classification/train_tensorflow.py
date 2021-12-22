@@ -102,7 +102,7 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=False,
         drop_last=False,
-        workers=args.workers,
+        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -153,7 +153,7 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=True,
         drop_last=True,
-        workers=args.workers,
+        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
