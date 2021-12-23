@@ -50,7 +50,7 @@ class DocumentBuilder(NestedObject):
         Returns:
             indices of ordered boxes of shape (N,)
         """
-        if len(boxes.shape) == 3:
+        if boxes.ndim == 3:
             boxes = rotate_boxes(
                 loc_preds=boxes,
                 angle=-estimate_page_angle(boxes),
@@ -88,7 +88,7 @@ class DocumentBuilder(NestedObject):
 
                 prev_box = boxes[sub_line[-1]]
                 # Compute distance between boxes
-                if len(boxes.shape) == 3:
+                if boxes.ndim == 3:
                     dist = boxes[i, 0, 0] - prev_box[0, 1]
                 else:
                     dist = boxes[i, 0] - prev_box[2]
@@ -115,7 +115,7 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Compute median for boxes heights
-        y_med = np.median(boxes[:, 2, 1] - boxes[:, 1, 1] if len(boxes.shape) == 3 else boxes[:, 3] - boxes[:, 1])
+        y_med = np.median(boxes[:, 2, 1] - boxes[:, 1, 1] if boxes.ndim == 3 else boxes[:, 3] - boxes[:, 1])
 
         # Sort boxes
         idxs = self._sort_boxes(boxes)
@@ -123,7 +123,7 @@ class DocumentBuilder(NestedObject):
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
-        if len(boxes.shape) == 3:
+        if boxes.ndim == 3:
             y_center_sum = boxes[idxs[0]][([2, 1], [1, 1])].mean()
         else:
             y_center_sum = boxes[idxs[0]][[1, 3]].mean()
@@ -132,7 +132,7 @@ class DocumentBuilder(NestedObject):
             vert_break = True
 
             # Compute y_dist
-            if len(boxes.shape) == 3:
+            if boxes.ndim == 3:
                 y_dist = abs(boxes[idx][([2, 1], [1, 1])].mean() - y_center_sum / len(words))
             else:
                 y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
@@ -147,7 +147,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            if len(boxes.shape) == 3:
+            if boxes.ndim == 3:
                 y_center_sum += boxes[idx][([2, 1], [1, 1])].mean()
             else:
                 y_center_sum += boxes[idx][[1, 3]].mean()
@@ -171,7 +171,7 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
-        if len(boxes.shape) == 3:
+        if boxes.ndim == 3:
             box_lines = np.asarray([
                 resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])
                 for line in lines  # type: ignore[misc]
@@ -187,7 +187,7 @@ class DocumentBuilder(NestedObject):
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
-        if len(box_lines.shape) == 3:
+        if boxes.ndim == 3:
             box_features = np.stack(
                 (
                     (box_lines[:, 0, 0] + box_lines[:, 0, 1]) / 2,
@@ -263,7 +263,7 @@ class DocumentBuilder(NestedObject):
                         Word(
                             *word_preds[idx],
                             tuple(boxes[idx].tolist())
-                        ) if len(boxes.shape) == 3 else
+                        ) if boxes.ndim == 3 else
                         Word(
                             *word_preds[idx],
                             ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
@@ -303,7 +303,7 @@ class DocumentBuilder(NestedObject):
 
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if len(boxes[0].shape) == 3:
+            if boxes.ndim == 3:
                 straight_boxes = []
                 # Iterate over pages
                 for page_boxes in boxes:

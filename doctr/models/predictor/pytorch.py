@@ -53,7 +53,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
-        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
+        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True).eval()
 
     @torch.no_grad()
     def forward(

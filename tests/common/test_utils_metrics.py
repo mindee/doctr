@@ -91,20 +91,20 @@ def test_mask_iou(mask1, mask2, iou, abs_tol):
         [[[[0, 0], [.05, 0], [.05, .05], [0, .05]]], np.zeros((0, 4, 2)), 0, 0],  # Zero-sized inputs
     ],
 )
-def test_rbox_iou(rbox1, rbox2, iou, abs_tol):
+def test_polygon_iou(rbox1, rbox2, iou, abs_tol):
     mask_shape = (256, 256)
-    iou_mat = metrics.rbox_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape)
+    iou_mat = metrics.polygon_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape)
     assert iou_mat.shape == (len(rbox1), len(rbox2))
     if iou_mat.size > 0:
         assert abs(iou_mat - iou) <= abs_tol
 
     # Ensure broadcasting doesn't change the result
-    iou_matbis = metrics.rbox_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape, use_broadcasting=False)
+    iou_matbis = metrics.polygon_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape, use_broadcasting=False)
     assert np.all((iou_mat - iou_matbis) <= 1e-7)
 
     # Incorrect boxes
     with pytest.raises(AssertionError):
-        metrics.rbox_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float), mask_shape)
+        metrics.polygon_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float), mask_shape)
 
 
 @pytest.mark.parametrize(

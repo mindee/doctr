@@ -42,17 +42,17 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
         return (min(x), min(y)), (max(x), max(y))
 
 
-def resolve_enclosing_rbbox(rbboxes: List[np.ndarray]) -> np.ndarray:
+def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024) -> np.ndarray:
     cloud = np.concatenate(rbboxes, axis=0)
     # Convert to absolute for minAreaRect
-    cloud *= 1024
+    cloud *= intermed_size
     rect = cv2.minAreaRect(cloud.astype(np.int32))
-    return cv2.boxPoints(rect) / 1024
+    return cv2.boxPoints(rect) / intermed_size
 
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:
     """Rotate points counter-clockwise.
-    Points: array of size (N, 2) or (N, 4, 2) if we want to rotate a batch of polygons
+    Points: array of size (N, 2)
     """
 
     angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
@@ -60,8 +60,6 @@ def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:
         [np.cos(angle_rad), -np.sin(angle_rad)],
         [np.sin(angle_rad), np.cos(angle_rad)]
     ], dtype=points.dtype)
-    if len(points.shape) == 3:
-        return np.matmul(points, rotation_mat.T[None, ...])
     return np.matmul(points, rotation_mat.T)
 
 
@@ -120,6 +118,7 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
     )
 
     # Rotate them around image center, shape (N+1, 4, 2)
+    stacked_rel_points = rotate_abs_points(stacked_rel_points.reshape((-1, 2))).reshape((-1, 4, 2))
     rot_points = rotate_abs_points(stacked_rel_points, angle)
     img_rot_corners, box_rot_corners = rot_points[:1], rot_points[1:]
 
@@ -236,11 +235,11 @@ def rotate_image(
     return rot_img
 
 
-def estimate_page_angle(boxes: np.ndarray) -> float:
-    """Takes a batch of rotated previously ORIENTED boxes (N, 4, 2) (rectified by the classifier) and return the
+def estimate_page_angle(polys: np.ndarray) -> float:
+    """Takes a batch of rotated previously ORIENTED polys (N, 4, 2) (rectified by the classifier) and return the
     estimated angle ccw in degrees
     """
     return np.mean(np.arctan2(
-        (boxes[:, 1, 1] - boxes[:, 0, 1]),
-        (boxes[:, 1, 0] - boxes[:, 0, 0])
+        (polys[:, 1, 1] - polys[:, 0, 1]),
+        (polys[:, 1, 0] - polys[:, 0, 0])
     )) * 180 / np.pi

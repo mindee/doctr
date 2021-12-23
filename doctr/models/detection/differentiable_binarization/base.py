@@ -292,14 +292,11 @@ class _DBNet:
 
             # Absolute bounding boxes
             abs_boxes = _target.copy()
-            if len(abs_boxes.shape) == 3:
+            if abs_boxes.ndim == 3:
                 abs_boxes[:, :, 0] *= output_shape[-1]
                 abs_boxes[:, :, 1] *= output_shape[-2]
                 polys = abs_boxes
-                boxes_size = np.minimum(
-                    abs(abs_boxes[:, 0, 0] - abs_boxes[:, 2, 0]),
-                    abs(abs_boxes[:, 0, 1] - abs_boxes[:, 2, 1])
-                )
+                boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
             else:
                 abs_boxes[:, [0, 2]] *= output_shape[-1]
                 abs_boxes[:, [1, 3]] *= output_shape[-2]
