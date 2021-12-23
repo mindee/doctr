@@ -449,7 +449,7 @@
         <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">return_model_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">return_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_preds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 
@@ -458,13 +458,13 @@
         <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">out</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_boxes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
 
-        <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_boxes</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Post-process boxes (keep only text predictions)</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;preds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">preds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">preds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">prob_map</span><span class="o">.</span><span class="n">numpy</span><span class="p">())]</span>
 
