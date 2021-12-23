@@ -55,7 +55,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        out = model(images, targets, training=False, return_boxes=True)
+        out = model(images, targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
