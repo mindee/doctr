@@ -133,7 +133,7 @@ class LinkNet(nn.Module, _LinkNet):
         x: torch.Tensor,
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
-        return_boxes: bool = False,
+        return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -142,12 +142,12 @@ class LinkNet(nn.Module, _LinkNet):
         logits = self.classifier(logits)
 
         out: Dict[str, Any] = {}
-        if return_model_output or target is None or return_boxes:
+        if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
         if return_model_output:
             out["out_map"] = prob_map
 
-        if target is None or return_boxes:
+        if target is None or return_preds:
             # Post-process boxes
             out["preds"] = [
                 preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
