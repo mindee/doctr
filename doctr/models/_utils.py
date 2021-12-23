@@ -215,4 +215,4 @@ def rectify_loc_preds(
             for orientation, page_loc_pred in zip(orientations, page_loc_preds)
         ],
         axis=0
-    )
+    ) if len(orientations) > 0 else None
