@@ -20,12 +20,16 @@ class _AbstractDataset:
     def __init__(
         self,
         root: Union[str, Path],
+        img_transforms: Optional[Callable[[Any], Any]] = None,
+        sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
     ) -> None:
 
         if not Path(root).is_dir():
             raise ValueError(f'expected a path to a reachable folder: {root}')
 
         self.root = root
+        self.img_transforms = img_transforms
+        self.sample_transforms = sample_transforms
 
     def __len__(self) -> int:
         return len(self.data)
@@ -44,10 +48,12 @@ class _AbstractDataset:
 
         # Read image
         img, target = self._read_sample(index)
-        self.img_transforms: Optional[Callable[[Any], Any]]
         if self.img_transforms is not None:
             # typing issue cf. https://github.com/python/mypy/issues/5485
             img = self.img_transforms(img)  # type: ignore[call-arg]
+
+        if self.sample_transforms is not None:
+            img, target = self.sample_transforms(img)
 
         return img, target
 
@@ -82,6 +88,7 @@ class _VisionDataset(_AbstractDataset):
         overwrite: bool = False,
         cache_dir: Optional[str] = None,
         cache_subdir: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
 
         cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr') if cache_dir is None else cache_dir
@@ -103,4 +110,4 @@ class _VisionDataset(_AbstractDataset):
             if not dataset_path.is_dir() or overwrite:
                 shutil.unpack_archive(archive_path, dataset_path)
 
-        super().__init__(dataset_path if extract_archive else archive_path)
+        super().__init__(dataset_path if extract_archive else archive_path, **kwargs)
