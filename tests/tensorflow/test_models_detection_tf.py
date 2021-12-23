@@ -27,7 +27,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
     ]
     # test training model
-    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True)
+    out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
