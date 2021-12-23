@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 from .datasets import AbstractDataset
 
