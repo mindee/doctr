@@ -15,8 +15,8 @@ from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
 from doctr.utils.repr import NestedObject
-from ..classification import crop_orientation_predictor
 
+from ..classification import crop_orientation_predictor
 from .base import _OCRPredictor
 
 __all__ = ['OCRPredictor']
