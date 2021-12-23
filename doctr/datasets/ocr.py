@@ -21,17 +21,15 @@ class OCRDataset(AbstractDataset):
     Args:
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
-        img_transforms: composable transformations that will be applied to each image
     """
 
     def __init__(
         self,
         img_folder: str,
         label_file: str,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.img_transforms = img_transforms
+        super().__init__(img_folder, **kwargs)
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []

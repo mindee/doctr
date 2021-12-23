@@ -25,7 +25,6 @@ class IC03(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        img_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -40,14 +39,12 @@ class IC03(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
         url, sha256, file_name = self.TRAIN if train else self.TEST
         super().__init__(url, file_name, sha256, True, **kwargs)
-        self.img_transforms = img_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32

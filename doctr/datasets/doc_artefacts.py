@@ -25,7 +25,6 @@ class DocArtefacts(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        img_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -37,14 +36,12 @@ class DocArtefacts(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.train = train
-        self.img_transforms = img_transforms
 
         # Update root
         self.root = os.path.join(self.root, "train" if train else "val")

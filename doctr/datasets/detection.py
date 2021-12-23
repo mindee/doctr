@@ -27,7 +27,6 @@ class DetectionDataset(AbstractDataset):
     Args:
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations of each image
-        img_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
@@ -35,11 +34,10 @@ class DetectionDataset(AbstractDataset):
         self,
         img_folder: str,
         label_path: str,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.img_transforms = img_transforms
+        super().__init__(img_folder, **kwargs)
 
         # File existence check
         if not os.path.exists(label_path):
@@ -68,15 +66,18 @@ class DetectionDataset(AbstractDataset):
         index: int
     ) -> Tuple[Any, np.ndarray]:
 
-        img, boxes = self._read_sample(index)
+        img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
         if self.img_transforms is not None:
             img = self.img_transforms(img)
 
-        # Boxes
-        boxes = boxes.copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
-        boxes = boxes.clip(0, 1)
+        if self.sample_transforms is not None:
+            img, target = self.sample_transforms(img, target)
 
-        return img, boxes
+        # Boxes
+        target = target.copy()
+        target[..., [0, 2]] /= w
+        target[..., [1, 3]] /= h
+        target = target.clip(0, 1)
+
+        return img, target

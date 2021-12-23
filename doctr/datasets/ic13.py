@@ -29,7 +29,6 @@ class IC13(AbstractDataset):
     Args:
         img_folder: folder with all the images of the dataset
         label_folder: folder with all annotation files for the images
-        img_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
@@ -37,11 +36,10 @@ class IC13(AbstractDataset):
         self,
         img_folder: str,
         label_folder: str,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.img_transforms = img_transforms
+        super().__init__(img_folder, **kwargs)
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):

@@ -46,9 +46,11 @@ class _CharacterGenerator(AbstractDataset):
         num_samples: int,
         cache_samples: bool = False,
         img_transforms: Optional[Callable[[Any], Any]] = None,
+        sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
         font_family: Optional[str] = None,
     ) -> None:
         self.img_transforms = img_transforms
+        self.sample_transforms = sample_transforms
         self.vocab = vocab
         self._num_samples = num_samples
         self.font_family = font_family

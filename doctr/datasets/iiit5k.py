@@ -28,7 +28,6 @@ class IIIT5K(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        img_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -39,13 +38,11 @@ class IIIT5K(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, None, file_hash=self.SHA256, extract_archive=True, **kwargs)
-        self.img_transforms = img_transforms
         self.train = train
 
         # Load mat data
