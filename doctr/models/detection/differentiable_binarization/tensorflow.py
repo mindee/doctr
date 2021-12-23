@@ -223,7 +223,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         x: tf.Tensor,
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
-        return_boxes: bool = False,
+        return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -232,13 +232,13 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         logits = self.probability_head(feat_concat, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
-        if return_model_output or target is None or return_boxes:
+        if return_model_output or target is None or return_preds:
             prob_map = tf.math.sigmoid(logits)
 
         if return_model_output:
             out["out_map"] = prob_map
 
-        if target is None or return_boxes:
+        if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
             out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
