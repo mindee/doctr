@@ -200,7 +200,13 @@ class LinkNet(_LinkNet, keras.Model):
         return out
 
 
-def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> LinkNet:
+def _linknet(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = False,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> LinkNet:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
