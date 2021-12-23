@@ -53,7 +53,7 @@ class _AbstractDataset:
             img = self.img_transforms(img)  # type: ignore[call-arg]
 
         if self.sample_transforms is not None:
-            img, target = self.sample_transforms(img)
+            img, target = self.sample_transforms(img, target)
 
         return img, target
 
