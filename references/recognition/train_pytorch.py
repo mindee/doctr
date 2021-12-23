@@ -42,12 +42,6 @@ def record_lr(
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
-
-    Args:
-       freeze_until (str, optional): last layer to freeze
-       start_lr (float, optional): initial learning rate
-       end_lr (float, optional): final learning rate
-       num_it (int, optional): number of iterations to perform
     """
 
     if num_it > len(train_loader):
