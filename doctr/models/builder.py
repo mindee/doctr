@@ -112,7 +112,7 @@ class DocumentBuilder(NestedObject):
         Returns:
             nested list of box indices
         """
-        
+
         # Sort boxes, and straighten the boxes if they are rotated
         idxs, boxes = self._sort_boxes(boxes)
 
