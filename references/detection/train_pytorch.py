@@ -158,9 +158,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         images = batch_transforms(images)
         if amp:
             with torch.cuda.amp.autocast():
-                out = model(images, targets, return_boxes=True)
+                out = model(images, targets, return_preds=True)
         else:
-            out = model(images, targets, return_boxes=True)
+            out = model(images, targets, return_preds=True)
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
