@@ -44,10 +44,10 @@ class _AbstractDataset:
 
         # Read image
         img, target = self._read_sample(index)
-        self.sample_transforms: Optional[Callable[[Any], Any]]
-        if self.sample_transforms is not None:
+        self.img_transforms: Optional[Callable[[Any], Any]]
+        if self.img_transforms is not None:
             # typing issue cf. https://github.com/python/mypy/issues/5485
-            img = self.sample_transforms(img)  # type: ignore[call-arg]
+            img = self.img_transforms(img)  # type: ignore[call-arg]
 
         return img, target
 

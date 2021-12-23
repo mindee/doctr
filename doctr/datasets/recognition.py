@@ -24,17 +24,17 @@ class RecognitionDataset(AbstractDataset):
     Args:
         img_folder: path to the images folder
         labels_path: pathe to the json file containing all labels (character sequences)
-        sample_transforms: composable transformations that will be applied to each image
+        img_transforms: composable transformations that will be applied to each image
     """
 
     def __init__(
         self,
         img_folder: str,
         labels_path: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        img_transforms: Optional[Callable[[Any], Any]] = None,
     ) -> None:
         super().__init__(img_folder)
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        self.img_transforms = (lambda x: x) if img_transforms is None else img_transforms
 
         self.data: List[Tuple[str, str]] = []
         with open(labels_path) as f:

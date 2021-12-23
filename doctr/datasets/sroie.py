@@ -26,7 +26,7 @@ class SROIE(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
+        img_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -39,14 +39,14 @@ class SROIE(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        img_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
-        self.sample_transforms = sample_transforms
+        self.img_transforms = img_transforms
         self.train = train
 
         tmp_root = os.path.join(self.root, 'images')
