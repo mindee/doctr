@@ -210,9 +210,9 @@ def rectify_loc_preds(
     so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
     """
     return np.stack(
-        [page_loc_pred if orientation == 0 else np.roll(
-            page_loc_pred,
-            orientation,
-            axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
+        [
+            page_loc_pred if orientation == 0 else np.roll(page_loc_pred, orientation, axis=0)
+            for orientation, page_loc_pred in zip(orientations, page_loc_preds)
+        ],
         axis=0
     )
