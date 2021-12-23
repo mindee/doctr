@@ -11,7 +11,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from doctr.datasets import VOCABS
-from doctr.models import backbones
+from doctr.models import classification
 
 from ...utils import load_pretrained_params
 from ..transformer import Decoder, positional_encoding
@@ -265,7 +265,7 @@ def _master(
 
     # Build the model
     model = MASTER(
-        backbones.__dict__[_cfg['backbone']](pretrained=pretrained_backbone),
+        classification.__dict__[_cfg['backbone']](pretrained=pretrained_backbone),
         cfg=_cfg,
         **kwargs,
     )

@@ -24,7 +24,7 @@ if any(gpu_devices):
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
-from doctr.models import backbones
+from doctr.models import classification
 from utils import plot_samples
 
 
@@ -102,14 +102,14 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=False,
         drop_last=False,
-        workers=args.workers,
+        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
 
     # Load doctr model
-    model = backbones.__dict__[args.arch](
+    model = classification.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         num_classes=len(vocab),
@@ -153,7 +153,7 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=True,
         drop_last=True,
-        workers=args.workers,
+        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "

@@ -193,3 +193,37 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
             angle = 90 + angle
 
     return angle
+
+
+def rectify_crops(
+    crops: List[np.ndarray],
+    orientations: List[int],
+) -> List[np.ndarray]:
+    """Rotate each crop of the list according to the predicted orientation:
+    0: already straight, no rotation
+    1: 90 ccw, rotate 3 times ccw
+    2: 180, rotate 2 times ccw
+    3: 270 ccw, rotate 1 time ccw
+    """
+    # Inverse predictions (if angle of +90 is detected, rotate by -90)
+    orientations = [4 - pred if pred != 0 else 0 for pred in orientations]
+    return [
+        crop if orientation == 0 else np.rot90(crop, orientation)
+        for orientation, crop in zip(orientations, crops)
+    ]
+
+
+def rectify_loc_preds(
+    page_loc_preds: np.ndarray,
+    orientations: List[int],
+) -> np.ndarray:
+    """Orient the quadrangle (Polygon4P) according to the predicted orientation,
+    so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
+    """
+    return np.stack(
+        [
+            page_loc_pred if orientation == 0 else np.roll(page_loc_pred, orientation, axis=0)
+            for orientation, page_loc_pred in zip(orientations, page_loc_preds)
+        ],
+        axis=0
+    )

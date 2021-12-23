@@ -13,17 +13,17 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Sequential, layers
 
-from doctr.models.backbones import ResnetStage
+from doctr.models.classification import ResnetStage
 from doctr.models.utils import conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet16']
+__all__ = ['LinkNet', 'linknet_resnet18']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'linknet16': {
+    'linknet_resnet18': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'input_shape': (1024, 1024, 3),
@@ -32,7 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def decoder_block(in_chan: int, out_chan: int) -> Sequential:
+def decoder_block(in_chan: int, out_chan: int, stride: int) -> Sequential:
     """Creates a LinkNet decoder block"""
 
     return Sequential([
@@ -40,7 +40,7 @@ def decoder_block(in_chan: int, out_chan: int) -> Sequential:
         layers.Conv2DTranspose(
             filters=in_chan // 4,
             kernel_size=3,
-            strides=2,
+            strides=stride,
             padding="same",
             use_bias=False,
             kernel_initializer='he_normal'
@@ -59,14 +59,14 @@ class LinkNetFPN(layers.Layer, NestedObject):
     ) -> None:
 
         super().__init__()
-        self.encoder_1 = ResnetStage(num_blocks=2, output_channels=64, downsample=True)
+        self.encoder_1 = ResnetStage(num_blocks=2, output_channels=64, downsample=False)
         self.encoder_2 = ResnetStage(num_blocks=2, output_channels=128, downsample=True)
         self.encoder_3 = ResnetStage(num_blocks=2, output_channels=256, downsample=True)
         self.encoder_4 = ResnetStage(num_blocks=2, output_channels=512, downsample=True)
-        self.decoder_1 = decoder_block(in_chan=64, out_chan=64)
-        self.decoder_2 = decoder_block(in_chan=128, out_chan=64)
-        self.decoder_3 = decoder_block(in_chan=256, out_chan=128)
-        self.decoder_4 = decoder_block(in_chan=512, out_chan=256)
+        self.decoder_1 = decoder_block(in_chan=64, out_chan=64, stride=1)
+        self.decoder_2 = decoder_block(in_chan=128, out_chan=64, stride=2)
+        self.decoder_3 = decoder_block(in_chan=256, out_chan=128, stride=2)
+        self.decoder_4 = decoder_block(in_chan=512, out_chan=256, stride=2)
 
     def call(
         self,
@@ -216,14 +216,14 @@ def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = No
     return model
 
 
-def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
-        >>> from doctr.models import linknet16
-        >>> model = linknet16(pretrained=True)
+        >>> from doctr.models import linknet_resnet18
+        >>> model = linknet_resnet18(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
 
@@ -234,4 +234,4 @@ def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet16', pretrained, **kwargs)
+    return _linknet('linknet_resnet18', pretrained, **kwargs)
