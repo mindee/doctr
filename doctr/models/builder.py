@@ -124,7 +124,7 @@ class DocumentBuilder(NestedObject):
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
         if len(boxes.shape) == 3:
-            y_center_sum = boxes[idxs[0]][[[2, 1], [1, 1]]].mean()
+            y_center_sum = boxes[idxs[0]][([2, 1], [1, 1])].mean()
         else:
             y_center_sum = boxes[idxs[0]][[1, 3]].mean()
 
@@ -133,7 +133,7 @@ class DocumentBuilder(NestedObject):
 
             # Compute y_dist
             if len(boxes.shape) == 3:
-                y_dist = abs(boxes[idx][[[2, 1], [1, 1]]].mean() - y_center_sum / len(words))
+                y_dist = abs(boxes[idx][([2, 1], [1, 1])].mean() - y_center_sum / len(words))
             else:
                 y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
             # If y-center of the box is close enough to mean y-center of the line, same line
@@ -148,7 +148,7 @@ class DocumentBuilder(NestedObject):
 
             words.append(idx)
             if len(boxes.shape) == 3:
-                y_center_sum += boxes[idx][[[2, 1], [1, 1]]].mean()
+                y_center_sum += boxes[idx][([2, 1], [1, 1])].mean()
             else:
                 y_center_sum += boxes[idx][[1, 3]].mean()
 
