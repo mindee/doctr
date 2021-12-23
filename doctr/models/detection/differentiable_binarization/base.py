@@ -41,7 +41,7 @@ class DBPostProcessor(DetectionPostProcessor):
             bin_thresh,
             assume_straight_pages
         )
-        self.unclip_ratio = 1.5
+        self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
     def polygon_to_box(
         self,
