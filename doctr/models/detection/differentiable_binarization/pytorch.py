@@ -28,7 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'url_straigth_pages': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
+        'url_straight_pages': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
         'url_rot_pages': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
     },
     'db_resnet34': {

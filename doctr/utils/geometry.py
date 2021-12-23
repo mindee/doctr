@@ -273,7 +273,7 @@ def estimate_page_angle(boxes: np.ndarray) -> float:
     """Takes a batch of rotated previously ORIENTED boxes (N, 4, 2) (rectified by the classifier) and return the
     estimated angle ccw in degrees
     """
-    return np.mean(np.arctan2(
-        (boxes[:, 1, 1] - boxes[:, 0, 1]),
+    return np.median(np.arctan(
+        (boxes[:, 0, 1] - boxes[:, 1, 1]) /  # Y axis from top to bottom!
         (boxes[:, 1, 0] - boxes[:, 0, 0])
     )) * 180 / np.pi
