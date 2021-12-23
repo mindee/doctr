@@ -64,8 +64,8 @@ def extract_rcrops(
     """
     if boxes.shape[0] == 0:
         return []
-    if boxes.shape[1:] != (4, 2) or boxes.dtype != np.float32:
-        raise AssertionError("boxes are expected to be quadrilateral, of shape (N, 4, 2) in relative coordinates")
+    if boxes.shape[1:] != (4, 2):
+        raise AssertionError("boxes are expected to be quadrilateral, of shape (N, 4, 2)")
 
     # Project relative coordinates
     _boxes = boxes.copy()

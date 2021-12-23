@@ -13,7 +13,7 @@ def test_convert_page_to_numpy(mock_pdf):
     # Check correct read
     rgb_page = io.pdf.convert_page_to_numpy(pdf[0], default_scales=(1, 1))
     assert isinstance(rgb_page, np.ndarray)
-    assert rgb_page.shape == (792, 612, 3)
+    assert rgb_page.shape == (842, 595, 3)
 
     # Check channel order
     bgr_page = io.pdf.convert_page_to_numpy(pdf[0], default_scales=(1, 1), bgr_output=True)
@@ -26,7 +26,7 @@ def test_convert_page_to_numpy(mock_pdf):
     # Check rescaling
     rgb_page = io.pdf.convert_page_to_numpy(pdf[0])
     assert isinstance(rgb_page, np.ndarray)
-    assert rgb_page.shape == (1584, 1224, 3)
+    assert rgb_page.shape == (1684, 1190, 3)
 
 
 def _check_doc_content(doc_tensors, num_pages):
@@ -36,10 +36,13 @@ def _check_doc_content(doc_tensors, num_pages):
     assert all(page.dtype == np.uint8 for page in doc_tensors)
 
 
-def test_read_pdf(mock_pdf, mock_pdf_stream):
-    for file in [mock_pdf, mock_pdf_stream]:
-        doc = io.read_pdf(file)
-        assert isinstance(doc, fitz.Document)
+def test_read_pdf(mock_pdf):
+    doc = io.read_pdf(mock_pdf)
+    assert isinstance(doc, fitz.Document)
+
+    with open(mock_pdf, 'rb') as f:
+        doc = io.read_pdf(f.read())
+    assert isinstance(doc, fitz.Document)
 
     # Wrong input type
     with pytest.raises(TypeError):
@@ -112,25 +115,29 @@ def test_pdf(mock_pdf):
 
     # As images
     pages = doc.as_images()
-    _check_doc_content(pages, 8)
+    num_pages = 2
+    _check_doc_content(pages, num_pages)
 
     # Get words
     words = doc.get_words()
-    assert isinstance(words, list) and len(words) == 8
+    assert isinstance(words, list) and len(words) == num_pages
+    assert len([word for page_words in words for word in page_words]) == 9
     assert all(isinstance(bbox, tuple) and isinstance(value, str)
                for page_words in words for (bbox, value) in page_words)
     assert all(all(isinstance(coord, float) for coord in bbox) for page_words in words for (bbox, value) in page_words)
 
     # Get lines
     lines = doc.get_lines()
-    assert isinstance(lines, list) and len(lines) == 8
+    assert isinstance(lines, list) and len(lines) == num_pages
+    assert len([line for page_lines in lines for line in page_lines]) == 2
     assert all(isinstance(bbox, tuple) and isinstance(value, str)
                for page_lines in lines for (bbox, value) in page_lines)
     assert all(all(isinstance(coord, float) for coord in bbox) for page_lines in lines for (bbox, value) in page_lines)
 
     # Get artefacts
     artefacts = doc.get_artefacts()
-    assert isinstance(artefacts, list) and len(artefacts) == 8
+    assert isinstance(artefacts, list) and len(artefacts) == num_pages
+    assert len([art for page_art in artefacts for art in page_art]) == 0
     assert all(isinstance(bbox, tuple) for page_artefacts in artefacts for bbox in page_artefacts)
     assert all(all(isinstance(coord, float) for coord in bbox)
                for page_artefacts in artefacts for bbox in page_artefacts)

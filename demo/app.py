@@ -79,7 +79,7 @@ def main():
 
                 # Forward the image to the model
                 processed_batches = predictor.det_predictor.pre_processor([doc[page_idx]])
-                out = predictor.det_predictor.model(processed_batches[0], return_model_output=True)
+                out = predictor.det_predictor.model(processed_batches[0], return_preds=True)
                 seg_map = out["out_map"]
                 seg_map = tf.squeeze(seg_map[0, ...], axis=[2])
                 seg_map = cv2.resize(seg_map.numpy(), (doc[page_idx].shape[1], doc[page_idx].shape[0]),

@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from io import BytesIO
 
+import fitz
 import hdf5storage
 import numpy as np
 import pytest
@@ -17,17 +18,20 @@ def mock_vocab():
 
 
 @pytest.fixture(scope="session")
-def mock_pdf_stream():
-    url = 'https://arxiv.org/pdf/1911.08947.pdf'
-    return requests.get(url).content
+def mock_pdf(tmpdir_factory):
 
+    doc = fitz.open()
 
-@pytest.fixture(scope="session")
-def mock_pdf(mock_pdf_stream, tmpdir_factory):
-    file = BytesIO(mock_pdf_stream)
+    page = doc.new_page()
+    page.insert_text(fitz.Point(50, 100), "I am a jedi!", fontsize=20)
+    page = doc.new_page()
+    page.insert_text(fitz.Point(50, 100), "No, I am your father.", fontsize=20)
+
+    # Save the PDF
     fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
     with open(fn, 'wb') as f:
-        f.write(file.getbuffer())
+        doc.save(f)
+
     return str(fn)
 
 

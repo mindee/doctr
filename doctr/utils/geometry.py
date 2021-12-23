@@ -84,7 +84,6 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     rotated_points = rotate_abs_points(points, angle)
 
     wh_shape = 2 * np.abs(rotated_points).max(axis=0)
-    print(wh_shape)
     return wh_shape[1], wh_shape[0]
 
 
@@ -134,38 +133,6 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
         box_rot_corners[..., 1] = img_shape[0] / 2 - box_rot_corners[..., 1]
 
     return box_rot_corners
-
-
-# TODO: add a deprecation warning, since we don't need to remap polygons points
-def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tuple[int, int]) -> np.ndarray:
-    """ Remaps a batch of rotated locpred (x, y, w, h, alpha, c) expressed for an origin_shape to a destination_shape.
-    This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
-    coordinates after a resizing of the image.
-
-    Args:
-        loc_preds: (N, 6) array of RELATIVE locpred (x, y, w, h, alpha, c)
-        orig_shape: shape of the origin image
-        dest_shape: shape of the destination image
-
-    Returns:
-        A batch of rotated loc_preds (N, 6): (x, y, w, h, alpha, c) expressed in the destination referencial
-
-    """
-
-    if len(dest_shape) != 2:
-        raise ValueError(f"Mask length should be 2, was found at: {len(dest_shape)}")
-    if len(orig_shape) != 2:
-        raise ValueError(f"Image_shape length should be 2, was found at: {len(orig_shape)}")
-    orig_height, orig_width = orig_shape
-    dest_height, dest_width = dest_shape
-    mboxes = loc_preds.copy()
-    # remaps position of the box center for the destination image shape
-    mboxes[:, 0] = ((loc_preds[:, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
-    mboxes[:, 1] = ((loc_preds[:, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
-    # remaps box dimension for the destination image shape
-    mboxes[:, 2] = loc_preds[:, 2] * orig_width / dest_width
-    mboxes[:, 3] = loc_preds[:, 3] * orig_height / dest_height
-    return mboxes
 
 
 def rotate_boxes(

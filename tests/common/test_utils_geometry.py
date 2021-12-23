@@ -1,8 +1,4 @@
-from math import hypot
-
-import cv2
 import numpy as np
-import pytest
 
 from doctr.utils import geometry
 
@@ -29,54 +25,6 @@ def test_resolve_enclosing_rbbox():
     target1 = np.asarray([[.55, .65], [.05, .15], [.1, .1], [.6, .6]])
     target2 = np.asarray([[.05, .15], [.1, .1], [.6, .6], [.55, .65]])
     assert np.all(target1 - pred <= 1e-3) or np.all(target2 - pred <= 1e-3)
-
-
-def test_remap_boxes():
-    pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0., 0.5]]), (10, 10), (20, 20))
-    target = np.array([[0.5, 0.5, 0.05, 0.05, 0., 0.5]])
-    assert np.all(pred == target)
-
-    pred = geometry.remap_boxes(np.array([[0.5, 0.5, 0.1, 0.1, 0., 0.5]]), (10, 10), (20, 10))
-    target = np.array([[0.5, 0.5, 0.1, 0.05, 0., 0.5]])
-    assert np.all(pred == target)
-
-    pred = geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40), (160, 40))
-    target = np.array([[0.5, 0.25, 0.5, 0.125, 0., 0.5]])
-    assert np.all(pred == target)
-
-    with pytest.raises(ValueError):
-        geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40, 150), (160, 40))
-
-    with pytest.raises(ValueError):
-        geometry.remap_boxes(np.array([[0.5, 0.0, 0.5, 0.25, 0., 0.5]]), (80, 40), (160,))
-
-    orig_dimension = (100, 100)
-    dest_dimensions = (100, 200)
-    orig_box = np.array([[0.5, 0.5, 0.2, 0., 45, 0.5]])
-    # Unpack
-    height_o, width_o = orig_dimension
-    height_d, width_d = dest_dimensions
-    pred = geometry.remap_boxes(orig_box, orig_dimension, dest_dimensions)
-
-    x, y, w, h, a, _ = orig_box[0]
-    # Switch to absolute coords
-    x, w = x * width_o, w * width_o
-    y, h = y * height_o, h * height_o
-    orig = cv2.boxPoints(((x, y), (w, h), a))
-
-    x, y, w, h, a, _ = pred[0]
-    # Switch to absolute coords
-    x, w = x * width_d, w * width_d
-    y, h = y * height_d, h * height_d
-    dest = cv2.boxPoints(((x, y), (w, h), a))
-
-    len_orig = hypot(orig[0][0] - orig[2][0], orig[0][1] - orig[2][1])
-    len_dest = hypot(dest[0][0] - dest[2][0], dest[0][1] - dest[2][1])
-    assert len_orig == len_dest
-
-    alpha_orig = np.rad2deg(np.arctan((orig[0][1] - orig[2][1]) / (orig[0][0] - orig[2][0])))
-    alpha_dest = np.rad2deg(np.arctan((dest[0][1] - dest[2][1]) / (dest[0][0] - dest[2][0])))
-    assert alpha_orig == alpha_dest
 
 
 def test_rotate_boxes():
