@@ -136,7 +136,7 @@ def create_obj_patch(
 def visualize_page(
     page: Dict[str, Any],
     image: np.ndarray,
-    words_only: bool = False,
+    words_only: bool = True,
     display_artefacts: bool = True,
     scale: float = 10,
     interactive: bool = True,
@@ -178,14 +178,14 @@ def visualize_page(
         artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     for block in page['blocks']:
-        # if not words_only:
-        #     rect = create_obj_patch(block['geometry'], page['dimensions'],
-        #                             label='block', color=(0, 1, 0), linewidth=1, **kwargs)
-        #     # add patch on figure
-        #     ax.add_patch(rect)
-        #     if interactive:
-        #         # add patch to cursor's artists
-        #         artists.append(rect)
+        if not words_only:
+            rect = create_obj_patch(block['geometry'], page['dimensions'],
+                                    label='block', color=(0, 1, 0), linewidth=1, **kwargs)
+            # add patch on figure
+            ax.add_patch(rect)
+            if interactive:
+                # add patch to cursor's artists
+                artists.append(rect)
 
         for line in block['lines']:
             if not words_only:
@@ -196,30 +196,30 @@ def visualize_page(
                     artists.append(rect)
 
             for word in line['words']:
-                # rect = create_obj_patch(word['geometry'], page['dimensions'],
-                #                         label=f"{word['value']} (confidence: {word['confidence']:.2%})",
-                #                         color=(0, 0, 1), **kwargs)
-                # ax.add_patch(rect)
-                # if interactive:
-                #     artists.append(rect)
-                # elif add_labels:
-                #     if len(word['geometry']) == 5:
-                #         text_loc = (
-                #             int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
-                #             int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
-                #         )
-                #     else:
-                #         text_loc = (
-                #             int(page['dimensions'][1] * word['geometry'][0][0]),
-                #             int(page['dimensions'][0] * word['geometry'][0][1])
-                #         )
-                #     ax.text(
-                #         *text_loc,
-                #         word['value'],
-                #         size=10,
-                #         alpha=0.5,
-                #         color=(0, 0, 1),
-                #     )
+                rect = create_obj_patch(word['geometry'], page['dimensions'],
+                                        label=f"{word['value']} (confidence: {word['confidence']:.2%})",
+                                        color=(0, 0, 1), **kwargs)
+                ax.add_patch(rect)
+                if interactive:
+                    artists.append(rect)
+                elif add_labels:
+                    if len(word['geometry']) == 5:
+                        text_loc = (
+                            int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
+                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
+                        )
+                    else:
+                        text_loc = (
+                            int(page['dimensions'][1] * word['geometry'][0][0]),
+                            int(page['dimensions'][0] * word['geometry'][0][1])
+                        )
+                    ax.text(
+                        *text_loc,
+                        word['value'],
+                        size=10,
+                        alpha=0.5,
+                        color=(0, 0, 1),
+                    )
                 pass
 
         if display_artefacts:
