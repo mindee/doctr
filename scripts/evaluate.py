@@ -109,10 +109,11 @@ def main(args):
                                                        int(c * width), int(d * height)])
                                 else:
                                     pred_boxes.append(
-                                        [[int(x1 * width), int(y1 * height)],
-                                         [int(x2 * width), int(y2 * height)],
-                                         [int(x3 * width), int(y3 * height)],
-                                         [int(x4 * width), int(y4 * height)],
+                                        [
+                                            [int(x1 * width), int(y1 * height)],
+                                            [int(x2 * width), int(y2 * height)],
+                                            [int(x3 * width), int(y3 * height)],
+                                            [int(x4 * width), int(y4 * height)],
                                         ]
                                     )
                             else:
