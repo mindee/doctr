@@ -1,9 +1,8 @@
 from random import randint
 
+import constants as const
 import cv2
 import numpy as np
-
-import constants as const
 
 
 def add_n_random_blur(image, n=randint(1, 4)):

@@ -1,8 +1,7 @@
-import cv2
-import numpy as np
-
 import channels as channels
+import cv2
 import noise as noise
+import numpy as np
 
 
 def apply_shadow_mask(image, blur_width, intensity, shadow_mask):

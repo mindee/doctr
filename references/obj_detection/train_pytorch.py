@@ -8,9 +8,10 @@ import os
 os.environ['USE_TORCH'] = '1'
 
 import datetime
-import multiprocessing as mp
 import logging
+import multiprocessing as mp
 import time
+
 import numpy as np
 import torch
 import torch.optim as optim
@@ -18,13 +19,13 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision.transforms import Compose
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
-from references.obj_detection.utils import data_augmentations
-from utils import plot_recorder, plot_samples
+from utils import Add_noise, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -102,36 +103,27 @@ def record_lr(
     return lr_recorder[:len(loss_recorder)], loss_recorder
 
 
-def convert_to_abs_coords(targets, img_shape, use_aug=False, **kwargs):
+def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
     for idx in range(len(targets)):
         targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
-    if use_aug:
-        images, targets = data_augmentations(targets, 2, **kwargs)
-        return images, targets
-    else:
-        targets = [{
-            "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
-            "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
-            for t in targets
-        ]
-        return targets
+    targets = [{
+        "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
+        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
+        for t in targets
+    ]
+    return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp, use_aug, ):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
     model.train()
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_iter, parent=mb):
-        if use_aug:
-            height, width = images.shape[-2:]
-            kwargs = {"images": images, "height": height, "width": width, }
-            images, targets = convert_to_abs_coords(targets, images.shape, use_aug=True, **kwargs)
-        else:
-            targets = convert_to_abs_coords(targets, images.shape)
+        targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
@@ -159,7 +151,6 @@ def evaluate(model, val_loader, metric, amp=False):
     metric.reset()
     val_iter = iter(val_loader)
     for images, targets in val_iter:
-
         images, targets = next(val_iter)
         # batch_transforms
         targets = convert_to_abs_coords(targets, images.shape)
@@ -246,7 +237,8 @@ def main(args):
     train_set = DocArtefacts(
         train=True,
         download=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        sample_transforms=Compose([T.Resize((args.input_size, args.input_size)),
+                                   Add_noise()])
     )
 
     train_loader = DataLoader(
@@ -310,7 +302,7 @@ def main(args):
     mb = master_bar(range(args.epochs))
     max_score = 0.
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=args.amp, use_aug=args.use_augmentations)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=args.amp)
         # Validation loop at the end of each epoch
         recall, precision, mean_iou = evaluate(model, val_loader, metric, amp=args.amp)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
@@ -346,7 +338,6 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
-    parser.add_argument('--use_augmentations', default=True, help='augmentations')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')

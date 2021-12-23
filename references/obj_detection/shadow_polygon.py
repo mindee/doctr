@@ -1,7 +1,6 @@
+import constants as const
 import cv2
 import numpy as np
-
-import constants as const
 import shadow_mask as mask
 
 

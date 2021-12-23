@@ -17,54 +17,18 @@ import references.obj_detection.shadow_polygon as polygon
 import references.obj_detection.shadow_single as single
 import torch
 from matplotlib.cm import get_cmap
-from torchvision import transforms
 
 
-def random_horizontal_flip(img: torch.Tensor, bbox: np.ndarray, width):
-    if np.random.rand() > .5:
-        trans = transforms.RandomHorizontalFlip(p=1)
-        transformed_ = trans(img)
-        bbox_dup = bbox[:]
-        for k in range(len(bbox)):
-            for id in range(len(bbox[k])):
-                bbox_dup[k][id][0], bbox_dup[k][id][2] = width - bbox[k][id][2], width - bbox[k][id][0]
-        return transformed_, bbox_dup
-    else:
-        return img, bbox
-
-
-def random_vertical_flip(img: torch.Tensor, bbox: np.ndarray, height):
-    if np.random.rand() > .5:
-        trans = transforms.RandomVerticalFlip(p=1.0)
-        transformed_ = trans(img)
-        bbox_dup = bbox[:]
-        for k in range(len(bbox)):
-            for id in range(len(bbox[k])):
-                bbox_dup[k][id][3], bbox_dup[k][id][1] = height - bbox[k][id][1], height - bbox[k][id][3]
-        return (transformed_, bbox_dup)
-    else:
-        return img, bbox
-
-
-def data_augmentations(targets, max_angle, **kwargs):
-    bbox = np.array([i["boxes"] for i in targets])
-    images = kwargs.get('images', )
-    images = images.permute(0, 2, 3, 1).numpy()
-    images = images * 255
-    # shadows and speckle noise
-    for val in range(len(images)):
-        if np.random.rand() > 0.5:
-            images[val] = add_n_random_shadows(images[val])
+class Add_noise():
+    def __call__(self, img: torch.Tensor):
+        img = img.permute(1, 2, 0).numpy() * 255
+        if np.random.rand() > 0.35:
+            # Adds random n shadows
+            img = add_n_random_shadows(img)
         else:
-            images[val] = get_random_speckle_noise(images[val])
-    images = torch.from_numpy(images).permute(0, 3, 1, 2)
-    images = images / 255
-    targets = [{
-        "boxes": torch.from_numpy(bo).to(dtype=torch.float32),
-        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
-        for bo, t in zip(bbox, targets)
-    ]
-    return images, targets
+            # Adds speckle noise of random intensity
+            img = get_random_speckle_noise(img)
+        return torch.from_numpy(img).permute(2, 1, 0) / 255
 
 
 def add_n_random_shadows(image, n_shadow=4, blur_scale=1.0):

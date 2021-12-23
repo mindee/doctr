@@ -1,5 +1,4 @@
 import random
-
 from enum import Enum
 
 N_FILES_OUTPUT = 100

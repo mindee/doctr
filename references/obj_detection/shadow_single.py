@@ -1,6 +1,5 @@
-import numpy as np
-
 import constants as const
+import numpy as np
 import shadow_mask as mask
 
 
