@@ -25,7 +25,7 @@ from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
-from utils import Add_noise, plot_recorder, plot_samples
+from utils import plot_recorder, plot_samples
 
 
 def record_lr(
@@ -238,7 +238,7 @@ def main(args):
         train=True,
         download=True,
         sample_transforms=Compose([T.Resize((args.input_size, args.input_size)),
-                                   Add_noise()])
+                                   T.RandomGaussianNoise(0.5, 1.5)])
     )
 
     train_loader = DataLoader(

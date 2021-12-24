@@ -11,16 +11,16 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize']
+__all__ = ['Resize', 'RandomGaussianNoise']
 
 
 class Resize(T.Resize):
     def __init__(
-        self,
-        size: Tuple[int, int],
-        interpolation=F.InterpolationMode.BILINEAR,
-        preserve_aspect_ratio: bool = False,
-        symmetric_pad: bool = False,
+            self,
+            size: Tuple[int, int],
+            interpolation=F.InterpolationMode.BILINEAR,
+            preserve_aspect_ratio: bool = False,
+            symmetric_pad: bool = False,
     ) -> None:
         super().__init__(size, interpolation)
         self.preserve_aspect_ratio = preserve_aspect_ratio
@@ -53,3 +53,15 @@ class Resize(T.Resize):
         if self.preserve_aspect_ratio:
             _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
         return f"{self.__class__.__name__}({_repr})"
+
+
+class RandomGaussianNoise():
+    def __init__(self, mean=0.5, std=1.5):
+        self.std = std
+        self.mean = mean
+
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+
+    def __repr__(self) -> str:
+        return self.__class__.__name__ + f"mean = {self.mean}, std = {self.std}"
