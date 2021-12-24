@@ -184,7 +184,7 @@ def main(args):
     val_set = DocArtefacts(
         train=False,
         download=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
     )
     val_loader = DataLoader(
         val_set,
@@ -236,7 +236,7 @@ def main(args):
     train_set = DocArtefacts(
         train=True,
         download=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
     )
 
     train_loader = DataLoader(

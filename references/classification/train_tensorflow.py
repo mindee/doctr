@@ -146,7 +146,7 @@ def main(args):
         vocab=vocab,
         num_samples=args.val_samples * len(vocab),
         cache_samples=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
         font_family=args.font,
     )
     val_loader = DataLoader(
@@ -189,7 +189,7 @@ def main(args):
         vocab=vocab,
         num_samples=args.train_samples * len(vocab),
         cache_samples=True,
-        sample_transforms=T.Compose([
+        img_transforms=T.Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
             T.RandomApply(T.ColorInversion(), .7),

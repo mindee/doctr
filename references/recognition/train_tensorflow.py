@@ -142,7 +142,7 @@ def main(args):
     val_set = RecognitionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         labels_path=os.path.join(args.val_path, 'labels.json'),
-        sample_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+        img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
     val_loader = DataLoader(
         val_set,
@@ -189,7 +189,7 @@ def main(args):
     train_set = RecognitionDataset(
         parts[0].joinpath('images'),
         parts[0].joinpath('labels.json'),
-        sample_transforms=T.Compose([
+        img_transforms=T.Compose([
             T.RandomApply(T.ColorInversion(), .1),
             T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
             # Augmentations

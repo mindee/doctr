@@ -6,7 +6,7 @@
 import csv
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -29,7 +29,6 @@ class IC13(AbstractDataset):
     Args:
         img_folder: folder with all the images of the dataset
         label_folder: folder with all annotation files for the images
-        sample_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
@@ -37,11 +36,10 @@ class IC13(AbstractDataset):
         self,
         img_folder: str,
         label_folder: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.sample_transforms = sample_transforms
+        super().__init__(img_folder, **kwargs)
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):
@@ -78,8 +76,8 @@ class IC13(AbstractDataset):
     def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
         img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
-        if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
+        if self.img_transforms is not None:
+            img = self.img_transforms(img)
 
         # Boxes
         boxes = target['boxes'].copy()
