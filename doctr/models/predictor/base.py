@@ -77,8 +77,8 @@ class _OCRPredictor:
         print(len(crops))
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
-            rectify_loc_preds(page_loc_preds, orientation) for page_loc_preds, orientation
-            in zip(loc_preds, orientations)
+            rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
+            for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
         return rect_crops, rect_loc_preds
 

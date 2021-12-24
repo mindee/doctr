@@ -49,7 +49,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .9], [.5, .9]]], dtype=np.float32),
     ]
     loss = model(input_tensor, target)['loss']
-    assert isinstance(loss, torch.Tensor) and ((loss - out['loss']).abs() / loss).item() < 5e-2
+    assert isinstance(loss, torch.Tensor) and ((loss - out['loss']).abs() / loss).item() < 1e-1
 
 
 @pytest.mark.parametrize(
