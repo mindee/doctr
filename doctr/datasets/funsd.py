@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -26,7 +26,6 @@ class FUNSD(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
         rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -38,14 +37,12 @@ class FUNSD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
         rotated_bbox: bool = False,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
         self.train = train
-        self.sample_transforms = sample_transforms
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')

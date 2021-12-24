@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 from .datasets import AbstractDataset
 
@@ -24,17 +24,15 @@ class RecognitionDataset(AbstractDataset):
     Args:
         img_folder: path to the images folder
         labels_path: pathe to the json file containing all labels (character sequences)
-        sample_transforms: composable transformations that will be applied to each image
     """
 
     def __init__(
         self,
         img_folder: str,
         labels_path: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.sample_transforms = (lambda x: x) if sample_transforms is None else sample_transforms
+        super().__init__(img_folder, **kwargs)
 
         self.data: List[Tuple[str, str]] = []
         with open(labels_path) as f:
