@@ -27,7 +27,7 @@ class SVHN(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
     TRAIN = ('http://ufldl.stanford.edu/housenumbers/train.tar.gz',
@@ -42,7 +42,7 @@ class SVHN(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -83,15 +83,15 @@ class SVHN(VisionDataset):
                 ], dtype=np_dtype).transpose()
                 label_targets = list(map(str, box_dict['label']))
 
-                if rotated_bbox:
-                    # x_center, y_center, w, h, alpha = 0
+                if use_polygons:
                     box_targets = np.stack([
-                        coords[:, 0] + coords[:, 2] / 2,
-                        coords[:, 1] + coords[:, 3] / 2,
-                        coords[:, 2],
-                        coords[:, 3],
-                        np.zeros(coords.shape[0], dtype=np.dtype),
-                    ], axis=-1)
+                        [
+                            np.stack([coords[:, 0], coords[:, 1]], axis=-1),
+                            np.stack([coords[:, 0] + coords[:, 2], coords[:, 1]], axis=-1),
+                            np.stack([coords[:, 0] + coords[:, 2], coords[:, 1] + coords[:, 3]], axis=-1),
+                            np.stack([coords[:, 0], coords[:, 1] + coords[:, 3]], axis=-1),
+                        ]
+                    ], axis=1)
                 else:
                     # x, y, width, height -> xmin, ymin, xmax, ymax
                     box_targets = np.stack([

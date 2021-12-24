@@ -26,7 +26,7 @@ class IC03(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -41,7 +41,7 @@ class IC03(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -65,12 +65,17 @@ class IC03(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, name.text)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, name.text)}")
 
-            if rotated_bbox:
-                # x_center, y_center, width, height, 0
+            if use_polygons:
                 _boxes = [
-                    [float(rect.attrib['x']) + float(rect.attrib['width']) / 2,
-                     float(rect.attrib['y']) + float(rect.attrib['height']) / 2,
-                     float(rect.attrib['width']), float(rect.attrib['height']), float(rect.attrib['rotation'])]
+                    [
+                        [float(rect.attrib['x']), float(rect.attrib['y'])],
+                        [float(rect.attrib['x'] + rect.attrib['width']), float(rect.attrib['y'])],
+                        [
+                            float(rect.attrib['x'] + rect.attrib['width']),
+                            float(rect.attrib['y'] + rect.attrib['height'])
+                        ],
+                        [float(rect.attrib['x']), float(rect.attrib['y'] + rect.attrib['height'])],
+                    ]
                     for rect in rectangles
                 ]
             else:
@@ -87,8 +92,12 @@ class IC03(VisionDataset):
                 # Convert them to relative
                 w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
                 boxes = np.asarray(_boxes, dtype=np_dtype)
-                boxes[:, [0, 2]] /= w
-                boxes[:, [1, 3]] /= h
+                if use_polygons:
+                    boxes[:, :, 0] /= w
+                    boxes[:, :, 1] /= h
+                else:
+                    boxes[:, [0, 2]] /= w
+                    boxes[:, [1, 3]] /= h
 
                 # Get the labels
                 labels = [lab.text for rect in rectangles for lab in rect if lab.text]

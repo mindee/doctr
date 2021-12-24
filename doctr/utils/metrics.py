@@ -10,7 +10,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from unidecode import unidecode
 
-__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'rbox_iou',
+__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'polygon_iou',
            'nms', 'LocalizationConfusion', 'OCRMetric', 'DetectionMetric']
 
 
@@ -199,17 +199,17 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
-def rbox_iou(
-    boxes_1: np.ndarray,
-    boxes_2: np.ndarray,
+def polygon_iou(
+    polys_1: np.ndarray,
+    polys_2: np.ndarray,
     mask_shape: Tuple[int, int],
     use_broadcasting: bool = True
 ) -> np.ndarray:
     """Computes the IoU between two sets of rotated bounding boxes
 
     Args:
-        boxes_1: rotated bounding boxes of shape (N, 4, 2)
-        boxes_2: rotated bounding boxes of shape (M, 4, 2)
+        polys_1: rotated bounding boxes of shape (N, 4, 2)
+        polys_2: rotated bounding boxes of shape (M, 4, 2)
         mask_shape: spatial shape of the intermediate masks
         use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory
 
@@ -217,21 +217,21 @@ def rbox_iou(
         the IoU matrix of shape (N, M)
     """
 
-    if len(boxes_1.shape) != 3 or len(boxes_2.shape) != 3:
+    if polys_1.ndim != 3 or polys_2.ndim != 3:
         raise AssertionError("expects boxes to be in format (N, 4, 2)")
 
-    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+    iou_mat = np.zeros((polys_1.shape[0], polys_2.shape[0]), dtype=np.float32)
 
-    if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
+    if polys_1.shape[0] > 0 and polys_2.shape[0] > 0:
         if use_broadcasting:
-            masks_1 = rbox_to_mask(boxes_1, shape=mask_shape)
-            masks_2 = rbox_to_mask(boxes_2, shape=mask_shape)
+            masks_1 = rbox_to_mask(polys_1, shape=mask_shape)
+            masks_2 = rbox_to_mask(polys_2, shape=mask_shape)
             iou_mat = mask_iou(masks_1, masks_2)
         else:
             # Save memory by doing the computation for each pair
-            for idx, b1 in enumerate(boxes_1):
+            for idx, b1 in enumerate(polys_1):
                 m1 = _rbox_to_mask(b1, mask_shape)
-                for _idx, b2 in enumerate(boxes_2):
+                for _idx, b2 in enumerate(polys_2):
                     m2 = _rbox_to_mask(b2, mask_shape)
                     iou_mat[idx, _idx] = np.logical_and(m1, m2).sum() / np.logical_or(m1, m2).sum()
 
@@ -396,7 +396,7 @@ class LocalizationConfusion:
         if preds.shape[0] > 0:
             # Compute IoU
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gts, preds, self.mask_shape, self.use_broadcasting)
+                iou_mat = polygon_iou(gts, preds, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gts, preds)
             self.tot_iou += float(iou_mat.max(axis=0).sum())
@@ -514,7 +514,7 @@ class OCRMetric:
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
+                iou_mat = polygon_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 
@@ -652,7 +652,7 @@ class DetectionMetric:
         # Compute IoU
         if pred_boxes.shape[0] > 0:
             if self.rotated_bbox:
-                iou_mat = rbox_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
+                iou_mat = polygon_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
 

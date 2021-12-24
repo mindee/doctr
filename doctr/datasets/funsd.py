@@ -27,7 +27,7 @@ class FUNSD(VisionDataset):
     Args:
         train: whether the subset should be the training one
         sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -39,7 +39,7 @@ class FUNSD(VisionDataset):
         self,
         train: bool = True,
         sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -65,7 +65,7 @@ class FUNSD(VisionDataset):
             _targets = [(word['text'], word['box']) for block in data['form']
                         for word in block['words'] if len(word['text']) > 0]
             text_targets, box_targets = zip(*_targets)
-            if rotated_bbox:
+            if use_polygons:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 box_targets = [
                     [

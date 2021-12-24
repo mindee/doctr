@@ -53,7 +53,7 @@ class DocumentBuilder(NestedObject):
             else: boxes returned are straight boxes fitted to the straightened rotated boxes
             so that we fit the lines afterwards to the straigthened page
         """
-        if len(boxes.shape) == 3:
+        if boxes.ndim == 3:
             boxes = rotate_boxes(
                 loc_preds=boxes,
                 angle=-estimate_page_angle(boxes),
@@ -161,7 +161,7 @@ class DocumentBuilder(NestedObject):
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
-        if len(boxes.shape) == 3:
+        if boxes.ndim == 3:
             box_lines = np.asarray([
                 resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])
                 for line in lines  # type: ignore[misc]
@@ -177,7 +177,7 @@ class DocumentBuilder(NestedObject):
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
-        if len(box_lines.shape) == 3:
+        if boxes.ndim == 3:
             box_features = np.stack(
                 (
                     (box_lines[:, 0, 0] + box_lines[:, 0, 1]) / 2,
@@ -253,7 +253,7 @@ class DocumentBuilder(NestedObject):
                         Word(
                             *word_preds[idx],
                             tuple([tuple(pt) for pt in boxes[idx].tolist()])
-                        ) if len(boxes.shape) == 3 else
+                        ) if boxes.ndim == 3 else
                         Word(
                             *word_preds[idx],
                             ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
@@ -292,7 +292,7 @@ class DocumentBuilder(NestedObject):
 
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if len(boxes[0].shape) == 3:
+            if boxes[0].ndim == 3:
                 straight_boxes = []
                 # Iterate over pages
                 for p_boxes in boxes:
