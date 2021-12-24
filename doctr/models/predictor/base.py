@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -86,7 +86,7 @@ class _OCRPredictor:
         word_preds: List[Tuple[str, float]],
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
 
-        text_preds = []
+        text_preds: List = [Optional[List[Tuple[str, float]]]]
         if len(loc_preds) > 0:
             # Text
             _idx = 0
