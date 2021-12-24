@@ -303,7 +303,7 @@ class DocumentBuilder(NestedObject):
 
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if boxes.ndim == 3:
+            if boxes[0].ndim == 3:
                 straight_boxes = []
                 # Iterate over pages
                 for page_boxes in boxes:

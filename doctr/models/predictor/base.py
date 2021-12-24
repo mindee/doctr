@@ -91,6 +91,8 @@ class _OCRPredictor:
             # Text
             _idx = 0
             for page_boxes in loc_preds:
+                if page_boxes is None:
+                    text_preds.append(None)
                 text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
                 _idx += page_boxes.shape[0]
 
