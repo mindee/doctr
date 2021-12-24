@@ -243,7 +243,7 @@ class DocumentBuilder(NestedObject):
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4])]
+            lines = [self._sort_boxes(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4])[0]]
             _blocks = [lines]
 
         blocks = [

@@ -128,7 +128,7 @@ def create_obj_patch(
             return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
         elif len(geometry) == 4:  # rotated word BB (4 pts)
             return polygon_patch(np.asarray(geometry), page_dimensions, **kwargs)  # type: ignore[arg-type]
-    elif geometry.shape == (4, 2):  # rotated line
+    elif isinstance(geometry, np.ndarray) and geometry.shape == (4, 2):  # rotated line
         return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
     raise ValueError("invalid geometry format")
 

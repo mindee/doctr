@@ -28,8 +28,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'url_straight_pages': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
-        'url_rot_pages': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
+        'url_straight_p': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
+        'url_rot_p': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
     },
     'db_resnet34': {
         'backbone': resnet34,
@@ -38,7 +38,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'url': None,
+        'url_straight_p': None,
     },
     'db_mobilenet_v3_large': {
         'backbone': mobilenet_v3_large,
@@ -47,7 +47,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
+        'url_straight_p': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
     },
 }
 
@@ -279,9 +279,9 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = True, **kwar
     # Load pretrained parameters
     if pretrained:
         if model.assume_straight_pages is True:
-            load_pretrained_params(model, default_cfgs[arch]['url_straight_pages'])
+            load_pretrained_params(model, default_cfgs[arch]['url_straight_p'])
         else:
-            load_pretrained_params(model, default_cfgs[arch]['url_rot_pages'])
+            load_pretrained_params(model, default_cfgs[arch]['url_rot_p'])
 
     return model
 
