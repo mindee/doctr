@@ -66,7 +66,10 @@ class SVT(VisionDataset):
                     [
                         [float(rect.attrib['x']), float(rect.attrib['y'])],
                         [float(rect.attrib['x'] + rect.attrib['width']), float(rect.attrib['y'])],
-                        [float(rect.attrib['x'] + rect.attrib['width']), float(rect.attrib['y'] + rect.attrib['height'])],
+                        [
+                            float(rect.attrib['x'] + rect.attrib['width']),
+                            float(rect.attrib['y'] + rect.attrib['height'])
+                        ],
                         [float(rect.attrib['x']), float(rect.attrib['y'] + rect.attrib['height'])],
                     ]
                     for rect in rectangles
