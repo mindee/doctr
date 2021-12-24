@@ -146,46 +146,44 @@ class DBPostProcessor(DetectionPostProcessor):
                 x, y, w, h = x / width, y / height, w / width, h / height
                 boxes.append([x, y, w, h, alpha, score])
 
-        if not self.assume_straight_pages:
-            # Compute median angle and mean aspect ratio to resolve quadrants
-            np_boxes = np.asarray(boxes, dtype=np.float32)
-            median_angle = np.median(np_boxes[:, -2])
-            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
+        if len(boxes) == 0:
+            return np.zeros((0, 5 if self.assume_straight_pages else 6), dtype=pred.dtype)
 
-            # Rectify angles
-            new_boxes = []
-            for x, y, w, h, alpha, score in boxes:
-                if median_h >= median_w:
-                    # We are in the upper quadrant
-                    if 1 / ratio_tol < h / w < ratio_tol:
-                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _rbox = [x, y, h, w, 90 + median_angle, score]
-                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                        # We jumped to the next quadrant, rectify
-                        _rbox = [x, y, w, h, alpha, score]
-                    else:
-                        _rbox = [x, y, h, w, 90 + alpha, score]
+        if self.assume_straight_pages:
+            return np.clip(np.asarray(boxes), 0, 1)
+
+        # Compute median angle and mean aspect ratio to resolve quadrants
+        np_boxes = np.asarray(boxes, dtype=np.float32)
+        median_angle = np.median(np_boxes[:, -2])
+        median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
+
+        # Rectify angles
+        new_boxes = []
+        for x, y, w, h, alpha, score in boxes:
+            if median_h >= median_w:
+                # We are in the upper quadrant
+                if 1 / ratio_tol < h / w < ratio_tol:
+                    # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                    _rbox = [x, y, h, w, 90 + median_angle, score]
+                elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                    # We jumped to the next quadrant, rectify
+                    _rbox = [x, y, w, h, alpha, score]
                 else:
-                    # We are in the lower quadrant.
-                    if 1 / ratio_tol < h / w < ratio_tol:
-                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _rbox = [x, y, w, h, median_angle, score]
-                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                        # We jumped to the next quadrant, rectify
-                        _rbox = [x, y, h, w, 90 + alpha, score]
-                    else:
-                        _rbox = [x, y, w, h, alpha, score]
-                new_boxes.append(_rbox)
-            boxes = new_boxes
+                    _rbox = [x, y, h, w, 90 + alpha, score]
+            else:
+                # We are in the lower quadrant.
+                if 1 / ratio_tol < h / w < ratio_tol:
+                    # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
+                    _rbox = [x, y, w, h, median_angle, score]
+                elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
+                    # We jumped to the next quadrant, rectify
+                    _rbox = [x, y, h, w, 90 + alpha, score]
+                else:
+                    _rbox = [x, y, w, h, alpha, score]
+            new_boxes.append(_rbox)
 
-        if not self.assume_straight_pages:
-            if len(boxes) == 0:
-                return np.zeros((0, 6), dtype=pred.dtype)
-            coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
-            boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
-            return boxes
-        else:
-            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
+        coord = np.clip(np.asarray(new_boxes)[:, :4], 0, 1)  # clip boxes coordinates
+        return np.concatenate((coord, np.asarray(new_boxes)[:, 4:]), axis=1)
 
 
 class _DBNet:
