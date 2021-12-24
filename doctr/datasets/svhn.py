@@ -84,14 +84,14 @@ class SVHN(VisionDataset):
                 label_targets = list(map(str, box_dict['label']))
 
                 if use_polygons:
-                    box_targets = np.stack([
+                    box_targets = np.stack(
                         [
                             np.stack([coords[:, 0], coords[:, 1]], axis=-1),
                             np.stack([coords[:, 0] + coords[:, 2], coords[:, 1]], axis=-1),
                             np.stack([coords[:, 0] + coords[:, 2], coords[:, 1] + coords[:, 3]], axis=-1),
                             np.stack([coords[:, 0], coords[:, 1] + coords[:, 3]], axis=-1),
-                        ]
-                    ], axis=1)
+                        ], axis=1
+                    )
                 else:
                     # x, y, width, height -> xmin, ymin, xmax, ymax
                     box_targets = np.stack([
