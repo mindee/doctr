@@ -163,7 +163,7 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
 )
 def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):
 
-    metric = metrics.LocalizationConfusion(iou_thresh, rotated_bbox=True, mask_shape=(1000, 1000))
+    metric = metrics.LocalizationConfusion(iou_thresh, use_polygons=True, mask_shape=(1000, 1000))
     for _gts, _preds in zip(gts, preds):
         metric.update(np.asarray(_gts), np.zeros((0, 5)) if _preds is None else np.asarray(_preds))
     assert metric.summary()[:2] == (recall, precision)

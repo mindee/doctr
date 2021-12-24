@@ -115,7 +115,7 @@ def main(args):
         model.load_weights(args.resume)
 
     # Metrics
-    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
+    val_metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=(args.input_size, args.input_size))
 
     if args.test_only:
         print("Running evaluation")

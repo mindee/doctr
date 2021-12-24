@@ -367,20 +367,20 @@ class LocalizationConfusion:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
-        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
-        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
-        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory
+        use_polygons: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if use_polygons is True, describes the spatial shape of the image used
+        use_broadcasting: if use_polygons is True, use broadcasting for IoU computation by consuming more memory
     """
 
     def __init__(
         self,
         iou_thresh: float = 0.5,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         mask_shape: Tuple[int, int] = (1024, 1024),
         use_broadcasting: bool = True,
     ) -> None:
         self.iou_thresh = iou_thresh
-        self.rotated_bbox = rotated_bbox
+        self.use_polygons = use_polygons
         self.mask_shape = mask_shape
         self.use_broadcasting = use_broadcasting
         self.reset()
@@ -395,7 +395,7 @@ class LocalizationConfusion:
 
         if preds.shape[0] > 0:
             # Compute IoU
-            if self.rotated_bbox:
+            if self.use_polygons:
                 iou_mat = polygon_iou(gts, preds, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gts, preds)
@@ -473,20 +473,20 @@ class OCRMetric:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
-        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
-        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
-        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory
+        use_polygons: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if use_polygons is True, describes the spatial shape of the image used
+        use_broadcasting: if use_polygons is True, use broadcasting for IoU computation by consuming more memory
     """
 
     def __init__(
         self,
         iou_thresh: float = 0.5,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         mask_shape: Tuple[int, int] = (1024, 1024),
         use_broadcasting: bool = True,
     ) -> None:
         self.iou_thresh = iou_thresh
-        self.rotated_bbox = rotated_bbox
+        self.use_polygons = use_polygons
         self.mask_shape = mask_shape
         self.use_broadcasting = use_broadcasting
         self.reset()
@@ -513,7 +513,7 @@ class OCRMetric:
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
-            if self.rotated_bbox:
+            if self.use_polygons:
                 iou_mat = polygon_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
@@ -611,20 +611,20 @@ class DetectionMetric:
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
-        rotated_bbox: if set to True, predictions and targets will be expected to have rotated format
-        mask_shape: if rotated_bbox is True, describes the spatial shape of the image used
-        use_broadcasting: if rotated_bbox is True, use broadcasting for IoU computation by consuming more memory
+        use_polygons: if set to True, predictions and targets will be expected to have rotated format
+        mask_shape: if use_polygons is True, describes the spatial shape of the image used
+        use_broadcasting: if use_polygons is True, use broadcasting for IoU computation by consuming more memory
     """
 
     def __init__(
         self,
         iou_thresh: float = 0.5,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         mask_shape: Tuple[int, int] = (1024, 1024),
         use_broadcasting: bool = True,
     ) -> None:
         self.iou_thresh = iou_thresh
-        self.rotated_bbox = rotated_bbox
+        self.use_polygons = use_polygons
         self.mask_shape = mask_shape
         self.use_broadcasting = use_broadcasting
         self.reset()
@@ -651,7 +651,7 @@ class DetectionMetric:
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
-            if self.rotated_bbox:
+            if self.use_polygons:
                 iou_mat = polygon_iou(gt_boxes, pred_boxes, self.mask_shape, self.use_broadcasting)
             else:
                 iou_mat = box_iou(gt_boxes, pred_boxes)
