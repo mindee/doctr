@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
@@ -73,6 +73,8 @@ class _OCRPredictor:
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
         # Work at a page level
         orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]
+        print(orientations)
+        print(len(crops))
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
             rectify_loc_preds(page_loc_preds, orientation) for page_loc_preds, orientation
@@ -86,13 +88,11 @@ class _OCRPredictor:
         word_preds: List[Tuple[str, float]],
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
 
-        text_preds: List = [Optional[List[Tuple[str, float]]]]
+        text_preds = []
         if len(loc_preds) > 0:
             # Text
             _idx = 0
             for page_boxes in loc_preds:
-                if page_boxes is None:
-                    text_preds.append(None)
                 text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
                 _idx += page_boxes.shape[0]
 
