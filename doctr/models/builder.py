@@ -245,15 +245,15 @@ class DocumentBuilder(NestedObject):
         # Decide whether we try to form lines
         _boxes = boxes
         if self.resolve_lines:
-            lines = self._resolve_lines(_boxes[:, :-1])
+            lines = self._resolve_lines(_boxes[:, :4])
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(_boxes[:, :-1], lines)
+                _blocks = self._resolve_blocks(_boxes[:, :4], lines)
             else:
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(_boxes[:, :-1])]
+            lines = [self._sort_boxes(_boxes[:, :4])]
             _blocks = [lines]
 
         blocks = [
@@ -312,7 +312,7 @@ class DocumentBuilder(NestedObject):
                     for box in page_boxes:
                         xmin, xmax = np.min(box[:, 0]), np.max(box[:, 0])
                         ymin, ymax = np.min(box[:, 1]), np.max(box[:, 1])
-                        straight_boxes_page.append([xmin, ymin, xmax, ymax, 0.9])
+                        straight_boxes_page.append([xmin, ymin, xmax, ymax])
                     straight_boxes.append(np.asarray(straight_boxes_page))
                 boxes = straight_boxes
 
