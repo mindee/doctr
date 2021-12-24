@@ -74,13 +74,13 @@ def extract_rcrops(
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
-    src_pts = _boxes[:, 1:, :].astype(np.float32)
+    src_pts = _boxes[:, 1:].astype(np.float32)
     # Preserve size
     d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
     d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)
     # (N, 3, 2)
     dst_pts = np.zeros((_boxes.shape[0], 3, 2), dtype=dtype)
-    dst_pts[:, 1:, 0] = d1 - 1
+    dst_pts[:, 1, 0] = dst_pts[:, 2, 0] = d1 - 1
     dst_pts[:, 2, 1] = d2 - 1
     # Use a warp transformation to extract the crop
     crops = [
@@ -92,7 +92,6 @@ def extract_rcrops(
         )
         for idx in range(_boxes.shape[0])
     ]
-
     return crops
 
 
@@ -204,7 +203,7 @@ def rectify_crops(
     return [
         crop if orientation == 0 else np.rot90(crop, orientation)
         for orientation, crop in zip(orientations, crops)
-    ]
+    ] if len(orientations) > 0 else []
 
 
 def rectify_loc_preds(

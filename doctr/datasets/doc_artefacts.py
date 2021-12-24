@@ -65,15 +65,14 @@ class DocArtefacts(VisionDataset):
             boxes = np.asarray([obj['geometry'] for obj in label], dtype=np_dtype)
             classes = np.asarray([self.CLASSES.index(obj['label']) for obj in label], dtype=np.int64)
             if use_polygons:
-                # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
-                boxes = np.stack([
+                boxes = np.stack(
                     [
                         np.stack([boxes[:, 0], boxes[:, 1]], axis=-1),
                         np.stack([boxes[:, 2], boxes[:, 1]], axis=-1),
                         np.stack([boxes[:, 2], boxes[:, 3]], axis=-1),
                         np.stack([boxes[:, 0], boxes[:, 3]], axis=-1),
-                    ]
-                ], axis=1)
+                    ], axis=1
+                )
             self.data.append((img_name, dict(boxes=boxes, labels=classes)))
         self.root = tmp_root
 
