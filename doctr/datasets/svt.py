@@ -61,16 +61,15 @@ class SVT(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, name.text)}")
 
             if use_polygons:
-                # x_center, y_center, width, height, 0
                 _boxes = [
                     [
                         [float(rect.attrib['x']), float(rect.attrib['y'])],
-                        [float(rect.attrib['x'] + rect.attrib['width']), float(rect.attrib['y'])],
+                        [float(rect.attrib['x']) + float(rect.attrib['width']), float(rect.attrib['y'])],
                         [
-                            float(rect.attrib['x'] + rect.attrib['width']),
-                            float(rect.attrib['y'] + rect.attrib['height'])
+                            float(rect.attrib['x']) + float(rect.attrib['width']),
+                            float(rect.attrib['y']) + float(rect.attrib['height'])
                         ],
-                        [float(rect.attrib['x']), float(rect.attrib['y'] + rect.attrib['height'])],
+                        [float(rect.attrib['x']), float(rect.attrib['y']) + float(rect.attrib['height'])],
                     ]
                     for rect in rectangles
                 ]

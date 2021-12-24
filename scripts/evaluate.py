@@ -41,25 +41,25 @@ def main(args):
         )
         sets = [testset]
     else:
-        train_set = datasets.__dict__[args.dataset](train=True, download=True, rotated_bbox=args.rotation)
-        val_set = datasets.__dict__[args.dataset](train=False, download=True, rotated_bbox=args.rotation)
+        train_set = datasets.__dict__[args.dataset](train=True, download=True, use_polygons=args.rotation)
+        val_set = datasets.__dict__[args.dataset](train=False, download=True, use_polygons=args.rotation)
         sets = [train_set, val_set]
 
     reco_metric = TextMatch()
     if args.rotation and args.mask_shape:
         det_metric = LocalizationConfusion(
             iou_thresh=args.iou,
-            rotated_bbox=args.rotation,
+            use_polygons=args.rotation,
             mask_shape=(args.mask_shape, args.mask_shape)
         )
         e2e_metric = OCRMetric(
             iou_thresh=args.iou,
-            rotated_bbox=args.rotation,
+            use_polygons=args.rotation,
             mask_shape=(args.mask_shape, args.mask_shape)
         )
     else:
-        det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
-        e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
+        det_metric = LocalizationConfusion(iou_thresh=args.iou, use_polygons=args.rotation)
+        e2e_metric = OCRMetric(iou_thresh=args.iou, use_polygons=args.rotation)
 
     sample_idx = 0
     for dataset in sets:
