@@ -17,7 +17,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import wandb
-from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -108,9 +107,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter, parent=mb):
+    for images, targets in progress_bar(train_loader, parent=mb):
 
         if torch.cuda.is_available():
             images = images.cuda()
@@ -148,8 +146,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    val_iter = iter(val_loader)
-    for images, targets in val_iter:
+    for images, targets in val_loader:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -279,8 +276,7 @@ def main(args):
         return
 
     # Optimizer
-    model_params = ContiguousParams([p for p in model.parameters() if p.requires_grad]).contiguous()
-    optimizer = torch.optim.Adam(model_params, args.lr,
+    optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], args.lr,
                                  betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
     # LR Finder
     if args.find_lr:
