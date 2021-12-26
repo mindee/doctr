@@ -271,8 +271,7 @@ def main(args):
         return
 
     # Optimizer
-    model_params = ContiguousParams([p for p in model.parameters() if p.requires_grad]).contiguous()
-    optimizer = torch.optim.Adam(model_params, args.lr,
+    optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], args.lr,
                                  betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
 
     # LR Finder

@@ -16,7 +16,6 @@ import time
 import numpy as np
 import torch
 import wandb
-from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -278,8 +277,7 @@ def main(args):
             p.reguires_grad_(False)
 
     # Optimizer
-    model_params = ContiguousParams([p for p in model.parameters() if p.requires_grad]).contiguous()
-    optimizer = torch.optim.Adam(model_params, args.lr,
+    optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], args.lr,
                                  betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
     # LR Finder
     if args.find_lr:
