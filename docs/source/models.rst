@@ -9,6 +9,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.vgg16_bn_r
 
+.. autofunction:: doctr.models.classification.resnet18
+
 .. autofunction:: doctr.models.classification.resnet31
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_small
