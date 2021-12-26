@@ -256,7 +256,7 @@ def test_rotate():
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
     assert r_img.shape == (50, 50, 3)
     assert r_img[0, 0, 0] == 0.
-    assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
+    assert r_boxes.shape == (1, 4, 2)
 
     # Expand
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)
@@ -266,8 +266,9 @@ def test_rotate():
 
     # Relative coords
     rel_boxes = np.array([[.3, .4, .7, .6]])
-    r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
-    assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
+    r_img, r_boxes = rotate(input_t, rel_boxes, angle=90)
+    assert r_boxes.shape == (1, 4, 2)
+    assert np.isclose(r_boxes, np.asarray([[[0.4, 0.7], [0.4, 0.3], [0.6, 0.3], [0.6, 0.7]]])).all()
 
     # FP16
     input_t = tf.ones((50, 50, 3), dtype=tf.float16)
@@ -283,7 +284,6 @@ def test_random_rotate():
     ])
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
-    assert abs(r_boxes[-1, -1]) <= 10.
 
     rotator = T.RandomRotate(max_angle=10., expand=True)
     r_img, r_boxes = rotator(input_t, boxes)

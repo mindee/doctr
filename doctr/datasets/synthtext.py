@@ -27,7 +27,7 @@ class SynthText(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -37,7 +37,7 @@ class SynthText(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -64,17 +64,10 @@ class SynthText(VisionDataset):
             labels = [elt for word in txt.tolist() for elt in word.split()]
             word_boxes = word_boxes.transpose(2, 1, 0) if word_boxes.ndim == 3 else np.expand_dims(word_boxes, axis=0)
 
-            if rotated_bbox:
-                # x_center, y_center, w, h, alpha = 0
-                mins = word_boxes.min(axis=1)
-                maxs = word_boxes.max(axis=1)
-                box_targets = np.concatenate(
-                    ((mins + maxs) / 2, maxs - mins, np.zeros((word_boxes.shape[0], 1))), axis=1)
-            else:
-                # xmin, ymin, xmax, ymax
-                box_targets = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
+            if not use_polygons:
+                word_boxes = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
 
-            self.data.append((img_path[0], dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
+            self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
 
         self.root = tmp_root
 

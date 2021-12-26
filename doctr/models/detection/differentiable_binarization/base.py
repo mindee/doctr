@@ -5,15 +5,12 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple
 
 import cv2
 import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
-
-from doctr.utils.common_types import RotatedBbox
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 from ..core import DetectionPostProcessor
 
@@ -44,19 +41,19 @@ class DBPostProcessor(DetectionPostProcessor):
             bin_thresh,
             assume_straight_pages
         )
-        self.unclip_ratio = 1.5
+        self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
     def polygon_to_box(
         self,
         points: np.ndarray,
-    ) -> Optional[Union[RotatedBbox, Tuple[float, float, float, float]]]:
-        """Expand a polygon (points) by a factor unclip_ratio, and returns a rotated box: x, y, w, h, alpha
+    ) -> np.ndarray:
+        """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
             points: The first parameter.
 
         Returns:
-            a box in absolute coordinates (xmin, ymin, xmax, ymax) or (x, y, w, h, alpha)
+            a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         if not self.assume_straight_pages:
             # Compute the rectangle polygon enclosing the raw polygon
@@ -86,14 +83,14 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None
-        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else fit_rbbox(expanded_points)
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else cv2.boxPoints(
+            cv2.minAreaRect(expanded_points)
+        )
 
     def bitmap_to_boxes(
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-        angle_tol: float = 5.,
-        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
@@ -132,7 +129,11 @@ class DBPostProcessor(DetectionPostProcessor):
             else:
                 _box = self.polygon_to_box(np.squeeze(contour))
 
-            if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:  # remove to small boxes
+            # Remove too small boxes
+            if self.assume_straight_pages:
+                if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
+                    continue
+            elif np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
                 continue
 
             if self.assume_straight_pages:
@@ -141,49 +142,17 @@ class DBPostProcessor(DetectionPostProcessor):
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
-                x, y, w, h, alpha = _box  # type: ignore[misc]
-                # compute relative box to get rid of img shape
-                x, y, w, h = x / width, y / height, w / width, h / height
-                boxes.append([x, y, w, h, alpha, score])
+                # compute relative box to get rid of img shape, in that case _box is a 4pt polygon
+                if not isinstance(_box, np.ndarray) and _box.shape == (4, 2):
+                    raise AssertionError("When assume straight pages is false a box is a (4, 2) array (polygon)")
+                _box[:, 0] /= width
+                _box[:, 1] /= height
+                boxes.append(_box)
 
-        if len(boxes) == 0:
-            return np.zeros((0, 5 if self.assume_straight_pages else 6), dtype=pred.dtype)
-
-        if self.assume_straight_pages:
-            return np.clip(np.asarray(boxes), 0, 1)
-
-        # Compute median angle and mean aspect ratio to resolve quadrants
-        np_boxes = np.asarray(boxes, dtype=np.float32)
-        median_angle = np.median(np_boxes[:, -2])
-        median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
-
-        # Rectify angles
-        new_boxes = []
-        for x, y, w, h, alpha, score in boxes:
-            if median_h >= median_w:
-                # We are in the upper quadrant
-                if 1 / ratio_tol < h / w < ratio_tol:
-                    # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                    _rbox = [x, y, h, w, 90 + median_angle, score]
-                elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                    # We jumped to the next quadrant, rectify
-                    _rbox = [x, y, w, h, alpha, score]
-                else:
-                    _rbox = [x, y, h, w, 90 + alpha, score]
-            else:
-                # We are in the lower quadrant.
-                if 1 / ratio_tol < h / w < ratio_tol:
-                    # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                    _rbox = [x, y, w, h, median_angle, score]
-                elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                    # We jumped to the next quadrant, rectify
-                    _rbox = [x, y, h, w, 90 + alpha, score]
-                else:
-                    _rbox = [x, y, w, h, alpha, score]
-            new_boxes.append(_rbox)
-
-        coord = np.clip(np.asarray(new_boxes)[:, :4], 0, 1)  # clip boxes coordinates
-        return np.concatenate((coord, np.asarray(new_boxes)[:, 4:]), axis=1)
+        if not self.assume_straight_pages:
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 4, 2), dtype=pred.dtype)
+        else:
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 
 
 class _DBNet:
@@ -323,24 +292,22 @@ class _DBNet:
 
             # Absolute bounding boxes
             abs_boxes = _target.copy()
-            abs_boxes[:, [0, 2]] *= output_shape[-1]
-            abs_boxes[:, [1, 3]] *= output_shape[-2]
-            abs_boxes = abs_boxes.round().astype(np.int32)
-
-            # Convert to polygons --> (N, 4, 2)
-            if abs_boxes.shape[1] == 5:
-                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([
-                    rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
-                ], axis=0)
+            if abs_boxes.ndim == 3:
+                abs_boxes[:, :, 0] *= output_shape[-1]
+                abs_boxes[:, :, 1] *= output_shape[-2]
+                polys = abs_boxes
+                boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
             else:
-                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                abs_boxes[:, [0, 2]] *= output_shape[-1]
+                abs_boxes[:, [1, 3]] *= output_shape[-2]
+                abs_boxes = abs_boxes.round().astype(np.int32)
                 polys = np.stack([
                     abs_boxes[:, [0, 1]],
                     abs_boxes[:, [0, 3]],
                     abs_boxes[:, [2, 3]],
                     abs_boxes[:, [2, 1]],
                 ], axis=1)
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
                 # Mask boxes that are too small

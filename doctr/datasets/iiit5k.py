@@ -28,7 +28,7 @@ class IIIT5K(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -38,7 +38,7 @@ class IIIT5K(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -61,9 +61,16 @@ class IIIT5K(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, _raw_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
-            if rotated_bbox:
+            if use_polygons:
                 # x_center, y_center, w, h, alpha = 0
-                box_targets = [[box[0] + box[2] / 2, box[1] + box[3] / 2, box[2], box[3], 0] for box in box_targets]
+                box_targets = [
+                    [
+                        [box[0], box[1]],
+                        [box[0] + box[2], box[1]],
+                        [box[0] + box[2], box[1] + box[3]],
+                        [box[0], box[1] + box[3]],
+                    ] for box in box_targets
+                ]
             else:
                 # x, y, width, height -> xmin, ymin, xmax, ymax
                 box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]

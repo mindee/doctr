@@ -64,13 +64,13 @@ def rotate(
         _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[1]
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[0]
 
-    # Rotate the boxes: xmin, ymin, xmax, ymax --> x, y, w, h, alpha
+    # Rotate the boxes: xmin, ymin, xmax, ymax --> (4, 2) polygon
     r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[:-1], expand)
 
     # Convert them to relative
     if boxes.dtype != int:
-        r_boxes[:, [0, 2]] = r_boxes[:, [0, 2]] / rotated_img.shape[1]
-        r_boxes[:, [1, 3]] = r_boxes[:, [1, 3]] / rotated_img.shape[0]
+        r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[1]
+        r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[0]
 
     return rotated_img, r_boxes
 
