@@ -43,6 +43,7 @@ def synthesize_text_img(
     default_h = 32
     if font_size is None:
         font_size = int(0.9 * default_h) if img_size is None else int(0.9 * img_size[0])
+    default_h = int(round(font_size / 0.9)) if img_size is None else default_h
 
     font = get_font(font_family, font_size)
     text_size = font.getsize(text)
