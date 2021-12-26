@@ -113,9 +113,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter, parent=mb):
+    for images, targets in progress_bar(train_loader, parent=mb):
 
         if torch.cuda.is_available():
             images = images.cuda()
@@ -153,8 +152,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    val_iter = iter(val_loader)
-    for images, targets in val_iter:
+    for images, targets in val_loader:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
