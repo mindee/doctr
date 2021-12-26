@@ -245,7 +245,9 @@
 <span class="sd">        vocab: vocabulary to take the character from</span>
 <span class="sd">        num_samples: number of samples that will be generated iterating over the dataset</span>
 <span class="sd">        cache_samples: whether generated images should be cached firsthand</span>
-<span class="sd">        sample_transforms: composable transformations that will be applied to each image</span>
+<span class="sd">        font_family: font to use to generate the text images</span>
+<span class="sd">        img_transforms: composable transformations that will be applied to each image</span>
+<span class="sd">        sample_transforms: composable transformations that will be applied to both the image and the target</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
