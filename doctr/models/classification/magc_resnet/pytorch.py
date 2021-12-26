@@ -110,6 +110,8 @@ def _magc_resnet(
     **kwargs: Any,
 ) -> ResNet:
 
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+
     # Build the model
     model = ResNet(
         num_blocks,
