@@ -10,17 +10,17 @@ from doctr.models.classification.predictor import CropOrientationPredictor
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
-        ["vgg16_bn", (224, 224, 3), (7, 56, 512)],
-        ["resnet31", (32, 128, 3), (4, 32, 512)],
-        ["magc_resnet31", (32, 128, 3), (4, 32, 512)],
-        ["mobilenet_v3_small", (512, 512, 3), (16, 16, 576)],
-        ["mobilenet_v3_large", (512, 512, 3), (16, 16, 960)],
+        ["vgg16_bn_r", (32, 32, 3), (126,)],
+        ["resnet31", (32, 32, 3), (126,)],
+        ["magc_resnet31", (32, 32, 3), (126,)],
+        ["mobilenet_v3_small", (32, 32, 3), (126,)],
+        ["mobilenet_v3_large", (32, 32, 3), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
+    model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
     # Forward
     out = model(tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32))
     # Output checks

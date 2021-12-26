@@ -10,11 +10,11 @@ from doctr.models.classification.predictor import CropOrientationPredictor
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
-        ["vgg16_bn", (3, 224, 224), (512, 7, 56)],
-        ["resnet31", (3, 32, 128), (512, 4, 32)],
-        ["magc_resnet31", (3, 32, 128), (512, 4, 32)],
-        ["mobilenet_v3_small", (3, 32, 32), (123,)],
-        ["mobilenet_v3_large", (3, 32, 32), (123,)],
+        ["vgg16_bn_r", (3, 32, 32), (126,)],
+        ["resnet31", (3, 32, 32), (126,)],
+        ["magc_resnet31", (3, 32, 32), (126,)],
+        ["mobilenet_v3_small", (3, 32, 32), (126,)],
+        ["mobilenet_v3_large", (3, 32, 32), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
