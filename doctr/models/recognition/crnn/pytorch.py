@@ -12,7 +12,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from ....datasets import VOCABS, decode_sequence
-from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
+from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
@@ -23,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': vgg16_bn, 'rnn_units': 128, 'lstm_features': 512,
+        'backbone': vgg16_bn_r, 'rnn_units': 128, 'lstm_features': 512,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_vgg16_bn-9762b0b0.pt',
@@ -227,10 +227,7 @@ def _crnn(
     _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
 
     # Feature extractor
-    feat_extractor = _cfg['backbone'](pretrained=pretrained_backbone)
-    # Trick to keep only the features while it's not unified between both frameworks
-    if arch.split('_')[1] == "mobilenet":
-        feat_extractor = feat_extractor.features
+    feat_extractor = _cfg['backbone'](pretrained=pretrained_backbone).features
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['rnn_units'] = _cfg['rnn_units']

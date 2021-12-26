@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Model, Sequential
 
 from ....datasets import VOCABS
-from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
+from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': vgg16_bn, 'rnn_units': 128,
+        'backbone': vgg16_bn_r, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/crnn_vgg16_bn-76b7f2c6.zip',

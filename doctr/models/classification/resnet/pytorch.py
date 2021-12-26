@@ -4,10 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from torch import nn
 from torchvision.models.resnet import BasicBlock
+
+from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence_pt, load_pretrained_params
 
@@ -15,8 +17,13 @@ __all__ = ['ResNet', 'resnet31', 'resnet_stage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'resnet31': {'num_blocks': (1, 2, 5, 3), 'output_channels': (256, 256, 512, 512),
-                 'url': None},
+    'resnet31': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 32),
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet31-1056cc5c.pt',
+    },
 }
 
 
@@ -40,43 +47,49 @@ class ResNet(nn.Sequential):
     Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
     Args:
-        num_blocks: number of residual blocks in each stage
-        output_channels: number of output channels in each stage
+        num_blocks: number of resnet block in each stage
+        output_channels: number of channels in each stage
+        stage_conv: whether to add a conv_sequence after each stage
+        stage_pooling: pooling to add after each stage (if None, no pooling)
+        attn_module: attention module to use in each stage
+        include_top: whether the classifier head should be instantiated
+        num_classes: number of output classes
     """
 
     def __init__(
         self,
-        num_blocks: Tuple[int, int, int, int],
-        output_channels: Tuple[int, int, int, int],
+        num_blocks: List[int],
+        output_channels: List[int],
+        stage_conv: List[bool],
+        stage_pooling: List[Optional[Tuple[int, int]]],
+        attn_module: Optional[Callable[[int], nn.Module]] = None,
+        include_top: bool = True,
+        num_classes: int = 1000,
     ) -> None:
 
         _layers: List[nn.Module] = [
             *conv_sequence_pt(3, 64, True, True, kernel_size=3, padding=1),
             *conv_sequence_pt(64, 128, True, True, kernel_size=3, padding=1),
             nn.MaxPool2d(2),
-            # Stage 1
-            nn.Sequential(
-                *resnet_stage(128, output_channels[0], num_blocks[0]),
-                *conv_sequence_pt(output_channels[0], output_channels[0], True, True, kernel_size=3, padding=1),
-            ),
-            nn.MaxPool2d(2),
-            # Stage 2
-            nn.Sequential(
-                *resnet_stage(output_channels[0], output_channels[1], num_blocks[1]),
-                *conv_sequence_pt(output_channels[1], output_channels[1], True, True, kernel_size=3, padding=1),
-            ),
-            nn.MaxPool2d((2, 1)),
-            # Stage 3
-            nn.Sequential(
-                *resnet_stage(output_channels[1], output_channels[2], num_blocks[2]),
-                *conv_sequence_pt(output_channels[2], output_channels[2], True, True, kernel_size=3, padding=1),
-            ),
-            # Stage 4
-            nn.Sequential(
-                *resnet_stage(output_channels[2], output_channels[3], num_blocks[3]),
-                *conv_sequence_pt(output_channels[3], output_channels[3], True, True, kernel_size=3, padding=1),
-            ),
         ]
+        in_chans = [128] + output_channels[:-1]
+        for in_chan, out_chan, n_blocks, conv, pool in zip(in_chans, output_channels, num_blocks, stage_conv,
+                                                           stage_pooling):
+            _stage = resnet_stage(in_chan, out_chan, n_blocks)
+            if attn_module is not None:
+                _stage.append(attn_module(out_chan))
+            if conv:
+                _stage.extend(conv_sequence_pt(out_chan, out_chan, True, True, kernel_size=3, padding=1))
+            if pool is not None:
+                _stage.append(nn.MaxPool2d(pool))
+            _layers.append(nn.Sequential(*_stage))
+
+        if include_top:
+            _layers.extend([
+                nn.AdaptiveAvgPool2d(1),
+                nn.Flatten(1),
+                nn.Linear(output_channels[-1], num_classes, bias=True),
+            ])
 
         super().__init__(*_layers)
 
@@ -88,13 +101,20 @@ class ResNet(nn.Sequential):
                 nn.init.constant_(m.bias, 0)
 
 
-def _resnet(arch: str, pretrained: bool) -> ResNet:
+def _resnet(
+    arch: str,
+    pretrained: bool,
+    num_blocks: List[int],
+    output_channels: List[int],
+    stage_conv: List[bool],
+    stage_pooling: List[Optional[Tuple[int, int]]],
+    **kwargs: Any,
+) -> ResNet:
+
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
 
     # Build the model
-    model = ResNet(
-        default_cfgs[arch]['num_blocks'],
-        default_cfgs[arch]['output_channels'],
-    )
+    model = ResNet(num_blocks, output_channels, stage_conv, stage_pooling, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
@@ -102,7 +122,7 @@ def _resnet(arch: str, pretrained: bool) -> ResNet:
     return model
 
 
-def resnet31(pretrained: bool = False) -> ResNet:
+def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """Resnet31 architecture with rectangular pooling windows as described in
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
     <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
@@ -121,4 +141,12 @@ def resnet31(pretrained: bool = False) -> ResNet:
         A resnet31 model
     """
 
-    return _resnet('resnet31', pretrained)
+    return _resnet(
+        'resnet31',
+        pretrained,
+        [1, 2, 5, 3],
+        [256, 256, 512, 512],
+        [True] * 4,
+        [(2, 2), (2, 1), None, None],
+        **kwargs,
+    )

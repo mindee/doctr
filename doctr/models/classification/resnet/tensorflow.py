@@ -3,21 +3,34 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
+from doctr.datasets import VOCABS
+
 from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet31', 'ResnetStage']
+__all__ = ['ResNet', 'resnet18', 'resnet31']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'resnet31': {'num_blocks': (1, 2, 5, 3), 'output_channels': (256, 256, 512, 512),
-                 'conv_seq': (True, True, True, True), 'pooling': ((2, 2), (2, 1), None, None),
-                 'url': None},
+    'resnet18': {
+        'mean': (0.5, 0.5, 0.5),
+        'std': (1., 1., 1.),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': None,
+    },
+    'resnet31': {
+        'mean': (0.5, 0.5, 0.5),
+        'std': (1., 1., 1.),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': None,
+    },
 }
 
 
@@ -68,9 +81,8 @@ class ResnetBlock(layers.Layer):
         strides: int = 1,
     ) -> List[layers.Layer]:
         return [
-            *conv_sequence(output_channels, activation='relu', bn=True, strides=strides, kernel_size=kernel_size),
-            layers.Conv2D(output_channels, kernel_size, padding='same', use_bias=False, kernel_initializer='he_normal'),
-            layers.BatchNormalization(),
+            *conv_sequence(output_channels, 'relu', bn=True, strides=strides, kernel_size=kernel_size),
+            *conv_sequence(output_channels, None, bn=True, kernel_size=kernel_size),
         ]
 
     def call(
@@ -84,91 +96,139 @@ class ResnetBlock(layers.Layer):
         return out
 
 
-class ResnetStage(Sequential):
+def resnet_stage(
+    num_blocks: int,
+    out_channels: int,
+    shortcut: bool = False,
+    downsample: bool = False
+) -> List[layers.Layer]:
+    _layers: List[layers.Layer] = [
+        ResnetBlock(out_channels, conv_shortcut=shortcut, strides=2 if downsample else 1)
+    ]
 
-    """Implements a resnet31 stage
+    for _ in range(1, num_blocks):
+        _layers.append(ResnetBlock(out_channels, conv_shortcut=False))
 
-    Args:
-        num_blocks: number of blocks inside the stage
-        output_channels: number of channels to use in Conv2D
-        downsample: if true, performs a /2 downsampling at the first block of the stage
-    """
-    def __init__(
-        self,
-        num_blocks: int,
-        output_channels: int,
-        downsample: bool = False,
-    ) -> None:
-
-        super().__init__()
-        final_blocks = [
-            ResnetBlock(output_channels, conv_shortcut=False) for _ in range(1, num_blocks)
-        ]
-        if downsample is True:
-            self.add(ResnetBlock(output_channels, conv_shortcut=True, strides=2))
-        else:
-            self.add(ResnetBlock(output_channels, conv_shortcut=True))
-        for final_block in final_blocks:
-            self.add(final_block)
+    return _layers
 
 
 class ResNet(Sequential):
-
-    """Resnet class with two convolutions and a maxpooling before the first stage
+    """Implements a ResNet architecture
 
     Args:
         num_blocks: number of resnet block in each stage
         output_channels: number of channels in each stage
-        conv_seq: wether to add a conv_sequence after each stage
-        pooling: pooling to add after each stage (if None, no pooling)
-        input_shape: shape of inputs
+        stage_downsample: whether the first residual block of a stage should downsample
+        stage_conv: whether to add a conv_sequence after each stage
+        stage_pooling: pooling to add after each stage (if None, no pooling)
+        origin_stem: whether to use the orginal ResNet stem or ResNet-31's
+        attn_module: attention module to use in each stage
         include_top: whether the classifier head should be instantiated
+        num_classes: number of output classes
+        input_shape: shape of inputs
     """
 
     def __init__(
         self,
-        num_blocks: Tuple[int, int, int, int],
-        output_channels: Tuple[int, int, int, int],
-        conv_seq: Tuple[bool, bool, bool, bool],
-        pooling: Tuple[
-            Optional[Tuple[int, int]],
-            Optional[Tuple[int, int]],
-            Optional[Tuple[int, int]],
-            Optional[Tuple[int, int]]
-        ],
-        input_shape: Tuple[int, int, int] = (640, 640, 3),
-        include_top: bool = False,
+        num_blocks: List[int],
+        output_channels: List[int],
+        stage_downsample: List[bool],
+        stage_conv: List[bool],
+        stage_pooling: List[Optional[Tuple[int, int]]],
+        origin_stem: bool = True,
+        attn_module: Optional[Callable[[int], layers.Layer]] = None,
+        include_top: bool = True,
+        num_classes: int = 1000,
+        input_shape: Optional[Tuple[int, int, int]] = None,
     ) -> None:
 
-        _layers = [
-            *conv_sequence(out_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_shape),
-            *conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
-        ]
-        for n_blocks, out_channels, conv, pool in zip(num_blocks, output_channels, conv_seq, pooling):
-            _layers.append(ResnetStage(n_blocks, out_channels))
+        if origin_stem:
+            _layers = [
+                *conv_sequence(64, 'relu', True, kernel_size=7, strides=2, input_shape=input_shape),
+                layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'),
+            ]
+            inplanes = 64
+        else:
+            _layers = [
+                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=input_shape),
+                *conv_sequence(128, 'relu', True, kernel_size=3),
+                layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
+            ]
+            inplanes = 128
+
+        for n_blocks, out_chan, down, conv, pool in zip(num_blocks, output_channels, stage_downsample, stage_conv,
+                                                        stage_pooling):
+            _layers.extend(resnet_stage(n_blocks, out_chan, out_chan != inplanes, down))
+            if attn_module is not None:
+                _layers.append(attn_module(out_chan))
             if conv:
-                _layers.extend(conv_sequence(out_channels, activation='relu', bn=True, kernel_size=3))
+                _layers.extend(conv_sequence(out_chan, activation='relu', bn=True, kernel_size=3))
             if pool:
                 _layers.append(layers.MaxPool2D(pool_size=pool, strides=pool, padding='valid'))
+            inplanes = out_chan
+
+        if include_top:
+            _layers.extend([
+                layers.GlobalAveragePooling2D(),
+                layers.Dense(num_classes),
+            ])
+
         super().__init__(_layers)
 
 
-def _resnet(arch: str, pretrained: bool, **kwargs: Any) -> ResNet:
+def _resnet(
+    arch: str,
+    pretrained: bool,
+    num_blocks: List[int],
+    output_channels: List[int],
+    stage_downsample: List[bool],
+    stage_conv: List[bool],
+    stage_pooling: List[Optional[Tuple[int, int]]],
+    origin_stem: bool = True,
+    **kwargs: Any
+) -> ResNet:
+
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
 
     # Build the model
-    model = ResNet(
-        default_cfgs[arch]['num_blocks'],
-        default_cfgs[arch]['output_channels'],
-        default_cfgs[arch]['conv_seq'],
-        default_cfgs[arch]['pooling'],
-        **kwargs
-    )
+    model = ResNet(num_blocks, output_channels, stage_downsample, stage_conv, stage_pooling, origin_stem, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
+
+
+def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
+    """Resnet-18 architecture as described in `"Deep Residual Learning for Image Recognition",
+    <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import resnet18
+        >>> model = resnet18(pretrained=False)
+        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A classification model
+    """
+
+    return _resnet(
+        'resnet18',
+        pretrained,
+        [2, 2, 2, 2],
+        [64, 128, 256, 512],
+        [False, True, True, True],
+        [False] * 4,
+        [None] * 4,
+        True,
+        **kwargs,
+    )
 
 
 def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
@@ -187,7 +247,17 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         pretrained: boolean, True if model is pretrained
 
     Returns:
-        A resnet31 model
+        A classification model
     """
 
-    return _resnet('resnet31', pretrained, **kwargs)
+    return _resnet(
+        'resnet31',
+        pretrained,
+        [1, 2, 5, 3],
+        [256, 256, 512, 512],
+        [False] * 4,
+        [True] * 4,
+        [(2, 2), (2, 1), None, None],
+        False,
+        **kwargs,
+    )
