@@ -15,16 +15,16 @@ import time
 import numpy as np
 import torch
 import wandb
-from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.nn.functional import cross_entropy
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision import models
-from torchvision.transforms import ColorJitter, Compose, Normalize, RandomPerspective
+from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscale, InterpolationMode, Normalize,
+                                    RandomRotation)
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
+from doctr.models import classification
 from utils import plot_recorder, plot_samples
 
 
@@ -185,14 +185,20 @@ def main(args):
 
     vocab = VOCABS[args.vocab]
 
+    fonts = args.font.split(",")
+
     # Load val data generator
     st = time.time()
     val_set = CharacterGenerator(
         vocab=vocab,
         num_samples=args.val_samples * len(vocab),
         cache_samples=True,
-        img_transforms=T.Resize((args.input_size, args.input_size)),
-        font_family=args.font,
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Ensure we have a 90% split of white-background images
+            T.RandomApply(T.ColorInversion(), .9),
+        ]),
+        font_family=fonts,
     )
     val_loader = DataLoader(
         val_set,
@@ -208,7 +214,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = models.__dict__[args.arch](pretrained=args.pretrained, num_classes=len(vocab))
+    model = classification.__dict__[args.arch](pretrained=args.pretrained, num_classes=len(vocab))
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -247,11 +253,14 @@ def main(args):
         img_transforms=Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
-            RandomPerspective(),
-            T.RandomApply(T.ColorInversion(), .7),
+            T.RandomApply(T.ColorInversion(), .9),
+            # GaussianNoise
+            T.RandomApply(Grayscale(3), .1),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
+            RandomRotation(15, interpolation=InterpolationMode.BILINEAR),
         ]),
-        font_family=args.font,
+        font_family=fonts,
     )
 
     train_loader = DataLoader(
@@ -351,7 +360,12 @@ def parse_args():
     parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
-    parser.add_argument('--font', type=str, default="FreeMono.ttf", help='Font family to be used')
+    parser.add_argument(
+        '--font',
+        type=str,
+        default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf",
+        help='Font family to be used'
+    )
     parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument(
         '--train-samples',

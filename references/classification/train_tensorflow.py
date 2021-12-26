@@ -84,6 +84,8 @@ def main(args):
 
     vocab = VOCABS[args.vocab]
 
+    fonts = args.font.split(",")
+
     # AMP
     if args.amp:
         mixed_precision.set_global_policy('mixed_float16')
@@ -94,8 +96,12 @@ def main(args):
         vocab=vocab,
         num_samples=args.val_samples * len(vocab),
         cache_samples=True,
-        img_transforms=T.Resize((args.input_size, args.input_size)),
-        font_family=args.font,
+        img_transforms=T.Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Ensure we have a 90% split of white-background images
+            T.RandomApply(T.ColorInversion(), .9),
+        ]),
+        font_family=fonts,
     )
     val_loader = DataLoader(
         val_set,
@@ -140,13 +146,16 @@ def main(args):
         img_transforms=T.Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
-            T.RandomApply(T.ColorInversion(), .7),
+            T.RandomApply(T.ColorInversion(), .9),
+            T.RandomApply(T.ToGray(3), .1),
             T.RandomJpegQuality(60),
             T.RandomSaturation(.3),
             T.RandomContrast(.3),
             T.RandomBrightness(.3),
+            # Blur
+            T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), .3),
         ]),
-        font_family=args.font,
+        font_family=fonts,
     )
     train_loader = DataLoader(
         train_set,
@@ -168,7 +177,7 @@ def main(args):
     scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
         args.lr,
         decay_steps=args.epochs * len(train_loader),
-        decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
+        decay_rate=1 / (1e3),  # final lr as a fraction of initial lr
         staircase=False
     )
     optimizer = tf.keras.optimizers.Adam(
@@ -244,7 +253,12 @@ def parse_args():
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
-    parser.add_argument('--font', type=str, default="FreeMono.ttf", help='Font family to be used')
+    parser.add_argument(
+        '--font',
+        type=str,
+        default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf",
+        help='Font family to be used'
+    )
     parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
     parser.add_argument(
         '--train-samples',
