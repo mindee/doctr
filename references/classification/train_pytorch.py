@@ -15,7 +15,6 @@ import time
 import numpy as np
 import torch
 import wandb
-from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.nn.functional import cross_entropy
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
