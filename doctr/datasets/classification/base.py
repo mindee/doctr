@@ -73,7 +73,7 @@ class _CharacterGenerator(AbstractDataset):
     ) -> None:
         self.vocab = vocab
         self._num_samples = num_samples
-        self.font_family = font_family if isinstance(font_family, list) else [font_family]
+        self.font_family = font_family if isinstance(font_family, list) else [font_family]  # type: ignore[list-item]
         # Validate fonts
         if isinstance(font_family, list):
             for font in self.font_family:
