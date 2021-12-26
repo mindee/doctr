@@ -230,24 +230,6 @@ def test_jpegquality():
     assert out.dtype == tf.float16
 
 
-def test_oneof():
-    transfos = [
-        T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.),
-        T.RandomContrast(delta=.2)
-    ]
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
-    out = T.OneOf(transfos)(input_t)
-    assert ((tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.)) or tf.reduce_all(out == 2.))
-
-
-def test_randomapply():
-
-    transfo = T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
-    out = T.RandomApply(transfo, p=1.)(input_t)
-    assert (tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.))
-
-
 def test_rotate():
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([
@@ -329,3 +311,12 @@ def test_random_crop():
     new_h, new_w = c_img.shape[:2]
     assert new_h >= 3
     assert new_w >= 3
+
+
+def test_gaussian_blur():
+    blur = T.GaussianBlur(3, (.1, 3))
+    input_t = np.ones((31, 31, 3), dtype=np.float32)
+    input_t[15, 15] = 0
+    blur_img = blur(tf.convert_to_tensor(input_t)).numpy()
+    assert blur_img.shape == input_t.shape
+    assert np.all(blur_img[15, 15] > 0)

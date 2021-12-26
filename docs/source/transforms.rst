@@ -23,6 +23,7 @@ Here are all transformations that are available through docTR:
 .. autoclass:: RandomJpegQuality
 .. autoclass:: RandomRotate
 .. autoclass:: RandomCrop
+.. autoclass:: GaussianBlur
 
 
 Composing transformations
