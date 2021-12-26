@@ -26,7 +26,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
         'classes': list(VOCABS['legacy_french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip',
     },
     'mobilenet_v3_large_r': {
         'mean': (0.694, 0.695, 0.693),
@@ -34,7 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip',
     },
     'mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
@@ -42,7 +42,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['legacy_french'],
         'classes': list(VOCABS['legacy_french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip',
     },
     'mobilenet_v3_small_r': {
         'mean': (0.694, 0.695, 0.693),
@@ -50,14 +50,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (32, 32, 3),
         'vocab': VOCABS['french'],
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip',
     },
     'mobilenet_v3_small_orientation': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (128, 128, 3),
         'classes': [0, 90, 180, 270],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip'
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip',
     },
 }
 

@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'input_shape': (32, 32, 3),
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-d4634669.zip',
     },
     'resnet31': {
         'mean': (0.5, 0.5, 0.5),
