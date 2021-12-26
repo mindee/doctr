@@ -256,7 +256,7 @@ def test_rotate():
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
     assert r_img.shape == (50, 50, 3)
     assert r_img[0, 0, 0] == 0.
-    assert r_boxes.shape
+    assert r_boxes.shape == (1, 4, 2)
 
     # Expand
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import defusedxml.ElementTree as ET
 import numpy as np
@@ -25,7 +25,6 @@ class SVT(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -36,13 +35,11 @@ class SVT(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
         use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
-        self.sample_transforms = sample_transforms
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32

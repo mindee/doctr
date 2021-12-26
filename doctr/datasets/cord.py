@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -26,7 +26,6 @@ class CORD(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
@@ -39,7 +38,6 @@ class CORD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
         use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -51,7 +49,6 @@ class CORD(VisionDataset):
         tmp_root = os.path.join(self.root, 'image')
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         self.train = train
-        self.sample_transforms = sample_transforms
         for img_path in os.listdir(tmp_root):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):

@@ -39,9 +39,7 @@ class _OCRPredictor:
         extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
 
         crops = [
-            extraction_fn(  # type: ignore[operator]
-                page, _boxes[:, :-1] if assume_straight_pages else _boxes, channels_last=channels_last
-            )
+            extraction_fn(page, _boxes[:, :4])  # type: ignore[operator]
             for page, _boxes in zip(pages, loc_preds)
         ]
         return crops
@@ -73,12 +71,10 @@ class _OCRPredictor:
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
         # Work at a page level
         orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]
-        print(orientations)
-        print(len(crops))
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
-            rectify_loc_preds(page_loc_preds, orientation) for page_loc_preds, orientation
-            in zip(loc_preds, orientations)
+            rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
+            for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
         return rect_crops, rect_loc_preds
 

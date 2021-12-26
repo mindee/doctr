@@ -22,14 +22,13 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """Implements a post processor for LinkNet model.
 
     Args:
-        min_size_box: minimal length (pix) to keep a box
-        box_thresh: minimal objectness score to consider a box
         bin_thresh: threshold used to binzarized p_map at inference time
-
+        box_thresh: minimal objectness score to consider a box
+        assume_straight_pages: whether the inputs were expected to have horizontal text elements
     """
     def __init__(
         self,
-        bin_thresh: float = 0.15,
+        bin_thresh: float = 0.5,
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
     ) -> None:
