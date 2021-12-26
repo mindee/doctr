@@ -11,6 +11,7 @@ from doctr.models.classification.predictor import CropOrientationPredictor
     "arch_name, input_shape, output_size",
     [
         ["vgg16_bn_r", (32, 32, 3), (126,)],
+        ["resnet18", (32, 32, 3), (126,)],
         ["resnet31", (32, 32, 3), (126,)],
         ["magc_resnet31", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (32, 32, 3), (126,)],
