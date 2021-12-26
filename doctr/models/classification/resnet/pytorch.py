@@ -7,7 +7,9 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from torch import nn
-from torchvision.models.resnet import BasicBlock, resnet18 as tv_resnet18
+from torchvision.models.resnet import BasicBlock
+from torchvision.models.resnet import ResNet as TVResNet
+from torchvision.models.resnet import resnet18 as tv_resnet18
 
 from doctr.datasets import VOCABS
 
@@ -132,9 +134,9 @@ def _resnet(
 def _tv_resnet(
     arch: str,
     pretrained: bool,
-    arch_fn: Callable[[Any], nn.Module],
+    arch_fn,
     **kwargs: Any,
-) -> ResNet:
+) -> TVResNet:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
 
@@ -147,7 +149,7 @@ def _tv_resnet(
     return model
 
 
-def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
+def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """ResNet-18 architecture as described in `"Deep Residual Learning for Image Recognition",
     <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
@@ -166,7 +168,6 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _tv_resnet('resnet18', pretrained, tv_resnet18, **kwargs)
-
 
 
 def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
