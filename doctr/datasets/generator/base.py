@@ -123,7 +123,7 @@ class _WordGenerator(AbstractDataset):
         self.vocab = vocab
         self.wordlen_range = (min_chars, max_chars)
         self._num_samples = num_samples
-        self.font_family = font_family if isinstance(font_family, list) else [font_family]
+        self.font_family = font_family if isinstance(font_family, list) else [font_family]  # type: ignore[list-item]
         # Validate fonts
         if isinstance(font_family, list):
             for font in self.font_family:
@@ -149,7 +149,7 @@ class _WordGenerator(AbstractDataset):
     def __len__(self) -> int:
         return self._num_samples
 
-    def _read_sample(self, index: int) -> Tuple[Any, int]:
+    def _read_sample(self, index: int) -> Tuple[Any, str]:
         # Samples are already cached
         if len(self._data) > 0:
             pil_img, target = self._data[index]

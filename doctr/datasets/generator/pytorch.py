@@ -51,6 +51,4 @@ class WordGenerator(_WordGenerator):
         sample_transforms: composable transformations that will be applied to both the image and the target
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        setattr(self, 'collate_fn', default_collate)
+    pass

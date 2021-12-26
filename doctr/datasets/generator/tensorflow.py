@@ -58,13 +58,4 @@ class WordGenerator(_WordGenerator):
         sample_transforms: composable transformations that will be applied to both the image and the target
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-    @staticmethod
-    def collate_fn(samples):
-
-        images, targets = zip(*samples)
-        images = tf.stack(images, axis=0)
-
-        return images, tf.convert_to_tensor(targets)
+    pass
