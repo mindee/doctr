@@ -4,17 +4,17 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from doctr.datasets import VOCABS
-from doctr.models import classification
+from doctr.models.classification import magc_resnet31
 
-from ...utils import load_pretrained_params
-from ..transformer import Decoder, positional_encoding
+from ...utils.pytorch import load_pretrained_params
+from ..transformer.pytorch import Decoder, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -22,7 +22,6 @@ __all__ = ['MASTER', 'master']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'backbone': 'magc_resnet31',
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'input_shape': (3, 48, 160),
@@ -249,8 +248,8 @@ class MASTERPostProcessor(_MASTERPostProcessor):
 def _master(
     arch: str,
     pretrained: bool,
+    backbone_fn: Callable[[Any], nn.Module],
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
 ) -> MASTER:
 
@@ -262,10 +261,11 @@ def _master(
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
 
     kwargs['vocab'] = _cfg['vocab']
+    kwargs['input_shape'] = _cfg['input_shape']
 
     # Build the model
     model = MASTER(
-        classification.__dict__[_cfg['backbone']](pretrained=pretrained_backbone),
+        backbone_fn(pretrained=pretrained_backbone, include_top=False),
         cfg=_cfg,
         **kwargs,
     )
@@ -290,4 +290,4 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
         text recognition architecture
     """
 
-    return _master('master', pretrained, **kwargs)
+    return _master('master', pretrained, magc_resnet31, **kwargs)

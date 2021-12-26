@@ -4,16 +4,16 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
-from doctr.models import classification
+from doctr.models.classification import magc_resnet31
 
-from ...utils import load_pretrained_params
-from ..transformer import Decoder, create_look_ahead_mask, create_padding_mask, positional_encoding
+from ...utils.tensorflow import load_pretrained_params
+from ..transformer.tensorflow import Decoder, create_look_ahead_mask, create_padding_mask, positional_encoding
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -21,7 +21,6 @@ __all__ = ['MASTER', 'master']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'backbone': 'magc_resnet31',
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 128, 3),
@@ -253,6 +252,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
 def _master(
     arch: str,
     pretrained: bool,
+    backbone_fn: Callable[[Any], Model],
     pretrained_backbone: bool = True,
     input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
@@ -262,14 +262,15 @@ def _master(
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['input_shape'] = kwargs.get('input_shape', _cfg['input_shape'])
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
 
     kwargs['vocab'] = _cfg['vocab']
+    kwargs['input_shape'] = _cfg['input_shape']
 
     # Build the model
     model = MASTER(
-        classification.__dict__[_cfg['backbone']](pretrained=pretrained_backbone, input_shape=_cfg['input_shape']),
+        backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg['input_shape']),
         cfg=_cfg,
         **kwargs,
     )
@@ -297,4 +298,4 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
         text recognition architecture
     """
 
-    return _master('master', pretrained, **kwargs)
+    return _master('master', pretrained, magc_resnet31, **kwargs)

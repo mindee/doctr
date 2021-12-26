@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -24,8 +24,6 @@ __all__ = ['LinkNet', 'linknet_resnet18']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet_resnet18': {
-        'backbone': resnet18,
-        'fpn_layers': ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'input_shape': (1024, 1024, 3),
@@ -207,26 +205,30 @@ class LinkNet(_LinkNet, keras.Model):
 def _linknet(
     arch: str,
     pretrained: bool,
-    pretrained_backbone: bool = False,
+    backbone_fn: Callable[[Any], Model],
+    fpn_layers: List[str],
+    pretrained_backbone: bool = True,
     input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
 ) -> LinkNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        _cfg['backbone'](
-            input_shape=_cfg['input_shape'],
-            include_top=False,
+        backbone_fn(
             pretrained=pretrained_backbone,
+            include_top=False,
+            input_shape=kwargs['input_shape'],
         ),
-        _cfg['fpn_layers'],
+        fpn_layers,
     )
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = kwargs['input_shape']
 
     # Build the model
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
@@ -255,4 +257,10 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet_resnet18', pretrained, **kwargs)
+    return _linknet(
+        'linknet_resnet18',
+        pretrained,
+        resnet18,
+        ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        **kwargs,
+    )
