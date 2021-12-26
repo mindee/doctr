@@ -207,8 +207,6 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">fit_rbbox</span>
-
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CORD&#39;</span><span class="p">]</span>
@@ -225,7 +223,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>
-<span class="sd">        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
+<span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip&#39;</span><span class="p">,</span>
@@ -237,7 +235,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
@@ -262,13 +260,13 @@
                         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                             <span class="n">x</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x1&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x2&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x3&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x4&quot;</span><span class="p">]</span>
                             <span class="n">y</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y1&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y2&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y3&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y4&quot;</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">rotated_bbox</span><span class="p">:</span>
-                                <span class="n">box</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fit_rbbox</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                            <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
+                                <span class="n">box</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
                                     <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
                                     <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
                                     <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span>
                                     <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
-                                <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)))</span>
+                                <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="c1"># Reduce 8 coords to 4</span>
                                 <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span>

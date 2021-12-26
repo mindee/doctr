@@ -255,7 +255,7 @@ can be a significant save of time.</p>
 <p>Here are all datasets that are available through docTR:</p>
 <dl class="py class">
 <dt id="doctr.datasets.FUNSD">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">FUNSD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">FUNSD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Permalink to this definition">¶</a></dt>
 <dd><p>FUNSD dataset from <a class="reference external" href="https://arxiv.org/pdf/1905.13538.pdf">“FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">FUNSD</span>
@@ -269,7 +269,7 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -278,7 +278,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.SROIE">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SROIE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SROIE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Permalink to this definition">¶</a></dt>
 <dd><p>SROIE dataset from <a class="reference external" href="https://arxiv.org/pdf/2103.10213.pdf">“ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SROIE</span>
@@ -292,7 +292,7 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -301,7 +301,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.CORD">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CORD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CORD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Permalink to this definition">¶</a></dt>
 <dd><p>CORD dataset from <a class="reference external" href="https://openreview.net/pdf?id=SJl3z659UH">“CORD: A Consolidated Receipt Dataset forPost-OCR Parsing”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
@@ -315,7 +315,7 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -362,7 +362,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.DocArtefacts">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">DocArtefacts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/doc_artefacts.html#DocArtefacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.DocArtefacts" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">DocArtefacts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/doc_artefacts.html#DocArtefacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.DocArtefacts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Object detection dataset for non-textual elements in documents.
 The dataset includes a variety of synthetic document pages with non-textual elements.</p>
 <dl>
@@ -377,7 +377,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -386,7 +386,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.IIIT5K">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IIIT5K</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/iiit5k.html#IIIT5K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IIIT5K" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IIIT5K</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/iiit5k.html#IIIT5K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IIIT5K" title="Permalink to this definition">¶</a></dt>
 <dd><p>IIIT-5K character-level localization dataset from
 <a class="reference external" href="https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf">“BMVC 2012 Scene Text Recognition using Higher Order Language Priors”</a>.</p>
 <dl>
@@ -402,7 +402,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -411,7 +411,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.SVT">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svt.html#SVT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svt.html#SVT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVT" title="Permalink to this definition">¶</a></dt>
 <dd><p>SVT dataset from <a class="reference external" href="http://vision.ucsd.edu/~kai/svt/">“The Street View Text Dataset - UCSD Computer Vision”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SVT</span>
@@ -425,7 +425,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -434,7 +434,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.SVHN">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVHN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svhn.html#SVHN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVHN" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVHN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svhn.html#SVHN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVHN" title="Permalink to this definition">¶</a></dt>
 <dd><p>SVHN dataset from <a class="reference external" href="http://ufldl.stanford.edu/housenumbers/">“The Street View House Numbers (SVHN) Dataset”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SVHN</span>
@@ -448,7 +448,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -457,7 +457,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.SynthText">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SynthText</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/synthtext.html#SynthText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SynthText" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SynthText</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/synthtext.html#SynthText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SynthText" title="Permalink to this definition">¶</a></dt>
 <dd><p>SynthText dataset from <a class="reference external" href="https://arxiv.org/abs/1604.06646">“Synthetic Data for Text Localisation in Natural Images”</a> | <a class="reference external" href="https://github.com/ankush-me/SynthText">“repository”</a> |
 <a class="reference external" href="https://www.robots.ox.ac.uk/~vgg/data/scenetext/">“website”</a>.</p>
 <dl>
@@ -472,7 +472,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -481,7 +481,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.IC03">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC03</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic03.html#IC03"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC03" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC03</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic03.html#IC03"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC03" title="Permalink to this definition">¶</a></dt>
 <dd><p>IC03 dataset from <a class="reference external" href="http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions">“ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IC03</span>
@@ -495,7 +495,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -504,7 +504,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.IC13">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC13</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic13.html#IC13"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC13" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC13</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic13.html#IC13"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC13" title="Permalink to this definition">¶</a></dt>
 <dd><p>IC13 dataset from <a class="reference external" href="https://rrc.cvc.uab.es/">“ICDAR 2013 Robust Reading Competition”</a>.
 Example:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
@@ -522,7 +522,7 @@ Example:</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
 <li><p><strong>label_folder</strong> – folder with all annotation files for the images</p></li>
-<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 </ul>
 </dd>
 </dl>
