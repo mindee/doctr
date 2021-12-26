@@ -189,7 +189,7 @@ class CRNN(RecognitionModel, Model):
 def _crnn(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], Model],
+    backbone_fn,
     pretrained_backbone: bool = True,
     **kwargs: Any
 ) -> CRNN:

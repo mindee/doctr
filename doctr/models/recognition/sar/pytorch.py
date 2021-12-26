@@ -272,7 +272,7 @@ class SARPostProcessor(RecognitionPostProcessor):
 def _sar(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], nn.Module],
+    backbone_fn: Callable[[bool], nn.Module],
     layer: str,
     pretrained_backbone: bool = True,
     **kwargs: Any
@@ -287,7 +287,7 @@ def _sar(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained=pretrained_backbone),
+        backbone_fn(pretrained_backbone),
         {layer: 'features'},
     )
     kwargs['vocab'] = _cfg['vocab']

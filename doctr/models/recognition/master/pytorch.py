@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
@@ -156,11 +157,11 @@ class MASTER(_MASTER, nn.Module):
         """
 
         # Encode
-        feature = self.feat_extractor(x)
-        b, c, h, w = (feature.size(i) for i in range(4))
-        feature = torch.reshape(feature, shape=(b, c, h * w))
-        feature = feature.permute(0, 2, 1)  # shape (b, h*w, c)
-        encoded = feature + self.feature_pe[:, :h * w, :]
+        features = self.feat_extractor(x)['features']
+        b, c, h, w = features.shape[:4]
+        # --> (N, H * W, C)
+        features = features.reshape((b, c, h * w)).permute(0, 2, 1)
+        encoded = features + self.feature_pe[:, :h * w, :]
 
         out: Dict[str, Any] = {}
 
@@ -248,7 +249,8 @@ class MASTERPostProcessor(_MASTERPostProcessor):
 def _master(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], nn.Module],
+    backbone_fn: Callable[[bool], nn.Module],
+    layer: str,
     pretrained_backbone: bool = True,
     **kwargs: Any
 ) -> MASTER:
@@ -257,18 +259,18 @@ def _master(
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['input_shape'] = kwargs.get('input_shape', _cfg['input_shape'])
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
 
     kwargs['vocab'] = _cfg['vocab']
     kwargs['input_shape'] = _cfg['input_shape']
 
     # Build the model
-    model = MASTER(
-        backbone_fn(pretrained=pretrained_backbone, include_top=False),
-        cfg=_cfg,
-        **kwargs,
+    feat_extractor = IntermediateLayerGetter(
+        backbone_fn(pretrained_backbone),
+        {layer: 'features'},
     )
+    model = MASTER(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
@@ -290,4 +292,4 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
         text recognition architecture
     """
 
-    return _master('master', pretrained, magc_resnet31, **kwargs)
+    return _master('master', pretrained, magc_resnet31, '10', **kwargs)

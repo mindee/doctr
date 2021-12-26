@@ -191,7 +191,7 @@ class LinkNet(nn.Module, _LinkNet):
 def _linknet(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], nn.Module],
+    backbone_fn: Callable[[bool], nn.Module],
     fpn_layers: List[str],
     pretrained_backbone: bool = False,
     **kwargs: Any
@@ -200,7 +200,7 @@ def _linknet(
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Build the feature extractor
-    backbone = backbone_fn(pretrained=pretrained_backbone)
+    backbone = backbone_fn(pretrained_backbone)
     feat_extractor = IntermediateLayerGetter(
         backbone,
         {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},

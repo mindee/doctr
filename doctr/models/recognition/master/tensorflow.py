@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Model, layers
@@ -252,7 +252,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
 def _master(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], Model],
+    backbone_fn,
     pretrained_backbone: bool = True,
     input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
@@ -270,7 +270,7 @@ def _master(
 
     # Build the model
     model = MASTER(
-        backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg['input_shape']),
+        backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg['input_shape'], include_top=False),
         cfg=_cfg,
         **kwargs,
     )

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Model, Sequential, layers
@@ -309,7 +309,7 @@ class SARPostProcessor(RecognitionPostProcessor):
 def _sar(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], Model],
+    backbone_fn,
     pretrained_backbone: bool = True,
     input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
@@ -324,8 +324,8 @@ def _sar(
 
     # Feature extractor
     feat_extractor = backbone_fn(
-        input_shape=_cfg['input_shape'],
         pretrained=pretrained_backbone,
+        input_shape=_cfg['input_shape'],
         include_top=False,
     )
 

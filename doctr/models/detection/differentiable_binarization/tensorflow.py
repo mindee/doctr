@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -246,10 +246,10 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         return out
 
 
-def _dbnet_resnet(
+def _db_resnet(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], Model],
+    backbone_fn,
     fpn_layers: List[str],
     pretrained_backbone: bool = True,
     input_shape: Tuple[int, int, int] = None,
@@ -285,7 +285,7 @@ def _dbnet_resnet(
 def _db_mobilenet(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], Model],
+    backbone_fn,
     fpn_layers: List[str],
     pretrained_backbone: bool = True,
     input_shape: Tuple[int, int, int] = None,

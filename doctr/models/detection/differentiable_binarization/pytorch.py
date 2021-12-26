@@ -252,7 +252,7 @@ class DBNet(_DBNet, nn.Module):
 def _dbnet(
     arch: str,
     pretrained: bool,
-    backbone_fn: Callable[[Any], nn.Module],
+    backbone_fn: Callable[[bool], nn.Module],
     fpn_layers: List[str],
     backbone_submodule: Optional[str] = None,
     pretrained_backbone: bool = True,
@@ -264,7 +264,7 @@ def _dbnet(
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Feature extractor
-    backbone = backbone_fn(pretrained=pretrained_backbone)
+    backbone = backbone_fn(pretrained_backbone)
     if isinstance(backbone_submodule, str):
         backbone = getattr(backbone, backbone_submodule)
     feat_extractor = IntermediateLayerGetter(
