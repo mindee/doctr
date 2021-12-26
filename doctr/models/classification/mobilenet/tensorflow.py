@@ -225,7 +225,7 @@ def _mobilenet_v3(
     **kwargs: Any
 ) -> MobileNetV3:
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
+    _cfg['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
     _cfg['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
 
     # cf. Table 1 & 2 of the paper
