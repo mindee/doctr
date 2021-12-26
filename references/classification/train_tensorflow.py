@@ -25,15 +25,67 @@ if any(gpu_devices):
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import classification
-from utils import plot_samples
+from utils import plot_recorder, plot_samples
+
+
+def record_lr(
+    model: tf.keras.Model,
+    train_loader: DataLoader,
+    batch_transforms,
+    optimizer,
+    start_lr: float = 1e-7,
+    end_lr: float = 1,
+    num_it: int = 100,
+    amp: bool = False,
+):
+    """Gridsearch the optimal learning rate for the training.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
+    """
+
+    if num_it > len(train_loader):
+        raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
+
+    # Update param groups & LR
+    gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
+    optimizer.learning_rate = start_lr
+
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    loss_recorder = []
+
+    for batch_idx, (images, targets) in enumerate(train_loader):
+
+        images = batch_transforms(images)
+
+        # Forward, Backward & update
+        with tf.GradientTape() as tape:
+            out = model(images, training=True)
+            train_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
+        grads = tape.gradient(train_loss, model.trainable_weights)
+
+        if amp:
+            grads = optimizer.get_unscaled_gradients(grads)
+        optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+        optimizer.learning_rate = optimizer.learning_rate * gamma
+
+        # Record
+        train_loss = train_loss.numpy()
+        if np.any(np.isnan(train_loss)):
+            if batch_idx == 0:
+                raise ValueError("loss value is NaN or inf.")
+            else:
+                break
+        loss_recorder.append(train_loss.mean())
+        # Stop after the number of iterations
+        if batch_idx + 1 == num_it:
+            break
+
+    return lr_recorder[:len(loss_recorder)], loss_recorder
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=False):
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for _ in progress_bar(range(train_loader.num_batches), parent=mb):
-        images, targets = next(train_iter)
-
+    for images, targets in progress_bar(train_loader, parent=mb):
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
@@ -189,6 +241,12 @@ def main(args):
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
 
+    # LR Finder
+    if args.find_lr:
+        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
+        plot_recorder(lrs, losses)
+        return
+
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
@@ -282,6 +340,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()
 
     return args

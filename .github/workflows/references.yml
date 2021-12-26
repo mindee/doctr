@@ -60,7 +60,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
           pip install -r references/requirements.txt
-          pip install contiguous-params
           sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
@@ -121,7 +120,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
           pip install -r references/requirements.txt
-          pip install contiguous-params
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_recogition_set-036a4d80.zip
@@ -240,7 +238,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
           pip install -r references/requirements.txt
-          pip install contiguous-params
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_detection_set-bbbb4243.zip

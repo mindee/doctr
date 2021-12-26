@@ -38,12 +38,6 @@ def record_lr(
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
-
-    Args:
-       freeze_until (str, optional): last layer to freeze
-       start_lr (float, optional): initial learning rate
-       end_lr (float, optional): final learning rate
-       num_it (int, optional): number of iterations to perform
     """
 
     if num_it > len(train_loader):
@@ -122,9 +116,8 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter, parent=mb):
+    for images, targets in progress_bar(train_loader, parent=mb):
 
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
@@ -154,10 +147,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
 def evaluate(model, val_loader, metric, amp=False):
     model.eval()
     metric.reset()
-    val_iter = iter(val_loader)
-    for images, targets in val_iter:
-
-        images, targets = next(val_iter)
+    for images, targets in val_loader:
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
