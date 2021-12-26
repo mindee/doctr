@@ -7,16 +7,23 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from torch import nn
-from torchvision.models.resnet import BasicBlock
+from torchvision.models.resnet import BasicBlock, resnet18 as tv_resnet18
 
 from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet31', 'resnet_stage']
+__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet_stage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
+    'resnet18': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 32),
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-244bf390.pt',
+    },
     'resnet31': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
@@ -120,6 +127,46 @@ def _resnet(
         load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
+
+
+def _tv_resnet(
+    arch: str,
+    pretrained: bool,
+    arch_fn: Callable[[Any], nn.Module],
+    **kwargs: Any,
+) -> ResNet:
+
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+
+    # Build the model
+    model = arch_fn(**kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    return model
+
+
+def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
+    """ResNet-18 architecture as described in `"Deep Residual Learning for Image Recognition",
+    <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import resnet18
+        >>> model = resnet18(pretrained=False)
+        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A resnet18 model
+    """
+
+    return _tv_resnet('resnet18', pretrained, tv_resnet18, **kwargs)
+
 
 
 def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
