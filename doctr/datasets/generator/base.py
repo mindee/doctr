@@ -16,42 +16,40 @@ from ..datasets import AbstractDataset
 
 def synthesize_text_img(
     text: str,
-    font_size: Optional[int] = None,
+    font_size: int = 32,
     font_family: Optional[str] = None,
     background_color: Optional[Tuple[int, int, int]] = None,
     text_color: Optional[Tuple[int, int, int]] = None,
 ) -> Image:
-    """Generate a synthetic character image with black background and white text
+    """Generate a synthetic text image
 
     Args:
-        text: the character to render as an image
+        text: the text to render as an image
         font_size: the size of the font
         font_family: the font family (has to be installed on your system)
         background_color: background color of the final image
         text_color: text color on the final image
 
     Returns:
-        PIL image of the character
+        PIL image of the text
     """
 
     background_color = (0, 0, 0) if background_color is None else background_color
     text_color = (255, 255, 255) if text_color is None else text_color
-    # Take 10% out of the default 32 size
-    font_size = int(0.9 * 32) if font_size is None else font_size
-    default_h = int(round(font_size / 0.9))
 
     font = get_font(font_family, font_size)
-    text_size = font.getsize(text)
+    text_w, text_h = font.getsize(text)
+    h, w = int(round(1.3 * text_h)), int(round(1.1 * text_w))
     # If single letter, make the image square, otherwise expand to meet the text size
-    img_size = (default_h, text_size[0] if len(text) > 1 else default_h)
+    img_size = (h, w) if len(text) > 1 else (max(h, w), max(h, w))
 
     img = Image.new('RGB', img_size[::-1], color=background_color)
     d = ImageDraw.Draw(img)
 
-    # Draw the character
-    text_pos = (0, 0) if text_size[0] >= img_size[1] else (int(round(img_size[0] * 3 / 16)), 0)
+    # Offset so that the text is centered
+    text_pos = (int(round((img_size[1] - text_w) / 2)), int(round((img_size[0] - text_h) / 2)))
+    # Draw the text
     d.text(text_pos, text, font=font, fill=text_color)
-
     return img
 
 
