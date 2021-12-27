@@ -16,6 +16,7 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
 from doctr.utils.repr import NestedObject
 
+from ..classification import crop_orientation_predictor
 from .base import _OCRPredictor
 
 __all__ = ['OCRPredictor']
@@ -52,6 +53,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
+        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
 
     def __call__(
         self,
@@ -79,6 +81,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Rectify crop orientation
         if not self.assume_straight_pages:
             crops, loc_preds = self._rectify_crops(crops, loc_preds)
+
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
@@ -86,8 +89,8 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2], target_shape=mask) for
-                     page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
+            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2]) for
+                     page_boxes, page, angle in zip(boxes, pages, origin_page_orientations)]
 
         out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[misc]
         return out

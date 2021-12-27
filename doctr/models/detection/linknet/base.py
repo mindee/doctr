@@ -12,7 +12,6 @@ import numpy as np
 
 from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
-from doctr.utils.geometry import fit_rbbox, rbbox_to_polygon
 
 from ..core import DetectionPostProcessor
 
@@ -23,14 +22,13 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """Implements a post processor for LinkNet model.
 
     Args:
-        min_size_box: minimal length (pix) to keep a box
-        box_thresh: minimal objectness score to consider a box
         bin_thresh: threshold used to binzarized p_map at inference time
-
+        box_thresh: minimal objectness score to consider a box
+        assume_straight_pages: whether the inputs were expected to have horizontal text elements
     """
     def __init__(
         self,
-        bin_thresh: float = 0.15,
+        bin_thresh: float = 0.5,
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
     ) -> None:
@@ -44,8 +42,6 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         pred: np.ndarray,
         bitmap: np.ndarray,
-        angle_tol: float = 5.,
-        ratio_tol: float = 2.,
     ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
@@ -84,49 +80,14 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
-                x, y, w, h, alpha = fit_rbbox(contour)
+                _box = cv2.boxPoints(cv2.minAreaRect(contour))
                 # compute relative box to get rid of img shape
-                x, y, w, h = x / width, y / height, w / width, h / height
-                boxes.append([x, y, w, h, alpha, score])
+                _box[:, 0] /= width
+                _box[:, 1] /= height
+                boxes.append(_box)
 
         if not self.assume_straight_pages:
-            # Compute median angle and mean aspect ratio to resolve quadrants
-            np_boxes = np.asarray(boxes, dtype=np.float32)
-            median_angle = np.median(np_boxes[:, -2])
-            median_w, median_h = np.median(np_boxes[:, 2]), np.median(np_boxes[:, 3])
-
-            # Rectify angles
-            new_boxes = []
-            for x, y, w, h, alpha, score in boxes:
-                if median_h >= median_w:
-                    # We are in the upper quadrant
-                    if 1 / ratio_tol < h / w < ratio_tol:
-                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _rbox = [x, y, h, w, 90 + median_angle, score]
-                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                        # We jumped to the next quadrant, rectify
-                        _rbox = [x, y, w, h, alpha, score]
-                    else:
-                        _rbox = [x, y, h, w, 90 + alpha, score]
-                else:
-                    # We are in the lower quadrant.
-                    if 1 / ratio_tol < h / w < ratio_tol:
-                        # If a box has an aspect ratio close to 1 (cubic), we set the angle to the median angle
-                        _rbox = [x, y, w, h, median_angle, score]
-                    elif abs(90 - abs(alpha) - abs(median_angle)) <= angle_tol:
-                        # We jumped to the next quadrant, rectify
-                        _rbox = [x, y, h, w, 90 + alpha, score]
-                    else:
-                        _rbox = [x, y, w, h, alpha, score]
-                new_boxes.append(_rbox)
-            boxes = new_boxes
-
-        if not self.assume_straight_pages:
-            if len(boxes) == 0:
-                return np.zeros((0, 6), dtype=pred.dtype)
-            coord = np.clip(np.asarray(boxes)[:, :4], 0, 1)  # clip boxes coordinates
-            boxes = np.concatenate((coord, np.asarray(boxes)[:, 4:]), axis=1)
-            return boxes
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 4, 2), dtype=pred.dtype)
         else:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 
@@ -172,19 +133,19 @@ class _LinkNet(BaseModel):
 
             # Absolute bounding boxes
             abs_boxes = _target.copy()
-            abs_boxes[:, [0, 2]] *= w
-            abs_boxes[:, [1, 3]] *= h
-            abs_boxes = abs_boxes.round().astype(np.int32)
 
-            # Convert to polygons --> (N, 4, 2)
-            if abs_boxes.shape[1] == 5:
-                boxes_size = np.minimum(abs_boxes[:, 2], abs_boxes[:, 3])
-                polys = np.stack([
-                    rbbox_to_polygon(tuple(rbbox)) for rbbox in abs_boxes  # type: ignore[arg-type]
-                ], axis=0)
+            if abs_boxes.ndim == 3:
+                abs_boxes[:, :, 0] *= w
+                abs_boxes[:, :, 1] *= h
+                abs_boxes = abs_boxes.round().astype(np.int32)
+                polys = abs_boxes
+                boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
             else:
-                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                abs_boxes[:, [0, 2]] *= w
+                abs_boxes[:, [1, 3]] *= h
+                abs_boxes = abs_boxes.round().astype(np.int32)
                 polys = [None] * abs_boxes.shape[0]  # Unused
+                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
                 # Mask boxes that are too small
@@ -195,6 +156,8 @@ class _LinkNet(BaseModel):
                 if not self.assume_straight_pages:
                     cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
                 else:
+                    if box.shape == (4, 2):
+                        box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
                     # top edge
                     edge_mask[idx, box[1], box[0]: min(box[2] + 1, w)] = True

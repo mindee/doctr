@@ -27,7 +27,61 @@ from doctr import transforms as T
 from doctr.datasets import DataLoader, DetectionDataset
 from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
-from utils import plot_samples
+from utils import plot_recorder, plot_samples
+
+
+def record_lr(
+    model: tf.keras.Model,
+    train_loader: DataLoader,
+    batch_transforms,
+    optimizer,
+    start_lr: float = 1e-7,
+    end_lr: float = 1,
+    num_it: int = 100,
+    amp: bool = False,
+):
+    """Gridsearch the optimal learning rate for the training.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
+    """
+
+    if num_it > len(train_loader):
+        raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
+
+    # Update param groups & LR
+    gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
+    optimizer.learning_rate = start_lr
+
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    loss_recorder = []
+
+    for batch_idx, (images, targets) in enumerate(train_loader):
+
+        images = batch_transforms(images)
+
+        # Forward, Backward & update
+        with tf.GradientTape() as tape:
+            train_loss = model(images, targets, training=True)['loss']
+        grads = tape.gradient(train_loss, model.trainable_weights)
+
+        if amp:
+            grads = optimizer.get_unscaled_gradients(grads)
+        optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+        optimizer.learning_rate = optimizer.learning_rate * gamma
+
+        # Record
+        train_loss = train_loss.numpy()
+        if np.any(np.isnan(train_loss)):
+            if batch_idx == 0:
+                raise ValueError("loss value is NaN or inf.")
+            else:
+                break
+        loss_recorder.append(train_loss.mean())
+        # Stop after the number of iterations
+        if batch_idx + 1 == num_it:
+            break
+
+    return lr_recorder[:len(loss_recorder)], loss_recorder
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=False):
@@ -55,7 +109,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in val_iter:
         images = batch_transforms(images)
-        out = model(images, targets, training=False, return_boxes=True)
+        out = model(images, targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
@@ -85,9 +139,15 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
     )
-    val_loader = DataLoader(val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, workers=args.workers)
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        shuffle=False,
+        drop_last=False,
+        num_workers=args.workers,
+    )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{val_loader.num_batches} batches)")
     with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
@@ -109,7 +169,7 @@ def main(args):
         model.load_weights(args.resume)
 
     # Metrics
-    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
+    val_metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=(args.input_size, args.input_size))
 
     if args.test_only:
         print("Running evaluation")
@@ -123,7 +183,7 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, 'images'),
         label_path=os.path.join(args.train_path, 'labels.json'),
-        sample_transforms=T.Compose([
+        img_transforms=T.Compose([
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
             T.RandomApply(T.ColorInversion(), .1),
@@ -133,7 +193,13 @@ def main(args):
             T.RandomBrightness(.3),
         ]),
     )
-    train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, workers=args.workers)
+    train_loader = DataLoader(
+        train_set,
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=args.workers,
+    )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{train_loader.num_batches} batches)")
     with open(os.path.join(args.train_path, 'labels.json'), 'rb') as f:
@@ -160,6 +226,11 @@ def main(args):
     )
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
+    # LR Finder
+    if args.find_lr:
+        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
+        plot_recorder(lrs, losses)
+        return
 
     # Tensorboard to monitor training
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -250,6 +321,7 @@ def parse_args():
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated bbox')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()
 
     return args

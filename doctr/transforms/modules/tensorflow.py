@@ -4,14 +4,15 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, Iterable, List, Tuple, Union
 
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 from doctr.utils.repr import NestedObject
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
-           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality']
+           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur']
 
 
 class Compose(NestedObject):
@@ -141,8 +142,12 @@ class ToGray(NestedObject):
         >>> transfo = ToGray()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
+    def __init__(self, num_output_channels: int = 1):
+        self.num_output_channels = num_output_channels
+
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.rgb_to_grayscale(img)
+        img = tf.image.rgb_to_grayscale(img)
+        return img if self.num_output_channels == 1 else tf.repeat(img, self.num_output_channels, axis=-1)
 
 
 class RandomBrightness(NestedObject):
@@ -297,4 +302,32 @@ class RandomJpegQuality(NestedObject):
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         return tf.image.random_jpeg_quality(
             img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality
+        )
+
+
+class GaussianBlur(NestedObject):
+    """Randomly adjust jpeg quality of a 3 dimensional RGB image
+
+    Example::
+        >>> from doctr.transforms import GaussianBlur
+        >>> import tensorflow as tf
+        >>> transfo = GaussianBlur(3, (.1, 5))
+        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        kernel_shape: size of the blurring kernel
+        std: min and max value of the standard deviation
+    """
+    def __init__(self, kernel_shape: Union[int, Iterable[int]], std: Tuple[float, float]) -> None:
+        self.kernel_shape = kernel_shape
+        self.std = std
+
+    def extra_repr(self) -> str:
+        return f"kernel_shape={self.kernel_shape}, std={self.std}"
+
+    @tf.function
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        sigma = random.uniform(self.std[0], self.std[1])
+        return tfa.image.gaussian_filter2d(
+            img, filter_shape=self.kernel_shape, sigma=sigma,
         )

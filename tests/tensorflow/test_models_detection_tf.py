@@ -14,7 +14,7 @@ from doctr.models.preprocessor import PreProcessor
     [
         ["db_resnet50", (512, 512, 3), (512, 512, 1), True],
         ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True],
-        ["linknet16", (512, 512, 3), (512, 512, 1), False],
+        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
@@ -27,7 +27,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
     ]
     # test training model
-    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True)
+    out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
@@ -65,7 +65,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
     ]
     loss = model(input_tensor, target, training=True)['loss']
-    assert isinstance(loss, tf.Tensor) and ((loss - out['loss']) / loss).numpy() < 2e-1
+    assert isinstance(loss, tf.Tensor) and ((loss - out['loss']) / loss).numpy() < 21e-2
 
 
 @pytest.fixture(scope="session")
@@ -118,7 +118,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     [
         "db_resnet50",
         "db_mobilenet_v3_large",
-        "linknet16",
+        "linknet_resnet18",
     ],
 )
 def test_detection_zoo(arch_name):
