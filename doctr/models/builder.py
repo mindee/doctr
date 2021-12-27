@@ -60,28 +60,16 @@ class DocumentBuilder(NestedObject):
                 orig_shape=(1024, 1024),
                 min_angle=5.,
             )
-<<<<<<< HEAD
             xmin, xmax = np.min(boxes[:, :, 0], axis=1), np.max(boxes[:, :, 0], axis=1)
             ymin, ymax = np.min(boxes[:, :, 1], axis=1), np.max(boxes[:, :, 1], axis=1)
             boxes = np.stack([xmin, ymin, xmax, ymax], -1)
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
-=======
-            # Points are in this order: top left, top right, bot right, bot left
-            return (boxes[:, 0, 0] + 2 * boxes[:, 2, 1] / np.median(
-                np.linalg.norm(boxes[:, 2, :] - boxes[:, 1, :])
-            )).argsort()
-        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
->>>>>>> main
 
     def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
         """Split a line in sub_lines
 
         Args:
-<<<<<<< HEAD
             boxes: bounding boxes of shape (N, 4)
-=======
-            boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
->>>>>>> main
             words: list of indexes for the words of the line
 
         Returns:
@@ -89,14 +77,8 @@ class DocumentBuilder(NestedObject):
         """
         lines = []
         # Sort words horizontally
-<<<<<<< HEAD
         words = [words[j] for j in np.argsort([boxes[i, 0] for i in words]).tolist()]
 
-=======
-        words = [words[j] for j in np.argsort(
-            [boxes[i, 0, 0] if len(boxes.shape) == 3 else boxes[i, 0] for i in words]
-        ).tolist()]
->>>>>>> main
         # Eventually split line horizontally
         if len(words) < 2:
             lines.append(words)
@@ -107,14 +89,7 @@ class DocumentBuilder(NestedObject):
 
                 prev_box = boxes[sub_line[-1]]
                 # Compute distance between boxes
-<<<<<<< HEAD
                 dist = boxes[i, 0] - prev_box[2]
-=======
-                if boxes.ndim == 3:
-                    dist = boxes[i, 0, 0] - prev_box[0, 1]
-                else:
-                    dist = boxes[i, 0] - prev_box[2]
->>>>>>> main
                 # If distance between boxes is lower than paragraph break, same sub-line
                 if dist < self.paragraph_break:
                     horiz_break = False
@@ -137,11 +112,6 @@ class DocumentBuilder(NestedObject):
         Returns:
             nested list of box indices
         """
-<<<<<<< HEAD
-=======
-        # Compute median for boxes heights
-        y_med = np.median(boxes[:, 2, 1] - boxes[:, 1, 1] if boxes.ndim == 3 else boxes[:, 3] - boxes[:, 1])
->>>>>>> main
 
         # Sort boxes, and straighten the boxes if they are rotated
         idxs, boxes = self._sort_boxes(boxes)
@@ -152,27 +122,13 @@ class DocumentBuilder(NestedObject):
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
-<<<<<<< HEAD
         y_center_sum = boxes[idxs[0]][[1, 3]].mean()
-=======
-        if boxes.ndim == 3:
-            y_center_sum = boxes[idxs[0]][([2, 1], [1, 1])].mean()
-        else:
-            y_center_sum = boxes[idxs[0]][[1, 3]].mean()
->>>>>>> main
 
         for idx in idxs[1:]:
             vert_break = True
 
             # Compute y_dist
-<<<<<<< HEAD
             y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
-=======
-            if boxes.ndim == 3:
-                y_dist = abs(boxes[idx][([2, 1], [1, 1])].mean() - y_center_sum / len(words))
-            else:
-                y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
->>>>>>> main
             # If y-center of the box is close enough to mean y-center of the line, same line
             if y_dist < y_med / 2:
                 vert_break = False
@@ -184,14 +140,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-<<<<<<< HEAD
             y_center_sum += boxes[idx][[1, 3]].mean()
-=======
-            if boxes.ndim == 3:
-                y_center_sum += boxes[idx][([2, 1], [1, 1])].mean()
-            else:
-                y_center_sum += boxes[idx][[1, 3]].mean()
->>>>>>> main
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -286,26 +235,15 @@ class DocumentBuilder(NestedObject):
         # Decide whether we try to form lines
         _boxes = boxes
         if self.resolve_lines:
-<<<<<<< HEAD
             lines = self._resolve_lines(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4])
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
                 _blocks = self._resolve_blocks(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4], lines)
-=======
-            lines = self._resolve_lines(_boxes[:, :4])
-            # Decide whether we try to form blocks
-            if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(_boxes[:, :4], lines)
->>>>>>> main
             else:
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-<<<<<<< HEAD
             lines = [self._sort_boxes(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4])[0]]
-=======
-            lines = [self._sort_boxes(_boxes[:, :4])]
->>>>>>> main
             _blocks = [lines]
 
         blocks = [
@@ -314,11 +252,7 @@ class DocumentBuilder(NestedObject):
                     [
                         Word(
                             *word_preds[idx],
-<<<<<<< HEAD
                             tuple([tuple(pt) for pt in boxes[idx].tolist()])
-=======
-                            tuple(boxes[idx].tolist())
->>>>>>> main
                         ) if boxes.ndim == 3 else
                         Word(
                             *word_preds[idx],
@@ -363,17 +297,9 @@ class DocumentBuilder(NestedObject):
                 # Iterate over pages
                 for p_boxes in boxes:
                     # Iterate over boxes of the pages
-<<<<<<< HEAD
                     xmin, xmax = np.min(p_boxes[:, :, 0], axis=1), np.max(p_boxes[:, :, 0], axis=1)
                     ymin, ymax = np.min(p_boxes[:, :, 1], axis=1), np.max(p_boxes[:, :, 1], axis=1)
                     straight_boxes.append(np.stack([xmin, ymin, xmax, ymax], -1))
-=======
-                    for box in page_boxes:
-                        xmin, xmax = np.min(box[:, 0]), np.max(box[:, 0])
-                        ymin, ymax = np.min(box[:, 1]), np.max(box[:, 1])
-                        straight_boxes_page.append([xmin, ymin, xmax, ymax])
-                    straight_boxes.append(np.asarray(straight_boxes_page))
->>>>>>> main
                 boxes = straight_boxes
 
         _pages = [

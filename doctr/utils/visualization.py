@@ -15,11 +15,7 @@ from matplotlib.figure import Figure
 from PIL import Image, ImageDraw
 from unidecode import unidecode
 
-<<<<<<< HEAD
 from .common_types import BoundingBox, Polygon4P
-=======
-from .common_types import BoundingBox
->>>>>>> main
 from .fonts import get_font
 
 __all__ = ['visualize_page', 'synthesize_page', 'draw_boxes']
