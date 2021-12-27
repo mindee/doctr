@@ -19,7 +19,7 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import (ColorJitter, Compose, GaussianBlur)
+from torchvision.transforms import ColorJitter, Compose, GaussianBlur
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
