@@ -118,15 +118,14 @@ def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int]
     )
 
     # Rotate them around image center, shape (N+1, 4, 2)
-    stacked_rel_points = rotate_abs_points(stacked_rel_points.reshape((-1, 2))).reshape((-1, 4, 2))
-    rot_points = rotate_abs_points(stacked_rel_points, angle)
-    img_rot_corners, box_rot_corners = rot_points[:1], rot_points[1:]
+    rot_points = rotate_abs_points(stacked_rel_points.reshape((-1, 2)), angle).reshape(-1, 4, 2)
+    img_rot_corners, box_rot_corners = rot_points[0], rot_points[1:]
 
     # Expand the image to fit all the original info
     if expand:
         new_corners = np.abs(img_rot_corners).max(axis=0)
-        box_rot_corners[..., 0] += new_corners[:, 0]
-        box_rot_corners[..., 1] = new_corners[:, 1] - box_rot_corners[..., 1]
+        box_rot_corners[..., 0] += new_corners[0]
+        box_rot_corners[..., 1] = new_corners[1] - box_rot_corners[..., 1]
     else:
         box_rot_corners[..., 0] += img_shape[1] / 2
         box_rot_corners[..., 1] = img_shape[0] / 2 - box_rot_corners[..., 1]

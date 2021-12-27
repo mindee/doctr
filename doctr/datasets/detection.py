@@ -51,7 +51,6 @@ class DetectionDataset(AbstractDataset):
 
             polygons = np.asarray(label['polygons'])
             geoms = polygons if use_polygons else np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
-
             self.data.append((img_name, np.asarray(geoms, dtype=np.float32)))
 
     def __getitem__(
@@ -59,8 +58,11 @@ class DetectionDataset(AbstractDataset):
         index: int
     ) -> Tuple[Any, np.ndarray]:
 
+        
+ 
         img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
+
         if self.img_transforms is not None:
             img = self.img_transforms(img)
 
@@ -69,8 +71,14 @@ class DetectionDataset(AbstractDataset):
 
         # Boxes
         target = target.copy()
-        target[..., 0] /= w
-        target[..., 1] /= h
-        target = target.clip(0, 1)
+        if np.max(target) > 2:
+            if target.ndim == 3:
+                target[..., 0] /= w
+                target[..., 1] /= h
+            else:
+                target[..., [0, 2]] /= w
+                target[..., [1, 3]] /= h
+
+            target = target.clip(0, 1)
 
         return img, target

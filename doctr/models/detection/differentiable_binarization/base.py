@@ -312,7 +312,14 @@ class _DBNet:
             for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
                 # Mask boxes that are too small
                 if box_size < self.min_size_box:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    if abs_boxes.ndim == 3:
+                        seg_mask[
+                            idx,
+                            int(np.min(box[:, 1])): int(np.max(box[:, 1])) + 1,
+                            int(np.min(box[:, 0])): int(np.max(box[:, 0])) + 1
+                        ] = False
+                    else:
+                        seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
 
                 # Negative shrink for gt, as described in paper
@@ -325,11 +332,25 @@ class _DBNet:
 
                 # Draw polygon on gt if it is valid
                 if len(shrinked) == 0:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    if abs_boxes.ndim == 3:
+                        seg_mask[
+                            idx,
+                            int(np.min(box[:, 1])): int(np.max(box[:, 1])) + 1,
+                            int(np.min(box[:, 0])): int(np.max(box[:, 0])) + 1
+                        ] = False
+                    else:
+                        seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 shrinked = np.array(shrinked[0]).reshape(-1, 2)
                 if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    if abs_boxes.ndim == 3:
+                        seg_mask[
+                            idx,
+                            int(np.min(box[:, 1])): int(np.max(box[:, 1])) + 1,
+                            int(np.min(box[:, 0])): int(np.max(box[:, 0])) + 1
+                        ] = False
+                    else:
+                        seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 cv2.fillPoly(seg_target[idx], [shrinked.astype(np.int32)], 1)
 

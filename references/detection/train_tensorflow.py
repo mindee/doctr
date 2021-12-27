@@ -194,7 +194,7 @@ def main(args):
         sample_transforms=T.SampleCompose([
             T.RandomRotate(90, expand=True),
             T.ImageTransform(T.Resize((args.input_size, args.input_size))),
-        ]),
+        ]) if args.rotation else T.ImageTransform(T.Resize((args.input_size, args.input_size))),
     )
     train_loader = DataLoader(
         train_set,
@@ -322,7 +322,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
-                        help='train with rotated bbox')
+                        help='train with rotated documents')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()
