@@ -214,21 +214,19 @@ def _linknet(
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
-    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(
             pretrained=pretrained_backbone,
             include_top=False,
-            input_shape=kwargs['input_shape'],
+            input_shape=_cfg['input_shape'],
         ),
         fpn_layers,
     )
-
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = kwargs['input_shape']
 
     # Build the model
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
