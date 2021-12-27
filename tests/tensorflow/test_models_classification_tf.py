@@ -21,6 +21,7 @@ from doctr.models.classification.predictor import CropOrientationPredictor
 def test_classification_architectures(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
+    tf.keras.backend.clear_session()
     model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
     # Forward
     out = model(tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32))
