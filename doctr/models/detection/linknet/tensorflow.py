@@ -176,7 +176,7 @@ class LinkNet(_LinkNet, keras.Model):
         x: tf.Tensor,
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
-        return_boxes: bool = False,
+        return_preds: bool = False,
     ) -> Dict[str, Any]:
 
         logits = self.stem(x)
@@ -184,12 +184,12 @@ class LinkNet(_LinkNet, keras.Model):
         logits = self.classifier(logits)
 
         out: Dict[str, tf.Tensor] = {}
-        if return_model_output or target is None or return_boxes:
+        if return_model_output or target is None or return_preds:
             prob_map = tf.math.sigmoid(logits)
         if return_model_output:
             out["out_map"] = prob_map
 
-        if target is None or return_boxes:
+        if target is None or return_preds:
             # Post-process boxes
             out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
@@ -200,7 +200,13 @@ class LinkNet(_LinkNet, keras.Model):
         return out
 
 
-def _linknet(arch: str, pretrained: bool, input_shape: Tuple[int, int, int] = None, **kwargs: Any) -> LinkNet:
+def _linknet(
+    arch: str,
+    pretrained: bool,
+    pretrained_backbone: bool = False,
+    input_shape: Tuple[int, int, int] = None,
+    **kwargs: Any
+) -> LinkNet:
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])

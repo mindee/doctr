@@ -27,7 +27,7 @@ def _predictor(
         det_arch,
         pretrained=pretrained,
         batch_size=det_bs,
-        assume_straight_pages=assume_straight_pages
+        assume_straight_pages=assume_straight_pages,
     )
 
     # Recognition

@@ -18,7 +18,7 @@ def test_dbpostprocessor():
     assert len(out) == 2
     assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
     assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
-    assert all(all(v.shape[1] == 6 for v in sample) for sample in r_out)
+    assert all(all(v.shape[1] == 4 and v.shape[2] == 2 for v in sample) for sample in r_out)
     # Relative coords
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in out)
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in r_out)
@@ -54,7 +54,7 @@ def test_dbpostprocessor():
     out = postprocessor.polygon_to_box(issue_points)
     r_out = r_postprocessor.polygon_to_box(issue_points)
     assert isinstance(out, tuple) and len(out) == 4
-    assert isinstance(r_out, tuple) and len(r_out) == 5
+    assert isinstance(r_out, np.ndarray) and r_out.shape == (4, 2)
 
 
 def test_linknet_postprocessor():
@@ -70,6 +70,6 @@ def test_linknet_postprocessor():
     assert len(out) == 2
     assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
     assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
-    assert all(all(v.shape[1] == 6 for v in sample) for sample in r_out)
+    assert all(all(v.shape[1] == 4 and v.shape[2] == 2 for v in sample) for sample in r_out)
     # Relative coords
     assert all(all(np.all(np.logical_and(v[:4] >= 0, v[:4] <= 1)) for v in sample) for sample in out)

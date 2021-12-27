@@ -6,7 +6,7 @@
 import csv
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -26,8 +26,7 @@ class SROIE(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -39,14 +38,12 @@ class SROIE(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(url, None, sha256, True, **kwargs)
-        self.sample_transforms = sample_transforms
         self.train = train
 
         tmp_root = os.path.join(self.root, 'images')
@@ -68,17 +65,10 @@ class SROIE(VisionDataset):
             coords = np.stack([np.array(list(map(int, row[:8])), dtype=np_dtype).reshape((4, 2))
                               for row in _rows], axis=0)
 
-            if rotated_bbox:
-                # x_center, y_center, w, h, alpha = 0
-                mins = coords.min(axis=1)
-                maxs = coords.max(axis=1)
-                box_targets = np.concatenate(
-                    ((mins + maxs) / 2, maxs - mins, np.zeros((coords.shape[0], 1))), axis=1)
-            else:
-                # xmin, ymin, xmax, ymax
-                box_targets = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
+            if not use_polygons:
+                coords = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
 
-            self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
+            self.data.append((img_path, dict(boxes=coords, labels=labels)))
 
         self.root = tmp_root
 

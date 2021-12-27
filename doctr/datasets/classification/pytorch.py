@@ -22,7 +22,9 @@ class CharacterGenerator(_CharacterGenerator):
         vocab: vocabulary to take the character from
         num_samples: number of samples that will be generated iterating over the dataset
         cache_samples: whether generated images should be cached firsthand
-        sample_transforms: composable transformations that will be applied to each image
+        font_family: font to use to generate the text images
+        img_transforms: composable transformations that will be applied to each image
+        sample_transforms: composable transformations that will be applied to both the image and the target
     """
 
     def __init__(self, *args, **kwargs) -> None:

@@ -5,11 +5,9 @@
 
 import json
 import os
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, List, Tuple
 
 import numpy as np
-
-from doctr.utils.geometry import fit_rbbox
 
 from .datasets import AbstractDataset
 
@@ -27,19 +25,17 @@ class DetectionDataset(AbstractDataset):
     Args:
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations of each image
-        sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
     def __init__(
         self,
         img_folder: str,
         label_path: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.sample_transforms = sample_transforms
+        super().__init__(img_folder, **kwargs)
 
         # File existence check
         if not os.path.exists(label_path):
@@ -54,29 +50,27 @@ class DetectionDataset(AbstractDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 
             polygons = np.asarray(label['polygons'])
-            if rotated_bbox:
-                # Switch to rotated rects
-                boxes = np.asarray([list(fit_rbbox(poly)) for poly in polygons])
-            else:
-                # Switch to xmin, ymin, xmax, ymax
-                boxes = np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
+            geoms = polygons if use_polygons else np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
-            self.data.append((img_name, np.asarray(boxes, dtype=np.float32)))
+            self.data.append((img_name, np.asarray(geoms, dtype=np.float32)))
 
     def __getitem__(
         self,
         index: int
     ) -> Tuple[Any, np.ndarray]:
 
-        img, boxes = self._read_sample(index)
+        img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
+        if self.img_transforms is not None:
+            img = self.img_transforms(img)
+
         if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
+            img, target = self.sample_transforms(img, target)
 
         # Boxes
-        boxes = boxes.copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
-        boxes = boxes.clip(0, 1)
+        target = target.copy()
+        target[..., 0] /= w
+        target[..., 1] /= h
+        target = target.clip(0, 1)
 
-        return img, boxes
+        return img, target

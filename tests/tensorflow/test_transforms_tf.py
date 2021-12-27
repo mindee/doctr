@@ -230,24 +230,6 @@ def test_jpegquality():
     assert out.dtype == tf.float16
 
 
-def test_oneof():
-    transfos = [
-        T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.),
-        T.RandomContrast(delta=.2)
-    ]
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
-    out = T.OneOf(transfos)(input_t)
-    assert ((tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.)) or tf.reduce_all(out == 2.))
-
-
-def test_randomapply():
-
-    transfo = T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
-    out = T.RandomApply(transfo, p=1.)(input_t)
-    assert (tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.))
-
-
 def test_rotate():
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([
@@ -256,7 +238,7 @@ def test_rotate():
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
     assert r_img.shape == (50, 50, 3)
     assert r_img[0, 0, 0] == 0.
-    assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
+    assert r_boxes.shape == (1, 4, 2)
 
     # Expand
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)
@@ -266,8 +248,9 @@ def test_rotate():
 
     # Relative coords
     rel_boxes = np.array([[.3, .4, .7, .6]])
-    r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
-    assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
+    r_img, r_boxes = rotate(input_t, rel_boxes, angle=90)
+    assert r_boxes.shape == (1, 4, 2)
+    assert np.isclose(r_boxes, np.asarray([[[0.4, 0.7], [0.4, 0.3], [0.6, 0.3], [0.6, 0.7]]])).all()
 
     # FP16
     input_t = tf.ones((50, 50, 3), dtype=tf.float16)
@@ -283,7 +266,6 @@ def test_random_rotate():
     ])
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
-    assert abs(r_boxes[-1, -1]) <= 10.
 
     rotator = T.RandomRotate(max_angle=10., expand=True)
     r_img, r_boxes = rotator(input_t, boxes)
@@ -329,3 +311,12 @@ def test_random_crop():
     new_h, new_w = c_img.shape[:2]
     assert new_h >= 3
     assert new_w >= 3
+
+
+def test_gaussian_blur():
+    blur = T.GaussianBlur(3, (.1, 3))
+    input_t = np.ones((31, 31, 3), dtype=np.float32)
+    input_t[15, 15] = 0
+    blur_img = blur(tf.convert_to_tensor(input_t)).numpy()
+    assert blur_img.shape == input_t.shape
+    assert np.all(blur_img[15, 15] > 0)

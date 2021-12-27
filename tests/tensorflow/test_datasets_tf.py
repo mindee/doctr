@@ -42,7 +42,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     ds = datasets.DetectionDataset(
         img_folder=mock_image_folder,
         label_path=mock_detection_label,
-        sample_transforms=Resize(input_size),
+        img_transforms=Resize(input_size),
     )
 
     assert len(ds) == 5
@@ -64,11 +64,11 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     rotated_ds = datasets.DetectionDataset(
         img_folder=mock_image_folder,
         label_path=mock_detection_label,
-        sample_transforms=Resize(input_size),
-        rotated_bbox=True
+        img_transforms=Resize(input_size),
+        use_polygons=True
     )
     _, r_target = rotated_ds[0]
-    assert r_target.shape[1] == 5
+    assert r_target.shape[1:] == (4, 2)
 
     # File existence check
     img_name, _ = ds.data[0]
@@ -83,7 +83,7 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     ds = datasets.RecognitionDataset(
         img_folder=mock_image_folder,
         labels_path=mock_recognition_label,
-        sample_transforms=Resize(input_size, preserve_aspect_ratio=True),
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True),
     )
     assert len(ds) == 5
     image, label = ds[0]
@@ -111,7 +111,7 @@ def test_ocrdataset(mock_ocrdataset):
 
     ds = datasets.OCRDataset(
         *mock_ocrdataset,
-        sample_transforms=Resize(input_size),
+        img_transforms=Resize(input_size),
     )
     assert len(ds) == 3
     img, target = ds[0]
@@ -149,7 +149,7 @@ def test_charactergenerator():
         vocab=vocab,
         num_samples=10,
         cache_samples=True,
-        sample_transforms=Resize(input_size),
+        img_transforms=Resize(input_size),
     )
 
     assert len(ds) == 10
@@ -178,8 +178,8 @@ def test_ic13_dataset(mock_ic13, num_samples, rotate):
     input_size = (512, 512)
     ds = datasets.IC13(
         *mock_ic13,
-        sample_transforms=Resize(input_size),
-        rotated_bbox=rotate,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
     )
 
     assert len(ds) == num_samples
@@ -210,7 +210,7 @@ def test_svhn(input_size, num_samples, rotate, mock_svhn_dataset):
     datasets.SVHN.TRAIN = (mock_svhn_dataset, None, "svhn_train.tar")
 
     ds = datasets.SVHN(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_svhn_dataset.split("/")[:-2]), cache_subdir=mock_svhn_dataset.split("/")[-2],
     )
 
@@ -231,7 +231,7 @@ def test_sroie(input_size, num_samples, rotate, mock_sroie_dataset):
     datasets.SROIE.TRAIN = (mock_sroie_dataset, None)
 
     ds = datasets.SROIE(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_sroie_dataset.split("/")[:-2]), cache_subdir=mock_sroie_dataset.split("/")[-2],
     )
 
@@ -254,7 +254,7 @@ def test_funsd(input_size, num_samples, rotate, mock_funsd_dataset):
     datasets.FUNSD.FILE_NAME = "funsd.zip"
 
     ds = datasets.FUNSD(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_funsd_dataset.split("/")[:-2]), cache_subdir=mock_funsd_dataset.split("/")[-2],
     )
 
@@ -275,7 +275,7 @@ def test_cord(input_size, num_samples, rotate, mock_cord_dataset):
     datasets.CORD.TRAIN = (mock_cord_dataset, None)
 
     ds = datasets.CORD(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_cord_dataset.split("/")[:-2]), cache_subdir=mock_cord_dataset.split("/")[-2],
     )
 
@@ -297,7 +297,7 @@ def test_synthtext(input_size, num_samples, rotate, mock_synthtext_dataset):
     datasets.SynthText.SHA256 = None
 
     ds = datasets.SynthText(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_synthtext_dataset.split("/")[:-2]), cache_subdir=mock_synthtext_dataset.split("/")[-2],
     )
 
@@ -319,7 +319,7 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
     datasets.DocArtefacts.SHA256 = None
 
     ds = datasets.DocArtefacts(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_doc_artefacts.split("/")[:-2]), cache_subdir=mock_doc_artefacts.split("/")[-2],
     )
 
@@ -341,7 +341,7 @@ def test_iiit5k(input_size, num_samples, rotate, mock_iiit5k_dataset):
     datasets.IIIT5K.SHA256 = None
 
     ds = datasets.IIIT5K(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_iiit5k_dataset.split("/")[:-2]), cache_subdir=mock_iiit5k_dataset.split("/")[-2],
     )
 
@@ -364,7 +364,7 @@ def test_svt(input_size, num_samples, rotate, mock_svt_dataset):
     datasets.SVT.SHA256 = None
 
     ds = datasets.SVT(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_svt_dataset.split("/")[:-2]), cache_subdir=mock_svt_dataset.split("/")[-2],
     )
 
@@ -385,7 +385,7 @@ def test_ic03(input_size, num_samples, rotate, mock_ic03_dataset):
     datasets.IC03.TRAIN = (mock_ic03_dataset, None, "ic03_train.zip")
 
     ds = datasets.IC03(
-        train=True, download=True, sample_transforms=Resize(input_size), rotated_bbox=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
         cache_dir="/".join(mock_ic03_dataset.split("/")[:-2]), cache_subdir=mock_ic03_dataset.split("/")[-2],
     )
 
