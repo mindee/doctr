@@ -116,7 +116,7 @@ def convert_to_abs_coords(targets, img_shape):
     return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp:False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
     model.train()
@@ -146,7 +146,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp):
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, metric, amp=False):
+def evaluate(model, val_loader, metric, amp):
     model.eval()
     metric.reset()
     val_iter = iter(val_loader)

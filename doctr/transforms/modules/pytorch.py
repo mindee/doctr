@@ -56,12 +56,16 @@ class Resize(T.Resize):
 
 
 class RandomGaussianNoise():
-    def __init__(self, mean=0.5, std=1.5):
+    def __init__(self, mean=0., std=1.):
         self.std = std
         self.mean = mean
 
-    def __call__(self, tensor):
-        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+    def __call__(self, x):
+        if x.dtype == torch.uint8:
+            return (x + 255 * (self.mean + self.std * torch.rand(x.shape, device=x.device))).round().clamp(0, 255).to(
+                dtype=torch.uint8)
+        else:
+            return (x + self.mean + self.std * torch.rand_like(x)).clamp(0, 1)
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + f"mean = {self.mean}, std = {self.std}"
+        return f"{self.__class__.__name__}  (mean = {self.mean}, std = {self.std})"
