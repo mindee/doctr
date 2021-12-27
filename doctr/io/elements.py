@@ -140,7 +140,13 @@ class Line(Element):
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             # Check whether this is a rotated or straight box
+<<<<<<< HEAD
             box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 4 else resolve_enclosing_bbox
+=======
+            box_resolution_fn = resolve_enclosing_rbbox if isinstance(
+                words[0].geometry, np.ndarray
+            ) else resolve_enclosing_bbox
+>>>>>>> main
             geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator, misc]
 
         super().__init__(words=words)
