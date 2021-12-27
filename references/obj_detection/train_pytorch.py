@@ -236,7 +236,7 @@ def main(args):
         img_transforms=Compose([
             T.Resize((args.input_size, args.input_size)),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3)
+            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
         ]))
 
     train_loader = DataLoader(
