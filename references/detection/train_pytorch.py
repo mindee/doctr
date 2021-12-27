@@ -237,10 +237,13 @@ def main(args):
         img_folder=os.path.join(args.train_path, 'images'),
         label_path=os.path.join(args.train_path, 'labels.json'),
         img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
             # Augmentations
             T.RandomApply(T.ColorInversion(), .1),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+        ]),
+        sample_transforms=T.SampleCompose([
+            T.RandomRotate(90, expand=True),
+            T.ImageTransform(T.Resize((args.input_size, args.input_size))),
         ]),
     )
 

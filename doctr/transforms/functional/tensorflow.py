@@ -52,6 +52,8 @@ def rotate(
     if expand:
         exp_shape = compute_expanded_shape(img.shape[:-1], angle)
         h_pad, w_pad = int(math.ceil(exp_shape[0] - img.shape[0])), int(math.ceil(exp_shape[1] - img.shape[1]))
+        if min(h_pad, w_pad) < 0:
+            h_pad, w_pad = int(math.ceil(exp_shape[1] - img.shape[0])), int(math.ceil(exp_shape[0] - img.shape[1]))
         exp_img = tf.pad(img, tf.constant([[h_pad // 2, h_pad - h_pad // 2], [w_pad // 2, w_pad - w_pad // 2], [0, 0]]))
     else:
         exp_img = img
@@ -72,7 +74,7 @@ def rotate(
         r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[1]
         r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[0]
 
-    return rotated_img, r_boxes
+    return rotated_img, np.clip(r_boxes, 0, 1)
 
 
 def crop_detection(
