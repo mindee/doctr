@@ -188,17 +188,17 @@ def _crnn(
     pretrained: bool,
     backbone_fn,
     pretrained_backbone: bool = True,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> CRNN:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     kwargs['vocab'] = kwargs.get('vocab', default_cfgs[arch]['vocab'])
-    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
 
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['vocab'] = kwargs['vocab']
-    _cfg['input_shape'] = kwargs['input_shape']
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
 
     feat_extractor = backbone_fn(
         input_shape=_cfg['input_shape'],
