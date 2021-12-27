@@ -166,6 +166,35 @@ def test_charactergenerator():
     assert targets.dtype == tf.int32
 
 
+def test_wordgenerator():
+
+    input_size = (32, 128)
+    wordlen_range = (1, 10)
+    vocab = 'abcdef'
+
+    ds = datasets.WordGenerator(
+        vocab=vocab,
+        min_chars=wordlen_range[0],
+        max_chars=wordlen_range[1],
+        num_samples=10,
+        cache_samples=True,
+        img_transforms=Resize(input_size),
+    )
+
+    assert len(ds) == 10
+    image, target = ds[0]
+    assert isinstance(image, tf.Tensor)
+    assert image.shape[:2] == input_size
+    assert image.dtype == tf.float32
+    assert isinstance(target, str) and len(target) >= wordlen_range[0] and len(target) <= wordlen_range[1]
+    assert all(char in vocab for char in target)
+
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and len(targets) == 2 and all(isinstance(t, str) for t in targets)
+
+
 @pytest.mark.parametrize(
     "num_samples, rotate",
     [
