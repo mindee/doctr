@@ -254,7 +254,6 @@ def _master(
     pretrained: bool,
     backbone_fn,
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
 ) -> MASTER:
 

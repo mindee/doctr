@@ -98,7 +98,6 @@ class LinkNet(_LinkNet, keras.Model):
         feat_extractor: IntermediateLayerGetter,
         fpn_channels: int = 64,
         num_classes: int = 1,
-        input_shape: Tuple[int, int, int] = (512, 512, 3),
         assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -208,7 +207,7 @@ def _linknet(
     backbone_fn,
     fpn_layers: List[str],
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> LinkNet:
 

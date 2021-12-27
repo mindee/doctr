@@ -311,7 +311,7 @@ def _sar(
     pretrained: bool,
     backbone_fn,
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> SAR:
 

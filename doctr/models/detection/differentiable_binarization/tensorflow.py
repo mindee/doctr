@@ -252,7 +252,7 @@ def _db_resnet(
     backbone_fn,
     fpn_layers: List[str],
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> DBNet:
 
@@ -288,7 +288,7 @@ def _db_mobilenet(
     backbone_fn,
     fpn_layers: List[str],
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> DBNet:
 
