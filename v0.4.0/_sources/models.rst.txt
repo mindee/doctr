@@ -4,26 +4,30 @@ doctr.models
 .. currentmodule:: doctr.models
 
 
-doctr.models.backbones
+doctr.models.classification
 ----------------------
 
-.. autofunction:: doctr.models.backbones.vgg16_bn
+.. autofunction:: doctr.models.classification.vgg16_bn
 
-.. autofunction:: doctr.models.backbones.resnet31
+.. autofunction:: doctr.models.classification.resnet31
 
-.. autofunction:: doctr.models.backbones.mobilenet_v3_small
+.. autofunction:: doctr.models.classification.mobilenet_v3_small
 
-.. autofunction:: doctr.models.backbones.mobilenet_v3_large
+.. autofunction:: doctr.models.classification.mobilenet_v3_large
 
-.. autofunction:: doctr.models.backbones.mobilenet_v3_small_r
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_r
 
-.. autofunction:: doctr.models.backbones.mobilenet_v3_large_r
+.. autofunction:: doctr.models.classification.mobilenet_v3_large_r
+
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_orientation
+
+.. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 
 doctr.models.detection
 ----------------------
 
-.. autofunction:: doctr.models.detection.linknet16
+.. autofunction:: doctr.models.detection.linknet_resnet18
 
 .. autofunction:: doctr.models.detection.db_resnet50
 

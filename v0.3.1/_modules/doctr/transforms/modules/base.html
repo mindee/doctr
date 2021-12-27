@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.transforms.modules.base &mdash; docTR 0.3.1a0-git documentation</title>
+  <title>doctr.transforms.modules.base &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -85,29 +85,57 @@
               
             
             
-              <ul>
+              <p><span class="caption-text">Getting started</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Notes</span></p>
+<p><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_models.html">Choosing the right model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../using_models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#available-architectures">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../using_models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#id1">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#id3">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_model_export.html">Preparing your model for inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../using_model_export.html#model-compression">Model compression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_model_export.html#half-precision">Half-precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../using_model_export.html#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../using_model_export.html#using-savedmodel">Using SavedModel</a></li>
 </ul>
 </li>
 </ul>
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -126,28 +154,10 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#export-model-output">Export model output</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#model-export">Model export</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#model-compression">Model compression</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../models.html#using-savedmodel">Using SavedModel</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#doctr-models-classification">doctr.models.classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../transforms.html">doctr.transforms</a><ul>
@@ -158,6 +168,20 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -207,8 +231,6 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-          <li><a href="../modules.html">doctr.transforms.modules</a> &raquo;</li>
-        
       <li>doctr.transforms.modules.base</li>
     
     
@@ -230,15 +252,62 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
+
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SampleCompose&#39;</span><span class="p">,</span> <span class="s1">&#39;ImageTransform&#39;</span><span class="p">,</span> <span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span> <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomRotate&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomCrop&#39;</span><span class="p">]</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span> <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomRotate&#39;</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">SampleCompose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a wrapper that will apply transformations sequentially on both image and target</span>
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
+<span class="sd">        &gt;&gt;&gt; out, out_boxes = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))</span>
+<span class="sd">    Args:</span>
+<span class="sd">        transforms: list of transformation modules</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sample_transforms&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_transforms</span> <span class="o">=</span> <span class="n">transforms</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_transforms</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">target</span>
+
+
+<span class="k">class</span> <span class="nc">ImageTransform</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a transform wrapper to turn an image-only transformation into an image+target transform</span>
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
+<span class="sd">        &gt;&gt;&gt; out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)</span>
+<span class="sd">    Args:</span>
+<span class="sd">        transform: the image transformation module to wrap</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;img_transform&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span> <span class="o">=</span> <span class="n">transform</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
 
 
 <div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -316,24 +385,58 @@
 
 
 <div class="viewcode-block" id="RandomRotate"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomRotate">[docs]</a><span class="k">class</span> <span class="nc">RandomRotate</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Randomly rotate a tensor image</span>
+    <span class="sd">&quot;&quot;&quot;Randomly rotate a tensor image and its boxes</span>
+
+<span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.4.0/rotation_illustration.png</span>
+<span class="sd">        :align: center</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in</span>
 <span class="sd">            [-max_angle, max_angle]</span>
 <span class="sd">        expand: whether the image should be padded before the rotation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.</span><span class="p">,</span> <span class="n">expand</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.</span><span class="p">,</span> <span class="n">expand</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span> <span class="o">=</span> <span class="n">max_angle</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expand</span> <span class="o">=</span> <span class="n">expand</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;max_angle=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span><span class="si">}</span><span class="s2">, expand=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expand</span><span class="si">}</span><span class="s2">&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="n">angle</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span><span class="p">)</span>
-        <span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">],</span> <span class="n">angle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expand</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span></div>
+        <span class="n">r_img</span><span class="p">,</span> <span class="n">r_boxes</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expand</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r_img</span><span class="p">,</span> <span class="n">r_boxes</span></div>
+
+
+<div class="viewcode-block" id="RandomCrop"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomCrop">[docs]</a><span class="k">class</span> <span class="nc">RandomCrop</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly crop a tensor image and its boxes</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scale: tuple of floats, relative (min_area, max_area) of the crop</span>
+<span class="sd">        ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.08</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">ratio</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.33</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;scale=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="si">}</span><span class="s2">, ratio=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ratio</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ratio</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">crop_h</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
+        <span class="n">crop_w</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span> <span class="o">/</span> <span class="n">ratio</span><span class="p">)</span>
+        <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">crop_w</span><span class="p">),</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">crop_h</span><span class="p">)</span>
+        <span class="n">crop_box</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">start_x</span> <span class="o">*</span> <span class="n">w</span><span class="p">))),</span>
+            <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">start_y</span> <span class="o">*</span> <span class="n">h</span><span class="p">))),</span>
+            <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">start_x</span> <span class="o">+</span> <span class="n">crop_w</span><span class="p">)</span> <span class="o">*</span> <span class="n">w</span><span class="p">)),</span> <span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">start_y</span> <span class="o">+</span> <span class="n">crop_h</span><span class="p">)</span> <span class="o">*</span> <span class="n">h</span><span class="p">)),</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">croped_img</span><span class="p">,</span> <span class="n">crop_boxes</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">crop_detection</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">],</span> <span class="n">crop_box</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">croped_img</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">crop_boxes</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

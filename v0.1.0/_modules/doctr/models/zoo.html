@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.zoo &mdash; docTR 0.1.0a0-git documentation</title>
+  <title>doctr.models.zoo &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -29,6 +29,7 @@
         <script src="../../../_static/clipboard.min.js"></script>
         <script src="../../../_static/copybutton.js"></script>
         <script src="../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -84,46 +85,103 @@
               
             
             
-              <p><span class="caption-text">Getting Started</span></p>
+              <p><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Package Documentation</span></p>
+<p><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#file-reading">File reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#available-architectures">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#id1">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#id3">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_model_export.html#model-compression">Model compression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#half-precision">Half-precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_model_export.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#data-loading">Data Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">doctr.io</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../io.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#document">Document</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../io.html#file-reading">File reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-classification">doctr.models.classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#id1">Post-processing outputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#model-export">Model export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../transforms.html#composing-transformations">Composing transformations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -194,71 +252,82 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
-<span class="kn">from</span> <span class="nn">.detection</span> <span class="kn">import</span> <span class="n">zoo</span> <span class="k">as</span> <span class="n">det_zoo</span>
-<span class="kn">from</span> <span class="nn">.recognition</span> <span class="kn">import</span> <span class="n">zoo</span> <span class="k">as</span> <span class="n">reco_zoo</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span> <span class="nn">.detection.zoo</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="kn">from</span> <span class="nn">.predictor</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
+<span class="kn">from</span> <span class="nn">.recognition.zoo</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_predictor&quot;</span><span class="p">]</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_db_sar&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn&quot;</span><span class="p">]</span>
-
-<span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;ocr_db_sar&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">},</span>
-    <span class="s1">&#39;ocr_db_crnn&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">},</span>
-<span class="p">}</span>
-
-
-<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">det_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">reco_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 
     <span class="c1"># Detection</span>
-    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">det_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;detection&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">)</span>
+    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># Recognition</span>
-    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">reco_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;recognition&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
+    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span><span class="n">det_predictor</span><span class="p">,</span> <span class="n">reco_predictor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span>
+        <span class="n">det_predictor</span><span class="p">,</span>
+        <span class="n">reco_predictor</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">ocr_db_sar</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
-<span class="sd">    backbone as text recognition architecture.</span>
+<div class="viewcode-block" id="ocr_predictor"><a class="viewcode-back" href="../../../models.html#doctr.models.ocr_predictor">[docs]</a><span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_sar</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_db_sar(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
+<span class="sd">        det_arch: name of the detection architecture to use (e.g. &#39;db_resnet50&#39;, &#39;db_mobilenet_v3_large&#39;)</span>
+<span class="sd">        reco_arch: name of the recognition architecture to use (e.g. &#39;crnn_vgg16_bn&#39;, &#39;sar_resnet31&#39;)</span>
+<span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
+<span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
+<span class="sd">            without rotated textual elements.</span>
+<span class="sd">        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</span>
+<span class="sd">            (potentially rotated) as straight bounding boxes.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="ocr_db_crnn"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_crnn">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_crnn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN</span>
-<span class="sd">    backbone as text recognition architecture.</span>
-
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_db_crnn</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_db_crnn(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(1, 600, 800, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([[input_page]])</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        OCR predictor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_crnn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">reco_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">export_as_straight_boxes</span><span class="o">=</span><span class="n">export_as_straight_boxes</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
 </pre></div>
 
            </div>

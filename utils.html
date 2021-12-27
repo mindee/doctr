@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.utils &mdash; docTR 0.4.1a0-git documentation</title>
+  <title>doctr.utils &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -133,7 +133,12 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -152,7 +157,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -172,6 +177,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
@@ -365,13 +371,13 @@ counterpart and its lower-case unidecode counterpart</p>
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.LocalizationConfusion">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">LocalizationConfusion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">LocalizationConfusion</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em>, <em class="sig-param"><span class="n">use_broadcasting</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements common confusion metrics and mean IoU for localization evaluation.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\forall Y \in \mathcal{B}^N, \forall X \in \mathcal{B}^M, \\
 Recall(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N g_{X}(Y_i) \\
-Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^N g_{X}(Y_i) \\
+Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M g_{X}(Y_i) \\
 meanIoU(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(X_i, Y_j)\end{split}\]</div>
 <p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(g_{X}\)</span> defined as:</p>
@@ -397,13 +403,27 @@ g_X(y) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
+<li><p><strong>use_polygons</strong> – if set to True, predictions and targets will be expected to have rotated format</p></li>
+<li><p><strong>mask_shape</strong> – if use_polygons is True, describes the spatial shape of the image used</p></li>
+<li><p><strong>use_broadcasting</strong> – if use_polygons is True, use broadcasting for IoU computation by consuming more memory</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="doctr.utils.metrics.LocalizationConfusion.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">preds</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#LocalizationConfusion.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gts</strong> – a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</p></li>
+<li><p><strong>preds</strong> – a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="doctr.utils.metrics.LocalizationConfusion.summary">
@@ -420,14 +440,14 @@ g_X(y) = \left\{
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.OCRMetric">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">OCRMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em>, <em class="sig-param"><span class="n">use_broadcasting</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements an end-to-end OCR metric.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,
 \forall (\hat{B}, \hat{L}) \in \mathcal{B}^M \times \mathcal{L}^M, \\
 Recall(B, \hat{B}, L, \hat{L}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
-Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\
+Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,L}(\hat{B}_i, \hat{L}_i) \\
 meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)\end{split}\]</div>
 <p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(h_{B, L}\)</span> defined as:</p>
@@ -456,13 +476,29 @@ h_{B,L}(b, l) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
+<li><p><strong>use_polygons</strong> – if set to True, predictions and targets will be expected to have rotated format</p></li>
+<li><p><strong>mask_shape</strong> – if use_polygons is True, describes the spatial shape of the image used</p></li>
+<li><p><strong>use_broadcasting</strong> – if use_polygons is True, use broadcasting for IoU computation by consuming more memory</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="doctr.utils.metrics.OCRMetric.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">gt_labels</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">pred_labels</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#OCRMetric.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt_boxes</strong> – a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</p></li>
+<li><p><strong>pred_boxes</strong> – a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p></li>
+<li><p><strong>gt_labels</strong> – a list of N string labels</p></li>
+<li><p><strong>pred_labels</strong> – a list of M string labels</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="doctr.utils.metrics.OCRMetric.summary">
@@ -479,14 +515,14 @@ h_{B,L}(b, l) = \left\{
 
 <dl class="py class">
 <dt id="doctr.utils.metrics.DetectionMetric">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">DetectionMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.utils.metrics.</code><code class="sig-name descname">DetectionMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iou_thresh</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">(1024, 1024)</span></em>, <em class="sig-param"><span class="n">use_broadcasting</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements an object detection metric.</p>
 <p>The aggregated metrics are computed as follows:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
 \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\
 Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
-Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\
+Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,C}(\hat{B}_i, \hat{C}_i) \\
 meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)\end{split}\]</div>
 <p>with the function <span class="math notranslate nohighlight">\(IoU(x, y)\)</span> being the Intersection over Union between bounding boxes <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, and the function <span class="math notranslate nohighlight">\(h_{B, C}\)</span> defined as:</p>
@@ -515,13 +551,29 @@ h_{B,C}(b, c) = \left\{
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU to consider a pair of prediction and ground truth as a match</p></li>
+<li><p><strong>use_polygons</strong> – if set to True, predictions and targets will be expected to have rotated format</p></li>
+<li><p><strong>mask_shape</strong> – if use_polygons is True, describes the spatial shape of the image used</p></li>
+<li><p><strong>use_broadcasting</strong> – if use_polygons is True, use broadcasting for IoU computation by consuming more memory</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="doctr.utils.metrics.DetectionMetric.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gt_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_boxes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">gt_labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">pred_labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/utils/metrics.html#DetectionMetric.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric.update" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Updates the metric</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt_boxes</strong> – a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</p></li>
+<li><p><strong>pred_boxes</strong> – a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p></li>
+<li><p><strong>gt_labels</strong> – an array of class indices of shape (N,)</p></li>
+<li><p><strong>pred_labels</strong> – an array of class indices of shape (M,)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="doctr.utils.metrics.DetectionMetric.summary">

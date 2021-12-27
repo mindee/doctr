@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation &mdash; docTR 0.4.0a0-git documentation</title>
+  <title>Installation &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -43,8 +43,8 @@
   <link rel="stylesheet" href="_static/css/mindee.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Choosing the right model" href="using_models.html" />
-    <link rel="prev" title="DocTR: Document Text Recognition" href="index.html" /> 
+    <link rel="next" title="docTR Notebooks" href="notebooks.html" />
+    <link rel="prev" title="docTR: Document Text Recognition" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,8 +96,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#via-git">Via Git</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using DocTR</span></p>
+<p><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
@@ -132,7 +133,12 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -151,7 +157,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -171,6 +177,8 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
@@ -268,9 +276,9 @@
 </div>
 <p>We strive towards reducing framework-specific dependencies to a minimum, but some necessary features are developed by third-parties for specific frameworks. To avoid missing some dependencies for a specific framework, you can install specific builds as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># for TensorFlow</span>
-pip install python-doctr<span class="o">[</span>tf<span class="o">]</span>
+pip install <span class="s2">&quot;python-doctr[tf]&quot;</span>
 <span class="c1"># for PyTorch</span>
-pip install python-doctr<span class="o">[</span>torch<span class="o">]</span>
+pip install <span class="s2">&quot;python-doctr[torch]&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -300,10 +308,10 @@ pip install -e doctr/.<span class="o">[</span>torch<span class="o">]</span>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="using_models.html" class="btn btn-neutral float-right" title="Choosing the right model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="notebooks.html" class="btn btn-neutral float-right" title="docTR Notebooks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="DocTR: Document Text Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="docTR: Document Text Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
