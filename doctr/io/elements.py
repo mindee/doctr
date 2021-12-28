@@ -246,15 +246,16 @@ class Page(Element):
         return f"dimensions={self.dimensions}"
 
     def show(
-        self, page: np.ndarray, interactive: bool = True, **kwargs
+        self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs
     ) -> None:
         """Overlay the result on a given image
 
         Args:
             page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
+            preserve_aspect_ratio: pass True if you passed True to the predictor
         """
-        visualize_page(self.export(), page, interactive=interactive)
+        visualize_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
         plt.show(**kwargs)
 
     def synthesize(self, **kwargs) -> np.ndarray:

@@ -17,6 +17,7 @@ def _predictor(
     reco_arch: str,
     pretrained: bool,
     assume_straight_pages: bool = True,
+    preserve_aspect_ratio: bool = False,
     det_bs: int = 2,
     reco_bs: int = 128,
     **kwargs,
@@ -28,6 +29,7 @@ def _predictor(
         pretrained=pretrained,
         batch_size=det_bs,
         assume_straight_pages=assume_straight_pages,
+        preserve_aspect_ratio=preserve_aspect_ratio,
     )
 
     # Recognition
@@ -47,6 +49,7 @@ def ocr_predictor(
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     export_as_straight_boxes: bool = False,
+    preserve_aspect_ratio: bool = False,
     **kwargs: Any
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -77,5 +80,6 @@ def ocr_predictor(
         pretrained,
         assume_straight_pages=assume_straight_pages,
         export_as_straight_boxes=export_as_straight_boxes,
+        preserve_aspect_ratio=preserve_aspect_ratio,
         **kwargs,
     )
