@@ -39,12 +39,6 @@ def record_lr(
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
-
-    Args:
-       freeze_until (str, optional): last layer to freeze
-       start_lr (float, optional): initial learning rate
-       end_lr (float, optional): final learning rate
-       num_it (int, optional): number of iterations to perform
     """
 
     if num_it > len(train_loader):
@@ -105,18 +99,19 @@ def record_lr(
 
 def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
-    for idx in range(len(targets)):
-        targets[idx]['boxes'][:, 0::2] = (targets[idx]['boxes'][:, 0::2] * width).round()
-        targets[idx]['boxes'][:, 1::2] = (targets[idx]['boxes'][:, 1::2] * height).round()
+    for idx, t in enumerate(targets):
+        targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
+        targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
     targets = [{
         "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
         "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
         for t in targets
     ]
+
     return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp:False):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
     model.train()
@@ -127,6 +122,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp:False):
         if torch.cuda.is_available():
             images = images.cuda()
             targets = [{k: v.cuda() for k, v in t.items()} for t in targets]
+
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
@@ -141,17 +137,16 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp:False):
             loss = sum(v for v in loss_dict.values())
             loss.backward()
             optimizer.step()
+
         mb.child.comment = f'Training loss: {loss.item()}'
     scheduler.step()
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, metric, amp):
+def evaluate(model, val_loader, metric, amp=False):
     model.eval()
     metric.reset()
-    val_iter = iter(val_loader)
-    for images, targets in val_iter:
-        images, targets = next(val_iter)
+    for images, targets in val_loader:
         # batch_transforms
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
@@ -185,7 +180,7 @@ def main(args):
     val_set = DocArtefacts(
         train=False,
         download=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
     )
     val_loader = DataLoader(
         val_set,
@@ -233,12 +228,14 @@ def main(args):
         return
 
     st = time.time()
-
+    # Load both train data generators
     train_set = DocArtefacts(
         train=True,
         download=True,
-        sample_transforms=Compose([T.Resize((args.input_size, args.input_size)),
-                                   T.RandomGaussianNoise(0.5, 1.5)])
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
+        ])
     )
 
     train_loader = DataLoader(
@@ -301,6 +298,7 @@ def main(args):
 
     mb = master_bar(range(args.epochs))
     max_score = 0.
+
     for epoch in mb:
         fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=args.amp)
         # Validation loop at the end of each epoch

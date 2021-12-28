@@ -16,11 +16,11 @@ __all__ = ['Resize', 'GaussianNoise']
 
 class Resize(T.Resize):
     def __init__(
-            self,
-            size: Tuple[int, int],
-            interpolation=F.InterpolationMode.BILINEAR,
-            preserve_aspect_ratio: bool = False,
-            symmetric_pad: bool = False,
+        self,
+        size: Tuple[int, int],
+        interpolation=F.InterpolationMode.BILINEAR,
+        preserve_aspect_ratio: bool = False,
+        symmetric_pad: bool = False,
     ) -> None:
         super().__init__(size, interpolation)
         self.preserve_aspect_ratio = preserve_aspect_ratio
