@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import ColorInversion, RandomCrop, RandomRotate, Resize
+from doctr.transforms import ColorInversion, RandomCrop, RandomRotate, Resize, ChannelShuffle
 from doctr.transforms.functional import crop_detection, rotate
 
 
@@ -164,3 +164,28 @@ def test_random_crop():
     new_h, new_w = c_img.shape[:2]
     assert new_h >= 3
     assert new_w >= 3
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_size",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+    ],
+)
+def test_channel_shuffle(input_dtype, input_size):
+    transfo = ChannelShuffle()
+    input_t = torch.rand(input_size, dtype=torch.float32)
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round()
+    input_t = input_t.to(dtype=input_dtype)
+    out = transfo(input_t)
+    assert isinstance(out, torch.Tensor)
+    assert out.shape == input_size
+    assert out.dtype == input_dtype
+    # Ensure that nothing has changed apart from channel order
+    if input_dtype == torch.uint8:
+        assert torch.all(input_t.sum(0) == out.sum(0))
+    else:
+        # Float approximation
+        assert (input_t.sum(0) - out.sum(0)).abs().mean() < 1e-7

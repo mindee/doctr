@@ -320,3 +320,24 @@ def test_gaussian_blur():
     blur_img = blur(tf.convert_to_tensor(input_t)).numpy()
     assert blur_img.shape == input_t.shape
     assert np.all(blur_img[15, 15] > 0)
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_size",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ],
+)
+def test_channel_shuffle(input_dtype, input_size):
+    transfo = T.ChannelShuffle()
+    input_t = tf.random.uniform(input_size, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round(255 * input_t)
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    out = transfo(input_t)
+    assert isinstance(out, tf.Tensor)
+    assert out.shape == input_size
+    assert out.dtype == input_dtype
+    # Ensure that nothing has changed apart from channel order
+    assert tf.math.reduce_all(tf.math.reduce_sum(input_t, -1) == tf.math.reduce_sum(out, -1))
