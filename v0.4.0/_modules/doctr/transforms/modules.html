@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>doctr.transforms.modules &mdash; docTR 0.4.0a0-git documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/clipboard.min.js"></script>
+        <script src="../../../_static/copybutton.js"></script>
+        <script src="../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/mindee.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> docTR
+          
+
+          
+            
+            <img src="../../../_static/Logo-docTR-white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Using DocTR</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#available-architectures">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#id1">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#id3">Available architectures</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_model_export.html#model-compression">Model compression</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#half-precision">Half-precision</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#post-training-quantization">Post-training quantization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../using_model_export.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#data-loading">Data Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">doctr.io</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../io.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../io.html#document">Document</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../io.html#file-reading">File reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../transforms.html#supported-transformations">Supported transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../transforms.html#composing-transformations">Composing transformations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">docTR</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>doctr.transforms.modules</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for doctr.transforms.modules</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+
+<span class="c1"># This program is licensed under the Apache License version 2.</span>
+<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="s1">&#39;Resize&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="s1">&#39;LambdaTransformation&#39;</span><span class="p">,</span> <span class="s1">&#39;ToGray&#39;</span><span class="p">,</span> <span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;RandomBrightness&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomContrast&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomSaturation&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomHue&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomGamma&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomJpegQuality&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implements a wrapper that will apply transformations sequentially</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Compose, Resize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfos = Compose([Resize((32, 32))])</span>
+<span class="sd">        &gt;&gt;&gt; out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transforms: list of transformation modules</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">NestedObject</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="n">transforms</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+<div class="viewcode-block" id="Resize"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Resize">[docs]</a><span class="k">class</span> <span class="nc">Resize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Resizes a tensor to a target size</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Resize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Resize((32, 32))</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        output_size: expected output size</span>
+<span class="sd">        method: interpolation method</span>
+<span class="sd">        preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros</span>
+<span class="sd">        symmetric_pad: if `True` while preserving aspect ratio, the padding will be done symmetrically</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">output_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span> <span class="o">=</span> <span class="n">output_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span> <span class="o">=</span> <span class="n">preserve_aspect_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span> <span class="o">=</span> <span class="n">symmetric_pad</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">_repr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;output_size=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_size</span><span class="si">}</span><span class="s2">, method=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span><span class="p">:</span>
+            <span class="n">_repr</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;, preserve_aspect_ratio=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span><span class="si">}</span><span class="s2">, symmetric_pad=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">_repr</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span><span class="p">:</span>
+            <span class="c1"># pad width</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span><span class="p">:</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">output_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">output_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">pad_to_bounding_box</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">*</span><span class="n">offset</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">output_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">img</span></div>
+
+
+<div class="viewcode-block" id="Normalize"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.Normalize">[docs]</a><span class="k">class</span> <span class="nc">Normalize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Normalize a tensor to a Gaussian distribution for each channel</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mean: average value per channel</span>
+<span class="sd">        std: standard deviation per channel</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">std</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">std</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;mean=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">, std=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span>
+        <span class="n">img</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span>
+        <span class="k">return</span> <span class="n">img</span></div>
+
+
+<div class="viewcode-block" id="LambdaTransformation"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.LambdaTransformation">[docs]</a><span class="k">class</span> <span class="nc">LambdaTransformation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Normalize a tensor to a Gaussian distribution for each channel</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import LambdaTransformation</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = LambdaTransformation(lambda x: x/ 255.)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        fn: the function to be applied to the input tensor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ToGray"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.ToGray">[docs]</a><span class="k">class</span> <span class="nc">ToGray</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ToGray()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">rgb_to_grayscale</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
+<span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        min_val: range [min_val, 1] to colorize RGB pixels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="n">min_val</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;min_val=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">invert_colors</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RandomBrightness"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomBrightness">[docs]</a><span class="k">class</span> <span class="nc">RandomBrightness</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly adjust brightness of a tensor (batch of images or image) by adding a delta</span>
+<span class="sd">    to all pixels</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Brightness()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
+<span class="sd">        p: probability to apply transformation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span> <span class="o">=</span> <span class="n">max_delta</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;max_delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_brightness</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">max_delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RandomContrast"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomContrast">[docs]</a><span class="k">class</span> <span class="nc">RandomContrast</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly adjust contrast of a tensor (batch of images or image) by adjusting</span>
+<span class="sd">    each pixel: (img - mean) * contrast_factor + mean.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Contrast()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor&lt;1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_contrast</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="RandomSaturation"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomSaturation">[docs]</a><span class="k">class</span> <span class="nc">RandomSaturation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and</span>
+<span class="sd">    increasing saturation by a factor.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Saturation()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor&lt;1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_saturation</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RandomHue"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomHue">[docs]</a><span class="k">class</span> <span class="nc">RandomHue</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Hue()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span> <span class="o">=</span> <span class="n">max_delta</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;max_delta=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_hue</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">max_delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RandomGamma"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomGamma">[docs]</a><span class="k">class</span> <span class="nc">RandomGamma</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;randomly performs gamma correction for a tensor (batch of images or image)</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = Gamma()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        min_gamma: non-negative real number, lower bound for gamma param</span>
+<span class="sd">        max_gamma: non-negative real number, upper bound for gamma</span>
+<span class="sd">        min_gain: lower bound for constant multiplier</span>
+<span class="sd">        max_gain: upper bound for constant multiplier</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">min_gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">max_gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
+        <span class="n">min_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>
+        <span class="n">max_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_gamma</span> <span class="o">=</span> <span class="n">min_gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_gamma</span> <span class="o">=</span> <span class="n">max_gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_gain</span> <span class="o">=</span> <span class="n">min_gain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_gain</span> <span class="o">=</span> <span class="n">max_gain</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;gamma_range=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_gamma</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_gamma</span><span class="si">}</span><span class="s2">),</span>
+<span class="s2">                 gain_range=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_gain</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_gain</span><span class="si">}</span><span class="s2">)&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_gamma</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_gamma</span><span class="p">)</span>
+        <span class="n">gain</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_gain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_gain</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">adjust_gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="n">gain</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RandomJpegQuality"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomJpegQuality">[docs]</a><span class="k">class</span> <span class="nc">RandomJpegQuality</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly adjust jpeg quality of a 3 dimensional RGB image</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = JpegQuality()</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        min_quality: int between [0, 100]</span>
+<span class="sd">        max_quality: int between [0, 100]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_quality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span> <span class="n">max_quality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span> <span class="o">=</span> <span class="n">min_quality</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_quality</span> <span class="o">=</span> <span class="n">max_quality</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;min_quality=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_jpeg_quality</span><span class="p">(</span>
+            <span class="n">img</span><span class="p">,</span> <span class="n">min_jpeg_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span><span class="p">,</span> <span class="n">max_jpeg_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_quality</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transforms: list of transformations, one only will be picked</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">NestedObject</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="n">transforms</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Pick transformation</span>
+        <span class="n">transfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">))]</span>
+        <span class="c1"># Apply</span>
+        <span class="k">return</span> <span class="n">transfo</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transform: transformation to apply</span>
+<span class="sd">        p: probability to apply</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">NestedObject</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;transform=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="si">}</span><span class="s2">, p=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">img</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Mindee
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'G-40DVRMX8T4', 'auto');
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>

@@ -258,11 +258,11 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span>
 
+<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
-<span class="kn">from</span> <span class="nn">....datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 <span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">resnet31</span>
-<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SAR&#39;</span><span class="p">,</span> <span class="s1">&#39;sar_resnet31&#39;</span><span class="p">]</span>
@@ -271,7 +271,6 @@
     <span class="s1">&#39;sar_resnet31&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="n">resnet31</span><span class="p">,</span> <span class="s1">&#39;rnn_units&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;max_length&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s1">&#39;num_decoders&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;legacy_french&#39;</span><span class="p">],</span>
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.3.0/sar_resnet31-9ee49970.zip&#39;</span><span class="p">,</span>
@@ -559,8 +558,9 @@
 <span class="k">def</span> <span class="nf">_sar</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">backbone_fn</span><span class="p">,</span>
     <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SAR</span><span class="p">:</span>
 
@@ -570,25 +570,15 @@
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
     <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
     <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;attention_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attention_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_length&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">])</span>
 
     <span class="c1"># Feature extractor</span>
-    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;backbone&#39;</span><span class="p">](</span>
-        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">backbone_fn</span><span class="p">(</span>
         <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
         <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;attention_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;attention_units&#39;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">]</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">SAR</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -617,7 +607,7 @@
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_sar</span><span class="p">(</span><span class="s1">&#39;sar_resnet31&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_sar</span><span class="p">(</span><span class="s1">&#39;sar_resnet31&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">resnet31</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

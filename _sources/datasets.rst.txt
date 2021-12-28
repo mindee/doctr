@@ -13,35 +13,14 @@ Available Datasets
 ------------------
 Here are all datasets that are available through docTR:
 
-
-Public datasets
-^^^^^^^^^^^^^^^
-
 .. autoclass:: FUNSD
 .. autoclass:: SROIE
 .. autoclass:: CORD
+.. autoclass:: OCRDataset
+.. autoclass:: CharacterGenerator
+.. autoclass:: DocArtefacts
 .. autoclass:: IIIT5K
 .. autoclass:: SVT
-.. autoclass:: SVHN
-.. autoclass:: SynthText
-.. autoclass:: IC03
-.. autoclass:: IC13
-
-docTR synthetic datasets
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: DocArtefacts
-.. autoclass:: CharacterGenerator
-.. autoclass:: WordGenerator
-
-docTR private datasets
-^^^^^^^^^^^^^^^^^^^^^^
-
-Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project. However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.
-
-.. autoclass:: DetectionDataset
-.. autoclass:: RecognitionDataset
-.. autoclass:: OCRDataset
 
 
 Data Loading

@@ -276,16 +276,12 @@
     <span class="s1">&#39;db_resnet50&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="n">ResNet50</span><span class="p">,</span>
-        <span class="s1">&#39;fpn_layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;conv2_block3_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv3_block4_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv4_block6_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv5_block3_out&quot;</span><span class="p">],</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="n">mobilenet_v3_large</span><span class="p">,</span>
-        <span class="s1">&#39;fpn_layers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;inverted_2&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_5&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_11&quot;</span><span class="p">,</span> <span class="s2">&quot;final_block&quot;</span><span class="p">],</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
@@ -502,9 +498,11 @@
 <span class="k">def</span> <span class="nf">_db_resnet</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">backbone_fn</span><span class="p">,</span>
+    <span class="n">fpn_layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DBNet</span><span class="p">:</span>
 
     <span class="n">pretrained_backbone</span> <span class="o">=</span> <span class="n">pretrained_backbone</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pretrained</span>
@@ -515,13 +513,13 @@
 
     <span class="c1"># Feature extractor</span>
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
-        <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">](</span>
-            <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">backbone_fn</span><span class="p">(</span>
             <span class="n">weights</span><span class="o">=</span><span class="s1">&#39;imagenet&#39;</span> <span class="k">if</span> <span class="n">pretrained_backbone</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+            <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">pooling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
         <span class="p">),</span>
-        <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_layers&#39;</span><span class="p">],</span>
+        <span class="n">fpn_layers</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># Build the model</span>
@@ -536,9 +534,11 @@
 <span class="k">def</span> <span class="nf">_db_mobilenet</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">backbone_fn</span><span class="p">,</span>
+    <span class="n">fpn_layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DBNet</span><span class="p">:</span>
 
     <span class="n">pretrained_backbone</span> <span class="o">=</span> <span class="n">pretrained_backbone</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pretrained</span>
@@ -549,12 +549,12 @@
 
     <span class="c1"># Feature extractor</span>
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
-        <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">](</span>
+        <span class="n">backbone_fn</span><span class="p">(</span>
             <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
             <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;fpn_layers&#39;</span><span class="p">],</span>
+        <span class="n">fpn_layers</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># Build the model</span>
@@ -584,7 +584,13 @@
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_db_resnet</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_db_resnet</span><span class="p">(</span>
+        <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">ResNet50</span><span class="p">,</span>
+        <span class="p">[</span><span class="s2">&quot;conv2_block3_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv3_block4_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv4_block6_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv5_block3_out&quot;</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="db_mobilenet_v3_large"><a class="viewcode-back" href="../../../../../models.html#doctr.models.detection.db_mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">db_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DBNet</span><span class="p">:</span>
@@ -605,7 +611,13 @@
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_db_mobilenet</span><span class="p">(</span><span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_db_mobilenet</span><span class="p">(</span>
+        <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">mobilenet_v3_large</span><span class="p">,</span>
+        <span class="p">[</span><span class="s2">&quot;inverted_2&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_5&quot;</span><span class="p">,</span> <span class="s2">&quot;inverted_11&quot;</span><span class="p">,</span> <span class="s2">&quot;final_block&quot;</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
 </pre></div>
 
            </div>

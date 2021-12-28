@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.recognition.crnn.tensorflow &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>doctr.models.recognition.crnn.tensorflow &mdash; docTR 0.4.0a0-git documentation</title>
   
 
   
@@ -93,9 +93,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Using DocTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_models.html">Choosing the right model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#text-detection">Text Detection</a><ul>
@@ -130,12 +129,7 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -154,7 +148,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-classification">doctr.models.classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-backbones">doctr.models.backbones</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -174,8 +168,6 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
@@ -231,6 +223,8 @@
         
           <li><a href="../../../../index.html">Module code</a> &raquo;</li>
         
+          <li><a href="../crnn.html">doctr.models.recognition.crnn</a> &raquo;</li>
+        
       <li>doctr.models.recognition.crnn.tensorflow</li>
     
     
@@ -253,18 +247,17 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
-
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Sequential</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 
-<span class="kn">from</span> <span class="nn">....datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
-<span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">mobilenet_v3_large_r</span><span class="p">,</span> <span class="n">mobilenet_v3_small_r</span><span class="p">,</span> <span class="n">vgg16_bn</span>
+<span class="kn">from</span> <span class="nn">...backbones</span> <span class="kn">import</span> <span class="n">vgg16_bn</span><span class="p">,</span> <span class="n">resnet31</span><span class="p">,</span> <span class="n">mobilenet_v3_small_r</span><span class="p">,</span> <span class="n">mobilenet_v3_large_r</span>
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
+<span class="kn">from</span> <span class="nn">....datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CRNN&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_mobilenet_v3_small&#39;</span><span class="p">,</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CRNN&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_mobilenet_v3_small&#39;</span><span class="p">,</span>
            <span class="s1">&#39;crnn_mobilenet_v3_large&#39;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -396,7 +389,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
         <span class="n">batch_len</span> <span class="o">=</span> <span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">input_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">fill</span><span class="p">((</span><span class="n">batch_len</span><span class="p">,),</span> <span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">ctc_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ctc_loss</span><span class="p">(</span>

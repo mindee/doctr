@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.utils.visualization &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>doctr.utils.visualization &mdash; docTR 0.3.1a0-git documentation</title>
   
 
   
@@ -85,57 +85,29 @@
               
             
             
-              <p><span class="caption-text">Getting started</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Notes</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#available-architectures">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#id1">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#id3">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../using_model_export.html#model-compression">Model compression</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#half-precision">Half-precision</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../using_model_export.html#post-training-quantization">Post-training quantization</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../using_model_export.html#using-savedmodel">Using SavedModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -154,10 +126,28 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-classification">doctr.models.classification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#export-model-output">Export model output</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a><ul>
@@ -168,20 +158,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../utils.html#task-evaluation">Task evaluation</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Notes</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -252,22 +228,19 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
-
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">mplcursors</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
-<span class="kn">from</span> <span class="nn">unidecode</span> <span class="kn">import</span> <span class="n">unidecode</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
+<span class="kn">import</span> <span class="nn">mplcursors</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">ImageFont</span><span class="p">,</span> <span class="n">ImageDraw</span><span class="p">,</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span>
-<span class="kn">from</span> <span class="nn">.fonts</span> <span class="kn">import</span> <span class="n">get_font</span>
+<span class="kn">from</span> <span class="nn">.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">RotatedBbox</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;visualize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;synthesize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_boxes&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;visualize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;synthetize_page&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_boxes&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">rect_patch</span><span class="p">(</span>
@@ -283,7 +256,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box of the element</span>
-<span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
+<span class="sd">        page_dimensions: dimensions of the Page</span>
 <span class="sd">        label: label to display when hovered</span>
 <span class="sd">        color: color to draw box</span>
 <span class="sd">        alpha: opacity parameter to fill the boxes, 0 = transparent</span>
@@ -317,7 +290,7 @@
 
 
 <span class="k">def</span> <span class="nf">polygon_patch</span><span class="p">(</span>
-    <span class="n">geometry</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">geometry</span><span class="p">:</span> <span class="n">RotatedBbox</span><span class="p">,</span>
     <span class="n">page_dimensions</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">label</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">color</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
@@ -329,7 +302,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box of the element</span>
-<span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
+<span class="sd">        page_dimensions: dimensions of the Page</span>
 <span class="sd">        label: label to display when hovered</span>
 <span class="sd">        color: color to draw box</span>
 <span class="sd">        alpha: opacity parameter to fill the boxes, 0 = transparent</span>
@@ -340,16 +313,19 @@
 <span class="sd">        a polygon Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
 
     <span class="c1"># Unpack</span>
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
-    <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">width</span>
-    <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">geometry</span>
+    <span class="c1"># Switch to absolute coords</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="n">w</span> <span class="o">*</span> <span class="n">width</span>
+    <span class="n">y</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">height</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">height</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">boxPoints</span><span class="p">(((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">a</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">patches</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span>
-        <span class="n">geometry</span><span class="p">,</span>
+        <span class="n">points</span><span class="p">,</span>
         <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">,</span>
         <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
         <span class="n">edgecolor</span><span class="o">=</span><span class="p">(</span><span class="o">*</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="p">),</span>
@@ -359,7 +335,7 @@
 
 
 <span class="k">def</span> <span class="nf">create_obj_patch</span><span class="p">(</span>
-    <span class="n">geometry</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+    <span class="n">geometry</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">RotatedBbox</span><span class="p">],</span>
     <span class="n">page_dimensions</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">patches</span><span class="o">.</span><span class="n">Patch</span><span class="p">:</span>
@@ -367,7 +343,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box (straight or rotated) of the element</span>
-<span class="sd">        page_dimensions: dimensions of the page in format (height, width)</span>
+<span class="sd">        page_dimensions: dimensions of the page</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a matplotlib Patch</span>
@@ -375,8 +351,9 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rect_patch</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
-        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">polygon_patch</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geometry</span><span class="p">),</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">polygon_patch</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
 
 
@@ -490,11 +467,10 @@
     <span class="k">return</span> <span class="n">fig</span></div>
 
 
-<div class="viewcode-block" id="synthesize_page"><a class="viewcode-back" href="../../../utils.html#doctr.utils.visualization.synthesize_page">[docs]</a><span class="k">def</span> <span class="nf">synthesize_page</span><span class="p">(</span>
+<span class="k">def</span> <span class="nf">synthetize_page</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">draw_proba</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
-    <span class="n">font_family</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Draw a the content of the element page (OCR response) on a blank page.</span>
 
@@ -502,12 +478,10 @@
 <span class="sd">        page: exported Page object to represent</span>
 <span class="sd">        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0</span>
 <span class="sd">        font_size: size of the font, default font = 13</span>
-<span class="sd">        font_family: family of the font</span>
 
 <span class="sd">    Return:</span>
-<span class="sd">        the synthesized page</span>
+<span class="sd">        A np array (drawn page)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="c1"># Draw template</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
     <span class="n">response</span> <span class="o">=</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -518,19 +492,20 @@
             <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]:</span>
                 <span class="c1"># Get aboslute word geometry</span>
                 <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
-                <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmin</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmax</span><span class="p">))</span>
-                <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymin</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymax</span><span class="p">))</span>
+                <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmin</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">xmax</span><span class="p">)</span>
+                <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymin</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">ymax</span><span class="p">)</span>
 
                 <span class="c1"># White drawing context adapted to font size, 0.75 factor to convert pts --&gt; pix</span>
-                <span class="n">font</span> <span class="o">=</span> <span class="n">get_font</span><span class="p">(</span><span class="n">font_family</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.75</span> <span class="o">*</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)))</span>
-                <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+                <span class="n">h_box</span><span class="p">,</span> <span class="n">w_box</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span>
+                <span class="n">h_font</span><span class="p">,</span> <span class="n">w_font</span> <span class="o">=</span> <span class="n">font_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">font_size</span> <span class="o">*</span> <span class="n">w_box</span> <span class="o">/</span> <span class="p">(</span><span class="n">h_box</span> <span class="o">*</span> <span class="mf">0.75</span><span class="p">))</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">w_font</span><span class="p">,</span> <span class="n">h_font</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
                 <span class="n">d</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
                 <span class="c1"># Draw in black the value of the word</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-                <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
-                    <span class="c1"># When character cannot be encoded, use its unidecode version</span>
-                    <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="n">font</span><span class="o">=</span><span class="n">ImageFont</span><span class="o">.</span><span class="n">load_default</span><span class="p">(),</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+                <span class="c1"># Resize back to box size</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">w_box</span><span class="p">,</span> <span class="n">h_box</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">NEAREST</span><span class="p">)</span>
 
                 <span class="c1"># Colorize if draw_proba</span>
                 <span class="k">if</span> <span class="n">draw_proba</span><span class="p">:</span>
@@ -544,13 +519,13 @@
                 <span class="c1"># Write to response page</span>
                 <span class="n">response</span><span class="p">[</span><span class="n">ymin</span><span class="p">:</span><span class="n">ymax</span><span class="p">,</span> <span class="n">xmin</span><span class="p">:</span><span class="n">xmax</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">response</span></div>
+    <span class="k">return</span> <span class="n">response</span>
 
 
 <span class="k">def</span> <span class="nf">draw_boxes</span><span class="p">(</span>
     <span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">color</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Draw an array of relative straight boxes on an image</span>
@@ -558,7 +533,6 @@
 <span class="sd">    Args:</span>
 <span class="sd">        boxes: array of relative boxes, of shape (*, 4)</span>
 <span class="sd">        image: np array, float32 or uint8</span>
-<span class="sd">        color: color to use for bounding box edges</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="c1"># Convert boxes to absolute coords</span>

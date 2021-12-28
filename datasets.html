@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.datasets &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>doctr.datasets &mdash; docTR 0.4.1a0-git documentation</title>
   
 
   
@@ -133,12 +133,7 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -157,7 +152,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -177,7 +172,6 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
@@ -258,11 +252,9 @@ can be a significant save of time.</p>
 <section id="available-datasets">
 <span id="datasets"></span><h2>Available Datasets<a class="headerlink" href="#available-datasets" title="Permalink to this headline">¶</a></h2>
 <p>Here are all datasets that are available through docTR:</p>
-<section id="public-datasets">
-<h3>Public datasets<a class="headerlink" href="#public-datasets" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt id="doctr.datasets.FUNSD">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">FUNSD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">FUNSD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Permalink to this definition">¶</a></dt>
 <dd><p>FUNSD dataset from <a class="reference external" href="https://arxiv.org/pdf/1905.13538.pdf">“FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">FUNSD</span>
@@ -276,7 +268,8 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -285,7 +278,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.SROIE">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SROIE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SROIE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Permalink to this definition">¶</a></dt>
 <dd><p>SROIE dataset from <a class="reference external" href="https://arxiv.org/pdf/2103.10213.pdf">“ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SROIE</span>
@@ -299,7 +292,8 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -308,7 +302,7 @@ can be a significant save of time.</p>
 
 <dl class="py class">
 <dt id="doctr.datasets.CORD">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CORD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CORD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Permalink to this definition">¶</a></dt>
 <dd><p>CORD dataset from <a class="reference external" href="https://openreview.net/pdf?id=SJl3z659UH">“CORD: A Consolidated Receipt Dataset forPost-OCR Parsing”</a>.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
@@ -322,7 +316,8 @@ can be a significant save of time.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -330,171 +325,15 @@ can be a significant save of time.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="doctr.datasets.IIIT5K">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IIIT5K</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/iiit5k.html#IIIT5K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IIIT5K" title="Permalink to this definition">¶</a></dt>
-<dd><p>IIIT-5K character-level localization dataset from
-<a class="reference external" href="https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf">“BMVC 2012 Scene Text Recognition using Higher Order Language Priors”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: this dataset is for character-level localization</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IIIT5K</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IIIT5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
+<dt id="doctr.datasets.OCRDataset">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">OCRDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements an OCR dataset</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.datasets.SVT">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svt.html#SVT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVT" title="Permalink to this definition">¶</a></dt>
-<dd><p>SVT dataset from <a class="reference external" href="http://vision.ucsd.edu/~kai/svt/">“The Street View Text Dataset - UCSD Computer Vision”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SVT</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SVT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.datasets.SVHN">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVHN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svhn.html#SVHN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVHN" title="Permalink to this definition">¶</a></dt>
-<dd><p>SVHN dataset from <a class="reference external" href="http://ufldl.stanford.edu/housenumbers/">“The Street View House Numbers (SVHN) Dataset”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SVHN</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SVHN</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.datasets.SynthText">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SynthText</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/synthtext.html#SynthText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SynthText" title="Permalink to this definition">¶</a></dt>
-<dd><p>SynthText dataset from <a class="reference external" href="https://arxiv.org/abs/1604.06646">“Synthetic Data for Text Localisation in Natural Images”</a> | <a class="reference external" href="https://github.com/ankush-me/SynthText">“repository”</a> |
-<a class="reference external" href="https://www.robots.ox.ac.uk/~vgg/data/scenetext/">“website”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SynthText</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SynthText</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.datasets.IC03">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC03</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic03.html#IC03"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC03" title="Permalink to this definition">¶</a></dt>
-<dd><p>IC03 dataset from <a class="reference external" href="http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions">“ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IC03</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IC03</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt id="doctr.datasets.IC13">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC13</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic13.html#IC13"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC13" title="Permalink to this definition">¶</a></dt>
-<dd><p>IC13 dataset from <a class="reference external" href="https://rrc.cvc.uab.es/">“ICDAR 2013 Robust Reading Competition”</a>.
-Example:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IC13</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IC13</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Training_Task12_Images&quot;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                 <span class="n">label_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Training_Task1_GT&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">IC13</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Test_Task12_Images&quot;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>                <span class="n">label_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Test_Task1_GT&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
-<li><p><strong>label_folder</strong> – folder with all annotation files for the images</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="doctr-synthetic-datasets">
-<h3>docTR synthetic datasets<a class="headerlink" href="#doctr-synthetic-datasets" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt id="doctr.datasets.DocArtefacts">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">DocArtefacts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/doc_artefacts.html#DocArtefacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.DocArtefacts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Object detection dataset for non-textual elements in documents.
-The dataset includes a variety of synthetic document pages with non-textual elements.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DocArtefacts</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">DocArtefacts</span><span class="p">(</span><span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
-<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+<li><p><strong>img_folder</strong> – local path to image folder (all jpg at the root)</p></li>
+<li><p><strong>label_file</strong> – local path to the label file</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
 </ul>
 </dd>
 </dl>
@@ -502,7 +341,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 
 <dl class="py class">
 <dt id="doctr.datasets.CharacterGenerator">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CharacterGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/generator/tensorflow.html#CharacterGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CharacterGenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">CharacterGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/classification/tensorflow.html#CharacterGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.CharacterGenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a character image generation dataset</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CharacterGenerator</span>
@@ -518,53 +357,20 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <li><p><strong>vocab</strong> – vocabulary to take the character from</p></li>
 <li><p><strong>num_samples</strong> – number of samples that will be generated iterating over the dataset</p></li>
 <li><p><strong>cache_samples</strong> – whether generated images should be cached firsthand</p></li>
-<li><p><strong>font_family</strong> – font to use to generate the text images</p></li>
-<li><p><strong>img_transforms</strong> – composable transformations that will be applied to each image</p></li>
-<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to both the image and the target</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
-<dt id="doctr.datasets.WordGenerator">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">WordGenerator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vocab</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">min_chars</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max_chars</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">num_samples</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">cache_samples</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">font_family</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span>List<span class="p">[</span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">img_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">, </span>Any<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>Any<span class="p">, </span>Any<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/generator/tensorflow.html#WordGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.WordGenerator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements a character image generation dataset</p>
+<dt id="doctr.datasets.DocArtefacts">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">DocArtefacts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/doc_artefacts.html#DocArtefacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.DocArtefacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object detection dataset for non-textual elements in documents.
+The dataset includes a variety of synthetic document pages with non-textual elements.</p>
 <dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">WordGenerator</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">WordGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>vocab</strong> – vocabulary to take the character from</p></li>
-<li><p><strong>min_chars</strong> – minimum number of characters in a word</p></li>
-<li><p><strong>max_chars</strong> – maximum number of characters in a word</p></li>
-<li><p><strong>num_samples</strong> – number of samples that will be generated iterating over the dataset</p></li>
-<li><p><strong>cache_samples</strong> – whether generated images should be cached firsthand</p></li>
-<li><p><strong>font_family</strong> – font to use to generate the text images</p></li>
-<li><p><strong>img_transforms</strong> – composable transformations that will be applied to each image</p></li>
-<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to both the image and the target</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="doctr-private-datasets">
-<h3>docTR private datasets<a class="headerlink" href="#doctr-private-datasets" title="Permalink to this headline">¶</a></h3>
-<p>Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project. However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.</p>
-<dl class="py class">
-<dt id="doctr.datasets.DetectionDataset">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">DetectionDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/detection.html#DetectionDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.DetectionDataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements a text detection dataset</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DetectionDataset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">DetectionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DocArtefacts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">DocArtefacts</span><span class="p">(</span><span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -573,21 +379,24 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
-<li><p><strong>label_path</strong> – path to the annotations of each image</p></li>
-<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
-<dt id="doctr.datasets.RecognitionDataset">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">RecognitionDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">labels_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/recognition.html#RecognitionDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.RecognitionDataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dataset implementation for text recognition tasks</p>
+<dt id="doctr.datasets.IIIT5K">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IIIT5K</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/iiit5k.html#IIIT5K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IIIT5K" title="Permalink to this definition">¶</a></dt>
+<dd><p>IIIT-5K character-level localization dataset from
+<a class="reference external" href="https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf">“BMVC 2012 Scene Text Recognition using Higher Order Language Priors”</a>.</p>
 <dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">RecognitionDataset</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">RecognitionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">labels_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: this dataset is for character-level localization</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IIIT5K</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IIIT5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -596,35 +405,46 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>img_folder</strong> – path to the images folder</p></li>
-<li><p><strong>labels_path</strong> – pathe to the json file containing all labels (character sequences)</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
-<dt id="doctr.datasets.OCRDataset">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">OCRDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_file</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Implements an OCR dataset</p>
+<dt id="doctr.datasets.SVT">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">SVT</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample_transforms</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">[</span><span class="p">[</span>Any<span class="p">]</span><span class="p">, </span>Any<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rotated_bbox</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/svt.html#SVT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.SVT" title="Permalink to this definition">¶</a></dt>
+<dd><p>SVT dataset from <a class="reference external" href="http://vision.ucsd.edu/~kai/svt/">“The Street View Text Dataset - UCSD Computer Vision”</a>.</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">SVT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SVT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>img_folder</strong> – local path to image folder (all jpg at the root)</p></li>
-<li><p><strong>label_file</strong> – local path to the label file</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>rotated_bbox</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
 </section>
 <section id="data-loading">
 <h2>Data Loading<a class="headerlink" href="#data-loading" title="Permalink to this headline">¶</a></h2>
 <p>Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.</p>
 <dl class="py class">
 <dt id="doctr.datasets.loader.DataLoader">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.loader.</code><code class="sig-name descname">DataLoader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">drop_last</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">num_workers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">collate_fn</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/loader.html#DataLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.loader.DataLoader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.loader.</code><code class="sig-name descname">DataLoader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">drop_last</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">workers</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">collate_fn</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Callable<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/loader.html#DataLoader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.loader.DataLoader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a dataset wrapper for fast data loading</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">FUNSD</span><span class="p">,</span> <span class="n">DataLoader</span>
@@ -643,7 +463,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <li><p><strong>shuffle</strong> – whether the samples should be shuffled before passing it to the iterator</p></li>
 <li><p><strong>batch_size</strong> – number of elements in each batch</p></li>
 <li><p><strong>drop_last</strong> – if <cite>True</cite>, drops the last batch if it isn’t full</p></li>
-<li><p><strong>num_workers</strong> – number of workers to use for data loading</p></li>
+<li><p><strong>workers</strong> – number of workers to use for data loading</p></li>
 </ul>
 </dd>
 </dl>

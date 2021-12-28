@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.io &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>doctr.io &mdash; docTR 0.3.1a0-git documentation</title>
   
 
   
@@ -88,57 +88,29 @@
               
             
             
-              <p><span class="caption-text">Getting started</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Notes</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#available-architectures">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#id1">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#id3">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#model-compression">Model compression</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#half-precision">Half-precision</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#post-training-quantization">Post-training quantization</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#using-savedmodel">Using SavedModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
 <p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -157,10 +129,28 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#export-model-output">Export model output</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
@@ -171,20 +161,6 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Notes</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -263,7 +239,7 @@ results to structured formats.</p>
 <p>A Word is an uninterrupted sequence of characters.</p>
 <dl class="py class">
 <dt id="doctr.io.Word">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.io.</code><code class="sig-name descname">Word</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">confidence</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">geometry</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/io/elements.html#Word"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Word" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.io.</code><code class="sig-name descname">Word</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">confidence</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">geometry</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/io/elements.html#Word"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Word" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a word element</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -283,7 +259,7 @@ results to structured formats.</p>
 <p>A Line is a collection of Words aligned spatially and meant to be read together (on a two-column page, on the same horizontal, we will consider that there are two Lines).</p>
 <dl class="py class">
 <dt id="doctr.io.Line">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.io.</code><code class="sig-name descname">Line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">words</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.io.elements.Word<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">geometry</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/io/elements.html#Line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Line" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.io.</code><code class="sig-name descname">Line</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">words</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.io.elements.Word<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">geometry</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/io/elements.html#Line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Line" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a line element as a collection of words</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -323,7 +299,7 @@ the page’s size.</p></li>
 <p>A Block is a collection of Lines (e.g. an address written on several lines) and Artefacts (e.g. a graph with its title underneath).</p>
 <dl class="py class">
 <dt id="doctr.io.Block">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.io.</code><code class="sig-name descname">Block</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.io.elements.Line<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">artefacts</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.io.elements.Artefact<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">geometry</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/io/elements.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Block" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.io.</code><code class="sig-name descname">Block</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lines</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.io.elements.Line<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">artefacts</span><span class="p">:</span> <span class="n">List<span class="p">[</span>doctr.io.elements.Artefact<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">geometry</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">, </span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/io/elements.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Block" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements a block element as a collection of lines and artefacts</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -351,7 +327,7 @@ all lines and artefacts in it.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>blocks</strong> – list of block elements</p></li>
 <li><p><strong>page_idx</strong> – the index of the page in the input raw document</p></li>
-<li><p><strong>dimensions</strong> – the page size in pixels in format (height, width)</p></li>
+<li><p><strong>dimensions</strong> – the page size in pixels in format (width, height)</p></li>
 <li><p><strong>orientation</strong> – a dictionary with the value of the rotation angle in degress and confidence of the prediction</p></li>
 <li><p><strong>language</strong> – a dictionary with the language value and confidence of the prediction</p></li>
 </ul>
@@ -617,28 +593,7 @@ all lines and artefacts in it.</p></li>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.get_text_words</cite></p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>the list of pages annotations, represented as a list of tuple (bounding box, value)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="doctr.io.PDF.get_lines">
-<code class="sig-name descname">get_lines</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>List<span class="p">[</span>Tuple<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">, </span>float<span class="p">]</span><span class="p">, </span>str<span class="p">]</span><span class="p">]</span><span class="p">]</span><a class="reference internal" href="_modules/doctr/io/pdf.html#PDF.get_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.PDF.get_lines" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the annotations for all lines in the document</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.documents</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">lines</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_lines</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.get_text_words</cite></p>
+<dd class="field-odd"><p><strong>kwargs</strong> – keyword arguments of <cite>fitz.Page.getTextWords</cite></p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>the list of pages annotations, represented as a list of tuple (bounding box, value)</p>

@@ -259,10 +259,10 @@
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">layers</span>
 
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
-<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">classification</span>
+<span class="kn">from</span> <span class="nn">doctr.models.classification</span> <span class="kn">import</span> <span class="n">magc_resnet31</span>
 
-<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
-<span class="kn">from</span> <span class="nn">..transformer</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">create_look_ahead_mask</span><span class="p">,</span> <span class="n">create_padding_mask</span><span class="p">,</span> <span class="n">positional_encoding</span>
+<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">..transformer.tensorflow</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">create_look_ahead_mask</span><span class="p">,</span> <span class="n">create_padding_mask</span><span class="p">,</span> <span class="n">positional_encoding</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_MASTER</span><span class="p">,</span> <span class="n">_MASTERPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MASTER&#39;</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span><span class="p">]</span>
@@ -270,7 +270,6 @@
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;master&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;magc_resnet31&#39;</span><span class="p">,</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -502,8 +501,8 @@
 <span class="k">def</span> <span class="nf">_master</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">backbone_fn</span><span class="p">,</span>
     <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
 
@@ -511,14 +510,15 @@
 
     <span class="c1"># Patch the config</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_shape&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">])</span>
     <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
 
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">MASTER</span><span class="p">(</span>
-        <span class="n">classification</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]),</span>
+        <span class="n">backbone_fn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
@@ -546,7 +546,7 @@
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_master</span><span class="p">(</span><span class="s1">&#39;master&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_master</span><span class="p">(</span><span class="s1">&#39;master&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">magc_resnet31</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

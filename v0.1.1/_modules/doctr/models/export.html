@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>doctr.models.export &mdash; docTR 0.1.1a0-git documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/clipboard.min.js"></script>
+        <script src="../../../_static/copybutton.js"></script>
+        <script src="../../../_static/js/custom.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/copybutton.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/mindee.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> docTR
+          
+
+          
+            
+            <img src="../../../_static/Logo-docTR-white.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Package Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../documents.html#file-reading">File reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-detections">Post-processing detections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../models.html#model-export">Model export</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../utils.html#task-evaluation">Task evaluation</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">docTR</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>doctr.models.export</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for doctr.models.export</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+
+<span class="c1"># This program is licensed under the Apache License version 2.</span>
+<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;tensorflow&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;convert_to_tflite&#39;</span><span class="p">,</span> <span class="s1">&#39;convert_to_fp16&#39;</span><span class="p">,</span> <span class="s1">&#39;quantize_model&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="convert_to_tflite"><a class="viewcode-back" href="../../../models.html#doctr.models.export.convert_to_tflite">[docs]</a><span class="k">def</span> <span class="nf">convert_to_tflite</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts a model to TFLite format</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import convert_to_tflite, conv_sequence</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; serialized_model = convert_to_tflite(model)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tf_model: a keras model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bytes: the model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="convert_to_fp16"><a class="viewcode-back" href="../../../models.html#doctr.models.export.convert_to_fp16">[docs]</a><span class="k">def</span> <span class="nf">convert_to_fp16</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts a model to half precision</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import convert_to_fp16, conv_sequence</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; serialized_model = convert_to_fp16(model)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tf_model: a keras model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bytes: the serialized FP16 model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
+
+    <span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
+    <span class="n">converter</span><span class="o">.</span><span class="n">target_spec</span><span class="o">.</span><span class="n">supported_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="quantize_model"><a class="viewcode-back" href="../../../models.html#doctr.models.export.quantize_model">[docs]</a><span class="k">def</span> <span class="nf">quantize_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Quantize a Tensorflow model</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import quantize_model, conv_sequence</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; serialized_model = quantize_model(model, (224, 224, 3))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tf_model: a keras model</span>
+<span class="sd">        input_shape: shape of the expected input tensor (excluding batch dimension) with channel last order</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bytes: the serialized quantized model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
+
+    <span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
+
+    <span class="c1"># Float fallback for operators that do not have an integer implementation</span>
+    <span class="k">def</span> <span class="nf">representative_dataset</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)]</span>
+
+    <span class="n">converter</span><span class="o">.</span><span class="n">representative_dataset</span> <span class="o">=</span> <span class="n">representative_dataset</span>
+    <span class="n">converter</span><span class="o">.</span><span class="n">target_spec</span><span class="o">.</span><span class="n">supported_ops</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">OpsSet</span><span class="o">.</span><span class="n">TFLITE_BUILTINS_INT8</span><span class="p">]</span>
+    <span class="n">converter</span><span class="o">.</span><span class="n">inference_input_type</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">int8</span>
+    <span class="n">converter</span><span class="o">.</span><span class="n">inference_output_type</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">int8</span>
+
+    <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Mindee
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    <!-- Theme Analytics -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'G-40DVRMX8T4', 'auto');
+    ga('send', 'pageview');
+    </script>
+
+    
+   
+
+</body>
+</html>

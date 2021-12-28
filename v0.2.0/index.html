@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>docTR: Document Text Recognition &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>DocTR: Document Text Recognition &mdash; docTR 0.1.2a0-git documentation</title>
   
 
   
@@ -87,79 +87,57 @@
               
             
             
-              <p><span class="caption-text">Getting started</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#available-architectures">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="using_models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#id1">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#id3">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#model-compression">Model compression</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#half-precision">Half-precision</a></li>
-<li class="toctree-l3"><a class="reference internal" href="using_model_export.html#post-training-quantization">Post-training quantization</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="using_model_export.html#using-savedmodel">Using SavedModel</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="io.html#document-structure">Document structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="io.html#word">Word</a></li>
-<li class="toctree-l3"><a class="reference internal" href="io.html#line">Line</a></li>
-<li class="toctree-l3"><a class="reference internal" href="io.html#artefact">Artefact</a></li>
-<li class="toctree-l3"><a class="reference internal" href="io.html#block">Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="io.html#page">Page</a></li>
-<li class="toctree-l3"><a class="reference internal" href="io.html#document">Document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documents.html#document-structure">Document structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#word">Word</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#line">Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#artefact">Artefact</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#block">Block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#page">Page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documents.html#document">Document</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="io.html#file-reading">File reading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-detections">Post-processing detections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#two-stage-approaches">Two-stage approaches</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a><ul>
@@ -170,20 +148,6 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#task-evaluation">Task evaluation</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Notes</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -231,7 +195,7 @@
     
       <li><a href="#">Docs</a> &raquo;</li>
         
-      <li>docTR: Document Text Recognition</li>
+      <li>DocTR: Document Text Recognition</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -251,66 +215,87 @@
            <div itemprop="articleBody">
             
   <section id="doctr-document-text-recognition">
-<h1>docTR: Document Text Recognition<a class="headerlink" href="#doctr-document-text-recognition" title="Permalink to this headline">¶</a></h1>
-<p>State-of-the-art Optical Character Recognition made seamless &amp; accessible to anyone, powered by TensorFlow 2 &amp; PyTorch</p>
-<img alt="https://github.com/mindee/doctr/releases/download/v0.2.0/ocr.png" class="align-center" src="https://github.com/mindee/doctr/releases/download/v0.2.0/ocr.png" />
+<h1>DocTR: Document Text Recognition<a class="headerlink" href="#doctr-document-text-recognition" title="Permalink to this headline">¶</a></h1>
+<p>State-of-the-art Optical Character Recognition made seamless &amp; accessible to anyone, powered by TensorFlow 2</p>
 <p>DocTR provides an easy and powerful way to extract valuable information from your documents:</p>
 <ul class="simple">
 <li><p>🧾 <strong>for automation</strong>: seemlessly process documents for Natural Language Understanding tasks: we provide OCR predictors to parse textual information (localize and identify each word) from your documents.</p></li>
 <li><p>👩‍🔬 <strong>for research</strong>: quickly compare your own architectures speed &amp; performances with state-of-art models on public datasets.</p></li>
 </ul>
-<section id="main-features">
-<h2>Main Features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
+<p>This is the documentation of our repository <a class="reference external" href="https://github.com/mindee/doctr">doctr</a>.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>🤖 Robust 2-stage (detection + recognition) OCR predictors with pretrained parameters</p></li>
+<li><p>🤖 Robust 2-stages (detection + recognition) OCR predictors fully trained</p></li>
 <li><p>⚡ User-friendly, 3 lines of code to load a document and extract text with a predictor</p></li>
 <li><p>🚀 State-of-the-art performances on public document datasets, comparable with GoogleVision/AWS Textract</p></li>
-<li><p>⚡ Optimized for inference speed on both CPU &amp; GPU</p></li>
-<li><p>🐦 Light package, minimal dependencies</p></li>
-<li><p>🛠️ Actively maintained by Mindee</p></li>
-<li><p>🏭 Easy integration (available templates for browser demo &amp; API deployment)</p></li>
+<li><p>⚡ Predictors optimized to be very fast on both CPU &amp; GPU</p></li>
+<li><p>🐦 Light package, small dependencies</p></li>
+<li><p>🛠️ Daily maintained</p></li>
+<li><p>🏭 Easily integrable</p></li>
 </ul>
-<div class="toctree-wrapper compound">
-</div>
-<section id="model-zoo">
-<h3>Model zoo<a class="headerlink" href="#model-zoo" title="Permalink to this headline">¶</a></h3>
-<section id="text-detection-models">
-<h4>Text detection models<a class="headerlink" href="#text-detection-models" title="Permalink to this headline">¶</a></h4>
+<section id="scientist-build-train-your-predictor">
+<h3>🧑‍🔬 Build &amp; train your predictor<a class="headerlink" href="#scientist-build-train-your-predictor" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>👷 Compose your own end-to-end OCR predictor: mix and match detection &amp; recognition predictors (all-pretrained)</p></li>
+<li><p>👷 Fine-tune or train from scratch any detection or recognition model to specialize on your data</p></li>
+</ul>
+</section>
+<section id="toolbox-implemented-models">
+<h3>🧰 Implemented models<a class="headerlink" href="#toolbox-implemented-models" title="Permalink to this headline">¶</a></h3>
+<section id="detection-models">
+<h4>Detection models<a class="headerlink" href="#detection-models" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><ul class="simple">
-<li><p>DBNet from <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a></p></li>
-<li><p>LinkNet from <a class="reference external" href="https://arxiv.org/pdf/1707.03718.pdf">“LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation”</a></p></li>
+<li><p>DB (Differentiable Binarization), <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>.</p></li>
+<li><p>LinkNet, <a class="reference external" href="https://arxiv.org/pdf/1707.03718.pdf">“LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation”</a>.</p></li>
 </ul>
 </div></blockquote>
 </section>
-<section id="text-recognition-models">
-<h4>Text recognition models<a class="headerlink" href="#text-recognition-models" title="Permalink to this headline">¶</a></h4>
+<section id="recognition-models">
+<h4>Recognition models<a class="headerlink" href="#recognition-models" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><ul class="simple">
-<li><p>SAR from <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read: A Simple and Strong Baseline for Irregular Text Recognition”</a></p></li>
-<li><p>CRNN from <a class="reference external" href="https://arxiv.org/pdf/1507.05717.pdf">“An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition”</a></p></li>
-<li><p>MASTER from <a class="reference external" href="https://arxiv.org/pdf/1910.02562.pdf">“MASTER: Multi-Aspect Non-local Network for Scene Text Recognition”</a></p></li>
+<li><p>SAR (Show, Attend and Read), <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition”</a>.</p></li>
+<li><p>CRNN (Convolutional Recurrent Neural Network), <a class="reference external" href="https://arxiv.org/pdf/1507.05717.pdf">“An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p></li>
 </ul>
 </div></blockquote>
 </section>
 </section>
-<section id="supported-datasets">
-<h3>Supported datasets<a class="headerlink" href="#supported-datasets" title="Permalink to this headline">¶</a></h3>
+<section id="receipt-integrated-datasets">
+<h3>🧾 Integrated datasets<a class="headerlink" href="#receipt-integrated-datasets" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div><ul class="simple">
 <li><p>FUNSD from <a class="reference external" href="https://arxiv.org/pdf/1905.13538.pdf">“FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents”</a>.</p></li>
 <li><p>CORD from <a class="reference external" href="https://openreview.net/pdf?id=SJl3z659UH">“CORD: A Consolidated Receipt Dataset forPost-OCR Parsing”</a>.</p></li>
-<li><p>SROIE from <a class="reference external" href="https://rrc.cvc.uab.es/?ch=13">ICDAR 2019</a>.</p></li>
 </ul>
 </div></blockquote>
-<div class="toctree-wrapper compound">
-</div>
-<div class="toctree-wrapper compound">
-</div>
-<div class="toctree-wrapper compound">
-</div>
 </section>
 </section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
+</ul>
+</div>
+<span class="target" id="module-doctr"></span></section>
 </section>
 
 

@@ -53,7 +53,7 @@ Finally if you wish to quantize the model with your TFLite converter
 Using SavedModel
 ----------------
 
-Additionally, models in docTR inherit TensorFlow 2 model properties and can be exported to
+Additionally, models in DocTR inherit TensorFlow 2 model properties and can be exported to
 `SavedModel <https://www.tensorflow.org/guide/saved_model>`_ format as follows:
 
 

@@ -89,6 +89,4 @@ High-performance file reading and conversion to processable structured data.
 
    .. automethod:: get_words
 
-   .. automethod:: get_lines
-
    .. automethod:: get_artefacts

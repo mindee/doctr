@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.classification.mobilenet.tensorflow &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>doctr.models.classification.mobilenet.tensorflow &mdash; docTR 0.3.1a0-git documentation</title>
   
 
   
@@ -85,57 +85,29 @@
               
             
             
-              <p><span class="caption-text">Getting started</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installing.html">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-python-package">Via Python Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Notes</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_models.html">Choosing the right model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#available-architectures">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#id1">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#id3">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_model_export.html">Preparing your model for inference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_model_export.html#model-compression">Model compression</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_model_export.html#half-precision">Half-precision</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_model_export.html#post-training-quantization">Post-training quantization</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_model_export.html#using-savedmodel">Using SavedModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -154,10 +126,28 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-classification">doctr.models.classification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#export-model-output">Export model output</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#model-export">Model export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#model-compression">Model compression</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#using-savedmodel">Using SavedModel</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../transforms.html">doctr.transforms</a><ul>
@@ -168,20 +158,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../utils.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../utils.html#task-evaluation">Task evaluation</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Notes</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -273,40 +249,36 @@
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;legacy_french&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;legacy_french&#39;</span><span class="p">]),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip&#39;</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;mobilenet_v3_large_r&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">],</span>
         <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;mobilenet_v3_small&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;legacy_french&#39;</span><span class="p">],</span>
-        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;legacy_french&#39;</span><span class="p">]),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip&#39;</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;mobilenet_v3_small_r&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">],</span>
         <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;mobilenet_v3_small_orientation&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">270</span><span class="p">],</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip&#39;</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -431,11 +403,11 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">layout</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvertedResidualConfig</span><span class="p">],</span>
-        <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
-        <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">head_chans</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
@@ -470,25 +442,25 @@
 <span class="k">def</span> <span class="nf">_mobilenet_v3</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-    <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rect_strides</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_shape&#39;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;input_shape&#39;</span><span class="p">])</span>
     <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_classes&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;classes&#39;</span><span class="p">]))</span>
 
     <span class="c1"># cf. Table 1 &amp; 2 of the paper</span>
     <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">):</span>
         <span class="n">inverted_residual_setting</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C1</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_r&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_r&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">288</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_r&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">288</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">576</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">576</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
         <span class="p">]</span>
@@ -498,28 +470,27 @@
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C1</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_r&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_r&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_r&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="n">head_chans</span> <span class="o">=</span> <span class="mi">1280</span>
 
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span>
-    <span class="n">input_shape</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">MobileNetV3</span><span class="p">(</span>
         <span class="n">inverted_residual_setting</span><span class="p">,</span>
-        <span class="n">input_shape</span><span class="p">,</span>
         <span class="n">head_chans</span><span class="o">=</span><span class="n">head_chans</span><span class="p">,</span>
         <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -550,7 +521,7 @@
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_small_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
@@ -572,7 +543,7 @@
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small_r&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small_r&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_large"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
@@ -593,7 +564,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_large_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
@@ -614,7 +585,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_large_r&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_large_r&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_small_orientation"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small_orientation">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>

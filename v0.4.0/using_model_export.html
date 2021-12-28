@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Preparing your model for inference &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>Preparing your model for inference &mdash; docTR 0.4.0a0-git documentation</title>
   
 
   
@@ -96,9 +96,8 @@
 <li class="toctree-l2"><a class="reference internal" href="installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Using DocTR</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="using_models.html#text-detection">Text Detection</a><ul>
@@ -133,12 +132,7 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -157,7 +151,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -177,8 +171,6 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
@@ -296,7 +288,7 @@
 </section>
 <section id="using-savedmodel">
 <h2>Using SavedModel<a class="headerlink" href="#using-savedmodel" title="Permalink to this headline">¶</a></h2>
-<p>Additionally, models in docTR inherit TensorFlow 2 model properties and can be exported to
+<p>Additionally, models in DocTR inherit TensorFlow 2 model properties and can be exported to
 <a class="reference external" href="https://www.tensorflow.org/guide/saved_model">SavedModel</a> format as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">db_resnet50</span>

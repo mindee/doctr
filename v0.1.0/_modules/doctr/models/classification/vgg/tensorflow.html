@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.models.classification.vgg.tensorflow &mdash; docTR 0.5.0a0-git documentation</title>
+  <title>doctr.models.classification.vgg.tensorflow &mdash; docTR 0.1.0a0-git documentation</title>
   
 
   
@@ -29,7 +29,6 @@
         <script src="../../../../../_static/clipboard.min.js"></script>
         <script src="../../../../../_static/copybutton.js"></script>
         <script src="../../../../../_static/js/custom.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
 
@@ -85,103 +84,46 @@
               
             
             
-              <p><span class="caption-text">Getting started</span></p>
+              <p><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installing.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-python-package">Via Python Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-conda">Via Conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../installing.html#via-git">Via Git</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
-<p><span class="caption-text">Using docTR</span></p>
+<p><span class="caption-text">Package Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_models.html">Choosing the right model</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#text-detection">Text Detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#available-architectures">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#detection-predictors">Detection predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#text-recognition">Text Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#id1">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#recognition-predictors">Recognition predictors</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_models.html#end-to-end-ocr">End-to-End OCR</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#id3">Available architectures</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#two-stage-approaches">Two-stage approaches</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_models.html#what-should-i-do-with-the-output">What should I do with the output?</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_model_export.html">Preparing your model for inference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_model_export.html#model-compression">Model compression</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_model_export.html#tensorflow-lite">TensorFlow Lite</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_model_export.html#half-precision">Half-precision</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../using_model_export.html#post-training-quantization">Post-training quantization</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../using_model_export.html#using-savedmodel">Using SavedModel</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Package Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#available-datasets">Available Datasets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#public-datasets">Public datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#data-loading">Data Loading</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../datasets.html#supported-vocabs">Supported Vocabs</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../io.html">doctr.io</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../io.html#document-structure">Document structure</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../io.html#word">Word</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../io.html#line">Line</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../io.html#artefact">Artefact</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../io.html#block">Block</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../io.html#page">Page</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../io.html#document">Document</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../io.html#file-reading">File reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../documents.html">doctr.documents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../documents.html#document-structure">Document structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../documents.html#file-reading">File reading</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-classification">doctr.models.classification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-detection">doctr.models.detection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#text-detection">Text Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#pre-processing-for-detection">Pre-processing for detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#detection-models">Detection models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#post-processing-outputs">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#detection-predictors">Detection predictors</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../transforms.html">doctr.transforms</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../transforms.html#supported-transformations">Supported transformations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../transforms.html#composing-transformations">Composing transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#text-recognition">Text Recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#pre-processing-for-recognition">Pre-processing for recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#recognition-models">Recognition models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#id1">Post-processing outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#end-to-end-ocr">End-to-End OCR</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../models.html#two-stage-approaches">Two-stage approaches</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../models.html#model-export">Model export</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../utils.html">doctr.utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../utils.html#visualization">Visualization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../utils.html#task-evaluation">Task evaluation</a></li>
-</ul>
-</li>
-</ul>
-<p><span class="caption-text">Notes</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-1-2021-05-28">v0.2.1 (2021-05-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-2-0-2021-05-11">v0.2.0 (2021-05-11)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-1-1-2021-03-18">v0.1.1 (2021-03-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../../changelog.html#v0-1-0-2021-03-05">v0.1.0 (2021-03-05)</a></li>
 </ul>
 </li>
 </ul>
@@ -252,20 +194,26 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
 
+<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
+
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VGG&#39;</span><span class="p">,</span> <span class="s1">&#39;vgg16_bn&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VGG&#39;</span><span class="p">,</span> <span class="s1">&#39;vgg16_bn_r&#39;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;vgg16_bn&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;num_blocks&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;planes&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
-                 <span class="s1">&#39;rect_pools&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-                 <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+    <span class="s1">&#39;vgg16_bn_r&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/vgg16_bn_r-c5836cea.zip&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
 <span class="p">}</span>
 
 
@@ -277,16 +225,18 @@
 <span class="sd">        num_blocks: number of convolutional block in each stage</span>
 <span class="sd">        planes: number of output channels in each stage</span>
 <span class="sd">        rect_pools: whether pooling square kernels should be replace with rectangular ones</span>
-<span class="sd">        input_shape: shapes of the input tensor</span>
 <span class="sd">        include_top: whether the classifier head should be instantiated</span>
+<span class="sd">        num_classes: number of output classes</span>
+<span class="sd">        input_shape: shapes of the input tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">num_blocks</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-        <span class="n">planes</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-        <span class="n">rect_pools</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span>
-        <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="n">num_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">planes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">rect_pools</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span>
         <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[]</span>
@@ -297,14 +247,29 @@
                 <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
                 <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling2D</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">rect_pool</span> <span class="k">else</span> <span class="mi">2</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">include_top</span><span class="p">:</span>
+            <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">)</span>
+            <span class="p">])</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_vgg</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_vgg</span><span class="p">(</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">num_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">planes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">rect_pools</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;classes&#39;</span><span class="p">]))</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_shape&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;input_shape&#39;</span><span class="p">])</span>
 
     <span class="c1"># Build the model</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">VGG</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;num_blocks&#39;</span><span class="p">],</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;planes&#39;</span><span class="p">],</span>
-                <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;rect_pools&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">VGG</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">rect_pools</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
@@ -312,14 +277,15 @@
     <span class="k">return</span> <span class="n">model</span>
 
 
-<div class="viewcode-block" id="vgg16_bn"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.vgg16_bn">[docs]</a><span class="k">def</span> <span class="nf">vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
+<div class="viewcode-block" id="vgg16_bn_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.vgg16_bn_r">[docs]</a><span class="k">def</span> <span class="nf">vgg16_bn_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;VGG-16 architecture as described in `&quot;Very Deep Convolutional Networks for Large-Scale Image Recognition&quot;</span>
-<span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_, modified by adding batch normalization.</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_, modified by adding batch normalization, rectangular pooling and a simpler</span>
+<span class="sd">    classification head.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import vgg16_bn</span>
-<span class="sd">        &gt;&gt;&gt; model = vgg16_bn(pretrained=False)</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import vgg16_bn_r</span>
+<span class="sd">        &gt;&gt;&gt; model = vgg16_bn_r(pretrained=False)</span>
 <span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
 <span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
 
@@ -330,7 +296,14 @@
 <span class="sd">        VGG feature extractor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_vgg</span><span class="p">(</span><span class="s1">&#39;vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_vgg</span><span class="p">(</span>
+        <span class="s1">&#39;vgg16_bn_r&#39;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
 </pre></div>
 
            </div>
