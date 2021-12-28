@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import ColorInversion, RandomCrop, RandomRotate, Resize
+from doctr.transforms import ColorInversion, GaussianNoise, RandomCrop, RandomRotate, Resize
 from doctr.transforms.functional import crop_detection, rotate
 
 
@@ -164,3 +164,28 @@ def test_random_crop():
     new_h, new_w = c_img.shape[:2]
     assert new_h >= 3
     assert new_w >= 3
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+    ]
+)
+def test_gaussian_noise(input_dtype, input_shape):
+    transform = GaussianNoise(0., 1.)
+    input_t = torch.rand(input_shape, dtype=torch.float32)
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round()
+    input_t = input_t.to(dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, torch.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    assert torch.any(transformed != input_t)
+    assert torch.all(transformed >= 0)
+    if input_dtype == torch.uint8:
+        assert torch.all(transformed <= 255)
+    else:
+        assert torch.all(transformed <= 1.)
