@@ -11,7 +11,7 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'RandomGaussianNoise']
+__all__ = ['Resize', 'GaussianNoise']
 
 
 class Resize(T.Resize):
@@ -55,17 +55,30 @@ class Resize(T.Resize):
         return f"{self.__class__.__name__}({_repr})"
 
 
-class RandomGaussianNoise():
-    def __init__(self, mean=0., std=1.):
+class GaussianNoise(torch.nn.Module):
+    """Adds Gaussian Noise to an inout image of type torch.tensor
+
+       Example::
+           >>> from doctr.transforms import GaussianNoise
+           >>> import torch
+           >>> transfo = GaussianNoise(0., 1.)
+           >>> out = transfo(torch.rand((3, 224, 224)))
+
+       Args:
+           mean : mean of the gaussian distribution
+           std : std of the gaussian distribution
+       """
+    def __init__(self, mean: float = 0., std: float = 1.) -> None:
+        super().__init__()
         self.std = std
         self.mean = mean
 
-    def __call__(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dtype == torch.uint8:
             return (x + 255 * (self.mean + self.std * torch.rand(x.shape, device=x.device))).round().clamp(0, 255).to(
                 dtype=torch.uint8)
         else:
-            return (x + self.mean + self.std * torch.rand_like(x)).clamp(0, 1)
+            return (x + self.mean + self.std * 2 * torch.rand_like(x) - self.std).clamp(0, 1)
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}  (mean = {self.mean}, std = {self.std})"
+    def extra_repr(self) -> str:
+        return f"mean={self.mean}, std={self.std}"
