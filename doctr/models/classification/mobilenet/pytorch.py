@@ -5,7 +5,7 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from torchvision.models import mobilenetv3
 
@@ -16,41 +16,34 @@ from ...utils import load_pretrained_params
 __all__ = ["mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large",
            "mobilenet_v3_large_r", "mobilenet_v3_small_orientation"]
 
-
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'mobilenet_v3_large': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
-        'vocab': VOCABS['legacy_french'],
-        'classes': list(VOCABS['legacy_french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-a0aea820.pt',
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-11fc8cb9.pt',
     },
     'mobilenet_v3_large_r': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
-        'rect_stride': ['features.4.block.1.0', 'features.7.block.1.0', 'features.13.block.1.0'],
-        'vocab': VOCABS['french'],
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-74a22066.pt',
     },
     'mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
-        'vocab': VOCABS['legacy_french'],
-        'classes': list(VOCABS['legacy_french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-69c7267d.pt',
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-6a4bfa6b.pt',
     },
     'mobilenet_v3_small_r': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
-        'rect_stride': ['features.2.block.1.0', 'features.4.block.1.0', 'features.9.block.1.0'],
-        'vocab': VOCABS['french'],
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-1a8a3530.pt',
     },
     'mobilenet_v3_small_orientation': {
         'mean': (0.694, 0.695, 0.693),
@@ -65,6 +58,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 def _mobilenet_v3(
     arch: str,
     pretrained: bool,
+    rect_strides: Optional[List[str]] = None,
     **kwargs: Any
 ) -> mobilenetv3.MobileNetV3:
 
@@ -76,8 +70,8 @@ def _mobilenet_v3(
         model = mobilenetv3.mobilenet_v3_large(**kwargs)
 
     # Rectangular strides
-    if isinstance(default_cfgs[arch].get('rect_stride'), list):
-        for layer_name in default_cfgs[arch]['rect_stride']:
+    if isinstance(rect_strides, list):
+        for layer_name in rect_strides:
             m = model
             for child in layer_name.split('.'):
                 m = getattr(m, child)
@@ -133,7 +127,12 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
         a torch.nn.Module
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_r', pretrained, **kwargs)
+    return _mobilenet_v3(
+        'mobilenet_v3_small_r',
+        pretrained,
+        ['features.2.block.1.0', 'features.4.block.1.0', 'features.9.block.1.0'],
+        **kwargs
+    )
 
 
 def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.MobileNetV3:
@@ -175,7 +174,12 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     Returns:
         a torch.nn.Module
     """
-    return _mobilenet_v3('mobilenet_v3_large_r', pretrained, **kwargs)
+    return _mobilenet_v3(
+        'mobilenet_v3_large_r',
+        pretrained,
+        ['features.4.block.1.0', 'features.7.block.1.0', 'features.13.block.1.0'],
+        **kwargs
+    )
 
 
 def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.MobileNetV3:
