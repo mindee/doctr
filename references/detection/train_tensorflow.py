@@ -114,7 +114,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
-            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
+            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         val_loss += out['loss'].numpy()
         batch_cnt += 1
@@ -140,6 +140,10 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         img_transforms=T.Resize((args.input_size, args.input_size)),
+        sample_transforms=T.SampleCompose([
+            T.RandomRotate(0, expand=True),
+            T.ImageTransform(T.Resize((args.input_size, args.input_size))),
+        ]) if args.rotation else T.ImageTransform(T.Resize((args.input_size, args.input_size))),
     )
     val_loader = DataLoader(
         val_set,
