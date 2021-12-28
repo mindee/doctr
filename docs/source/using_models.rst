@@ -23,7 +23,7 @@ Available architectures
 
 The following architectures are currently supported:
 
-* `linknet16 <models.html#doctr.models.detection.linknet16>`_
+* `linknet_resnet18 <models.html#doctr.models.detection.linknet_resnet18>`_
 * `db_resnet50 <models.html#doctr.models.detection.db_resnet50>`_
 * `db_mobilenet_v3_large <models.html#doctr.models.detection.db_mobilenet_v3_large>`_
 

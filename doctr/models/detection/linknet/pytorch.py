@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -20,8 +20,6 @@ __all__ = ['LinkNet', 'linknet_resnet18']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet_resnet18': {
-        'backbone': resnet18,
-        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -89,8 +87,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         self.feat_extractor = feat_extractor
         # Identify the number of channels for the FPN initialization
-        _is_training = self.feat_extractor.training
-        self.feat_extractor = self.feat_extractor.eval()
+        self.feat_extractor.eval()
         with torch.no_grad():
             in_shape = (3, 512, 512)
             out = self.feat_extractor(torch.zeros((1, *in_shape)))
@@ -98,9 +95,7 @@ class LinkNet(nn.Module, _LinkNet):
             _shapes = [v.shape[1:] for _, v in out.items()]
             # Prepend the expected shapes of the first encoder
             _shapes = [(_shapes[0][0], in_shape[1] // 4, in_shape[2] // 4)] + _shapes
-
-        if _is_training:
-            self.feat_extractor = self.feat_extractor.train()
+        self.feat_extractor.train()
 
         self.fpn = LinkNetFPN(_shapes)
 
@@ -193,17 +188,22 @@ class LinkNet(nn.Module, _LinkNet):
         return loss[seg_mask].mean()
 
 
-def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwargs: Any) -> LinkNet:
+def _linknet(
+    arch: str,
+    pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    fpn_layers: List[str],
+    pretrained_backbone: bool = False,
+    **kwargs: Any
+) -> LinkNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Build the feature extractor
-    backbone = default_cfgs[arch]['backbone']()
-    if pretrained_backbone:
-        load_pretrained_params(backbone, None)
+    backbone = backbone_fn(pretrained_backbone)
     feat_extractor = IntermediateLayerGetter(
         backbone,
-        {layer_name: str(idx) for idx, layer_name in enumerate(default_cfgs[arch]['fpn_layers'])},
+        {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
 
     # Build the model
@@ -233,4 +233,4 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet_resnet18', pretrained, **kwargs)
+    return _linknet('linknet_resnet18', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)

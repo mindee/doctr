@@ -27,16 +27,12 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'backbone': ResNet50,
-        'fpn_layers': ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         'input_shape': (1024, 1024, 3),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
     },
     'db_mobilenet_v3_large': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'backbone': mobilenet_v3_large,
-        'fpn_layers': ["inverted_2", "inverted_5", "inverted_11", "final_block"],
         'input_shape': (1024, 1024, 3),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip',
     },
@@ -253,9 +249,11 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 def _db_resnet(
     arch: str,
     pretrained: bool,
-    pretrained_backbone: bool = False,
-    input_shape: Tuple[int, int, int] = None,
-    **kwargs: Any
+    backbone_fn,
+    fpn_layers: List[str],
+    pretrained_backbone: bool = True,
+    input_shape: Optional[Tuple[int, int, int]] = None,
+    **kwargs: Any,
 ) -> DBNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
@@ -266,13 +264,13 @@ def _db_resnet(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        _cfg['backbone'](
-            include_top=False,
+        backbone_fn(
             weights='imagenet' if pretrained_backbone else None,
-            input_shape=_cfg['input_shape'],
+            include_top=False,
             pooling=None,
+            input_shape=_cfg['input_shape'],
         ),
-        _cfg['fpn_layers'],
+        fpn_layers,
     )
 
     # Build the model
@@ -287,9 +285,11 @@ def _db_resnet(
 def _db_mobilenet(
     arch: str,
     pretrained: bool,
+    backbone_fn,
+    fpn_layers: List[str],
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
-    **kwargs: Any
+    input_shape: Optional[Tuple[int, int, int]] = None,
+    **kwargs: Any,
 ) -> DBNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
@@ -300,12 +300,12 @@ def _db_mobilenet(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        _cfg['backbone'](
+        backbone_fn(
             input_shape=_cfg['input_shape'],
             include_top=False,
             pretrained=pretrained_backbone,
         ),
-        _cfg['fpn_layers'],
+        fpn_layers,
     )
 
     # Build the model
@@ -335,7 +335,13 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _db_resnet('db_resnet50', pretrained, **kwargs)
+    return _db_resnet(
+        'db_resnet50',
+        pretrained,
+        ResNet50,
+        ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
+        **kwargs,
+    )
 
 
 def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
@@ -356,4 +362,10 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _db_mobilenet('db_mobilenet_v3_large', pretrained, **kwargs)
+    return _db_mobilenet(
+        'db_mobilenet_v3_large',
+        pretrained,
+        mobilenet_v3_large,
+        ["inverted_2", "inverted_5", "inverted_11", "final_block"],
+        **kwargs,
+    )

@@ -11,10 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import Sequential, layers
+from tensorflow.keras import Model, Sequential, layers
 
-from doctr.models.classification import ResnetStage
-from doctr.models.utils import conv_sequence, load_pretrained_params
+from doctr.models.classification import resnet18
+from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
@@ -32,11 +32,11 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def decoder_block(in_chan: int, out_chan: int, stride: int) -> Sequential:
+def decoder_block(in_chan: int, out_chan: int, stride: int, **kwargs: Any) -> Sequential:
     """Creates a LinkNet decoder block"""
 
     return Sequential([
-        *conv_sequence(in_chan // 4, 'relu', True, kernel_size=1),
+        *conv_sequence(in_chan // 4, 'relu', True, kernel_size=1, **kwargs),
         layers.Conv2DTranspose(
             filters=in_chan // 4,
             kernel_size=3,
@@ -51,36 +51,36 @@ def decoder_block(in_chan: int, out_chan: int, stride: int) -> Sequential:
     ])
 
 
-class LinkNetFPN(layers.Layer, NestedObject):
-    """LinkNet Encoder-Decoder module"""
+class LinkNetFPN(Model, NestedObject):
+    """LinkNet Decoder module"""
 
     def __init__(
         self,
+        out_chans: int,
+        in_shapes: List[Tuple[int, ...]],
     ) -> None:
 
         super().__init__()
-        self.encoder_1 = ResnetStage(num_blocks=2, output_channels=64, downsample=False)
-        self.encoder_2 = ResnetStage(num_blocks=2, output_channels=128, downsample=True)
-        self.encoder_3 = ResnetStage(num_blocks=2, output_channels=256, downsample=True)
-        self.encoder_4 = ResnetStage(num_blocks=2, output_channels=512, downsample=True)
-        self.decoder_1 = decoder_block(in_chan=64, out_chan=64, stride=1)
-        self.decoder_2 = decoder_block(in_chan=128, out_chan=64, stride=2)
-        self.decoder_3 = decoder_block(in_chan=256, out_chan=128, stride=2)
-        self.decoder_4 = decoder_block(in_chan=512, out_chan=256, stride=2)
+        self.out_chans = out_chans
+        strides = [2] * (len(in_shapes) - 1) + [1]
+        i_chans = [s[-1] for s in in_shapes[::-1]]
+        o_chans = i_chans[1:] + [out_chans]
+        self.decoders = [
+            decoder_block(in_chan, out_chan, s, input_shape=in_shape)
+            for in_chan, out_chan, s, in_shape in zip(i_chans, o_chans, strides, in_shapes[::-1])
+        ]
 
     def call(
         self,
-        x: tf.Tensor
+        x: List[tf.Tensor]
     ) -> tf.Tensor:
-        x_1 = self.encoder_1(x)
-        x_2 = self.encoder_2(x_1)
-        x_3 = self.encoder_3(x_2)
-        x_4 = self.encoder_4(x_3)
-        y_4 = self.decoder_4(x_4)
-        y_3 = self.decoder_3(y_4 + x_3)
-        y_2 = self.decoder_2(y_3 + x_2)
-        y_1 = self.decoder_1(y_2 + x_1)
-        return y_1
+        out = 0
+        for decoder, fmap in zip(self.decoders, x[::-1]):
+            out = decoder(out + fmap)
+        return out
+
+    def extra_repr(self) -> str:
+        return f"out_chans={self.out_chans}"
 
 
 class LinkNet(_LinkNet, keras.Model):
@@ -91,12 +91,13 @@ class LinkNet(_LinkNet, keras.Model):
         num_classes: number of channels for the output
     """
 
-    _children_names: List[str] = ['stem', 'fpn', 'classifier', 'postprocessor']
+    _children_names: List[str] = ['feat_extractor', 'fpn', 'classifier', 'postprocessor']
 
     def __init__(
         self,
+        feat_extractor: IntermediateLayerGetter,
+        fpn_channels: int = 64,
         num_classes: int = 1,
-        input_shape: Tuple[int, int, int] = (512, 512, 3),
         assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -104,12 +105,10 @@ class LinkNet(_LinkNet, keras.Model):
 
         self.assume_straight_pages = assume_straight_pages
 
-        self.stem = Sequential([
-            *conv_sequence(64, 'relu', True, strides=2, kernel_size=7, input_shape=input_shape),
-            layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'),
-        ])
+        self.feat_extractor = feat_extractor
 
-        self.fpn = LinkNetFPN()
+        self.fpn = LinkNetFPN(fpn_channels, [_shape[1:] for _shape in self.feat_extractor.output_shape])
+        self.fpn.build(self.feat_extractor.output_shape)
 
         self.classifier = Sequential([
             layers.Conv2DTranspose(
@@ -118,17 +117,18 @@ class LinkNet(_LinkNet, keras.Model):
                 strides=2,
                 padding="same",
                 use_bias=False,
-                kernel_initializer='he_normal'
+                kernel_initializer='he_normal',
+                input_shape=self.fpn.decoders[-1].output_shape[1:],
             ),
             layers.BatchNormalization(),
             layers.Activation('relu'),
-            *conv_sequence(32, 'relu', True, strides=1, kernel_size=3),
+            *conv_sequence(32, 'relu', True, kernel_size=3, strides=1),
             layers.Conv2DTranspose(
                 filters=num_classes,
                 kernel_size=2,
                 strides=2,
                 padding="same",
-                use_bias=False,
+                use_bias=True,
                 kernel_initializer='he_normal'
             ),
         ])
@@ -177,11 +177,12 @@ class LinkNet(_LinkNet, keras.Model):
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        logits = self.stem(x)
-        logits = self.fpn(logits)
-        logits = self.classifier(logits)
+        feat_maps = self.feat_extractor(x, **kwargs)
+        logits = self.fpn(feat_maps, **kwargs)
+        logits = self.classifier(logits, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if return_model_output or target is None or return_preds:
@@ -203,18 +204,31 @@ class LinkNet(_LinkNet, keras.Model):
 def _linknet(
     arch: str,
     pretrained: bool,
-    pretrained_backbone: bool = False,
-    input_shape: Tuple[int, int, int] = None,
+    backbone_fn,
+    fpn_layers: List[str],
+    pretrained_backbone: bool = True,
+    input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
 ) -> LinkNet:
 
+    pretrained_backbone = pretrained_backbone and not pretrained
+
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
 
-    kwargs['input_shape'] = _cfg['input_shape']
+    # Feature extractor
+    feat_extractor = IntermediateLayerGetter(
+        backbone_fn(
+            pretrained=pretrained_backbone,
+            include_top=False,
+            input_shape=_cfg['input_shape'],
+        ),
+        fpn_layers,
+    )
+
     # Build the model
-    model = LinkNet(cfg=_cfg, **kwargs)
+    model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg['url'])
@@ -240,4 +254,10 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet_resnet18', pretrained, **kwargs)
+    return _linknet(
+        'linknet_resnet18',
+        pretrained,
+        resnet18,
+        ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        **kwargs,
+    )

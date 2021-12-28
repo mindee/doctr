@@ -5,23 +5,28 @@
 
 
 import math
-from typing import Any, Dict, Tuple
+from functools import partial
+from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
-from ...utils import conv_sequence, load_pretrained_params
-from ..resnet import ResnetStage
+from doctr.datasets import VOCABS
 
-__all__ = ['MAGCResNet', 'magc_resnet31']
+from ...utils import load_pretrained_params
+from ..resnet.tensorflow import ResNet
+
+__all__ = ['magc_resnet31']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'magc_resnet31': {
-        'num_blocks': (1, 2, 5, 3),
-        'output_channels': (256, 512, 512, 512),
-        'url': None
+        'mean': (0.5, 0.5, 0.5),
+        'std': (1., 1., 1.),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': None,
     },
 }
 
@@ -33,7 +38,7 @@ class MAGC(layers.Layer):
     Args:
         inplanes: input channels
         headers: number of headers to split channels
-        att_scale: if True, re-scale attention to counteract the variance distibutions
+        attn_scale: if True, re-scale attention to counteract the variance distibutions
         ratio: bottleneck ratio
         **kwargs
     """
@@ -42,7 +47,7 @@ class MAGC(layers.Layer):
         self,
         inplanes: int,
         headers: int = 8,
-        att_scale: bool = False,
+        attn_scale: bool = False,
         ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
         **kwargs
     ) -> None:
@@ -50,7 +55,7 @@ class MAGC(layers.Layer):
 
         self.headers = headers  # h
         self.inplanes = inplanes  # C
-        self.att_scale = att_scale
+        self.attn_scale = attn_scale
         self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
@@ -100,7 +105,7 @@ class MAGC(layers.Layer):
         # B*h, 1, H*W, 1
         context_mask = tf.reshape(context_mask, shape=(b * self.headers, 1, h * w, 1))
         # scale variance
-        if self.att_scale and self.headers > 1:
+        if self.attn_scale and self.headers > 1:
             context_mask = context_mask / math.sqrt(self.single_header_inplanes)
         # B*h, 1, H*W, 1
         context_mask = tf.keras.activations.softmax(context_mask, axis=2)
@@ -124,57 +129,30 @@ class MAGC(layers.Layer):
         return inputs + transformed
 
 
-class MAGCResNet(Sequential):
+def _magc_resnet(
+    arch: str,
+    pretrained: bool,
+    num_blocks: List[int],
+    output_channels: List[int],
+    stage_downsample: List[bool],
+    stage_conv: List[bool],
+    stage_pooling: List[Optional[Tuple[int, int]]],
+    origin_stem: bool = True,
+    **kwargs: Any,
+) -> ResNet:
 
-    """Implements the modified resnet with MAGC layers, as described in paper.
-
-    Args:
-        num_blocks: number of residual blocks in each stage
-        output_channels: number of output channels in each stage
-        headers: number of header to split channels in MAGC layers
-        input_shape: shape of the model input (without batch dim)
-    """
-
-    def __init__(
-        self,
-        num_blocks: Tuple[int, int, int, int],
-        output_channels: Tuple[int, int, int, int],
-        headers: int = 8,
-        input_shape: Tuple[int, int, int] = (32, 128, 3),
-    ) -> None:
-        _layers = [
-            # conv_1x
-            *conv_sequence(out_channels=64, activation='relu', bn=True, kernel_size=3, input_shape=input_shape),
-            *conv_sequence(out_channels=128, activation='relu', bn=True, kernel_size=3),
-            layers.MaxPooling2D((2, 2), (2, 2)),
-            # Stage 1
-            ResnetStage(num_blocks[0], output_channels[0]),
-            MAGC(output_channels[0], headers=headers, att_scale=True),
-            *conv_sequence(out_channels=output_channels[0], activation='relu', bn=True, kernel_size=3),
-            layers.MaxPooling2D((2, 2), (2, 2)),
-            # Stage 2
-            ResnetStage(num_blocks[1], output_channels[1]),
-            MAGC(output_channels[1], headers=headers, att_scale=True),
-            *conv_sequence(out_channels=output_channels[1], activation='relu', bn=True, kernel_size=3),
-            layers.MaxPooling2D((2, 1), (2, 1)),
-            # Stage 3
-            ResnetStage(num_blocks[2], output_channels[2]),
-            MAGC(output_channels[2], headers=headers, att_scale=True),
-            *conv_sequence(out_channels=output_channels[2], activation='relu', bn=True, kernel_size=3),
-            # Stage 4
-            ResnetStage(num_blocks[3], output_channels[3]),
-            MAGC(output_channels[3], headers=headers, att_scale=True),
-            *conv_sequence(out_channels=output_channels[3], activation='relu', bn=True, kernel_size=3),
-        ]
-        super().__init__(_layers)
-
-
-def _magc_resnet(arch: str, pretrained: bool, **kwargs: Any) -> MAGCResNet:
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
 
     # Build the model
-    model = MAGCResNet(
-        default_cfgs[arch]['num_blocks'],
-        default_cfgs[arch]['output_channels'],
+    model = ResNet(
+        num_blocks,
+        output_channels,
+        stage_downsample,
+        stage_conv,
+        stage_pooling,
+        origin_stem,
+        partial(MAGC, headers=8, attn_scale=True),
         **kwargs,
     )
     # Load pretrained parameters
@@ -184,16 +162,16 @@ def _magc_resnet(arch: str, pretrained: bool, **kwargs: Any) -> MAGCResNet:
     return model
 
 
-def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> MAGCResNet:
+def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """Resnet31 architecture with Multi-Aspect Global Context Attention as described in
     `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition",
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
     Example::
-        >>> import tensorflow as tf
+        >>> import torch
         >>> from doctr.models import magc_resnet31
         >>> model = magc_resnet31(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
         >>> out = model(input_tensor)
 
     Args:
@@ -203,4 +181,14 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> MAGCResNet:
         A feature extractor model
     """
 
-    return _magc_resnet('magc_resnet31', pretrained, **kwargs)
+    return _magc_resnet(
+        'magc_resnet31',
+        pretrained,
+        [1, 2, 5, 3],
+        [256, 256, 512, 512],
+        [False] * 4,
+        [True] * 4,
+        [(2, 2), (2, 1), None, None],
+        False,
+        **kwargs,
+    )
