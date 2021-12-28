@@ -102,6 +102,7 @@ def convert_to_abs_coords(targets, img_shape):
     for idx, t in enumerate(targets):
         targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
         targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
+
     targets = [{
         "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
         "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
@@ -114,10 +115,11 @@ def convert_to_abs_coords(targets, img_shape):
 def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
+
     model.train()
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter, parent=mb):
+    for images, targets in progress_bar(train_loader, parent=mb):
+
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
@@ -147,7 +149,6 @@ def evaluate(model, val_loader, metric, amp=False):
     model.eval()
     metric.reset()
     for images, targets in val_loader:
-        # batch_transforms
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
