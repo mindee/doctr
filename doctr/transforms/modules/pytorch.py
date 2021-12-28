@@ -11,7 +11,7 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize']
+__all__ = ['Resize', 'ChannelShuffle']
 
 
 class Resize(T.Resize):
@@ -53,3 +53,15 @@ class Resize(T.Resize):
         if self.preserve_aspect_ratio:
             _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
         return f"{self.__class__.__name__}({_repr})"
+
+
+class ChannelShuffle(torch.nn.Module):
+    """Randomly shuffle channel order of a given image"""
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, img: torch.Tensor) -> torch.Tensor:
+        # Get a random order
+        chan_order = torch.rand(img.shape[0]).argsort()
+        return img[chan_order]
