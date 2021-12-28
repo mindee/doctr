@@ -61,6 +61,7 @@ class DetectionDataset(AbstractDataset):
 
         img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
+
         if self.img_transforms is not None:
             img = self.img_transforms(img)
 
