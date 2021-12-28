@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import ColorInversion, RandomCrop, RandomRotate, Resize, ChannelShuffle
+from doctr.transforms import ChannelShuffle, ColorInversion, RandomCrop, RandomRotate, Resize
 from doctr.transforms.functional import crop_detection, rotate
 
 
@@ -136,16 +136,16 @@ def test_crop_detection():
         [15, 20, 35, 30],
         [5, 10, 10, 20],
     ])
-    crop_box = (12, 23, 50, 50)
+    crop_box = (12 / 50, 23 / 50, 50 / 50, 50 / 50)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
-    assert c_img.shape == (3, 27, 38)
+    assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
     rel_boxes = np.array([
         [.3, .4, .7, .6],
         [.1, .2, .2, .4],
     ])
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
-    assert c_img.shape == (3, 27, 38)
+    assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
 
     # FP16
@@ -155,15 +155,19 @@ def test_crop_detection():
 
 
 def test_random_crop():
-    cropper = RandomCrop()
-    input_t = torch.ones((50, 50, 3), dtype=torch.float32)
+    cropper = RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
+    input_t = torch.ones((3, 50, 50), dtype=torch.float32)
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    c_img, _ = cropper(input_t, dict(boxes=boxes))
-    new_h, new_w = c_img.shape[:2]
-    assert new_h >= 3
-    assert new_w >= 3
+    img, target = cropper(input_t, dict(boxes=boxes))
+    # Check the scale
+    assert img.shape[-1] * img.shape[-2] >= 0.5 * input_t.shape[-1] * input_t.shape[-2]
+    # Check aspect ratio
+    assert 0.75 <= img.shape[-2] / img.shape[-1] <= 1.33
+    # Check the target
+    assert np.all(boxes >= 0)
+    assert np.all(boxes[:, [0, 2]] <= img.shape[-1]) and np.all(boxes[:, [1, 3]] <= img.shape[-2])
 
 
 @pytest.mark.parametrize(
