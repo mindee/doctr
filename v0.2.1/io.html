@@ -359,13 +359,14 @@ all lines and artefacts in it.</p></li>
 </dl>
 <dl class="py method">
 <dt id="doctr.io.Page.show">
-<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/io/elements.html#Page.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Page.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">page</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">interactive</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="_modules/doctr/io/elements.html#Page.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.io.Page.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overlay the result on a given image</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>page</strong> – image encoded as a numpy array in uint8</p></li>
 <li><p><strong>interactive</strong> – whether the display should be interactive</p></li>
+<li><p><strong>preserve_aspect_ratio</strong> – pass True if you passed True to the predictor</p></li>
 </ul>
 </dd>
 </dl>

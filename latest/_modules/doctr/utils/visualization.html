@@ -278,6 +278,7 @@
     <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
     <span class="n">linewidth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a matplotlib rectangular patch for the element</span>
 
@@ -289,6 +290,7 @@
 <span class="sd">        alpha: opacity parameter to fill the boxes, 0 = transparent</span>
 <span class="sd">        linewidth: line width</span>
 <span class="sd">        fill: whether the patch should be filled</span>
+<span class="sd">        preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a rectangular Patch</span>
@@ -301,6 +303,8 @@
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
     <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>
     <span class="c1"># Switch to absolute coords</span>
+    <span class="k">if</span> <span class="n">preserve_aspect_ratio</span><span class="p">:</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="n">height</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
     <span class="n">xmin</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">xmin</span> <span class="o">*</span> <span class="n">width</span><span class="p">,</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="n">width</span>
     <span class="n">ymin</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">ymin</span> <span class="o">*</span> <span class="n">height</span><span class="p">,</span> <span class="p">(</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)</span> <span class="o">*</span> <span class="n">height</span>
 
@@ -324,6 +328,7 @@
     <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
     <span class="n">linewidth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">patches</span><span class="o">.</span><span class="n">Polygon</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a matplotlib polygon patch for the element</span>
 
@@ -335,6 +340,7 @@
 <span class="sd">        alpha: opacity parameter to fill the boxes, 0 = transparent</span>
 <span class="sd">        linewidth: line width</span>
 <span class="sd">        fill: whether the patch should be filled</span>
+<span class="sd">        preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a polygon Patch</span>
@@ -345,8 +351,8 @@
 
     <span class="c1"># Unpack</span>
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
-    <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">width</span>
-    <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">height</span>
+    <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="k">if</span> <span class="n">preserve_aspect_ratio</span> <span class="k">else</span> <span class="n">width</span><span class="p">)</span>
+    <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="k">if</span> <span class="n">preserve_aspect_ratio</span> <span class="k">else</span> <span class="n">height</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">patches</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span>
         <span class="n">geometry</span><span class="p">,</span>
