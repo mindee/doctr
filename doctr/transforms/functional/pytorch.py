@@ -51,7 +51,7 @@ def rotate(
 
     # Get absolute coords
     _boxes = deepcopy(boxes)
-    if np.max(_boxes) < 2:
+    if np.max(_boxes) <= 1:
         _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[2]
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[1]
 

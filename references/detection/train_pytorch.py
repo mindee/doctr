@@ -179,11 +179,8 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
-        img_transforms=T.Resize((args.input_size, args.input_size)) if not args.rotation else None,
-        sample_transforms=T.SampleCompose([
-            T.RandomRotate(0, expand=True),
-            T.ImageTransform(T.Resize((args.input_size, args.input_size))),
-        ]) if args.rotation else None
+        img_transforms=T.Resize((args.input_size, args.input_size)),
+        use_polygons=True if args.rotation else False
     )
     val_loader = DataLoader(
         val_set,

@@ -72,7 +72,7 @@ class DetectionDataset(AbstractDataset):
 
         # Boxes
         target = target.copy()
-        if np.max(target) > 2:
+        if np.max(target) > 1:  # Absolute coords
             if target.ndim == 3:
                 target[..., 0] /= w
                 target[..., 1] /= h
