@@ -303,6 +303,9 @@ def test_crop_detection():
     c_img, _ = crop_detection(img, rel_boxes, crop_box)
     assert c_img.dtype == tf.float16
 
+    with pytest.raises(AssertionError):
+        crop_detection(img, abs_boxes, (2, 6, 24, 56))
+
 
 def test_random_crop():
     transfo = T.RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
