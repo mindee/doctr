@@ -19,6 +19,7 @@ from doctr.models.preprocessor import PreProcessor
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
     batch_size = 2
+    tf.keras.backend.clear_session()
     model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
@@ -123,6 +124,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
 )
 def test_detection_zoo(arch_name):
     # Model
+    tf.keras.backend.clear_session()
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, DetectionPredictor)

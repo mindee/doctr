@@ -4,15 +4,17 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torchvision.models._utils import IntermediateLayerGetter
 
-from ....datasets import VOCABS
+from doctr.datasets import VOCABS
+
 from ...classification import resnet31
-from ...utils import load_pretrained_params
+from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['SAR', 'sar_resnet31']
@@ -21,7 +23,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_resnet31': {
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'backbone': resnet31, 'rnn_units': 512, 'max_length': 30, 'num_decoders': 2,
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['legacy_french'],
         'url': None,
@@ -153,9 +154,10 @@ class SAR(nn.Module, RecognitionModel):
         rnn_units: int = 512,
         embedding_units: int = 512,
         attention_units: int = 512,
-        max_length: int = 32,
+        max_length: int = 30,
         num_decoders: int = 2,
         dropout_prob: float = 0.,
+        input_shape: Tuple[int, int, int] = (3, 32, 128),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -167,10 +169,17 @@ class SAR(nn.Module, RecognitionModel):
 
         self.feat_extractor = feature_extractor
 
-        self.encoder = nn.LSTM(32, rnn_units, 2, batch_first=True, dropout=dropout_prob)
+        # Size the LSTM
+        self.feat_extractor.eval()
+        with torch.no_grad():
+            out_shape = self.feat_extractor(torch.zeros((1, *input_shape)))['features'].shape
+        # Switch back to original mode
+        self.feat_extractor.train()
+
+        self.encoder = nn.LSTM(out_shape[-1], rnn_units, 2, batch_first=True, dropout=dropout_prob)
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders, 512,
+            rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders, out_shape[1],
         )
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
@@ -183,7 +192,7 @@ class SAR(nn.Module, RecognitionModel):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x)
+        features = self.feat_extractor(x)['features']
         pooled_features = features.max(dim=-2).values  # vertical max pooling
         _, (encoded, _) = self.encoder(pooled_features)
         encoded = encoded[-1]
@@ -263,8 +272,9 @@ class SARPostProcessor(RecognitionPostProcessor):
 def _sar(
     arch: str,
     pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    layer: str,
     pretrained_backbone: bool = True,
-    input_shape: Tuple[int, int, int] = None,
     **kwargs: Any
 ) -> SAR:
 
@@ -273,24 +283,15 @@ def _sar(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
-    _cfg['embedding_units'] = kwargs.get('embedding_units', _cfg['rnn_units'])
-    _cfg['attention_units'] = kwargs.get('attention_units', _cfg['rnn_units'])
-    _cfg['max_length'] = kwargs.get('max_length', _cfg['max_length'])
-    _cfg['num_decoders'] = kwargs.get('num_decoders', _cfg['num_decoders'])
+    _cfg['input_shape'] = kwargs.get('input_shape', _cfg['input_shape'])
 
     # Feature extractor
-    feat_extractor = default_cfgs[arch]['backbone'](pretrained=pretrained_backbone)
-    # Trick to keep only the features while it's not unified between both frameworks
-    if arch.split('_')[1] == "mobilenet":
-        feat_extractor = feat_extractor.features
-
+    feat_extractor = IntermediateLayerGetter(
+        backbone_fn(pretrained_backbone),
+        {layer: 'features'},
+    )
     kwargs['vocab'] = _cfg['vocab']
-    kwargs['rnn_units'] = _cfg['rnn_units']
-    kwargs['embedding_units'] = _cfg['embedding_units']
-    kwargs['attention_units'] = _cfg['attention_units']
-    kwargs['max_length'] = _cfg['max_length']
-    kwargs['num_decoders'] = _cfg['num_decoders']
+    kwargs['input_shape'] = _cfg['input_shape']
 
     # Build the model
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
@@ -319,4 +320,4 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
         text recognition architecture
     """
 
-    return _sar('sar_resnet31', pretrained, **kwargs)
+    return _sar('sar_resnet31', pretrained, resnet31, '10', **kwargs)
