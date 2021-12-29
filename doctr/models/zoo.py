@@ -69,6 +69,8 @@ def ocr_predictor(
             without rotated textual elements.
         export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
             (potentially rotated) as straight bounding boxes.
+        preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before
+            running the detection model on it.
 
     Returns:
         OCR predictor
