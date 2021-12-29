@@ -166,8 +166,8 @@ def test_random_crop():
     # Check aspect ratio
     assert 0.75 <= img.shape[-2] / img.shape[-1] <= 1.33
     # Check the target
-    assert np.all(boxes >= 0)
-    assert np.all(boxes[:, [0, 2]] <= img.shape[-1]) and np.all(boxes[:, [1, 3]] <= img.shape[-2])
+    assert np.all(target['boxes'] >= 0)
+    assert np.all(target['boxes'][:, [0, 2]] <= img.shape[-1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[-2])
 
 
 @pytest.mark.parametrize(
