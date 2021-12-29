@@ -353,9 +353,7 @@
         <span class="c1"># Resolve the geometry using the smallest enclosing bounding box</span>
         <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Check whether this is a rotated or straight box</span>
-            <span class="n">box_resolution_fn</span> <span class="o">=</span> <span class="n">resolve_enclosing_rbbox</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
-                <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-            <span class="p">)</span> <span class="k">else</span> <span class="n">resolve_enclosing_bbox</span>
+            <span class="n">box_resolution_fn</span> <span class="o">=</span> <span class="n">resolve_enclosing_rbbox</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="n">resolve_enclosing_bbox</span>
             <span class="n">geometry</span> <span class="o">=</span> <span class="n">box_resolution_fn</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">geometry</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">])</span>  <span class="c1"># type: ignore[operator, misc]</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">words</span><span class="o">=</span><span class="n">words</span><span class="p">)</span>
