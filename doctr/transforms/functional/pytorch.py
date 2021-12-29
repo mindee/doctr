@@ -11,6 +11,7 @@ import torch
 from torchvision.transforms import functional as F
 
 from doctr.utils.geometry import rotate_abs_boxes
+from .base import crop_boxes
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]
 
@@ -85,20 +86,10 @@ def crop_detection(
     h, w = img.shape[-2:]
     xmin, ymin = int(round(crop_box[0] * (w - 1))), int(round(crop_box[1] * (h - 1)))
     xmax, ymax = int(round(crop_box[2] * (w - 1))), int(round(crop_box[3] * (h - 1)))
-    croped_img = F.crop(
+    cropped_img = F.crop(
         img, ymin, xmin, ymax - ymin, xmax - xmin
     )
-    if boxes.dtype == int:  # absolute boxes
-        # Clip boxes
-        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin, xmax) - xmin
-        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin, ymax) - ymin
-    else:  # relative boxes
-        h, w = img.shape[-2:]
-        # Clip boxes
-        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin / w, xmax / w) - xmin / w
-        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin / h, ymax / h) - ymin / h
-    # Remove 0-sized boxes
-    is_valid = np.logical_and(boxes[:, 1] < boxes[:, 3], boxes[:, 0] < boxes[:, 2])
-    boxes = boxes[is_valid]
+    # Crop the box
+    boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
-    return croped_img, boxes
+    return cropped_img, boxes
