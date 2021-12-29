@@ -229,7 +229,7 @@ def main(args):
         return
 
     st = time.time()
-    # Load both train data generators
+    # Load train data generators
     train_set = DocArtefacts(
         train=True,
         download=True,
