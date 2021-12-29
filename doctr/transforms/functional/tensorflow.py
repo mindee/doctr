@@ -100,14 +100,14 @@ def crop_detection(
         img, ymin, xmin, ymax - ymin, xmax - xmin
     )
     if boxes.dtype == int:  # absolute boxes
-        # Clip boxes
-        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin, xmax)
-        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin, ymax)
+        # Clip boxes & correct the offset
+        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin, xmax) - xmin
+        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin, ymax) - ymin
     else:  # relative boxes
         h, w = img.shape[:2]
-        # Clip boxes
-        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin / w, xmax / w)
-        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin / h, ymax / h)
+        # Clip boxes & correct the offset
+        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin / w, xmax / w) - xmin / w
+        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin / h, ymax / h) - ymin / h
     # Remove 0-sized boxes
     zero_height = boxes[:, 1] < boxes[:, 3]
     zero_width = boxes[:, 0] < boxes[:, 2]
