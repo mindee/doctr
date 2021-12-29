@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 from PIL import Image, ImageDraw
 from unidecode import unidecode
 
-from .common_types import BoundingBox
+from .common_types import BoundingBox, Polygon4P
 from .fonts import get_font
 
 __all__ = ['visualize_page', 'synthesize_page', 'draw_boxes']
@@ -29,6 +29,7 @@ def rect_patch(
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
+    preserve_aspect_ratio: bool = False
 ) -> patches.Rectangle:
     """Create a matplotlib rectangular patch for the element
 
@@ -40,6 +41,7 @@ def rect_patch(
         alpha: opacity parameter to fill the boxes, 0 = transparent
         linewidth: line width
         fill: whether the patch should be filled
+        preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
         a rectangular Patch
@@ -52,6 +54,8 @@ def rect_patch(
     height, width = page_dimensions
     (xmin, ymin), (xmax, ymax) = geometry
     # Switch to absolute coords
+    if preserve_aspect_ratio:
+        width = height = max(height, width)
     xmin, w = xmin * width, (xmax - xmin) * width
     ymin, h = ymin * height, (ymax - ymin) * height
 
@@ -75,6 +79,7 @@ def polygon_patch(
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
+    preserve_aspect_ratio: bool = False
 ) -> patches.Polygon:
     """Create a matplotlib polygon patch for the element
 
@@ -86,6 +91,7 @@ def polygon_patch(
         alpha: opacity parameter to fill the boxes, 0 = transparent
         linewidth: line width
         fill: whether the patch should be filled
+        preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
         a polygon Patch
@@ -96,8 +102,8 @@ def polygon_patch(
 
     # Unpack
     height, width = page_dimensions
-    geometry[:, 0] = geometry[:, 0] * width
-    geometry[:, 1] = geometry[:, 1] * height
+    geometry[:, 0] = geometry[:, 0] * (max(width, height) if preserve_aspect_ratio else width)
+    geometry[:, 1] = geometry[:, 1] * (max(width, height) if preserve_aspect_ratio else height)
 
     return patches.Polygon(
         geometry,
@@ -110,7 +116,7 @@ def polygon_patch(
 
 
 def create_obj_patch(
-    geometry: Union[BoundingBox, np.ndarray],
+    geometry: Union[BoundingBox, Polygon4P, np.ndarray],
     page_dimensions: Tuple[int, int],
     **kwargs: Any,
 ) -> patches.Patch:
@@ -124,10 +130,12 @@ def create_obj_patch(
         a matplotlib Patch
     """
     if isinstance(geometry, tuple):
-        if len(geometry) == 2:
+        if len(geometry) == 2:  # straight word BB (2 pts)
             return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
-        elif len(geometry) == 4:
+        elif len(geometry) == 4:  # rotated word BB (4 pts)
             return polygon_patch(np.asarray(geometry), page_dimensions, **kwargs)  # type: ignore[arg-type]
+    elif isinstance(geometry, np.ndarray) and geometry.shape == (4, 2):  # rotated line
+        return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
     raise ValueError("invalid geometry format")
 
 

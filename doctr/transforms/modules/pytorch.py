@@ -11,7 +11,7 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'ChannelShuffle']
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle']
 
 
 class Resize(T.Resize):
@@ -53,6 +53,36 @@ class Resize(T.Resize):
         if self.preserve_aspect_ratio:
             _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
         return f"{self.__class__.__name__}({_repr})"
+
+
+class GaussianNoise(torch.nn.Module):
+    """Adds Gaussian Noise to the input tensor
+
+       Example::
+           >>> from doctr.transforms import GaussianNoise
+           >>> import torch
+           >>> transfo = GaussianNoise(0., 1.)
+           >>> out = transfo(torch.rand((3, 224, 224)))
+
+       Args:
+           mean : mean of the gaussian distribution
+           std : std of the gaussian distribution
+       """
+    def __init__(self, mean: float = 0., std: float = 1.) -> None:
+        super().__init__()
+        self.std = std
+        self.mean = mean
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Reshape the distribution
+        noise = self.mean + 2 * self.std * torch.rand(x.shape, device=x.device) - self.std
+        if x.dtype == torch.uint8:
+            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)
+        else:
+            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)
+
+    def extra_repr(self) -> str:
+        return f"mean={self.mean}, std={self.std}"
 
 
 class ChannelShuffle(torch.nn.Module):

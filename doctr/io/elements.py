@@ -140,9 +140,7 @@ class Line(Element):
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             # Check whether this is a rotated or straight box
-            box_resolution_fn = resolve_enclosing_rbbox if isinstance(
-                words[0].geometry, np.ndarray
-            ) else resolve_enclosing_bbox
+            box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 4 else resolve_enclosing_bbox
             geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator, misc]
 
         super().__init__(words=words)
@@ -246,15 +244,16 @@ class Page(Element):
         return f"dimensions={self.dimensions}"
 
     def show(
-        self, page: np.ndarray, interactive: bool = True, **kwargs
+        self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs
     ) -> None:
         """Overlay the result on a given image
 
         Args:
             page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
+            preserve_aspect_ratio: pass True if you passed True to the predictor
         """
-        visualize_page(self.export(), page, interactive=interactive)
+        visualize_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
         plt.show(**kwargs)
 
     def synthesize(self, **kwargs) -> np.ndarray:
