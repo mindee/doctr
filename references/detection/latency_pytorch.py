@@ -41,9 +41,9 @@ def main(args):
 
     # Evaluation runs
     for _ in range(args.it):
-        start_ts = time.time()
+        start_ts = time.perf_counter()
         _ = model(img_tensor)
-        timings.append(time.time() - start_ts)
+        timings.append(time.perf_counter() - start_ts)
 
     _timings = np.array(timings)
     print(f"{args.arch} ({args.it} runs on ({args.size}, {args.size}) inputs)")
