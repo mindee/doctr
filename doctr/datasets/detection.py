@@ -66,12 +66,20 @@ class DetectionDataset(AbstractDataset):
             img = self.img_transforms(img)
 
         if self.sample_transforms is not None:
+            # Here we may modify coordinates, each transformation must accept/return relative coordinates
+            # Otherwise, if we use the resize operation afterwards it will not only modify images but coordinates
             img, target = self.sample_transforms(img, target)
 
         # Boxes
         target = target.copy()
-        target[..., 0] /= w
-        target[..., 1] /= h
+        if np.max(target) > 1:  # Absolute coords
+            if target.ndim == 3:
+                target[..., 0] /= w
+                target[..., 1] /= h
+            else:
+                target[..., [0, 2]] /= w
+                target[..., [1, 3]] /= h
+
         target = target.clip(0, 1)
 
         return img, target

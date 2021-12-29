@@ -156,7 +156,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
-            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
+            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         val_loss += out['loss'].item()
         batch_cnt += 1
@@ -180,6 +180,7 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         img_transforms=T.Resize((args.input_size, args.input_size)),
+        use_polygons=args.rotation,
     )
     val_loader = DataLoader(
         val_set,
@@ -236,12 +237,19 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, 'images'),
         label_path=os.path.join(args.train_path, 'labels.json'),
-        img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .1),
-            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-        ]),
+        img_transforms=Compose(
+            ([T.Resize((args.input_size, args.input_size))] if not args.rotation else [])
+            + [
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), .1),
+                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            ]
+        ),
+        sample_transforms=T.SampleCompose([
+            T.RandomRotate(90, expand=True),
+            T.ImageTransform(T.Resize((args.input_size, args.input_size))),
+        ]) if args.rotation else None,
+        use_polygons=args.rotation,
     )
 
     train_loader = DataLoader(
@@ -369,7 +377,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
-                        help='train with rotated bbox')
+                        help='train with rotated documents')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')

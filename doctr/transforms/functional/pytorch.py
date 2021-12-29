@@ -51,17 +51,16 @@ def rotate(
 
     # Get absolute coords
     _boxes = deepcopy(boxes)
-    if boxes.dtype != int:
+    if np.max(_boxes) <= 1:
         _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[2]
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[1]
 
-    # Rotate the boxes: xmin, ymin, xmax, ymax --> (4, 2) polygon
-    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:], expand)  # type: ignore[arg-type]
+    # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
+    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
 
-    # Convert them to relative
-    if boxes.dtype != int:
-        r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[2]
-        r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[1]
+    # Always return relative boxes to avoid label confusions when resizing is performed aferwards
+    r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[2]
+    r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[1]
 
     return rotated_img, r_boxes
 

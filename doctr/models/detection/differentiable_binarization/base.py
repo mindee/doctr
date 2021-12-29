@@ -297,6 +297,7 @@ class _DBNet:
                 abs_boxes[:, :, 1] *= output_shape[-2]
                 polys = abs_boxes
                 boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
+                abs_boxes = np.concatenate((abs_boxes.min(1), abs_boxes.max(1)), -1)
             else:
                 abs_boxes[:, [0, 2]] *= output_shape[-1]
                 abs_boxes[:, [1, 3]] *= output_shape[-2]
