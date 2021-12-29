@@ -40,9 +40,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
     },
     'db_resnet50_rotation': {
-        'backbone': resnet50,
-        'backbone_submodule': None,
-        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
@@ -393,4 +390,11 @@ def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet('db_resnet50_rotation', pretrained, **kwargs)
+    return _dbnet(
+        'db_resnet50_rotation',
+        pretrained,
+        resnet50,
+        ['layer1', 'layer2', 'layer3', 'layer4'],
+        None,
+        **kwargs,
+    )

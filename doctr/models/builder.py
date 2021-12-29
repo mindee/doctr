@@ -49,9 +49,9 @@ class DocumentBuilder(NestedObject):
 
         Returns:
             tuple: indices of ordered boxes of shape (N,), boxes
-            If straight boxes are passed tpo the function, boxes are unchanged
-            else: boxes returned are straight boxes fitted to the straightened rotated boxes
-            so that we fit the lines afterwards to the straigthened page
+                If straight boxes are passed tpo the function, boxes are unchanged
+                else: boxes returned are straight boxes fitted to the straightened rotated boxes
+                so that we fit the lines afterwards to the straigthened page
         """
         if boxes.ndim == 3:
             boxes = rotate_boxes(

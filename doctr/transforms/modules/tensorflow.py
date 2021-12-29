@@ -75,7 +75,6 @@ class Resize(NestedObject):
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         input_dtype = img.dtype
-        print(self.output_size)
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
         if self.preserve_aspect_ratio:
             # pad width

@@ -216,7 +216,7 @@ def rectify_loc_preds(
     return np.stack(
         [np.roll(
             page_loc_pred,
-            orientation - 1,
+            orientation,
             axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
         axis=0
     ) if len(orientations) > 0 else None
