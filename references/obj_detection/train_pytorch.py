@@ -238,8 +238,7 @@ def main(args):
             T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
             T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
-        ])
-    )
+        ]))
 
     train_loader = DataLoader(
         train_set,
