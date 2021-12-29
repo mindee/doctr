@@ -10,9 +10,10 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, Sequential
 
-from ....datasets import VOCABS
-from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn
-from ...utils import load_pretrained_params
+from doctr.datasets import VOCABS
+
+from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
+from ...utils.tensorflow import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_mobilenet_v3_small',
@@ -22,7 +23,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': vgg16_bn, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['legacy_french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/crnn_vgg16_bn-76b7f2c6.zip',
@@ -30,7 +30,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': mobilenet_v3_small_r, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_mobilenet_v3_small-7f36edec.zip',
@@ -38,7 +37,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_mobilenet_v3_large': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
-        'backbone': mobilenet_v3_large_r, 'rnn_units': 128,
         'input_shape': (32, 128, 3),
         'vocab': VOCABS['french'],
         'url': None,
@@ -140,9 +138,8 @@ class CRNN(RecognitionModel, Model):
         """Compute CTC loss for the model.
 
         Args:
-            gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
-            seq_len: lengths of each gt word inside the batch
+            target: lengths of each gt word inside the batch
 
         Returns:
             The loss of the model on the batch
@@ -189,6 +186,7 @@ class CRNN(RecognitionModel, Model):
 def _crnn(
     arch: str,
     pretrained: bool,
+    backbone_fn,
     pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any
@@ -196,21 +194,17 @@ def _crnn(
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
-    # Patch the config
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
-    _cfg['rnn_units'] = kwargs.get('rnn_units', _cfg['rnn_units'])
+    kwargs['vocab'] = kwargs.get('vocab', default_cfgs[arch]['vocab'])
 
-    # Feature extractor
-    feat_extractor = _cfg['backbone'](
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['vocab'] = kwargs['vocab']
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
+
+    feat_extractor = backbone_fn(
         input_shape=_cfg['input_shape'],
         include_top=False,
         pretrained=pretrained_backbone,
     )
-
-    kwargs['vocab'] = _cfg['vocab']
-    kwargs['rnn_units'] = _cfg['rnn_units']
 
     # Build the model
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
@@ -239,7 +233,7 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_vgg16_bn', pretrained, **kwargs)
+    return _crnn('crnn_vgg16_bn', pretrained, vgg16_bn_r, **kwargs)
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -260,7 +254,7 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_mobilenet_v3_small', pretrained, **kwargs)
+    return _crnn('crnn_mobilenet_v3_small', pretrained, mobilenet_v3_small_r, **kwargs)
 
 
 def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -281,4 +275,4 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_mobilenet_v3_large', pretrained, **kwargs)
+    return _crnn('crnn_mobilenet_v3_large', pretrained, mobilenet_v3_large_r, **kwargs)
