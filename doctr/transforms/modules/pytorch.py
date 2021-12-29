@@ -11,7 +11,7 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'GaussianNoise']
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle']
 
 
 class Resize(T.Resize):
@@ -56,7 +56,7 @@ class Resize(T.Resize):
 
 
 class GaussianNoise(torch.nn.Module):
-    """Adds Gaussian Noise to an inout image of type torch.tensor
+    """Adds Gaussian Noise to the input tensor
 
        Example::
            >>> from doctr.transforms import GaussianNoise
@@ -74,11 +74,24 @@ class GaussianNoise(torch.nn.Module):
         self.mean = mean
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Reshape the distribution
+        noise = self.mean + 2 * self.std * torch.rand(x.shape, device=x.device) - self.std
         if x.dtype == torch.uint8:
-            return (x + 255 * (self.mean + self.std * torch.rand(x.shape, device=x.device))).round().clamp(0, 255).to(
-                dtype=torch.uint8)
+            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)
         else:
-            return (x + self.mean + self.std * 2 * torch.rand_like(x) - self.std).clamp(0, 1)
+            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)
 
     def extra_repr(self) -> str:
         return f"mean={self.mean}, std={self.std}"
+
+
+class ChannelShuffle(torch.nn.Module):
+    """Randomly shuffle channel order of a given image"""
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, img: torch.Tensor) -> torch.Tensor:
+        # Get a random order
+        chan_order = torch.rand(img.shape[0]).argsort()
+        return img[chan_order]

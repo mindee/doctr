@@ -12,7 +12,8 @@ import tensorflow_addons as tfa
 from doctr.utils.repr import NestedObject
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
-           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur']
+           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
+           'ChannelShuffle']
 
 
 class Compose(NestedObject):
@@ -331,3 +332,13 @@ class GaussianBlur(NestedObject):
         return tfa.image.gaussian_filter2d(
             img, filter_shape=self.kernel_shape, sigma=sigma,
         )
+
+
+class ChannelShuffle(NestedObject):
+    """Randomly shuffle channel order of a given image"""
+
+    def __init__(self):
+        pass
+
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        return tf.transpose(tf.random.shuffle(tf.transpose(img, perm=[2, 0, 1])), perm=[1, 2, 0])
