@@ -23,7 +23,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
         detection.db_mobilenet_v3_large(
-            pretrained=False,
+            pretrained=True,
             pretrained_backbone=False,
             input_shape=(512, 512, 3),
             assume_straight_pages=assume_straight_pages,
