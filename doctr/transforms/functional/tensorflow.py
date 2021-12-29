@@ -12,6 +12,7 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 from doctr.utils.geometry import compute_expanded_shape, rotate_abs_boxes
+
 from .base import crop_boxes
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]

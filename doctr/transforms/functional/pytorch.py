@@ -11,6 +11,7 @@ import torch
 from torchvision.transforms import functional as F
 
 from doctr.utils.geometry import rotate_abs_boxes
+
 from .base import crop_boxes
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]
