@@ -209,7 +209,8 @@
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="s1">&#39;Resize&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="s1">&#39;LambdaTransformation&#39;</span><span class="p">,</span> <span class="s1">&#39;ToGray&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomBrightness&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;RandomContrast&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomSaturation&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomHue&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomGamma&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomJpegQuality&#39;</span><span class="p">,</span> <span class="s1">&#39;GaussianBlur&#39;</span><span class="p">]</span>
+           <span class="s1">&#39;RandomContrast&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomSaturation&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomHue&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomGamma&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomJpegQuality&#39;</span><span class="p">,</span> <span class="s1">&#39;GaussianBlur&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;ChannelShuffle&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -528,6 +529,16 @@
         <span class="k">return</span> <span class="n">tfa</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">gaussian_filter2d</span><span class="p">(</span>
             <span class="n">img</span><span class="p">,</span> <span class="n">filter_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_shape</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ChannelShuffle"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ChannelShuffle">[docs]</a><span class="k">class</span> <span class="nc">ChannelShuffle</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Randomly shuffle channel order of a given image&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])),</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span></div>
 </pre></div>
 
            </div>
