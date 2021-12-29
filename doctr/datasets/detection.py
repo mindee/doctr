@@ -49,7 +49,7 @@ class DetectionDataset(AbstractDataset):
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 
-            polygons = np.asarray(label['polygons'])
+            polygons = np.asarray(label['polygons'], dtype=np.float32)
             geoms = polygons if use_polygons else np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
             self.data.append((img_name, np.asarray(geoms, dtype=np.float32)))
@@ -61,6 +61,7 @@ class DetectionDataset(AbstractDataset):
 
         img, target = self._read_sample(index)
         h, w = self._get_img_shape(img)
+
         if self.img_transforms is not None:
             img = self.img_transforms(img)
 

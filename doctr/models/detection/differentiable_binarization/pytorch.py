@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import torch
@@ -17,36 +17,33 @@ from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large']
+__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
-        'backbone': resnet50,
-        'backbone_submodule': None,
-        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
     },
     'db_resnet34': {
-        'backbone': resnet34,
-        'backbone_submodule': None,
-        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
         'url': None,
     },
     'db_mobilenet_v3_large': {
-        'backbone': mobilenet_v3_large,
-        'backbone_submodule': 'features',
-        'fpn_layers': ['3', '6', '12', '16'],
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
+    },
+    'db_resnet50_rotation': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
     },
 }
 
@@ -258,19 +255,27 @@ class DBNet(_DBNet, nn.Module):
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
 
-def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = True, **kwargs: Any) -> DBNet:
+def _dbnet(
+    arch: str,
+    pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    fpn_layers: List[str],
+    backbone_submodule: Optional[str] = None,
+    pretrained_backbone: bool = True,
+    **kwargs: Any,
+) -> DBNet:
 
     # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
     pretrained_backbone = pretrained_backbone and not arch.split('_')[1].startswith('resnet')
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Feature extractor
-    backbone = default_cfgs[arch]['backbone'](pretrained=pretrained_backbone)
-    if isinstance(default_cfgs[arch]['backbone_submodule'], str):
-        backbone = getattr(backbone, default_cfgs[arch]['backbone_submodule'])
+    backbone = backbone_fn(pretrained_backbone)
+    if isinstance(backbone_submodule, str):
+        backbone = getattr(backbone, backbone_submodule)
     feat_extractor = IntermediateLayerGetter(
         backbone,
-        {layer_name: str(idx) for idx, layer_name in enumerate(default_cfgs[arch]['fpn_layers'])},
+        {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
 
     # Build the model
@@ -300,7 +305,14 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet('db_resnet34', pretrained, **kwargs)
+    return _dbnet(
+        'db_resnet34',
+        pretrained,
+        resnet34,
+        ['layer1', 'layer2', 'layer3', 'layer4'],
+        None,
+        **kwargs,
+    )
 
 
 def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
@@ -321,7 +333,14 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet('db_resnet50', pretrained, **kwargs)
+    return _dbnet(
+        'db_resnet50',
+        pretrained,
+        resnet50,
+        ['layer1', 'layer2', 'layer3', 'layer4'],
+        None,
+        **kwargs,
+    )
 
 
 def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
@@ -342,4 +361,40 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet('db_mobilenet_v3_large', pretrained, **kwargs)
+    return _dbnet(
+        'db_mobilenet_v3_large',
+        pretrained,
+        mobilenet_v3_large,
+        ['3', '6', '12', '16'],
+        'features',
+        **kwargs,
+    )
+
+
+def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
+    This model is trained with rotated documents
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import db_resnet50_rotation
+        >>> model = db_resnet50_rotation(pretrained=True)
+        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _dbnet(
+        'db_resnet50_rotation',
+        pretrained,
+        resnet50,
+        ['layer1', 'layer2', 'layer3', 'layer4'],
+        None,
+        **kwargs,
+    )

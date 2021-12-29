@@ -67,7 +67,7 @@ def test_documentbuilder():
 def test_sort_boxes(input_boxes, sorted_idxs):
 
     doc_builder = builder.DocumentBuilder()
-    assert doc_builder._sort_boxes(np.asarray(input_boxes)).tolist() == sorted_idxs
+    assert doc_builder._sort_boxes(np.asarray(input_boxes))[0].tolist() == sorted_idxs
 
 
 @pytest.mark.parametrize(
