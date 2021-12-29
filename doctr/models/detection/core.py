@@ -35,7 +35,7 @@ class DetectionPostProcessor(NestedObject):
         self._opening_kernel = np.ones((3, 3), dtype=np.uint8)
 
     def extra_repr(self) -> str:
-        return f"box_thresh={self.box_thresh}"
+        return f"bin_thresh={self.bin_thresh}, box_thresh={self.box_thresh}"
 
     @staticmethod
     def box_score(

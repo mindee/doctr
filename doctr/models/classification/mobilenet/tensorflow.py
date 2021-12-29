@@ -24,40 +24,36 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
-        'vocab': VOCABS['legacy_french'],
-        'classes': list(VOCABS['legacy_french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_large-d27d66f2.zip'
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip',
     },
     'mobilenet_v3_large_r': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
-        'vocab': VOCABS['french'],
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip',
     },
     'mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
-        'vocab': VOCABS['legacy_french'],
-        'classes': list(VOCABS['legacy_french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/mobilenet_v3_small-d624c4de.zip'
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip',
     },
     'mobilenet_v3_small_r': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
-        'vocab': VOCABS['french'],
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip',
     },
     'mobilenet_v3_small_orientation': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (128, 128, 3),
         'classes': [0, 90, 180, 270],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip'
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip',
     },
 }
 
@@ -182,11 +178,11 @@ class MobileNetV3(Sequential):
     def __init__(
         self,
         layout: List[InvertedResidualConfig],
-        input_shape: Optional[Tuple[int, int, int]],
-        include_top: bool = False,
+        include_top: bool = True,
         head_chans: int = 1024,
         num_classes: int = 1000,
         cfg: Optional[Dict[str, Any]] = None,
+        input_shape: Optional[Tuple[int, int, int]] = None,
     ) -> None:
 
         _layers = [
@@ -221,25 +217,25 @@ class MobileNetV3(Sequential):
 def _mobilenet_v3(
     arch: str,
     pretrained: bool,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    rect_strides: bool = False,
     **kwargs: Any
 ) -> MobileNetV3:
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
+    _cfg['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
     _cfg['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
         inverted_residual_setting = [
             InvertedResidualConfig(16, 3, 16, 16, True, "RE", 2),  # C1
-            InvertedResidualConfig(16, 3, 72, 24, False, "RE", (2, 1) if arch.endswith("_r") else 2),  # C2
+            InvertedResidualConfig(16, 3, 72, 24, False, "RE", (2, 1) if rect_strides else 2),  # C2
             InvertedResidualConfig(24, 3, 88, 24, False, "RE", 1),
-            InvertedResidualConfig(24, 5, 96, 40, True, "HS", (2, 1) if arch.endswith("_r") else 2),  # C3
+            InvertedResidualConfig(24, 5, 96, 40, True, "HS", (2, 1) if rect_strides else 2),  # C3
             InvertedResidualConfig(40, 5, 240, 40, True, "HS", 1),
             InvertedResidualConfig(40, 5, 240, 40, True, "HS", 1),
             InvertedResidualConfig(40, 5, 120, 48, True, "HS", 1),
             InvertedResidualConfig(48, 5, 144, 48, True, "HS", 1),
-            InvertedResidualConfig(48, 5, 288, 96, True, "HS", (2, 1) if arch.endswith("_r") else 2),  # C4
+            InvertedResidualConfig(48, 5, 288, 96, True, "HS", (2, 1) if rect_strides else 2),  # C4
             InvertedResidualConfig(96, 5, 576, 96, True, "HS", 1),
             InvertedResidualConfig(96, 5, 576, 96, True, "HS", 1),
         ]
@@ -249,28 +245,27 @@ def _mobilenet_v3(
             InvertedResidualConfig(16, 3, 16, 16, False, "RE", 1),
             InvertedResidualConfig(16, 3, 64, 24, False, "RE", 2),  # C1
             InvertedResidualConfig(24, 3, 72, 24, False, "RE", 1),
-            InvertedResidualConfig(24, 5, 72, 40, True, "RE", (2, 1) if arch.endswith("_r") else 2),  # C2
+            InvertedResidualConfig(24, 5, 72, 40, True, "RE", (2, 1) if rect_strides else 2),  # C2
             InvertedResidualConfig(40, 5, 120, 40, True, "RE", 1),
             InvertedResidualConfig(40, 5, 120, 40, True, "RE", 1),
-            InvertedResidualConfig(40, 3, 240, 80, False, "HS", (2, 1) if arch.endswith("_r") else 2),  # C3
+            InvertedResidualConfig(40, 3, 240, 80, False, "HS", (2, 1) if rect_strides else 2),  # C3
             InvertedResidualConfig(80, 3, 200, 80, False, "HS", 1),
             InvertedResidualConfig(80, 3, 184, 80, False, "HS", 1),
             InvertedResidualConfig(80, 3, 184, 80, False, "HS", 1),
             InvertedResidualConfig(80, 3, 480, 112, True, "HS", 1),
             InvertedResidualConfig(112, 3, 672, 112, True, "HS", 1),
-            InvertedResidualConfig(112, 5, 672, 160, True, "HS", (2, 1) if arch.endswith("_r") else 2),  # C4
+            InvertedResidualConfig(112, 5, 672, 160, True, "HS", (2, 1) if rect_strides else 2),  # C4
             InvertedResidualConfig(160, 5, 960, 160, True, "HS", 1),
             InvertedResidualConfig(160, 5, 960, 160, True, "HS", 1),
         ]
         head_chans = 1280
 
     kwargs['num_classes'] = _cfg['num_classes']
-    input_shape = _cfg['input_shape']
+    kwargs['input_shape'] = _cfg['input_shape']
 
     # Build the model
     model = MobileNetV3(
         inverted_residual_setting,
-        input_shape,
         head_chans=head_chans,
         cfg=_cfg,
         **kwargs,
@@ -301,7 +296,7 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small', pretrained, **kwargs)
+    return _mobilenet_v3('mobilenet_v3_small', pretrained, False, **kwargs)
 
 
 def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -323,7 +318,7 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_r', pretrained, **kwargs)
+    return _mobilenet_v3('mobilenet_v3_small_r', pretrained, True, **kwargs)
 
 
 def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -344,7 +339,7 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     Returns:
         a keras.Model
     """
-    return _mobilenet_v3('mobilenet_v3_large', pretrained, **kwargs)
+    return _mobilenet_v3('mobilenet_v3_large', pretrained, False, **kwargs)
 
 
 def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -365,7 +360,7 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
     Returns:
         a keras.Model
     """
-    return _mobilenet_v3('mobilenet_v3_large_r', pretrained, **kwargs)
+    return _mobilenet_v3('mobilenet_v3_large_r', pretrained, True, **kwargs)
 
 
 def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:

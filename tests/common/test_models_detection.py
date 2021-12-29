@@ -23,7 +23,7 @@ def test_dbpostprocessor():
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in out)
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in r_out)
     # Repr
-    assert repr(postprocessor) == 'DBPostProcessor(box_thresh=0.1)'
+    assert repr(postprocessor) == 'DBPostProcessor(bin_thresh=0.3, box_thresh=0.1)'
     # Edge case when the expanded points of the polygon has two lists
     issue_points = np.array([
         [869, 561],
