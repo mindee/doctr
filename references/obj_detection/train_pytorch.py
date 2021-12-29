@@ -19,6 +19,7 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision.transforms import ColorJitter, Compose, GaussianBlur
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
@@ -228,12 +229,16 @@ def main(args):
         return
 
     st = time.time()
-    # Load both train and val data generators
+    # Load train data generators
     train_set = DocArtefacts(
         train=True,
         download=True,
-        img_transforms=T.Resize((args.input_size, args.input_size)),
-    )
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
+        ]))
 
     train_loader = DataLoader(
         train_set,
@@ -330,7 +335,7 @@ def parse_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
-    parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
+    parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')

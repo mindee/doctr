@@ -283,16 +283,16 @@ def test_crop_detection():
         [15, 20, 35, 30],
         [5, 10, 10, 20],
     ])
-    crop_box = (12, 23, 50, 50)
+    crop_box = (12 / 50, 23 / 50, 1., 1.)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
-    assert c_img.shape == (27, 38, 3)
+    assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
     rel_boxes = np.array([
         [.3, .4, .7, .6],
         [.1, .2, .2, .4],
     ])
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
-    assert c_img.shape == (27, 38, 3)
+    assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
 
     # FP16
@@ -302,15 +302,19 @@ def test_crop_detection():
 
 
 def test_random_crop():
-    cropper = T.RandomCrop()
+    transfo = T.RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    c_img, _ = cropper(input_t, dict(boxes=boxes))
-    new_h, new_w = c_img.shape[:2]
-    assert new_h >= 3
-    assert new_w >= 3
+    img, target = transfo(input_t, dict(boxes=boxes))
+    # Check the scale
+    assert img.shape[0] * img.shape[1] >= 0.5 * input_t.shape[0] * input_t.shape[1]
+    # Check aspect ratio
+    assert 0.75 <= img.shape[0] / img.shape[1] <= 1.33
+    # Check the target
+    assert np.all(target['boxes'] >= 0)
+    assert np.all(target['boxes'][:, [0, 2]] <= img.shape[1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[0])
 
 
 def test_gaussian_blur():
@@ -320,3 +324,49 @@ def test_gaussian_blur():
     blur_img = blur(tf.convert_to_tensor(input_t)).numpy()
     assert blur_img.shape == input_t.shape
     assert np.all(blur_img[15, 15] > 0)
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_size",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ],
+)
+def test_channel_shuffle(input_dtype, input_size):
+    transfo = T.ChannelShuffle()
+    input_t = tf.random.uniform(input_size, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round(255 * input_t)
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    out = transfo(input_t)
+    assert isinstance(out, tf.Tensor)
+    assert out.shape == input_size
+    assert out.dtype == input_dtype
+    # Ensure that nothing has changed apart from channel order
+    assert tf.math.reduce_all(tf.math.reduce_sum(input_t, -1) == tf.math.reduce_sum(out, -1))
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ]
+)
+def test_gaussian_noise(input_dtype, input_shape):
+    transform = T.GaussianNoise(0., 1.)
+    input_t = tf.random.uniform(input_shape, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round((255 * input_t))
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, tf.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    assert tf.math.reduce_any(transformed != input_t)
+    assert tf.math.reduce_all(transformed >= 0)
+    if input_dtype == tf.uint8:
+        assert tf.reduce_all(transformed <= 255)
+    else:
+        assert tf.reduce_all(transformed <= 1.)

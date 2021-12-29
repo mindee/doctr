@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import ColorInversion, RandomCrop, RandomRotate, Resize
+from doctr.transforms import ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomRotate, Resize
 from doctr.transforms.functional import crop_detection, rotate
 
 
@@ -136,16 +136,16 @@ def test_crop_detection():
         [15, 20, 35, 30],
         [5, 10, 10, 20],
     ])
-    crop_box = (12, 23, 50, 50)
+    crop_box = (12 / 50, 23 / 50, 50 / 50, 50 / 50)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
-    assert c_img.shape == (3, 27, 38)
+    assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
     rel_boxes = np.array([
         [.3, .4, .7, .6],
         [.1, .2, .2, .4],
     ])
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
-    assert c_img.shape == (3, 27, 38)
+    assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
 
     # FP16
@@ -155,12 +155,66 @@ def test_crop_detection():
 
 
 def test_random_crop():
-    cropper = RandomCrop()
-    input_t = torch.ones((50, 50, 3), dtype=torch.float32)
+    cropper = RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
+    input_t = torch.ones((3, 50, 50), dtype=torch.float32)
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    c_img, _ = cropper(input_t, dict(boxes=boxes))
-    new_h, new_w = c_img.shape[:2]
-    assert new_h >= 3
-    assert new_w >= 3
+    img, target = cropper(input_t, dict(boxes=boxes))
+    # Check the scale
+    assert img.shape[-1] * img.shape[-2] >= 0.5 * input_t.shape[-1] * input_t.shape[-2]
+    # Check aspect ratio
+    assert 0.75 <= img.shape[-2] / img.shape[-1] <= 1.33
+    # Check the target
+    assert np.all(target['boxes'] >= 0)
+    assert np.all(target['boxes'][:, [0, 2]] <= img.shape[-1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[-2])
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_size",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+    ],
+)
+def test_channel_shuffle(input_dtype, input_size):
+    transfo = ChannelShuffle()
+    input_t = torch.rand(input_size, dtype=torch.float32)
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round()
+    input_t = input_t.to(dtype=input_dtype)
+    out = transfo(input_t)
+    assert isinstance(out, torch.Tensor)
+    assert out.shape == input_size
+    assert out.dtype == input_dtype
+    # Ensure that nothing has changed apart from channel order
+    if input_dtype == torch.uint8:
+        assert torch.all(input_t.sum(0) == out.sum(0))
+    else:
+        # Float approximation
+        assert (input_t.sum(0) - out.sum(0)).abs().mean() < 1e-7
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+    ]
+)
+def test_gaussian_noise(input_dtype, input_shape):
+    transform = GaussianNoise(0., 1.)
+    input_t = torch.rand(input_shape, dtype=torch.float32)
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round()
+    input_t = input_t.to(dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, torch.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    assert torch.any(transformed != input_t)
+    assert torch.all(transformed >= 0)
+    if input_dtype == torch.uint8:
+        assert torch.all(transformed <= 255)
+    else:
+        assert torch.all(transformed <= 1.)

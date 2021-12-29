@@ -51,17 +51,16 @@ def rotate(
 
     # Get absolute coords
     _boxes = deepcopy(boxes)
-    if boxes.dtype != int:
+    if np.max(_boxes) <= 1:
         _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[2]
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[1]
 
-    # Rotate the boxes: xmin, ymin, xmax, ymax --> (4, 2) polygon
-    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:], expand)  # type: ignore[arg-type]
+    # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
+    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
 
-    # Convert them to relative
-    if boxes.dtype != int:
-        r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[2]
-        r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[1]
+    # Always return relative boxes to avoid label confusions when resizing is performed aferwards
+    r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[2]
+    r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[1]
 
     return rotated_img, r_boxes
 
@@ -69,19 +68,23 @@ def rotate(
 def crop_detection(
     img: torch.Tensor,
     boxes: np.ndarray,
-    crop_box: Tuple[int, int, int, int]
+    crop_box: Tuple[float, float, float, float]
 ) -> Tuple[torch.Tensor, np.ndarray]:
     """Crop and image and associated bboxes
 
     Args:
         img: image to crop
         boxes: array of boxes to clip, absolute (int) or relative (float)
-        crop_box: box (xmin, ymin, xmax, ymax) to crop the image. Absolute coords.
+        crop_box: box (xmin, ymin, xmax, ymax) to crop the image. Relative coords.
 
     Returns:
         A tuple of cropped image, cropped boxes, where the image is not resized.
     """
-    xmin, ymin, xmax, ymax = crop_box
+    if any(val < 0 or val > 1 for val in crop_box):
+        raise AssertionError("coordinates of arg `crop_box` should be relative")
+    h, w = img.shape[-2:]
+    xmin, ymin = int(round(crop_box[0] * (w - 1))), int(round(crop_box[1] * (h - 1)))
+    xmax, ymax = int(round(crop_box[2] * (w - 1))), int(round(crop_box[3] * (h - 1)))
     croped_img = F.crop(
         img, ymin, xmin, ymax - ymin, xmax - xmin
     )

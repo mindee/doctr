@@ -203,7 +203,7 @@ def polygon_iou(
     polys_1: np.ndarray,
     polys_2: np.ndarray,
     mask_shape: Tuple[int, int],
-    use_broadcasting: bool = True
+    use_broadcasting: bool = False
 ) -> np.ndarray:
     """Computes the IoU between two sets of rotated bounding boxes
 

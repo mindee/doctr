@@ -12,7 +12,8 @@ import tensorflow_addons as tfa
 from doctr.utils.repr import NestedObject
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
-           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur']
+           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
+           'ChannelShuffle', 'GaussianNoise']
 
 
 class Compose(NestedObject):
@@ -331,3 +332,46 @@ class GaussianBlur(NestedObject):
         return tfa.image.gaussian_filter2d(
             img, filter_shape=self.kernel_shape, sigma=sigma,
         )
+
+
+class ChannelShuffle(NestedObject):
+    """Randomly shuffle channel order of a given image"""
+
+    def __init__(self):
+        pass
+
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        return tf.transpose(tf.random.shuffle(tf.transpose(img, perm=[2, 0, 1])), perm=[1, 2, 0])
+
+
+class GaussianNoise(NestedObject):
+    """Adds Gaussian Noise to the input tensor
+
+       Example::
+           >>> from doctr.transforms import GaussianNoise
+           >>> import tensorflow as tf
+           >>> transfo = GaussianNoise(0., 1.)
+           >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+       Args:
+           mean : mean of the gaussian distribution
+           std : std of the gaussian distribution
+       """
+    def __init__(self, mean: float = 0., std: float = 1.) -> None:
+        super().__init__()
+        self.std = std
+        self.mean = mean
+
+    def __call__(self, x: tf.Tensor) -> tf.Tensor:
+        # Reshape the distribution
+        noise = self.mean + 2 * self.std * tf.random.uniform(x.shape) - self.std
+        if x.dtype == tf.uint8:
+            return tf.cast(
+                tf.clip_by_value(tf.math.round(tf.cast(x, dtype=tf.float32) + 255 * noise), 0, 255),
+                dtype=tf.uint8
+            )
+        else:
+            return tf.cast(tf.clip_by_value(x + noise, 0, 1), dtype=x.dtype)
+
+    def extra_repr(self) -> str:
+        return f"mean={self.mean}, std={self.std}"

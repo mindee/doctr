@@ -174,17 +174,16 @@ class RandomCrop(NestedObject):
         return f"scale={self.scale}, ratio={self.ratio}"
 
     def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
-        h, w = img.shape[:2]
         scale = random.uniform(self.scale[0], self.scale[1])
         ratio = random.uniform(self.ratio[0], self.ratio[1])
+        # Those might overflow
         crop_h = math.sqrt(scale * ratio)
         crop_w = math.sqrt(scale / ratio)
-        start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
-        crop_box = (
-            max(0, int(round(start_x * w))),
-            max(0, int(round(start_y * h))),
-            min(int(round((start_x + crop_w) * w)), w - 1),
-            min(int(round((start_y + crop_h) * h)), h - 1)
-        )
-        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], crop_box)
+        xmin, ymin = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
+        xmax, ymax = xmin + crop_w, ymin + crop_h
+        # Clip them
+        xmin, ymin = max(xmin, 0), max(ymin, 0)
+        xmax, ymax = min(xmax, 1), min(ymax, 1)
+
+        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], (xmin, ymin, xmax, ymax))
         return croped_img, dict(boxes=crop_boxes)
