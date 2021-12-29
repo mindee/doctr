@@ -139,11 +139,11 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
-        img_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)) if not args.rotation else None,
         sample_transforms=T.SampleCompose([
             T.RandomRotate(0, expand=True),
             T.ImageTransform(T.Resize((args.input_size, args.input_size))),
-        ]) if args.rotation else T.ImageTransform(T.Resize((args.input_size, args.input_size))),
+        ]) if args.rotation else None
     )
     val_loader = DataLoader(
         val_set,
@@ -187,18 +187,21 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, 'images'),
         label_path=os.path.join(args.train_path, 'labels.json'),
-        img_transforms=T.Compose([
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .1),
-            T.RandomJpegQuality(60),
-            T.RandomSaturation(.3),
-            T.RandomContrast(.3),
-            T.RandomBrightness(.3),
-        ]),
+        img_transforms=T.Compose(
+            ([T.Resize((args.input_size, args.input_size))] if not args.rotation else [])
+            + [
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), .1),
+                T.RandomJpegQuality(60),
+                T.RandomSaturation(.3),
+                T.RandomContrast(.3),
+                T.RandomBrightness(.3),
+            ]
+        ),
         sample_transforms=T.SampleCompose([
             T.RandomRotate(90, expand=True),
             T.ImageTransform(T.Resize((args.input_size, args.input_size))),
-        ]) if args.rotation else T.ImageTransform(T.Resize((args.input_size, args.input_size))),
+        ]) if args.rotation else None
     )
     train_loader = DataLoader(
         train_set,
