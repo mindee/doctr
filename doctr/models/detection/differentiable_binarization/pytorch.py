@@ -17,7 +17,7 @@ from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large']
+__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -28,8 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'url_straight_p': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
-        'url_rot_p': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
     },
     'db_resnet34': {
         'backbone': resnet34,
@@ -38,7 +37,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
-        'url_straight_p': None,
+        'url': None,
     },
     'db_mobilenet_v3_large': {
         'backbone': mobilenet_v3_large,
@@ -47,7 +46,16 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'url_straight_p': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-fd62154b.pt',
+    },
+    'db_resnet50_rotation': {
+        'backbone': resnet50,
+        'backbone_submodule': None,
+        'fpn_layers': ['layer1', 'layer2', 'layer3', 'layer4'],
+        'input_shape': (3, 1024, 1024),
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
     },
 }
 
@@ -278,10 +286,7 @@ def _dbnet(arch: str, pretrained: bool, pretrained_backbone: bool = True, **kwar
     model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        if model.assume_straight_pages is True:
-            load_pretrained_params(model, default_cfgs[arch]['url_straight_p'])
-        else:
-            load_pretrained_params(model, default_cfgs[arch]['url_rot_p'])
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
@@ -347,3 +352,25 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _dbnet('db_mobilenet_v3_large', pretrained, **kwargs)
+
+
+def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
+    This model is trained with rotated documents
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import db_resnet50_rotation
+        >>> model = db_resnet50_rotation(pretrained=True)
+        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _dbnet('db_resnet50_rotation', pretrained, **kwargs)

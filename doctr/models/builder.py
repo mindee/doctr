@@ -60,31 +60,29 @@ class DocumentBuilder(NestedObject):
                 orig_shape=(1024, 1024),
                 min_angle=5.,
             )
-            xmin, xmax = np.min(boxes[:, :, 0], axis=1), np.max(boxes[:, :, 0], axis=1)
-            ymin, ymax = np.min(boxes[:, :, 1], axis=1), np.max(boxes[:, :, 1], axis=1)
-            boxes = np.stack([xmin, ymin, xmax, ymax], -1)
+            boxes = np.concatenate((boxes.min(1), boxes.max(1)), -1)
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
 
-    def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
+    def _resolve_sub_lines(self, boxes: np.ndarray, word_idcs: List[int]) -> List[List[int]]:
         """Split a line in sub_lines
 
         Args:
             boxes: bounding boxes of shape (N, 4)
-            words: list of indexes for the words of the line
+            word_idcs: list of indexes for the words of the line
 
         Returns:
             A list of (sub-)lines computed from the original line (words)
         """
         lines = []
         # Sort words horizontally
-        words = [words[j] for j in np.argsort([boxes[i, 0] for i in words]).tolist()]
+        word_idcs = [word_idcs[idx] for idx in boxes[word_idcs, 0].argsort().tolist()]
 
         # Eventually split line horizontally
-        if len(words) < 2:
-            lines.append(words)
+        if len(word_idcs) < 2:
+            lines.append(word_idcs)
         else:
-            sub_line = [words[0]]
-            for i in words[1:]:
+            sub_line = [word_idcs[0]]
+            for i in word_idcs[1:]:
                 horiz_break = True
 
                 prev_box = boxes[sub_line[-1]]
@@ -235,15 +233,15 @@ class DocumentBuilder(NestedObject):
         # Decide whether we try to form lines
         _boxes = boxes
         if self.resolve_lines:
-            lines = self._resolve_lines(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4])
+            lines = self._resolve_lines(_boxes if _boxes.ndim == 3 else _boxes[:, :4])
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4], lines)
+                _blocks = self._resolve_blocks(_boxes if _boxes.ndim == 3 else _boxes[:, :4], lines)
             else:
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(_boxes if len(_boxes.shape) == 3 else _boxes[:, :4])[0]]
+            lines = [self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4])[0]]
             _blocks = [lines]
 
         blocks = [
@@ -297,9 +295,7 @@ class DocumentBuilder(NestedObject):
                 # Iterate over pages
                 for p_boxes in boxes:
                     # Iterate over boxes of the pages
-                    xmin, xmax = np.min(p_boxes[:, :, 0], axis=1), np.max(p_boxes[:, :, 0], axis=1)
-                    ymin, ymax = np.min(p_boxes[:, :, 1], axis=1), np.max(p_boxes[:, :, 1], axis=1)
-                    straight_boxes.append(np.stack([xmin, ymin, xmax, ymax], -1))
+                    straight_boxes.append(np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1))
                 boxes = straight_boxes
 
         _pages = [

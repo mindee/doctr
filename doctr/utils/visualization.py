@@ -220,7 +220,6 @@ def visualize_page(
                         alpha=0.5,
                         color=(0, 0, 1),
                     )
-                pass
 
         if display_artefacts:
             for artefact in block['artefacts']:
