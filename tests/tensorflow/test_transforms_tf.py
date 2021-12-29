@@ -345,3 +345,28 @@ def test_channel_shuffle(input_dtype, input_size):
     assert out.dtype == input_dtype
     # Ensure that nothing has changed apart from channel order
     assert tf.math.reduce_all(tf.math.reduce_sum(input_t, -1) == tf.math.reduce_sum(out, -1))
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ]
+)
+def test_gaussian_noise(input_dtype, input_shape):
+    transform = T.GaussianNoise(0., 1.)
+    input_t = tf.random.uniform(input_shape, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round((255 * input_t))
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, tf.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    assert tf.math.reduce_any(transformed != input_t)
+    assert tf.math.reduce_all(transformed >= 0)
+    if input_dtype == tf.uint8:
+        assert tf.reduce_all(transformed <= 255)
+    else:
+        assert tf.reduce_all(transformed <= 1.)
