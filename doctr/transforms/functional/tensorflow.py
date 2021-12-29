@@ -109,9 +109,9 @@ def crop_detection(
         boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin / w, xmax / w)
         boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin / h, ymax / h)
     # Remove 0-sized boxes
-    zero_height = boxes[:, 1] == boxes[:, 3]
-    zero_width = boxes[:, 0] == boxes[:, 2]
-    empty_boxes = np.logical_or(zero_height, zero_width)
-    boxes = boxes[~empty_boxes]
+    zero_height = boxes[:, 1] < boxes[:, 3]
+    zero_width = boxes[:, 0] < boxes[:, 2]
+    nonempty_boxes = np.logical_and(zero_height, zero_width)
+    boxes = boxes[nonempty_boxes]
 
     return croped_img, boxes
