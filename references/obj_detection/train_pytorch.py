@@ -19,7 +19,7 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import Compose
+from torchvision.transforms import ColorJitter, Compose, GaussianBlur
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
@@ -236,6 +236,8 @@ def main(args):
         img_transforms=Compose([
             T.Resize((args.input_size, args.input_size)),
             T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
         ])
     )
 
