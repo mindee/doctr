@@ -66,7 +66,7 @@ def rotate(
         _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[1]
         _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[0]
 
-    # Rotate the boxes: xmin, ymin, xmax, ymax --> (4, 2) polygon
+    # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
     r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[:-1], expand).astype(np.float32)
 
     # Always return relative boxes to avoid label confusions when resizing is performed aferwards

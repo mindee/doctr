@@ -140,7 +140,7 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         img_transforms=T.Resize((args.input_size, args.input_size)),
-        use_polygons=True if args.rotation else False
+        use_polygons=args.rotation,
     )
     val_loader = DataLoader(
         val_set,
@@ -198,7 +198,8 @@ def main(args):
         sample_transforms=T.SampleCompose([
             T.RandomRotate(90, expand=True),
             T.ImageTransform(T.Resize((args.input_size, args.input_size))),
-        ]) if args.rotation else None
+        ]) if args.rotation else None,
+        use_polygons=args.rotation,
     )
     train_loader = DataLoader(
         train_set,
