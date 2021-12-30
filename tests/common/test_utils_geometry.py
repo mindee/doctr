@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from doctr.utils import geometry
 
@@ -70,3 +71,41 @@ def test_rotate_image():
     rotated = geometry.rotate_image(img, 90., expand=True)
     assert rotated.shape[:-1] == (64, 128)
     assert rotated[0, :, 0].sum() <= 1
+
+
+@pytest.mark.parametrize(
+    "abs_geoms, img_size, rel_geoms",
+    [
+        # Full image (boxes)
+        [
+            np.array([[0, 0, 32, 32]]),
+            (32, 32),
+            np.array([[0, 0, 1, 1]], dtype=np.float32)
+        ],
+        # Full image (polygons)
+        [
+            np.array([[[0, 0], [32, 0], [32, 32], [0, 32]]]),
+            (32, 32),
+            np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32)
+        ],
+        # Quarter image (boxes)
+        [
+            np.array([[0, 0, 16, 16]]),
+            (32, 32),
+            np.array([[0, 0, .5, .5]], dtype=np.float32)
+        ],
+        # Quarter image (polygons)
+        [
+            np.array([[[0, 0], [16, 0], [16, 16], [0, 16]]]),
+            (32, 32),
+            np.array([[[0, 0], [.5, 0], [.5, .5], [0, .5]]], dtype=np.float32)
+        ],
+    ],
+)
+def test_convert_to_relative_coords(abs_geoms, img_size, rel_geoms):
+
+    assert np.all(geometry.convert_to_relative_coords(abs_geoms, img_size) == rel_geoms)
+
+    # Wrong format
+    with pytest.raises(ValueError):
+        geometry.convert_to_relative_coords(np.zeros((3, 5)), (32, 32))
