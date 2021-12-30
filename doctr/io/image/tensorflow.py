@@ -104,5 +104,6 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: tf.dtypes.DType = tf.float32) 
 
     return img
 
+
 def get_img_shape(img: tf.Tensor) -> Tuple[int, int]:
     return img.shape[:2]

@@ -9,9 +9,10 @@ from typing import Any, List, Tuple
 
 import numpy as np
 
-from .datasets import AbstractDataset
-from doctr.utils.geometry import convert_to_relative_coords
 from doctr.io.image import get_img_shape
+from doctr.utils.geometry import convert_to_relative_coords
+
+from .datasets import AbstractDataset
 
 __all__ = ["DetectionDataset"]
 

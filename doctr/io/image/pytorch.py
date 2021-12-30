@@ -99,5 +99,6 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -
 
     return img
 
+
 def get_img_shape(img: torch.Tensor) -> Tuple[int, int]:
-    return img.shape[-2:]
+    return img.shape[-2:]  # type: ignore[return-value]
