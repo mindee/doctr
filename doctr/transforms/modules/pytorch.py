@@ -4,14 +4,15 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-from typing import Tuple
+from typing import Dict, Tuple
 
+import numpy as np
 import torch
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle']
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandHorizontalFlip']
 
 
 class Resize(T.Resize):
@@ -95,3 +96,23 @@ class ChannelShuffle(torch.nn.Module):
         # Get a random order
         chan_order = torch.rand(img.shape[0]).argsort()
         return img[chan_order]
+
+
+class RandHorizontalFlip(torch.nn.Module):
+    """Performs random horizontal flip altering the input image and bboxes in relative coordinates"""
+    def __init__(self, p: float = 0.5) -> None:
+        super().__init__()
+        self.p = p
+
+    def forward(self, img: torch.Tensor, bbox: Dict) -> Tuple[torch.Tensor, Dict]:
+        if np.random.rand() <= self.p:
+            trans = T.RandomHorizontalFlip(p=1)
+            # Flipping the image
+            transformed = trans(img)
+            bbox_dup = bbox.copy()
+            # Changing the relative bbox coordinates
+            for id in range(len(bbox["boxes"])):
+                bbox_dup["boxes"][id][0], bbox_dup["boxes"][id][2] = 1 - bbox["boxes"][id][2], 1 - bbox["boxes"][id][0]
+            return transformed, bbox_dup
+        else:
+            return img, bbox
