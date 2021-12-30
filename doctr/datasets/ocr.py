@@ -51,10 +51,10 @@ class OCRDataset(AbstractDataset):
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np_dtype), labels=[])))
                 continue
             # Unpack the straight boxes
-            geoms = [tuple(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
+            geoms = [list(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
             if use_polygons:
                 geoms = [
-                    [geom[:2], [geom[2], geom[1]], geom[2:], [geom[0], geom[3]]]
+                    [geom[:2], [geom[2], geom[1]], geom[2:], [geom[0], geom[3]]]  # type: ignore[list-item]
                     for geom in geoms
                 ]
 
