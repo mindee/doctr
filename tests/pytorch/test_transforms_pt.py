@@ -140,18 +140,25 @@ def test_crop_detection():
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
+    assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
+
     rel_boxes = np.array([
         [.3, .4, .7, .6],
         [.1, .2, .2, .4],
     ])
+    crop_box = (0.24, 0.46, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
+    assert np.abs(c_boxes - np.array([.06 / .76, 0., .46 / .76, .14 / .54])[None, ...]).mean() < 1e-7
 
     # FP16
     img = torch.ones((3, 50, 50), dtype=torch.float16)
     c_img, _ = crop_detection(img, abs_boxes, crop_box)
     assert c_img.dtype == torch.float16
+
+    with pytest.raises(AssertionError):
+        crop_detection(img, abs_boxes, (2, 6, 24, 56))
 
 
 def test_random_crop():
@@ -162,9 +169,9 @@ def test_random_crop():
     ])
     img, target = cropper(input_t, dict(boxes=boxes))
     # Check the scale
-    assert img.shape[-1] * img.shape[-2] >= 0.5 * input_t.shape[-1] * input_t.shape[-2]
+    assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
-    assert 0.75 <= img.shape[-2] / img.shape[-1] <= 1.33
+    assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.5
     # Check the target
     assert np.all(target['boxes'] >= 0)
     assert np.all(target['boxes'][:, [0, 2]] <= img.shape[-1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[-2])
