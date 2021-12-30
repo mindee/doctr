@@ -10,7 +10,7 @@ from doctr.datasets import DataLoader
 from doctr.transforms import Resize
 
 
-def _validate_dataset(ds, input_size, batch_size=2, relative_coords=True, class_indices=False):
+def _validate_dataset(ds, input_size, batch_size=2, class_indices=False):
 
     # Fetch one sample
     img, target = ds[0]
@@ -19,8 +19,7 @@ def _validate_dataset(ds, input_size, batch_size=2, relative_coords=True, class_
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     assert isinstance(target['boxes'], np.ndarray)
-    if relative_coords:
-        assert np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0))
+    assert np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0))
     if class_indices:
         assert isinstance(target['labels'], np.ndarray) and target['labels'].dtype == np.int64
     else:
@@ -245,7 +244,7 @@ def test_svhn(input_size, num_samples, rotate, mock_svhn_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SVHN(train={True})"
-    _validate_dataset(ds, input_size, relative_coords=False)
+    _validate_dataset(ds, input_size)
 
 
 @pytest.mark.parametrize(
@@ -266,7 +265,7 @@ def test_sroie(input_size, num_samples, rotate, mock_sroie_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SROIE(train={True})"
-    _validate_dataset(ds, input_size, relative_coords=False)
+    _validate_dataset(ds, input_size)
 
 
 @pytest.mark.parametrize(
@@ -289,7 +288,7 @@ def test_funsd(input_size, num_samples, rotate, mock_funsd_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"FUNSD(train={True})"
-    _validate_dataset(ds, input_size, relative_coords=False)
+    _validate_dataset(ds, input_size)
 
 
 @pytest.mark.parametrize(
@@ -310,7 +309,7 @@ def test_cord(input_size, num_samples, rotate, mock_cord_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"CORD(train={True})"
-    _validate_dataset(ds, input_size, relative_coords=False)
+    _validate_dataset(ds, input_size)
 
 
 @pytest.mark.parametrize(
@@ -332,7 +331,7 @@ def test_synthtext(input_size, num_samples, rotate, mock_synthtext_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SynthText(train={True})"
-    _validate_dataset(ds, input_size, relative_coords=False)
+    _validate_dataset(ds, input_size)
 
 
 @pytest.mark.parametrize(
@@ -377,7 +376,7 @@ def test_iiit5k(input_size, num_samples, rotate, mock_iiit5k_dataset):
     assert len(ds) == num_samples
     assert repr(ds) == f"IIIT5K(train={True})"
     img, target = ds[0]
-    _validate_dataset(ds, input_size, batch_size=1, relative_coords=False)
+    _validate_dataset(ds, input_size, batch_size=1)
 
 
 @pytest.mark.parametrize(
