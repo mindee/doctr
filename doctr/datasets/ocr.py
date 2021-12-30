@@ -48,8 +48,8 @@ class OCRDataset(AbstractDataset):
             if len(annotations["typed_words"]) == 0:
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np_dtype), labels=[])))
                 continue
-            # Unpack
-            box_targets = [tuple(map(float, obj['geometry'])) for obj in annotations['typed_words']]
+            # Unpack the straight boxes
+            geoms = [tuple(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
             text_targets = [obj['value'] for obj in annotations['typed_words']]
 
-            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=text_targets)))
+            self.data.append((img_name, dict(boxes=np.asarray(geoms, dtype=np_dtype), labels=text_targets)))
