@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomRotate, Resize
+from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandHorizontalFlip, RandomCrop,
+                              RandomRotate, Resize)
 from doctr.transforms.functional import crop_detection, rotate
 
 
@@ -218,3 +219,21 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.)
+
+
+@pytest.mark.parametrize("p", [1, 0])
+def test_rand_horizontalflip(p):
+    # testing for 2 cases, with flip probability 1 and 0.
+    transform = RandHorizontalFlip(p)
+    input_t = torch.rand((3, 64, 64), dtype=torch.float32)
+    bbox = {"boxes": [[0.1, 0.1, 0.3, 0.4]], "labels": [1]}
+    transformed, t_bbox = transform(input_t, bbox)
+    assert isinstance(transformed, torch.Tensor)
+    assert transformed.shape == input_t.shape
+    assert transformed.dtype == input_t.dtype
+    if p == 1:
+        assert t_bbox["boxes"][0][0] == 0.7  # shifted x_min
+        assert t_bbox["boxes"][0][2] == 0.9  # shifted x_max
+        assert t_bbox["boxes"][1::2] == bbox["boxes"][1::2]
+    else:
+        assert t_bbox["boxes"] == bbox["boxes"]
