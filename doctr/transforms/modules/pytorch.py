@@ -4,10 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
-import numpy as np
 import torch
+from PIL.Image import Image
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
@@ -98,21 +98,24 @@ class ChannelShuffle(torch.nn.Module):
         return img[chan_order]
 
 
-class RandHorizontalFlip(torch.nn.Module):
-    """Performs random horizontal flip altering the input image and bboxes in relative coordinates"""
-    def __init__(self, p: float = 0.5) -> None:
-        super().__init__()
-        self.p = p
+class RandHorizontalFlip(T.RandomHorizontalFlip):
 
-    def forward(self, img: torch.Tensor, bbox: Dict) -> Tuple[torch.Tensor, Dict]:
-        if np.random.rand() <= self.p:
-            trans = T.RandomHorizontalFlip(p=1)
-            # Flipping the image
-            transformed = trans(img)
-            bbox_dup = bbox.copy()
+    def forward(
+            self,
+            img: Union[torch.Tensor, Image],
+            target: Dict[str, Any]
+    ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
+        """
+        Args:
+            img: Image to be flipped.
+            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
+        Returns:
+            Tuple of PIL Image or Tensor and target
+        """
+        if torch.rand(1) < self.p:
+            _img = F.hflip(img)
+            _target = target.copy()
             # Changing the relative bbox coordinates
-            for id in range(len(bbox["boxes"])):
-                bbox_dup["boxes"][id][0], bbox_dup["boxes"][id][2] = 1 - bbox["boxes"][id][2], 1 - bbox["boxes"][id][0]
-            return transformed, bbox_dup
-        else:
-            return img, bbox
+            _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
+            return _img, _target
+        return img, target
