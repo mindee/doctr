@@ -4,14 +4,15 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-from typing import Tuple
+from typing import Any, Dict, Tuple, Union
 
 import torch
+from PIL.Image import Image
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle']
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip']
 
 
 class Resize(T.Resize):
@@ -95,3 +96,26 @@ class ChannelShuffle(torch.nn.Module):
         # Get a random order
         chan_order = torch.rand(img.shape[0]).argsort()
         return img[chan_order]
+
+
+class RandomHorizontalFlip(T.RandomHorizontalFlip):
+
+    def forward(
+            self,
+            img: Union[torch.Tensor, Image],
+            target: Dict[str, Any]
+    ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
+        """
+        Args:
+            img: Image to be flipped.
+            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
+        Returns:
+            Tuple of PIL Image or Tensor and target
+        """
+        if torch.rand(1) < self.p:
+            _img = F.hflip(img)
+            _target = target.copy()
+            # Changing the relative bbox coordinates
+            _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
+            return _img, _target
+        return img, target
