@@ -12,7 +12,7 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandHorizontalFlip']
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip']
 
 
 class Resize(T.Resize):
@@ -98,7 +98,7 @@ class ChannelShuffle(torch.nn.Module):
         return img[chan_order]
 
 
-class RandHorizontalFlip(T.RandomHorizontalFlip):
+class RandomHorizontalFlip(T.RandomHorizontalFlip):
 
     def forward(
             self,
