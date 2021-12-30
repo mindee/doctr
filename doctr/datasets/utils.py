@@ -7,15 +7,20 @@ import string
 import unicodedata
 from collections.abc import Sequence
 from functools import partial
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from typing import Sequence as SequenceType
-from typing import Union
+from typing import Tuple, TypeVar, Union
 
 import numpy as np
+
+from doctr.io.image import get_img_shape
+from doctr.utils.geometry import convert_to_relative_coords
 
 from .vocabs import VOCABS
 
 __all__ = ['translate', 'encode_string', 'decode_sequence', 'encode_sequences']
+
+I = TypeVar('I')
 
 
 def translate(
@@ -150,3 +155,9 @@ def encode_sequences(
         encoded_data[:, 0] = sos
 
     return encoded_data
+
+
+def convert_target_to_relative(img: I, target: Dict[str, Any]) -> Tuple[I, Dict[str, Any]]:
+
+    target['boxes'] = convert_to_relative_coords(target['boxes'], get_img_shape(img))
+    return img, target
