@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 
 from .datasets import AbstractDataset
+from .utils import convert_target_to_relative
 
 __all__ = ["IC13"]
 
@@ -39,7 +40,7 @@ class IC13(AbstractDataset):
         use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder, **kwargs)
+        super().__init__(img_folder, pre_transforms=convert_target_to_relative, **kwargs)
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):
@@ -77,22 +78,3 @@ class IC13(AbstractDataset):
                     ], dtype=np_dtype
                 )
             self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
-
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
-        img, target = self._read_sample(index)
-        h, w = self._get_img_shape(img)
-        if self.img_transforms is not None:
-            img = self.img_transforms(img)
-
-        # Boxes
-        boxes = target['boxes'].copy()
-        if boxes.ndim == 3:
-            boxes[..., 0] /= w
-            boxes[..., 1] /= h
-        else:
-            boxes[..., [0, 2]] /= w
-            boxes[..., [1, 3]] /= h
-        boxes = boxes.clip(0, 1)
-        target['boxes'] = boxes
-
-        return img, target

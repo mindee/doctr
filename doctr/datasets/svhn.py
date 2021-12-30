@@ -11,6 +11,7 @@ import numpy as np
 from tqdm import tqdm
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['SVHN']
 
@@ -45,7 +46,14 @@ class SVHN(VisionDataset):
     ) -> None:
 
         url, sha256, name = self.TRAIN if train else self.TEST
-        super().__init__(url, file_name=name, file_hash=sha256, extract_archive=True, **kwargs)
+        super().__init__(
+            url,
+            file_name=name,
+            file_hash=sha256,
+            extract_archive=True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32

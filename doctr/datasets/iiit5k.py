@@ -11,6 +11,7 @@ import numpy as np
 import scipy.io as sio
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['IIIT5K']
 
@@ -42,7 +43,14 @@ class IIIT5K(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, None, file_hash=self.SHA256, extract_archive=True, **kwargs)
+        super().__init__(
+            self.URL,
+            None,
+            file_hash=self.SHA256,
+            extract_archive=True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
 
         # Load mat data

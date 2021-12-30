@@ -10,6 +10,8 @@ from typing import Any, List, Tuple
 import numpy as np
 
 from .datasets import AbstractDataset
+from doctr.utils.geometry import convert_to_relative_coords
+from doctr.io.image import get_img_shape
 
 __all__ = ["DetectionDataset"]
 
@@ -35,7 +37,11 @@ class DetectionDataset(AbstractDataset):
         use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder, **kwargs)
+        super().__init__(
+            img_folder,
+            pre_transforms=lambda img, boxes: (img, convert_to_relative_coords(boxes, get_img_shape(img))),
+            **kwargs
+        )
 
         # File existence check
         if not os.path.exists(label_path):
@@ -53,33 +59,3 @@ class DetectionDataset(AbstractDataset):
             geoms = polygons if use_polygons else np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
             self.data.append((img_name, np.asarray(geoms, dtype=np.float32)))
-
-    def __getitem__(
-        self,
-        index: int
-    ) -> Tuple[Any, np.ndarray]:
-
-        img, target = self._read_sample(index)
-        h, w = self._get_img_shape(img)
-
-        if self.img_transforms is not None:
-            img = self.img_transforms(img)
-
-        if self.sample_transforms is not None:
-            # Here we may modify coordinates, each transformation must accept/return relative coordinates
-            # Otherwise, if we use the resize operation afterwards it will not only modify images but coordinates
-            img, target = self.sample_transforms(img, target)
-
-        # Boxes
-        target = target.copy()
-        if np.max(target) > 1:  # Absolute coords
-            if target.ndim == 3:
-                target[..., 0] /= w
-                target[..., 1] /= h
-            else:
-                target[..., [0, 2]] /= w
-                target[..., [1, 3]] /= h
-
-        target = target.clip(0, 1)
-
-        return img, target

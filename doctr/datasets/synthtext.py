@@ -11,6 +11,7 @@ import scipy.io as sio
 from tqdm import tqdm
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['SynthText']
 
@@ -41,7 +42,14 @@ class SynthText(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, None, file_hash=None, extract_archive=True, **kwargs)
+        super().__init__(
+            self.URL,
+            None,
+            file_hash=None,
+            extract_archive=True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
 
         # Load mat data
@@ -61,8 +69,8 @@ class SynthText(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
 
-            labels = [elt for word in txt.tolist() for elt in word.split()]
-            word_boxes = word_boxes.transpose(2, 1, 0) if word_boxes.ndim == 3 else np.expand_dims(word_boxes, axis=0)
+            labels = ''.join(txt).split()
+            word_boxes = word_boxes.transpose(2, 1, 0)
 
             if not use_polygons:
                 word_boxes = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
