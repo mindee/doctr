@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandHorizontalFlip, RandomCrop,
+from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomHorizontalFlip,
                               RandomRotate, Resize)
 from doctr.transforms.functional import crop_detection, rotate
 
@@ -222,9 +222,9 @@ def test_gaussian_noise(input_dtype, input_shape):
 
 
 @pytest.mark.parametrize("p", [1, 0])
-def test_rand_horizontalflip(p):
+def test_randomhorizontalflip(p):
     # testing for 2 cases, with flip probability 1 and 0.
-    transform = RandHorizontalFlip(p)
+    transform = RandomHorizontalFlip(p)
     input_t = torch.ones((3, 32, 32), dtype=torch.float32)
     input_t[..., :16] = 0
     target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
