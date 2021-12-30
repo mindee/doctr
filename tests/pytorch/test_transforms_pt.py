@@ -225,15 +225,22 @@ def test_gaussian_noise(input_dtype, input_shape):
 def test_rand_horizontalflip(p):
     # testing for 2 cases, with flip probability 1 and 0.
     transform = RandHorizontalFlip(p)
-    input_t = torch.rand((3, 64, 64), dtype=torch.float32)
-    bbox = {"boxes": [[0.1, 0.1, 0.3, 0.4]], "labels": [1]}
-    transformed, t_bbox = transform(input_t, bbox)
+    input_t = torch.ones((3, 32, 32), dtype=torch.float32)
+    input_t[..., :16] = 0
+    target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    transformed, _target = transform(input_t, target)
     assert isinstance(transformed, torch.Tensor)
     assert transformed.shape == input_t.shape
     assert transformed.dtype == input_t.dtype
+    # integrity check of targets
+    assert isinstance(_target, dict)
+    assert all(isinstance(val, np.ndarray) for val in _target.values())
+    assert _target["boxes"].dtype == np.float32
+    assert _target["labels"].dtype == np.int64
     if p == 1:
-        assert t_bbox["boxes"][0][0] == 0.7  # shifted x_min
-        assert t_bbox["boxes"][0][2] == 0.9  # shifted x_max
-        assert t_bbox["boxes"][1::2] == bbox["boxes"][1::2]
-    else:
-        assert t_bbox["boxes"] == bbox["boxes"]
+        assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+        assert torch.all(transformed.mean((0, 1)) == torch.tensor([1] * 16 + [0] * 16, dtype=torch.float32))
+    elif p == 0:
+        assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+        assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
+    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
