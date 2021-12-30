@@ -10,7 +10,7 @@ from doctr.datasets import DataLoader
 from doctr.transforms import Resize
 
 
-def _validate_dataset(ds, input_size, batch_size=2, class_indices=False):
+def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
 
     # Fetch one sample
     img, target = ds[0]
@@ -19,7 +19,11 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False):
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
     assert isinstance(target['boxes'], np.ndarray)
-    assert np.all((target['boxes'][:, :4] <= 1) & (target['boxes'][:, :4] >= 0))
+    if is_polygons:
+        assert target['boxes'].ndim == 3 and target['boxes'].shape[1:] == (4, 2)
+    else:
+        assert target['boxes'].ndim == 2 and target['boxes'].shape[1:] == (4,)
+    assert np.all(np.logical_and(target['boxes'] <= 1, target['boxes'] >= 0))
     if class_indices:
         assert isinstance(target['labels'], np.ndarray) and target['labels'].dtype == np.int64
     else:
@@ -104,32 +108,20 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
-def test_ocrdataset(mock_ocrdataset):
+@pytest.mark.parametrize(
+    "use_polygons", [False, True],
+)
+def test_ocrdataset(mock_ocrdataset, use_polygons):
 
     input_size = (512, 512)
 
     ds = datasets.OCRDataset(
         *mock_ocrdataset,
         img_transforms=Resize(input_size),
+        use_polygons=use_polygons,
     )
     assert len(ds) == 3
-    img, target = ds[0]
-    assert isinstance(img, tf.Tensor)
-    assert img.dtype == tf.float32
-    assert img.shape[:2] == input_size
-    # Bounding boxes
-    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
-    assert np.all(np.logical_and(target['boxes'][:, :4] >= 0, target['boxes'][:, :4] <= 1))
-    assert target['boxes'].shape[1] == 5
-    # Flags
-    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
-    # Cardinality consistency
-    assert target['boxes'].shape[0] == len(target['labels'])
-
-    loader = DataLoader(ds, batch_size=2)
-    images, targets = next(iter(loader))
-    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+    _validate_dataset(ds, input_size, is_polygons=use_polygons)
 
     # File existence check
     img_name, _ = ds.data[0]
@@ -211,19 +203,7 @@ def test_ic13_dataset(mock_ic13, num_samples, rotate):
     )
 
     assert len(ds) == num_samples
-    img, target = ds[0]
-    assert isinstance(img, tf.Tensor)
-    assert img.shape[:2] == input_size
-    assert img.dtype == tf.float32
-    assert isinstance(target, dict)
-    assert isinstance(target['boxes'], np.ndarray) and np.all((target['boxes'] <= 1) & (target['boxes'] >= 0))
-    assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
-    assert len(target['labels']) == len(target['boxes'])
-
-    loader = DataLoader(ds, batch_size=2)
-    images, targets = next(iter(loader))
-    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -244,7 +224,7 @@ def test_svhn(input_size, num_samples, rotate, mock_svhn_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SVHN(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -265,7 +245,7 @@ def test_sroie(input_size, num_samples, rotate, mock_sroie_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SROIE(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -288,7 +268,7 @@ def test_funsd(input_size, num_samples, rotate, mock_funsd_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"FUNSD(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -309,7 +289,7 @@ def test_cord(input_size, num_samples, rotate, mock_cord_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"CORD(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -331,7 +311,7 @@ def test_synthtext(input_size, num_samples, rotate, mock_synthtext_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SynthText(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -353,7 +333,7 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
 
     assert len(ds) == num_samples
     assert repr(ds) == f"DocArtefacts(train={True})"
-    _validate_dataset(ds, input_size, class_indices=True)
+    _validate_dataset(ds, input_size, class_indices=True, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -376,7 +356,7 @@ def test_iiit5k(input_size, num_samples, rotate, mock_iiit5k_dataset):
     assert len(ds) == num_samples
     assert repr(ds) == f"IIIT5K(train={True})"
     img, target = ds[0]
-    _validate_dataset(ds, input_size, batch_size=1)
+    _validate_dataset(ds, input_size, batch_size=1, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -398,7 +378,7 @@ def test_svt(input_size, num_samples, rotate, mock_svt_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SVT(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
 @pytest.mark.parametrize(
@@ -419,4 +399,4 @@ def test_ic03(input_size, num_samples, rotate, mock_ic03_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"IC03(train={True})"
-    _validate_dataset(ds, input_size)
+    _validate_dataset(ds, input_size, is_polygons=rotate)
