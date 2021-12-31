@@ -70,7 +70,7 @@ class SynthText(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
 
             labels = ''.join(txt).split()
-            word_boxes = word_boxes.transpose(2, 1, 0)
+            word_boxes = word_boxes.transpose(2, 1, 0) if word_boxes.ndim == 3 else np.expand_dims(word_boxes, axis=0)
 
             if not use_polygons:
                 word_boxes = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
