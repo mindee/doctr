@@ -7,7 +7,7 @@ import os
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
-import scipy.io as sio
+from scipy import io as scio
 from tqdm import tqdm
 
 from .datasets import VisionDataset
