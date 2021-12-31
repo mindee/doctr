@@ -19,7 +19,7 @@ What you can expect from this repository:
 ### Getting your pretrained model
 
 End-to-End OCR is achieved in docTR using a two-stage approach: text detection (localizing words), then text recognition (identify all characters in the word).
-As such, you can select the architecture used for [text detection](https://mindee.github.io/doctr/latest/models.html#id2), and the one for [text recognition](https://mindee.github.io/doctr/latest/models.html#id3) from the list of available implementations.
+As such, you can select the architecture used for [text detection](https://mindee.github.io/doctr/latest/models.html#doctr-models-detection), and the one for [text recognition](https://mindee.github.io/doctr/latest/models.html#doctr-models-recognition) from the list of available implementations.
 
 ```python
 from doctr.models import ocr_predictor
@@ -245,7 +245,6 @@ PORT=8002 docker-compose up -d --build
 Your API should now be running locally on your port 8002. Access your automatically-built documentation at [http://localhost:8002/redoc](http://localhost:8002/redoc) and enjoy your three functional routes ("/detection", "/recognition", "/ocr"). Here is an example with Python to send a request to the OCR route:
 
 ```python
-
 import requests
 with open('/path/to/your/doc.jpg', 'rb') as f:
     data = f.read()

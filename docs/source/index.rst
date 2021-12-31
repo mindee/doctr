@@ -54,6 +54,12 @@ Supported datasets
    * FUNSD from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents" <https://arxiv.org/pdf/1905.13538.pdf>`_.
    * CORD from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing" <https://openreview.net/pdf?id=SJl3z659UH>`_.
    * SROIE from `ICDAR 2019 <https://rrc.cvc.uab.es/?ch=13>`_.
+   * IIIT-5k from `CVIT <https://cvit.iiit.ac.in/research/projects/cvit-projects/the-iiit-5k-word-dataset>`_.
+   * Street View Text from `"End-to-End Scene Text Recognition" <http://vision.ucsd.edu/~kai/pubs/wang_iccv2011.pdf>`_.
+   * SynthText from `Visual Geometry Group <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_.
+   * SVHN from `"Reading Digits in Natural Images with Unsupervised Feature Learning" <http://ufldl.stanford.edu/housenumbers/nips2011_housenumbers.pdf>`_.
+   * IC03 from `ICDAR 2003 <http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions>`_.
+   * IC13 from `ICDAR 2013 <http://dagdata.cvc.uab.es/icdar2013competition/>`_.
 
 
 .. toctree::
