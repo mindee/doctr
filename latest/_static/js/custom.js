@@ -32,7 +32,7 @@ function addGithubButton() {
 
 function addVersionControl() {
     // To grab the version currently in view, we parse the url
-    const parts = location.toString().split('/');
+    const parts = location.toString().split('#')[0].split('/');
     let versionIndex = parts.length - 2;
     // Index page may not have a last part with filename.html so we need to go up
     if (parts[parts.length - 1] != "" && ! parts[parts.length - 1].match(/\.html$|^search.html?/)) {
