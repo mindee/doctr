@@ -226,6 +226,8 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
@@ -237,7 +239,7 @@
 
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractPath</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tensor_from_pil&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;decode_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;tensor_from_numpy&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tensor_from_pil&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;decode_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;tensor_from_numpy&#39;</span><span class="p">,</span> <span class="s1">&#39;get_img_shape&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">tensor_from_pil</span><span class="p">(</span><span class="n">pil_img</span><span class="p">:</span> <span class="n">Image</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
@@ -324,6 +326,10 @@
         <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">img</span>
+
+
+<span class="k">def</span> <span class="nf">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
 </pre></div>
 
            </div>

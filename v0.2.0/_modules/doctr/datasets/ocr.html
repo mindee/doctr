@@ -234,12 +234,14 @@
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: local path to image folder (all jpg at the root)</span>
 <span class="sd">        label_file: local path to the label file</span>
+<span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">img_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">label_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -261,11 +263,17 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotations</span><span class="p">[</span><span class="s2">&quot;typed_words&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="p">[])))</span>
                 <span class="k">continue</span>
-            <span class="c1"># Unpack</span>
-            <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]))</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">&#39;typed_words&#39;</span><span class="p">]]</span>
+            <span class="c1"># Unpack the straight boxes</span>
+            <span class="n">geoms</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][:</span><span class="mi">4</span><span class="p">]))</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">&#39;typed_words&#39;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
+                <span class="n">geoms</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">[</span><span class="n">geom</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">geom</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">geom</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">geom</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span> <span class="p">[</span><span class="n">geom</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">geom</span><span class="p">[</span><span class="mi">3</span><span class="p">]]]</span>  <span class="c1"># type: ignore[list-item]</span>
+                    <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">geoms</span>
+                <span class="p">]</span>
+
             <span class="n">text_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">&#39;typed_words&#39;</span><span class="p">]]</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">text_targets</span><span class="p">)))</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">text_targets</span><span class="p">)))</span></div>
 </pre></div>
 
            </div>
