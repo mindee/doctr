@@ -344,13 +344,12 @@ def mock_cord_dataset(tmpdir_factory, mock_image_stream):
 def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     synthtext_root = root.mkdir('SynthText')
-    # sub_root = synthtext_root.mkdir('SynthText')
     image_folder = synthtext_root.mkdir("8")
     annotation_file = synthtext_root.join('gt.mat')
     labels = {
         "imnames": [[["8/ballet_106_0.jpg"], ["8/ballet_106_1.jpg"], ["8/ballet_106_2.jpg"]]],
-        "wordBB": [np.random.randint(1000, size=(2, 4, 3)) for _ in range(3)],
-        "txt": np.array([['I      ', 'am\na      ', 'Jedi   ', '!'] for _ in range(3)])
+        "wordBB": [[np.random.randint(1000, size=(2, 4, 5)) for _ in range(3)]],
+        "txt": [np.array([['I      ', 'am\na      ', 'Jedi   ', '!'] for _ in range(3)])],
     }
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
     with tempfile.NamedTemporaryFile(mode='wb', delete=True) as f:

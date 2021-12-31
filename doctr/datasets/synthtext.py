@@ -7,10 +7,11 @@ import os
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
-import scipy.io as sio
+from scipy import io as sio
 from tqdm import tqdm
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['SynthText']
 
@@ -41,16 +42,25 @@ class SynthText(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, None, file_hash=None, extract_archive=True, **kwargs)
+        super().__init__(
+            self.URL,
+            None,
+            file_hash=None,
+            extract_archive=True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
 
         # Load mat data
         tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
-        split = int(len(mat_data['imnames'][0]) * 0.9)
-        paths = mat_data['imnames'][0][slice(split) if self.train else slice(split, None)]
-        boxes = mat_data['wordBB'][0][slice(split) if self.train else slice(split, None)]
-        labels = mat_data['txt'][0][slice(split) if self.train else slice(split, None)]
+        train_samples = int(len(mat_data['imnames'][0]) * 0.9)
+        set_slice = slice(train_samples) if self.train else slice(train_samples, None)
+        paths = mat_data['imnames'][0][set_slice]
+        boxes = mat_data['wordBB'][0][set_slice]
+        labels = mat_data['txt'][0][set_slice]
+        del mat_data
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32

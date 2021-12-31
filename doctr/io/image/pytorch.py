@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from io import BytesIO
+from typing import Tuple
 
 import numpy as np
 import torch
@@ -12,7 +13,7 @@ from torchvision.transforms.functional import to_tensor
 
 from doctr.utils.common_types import AbstractPath
 
-__all__ = ['tensor_from_pil', 'read_img_as_tensor', 'decode_img_as_tensor', 'tensor_from_numpy']
+__all__ = ['tensor_from_pil', 'read_img_as_tensor', 'decode_img_as_tensor', 'tensor_from_numpy', 'get_img_shape']
 
 
 def tensor_from_pil(pil_img: Image, dtype: torch.dtype = torch.float32) -> torch.Tensor:
@@ -97,3 +98,7 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -
             img = img.to(dtype=torch.float16).div(255)
 
     return img
+
+
+def get_img_shape(img: torch.Tensor) -> Tuple[int, int]:
+    return img.shape[-2:]  # type: ignore[return-value]

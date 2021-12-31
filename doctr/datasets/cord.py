@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['CORD']
 
@@ -43,7 +44,7 @@ class CORD(VisionDataset):
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
-        super().__init__(url, None, sha256, True, **kwargs)
+        super().__init__(url, None, sha256, True, pre_transforms=convert_target_to_relative, **kwargs)
 
         # # List images
         tmp_root = os.path.join(self.root, 'image')
