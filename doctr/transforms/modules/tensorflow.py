@@ -394,7 +394,7 @@ class RandomHorizontalFlip(NestedObject):
 
        Args:
            p : probability of Horizontal Flip"""
-    def __init__(self, p: float):
+    def __init__(self, p: float) -> None:
         super().__init__()
         self.p = p
 
