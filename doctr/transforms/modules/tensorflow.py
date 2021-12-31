@@ -4,8 +4,9 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import Any, Callable, Iterable, List, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 
+import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 
@@ -13,7 +14,7 @@ from doctr.utils.repr import NestedObject
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
            'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
-           'ChannelShuffle', 'GaussianNoise']
+           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip']
 
 
 class Compose(NestedObject):
@@ -375,3 +376,44 @@ class GaussianNoise(NestedObject):
 
     def extra_repr(self) -> str:
         return f"mean={self.mean}, std={self.std}"
+
+
+class RandomHorizontalFlip(NestedObject):
+    """Adds random horizontal flip to the input tensor/np.ndarray
+
+    Example::
+           >>> from doctr.transforms import RandomHorizontalFlip
+           >>> import tensorflow as tf
+           >>> transfo = RandomHorizontalFlip(p=0.5)
+           >>> image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
+           >>> target = {
+            "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),
+            "labels": np.ones(1, dtype= np.int64)
+            }
+           >>> out = transfo(image, target)
+
+       Args:
+           p : probability of Horizontal Flip"""
+    def __init__(self, p):
+        super().__init__()
+        self.p = p
+
+    def __call__(
+            self,
+            img: Union[tf.Tensor, np.ndarray],
+            target: Dict[str, Any]
+    ) -> Tuple[Union[tf.Tensor, np.ndarray], Dict[str, Any]]:
+        """
+        Args:
+            img: Image to be flipped.
+            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
+        Returns:
+            Tuple of numpy nd-array or Tensor and target
+        """
+        if tf.random.uniform([1], 0, 1) < self.p:
+            _img = tf.image.flip_left_right(img)
+            _target = target.copy()
+            # Changing the relative bbox coordinates
+            _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
+            return _img, _target
+        return img, target
