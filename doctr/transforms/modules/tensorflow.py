@@ -394,7 +394,7 @@ class RandomHorizontalFlip(NestedObject):
 
        Args:
            p : probability of Horizontal Flip"""
-    def __init__(self, p):
+    def __init__(self, p: float):
         super().__init__()
         self.p = p
 
@@ -410,7 +410,7 @@ class RandomHorizontalFlip(NestedObject):
         Returns:
             Tuple of numpy nd-array or Tensor and target
         """
-        if tf.random.uniform([1], 0, 1) < self.p:
+        if np.random.rand(1) <= self.p:
             _img = tf.image.flip_left_right(img)
             _target = target.copy()
             # Changing the relative bbox coordinates
