@@ -3,16 +3,14 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
 from copy import deepcopy
 from typing import Tuple
 
 import numpy as np
+from PIL import Image
 import tensorflow as tf
-import tensorflow_addons as tfa
 
-from doctr.utils.geometry import compute_expanded_shape, rotate_abs_boxes
-
+from ...utils.geometry import rotate_abs_boxes
 from .base import crop_boxes
 
 __all__ = ["invert_colors", "rotate", "crop_detection"]
@@ -50,17 +48,12 @@ def rotate(
     Returns:
         A tuple of rotated img (tensor), rotated boxes (np array)
     """
-    # Compute the expanded padding
-    if expand:
-        exp_shape = compute_expanded_shape(img.shape[:-1], angle)
-        h_pad, w_pad = int(math.ceil(exp_shape[0] - img.shape[0])), int(math.ceil(exp_shape[1] - img.shape[1]))
-        if min(h_pad, w_pad) < 0:
-            h_pad, w_pad = int(math.ceil(exp_shape[1] - img.shape[0])), int(math.ceil(exp_shape[0] - img.shape[1]))
-        exp_img = tf.pad(img, tf.constant([[h_pad // 2, h_pad - h_pad // 2], [w_pad // 2, w_pad - w_pad // 2], [0, 0]]))
-    else:
-        exp_img = img
-    # Rotate the padded image
-    rotated_img = tfa.image.rotate(exp_img, angle * math.pi / 180)  # Interpolation NEAREST by default
+
+    # Convert tensor to PIL
+    pil_img = Image.fromarray((img.numpy() * 255).astype(np.uint8))
+    # Rotate the image
+    rotated_img = pil_img.rotate(angle, expand=expand)  # Interpolation NEAREST by default
+    rotated_img = tf.cast(np.array(rotated_img, np.float32) / 255., tf.float32)
 
     # Get absolute coords
     _boxes = deepcopy(boxes)
