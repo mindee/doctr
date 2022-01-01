@@ -402,7 +402,7 @@ class RandomHorizontalFlip(NestedObject):
             self,
             img: Union[tf.Tensor, np.ndarray],
             target: Dict[str, Any]
-    ) -> Tuple[Union[tf.Tensor, np.ndarray], Dict[str, Any]]:
+    ) -> Tuple[tf.Tensor, Dict[str, Any]]:
         """
         Args:
             img: Image to be flipped.
