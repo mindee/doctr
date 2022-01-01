@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['FUNSD']
 
@@ -41,7 +42,14 @@ class FUNSD(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
+        super().__init__(
+            self.URL,
+            self.FILE_NAME,
+            self.SHA256,
+            True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
 
         # Use the subset
@@ -66,11 +74,17 @@ class FUNSD(VisionDataset):
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 box_targets = [
                     [
-                        (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                        [box[0], box[1]],
+                        [box[2], box[1]],
+                        [box[2], box[3]],
+                        [box[0], box[3]],
                     ] for box in box_targets
                 ]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=list(text_targets))))
+            self.data.append((
+                img_path,
+                dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=list(text_targets)),
+            ))
 
         self.root = tmp_root
 

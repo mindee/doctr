@@ -21,12 +21,14 @@ class OCRDataset(AbstractDataset):
     Args:
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
     def __init__(
         self,
         img_folder: str,
         label_file: str,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(img_folder, **kwargs)
@@ -48,8 +50,14 @@ class OCRDataset(AbstractDataset):
             if len(annotations["typed_words"]) == 0:
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np_dtype), labels=[])))
                 continue
-            # Unpack
-            box_targets = [tuple(map(float, obj['geometry'])) for obj in annotations['typed_words']]
+            # Unpack the straight boxes
+            geoms = [list(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
+            if use_polygons:
+                geoms = [
+                    [geom[:2], [geom[2], geom[1]], geom[2:], [geom[0], geom[3]]]  # type: ignore[list-item]
+                    for geom in geoms
+                ]
+
             text_targets = [obj['value'] for obj in annotations['typed_words']]
 
-            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=text_targets)))
+            self.data.append((img_name, dict(boxes=np.asarray(geoms, dtype=np_dtype), labels=text_targets)))

@@ -17,10 +17,6 @@ __all__ = ['AbstractDataset', 'VisionDataset']
 
 class AbstractDataset(_AbstractDataset):
 
-    @staticmethod
-    def _get_img_shape(img: Any) -> Tuple[int, int]:
-        return img.shape[-2:]
-
     def _read_sample(self, index: int) -> Tuple[torch.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image

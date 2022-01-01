@@ -13,6 +13,8 @@ import tensorflow_addons as tfa
 
 from doctr.utils.geometry import compute_expanded_shape, rotate_abs_boxes
 
+from .base import crop_boxes
+
 __all__ = ["invert_colors", "rotate", "crop_detection"]
 
 
@@ -96,22 +98,10 @@ def crop_detection(
     h, w = img.shape[:2]
     xmin, ymin = int(round(crop_box[0] * (w - 1))), int(round(crop_box[1] * (h - 1)))
     xmax, ymax = int(round(crop_box[2] * (w - 1))), int(round(crop_box[3] * (h - 1)))
-    croped_img = tf.image.crop_to_bounding_box(
+    cropped_img = tf.image.crop_to_bounding_box(
         img, ymin, xmin, ymax - ymin, xmax - xmin
     )
-    if boxes.dtype == int:  # absolute boxes
-        # Clip boxes
-        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin, xmax)
-        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin, ymax)
-    else:  # relative boxes
-        h, w = img.shape[:2]
-        # Clip boxes
-        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], xmin / w, xmax / w)
-        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], ymin / h, ymax / h)
-    # Remove 0-sized boxes
-    zero_height = boxes[:, 1] == boxes[:, 3]
-    zero_width = boxes[:, 0] == boxes[:, 2]
-    empty_boxes = np.logical_or(zero_height, zero_width)
-    boxes = boxes[~empty_boxes]
+    # Crop the box
+    boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
-    return croped_img, boxes
+    return cropped_img, boxes

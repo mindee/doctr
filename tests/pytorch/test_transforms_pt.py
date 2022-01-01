@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomRotate, Resize
+from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomHorizontalFlip,
+                              RandomRotate, Resize)
 from doctr.transforms.functional import crop_detection, rotate
 
 
@@ -140,18 +141,25 @@ def test_crop_detection():
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
+    assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
+
     rel_boxes = np.array([
         [.3, .4, .7, .6],
         [.1, .2, .2, .4],
     ])
+    crop_box = (0.24, 0.46, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
+    assert np.abs(c_boxes - np.array([.06 / .76, 0., .46 / .76, .14 / .54])[None, ...]).mean() < 1e-7
 
     # FP16
     img = torch.ones((3, 50, 50), dtype=torch.float16)
     c_img, _ = crop_detection(img, abs_boxes, crop_box)
     assert c_img.dtype == torch.float16
+
+    with pytest.raises(AssertionError):
+        crop_detection(img, abs_boxes, (2, 6, 24, 56))
 
 
 def test_random_crop():
@@ -162,9 +170,9 @@ def test_random_crop():
     ])
     img, target = cropper(input_t, dict(boxes=boxes))
     # Check the scale
-    assert img.shape[-1] * img.shape[-2] >= 0.5 * input_t.shape[-1] * input_t.shape[-2]
+    assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
-    assert 0.75 <= img.shape[-2] / img.shape[-1] <= 1.33
+    assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.5
     # Check the target
     assert np.all(target['boxes'] >= 0)
     assert np.all(target['boxes'][:, [0, 2]] <= img.shape[-1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[-2])
@@ -218,3 +226,28 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.)
+
+
+@pytest.mark.parametrize("p", [1, 0])
+def test_randomhorizontalflip(p):
+    # testing for 2 cases, with flip probability 1 and 0.
+    transform = RandomHorizontalFlip(p)
+    input_t = torch.ones((3, 32, 32), dtype=torch.float32)
+    input_t[..., :16] = 0
+    target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    transformed, _target = transform(input_t, target)
+    assert isinstance(transformed, torch.Tensor)
+    assert transformed.shape == input_t.shape
+    assert transformed.dtype == input_t.dtype
+    # integrity check of targets
+    assert isinstance(_target, dict)
+    assert all(isinstance(val, np.ndarray) for val in _target.values())
+    assert _target["boxes"].dtype == np.float32
+    assert _target["labels"].dtype == np.int64
+    if p == 1:
+        assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+        assert torch.all(transformed.mean((0, 1)) == torch.tensor([1] * 16 + [0] * 16, dtype=torch.float32))
+    elif p == 0:
+        assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+        assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
+    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))

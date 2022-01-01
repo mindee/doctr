@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
+from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
 
 __all__ = ['_AbstractDataset', '_VisionDataset']
@@ -16,12 +17,14 @@ __all__ = ['_AbstractDataset', '_VisionDataset']
 class _AbstractDataset:
 
     data: List[Any] = []
+    _pre_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None
 
     def __init__(
         self,
         root: Union[str, Path],
         img_transforms: Optional[Callable[[Any], Any]] = None,
         sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
+        pre_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
     ) -> None:
 
         if not Path(root).is_dir():
@@ -30,15 +33,13 @@ class _AbstractDataset:
         self.root = root
         self.img_transforms = img_transforms
         self.sample_transforms = sample_transforms
+        self._pre_transforms = pre_transforms
+        self._get_img_shape = get_img_shape
 
     def __len__(self) -> int:
         return len(self.data)
 
     def _read_sample(self, index: int) -> Tuple[Any, Any]:
-        raise NotImplementedError
-
-    @staticmethod
-    def _get_img_shape(img: Any) -> Tuple[int, int]:
         raise NotImplementedError
 
     def __getitem__(
@@ -48,6 +49,10 @@ class _AbstractDataset:
 
         # Read image
         img, target = self._read_sample(index)
+        # Pre-transforms (format conversion at run-time etc.)
+        if self._pre_transforms is not None:
+            img, target = self._pre_transforms(img, target)
+
         if self.img_transforms is not None:
             # typing issue cf. https://github.com/python/mypy/issues/5485
             img = self.img_transforms(img)  # type: ignore[call-arg]
