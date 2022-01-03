@@ -72,7 +72,7 @@ class FUNSD(VisionDataset):
                         for word in block['words'] if len(word['text']) > 0]
             text_targets, box_targets = zip(*_targets)
             if use_polygons:
-                # xmin, ymin, xmax, ymax -> x1, y1, x2, y2, x3, y3, x4, y4
+                # xmin, ymin, xmax, ymax -> (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 box_targets = [
                     [
                         [box[0], box[1]],

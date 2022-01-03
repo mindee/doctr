@@ -53,7 +53,7 @@ class OCRDataset(AbstractDataset):
             # Unpack the straight boxes (xmin, ymin, xmax, ymax)
             geoms = [list(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
             if use_polygons:
-                # x1, y1, x2, y2, x3, y3, x4, y4
+                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 geoms = [
                     [geom[:2], [geom[2], geom[1]], geom[2:], [geom[0], geom[3]]]  # type: ignore[list-item]
                     for geom in geoms

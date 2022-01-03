@@ -66,7 +66,7 @@ class CORD(VisionDataset):
                             x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
                             y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
                             if use_polygons:
-                                # x1, y1, x2, y2, x3, y3, x4, y4
+                                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                                 box = np.array([
                                     [x[0], y[0]],
                                     [x[1], y[1]],
