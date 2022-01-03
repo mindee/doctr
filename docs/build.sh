@@ -39,5 +39,6 @@ deploy_doc "1bbdb072" v0.2.1
 deploy_doc "3f051346" v0.3.0
 deploy_doc "369a787d" v0.3.1
 deploy_doc "51663ddf" v0.4.0
-deploy_doc "74ff9ffb" # v0.4.1 Latest stable release
+deploy_doc "74ff9ffb" v0.4.1
+deploy_doc "b9d8feb1" # v0.5.0 Latest stable release
 rm -rf _build _static _conf.py
