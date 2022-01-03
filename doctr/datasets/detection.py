@@ -51,12 +51,13 @@ class DetectionDataset(AbstractDataset):
             labels = json.load(f)
 
         self.data: List[Tuple[str, np.ndarray]] = []
+        np_dtype = np.float32
         for img_name, label in labels.items():
             # File existence check
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 
-            polygons = np.asarray(label['polygons'], dtype=np.float32)
+            polygons = np.asarray(label['polygons'], dtype=np_dtype)
             geoms = polygons if use_polygons else np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
-            self.data.append((img_name, np.asarray(geoms, dtype=np.float32)))
+            self.data.append((img_name, np.asarray(geoms, dtype=np_dtype)))

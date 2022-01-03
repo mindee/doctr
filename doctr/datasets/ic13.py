@@ -66,7 +66,7 @@ class IC13(AbstractDataset):
             # xmin, ymin, xmax, ymax
             box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
             if use_polygons:
-                # x_center, y_center, width, height, 0
+                # x1, y1, x2, y2, x3, y3, x4, y4
                 box_targets = np.array(
                     [
                         [

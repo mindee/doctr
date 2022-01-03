@@ -59,9 +59,11 @@ class DocArtefacts(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_name)}")
 
+            # xmin, ymin, xmax, ymax
             boxes = np.asarray([obj['geometry'] for obj in label], dtype=np_dtype)
             classes = np.asarray([self.CLASSES.index(obj['label']) for obj in label], dtype=np.int64)
             if use_polygons:
+                # x1, y1, x2, y2, x3, y3, x4, y4
                 boxes = np.stack(
                     [
                         np.stack([boxes[:, 0], boxes[:, 1]], axis=-1),

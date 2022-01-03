@@ -70,7 +70,7 @@ class IIIT5K(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
             if use_polygons:
-                # x_center, y_center, w, h, alpha = 0
+                # x1, y1, x2, y2, x3, y3, x4, y4
                 box_targets = [
                     [
                         [box[0], box[1]],
@@ -80,7 +80,7 @@ class IIIT5K(VisionDataset):
                     ] for box in box_targets
                 ]
             else:
-                # x, y, width, height -> xmin, ymin, xmax, ymax
+                # xmin, ymin, xmax, ymax
                 box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
             # label are casted to list where each char corresponds to the character's bounding box
