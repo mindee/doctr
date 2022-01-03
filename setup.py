@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-version = "0.5.0a0"
+version = "0.5.1a0"
 sha = 'Unknown'
 src_folder = 'doctr'
 package_index = 'python-doctr'
