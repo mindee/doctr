@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>doctr.transforms &mdash; docTR 0.4.1a0-git documentation</title>
+  <title>doctr.transforms &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -133,7 +133,12 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -152,7 +157,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -172,6 +177,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
@@ -321,7 +327,7 @@
 
 <dl class="py class">
 <dt id="doctr.transforms.ToGray">
-<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ToGray</code><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#ToGray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ToGray" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ToGray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_output_channels</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#ToGray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ToGray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -511,6 +517,58 @@ increasing saturation by a factor.</p>
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt id="doctr.transforms.GaussianBlur">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">GaussianBlur</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kernel_shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>Iterable<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">std</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#GaussianBlur"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.GaussianBlur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly adjust jpeg quality of a 3 dimensional RGB image</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">GaussianBlur</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">GaussianBlur</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="p">(</span><span class="mf">.1</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kernel_shape</strong> – size of the blurring kernel</p></li>
+<li><p><strong>std</strong> – min and max value of the standard deviation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.ChannelShuffle">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">ChannelShuffle</code><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#ChannelShuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.ChannelShuffle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly shuffle channel order of a given image</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.GaussianNoise">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">GaussianNoise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mean</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">std</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#GaussianNoise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.GaussianNoise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds Gaussian Noise to the input tensor</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">GaussianNoise</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">GaussianNoise</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mean</strong> – mean of the gaussian distribution</p></li>
+<li><p><strong>std</strong> – std of the gaussian distribution</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="composing-transformations">
 <h2>Composing transformations<a class="headerlink" href="#composing-transformations" title="Permalink to this headline">¶</a></h2>
@@ -601,7 +659,7 @@ increasing saturation by a factor.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2021, Mindee
+        &copy; Copyright 2021-2022, Mindee
 
     </p>
   </div>

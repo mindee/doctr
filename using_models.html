@@ -9,7 +9,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Choosing the right model &mdash; docTR 0.4.1a0-git documentation</title>
+  <title>Choosing the right model &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -133,7 +133,12 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -152,7 +157,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-classification">doctr.models.classification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -172,6 +177,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
@@ -262,7 +268,7 @@ While those text elements can represent many things, in docTR, we will consider 
 <h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this headline">¶</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="models.html#doctr.models.detection.linknet16">linknet16</a></p></li>
+<li><p><a class="reference external" href="models.html#doctr.models.detection.linknet_resnet18">linknet_resnet18</a></p></li>
 <li><p><a class="reference external" href="models.html#doctr.models.detection.db_resnet50">db_resnet50</a></p></li>
 <li><p><a class="reference external" href="models.html#doctr.models.detection.db_mobilenet_v3_large">db_mobilenet_v3_large</a></p></li>
 </ul>
@@ -369,8 +375,8 @@ Explanations about the metrics being used are available in <a class="reference i
 <tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>15.8M</p></td>
-<td><p>87.15</p></td>
-<td><p>92.92</p></td>
+<td><p>87.18</p></td>
+<td><p>92.93</p></td>
 <td><p>12.8</p></td>
 </tr>
 <tr class="row-odd"><td><p>crnn_mobilenet_v3_small</p></td>
@@ -459,11 +465,11 @@ Explanations about the metric being used (exact match) are available in <a class
 <td><p><strong>FPS</strong></p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn</p></td>
-<td><p>71.00</p></td>
+<td><p>71.25</p></td>
 <td><p>76.02</p></td>
 <td><p>0.85</p></td>
-<td><p>83.87</p></td>
-<td><p>81.34</p></td>
+<td><p>84.00</p></td>
+<td><p>81.42</p></td>
 <td><p>1.6</p></td>
 </tr>
 <tr class="row-even"><td><p>db_resnet50 + master</p></td>
@@ -826,7 +832,7 @@ To get a better understanding of our document model, check our <a class="referen
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2021, Mindee
+        &copy; Copyright 2021-2022, Mindee
 
     </p>
   </div>

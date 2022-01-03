@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Overview: module code &mdash; docTR 0.4.1a0-git documentation</title>
+  <title>Overview: module code &mdash; docTR 0.5.0a0-git documentation</title>
   
 
   
@@ -130,7 +130,12 @@
 <p><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../datasets.html">doctr.datasets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../datasets.html#available-datasets">Available Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../datasets.html#available-datasets">Available Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../datasets.html#public-datasets">Public datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../datasets.html#doctr-synthetic-datasets">docTR synthetic datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../datasets.html#doctr-private-datasets">docTR private datasets</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../datasets.html#data-loading">Data Loading</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../datasets.html#supported-vocabs">Supported Vocabs</a></li>
 </ul>
@@ -149,7 +154,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../models.html">doctr.models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#doctr-models-backbones">doctr.models.backbones</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#doctr-models-classification">doctr.models.classification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#doctr-models-detection">doctr.models.detection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#doctr-models-recognition">doctr.models.recognition</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#doctr-models-zoo">doctr.models.zoo</a></li>
@@ -169,6 +174,7 @@
 <p><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../changelog.html#v0-4-1-2021-11-22">v0.4.1 (2021-11-22)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../changelog.html#v0-4-0-2021-10-01">v0.4.0 (2021-10-01)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../changelog.html#v0-3-1-2021-08-27">v0.3.1 (2021-08-27)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../changelog.html#v0-3-0-2021-07-02">v0.3.0 (2021-07-02)</a></li>
@@ -239,15 +245,21 @@
            <div itemprop="articleBody">
             
   <h1>All modules for which code is available</h1>
-<ul><li><a href="doctr/datasets/classification/tensorflow.html">doctr.datasets.classification.tensorflow</a></li>
-<li><a href="doctr/datasets/cord.html">doctr.datasets.cord</a></li>
+<ul><li><a href="doctr/datasets/cord.html">doctr.datasets.cord</a></li>
+<li><a href="doctr/datasets/detection.html">doctr.datasets.detection</a></li>
 <li><a href="doctr/datasets/doc_artefacts.html">doctr.datasets.doc_artefacts</a></li>
 <li><a href="doctr/datasets/funsd.html">doctr.datasets.funsd</a></li>
+<li><a href="doctr/datasets/generator/tensorflow.html">doctr.datasets.generator.tensorflow</a></li>
+<li><a href="doctr/datasets/ic03.html">doctr.datasets.ic03</a></li>
+<li><a href="doctr/datasets/ic13.html">doctr.datasets.ic13</a></li>
 <li><a href="doctr/datasets/iiit5k.html">doctr.datasets.iiit5k</a></li>
 <li><a href="doctr/datasets/loader.html">doctr.datasets.loader</a></li>
 <li><a href="doctr/datasets/ocr.html">doctr.datasets.ocr</a></li>
+<li><a href="doctr/datasets/recognition.html">doctr.datasets.recognition</a></li>
 <li><a href="doctr/datasets/sroie.html">doctr.datasets.sroie</a></li>
+<li><a href="doctr/datasets/svhn.html">doctr.datasets.svhn</a></li>
 <li><a href="doctr/datasets/svt.html">doctr.datasets.svt</a></li>
+<li><a href="doctr/datasets/synthtext.html">doctr.datasets.synthtext</a></li>
 <li><a href="doctr/datasets/utils.html">doctr.datasets.utils</a></li>
 <li><a href="doctr/io/elements.html">doctr.io.elements</a></li>
 <li><a href="doctr/io/html.html">doctr.io.html</a></li>
@@ -255,9 +267,11 @@
 <li><a href="doctr/io/image/tensorflow.html">doctr.io.image.tensorflow</a></li>
 <li><a href="doctr/io/pdf.html">doctr.io.pdf</a></li>
 <li><a href="doctr/io/reader.html">doctr.io.reader</a></li>
-<li><a href="doctr/models/backbones/mobilenet/tensorflow.html">doctr.models.backbones.mobilenet.tensorflow</a></li>
-<li><a href="doctr/models/backbones/resnet/tensorflow.html">doctr.models.backbones.resnet.tensorflow</a></li>
-<li><a href="doctr/models/backbones/vgg/tensorflow.html">doctr.models.backbones.vgg.tensorflow</a></li>
+<li><a href="doctr/models/classification/magc_resnet/tensorflow.html">doctr.models.classification.magc_resnet.tensorflow</a></li>
+<li><a href="doctr/models/classification/mobilenet/tensorflow.html">doctr.models.classification.mobilenet.tensorflow</a></li>
+<li><a href="doctr/models/classification/resnet/tensorflow.html">doctr.models.classification.resnet.tensorflow</a></li>
+<li><a href="doctr/models/classification/vgg/tensorflow.html">doctr.models.classification.vgg.tensorflow</a></li>
+<li><a href="doctr/models/classification/zoo.html">doctr.models.classification.zoo</a></li>
 <li><a href="doctr/models/detection/differentiable_binarization/tensorflow.html">doctr.models.detection.differentiable_binarization.tensorflow</a></li>
 <li><a href="doctr/models/detection/linknet/tensorflow.html">doctr.models.detection.linknet.tensorflow</a></li>
 <li><a href="doctr/models/detection/zoo.html">doctr.models.detection.zoo</a></li>
@@ -282,7 +296,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2021, Mindee
+        &copy; Copyright 2021-2022, Mindee
 
     </p>
   </div>
