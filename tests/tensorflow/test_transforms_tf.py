@@ -376,3 +376,33 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert tf.reduce_all(transformed <= 255)
     else:
         assert tf.reduce_all(transformed <= 1.)
+
+
+@pytest.mark.parametrize("p", [1, 0])
+def test_randomhorizontalflip(p):
+    # testing for 2 cases, with flip probability 1 and 0.
+    transform = T.RandomHorizontalFlip(p)
+    input_t = np.ones((32, 32, 3))
+    input_t[:, :16, :] = 0
+    input_t = tf.convert_to_tensor(input_t)
+    target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    transformed, _target = transform(input_t, target)
+    assert isinstance(transformed, tf.Tensor)
+    assert transformed.shape == input_t.shape
+    assert transformed.dtype == input_t.dtype
+    # integrity check of targets
+    assert isinstance(_target, dict)
+    assert all(isinstance(val, np.ndarray) for val in _target.values())
+    assert _target["boxes"].dtype == np.float32
+    assert _target["labels"].dtype == np.int64
+    if p == 1:
+        assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+        assert tf.reduce_all(
+            tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([1] * 16 + [0] * 16, dtype=tf.float64)
+        )
+    elif p == 0:
+        assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+        assert tf.reduce_all(
+            tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([0] * 16 + [1] * 16, dtype=tf.float64)
+        )
+    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
