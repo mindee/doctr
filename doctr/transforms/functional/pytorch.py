@@ -50,18 +50,19 @@ def rotate_sample(
         A tuple of rotated img (tensor), rotated geometries of shape (N, 4, 2)
     """
     rotated_img = F.rotate(img, angle=angle, fill=0, expand=expand)  # Interpolation NEAREST by default
-
+    rotated_img = rotated_img[:3]  # when expand=True, it expands to RGBA channels
     # Get absolute coords
     _geoms = deepcopy(geoms)
-    if np.max(_geoms) <= 1:
-        if _geoms.shape[1:] == (4,):
+    if _geoms.shape[1:] == (4,):
+        if np.max(_geoms) <= 1:
             _geoms[:, [0, 2]] *= img.shape[-1]
             _geoms[:, [1, 3]] *= img.shape[-2]
-        elif _geoms.shape[1:] == (4, 2):
+    elif _geoms.shape[1:] == (4, 2):
+        if np.max(_geoms) <= 1:
             _geoms[..., 0] *= img.shape[-1]
             _geoms[..., 1] *= img.shape[-2]
-        else:
-            raise AssertionError("invalid format for arg `geoms`")
+    else:
+        raise AssertionError("invalid format for arg `geoms`")
 
     # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
     rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
