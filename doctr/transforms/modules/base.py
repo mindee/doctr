@@ -155,8 +155,10 @@ class RandomRotate(NestedObject):
 
     def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        r_img, r_boxes = F.rotate_sample(img, target, angle, self.expand)
-        return r_img, r_boxes
+        r_img, r_polys = F.rotate_sample(img, target, angle, self.expand)
+        # Removes deleted boxes
+        is_kept = (r_polys.max(1) > r_polys.min(1)).sum(1) == 2
+        return r_img, r_polys[is_kept]
 
 
 class RandomCrop(NestedObject):
