@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -46,7 +46,7 @@ class DetectionPredictor(NestedObject):
 
         processed_batches = self.pre_processor(pages)
         predicted_batches = [
-            self.model(batch, return_boxes=True, training=False, **kwargs)['preds']  # type:ignore[operator]
+            self.model(batch, return_preds=True, training=False, **kwargs)['preds']  # type:ignore[operator]
             for batch in processed_batches
         ]
         return [pred for batch in predicted_batches for pred in batch]

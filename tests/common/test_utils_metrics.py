@@ -76,36 +76,42 @@ def test_mask_iou(mask1, mask2, iou, abs_tol):
 @pytest.mark.parametrize(
     "rbox1, rbox2, iou, abs_tol",
     [
-        [[[.25, .25, .5, .5, 0.]], [[.25, .25, .5, .5, 0.]], 1, 0],  # Perfect match
-        [[[.25, .25, .5, .5, 0.]], [[.75, .75, .5, .5, 0.]], 0, 1e-4],  # No match
-        [[[.5, .5, 1, 1, 0.]], [[.75, .75, .5, .5, 0.]], 0.25, 0],  # Partial match
-        [[[.4, .4, .4, .4, 0.]], [[.6, .6, .4, .4, 0.]], 4 / 28, 5e-3],  # Partial match
-        [[[.05, .05, .1, .1, 0.]], [[.95, .95, .1, .1, 0.]], 0, 0],  # Boxes far from each other
-        [np.zeros((0, 5)), [[.25, .25, .5, .5, 0.]], 0, 0],  # Zero-sized inputs
-        [[[.25, .25, .5, .5, 0.]], np.zeros((0, 5)), 0, 0],  # Zero-sized inputs
+        [[[[0, 0], [.5, 0], [.5, .5], [0, .5]]], [[[0, 0], [.5, 0], [.5, .5], [0, .5]]], 1, 0],  # Perfect match
+        [[[[0, 0], [.5, 0], [.5, .5], [0, .5]]], [[[.5, .5], [1, .5], [1, 1], [.5, 1]]], 0, 1e-4],  # No match
+        [[[[0, 0], [1., 0], [1., 1.], [0, 1.]]], [[[.5, .5], [1, .5], [1., 1.], [.5, 1]]], 0.25, 5e-3],  # Partial match
+        [
+            [[[.2, .2], [.6, .2], [.6, .6], [.2, .6]]],
+            [[[.4, .4], [.8, .4], [.8, .8], [.4, .8]]], 4 / 28, 7e-3
+        ],  # Partial match
+        [
+            [[[0, 0], [.05, 0], [.05, .05], [0, .05]]],
+            [[[.5, .5], [1, .5], [1, 1], [.5, 1]]], 0, 0
+        ],  # Boxes far from each other
+        [np.zeros((0, 4, 2)), [[[0, 0], [.05, 0], [.05, .05], [0, .05]]], 0, 0],  # Zero-sized inputs
+        [[[[0, 0], [.05, 0], [.05, .05], [0, .05]]], np.zeros((0, 4, 2)), 0, 0],  # Zero-sized inputs
     ],
 )
-def test_rbox_iou(rbox1, rbox2, iou, abs_tol):
+def test_polygon_iou(rbox1, rbox2, iou, abs_tol):
     mask_shape = (256, 256)
-    iou_mat = metrics.rbox_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape)
+    iou_mat = metrics.polygon_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape)
     assert iou_mat.shape == (len(rbox1), len(rbox2))
     if iou_mat.size > 0:
         assert abs(iou_mat - iou) <= abs_tol
 
     # Ensure broadcasting doesn't change the result
-    iou_matbis = metrics.rbox_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape, use_broadcasting=False)
+    iou_matbis = metrics.polygon_iou(np.asarray(rbox1), np.asarray(rbox2), mask_shape, use_broadcasting=False)
     assert np.all((iou_mat - iou_matbis) <= 1e-7)
 
     # Incorrect boxes
     with pytest.raises(AssertionError):
-        metrics.rbox_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float), mask_shape)
+        metrics.polygon_iou(np.zeros((2, 5), dtype=float), np.ones((3, 4), dtype=float), mask_shape)
 
 
 @pytest.mark.parametrize(
     "box, shape, mask",
     [
         [
-            [0, 0, .5, .5, 0], (2, 2),
+            [[0, 0], [.5, 0], [.5, .5], [0, .5]], (2, 2),
             [[True, False], [False, False]],
         ],
     ],
@@ -120,8 +126,8 @@ def test_rbox_to_mask(box, shape, mask):
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
         [[[[0, 0, .5, .5]]], [[[0, 0, .5, .5]]], 0.5, 1, 1, 1],  # Perfect match
-        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.2, 1, 0.5, 0.125],  # Bad match
-        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.5, 0, 0, 0.125],  # Bad match
+        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.2, 1, 0.5, 0.13],  # Bad match
+        [[[[0, 0, 1, 1]]], [[[0, 0, .5, .5], [.6, .6, .7, .7]]], 0.5, 0, 0, 0.13],  # Bad match
         [[[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [[[0, 0, .5, .5]], None], 0.5, 0.5, 1, 1],  # No preds on 2nd sample
     ],
 )
@@ -138,14 +144,26 @@ def test_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_
 @pytest.mark.parametrize(
     "gts, preds, iou_thresh, recall, precision, mean_iou",
     [
-        [[[[.1, .1, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]]], 0.5, 1, 1, 1],  # Perfect match
-        [[[[.15, .1, .1, .1, 0]]], [[[.2, .1, .2, .1, 0], [.7, .7, .2, .2, 0]]], 0.2, 1, 0.5, 0.25],  # Bad match
-        [[[[.1, .1, .1, .1, 0]], [[.3, .3, .1, .1, 0]]], [[[.1, .1, .1, .1, 0]], None], 0.5, 0.5, 1, 1],  # Empty
+        [
+            [[[[.05, .05], [.15, .05], [.15, .15], [.05, .15]]]],
+            [[[[.05, .05], [.15, .05], [.15, .15], [.05, .15]]]], 0.5, 1, 1, 1
+        ],  # Perfect match
+        [
+            [[[[.1, .05], [.2, .05], [.2, .15], [.1, .15]]]],
+            [[[[.1, .05], [.3, .05], [.3, .15], [.1, .15]], [[.6, .6], [.8, .6], [.8, .8], [.6, .8]]]],
+            0.2, 1, 0.5, 0.25
+        ],  # Bad match
+        [
+            [[[[.05, .05], [.15, .05], [.15, .15], [.05, .15]]],
+             [[[.25, .25], [.35, .25], [35, .35], [.25, .35]]]],
+            [[[[.05, .05], [.15, .05], [.15, .15], [.05, .15]]], None],
+            0.5, 0.5, 1, 1,
+        ],  # Empty
     ],
 )
 def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mean_iou):
 
-    metric = metrics.LocalizationConfusion(iou_thresh, rotated_bbox=True, mask_shape=(1000, 1000))
+    metric = metrics.LocalizationConfusion(iou_thresh, use_polygons=True, mask_shape=(1000, 1000))
     for _gts, _preds in zip(gts, preds):
         metric.update(np.asarray(_gts), np.zeros((0, 5)) if _preds is None else np.asarray(_preds))
     assert metric.summary()[:2] == (recall, precision)
@@ -179,7 +197,7 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
             0.2,
             {"raw": 0, "caseless": 0, "unidecode": 1, "unicase": 1},
             {"raw": 0, "caseless": 0, "unidecode": .5, "unicase": .5},
-            0.125,
+            0.13,
         ],
         [  # No preds on 2nd sample
             [[[0, 0, .5, .5]], [[0, 0, .5, .5]]], [["Elephant"], ["elephant"]],

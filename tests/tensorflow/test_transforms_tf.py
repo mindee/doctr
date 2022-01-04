@@ -230,24 +230,6 @@ def test_jpegquality():
     assert out.dtype == tf.float16
 
 
-def test_oneof():
-    transfos = [
-        T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.),
-        T.RandomContrast(delta=.2)
-    ]
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
-    out = T.OneOf(transfos)(input_t)
-    assert ((tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.)) or tf.reduce_all(out == 2.))
-
-
-def test_randomapply():
-
-    transfo = T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
-    out = T.RandomApply(transfo, p=1.)(input_t)
-    assert (tf.reduce_all(out >= 1.6) and tf.reduce_all(out <= 4.))
-
-
 def test_rotate():
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([
@@ -256,7 +238,7 @@ def test_rotate():
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
     assert r_img.shape == (50, 50, 3)
     assert r_img[0, 0, 0] == 0.
-    assert r_boxes.all() == np.array([[25., 25., 20., 10., 12.]]).all()
+    assert r_boxes.shape == (1, 4, 2)
 
     # Expand
     r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)
@@ -266,8 +248,9 @@ def test_rotate():
 
     # Relative coords
     rel_boxes = np.array([[.3, .4, .7, .6]])
-    r_img, r_boxes = rotate(input_t, rel_boxes, angle=12.)
-    assert r_boxes.all() == np.array([[.5, .5, .4, .2, 12.]]).all()
+    r_img, r_boxes = rotate(input_t, rel_boxes, angle=90)
+    assert r_boxes.shape == (1, 4, 2)
+    assert np.isclose(r_boxes, np.asarray([[[0.4, 0.7], [0.4, 0.3], [0.6, 0.3], [0.6, 0.7]]])).all()
 
     # FP16
     input_t = tf.ones((50, 50, 3), dtype=tf.float16)
@@ -283,7 +266,6 @@ def test_random_rotate():
     ])
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
-    assert abs(r_boxes[-1, -1]) <= 10.
 
     rotator = T.RandomRotate(max_angle=10., expand=True)
     r_img, r_boxes = rotator(input_t, boxes)
@@ -301,31 +283,126 @@ def test_crop_detection():
         [15, 20, 35, 30],
         [5, 10, 10, 20],
     ])
-    crop_box = (12, 23, 50, 50)
+    crop_box = (12 / 50, 23 / 50, 1., 1.)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
-    assert c_img.shape == (27, 38, 3)
+    assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
+    assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
+
     rel_boxes = np.array([
         [.3, .4, .7, .6],
         [.1, .2, .2, .4],
     ])
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
-    assert c_img.shape == (27, 38, 3)
+    assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
+    assert np.abs(c_boxes - np.array([.06 / .76, 0., .46 / .76, .14 / .54])[None, ...]).mean() < 1e-7
 
     # FP16
     img = tf.ones((50, 50, 3), dtype=tf.float16)
     c_img, _ = crop_detection(img, rel_boxes, crop_box)
     assert c_img.dtype == tf.float16
 
+    with pytest.raises(AssertionError):
+        crop_detection(img, abs_boxes, (2, 6, 24, 56))
+
 
 def test_random_crop():
-    cropper = T.RandomCrop()
+    transfo = T.RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([
         [15, 20, 35, 30]
     ])
-    c_img, _ = cropper(input_t, dict(boxes=boxes))
-    new_h, new_w = c_img.shape[:2]
-    assert new_h >= 3
-    assert new_w >= 3
+    img, target = transfo(input_t, dict(boxes=boxes))
+    # Check the scale (take a margin)
+    assert img.shape[0] * img.shape[1] >= 0.4 * input_t.shape[0] * input_t.shape[1]
+    # Check aspect ratio (take a margin)
+    assert 0.65 <= img.shape[0] / img.shape[1] <= 1.5
+    # Check the target
+    assert np.all(target['boxes'] >= 0)
+    assert np.all(target['boxes'][:, [0, 2]] <= img.shape[1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[0])
+
+
+def test_gaussian_blur():
+    blur = T.GaussianBlur(3, (.1, 3))
+    input_t = np.ones((31, 31, 3), dtype=np.float32)
+    input_t[15, 15] = 0
+    blur_img = blur(tf.convert_to_tensor(input_t)).numpy()
+    assert blur_img.shape == input_t.shape
+    assert np.all(blur_img[15, 15] > 0)
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_size",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ],
+)
+def test_channel_shuffle(input_dtype, input_size):
+    transfo = T.ChannelShuffle()
+    input_t = tf.random.uniform(input_size, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round(255 * input_t)
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    out = transfo(input_t)
+    assert isinstance(out, tf.Tensor)
+    assert out.shape == input_size
+    assert out.dtype == input_dtype
+    # Ensure that nothing has changed apart from channel order
+    assert tf.math.reduce_all(tf.math.reduce_sum(input_t, -1) == tf.math.reduce_sum(out, -1))
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ]
+)
+def test_gaussian_noise(input_dtype, input_shape):
+    transform = T.GaussianNoise(0., 1.)
+    input_t = tf.random.uniform(input_shape, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round((255 * input_t))
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, tf.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    assert tf.math.reduce_any(transformed != input_t)
+    assert tf.math.reduce_all(transformed >= 0)
+    if input_dtype == tf.uint8:
+        assert tf.reduce_all(transformed <= 255)
+    else:
+        assert tf.reduce_all(transformed <= 1.)
+
+
+@pytest.mark.parametrize("p", [1, 0])
+def test_randomhorizontalflip(p):
+    # testing for 2 cases, with flip probability 1 and 0.
+    transform = T.RandomHorizontalFlip(p)
+    input_t = np.ones((32, 32, 3))
+    input_t[:, :16, :] = 0
+    input_t = tf.convert_to_tensor(input_t)
+    target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    transformed, _target = transform(input_t, target)
+    assert isinstance(transformed, tf.Tensor)
+    assert transformed.shape == input_t.shape
+    assert transformed.dtype == input_t.dtype
+    # integrity check of targets
+    assert isinstance(_target, dict)
+    assert all(isinstance(val, np.ndarray) for val in _target.values())
+    assert _target["boxes"].dtype == np.float32
+    assert _target["labels"].dtype == np.int64
+    if p == 1:
+        assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+        assert tf.reduce_all(
+            tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([1] * 16 + [0] * 16, dtype=tf.float64)
+        )
+    elif p == 0:
+        assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+        assert tf.reduce_all(
+            tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([0] * 16 + [1] * 16, dtype=tf.float64)
+        )
+    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))

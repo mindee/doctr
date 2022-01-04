@@ -7,66 +7,7 @@ on:
     branches: main
 
 jobs:
-  install-tf:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: [3.7]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
-            ${{ runner.os }}-pkg-deps-
-            ${{ runner.os }}-
-      - name: Install package
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
-
-  install-pytorch:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: [3.7]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
-            ${{ runner.os }}-pkg-deps-
-            ${{ runner.os }}-
-      - name: Install package
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
-
   pytest-common:
-    needs: install-tf
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -75,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -83,13 +24,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
-            ${{ runner.os }}-pkg-deps-
-            ${{ runner.os }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -106,7 +43,6 @@ jobs:
           if-no-files-found: error
 
   pytest-tf:
-    needs: install-tf
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -123,13 +59,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
-            ${{ runner.os }}-pkg-deps-
-            ${{ runner.os }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -146,7 +78,6 @@ jobs:
           if-no-files-found: error
 
   pytest-torch:
-    needs: install-pytorch
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -163,13 +94,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('**/*.py') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}-
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
-            ${{ runner.os }}-pkg-deps-
-            ${{ runner.os }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -187,47 +114,14 @@ jobs:
           path: ./coverage-pt.xml
           if-no-files-found: error
 
-  codecov-upload:
-    runs-on: ubuntu-latest
-    needs: [ pytest-common, pytest-tf, pytest-torch ]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          flags: unittests
-          fail_ci_if_error: true
-
-  docs-build:
-    runs-on: ubuntu-latest
-    needs: install-tf
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.7
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('docs/requirements.txt') }}-${{ hashFiles('**/*.py') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('docs/requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-
-            ${{ runner.os }}-pkg-deps-
-            ${{ runner.os }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
-          pip install -e .[docs]
-
-      - name: Build documentation
-        run: cd docs && bash build.sh
-
-      - name: Documentation sanity check
-        run: test -e docs/build/index.html || exit
+  # codecov-upload:
+  #   runs-on: ubuntu-latest
+  #   needs: [ pytest-common, pytest-tf, pytest-torch ]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/download-artifact@v2
+  #     - name: Upload coverage to Codecov
+  #       uses: codecov/codecov-action@v1
+  #       with:
+  #         flags: unittests
+  #         fail_ci_if_error: true

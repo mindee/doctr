@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -19,6 +19,7 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torchvision.transforms import ColorJitter, Compose, GaussianBlur
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
@@ -38,12 +39,6 @@ def record_lr(
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
-
-    Args:
-       freeze_until (str, optional): last layer to freeze
-       start_lr (float, optional): initial learning rate
-       end_lr (float, optional): final learning rate
-       num_it (int, optional): number of iterations to perform
     """
 
     if num_it > len(train_loader):
@@ -122,9 +117,8 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter, parent=mb):
+    for images, targets in progress_bar(train_loader, parent=mb):
 
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
@@ -154,10 +148,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
 def evaluate(model, val_loader, metric, amp=False):
     model.eval()
     metric.reset()
-    val_iter = iter(val_loader)
-    for images, targets in val_iter:
-
-        images, targets = next(val_iter)
+    for images, targets in val_loader:
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
@@ -190,7 +181,7 @@ def main(args):
     val_set = DocArtefacts(
         train=False,
         download=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
     )
     val_loader = DataLoader(
         val_set,
@@ -238,13 +229,18 @@ def main(args):
         return
 
     st = time.time()
-    # Load both train and val data generators
+    # Load train data generators
     train_set = DocArtefacts(
         train=True,
         download=True,
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
+        ]),
+        sample_transforms=T.RandomHorizontalFlip(p=0.5),
     )
-
     train_loader = DataLoader(
         train_set,
         batch_size=args.batch_size,
@@ -340,7 +336,7 @@ def parse_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('arch', type=str, help='text-detection model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
-    parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
+    parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
     parser.add_argument('--device', default=None, type=int, help='device')
     parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')

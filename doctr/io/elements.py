@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import doctr
-from doctr.utils.common_types import BoundingBox, RotatedBbox
+from doctr.utils.common_types import BoundingBox
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
 from doctr.utils.visualization import synthesize_page, visualize_page
@@ -67,7 +67,7 @@ class Word(Element):
     _exported_keys: List[str] = ["value", "confidence", "geometry"]
     _children_names: List[str] = []
 
-    def __init__(self, value: str, confidence: float, geometry: Union[BoundingBox, RotatedBbox]) -> None:
+    def __init__(self, value: str, confidence: float, geometry: Union[BoundingBox, np.ndarray]) -> None:
         super().__init__()
         self.value = value
         self.confidence = confidence
@@ -135,12 +135,12 @@ class Line(Element):
     def __init__(
         self,
         words: List[Word],
-        geometry: Optional[Union[BoundingBox, RotatedBbox]] = None,
+        geometry: Optional[Union[BoundingBox, np.ndarray]] = None,
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             # Check whether this is a rotated or straight box
-            box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 5 else resolve_enclosing_bbox
+            box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 4 else resolve_enclosing_bbox
             geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator, misc]
 
         super().__init__(words=words)
@@ -179,13 +179,15 @@ class Block(Element):
         self,
         lines: List[Line] = [],
         artefacts: List[Artefact] = [],
-        geometry: Optional[Union[BoundingBox, RotatedBbox]] = None,
+        geometry: Optional[Union[BoundingBox, np.ndarray]] = None,
     ) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
-            box_resolution_fn = resolve_enclosing_rbbox if len(lines[0].geometry) == 5 else resolve_enclosing_bbox
+            box_resolution_fn = resolve_enclosing_rbbox if isinstance(
+                lines[0].geometry, np.ndarray
+            ) else resolve_enclosing_bbox
             geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator, arg-type]
 
         super().__init__(lines=lines, artefacts=artefacts)
@@ -242,15 +244,16 @@ class Page(Element):
         return f"dimensions={self.dimensions}"
 
     def show(
-        self, page: np.ndarray, interactive: bool = True, **kwargs
+        self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs
     ) -> None:
         """Overlay the result on a given image
 
         Args:
             page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
+            preserve_aspect_ratio: pass True if you passed True to the predictor
         """
-        visualize_page(self.export(), page, interactive=interactive)
+        visualize_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
         plt.show(**kwargs)
 
     def synthesize(self, **kwargs) -> np.ndarray:

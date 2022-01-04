@@ -1,17 +1,20 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 
+import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 from doctr.utils.repr import NestedObject
 
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
-           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality']
+           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
+           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip']
 
 
 class Compose(NestedObject):
@@ -141,8 +144,12 @@ class ToGray(NestedObject):
         >>> transfo = ToGray()
         >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
+    def __init__(self, num_output_channels: int = 1):
+        self.num_output_channels = num_output_channels
+
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.rgb_to_grayscale(img)
+        img = tf.image.rgb_to_grayscale(img)
+        return img if self.num_output_channels == 1 else tf.repeat(img, self.num_output_channels, axis=-1)
 
 
 class RandomBrightness(NestedObject):
@@ -298,3 +305,115 @@ class RandomJpegQuality(NestedObject):
         return tf.image.random_jpeg_quality(
             img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality
         )
+
+
+class GaussianBlur(NestedObject):
+    """Randomly adjust jpeg quality of a 3 dimensional RGB image
+
+    Example::
+        >>> from doctr.transforms import GaussianBlur
+        >>> import tensorflow as tf
+        >>> transfo = GaussianBlur(3, (.1, 5))
+        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        kernel_shape: size of the blurring kernel
+        std: min and max value of the standard deviation
+    """
+    def __init__(self, kernel_shape: Union[int, Iterable[int]], std: Tuple[float, float]) -> None:
+        self.kernel_shape = kernel_shape
+        self.std = std
+
+    def extra_repr(self) -> str:
+        return f"kernel_shape={self.kernel_shape}, std={self.std}"
+
+    @tf.function
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        sigma = random.uniform(self.std[0], self.std[1])
+        return tfa.image.gaussian_filter2d(
+            img, filter_shape=self.kernel_shape, sigma=sigma,
+        )
+
+
+class ChannelShuffle(NestedObject):
+    """Randomly shuffle channel order of a given image"""
+
+    def __init__(self):
+        pass
+
+    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+        return tf.transpose(tf.random.shuffle(tf.transpose(img, perm=[2, 0, 1])), perm=[1, 2, 0])
+
+
+class GaussianNoise(NestedObject):
+    """Adds Gaussian Noise to the input tensor
+
+       Example::
+           >>> from doctr.transforms import GaussianNoise
+           >>> import tensorflow as tf
+           >>> transfo = GaussianNoise(0., 1.)
+           >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+       Args:
+           mean : mean of the gaussian distribution
+           std : std of the gaussian distribution
+       """
+    def __init__(self, mean: float = 0., std: float = 1.) -> None:
+        super().__init__()
+        self.std = std
+        self.mean = mean
+
+    def __call__(self, x: tf.Tensor) -> tf.Tensor:
+        # Reshape the distribution
+        noise = self.mean + 2 * self.std * tf.random.uniform(x.shape) - self.std
+        if x.dtype == tf.uint8:
+            return tf.cast(
+                tf.clip_by_value(tf.math.round(tf.cast(x, dtype=tf.float32) + 255 * noise), 0, 255),
+                dtype=tf.uint8
+            )
+        else:
+            return tf.cast(tf.clip_by_value(x + noise, 0, 1), dtype=x.dtype)
+
+    def extra_repr(self) -> str:
+        return f"mean={self.mean}, std={self.std}"
+
+
+class RandomHorizontalFlip(NestedObject):
+    """Adds random horizontal flip to the input tensor/np.ndarray
+
+    Example::
+           >>> from doctr.transforms import RandomHorizontalFlip
+           >>> import tensorflow as tf
+           >>> transfo = RandomHorizontalFlip(p=0.5)
+           >>> image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
+           >>> target = {
+            "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),
+            "labels": np.ones(1, dtype= np.int64)
+            }
+           >>> out = transfo(image, target)
+
+       Args:
+           p : probability of Horizontal Flip"""
+    def __init__(self, p: float) -> None:
+        super().__init__()
+        self.p = p
+
+    def __call__(
+            self,
+            img: Union[tf.Tensor, np.ndarray],
+            target: Dict[str, Any]
+    ) -> Tuple[tf.Tensor, Dict[str, Any]]:
+        """
+        Args:
+            img: Image to be flipped.
+            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
+        Returns:
+            Tuple of numpy nd-array or Tensor and target
+        """
+        if np.random.rand(1) <= self.p:
+            _img = tf.image.flip_left_right(img)
+            _target = target.copy()
+            # Changing the relative bbox coordinates
+            _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
+            return _img, _target
+        return img, target

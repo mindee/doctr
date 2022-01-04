@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -6,11 +6,12 @@
 import csv
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
 from .datasets import AbstractDataset
+from .utils import convert_target_to_relative
 
 __all__ = ["IC13"]
 
@@ -29,19 +30,17 @@ class IC13(AbstractDataset):
     Args:
         img_folder: folder with all the images of the dataset
         label_folder: folder with all annotation files for the images
-        sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
     def __init__(
         self,
         img_folder: str,
         label_folder: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.sample_transforms = sample_transforms
+        super().__init__(img_folder, pre_transforms=convert_target_to_relative, **kwargs)
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):
@@ -66,26 +65,16 @@ class IC13(AbstractDataset):
             labels = [line[-1] for line in _lines]
             # xmin, ymin, xmax, ymax
             box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
-            if rotated_bbox:
+            if use_polygons:
                 # x_center, y_center, width, height, 0
-                box_targets = np.array([[coords[0] + (coords[2] - coords[0]) / 2,
-                                         coords[1] + (coords[3] - coords[1]) / 2,
-                                         (coords[2] - coords[0]),
-                                         (coords[3] - coords[1]), 0.0] for coords in box_targets], dtype=np_dtype)
-
+                box_targets = np.array(
+                    [
+                        [
+                            [coords[0], coords[1]],
+                            [coords[2], coords[1]],
+                            [coords[2], coords[3]],
+                            [coords[0], coords[3]],
+                        ] for coords in box_targets
+                    ], dtype=np_dtype
+                )
             self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
-
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, Dict[str, Any]]:
-        img, target = self._read_sample(index)
-        h, w = self._get_img_shape(img)
-        if self.sample_transforms is not None:
-            img = self.sample_transforms(img)
-
-        # Boxes
-        boxes = target['boxes'].copy()
-        boxes[..., [0, 2]] /= w
-        boxes[..., [1, 3]] /= h
-        boxes = boxes.clip(0, 1)
-        target['boxes'] = boxes
-
-        return img, target

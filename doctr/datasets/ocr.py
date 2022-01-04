@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -21,17 +21,17 @@ class OCRDataset(AbstractDataset):
     Args:
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
-        sample_transforms: composable transformations that will be applied to each image
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
     """
 
     def __init__(
         self,
         img_folder: str,
         label_file: str,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
+        use_polygons: bool = False,
+        **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder)
-        self.sample_transforms = sample_transforms
+        super().__init__(img_folder, **kwargs)
 
         # List images
         self.data: List[Tuple[str, Dict[str, Any]]] = []
@@ -50,8 +50,14 @@ class OCRDataset(AbstractDataset):
             if len(annotations["typed_words"]) == 0:
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np_dtype), labels=[])))
                 continue
-            # Unpack
-            box_targets = [tuple(map(float, obj['geometry'])) for obj in annotations['typed_words']]
+            # Unpack the straight boxes
+            geoms = [list(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
+            if use_polygons:
+                geoms = [
+                    [geom[:2], [geom[2], geom[1]], geom[2:], [geom[0], geom[3]]]  # type: ignore[list-item]
+                    for geom in geoms
+                ]
+
             text_targets = [obj['value'] for obj in annotations['typed_words']]
 
-            self.data.append((img_name, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=text_targets)))
+            self.data.append((img_name, dict(boxes=np.asarray(geoms, dtype=np_dtype), labels=text_targets)))

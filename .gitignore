@@ -132,6 +132,7 @@ dmypy.json
 doctr/version.py
 logs/
 wandb/
+.idea/
 
 # Checkpoints
 *.pt

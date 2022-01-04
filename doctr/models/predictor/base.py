@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -9,7 +9,8 @@ import numpy as np
 
 from doctr.models.builder import DocumentBuilder
 
-from .._utils import extract_crops, extract_rcrops
+from .._utils import extract_crops, extract_rcrops, rectify_crops, rectify_loc_preds
+from ..classification import crop_orientation_predictor
 
 __all__ = ['_OCRPredictor']
 
@@ -24,6 +25,9 @@ class _OCRPredictor:
 
     doc_builder: DocumentBuilder
 
+    def __init__(self) -> None:
+        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
+
     @staticmethod
     def _generate_crops(
         pages: List[np.ndarray],
@@ -35,7 +39,7 @@ class _OCRPredictor:
         extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
 
         crops = [
-            extraction_fn(page, _boxes[:, :-1], channels_last=channels_last)  # type: ignore[operator]
+            extraction_fn(page, _boxes[:, :4], channels_last=channels_last)  # type: ignore[operator]
             for page, _boxes in zip(pages, loc_preds)
         ]
         return crops
@@ -59,6 +63,20 @@ class _OCRPredictor:
         loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
 
         return crops, loc_preds
+
+    def _rectify_crops(
+        self,
+        crops: List[List[np.ndarray]],
+        loc_preds: List[np.ndarray],
+    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
+        # Work at a page level
+        orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]
+        rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
+        rect_loc_preds = [
+            rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
+            for page_loc_preds, orientation in zip(loc_preds, orientations)
+        ]
+        return rect_crops, rect_loc_preds
 
     @staticmethod
     def _process_predictions(

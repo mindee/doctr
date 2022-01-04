@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -16,6 +16,7 @@ from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
 
+from ..classification import crop_orientation_predictor
 from .base import _OCRPredictor
 
 __all__ = ['OCRPredictor']
@@ -52,6 +53,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
+        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
 
     @torch.no_grad()
     def forward(
@@ -63,8 +65,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
-
-        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
         # Detect document rotation and rotate pages
         if self.straighten_pages:
@@ -79,6 +79,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages
         )
+        # Rectify crop orientation
+        if not self.assume_straight_pages:
+            crops, loc_preds = self._rectify_crops(crops, loc_preds)
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
 
@@ -88,9 +91,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if self.straighten_pages:
             boxes = [rotate_boxes(page_boxes,
                                   angle,
-                                  orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
-                                  target_shape=mask) for
-                     page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
+                                  orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:]
+                                  ) for page_boxes, page, angle in zip(boxes, pages, origin_page_orientations)]
 
         out = self.doc_builder(
             boxes,

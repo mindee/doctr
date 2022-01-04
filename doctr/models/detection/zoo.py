@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -15,9 +15,11 @@ __all__ = ["detection_predictor"]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
+    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18']
+    ROT_ARCHS = []
 elif is_torch_available():
-    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet16']
+    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'db_resnet50_rotation']
+    ROT_ARCHS = ['db_resnet50_rotation']
 
 
 def _predictor(
@@ -29,6 +31,11 @@ def _predictor(
 
     if arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
+
+    if arch not in ROT_ARCHS and not assume_straight_pages:
+        raise AssertionError("You are trying to use a model trained on straight pages while not assuming"
+                             " your pages are straight. If you have only straight documents, don't pass"
+                             f" assume_straight_pages=False, otherwise you should use one of these archs: {ROT_ARCHS}")
 
     # Detection
     _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)

@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -16,7 +16,6 @@ import time
 import numpy as np
 import torch
 import wandb
-from contiguous_params import ContiguousParams
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -41,12 +40,6 @@ def record_lr(
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
-
-    Args:
-       freeze_until (str, optional): last layer to freeze
-       start_lr (float, optional): initial learning rate
-       end_lr (float, optional): final learning rate
-       num_it (int, optional): number of iterations to perform
     """
 
     if num_it > len(train_loader):
@@ -113,9 +106,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_iter, parent=mb):
+    for images, targets in progress_bar(train_loader, parent=mb):
 
         if torch.cuda.is_available():
             images = images.cuda()
@@ -151,21 +143,20 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    val_iter = iter(val_loader)
-    for images, targets in val_iter:
+    for images, targets in val_loader:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
         if amp:
             with torch.cuda.amp.autocast():
-                out = model(images, targets, return_boxes=True)
+                out = model(images, targets, return_preds=True)
         else:
-            out = model(images, targets, return_boxes=True)
+            out = model(images, targets, return_preds=True)
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
-            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
+            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         val_loss += out['loss'].item()
         batch_cnt += 1
@@ -188,7 +179,8 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
-        sample_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=T.Resize((args.input_size, args.input_size)),
+        use_polygons=args.rotation,
     )
     val_loader = DataLoader(
         val_set,
@@ -231,7 +223,7 @@ def main(args):
         model = model.cuda()
 
     # Metrics
-    val_metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=(args.input_size, args.input_size))
+    val_metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=(args.input_size, args.input_size))
 
     if args.test_only:
         print("Running evaluation")
@@ -245,12 +237,19 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, 'images'),
         label_path=os.path.join(args.train_path, 'labels.json'),
-        sample_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .1),
-            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-        ]),
+        img_transforms=Compose(
+            ([T.Resize((args.input_size, args.input_size))] if not args.rotation else [])
+            + [
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), .1),
+                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            ]
+        ),
+        sample_transforms=T.SampleCompose([
+            T.RandomRotate(90, expand=True),
+            T.ImageTransform(T.Resize((args.input_size, args.input_size))),
+        ]) if args.rotation else None,
+        use_polygons=args.rotation,
     )
 
     train_loader = DataLoader(
@@ -278,8 +277,7 @@ def main(args):
             p.reguires_grad_(False)
 
     # Optimizer
-    model_params = ContiguousParams([p for p in model.parameters() if p.requires_grad]).contiguous()
-    optimizer = torch.optim.Adam(model_params, args.lr,
+    optimizer = torch.optim.Adam([p for p in model.parameters() if p.requires_grad], args.lr,
                                  betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
     # LR Finder
     if args.find_lr:
@@ -379,7 +377,7 @@ def parse_args():
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
-                        help='train with rotated bbox')
+                        help='train with rotated documents')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')

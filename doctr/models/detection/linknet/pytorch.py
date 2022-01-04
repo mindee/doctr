@@ -1,25 +1,25 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torchvision.models import resnet18
 from torchvision.models._utils import IntermediateLayerGetter
 
 from ...utils import load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet16']
+__all__ = ['LinkNet', 'linknet_resnet18']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'linknet16': {
-        'layout': [64, 128, 256, 512],
+    'linknet_resnet18': {
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -28,76 +28,35 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class LinkNetEncoder(nn.Module):
-    def __init__(self, in_chans: int, out_chans: int):
-        super().__init__()
-        self.stage1 = nn.Sequential(
-            nn.Conv2d(in_chans, out_chans, kernel_size=3, padding=1, stride=2, bias=False),
-            nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(out_chans),
-        )
-
-        self.shortcut = nn.Sequential(
-            nn.Conv2d(in_chans, out_chans, kernel_size=1, stride=2, bias=False),
-            nn.BatchNorm2d(out_chans),
-        ) if in_chans != out_chans else None
-
-        self.stage2 = nn.Sequential(
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_chans, out_chans, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(out_chans),
-            nn.ReLU(inplace=True),
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.stage1(x)
-        if self.shortcut is not None:
-            out += self.shortcut(x)
-        out = F.relu(out, inplace=True)
-        out = self.stage2(out) + out
-
-        return out
-
-
-def linknet_backbone(layout: List[int], in_channels: int = 3, stem_channels: int = 64) -> nn.Sequential:
-    # Stem
-    _layers: List[nn.Module] = [
-        nn.Conv2d(in_channels, stem_channels, kernel_size=7, stride=2, padding=3, bias=False),
-        nn.BatchNorm2d(stem_channels),
-        nn.ReLU(inplace=True),
-        nn.MaxPool2d(2),
-    ]
-    # Encoders
-    for in_chan, out_chan in zip([stem_channels] + layout[:-1], layout):
-        _layers.append(LinkNetEncoder(in_chan, out_chan))
-
-    return nn.Sequential(*_layers)
-
-
 class LinkNetFPN(nn.Module):
-    def __init__(self, layout: List[int], in_channels: int = 64) -> None:
+    def __init__(self, layer_shapes: List[Tuple[int, int, int]]) -> None:
         super().__init__()
-        _decoder_layers = [
-            self.decoder_block(out_chan, in_chan) for in_chan, out_chan in zip([in_channels] + layout[:-1], layout)
+        strides = [
+            1 if (in_shape[-1] == out_shape[-1]) else 2
+            for in_shape, out_shape in zip(layer_shapes[:-1], layer_shapes[1:])
         ]
+
+        chans = [shape[0] for shape in layer_shapes]
+
+        _decoder_layers = [
+            self.decoder_block(ochan, ichan, stride) for ichan, ochan, stride in zip(chans[:-1], chans[1:], strides)
+        ]
+
         self.decoders = nn.ModuleList(_decoder_layers)
 
     @staticmethod
-    def decoder_block(in_chan: int, out_chan: int) -> nn.Sequential:
+    def decoder_block(in_chan: int, out_chan: int, stride: int) -> nn.Sequential:
         """Creates a LinkNet decoder block"""
 
+        mid_chan = in_chan // 4
         return nn.Sequential(
-            nn.Conv2d(in_chan, in_chan // 4, kernel_size=1, bias=False),
-            nn.BatchNorm2d(in_chan // 4),
+            nn.Conv2d(in_chan, mid_chan, kernel_size=1, bias=False),
+            nn.BatchNorm2d(mid_chan),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(in_chan // 4, in_chan // 4, 3, padding=1, output_padding=1, stride=2, bias=False),
-            nn.BatchNorm2d(in_chan // 4),
+            nn.ConvTranspose2d(mid_chan, mid_chan, 3, padding=1, output_padding=stride - 1, stride=stride, bias=False),
+            nn.BatchNorm2d(mid_chan),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_chan // 4, out_chan, kernel_size=1, bias=False),
+            nn.Conv2d(mid_chan, out_chan, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_chan),
             nn.ReLU(inplace=True),
         )
@@ -128,19 +87,20 @@ class LinkNet(nn.Module, _LinkNet):
 
         self.feat_extractor = feat_extractor
         # Identify the number of channels for the FPN initialization
-        _is_training = self.feat_extractor.training
-        self.feat_extractor = self.feat_extractor.eval()
+        self.feat_extractor.eval()
         with torch.no_grad():
-            out = self.feat_extractor(torch.zeros((1, 3, 224, 224)))
-            fpn_channels = [v.shape[1] for _, v in out.items()]
+            in_shape = (3, 512, 512)
+            out = self.feat_extractor(torch.zeros((1, *in_shape)))
+            # Get the shapes of the extracted feature maps
+            _shapes = [v.shape[1:] for _, v in out.items()]
+            # Prepend the expected shapes of the first encoder
+            _shapes = [(_shapes[0][0], in_shape[1] // 4, in_shape[2] // 4)] + _shapes
+        self.feat_extractor.train()
 
-        if _is_training:
-            self.feat_extractor = self.feat_extractor.train()
-
-        self.fpn = LinkNetFPN(fpn_channels, fpn_channels[0])
+        self.fpn = LinkNetFPN(_shapes)
 
         self.classifier = nn.Sequential(
-            nn.ConvTranspose2d(fpn_channels[0], 32, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.ConvTranspose2d(_shapes[0][0], 32, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.Conv2d(32, 32, kernel_size=3, padding=1, bias=False),
@@ -168,7 +128,7 @@ class LinkNet(nn.Module, _LinkNet):
         x: torch.Tensor,
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
-        return_boxes: bool = False,
+        return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -177,14 +137,16 @@ class LinkNet(nn.Module, _LinkNet):
         logits = self.classifier(logits)
 
         out: Dict[str, Any] = {}
-        if return_model_output or target is None or return_boxes:
+        if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
         if return_model_output:
             out["out_map"] = prob_map
 
-        if target is None or return_boxes:
+        if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map.squeeze(1).detach().cpu().numpy())
+            out["preds"] = [
+                preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+            ]
 
         if target is not None:
             loss = self.compute_loss(logits, target)
@@ -226,18 +188,22 @@ class LinkNet(nn.Module, _LinkNet):
         return loss[seg_mask].mean()
 
 
-def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **kwargs: Any) -> LinkNet:
+def _linknet(
+    arch: str,
+    pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    fpn_layers: List[str],
+    pretrained_backbone: bool = False,
+    **kwargs: Any
+) -> LinkNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Build the feature extractor
-    backbone = linknet_backbone(default_cfgs[arch]['layout'])
-    if pretrained_backbone:
-        load_pretrained_params(backbone, None)
-
+    backbone = backbone_fn(pretrained_backbone)
     feat_extractor = IntermediateLayerGetter(
         backbone,
-        {str(layer): str(idx) for idx, layer in enumerate(range(4, 4 + len(default_cfgs[arch]['layout'])))},
+        {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
 
     # Build the model
@@ -249,14 +215,14 @@ def _linknet(arch: str, pretrained: bool, pretrained_backbone: bool = False, **k
     return model
 
 
-def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Example::
         >>> import torch
-        >>> from doctr.models import linknet16
-        >>> model = linknet16(pretrained=True).eval()
+        >>> from doctr.models import linknet_resnet18
+        >>> model = linknet_resnet18(pretrained=True).eval()
         >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
         >>> with torch.no_grad(): out = model(input_tensor)
 
@@ -267,4 +233,4 @@ def linknet16(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet16', pretrained, **kwargs)
+    return _linknet('linknet_resnet18', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)

@@ -3,11 +3,12 @@
 
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "v0.4.1"
+const stableVersion = "v0.5.0"
 // Dictionary doc folder to label. The last stable version should have an empty key.
 const versionMapping = {
     "latest": "latest",
-    "": "v0.4.1 (stable)",
+    "": "v0.5.0 (stable)",
+    "v0.4.1": "v0.4.1",
     "v0.4.0": "v0.4.0",
     "v0.3.1": "v0.3.1",
     "v0.3.0": "v0.3.0",
@@ -32,7 +33,7 @@ function addGithubButton() {
 
 function addVersionControl() {
     // To grab the version currently in view, we parse the url
-    const parts = location.toString().split('/');
+    const parts = location.toString().split('#')[0].split('/');
     let versionIndex = parts.length - 2;
     // Index page may not have a last part with filename.html so we need to go up
     if (parts[parts.length - 1] != "" && ! parts[parts.length - 1].match(/\.html$|^search.html?/)) {

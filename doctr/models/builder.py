@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -10,7 +10,7 @@ import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
 from doctr.io.elements import Block, Document, Line, Page, Word
-from doctr.utils.geometry import rbbox_to_polygon, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
+from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
 __all__ = ['DocumentBuilder']
@@ -45,48 +45,49 @@ class DocumentBuilder(NestedObject):
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
-            boxes: bounding boxes of shape (N, 4) or (N, 5) (in case of rotated bbox)
+            boxes: bounding boxes of shape (N, 4) or (N, 4, 2) (in case of rotated bbox)
 
         Returns:
-            indices of ordered boxes of shape (N,)
+            tuple: indices of ordered boxes of shape (N,), boxes
+                If straight boxes are passed tpo the function, boxes are unchanged
+                else: boxes returned are straight boxes fitted to the straightened rotated boxes
+                so that we fit the lines afterwards to the straigthened page
         """
-        if boxes.shape[1] == 5:
+        if boxes.ndim == 3:
             boxes = rotate_boxes(
-                loc_preds=np.concatenate((boxes, np.zeros((boxes.shape[0], 1))), -1),
-                angle=-np.median(boxes[:, 4]),
+                loc_preds=boxes,
+                angle=-estimate_page_angle(boxes),
                 orig_shape=(1024, 1024),
                 min_angle=5.,
             )
-            return (boxes[:, 0] + 2 * boxes[:, 1] / np.median(boxes[:, 3])).argsort()
-        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort()
+            boxes = np.concatenate((boxes.min(1), boxes.max(1)), -1)
+        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
 
-    def _resolve_sub_lines(self, boxes: np.ndarray, words: List[int]) -> List[List[int]]:
+    def _resolve_sub_lines(self, boxes: np.ndarray, word_idcs: List[int]) -> List[List[int]]:
         """Split a line in sub_lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4) or (N, 5) in case of rotated bbox
-            words: list of indexes for the words of the line
+            boxes: bounding boxes of shape (N, 4)
+            word_idcs: list of indexes for the words of the line
 
         Returns:
             A list of (sub-)lines computed from the original line (words)
         """
         lines = []
         # Sort words horizontally
-        words = [words[j] for j in np.argsort([boxes[i, 0] for i in words]).tolist()]
+        word_idcs = [word_idcs[idx] for idx in boxes[word_idcs, 0].argsort().tolist()]
+
         # Eventually split line horizontally
-        if len(words) < 2:
-            lines.append(words)
+        if len(word_idcs) < 2:
+            lines.append(word_idcs)
         else:
-            sub_line = [words[0]]
-            for i in words[1:]:
+            sub_line = [word_idcs[0]]
+            for i in word_idcs[1:]:
                 horiz_break = True
 
                 prev_box = boxes[sub_line[-1]]
                 # Compute distance between boxes
-                if boxes.shape[1] == 5:
-                    dist = boxes[i, 0] - prev_box[2] / 2 - (prev_box[0] + prev_box[2] / 2)
-                else:
-                    dist = boxes[i, 0] - prev_box[2]
+                dist = boxes[i, 0] - prev_box[2]
                 # If distance between boxes is lower than paragraph break, same sub-line
                 if dist < self.paragraph_break:
                     horiz_break = False
@@ -104,33 +105,28 @@ class DocumentBuilder(NestedObject):
         """Order boxes to group them in lines
 
         Args:
-            boxes: bounding boxes of shape (N, 4) or (N, 5) in case of rotated bbox
+            boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
 
         Returns:
             nested list of box indices
         """
-        # Compute median for boxes heights
-        y_med = np.median(boxes[:, 3] if boxes.shape[1] == 5 else boxes[:, 3] - boxes[:, 1])
 
-        # Sort boxes
-        idxs = self._sort_boxes(boxes)
+        # Sort boxes, and straighten the boxes if they are rotated
+        idxs, boxes = self._sort_boxes(boxes)
+
+        # Compute median for boxes heights
+        y_med = np.median(boxes[:, 3] - boxes[:, 1])
 
         lines = []
         words = [idxs[0]]  # Assign the top-left word to the first line
         # Define a mean y-center for the line
-        if boxes.shape[1] == 5:
-            y_center_sum = boxes[idxs[0]][1]
-        else:
-            y_center_sum = boxes[idxs[0]][[1, 3]].mean()
+        y_center_sum = boxes[idxs[0]][[1, 3]].mean()
 
         for idx in idxs[1:]:
             vert_break = True
 
             # Compute y_dist
-            if boxes.shape[1] == 5:
-                y_dist = abs(boxes[idx][1] - y_center_sum / len(words))
-            else:
-                y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
+            y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
             # If y-center of the box is close enough to mean y-center of the line, same line
             if y_dist < y_med / 2:
                 vert_break = False
@@ -142,7 +138,7 @@ class DocumentBuilder(NestedObject):
                 y_center_sum = 0
 
             words.append(idx)
-            y_center_sum += boxes[idx][1 if boxes.shape[1] == 5 else [1, 3]].mean()
+            y_center_sum += boxes[idx][[1, 3]].mean()
 
         # Use the remaining words to form the last(s) line(s)
         if len(words) > 0:
@@ -156,16 +152,17 @@ class DocumentBuilder(NestedObject):
         """Order lines to group them in blocks
 
         Args:
-            boxes: bounding boxes of shape (N, 4) or (N, 5)
+            boxes: bounding boxes of shape (N, 4) or (N, 4, 2)
             lines: list of lines, each line is a list of idx
 
         Returns:
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
-        if boxes.shape[1] == 5:
+        if boxes.ndim == 3:
             box_lines = np.asarray([
-                resolve_enclosing_rbbox([tuple(boxes[idx, :5]) for idx in line]) for line in lines  # type: ignore[misc]
+                resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])
+                for line in lines  # type: ignore[misc]
             ])
         else:
             _box_lines = [
@@ -178,16 +175,28 @@ class DocumentBuilder(NestedObject):
 
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
-        box_features = np.stack(
-            (
-                (box_lines[:, 0] + box_lines[:, 3]) / 2,
-                (box_lines[:, 1] + box_lines[:, 2]) / 2,
-                (box_lines[:, 0] + box_lines[:, 2]) / 2,
-                (box_lines[:, 1] + box_lines[:, 3]) / 2,
-                box_lines[:, 0],
-                box_lines[:, 1],
-            ), axis=-1
-        )
+        if boxes.ndim == 3:
+            box_features = np.stack(
+                (
+                    (box_lines[:, 0, 0] + box_lines[:, 0, 1]) / 2,
+                    (box_lines[:, 0, 0] + box_lines[:, 2, 0]) / 2,
+                    (box_lines[:, 0, 0] + box_lines[:, 2, 1]) / 2,
+                    (box_lines[:, 0, 1] + box_lines[:, 2, 1]) / 2,
+                    (box_lines[:, 0, 1] + box_lines[:, 2, 0]) / 2,
+                    (box_lines[:, 2, 0] + box_lines[:, 2, 1]) / 2,
+                ), axis=-1
+            )
+        else:
+            box_features = np.stack(
+                (
+                    (box_lines[:, 0] + box_lines[:, 3]) / 2,
+                    (box_lines[:, 1] + box_lines[:, 2]) / 2,
+                    (box_lines[:, 0] + box_lines[:, 2]) / 2,
+                    (box_lines[:, 1] + box_lines[:, 3]) / 2,
+                    box_lines[:, 0],
+                    box_lines[:, 1],
+                ), axis=-1
+            )
         # Compute clusters
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
 
@@ -208,7 +217,7 @@ class DocumentBuilder(NestedObject):
         """Gather independent words in structured blocks
 
         Args:
-            boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 6)
+            boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
             word_preds: list of all detected words of the page, of shape N
 
         Returns:
@@ -224,15 +233,15 @@ class DocumentBuilder(NestedObject):
         # Decide whether we try to form lines
         _boxes = boxes
         if self.resolve_lines:
-            lines = self._resolve_lines(_boxes[:, :-1])
+            lines = self._resolve_lines(_boxes if _boxes.ndim == 3 else _boxes[:, :4])
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
-                _blocks = self._resolve_blocks(_boxes[:, :-1], lines)
+                _blocks = self._resolve_blocks(_boxes if _boxes.ndim == 3 else _boxes[:, :4], lines)
             else:
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(_boxes[:, :-1])]
+            lines = [self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4])[0]]
             _blocks = [lines]
 
         blocks = [
@@ -241,8 +250,8 @@ class DocumentBuilder(NestedObject):
                     [
                         Word(
                             *word_preds[idx],
-                            (boxes[idx, 0], boxes[idx, 1], boxes[idx, 2], boxes[idx, 3], boxes[idx, 4])
-                        ) if boxes.shape[1] == 6 else
+                            tuple([tuple(pt) for pt in boxes[idx].tolist()])
+                        ) if boxes.ndim == 3 else
                         Word(
                             *word_preds[idx],
                             ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
@@ -276,26 +285,17 @@ class DocumentBuilder(NestedObject):
         Returns:
             document object
         """
-
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
             raise ValueError("All arguments are expected to be lists of the same size")
 
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if boxes[0].shape[-1] == 6:
+            if boxes[0].ndim == 3:
                 straight_boxes = []
                 # Iterate over pages
-                for page_boxes in boxes:
-                    straight_boxes_page = []
+                for p_boxes in boxes:
                     # Iterate over boxes of the pages
-                    for box in page_boxes:
-                        x, y, w, h, a, c = box
-                        points = rbbox_to_polygon((x, y, w, h, a))
-                        x_coords, y_coords = zip(*points)
-                        xmin, xmax = min(x_coords), max(x_coords)
-                        ymin, ymax = min(y_coords), max(y_coords)
-                        straight_boxes_page.append([xmin, ymin, xmax, ymax, c])
-                    straight_boxes.append(np.asarray(straight_boxes_page))
+                    straight_boxes.append(np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1))
                 boxes = straight_boxes
 
         _pages = [

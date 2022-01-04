@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -13,7 +13,52 @@ from doctr.utils.repr import NestedObject
 
 from .. import functional as F
 
-__all__ = ['ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
+__all__ = ['SampleCompose', 'ImageTransform', 'ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
+
+
+class SampleCompose(NestedObject):
+    """Implements a wrapper that will apply transformations sequentially on both image and target
+    Example::
+        >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
+        >>> import tensorflow as tf
+        >>> import numpy as np
+        >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
+        >>> out, out_boxes = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
+    Args:
+        transforms: list of transformation modules
+    """
+
+    _children_names: List[str] = ['sample_transforms']
+
+    def __init__(self, transforms: List[Callable[[Any, Any], Tuple[Any, Any]]]) -> None:
+        self.sample_transforms = transforms
+
+    def __call__(self, x: Any, target: Any) -> Tuple[Any, Any]:
+        for t in self.sample_transforms:
+            x, target = t(x, target)
+
+        return x, target
+
+
+class ImageTransform(NestedObject):
+    """Implements a transform wrapper to turn an image-only transformation into an image+target transform
+    Example::
+        >>> from doctr.transforms import ImageTransform, ColorInversion
+        >>> import tensorflow as tf
+        >>> transfo = ImageTransform(ColorInversion((32, 32)))
+        >>> out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)
+    Args:
+        transform: the image transformation module to wrap
+    """
+
+    _children_names: List[str] = ['img_transform']
+
+    def __init__(self, transform: Callable[[Any], Any]) -> None:
+        self.img_transform = transform
+
+    def __call__(self, img: Any, target: Any) -> Tuple[Any, Any]:
+        img = self.img_transform(img)
+        return img, target
 
 
 class ColorInversion(NestedObject):
@@ -129,17 +174,16 @@ class RandomCrop(NestedObject):
         return f"scale={self.scale}, ratio={self.ratio}"
 
     def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
-        h, w = img.shape[:2]
         scale = random.uniform(self.scale[0], self.scale[1])
         ratio = random.uniform(self.ratio[0], self.ratio[1])
+        # Those might overflow
         crop_h = math.sqrt(scale * ratio)
         crop_w = math.sqrt(scale / ratio)
-        start_x, start_y = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
-        crop_box = (
-            max(0, int(round(start_x * w))),
-            max(0, int(round(start_y * h))),
-            min(int(round((start_x + crop_w) * w)), w - 1),
-            min(int(round((start_y + crop_h) * h)), h - 1)
-        )
-        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], crop_box)
+        xmin, ymin = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
+        xmax, ymax = xmin + crop_w, ymin + crop_h
+        # Clip them
+        xmin, ymin = max(xmin, 0), max(ymin, 0)
+        xmax, ymax = min(xmax, 1), min(ymax, 1)
+
+        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], (xmin, ymin, xmax, ymax))
         return croped_img, dict(boxes=crop_boxes)

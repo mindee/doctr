@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -41,25 +41,25 @@ def main(args):
         )
         sets = [testset]
     else:
-        train_set = datasets.__dict__[args.dataset](train=True, download=True, rotated_bbox=args.rotation)
-        val_set = datasets.__dict__[args.dataset](train=False, download=True, rotated_bbox=args.rotation)
+        train_set = datasets.__dict__[args.dataset](train=True, download=True, use_polygons=args.rotation)
+        val_set = datasets.__dict__[args.dataset](train=False, download=True, use_polygons=args.rotation)
         sets = [train_set, val_set]
 
     reco_metric = TextMatch()
     if args.rotation and args.mask_shape:
         det_metric = LocalizationConfusion(
             iou_thresh=args.iou,
-            rotated_bbox=args.rotation,
+            use_polygons=args.rotation,
             mask_shape=(args.mask_shape, args.mask_shape)
         )
         e2e_metric = OCRMetric(
             iou_thresh=args.iou,
-            rotated_bbox=args.rotation,
+            use_polygons=args.rotation,
             mask_shape=(args.mask_shape, args.mask_shape)
         )
     else:
-        det_metric = LocalizationConfusion(iou_thresh=args.iou, rotated_bbox=args.rotation)
-        e2e_metric = OCRMetric(iou_thresh=args.iou, rotated_bbox=args.rotation)
+        det_metric = LocalizationConfusion(iou_thresh=args.iou, use_polygons=args.rotation)
+        e2e_metric = OCRMetric(iou_thresh=args.iou, use_polygons=args.rotation)
 
     sample_idx = 0
     for dataset in sets:
@@ -102,20 +102,25 @@ def main(args):
                             if not args.rotation:
                                 (a, b), (c, d) = word.geometry
                             else:
-                                x, y, w, h, alpha = word.geometry
+                                [x1, y1], [x2, y2], [x3, y3], [x4, y4], = word.geometry
                             if gt_boxes.dtype == int:
                                 if not args.rotation:
                                     pred_boxes.append([int(a * width), int(b * height),
                                                        int(c * width), int(d * height)])
                                 else:
                                     pred_boxes.append(
-                                        [int(x * width), int(y * height), int(w * width), int(h * height), alpha]
+                                        [
+                                            [int(x1 * width), int(y1 * height)],
+                                            [int(x2 * width), int(y2 * height)],
+                                            [int(x3 * width), int(y3 * height)],
+                                            [int(x4 * width), int(y4 * height)],
+                                        ]
                                     )
                             else:
                                 if not args.rotation:
                                     pred_boxes.append([a, b, c, d])
                                 else:
-                                    pred_boxes.append([x, y, w, h, alpha])
+                                    pred_boxes.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
                             pred_labels.append(word.value)
 
             # Update the metric
