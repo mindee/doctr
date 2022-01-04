@@ -30,11 +30,15 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         self,
         bin_thresh: float = 0.5,
         box_thresh: float = 0.1,
+        rotated_bbox: bool = False,
+        min_size_box: int = 3,
         assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(
             box_thresh,
             bin_thresh,
+            rotated_bbox,
+            min_size_box,
             assume_straight_pages
         )
 
