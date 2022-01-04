@@ -110,8 +110,8 @@ class DBPostProcessor(DetectionPostProcessor):
         """
         height, width = bitmap.shape[:2]
         min_size_box = 1 + int(height / 512)
-        # the default min_size_box is 3 
-        # so we can decide if we need to retain smaller sized boxes
+        # The default min_size_box is 3
+        # So we can decide if we need to retain smaller sized boxes
         min_size_box = min(min_size_box, self.min_size_box)
         boxes = []
         # get contours from connected components on the bitmap
