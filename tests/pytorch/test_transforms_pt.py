@@ -88,7 +88,10 @@ def test_rotate_sample():
     boxes = np.array([0, 0, 100, 200])[None, ...]
     polys = np.stack((boxes[..., [0, 1]], boxes[..., [2, 1]], boxes[..., [2, 3]], boxes[..., [0, 3]]), axis=1)
     rel_boxes = np.array([0, 0, 1, 1], dtype=np.float32)[None, ...]
-    rel_polys = np.stack((rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]), axis=1)
+    rel_polys = np.stack(
+        (rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]),
+        axis=1
+    )
 
     # No angle
     rotated_img, rotated_geoms = rotate_sample(img, boxes, 0, False)
