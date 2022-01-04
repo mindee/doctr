@@ -51,7 +51,7 @@ def rotated_img_tensor(img: tf.Tensor, angle: float, expand: bool = False) -> tf
         h_diff, w_diff = int(math.ceil(exp_h - img.shape[0])), int(math.ceil(exp_w - img.shape[1]))
         h_pad, w_pad = max(h_diff, 0), max(w_diff, 0)
         exp_img = tf.pad(img, tf.constant([[h_pad // 2, h_pad - h_pad // 2], [w_pad // 2, w_pad - w_pad // 2], [0, 0]]))
-        h_crop, w_crop = int(max(exp_img.shape[0] - exp_h, 0)), int(min(exp_img.shape[1] - exp_w, 0))
+        h_crop, w_crop = int(round(max(exp_img.shape[0] - exp_h, 0))), int(round(min(exp_img.shape[1] - exp_w, 0)))
     else:
         exp_img = img
     # Rotate the padded image
@@ -87,15 +87,16 @@ def rotate_sample(
 
     # Get absolute coords
     _geoms = deepcopy(geoms)
-    if np.max(_geoms) <= 1:
-        if _geoms.shape[1:] == (4,):
+    if _geoms.shape[1:] == (4,):
+        if np.max(_geoms) <= 1:
             _geoms[:, [0, 2]] *= img.shape[1]
             _geoms[:, [1, 3]] *= img.shape[0]
-        elif _geoms.shape[1:] == (4, 2):
+    elif _geoms.shape[1:] == (4, 2):
+        if np.max(_geoms) <= 1:
             _geoms[..., 0] *= img.shape[1]
             _geoms[..., 1] *= img.shape[0]
-        else:
-            raise AssertionError
+    else:
+        raise AssertionError
 
     # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
     rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[:-1], expand).astype(np.float32)
