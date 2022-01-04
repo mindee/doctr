@@ -155,7 +155,7 @@ class RandomRotate(NestedObject):
 
     def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        r_img, r_boxes = F.rotate(img, target, angle, self.expand)
+        r_img, r_boxes = F.rotate_sample(img, target, angle, self.expand)
         return r_img, r_boxes
 
 
