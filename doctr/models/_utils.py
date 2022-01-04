@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -47,7 +47,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
 
 def extract_rcrops(
     img: np.ndarray,
-    boxes: np.ndarray,
+    polys: np.ndarray,
     dtype=np.float32,
     channels_last: bool = True
 ) -> List[np.ndarray]:
@@ -55,50 +55,43 @@ def extract_rcrops(
 
     Args:
         img: input image
-        boxes: bounding boxes of shape (N, 5) where N is the number of boxes, and the relative
-            coordinates (x, y, w, h, alpha)
+        polys: bounding boxes of shape (N, 4, 2)
         dtype: target data type of bounding boxes
         channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
         list of cropped images
     """
-    if boxes.shape[0] == 0:
+    if polys.shape[0] == 0:
         return []
-    if boxes.shape[1] != 5:
-        raise AssertionError("boxes are expected to be relative and in order (x, y, w, h, alpha)")
+    if polys.shape[1:] != (4, 2):
+        raise AssertionError("polys are expected to be quadrilateral, of shape (N, 4, 2)")
 
     # Project relative coordinates
-    _boxes = boxes.copy()
+    _boxes = polys.copy()
     height, width = img.shape[:2] if channels_last else img.shape[-2:]
     if _boxes.dtype != np.int:
-        _boxes[:, [0, 2]] *= width
-        _boxes[:, [1, 3]] *= height
+        _boxes[:, :, 0] *= width
+        _boxes[:, :, 1] *= height
 
-    crops = []
-    # Determine rotation direction (clockwise/counterclockwise)
-    # Angle coverage: [-90°, +90°], half of the quadrant
-    clockwise = False
-    if np.sum(boxes[:, 2]) > np.sum(boxes[:, 3]):
-        clockwise = True
-
-    for box in _boxes:
-        x, y, w, h, alpha = box.astype(dtype)
-        src_pts = cv2.boxPoints(((x, y), (w, h), alpha))[1:, :]
-        # Preserve size
-        if clockwise:
-            dst_pts = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1]], dtype=dtype)
-        else:
-            dst_pts = np.array([[h - 1, 0], [h - 1, w - 1], [0, w - 1]], dtype=dtype)
-        # The transformation matrix
-        M = cv2.getAffineTransform(src_pts, dst_pts)
-        # Warp the rotated rectangle
-        if clockwise:
-            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(w), int(h)))
-        else:
-            crop = cv2.warpAffine(img if channels_last else img.transpose(1, 2, 0), M, (int(h), int(w)))
-        crops.append(crop)
-
+    src_pts = _boxes[:, 1:].astype(np.float32)
+    # Preserve size
+    d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
+    d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)
+    # (N, 3, 2)
+    dst_pts = np.zeros((_boxes.shape[0], 3, 2), dtype=dtype)
+    dst_pts[:, 1, 0] = dst_pts[:, 2, 0] = d1 - 1
+    dst_pts[:, 2, 1] = d2 - 1
+    # Use a warp transformation to extract the crop
+    crops = [
+        cv2.warpAffine(
+            img if channels_last else img.transpose(1, 2, 0),
+            # Transformation matrix
+            cv2.getAffineTransform(src_pts[idx], dst_pts[idx]),
+            (int(d1[idx]), int(d2[idx])),
+        )
+        for idx in range(_boxes.shape[0])
+    ]
     return crops
 
 
@@ -193,3 +186,37 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
             angle = 90 + angle
 
     return angle
+
+
+def rectify_crops(
+    crops: List[np.ndarray],
+    orientations: List[int],
+) -> List[np.ndarray]:
+    """Rotate each crop of the list according to the predicted orientation:
+    0: already straight, no rotation
+    1: 90 ccw, rotate 3 times ccw
+    2: 180, rotate 2 times ccw
+    3: 270 ccw, rotate 1 time ccw
+    """
+    # Inverse predictions (if angle of +90 is detected, rotate by -90)
+    orientations = [4 - pred if pred != 0 else 0 for pred in orientations]
+    return [
+        crop if orientation == 0 else np.rot90(crop, orientation)
+        for orientation, crop in zip(orientations, crops)
+    ] if len(orientations) > 0 else []
+
+
+def rectify_loc_preds(
+    page_loc_preds: np.ndarray,
+    orientations: List[int],
+) -> np.ndarray:
+    """Orient the quadrangle (Polygon4P) according to the predicted orientation,
+    so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
+    """
+    return np.stack(
+        [np.roll(
+            page_loc_pred,
+            orientation,
+            axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
+        axis=0
+    ) if len(orientations) > 0 else None

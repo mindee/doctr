@@ -14,11 +14,12 @@ from doctr.models.preprocessor import PreProcessor
     [
         ["db_resnet50", (512, 512, 3), (512, 512, 1), True],
         ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True],
-        ["linknet16", (512, 512, 3), (512, 512, 1), False],
+        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
     batch_size = 2
+    tf.keras.backend.clear_session()
     model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
@@ -27,7 +28,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
     ]
     # test training model
-    out = model(input_tensor, target, return_model_output=True, return_boxes=True, training=True)
+    out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
@@ -65,7 +66,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
     ]
     loss = model(input_tensor, target, training=True)['loss']
-    assert isinstance(loss, tf.Tensor) and ((loss - out['loss']) / loss).numpy() < 1e-1
+    assert isinstance(loss, tf.Tensor) and ((loss - out['loss']) / loss).numpy() < 21e-2
 
 
 @pytest.fixture(scope="session")
@@ -79,8 +80,8 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
-    # The input PDF has 8 pages
-    assert len(out) == 8
+    # The input PDF has 2 pages
+    assert len(out) == 2
 
     # Dimension check
     with pytest.raises(ValueError):
@@ -102,8 +103,8 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
     out = predictor(pages)
 
-    # The input PDF has 8 pages
-    assert len(out) == 8
+    # The input PDF has 2 pages
+    assert len(out) == 2
 
     # Dimension check
     with pytest.raises(ValueError):
@@ -118,11 +119,12 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     [
         "db_resnet50",
         "db_mobilenet_v3_large",
-        "linknet16",
+        "linknet_resnet18",
     ],
 )
 def test_detection_zoo(arch_name):
     # Model
+    tf.keras.backend.clear_session()
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, DetectionPredictor)

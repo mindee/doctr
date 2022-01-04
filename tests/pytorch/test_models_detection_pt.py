@@ -13,7 +13,7 @@ from doctr.models.detection.predictor import DetectionPredictor
         ["db_resnet34", (3, 512, 512), (1, 512, 512), True],
         ["db_resnet50", (3, 512, 512), (1, 512, 512), True],
         ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True],
-        ["linknet16", (3, 512, 512), (1, 512, 512), False],
+        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):
@@ -28,7 +28,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if torch.cuda.is_available():
         model.cuda()
         input_tensor = input_tensor.cuda()
-    out = model(input_tensor, target, return_model_output=True, return_boxes=True)
+    out = model(input_tensor, target, return_model_output=True, return_preds=True)
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
@@ -45,11 +45,11 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out['loss'], torch.Tensor)
     # Check the rotated case (same targets)
     target = [
-        np.array([[.75, .75, .5, .5, 0], [.65, .65, .3, .3, 0]], dtype=np.float32),
-        np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
+        np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .8], [.5, .8]]], dtype=np.float32),
+        np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .9], [.5, .9]]], dtype=np.float32),
     ]
     loss = model(input_tensor, target)['loss']
-    assert isinstance(loss, torch.Tensor) and ((loss - out['loss']).abs() / loss).item() < 5e-2
+    assert isinstance(loss, torch.Tensor) and ((loss - out['loss']).abs() / loss).item() < 1e-1
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         "db_resnet34",
         "db_resnet50",
         "db_mobilenet_v3_large",
-        "linknet16",
+        "linknet_resnet18",
     ],
 )
 def test_detection_zoo(arch_name):

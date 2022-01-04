@@ -1,16 +1,17 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
-import scipy.io as sio
+from scipy import io as sio
 from tqdm import tqdm
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['SynthText']
 
@@ -27,8 +28,7 @@ class SynthText(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -38,29 +38,35 @@ class SynthText(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(url=self.URL, file_name=None, file_hash=None, extract_archive=True, **kwargs)
-        self.sample_transforms = sample_transforms
+        super().__init__(
+            self.URL,
+            None,
+            file_hash=None,
+            extract_archive=True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
 
         # Load mat data
-        tmp_root = os.path.join(self.root, 'SynthText')
+        tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
-        split = int(len(mat_data['imnames'][0]) * 0.9)
-        paths = mat_data['imnames'][0][slice(split) if self.train else slice(split, None)]
-        boxes = mat_data['wordBB'][0][slice(split) if self.train else slice(split, None)]
-        labels = mat_data['txt'][0][slice(split) if self.train else slice(split, None)]
+        train_samples = int(len(mat_data['imnames'][0]) * 0.9)
+        set_slice = slice(train_samples) if self.train else slice(train_samples, None)
+        paths = mat_data['imnames'][0][set_slice]
+        boxes = mat_data['wordBB'][0][set_slice]
+        labels = mat_data['txt'][0][set_slice]
+        del mat_data
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
                                               desc='Unpacking SynthText', total=len(paths)):
-
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
@@ -68,17 +74,10 @@ class SynthText(VisionDataset):
             labels = [elt for word in txt.tolist() for elt in word.split()]
             word_boxes = word_boxes.transpose(2, 1, 0) if word_boxes.ndim == 3 else np.expand_dims(word_boxes, axis=0)
 
-            if rotated_bbox:
-                # x_center, y_center, w, h, alpha = 0
-                mins = word_boxes.min(axis=1)
-                maxs = word_boxes.max(axis=1)
-                box_targets = np.concatenate(
-                    ((mins + maxs) / 2, maxs - mins, np.zeros((word_boxes.shape[0], 1))), axis=1)
-            else:
-                # xmin, ymin, xmax, ymax
-                box_targets = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
+            if not use_polygons:
+                word_boxes = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
 
-            self.data.append((img_path[0], dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
+            self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
 
         self.root = tmp_root
 

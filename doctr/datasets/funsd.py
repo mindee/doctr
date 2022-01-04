@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -6,11 +6,12 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
 from .datasets import VisionDataset
+from .utils import convert_target_to_relative
 
 __all__ = ['FUNSD']
 
@@ -26,8 +27,7 @@ class FUNSD(VisionDataset):
 
     Args:
         train: whether the subset should be the training one
-        sample_transforms: composable transformations that will be applied to each image
-        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -38,14 +38,19 @@ class FUNSD(VisionDataset):
     def __init__(
         self,
         train: bool = True,
-        sample_transforms: Optional[Callable[[Any], Any]] = None,
-        rotated_bbox: bool = False,
+        use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, self.FILE_NAME, self.SHA256, True, **kwargs)
+        super().__init__(
+            self.URL,
+            self.FILE_NAME,
+            self.SHA256,
+            True,
+            pre_transforms=convert_target_to_relative,
+            **kwargs
+        )
         self.train = train
-        self.sample_transforms = sample_transforms
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
@@ -65,15 +70,21 @@ class FUNSD(VisionDataset):
             _targets = [(word['text'], word['box']) for block in data['form']
                         for word in block['words'] if len(word['text']) > 0]
             text_targets, box_targets = zip(*_targets)
-            if rotated_bbox:
+            if use_polygons:
                 # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 box_targets = [
                     [
-                        (box[0] + box[2]) / 2, (box[1] + box[3]) / 2, box[2] - box[0], box[3] - box[1], 0
+                        [box[0], box[1]],
+                        [box[2], box[1]],
+                        [box[2], box[3]],
+                        [box[0], box[3]],
                     ] for box in box_targets
                 ]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=int), labels=text_targets)))
+            self.data.append((
+                img_path,
+                dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=list(text_targets)),
+            ))
 
         self.root = tmp_root
 

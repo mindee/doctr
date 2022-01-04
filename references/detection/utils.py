@@ -1,4 +1,4 @@
-# Copyright (C) 2021, Mindee.
+# Copyright (C) 2021-2022, Mindee.
 
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
@@ -26,10 +26,8 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
         boxes[:, :4] = boxes[:, :4].round().astype(int)
 
         for box in boxes:
-            if boxes.shape[1] == 5:
-                box = cv2.boxPoints(((int(box[0]), int(box[1])), (int(box[2]), int(box[3])), -box[4]))
-                box = np.int0(box)
-                cv2.fillPoly(target, [box], 1)
+            if boxes.ndim == 3:
+                cv2.fillPoly(target, [np.int0(box)], 1)
             else:
                 target[int(box[1]): int(box[3]) + 1, int(box[0]): int(box[2]) + 1] = 1
 
