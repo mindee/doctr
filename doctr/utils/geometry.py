@@ -12,8 +12,8 @@ import numpy as np
 from .common_types import BoundingBox, Polygon4P
 
 __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
-           'rotate_boxes', 'rotate_abs_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle',
-           'convert_to_relative_coords']
+           'rotate_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle',
+           'convert_to_relative_coords', 'rotate_abs_geoms']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -86,56 +86,45 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     return wh_shape[1], wh_shape[0]
 
 
-def rotate_abs_boxes(boxes: np.ndarray, angle: float, img_shape: Tuple[int, int], expand: bool = True) -> np.ndarray:
-    """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax)  or polygons (N, 4, 2)
-        by an angle around the image center.
+def rotate_abs_geoms(
+    geoms: np.ndarray,
+    angle: float,
+    img_shape: Tuple[int, int],
+    expand: bool = True,
+) -> np.ndarray:
+    """Rotate a batch of bounding boxes or polygons by an angle around the
+    image center.
 
     Args:
         boxes: (N, 4) or (N, 4, 2) array of ABSOLUTE coordinate boxes
-        angle: angle between -90 and +90 degrees
+        angle: anti-clockwise rotation angle in degrees
         img_shape: the height and width of the image
         expand: whether the image should be padded to avoid information loss
 
     Returns:
-        A batch of rotated boxes (N, 4, 2) or a batch of straight bounding boxes
+        A batch of rotated polygons (N, 4, 2)
     """
 
-    # Get box corners
-    if boxes.ndim == 2:
-        box_corners = np.stack(
-            [
-                boxes[:, [0, 1]],
-                boxes[:, [2, 1]],
-                boxes[:, [2, 3]],
-                boxes[:, [0, 3]],
-            ],
-            axis=1
-        )
-    else:
-        box_corners = boxes
-    img_corners = np.array([[0, 0], [0, img_shape[0]], [*img_shape[::-1]], [img_shape[1], 0]], dtype=boxes.dtype)
+    # Switch to polygons
+    polys = np.stack(
+        [geoms[:, [0, 1]], geoms[:, [2, 1]], geoms[:, [2, 3]], geoms[:, [0, 3]]],
+        axis=1
+    ) if geoms.ndim == 2 else geoms
+    polys = polys.astype(np.float32)
 
-    stacked_points = np.concatenate((img_corners[None, ...], box_corners), axis=0)
-    # Y-axis is inverted by conversion
-    stacked_rel_points = np.stack(
-        (stacked_points[..., 0] - img_shape[1] / 2, img_shape[0] / 2 - stacked_points[..., 1]),
-        axis=-1
-    )
+    # Switch to image center as referential
+    polys[..., 0] -= img_shape[1] / 2
+    polys[..., 1] = img_shape[0] / 2 - polys[..., 1]
 
-    # Rotate them around image center, shape (N+1, 4, 2)
-    rot_points = rotate_abs_points(stacked_rel_points.reshape((-1, 2)), angle).reshape(-1, 4, 2)
-    img_rot_corners, box_rot_corners = rot_points[0], rot_points[1:]
+    # Rotated them around image center
+    rotated_polys = rotate_abs_points(polys.reshape(-1, 2), angle).reshape(-1, 4, 2)
+    # Switch back to top-left corner as referential
+    target_shape = compute_expanded_shape(img_shape, angle) if expand else img_shape
+    # Clip coords to fit since there is no expansion
+    rotated_polys[..., 0] = (rotated_polys[..., 0] + target_shape[1] / 2).clip(0, target_shape[1])
+    rotated_polys[..., 1] = (target_shape[0] / 2 - rotated_polys[..., 1]).clip(0, target_shape[0])
 
-    # Expand the image to fit all the original info
-    if expand:
-        new_corners = np.abs(img_rot_corners).max(axis=0)
-        box_rot_corners[..., 0] += new_corners[0]
-        box_rot_corners[..., 1] = new_corners[1] - box_rot_corners[..., 1]
-    else:
-        box_rot_corners[..., 0] += img_shape[1] / 2
-        box_rot_corners[..., 1] = img_shape[0] / 2 - box_rot_corners[..., 1]
-
-    return box_rot_corners
+    return rotated_polys
 
 
 def rotate_boxes(
