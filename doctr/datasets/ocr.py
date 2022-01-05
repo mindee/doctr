@@ -50,9 +50,10 @@ class OCRDataset(AbstractDataset):
             if len(annotations["typed_words"]) == 0:
                 self.data.append((img_name, dict(boxes=np.zeros((0, 4), dtype=np_dtype), labels=[])))
                 continue
-            # Unpack the straight boxes
+            # Unpack the straight boxes (xmin, ymin, xmax, ymax)
             geoms = [list(map(float, obj['geometry'][:4])) for obj in annotations['typed_words']]
             if use_polygons:
+                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 geoms = [
                     [geom[:2], [geom[2], geom[1]], geom[2:], [geom[0], geom[3]]]  # type: ignore[list-item]
                     for geom in geoms
