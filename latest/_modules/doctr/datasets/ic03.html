@@ -313,6 +313,7 @@
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
+                <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
                 <span class="n">_boxes</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="p">[</span>
                         <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])],</span>

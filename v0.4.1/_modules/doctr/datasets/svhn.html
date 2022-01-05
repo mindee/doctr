@@ -332,6 +332,7 @@
                 <span class="n">label_targets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]))</span>
 
                 <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
+                    <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
                     <span class="n">box_targets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
                         <span class="p">[</span>
                             <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>

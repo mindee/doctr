@@ -242,6 +242,7 @@
             <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
+        <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
         <span class="c1"># Use the subset</span>
         <span class="n">subfolder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;training_data&#39;</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="s1">&#39;testing_data&#39;</span><span class="p">)</span>
@@ -262,7 +263,7 @@
                         <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s1">&#39;words&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
             <span class="n">text_targets</span><span class="p">,</span> <span class="n">box_targets</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_targets</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
-                <span class="c1"># box_targets: xmin, ymin, xmax, ymax -&gt; x, y, w, h, alpha = 0</span>
+                <span class="c1"># xmin, ymin, xmax, ymax -&gt; (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
                 <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="p">[</span>
                         <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
@@ -274,7 +275,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span>
                 <span class="n">img_path</span><span class="p">,</span>
-                <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">text_targets</span><span class="p">)),</span>
+                <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">text_targets</span><span class="p">)),</span>
             <span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
