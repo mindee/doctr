@@ -241,7 +241,7 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
     return str(image_folder), str(label_file)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     svhn_root = root.mkdir('svhn')
@@ -269,7 +269,7 @@ def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_sroie_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     sroie_root = root.mkdir('sroie2019_train_task1')
@@ -296,7 +296,7 @@ def mock_sroie_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_funsd_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     funsd_root = root.mkdir('funsd')
@@ -346,7 +346,7 @@ def mock_funsd_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_cord_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     cord_root = root.mkdir('cord_train')
@@ -411,7 +411,7 @@ def mock_cord_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     synthtext_root = root.mkdir('SynthText')
@@ -439,7 +439,7 @@ def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     doc_root = root.mkdir('artefact_detection')
@@ -488,7 +488,7 @@ def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     iiit5k_root = root.mkdir('IIIT5K')
@@ -515,7 +515,7 @@ def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_svt_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     svt_root = root.mkdir('svt1')
@@ -545,7 +545,7 @@ def mock_svt_dataset(tmpdir_factory, mock_image_stream):
     return str(archive_path)
 
 
-@ pytest.fixture(scope="session")
+@pytest.fixture(scope="session")
 def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     ic03_root = root.mkdir('SceneTrialTrain')
