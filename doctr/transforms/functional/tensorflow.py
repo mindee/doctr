@@ -11,11 +11,11 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 
-from doctr.utils.geometry import compute_expanded_shape, rotate_abs_boxes
+from doctr.utils.geometry import compute_expanded_shape, rotate_abs_geoms
 
 from .base import crop_boxes
 
-__all__ = ["invert_colors", "rotate", "crop_detection"]
+__all__ = ["invert_colors", "rotate_sample", "crop_detection"]
 
 
 def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
@@ -33,9 +33,41 @@ def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
     return out
 
 
-def rotate(
+def rotated_img_tensor(img: tf.Tensor, angle: float, expand: bool = False) -> tf.Tensor:
+    """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
+
+    Args:
+        img: image to rotate
+        angle: angle in degrees. +: counter-clockwise, -: clockwise
+        expand: whether the image should be padded before the rotation
+
+    Returns:
+        the rotated image (tensor)
+    """
+    # Compute the expanded padding
+    h_crop, w_crop = 0, 0
+    if expand:
+        exp_h, exp_w = compute_expanded_shape(img.shape[:-1], angle)
+        h_diff, w_diff = int(math.ceil(exp_h - img.shape[0])), int(math.ceil(exp_w - img.shape[1]))
+        h_pad, w_pad = max(h_diff, 0), max(w_diff, 0)
+        exp_img = tf.pad(img, tf.constant([[h_pad // 2, h_pad - h_pad // 2], [w_pad // 2, w_pad - w_pad // 2], [0, 0]]))
+        h_crop, w_crop = int(round(max(exp_img.shape[0] - exp_h, 0))), int(round(min(exp_img.shape[1] - exp_w, 0)))
+    else:
+        exp_img = img
+    # Rotate the padded image
+    rotated_img = tfa.image.rotate(exp_img, angle * math.pi / 180)  # Interpolation NEAREST by default
+    # Crop the rest
+    if h_crop > 0 or w_crop > 0:
+        h_slice = slice(h_crop // 2, -h_crop // 2) if h_crop > 0 else slice(rotated_img.shape[0])
+        w_slice = slice(-w_crop // 2, -w_crop // 2) if w_crop > 0 else slice(rotated_img.shape[1])
+        rotated_img = rotated_img[h_slice, w_slice]
+
+    return rotated_img
+
+
+def rotate_sample(
     img: tf.Tensor,
-    boxes: np.ndarray,
+    geoms: np.ndarray,
     angle: float,
     expand: bool = False,
 ) -> Tuple[tf.Tensor, np.ndarray]:
@@ -43,39 +75,37 @@ def rotate(
 
     Args:
         img: image to rotate
-        boxes: array of boxes to rotate as well
+        geoms: array of geometries of shape (N, 4) or (N, 4, 2)
         angle: angle in degrees. +: counter-clockwise, -: clockwise
         expand: whether the image should be padded before the rotation
 
     Returns:
         A tuple of rotated img (tensor), rotated boxes (np array)
     """
-    # Compute the expanded padding
-    if expand:
-        exp_shape = compute_expanded_shape(img.shape[:-1], angle)
-        h_pad, w_pad = int(math.ceil(exp_shape[0] - img.shape[0])), int(math.ceil(exp_shape[1] - img.shape[1]))
-        if min(h_pad, w_pad) < 0:
-            h_pad, w_pad = int(math.ceil(exp_shape[1] - img.shape[0])), int(math.ceil(exp_shape[0] - img.shape[1]))
-        exp_img = tf.pad(img, tf.constant([[h_pad // 2, h_pad - h_pad // 2], [w_pad // 2, w_pad - w_pad // 2], [0, 0]]))
-    else:
-        exp_img = img
-    # Rotate the padded image
-    rotated_img = tfa.image.rotate(exp_img, angle * math.pi / 180)  # Interpolation NEAREST by default
+    # Rotated the image
+    rotated_img = rotated_img_tensor(img, angle, expand)
 
     # Get absolute coords
-    _boxes = deepcopy(boxes)
-    if np.max(_boxes) <= 1:
-        _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[1]
-        _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[0]
+    _geoms = deepcopy(geoms)
+    if _geoms.shape[1:] == (4,):
+        if np.max(_geoms) <= 1:
+            _geoms[:, [0, 2]] *= img.shape[1]
+            _geoms[:, [1, 3]] *= img.shape[0]
+    elif _geoms.shape[1:] == (4, 2):
+        if np.max(_geoms) <= 1:
+            _geoms[..., 0] *= img.shape[1]
+            _geoms[..., 1] *= img.shape[0]
+    else:
+        raise AssertionError
 
     # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
-    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[:-1], expand).astype(np.float32)
+    rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[:-1], expand).astype(np.float32)
 
     # Always return relative boxes to avoid label confusions when resizing is performed aferwards
-    r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[1]
-    r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[0]
+    rotated_geoms[..., 0] = rotated_geoms[..., 0] / rotated_img.shape[1]
+    rotated_geoms[..., 1] = rotated_geoms[..., 1] / rotated_img.shape[0]
 
-    return rotated_img, r_boxes
+    return rotated_img, rotated_geoms
 
 
 def crop_detection(

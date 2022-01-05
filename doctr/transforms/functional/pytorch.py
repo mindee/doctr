@@ -10,11 +10,11 @@ import numpy as np
 import torch
 from torchvision.transforms import functional as F
 
-from doctr.utils.geometry import rotate_abs_boxes
+from doctr.utils.geometry import rotate_abs_geoms
 
 from .base import crop_boxes
 
-__all__ = ["invert_colors", "rotate", "crop_detection"]
+__all__ = ["invert_colors", "rotate_sample", "crop_detection"]
 
 
 def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
@@ -32,9 +32,9 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
     return out
 
 
-def rotate(
+def rotate_sample(
     img: torch.Tensor,
-    boxes: np.ndarray,
+    geoms: np.ndarray,
     angle: float,
     expand: bool = False,
 ) -> Tuple[torch.Tensor, np.ndarray]:
@@ -42,29 +42,36 @@ def rotate(
 
     Args:
         img: image to rotate
-        boxes: array of boxes to rotate as well
+        geoms: array of geometries of shape (N, 4) or (N, 4, 2)
         angle: angle in degrees. +: counter-clockwise, -: clockwise
         expand: whether the image should be padded before the rotation
 
     Returns:
-        A tuple of rotated img (tensor), rotated boxes (np array)
+        A tuple of rotated img (tensor), rotated geometries of shape (N, 4, 2)
     """
     rotated_img = F.rotate(img, angle=angle, fill=0, expand=expand)  # Interpolation NEAREST by default
-
+    rotated_img = rotated_img[:3]  # when expand=True, it expands to RGBA channels
     # Get absolute coords
-    _boxes = deepcopy(boxes)
-    if np.max(_boxes) <= 1:
-        _boxes[:, [0, 2]] = _boxes[:, [0, 2]] * img.shape[2]
-        _boxes[:, [1, 3]] = _boxes[:, [1, 3]] * img.shape[1]
+    _geoms = deepcopy(geoms)
+    if _geoms.shape[1:] == (4,):
+        if np.max(_geoms) <= 1:
+            _geoms[:, [0, 2]] *= img.shape[-1]
+            _geoms[:, [1, 3]] *= img.shape[-2]
+    elif _geoms.shape[1:] == (4, 2):
+        if np.max(_geoms) <= 1:
+            _geoms[..., 0] *= img.shape[-1]
+            _geoms[..., 1] *= img.shape[-2]
+    else:
+        raise AssertionError("invalid format for arg `geoms`")
 
     # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
-    r_boxes = rotate_abs_boxes(_boxes, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
+    rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
 
     # Always return relative boxes to avoid label confusions when resizing is performed aferwards
-    r_boxes[..., 0] = r_boxes[..., 0] / rotated_img.shape[2]
-    r_boxes[..., 1] = r_boxes[..., 1] / rotated_img.shape[1]
+    rotated_geoms[..., 0] = rotated_geoms[..., 0] / rotated_img.shape[2]
+    rotated_geoms[..., 1] = rotated_geoms[..., 1] / rotated_img.shape[1]
 
-    return rotated_img, r_boxes
+    return rotated_img, rotated_geoms
 
 
 def crop_detection(
