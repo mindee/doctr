@@ -113,7 +113,17 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
-            # Remove scores
+            if args.rotation and args.eval_straight:
+                # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
+                boxes_pred = np.stack(
+                    (
+                        np.min(boxes_pred[:, :, 0], 1),
+                        np.min(boxes_pred[:, :, 1], 1),
+                        np.max(boxes_pred[:, :, 0], 1),
+                        np.max(boxes_pred[:, :, 1], 1),
+                    ),
+                    -1
+                )
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         val_loss += out['loss'].numpy()
@@ -140,7 +150,7 @@ def main(args):
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
         img_transforms=T.Resize((args.input_size, args.input_size)),
-        use_polygons=args.rotation,
+        use_polygons=args.rotation and not args.eval_straight,
     )
     val_loader = DataLoader(
         val_set,
@@ -170,8 +180,10 @@ def main(args):
         model.load_weights(args.resume)
 
     # Metrics
-    val_metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=(args.input_size, args.input_size))
-
+    val_metric = LocalizationConfusion(
+        use_polygons=args.rotation and not args.eval_straight,
+        mask_shape=(args.input_size, args.input_size)
+    )
     if args.test_only:
         print("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
@@ -328,6 +340,8 @@ def parse_args():
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated documents')
+    parser.add_argument('--eval_straight', dest='eval_straight', action='store_true',
+                        help='metrics evaluation with straight boxes instead of polygons to save time + memory')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()
