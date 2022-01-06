@@ -115,15 +115,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             if args.rotation and args.eval_straight:
                 # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
-                boxes_pred = np.stack(
-                    (
-                        np.min(boxes_pred[:, :, 0], 1),
-                        np.min(boxes_pred[:, :, 1], 1),
-                        np.max(boxes_pred[:, :, 0], 1),
-                        np.max(boxes_pred[:, :, 1], 1),
-                    ),
-                    -1
-                )
+                boxes_pred = np.concatenate((boxes_pred.min(axis=1), boxes_pred.max(axis=1)), axis=-1)
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         val_loss += out['loss'].numpy()
