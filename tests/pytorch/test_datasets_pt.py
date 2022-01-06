@@ -222,7 +222,7 @@ def test_ic13_dataset(num_samples, rotate, mock_ic13):
 @pytest.mark.parametrize(
     "num_samples, rotate",
     [
-        [3, True],  # Actual set has 7280 train and 810 test samples
+        [3, True],  # Actual set has 7149 train and 796 test samples
         [3, False]
 
     ],

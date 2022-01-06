@@ -92,7 +92,9 @@ class IMGUR5K(AbstractDataset):
                 box_targets = [np.array([min(box_target[:, 0]), min(box_target[:, 1]), max(
                     box_target[:, 0]), max(box_target[:, 1])], dtype=np_dtype) for box_target in box_targets]
 
-            self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
+            # filter images without boxes
+            if len(box_targets) > 0:
+                self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
