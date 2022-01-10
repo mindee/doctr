@@ -242,6 +242,7 @@
 
 <div class="viewcode-block" id="IC13"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.IC13">[docs]</a><span class="k">class</span> <span class="nc">IC13</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;IC13 dataset from `&quot;ICDAR 2013 Robust Reading Competition&quot; &lt;https://rrc.cvc.uab.es/&gt;`_.</span>
+
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.datasets import IC13</span>
@@ -251,10 +252,12 @@
 <span class="sd">        &gt;&gt;&gt; test_set = IC13(img_folder=&quot;/path/to/Challenge2_Test_Task12_Images&quot;,</span>
 <span class="sd">        &gt;&gt;&gt;                 label_folder=&quot;/path/to/Challenge2_Test_Task1_GT&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; img, target = test_set[0]</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
 <span class="sd">        label_folder: folder with all annotation files for the images</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
+<span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>

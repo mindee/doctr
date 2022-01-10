@@ -451,9 +451,9 @@ can be a significant save of time.</p>
 <dl class="py class">
 <dt id="doctr.datasets.IC13">
 <em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IC13</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/ic13.html#IC13"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IC13" title="Permalink to this definition">¶</a></dt>
-<dd><p>IC13 dataset from <a class="reference external" href="https://rrc.cvc.uab.es/">“ICDAR 2013 Robust Reading Competition”</a>.
-Example:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
+<dd><p>IC13 dataset from <a class="reference external" href="https://rrc.cvc.uab.es/">“ICDAR 2013 Robust Reading Competition”</a>.</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IC13</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IC13</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Training_Task12_Images&quot;</span><span class="p">,</span>
 <span class="gp">&gt;&gt;&gt; </span>                 <span class="n">label_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Training_Task1_GT&quot;</span><span class="p">)</span>
@@ -463,12 +463,15 @@ Example:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
 <li><p><strong>label_folder</strong> – folder with all annotation files for the images</p></li>
 <li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -608,6 +611,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
 <li><p><strong>label_path</strong> – path to the annotations of each image</p></li>
 <li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -630,6 +634,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>img_folder</strong> – path to the images folder</p></li>
 <li><p><strong>labels_path</strong> – pathe to the json file containing all labels (character sequences)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -645,6 +650,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <li><p><strong>img_folder</strong> – local path to image folder (all jpg at the root)</p></li>
 <li><p><strong>label_file</strong> – local path to the label file</p></li>
 <li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -677,6 +683,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <li><p><strong>batch_size</strong> – number of elements in each batch</p></li>
 <li><p><strong>drop_last</strong> – if <cite>True</cite>, drops the last batch if it isn’t full</p></li>
 <li><p><strong>num_workers</strong> – number of workers to use for data loading</p></li>
+<li><p><strong>collate_fn</strong> – function to merge samples into a batch</p></li>
 </ul>
 </dd>
 </dl>
