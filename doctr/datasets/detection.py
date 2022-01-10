@@ -29,6 +29,7 @@ class DetectionDataset(AbstractDataset):
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations of each image
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        **kwargs: keyword arguments from `AbstractDataset`.
     """
 
     def __init__(
