@@ -58,7 +58,6 @@ class SVT(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, name.text)}")
 
             if use_polygons:
-                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 _boxes = [
                     [
                         [float(rect.attrib['x']), float(rect.attrib['y'])],

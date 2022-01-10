@@ -51,7 +51,6 @@ class FUNSD(VisionDataset):
             **kwargs
         )
         self.train = train
-        np_dtype = np.float32
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
@@ -72,7 +71,7 @@ class FUNSD(VisionDataset):
                         for word in block['words'] if len(word['text']) > 0]
             text_targets, box_targets = zip(*_targets)
             if use_polygons:
-                # xmin, ymin, xmax, ymax -> (x, y) coordinates of top left, top right, bottom right, bottom left corners
+                # box_targets: xmin, ymin, xmax, ymax -> x, y, w, h, alpha = 0
                 box_targets = [
                     [
                         [box[0], box[1]],
@@ -84,7 +83,7 @@ class FUNSD(VisionDataset):
 
             self.data.append((
                 img_path,
-                dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
+                dict(boxes=np.asarray(box_targets, dtype=np.float32), labels=list(text_targets)),
             ))
 
         self.root = tmp_root

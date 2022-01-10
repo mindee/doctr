@@ -62,13 +62,11 @@ class SROIE(VisionDataset):
                 _rows = [row for row in list(csv.reader(f, delimiter=',')) if len(row) > 0]
 
             labels = [",".join(row[8:]) for row in _rows]
-            # reorder coordinates (8 -> (4,2) ->
-            # (x, y) coordinates of top left, top right, bottom right, bottom left corners) and filter empty lines
+            # reorder coordinates (8 -> (4,2)) and filter empty lines
             coords = np.stack([np.array(list(map(int, row[:8])), dtype=np_dtype).reshape((4, 2))
                               for row in _rows], axis=0)
 
             if not use_polygons:
-                # xmin, ymin, xmax, ymax
                 coords = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
 
             self.data.append((img_path, dict(boxes=coords, labels=labels)))

@@ -47,7 +47,6 @@ class DataLoader:
         batch_size: number of elements in each batch
         drop_last: if `True`, drops the last batch if it isn't full
         num_workers: number of workers to use for data loading
-        collate_fn: function to merge samples into a batch
     """
 
     def __init__(

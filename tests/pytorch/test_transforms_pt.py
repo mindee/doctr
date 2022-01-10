@@ -6,7 +6,7 @@ import torch
 
 from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomHorizontalFlip,
                               RandomRotate, Resize)
-from doctr.transforms.functional import crop_detection, rotate_sample
+from doctr.transforms.functional import crop_detection, rotate
 
 
 def test_resize():
@@ -83,53 +83,32 @@ def test_invert_colorize(rgb_min):
     assert out.dtype == torch.float16
 
 
-def test_rotate_sample():
-    img = torch.ones((3, 200, 100), dtype=torch.float32)
-    boxes = np.array([0, 0, 100, 200])[None, ...]
-    polys = np.stack((boxes[..., [0, 1]], boxes[..., [2, 1]], boxes[..., [2, 3]], boxes[..., [0, 3]]), axis=1)
-    rel_boxes = np.array([0, 0, 1, 1], dtype=np.float32)[None, ...]
-    rel_polys = np.stack(
-        (rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]),
-        axis=1
-    )
+def test_rotate():
+    input_t = torch.ones((3, 50, 50), dtype=torch.float32)
+    boxes = np.array([
+        [15, 20, 35, 30]
+    ])
+    r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=False)
+    assert r_img.shape == (3, 50, 50)
+    assert r_img[0, 0, 0] == 0.
 
-    # No angle
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 0, False)
-    assert torch.all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 0, True)
-    assert torch.all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 0, False)
-    assert torch.all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 0, True)
-    assert torch.all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
+    # Expand
+    r_img, r_boxes = rotate(input_t, boxes, angle=12., expand=True)
+    assert r_img.shape == (3, 60, 60)
+    # With the expansion, there should be a maximum of 1 pixel of the initial image on the first row
+    assert r_img[0, 0, :].sum() <= 1
 
-    # No expansion
-    expected_img = torch.zeros((3, 200, 100), dtype=torch.float32)
-    expected_img[:, 50: 150] = 1
-    expected_polys = np.array([[0, .75], [0, .25], [1, .25], [1, .75]])[None, ...]
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, False)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 90, False)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_boxes, 90, False)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_polys, 90, False)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
+    # Relative coords
+    rel_boxes = np.array([[.3, .4, .7, .6]])
+    r_img, r_boxes = rotate(input_t, rel_boxes, angle=90)
+    assert r_boxes.shape == (1, 4, 2)
+    assert np.isclose(r_boxes, np.asarray([[[0.4, 0.7], [0.4, 0.3], [0.6, 0.3], [0.6, 0.7]]])).all()
 
-    # Expansion
-    expected_img = torch.ones((3, 100, 200), dtype=torch.float32)
-    expected_polys = np.array([[0, 1], [0, 0], [1, 0], [1, 1]], dtype=np.float32)[None, ...]
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, True)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 90, True)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_boxes, 90, True)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_polys, 90, True)
-    assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-
-    with pytest.raises(AssertionError):
-        rotate_sample(img, boxes[None, ...], 90, False)
+    # FP16 (only on GPU)
+    if torch.cuda.is_available():
+        input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
+        r_img, _ = rotate(input_t, boxes, angle=12.)
+        assert r_img.dtype == torch.float16
 
 
 def test_random_rotate():

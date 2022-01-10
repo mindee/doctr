@@ -18,7 +18,6 @@ __all__ = ["IC13"]
 
 class IC13(AbstractDataset):
     """IC13 dataset from `"ICDAR 2013 Robust Reading Competition" <https://rrc.cvc.uab.es/>`_.
-
     Example::
         >>> # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.
         >>> from doctr.datasets import IC13
@@ -28,12 +27,10 @@ class IC13(AbstractDataset):
         >>> test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",
         >>>                 label_folder="/path/to/Challenge2_Test_Task1_GT")
         >>> img, target = test_set[0]
-
     Args:
         img_folder: folder with all the images of the dataset
         label_folder: folder with all annotation files for the images
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
-        **kwargs: keyword arguments from `AbstractDataset`.
     """
 
     def __init__(
@@ -69,7 +66,7 @@ class IC13(AbstractDataset):
             # xmin, ymin, xmax, ymax
             box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
             if use_polygons:
-                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
+                # x_center, y_center, width, height, 0
                 box_targets = np.array(
                     [
                         [
