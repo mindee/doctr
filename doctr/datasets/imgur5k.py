@@ -32,9 +32,11 @@ class IMGUR5K(AbstractDataset):
         >>>                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
         >>> img, target = test_set[0]
     Args:
+        train: whether the subset should be the training one
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations file of the dataset
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        **kwargs: keyword arguments from `AbstractDataset`.
     """
 
     def __init__(
@@ -71,26 +73,23 @@ class IMGUR5K(AbstractDataset):
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 
-            # some files have no annotations
+            # some files have no annotations which are marked with only a dot in the 'word' key
+            # ref: https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset/blob/main/README.md
             if img_id not in annotation_file['index_to_ann_map'].keys():
                 continue
             ann_ids = annotation_file['index_to_ann_map'][img_id]
             annotations = [annotation_file['ann_id'][a_id] for a_id in ann_ids]
 
-            labels: List[str] = []
-            box_targets: List[np.ndarray] = []
-            for ann in annotations:
-                if ann['word'] != '.':
-                    labels.append(ann['word'])
-                    # x_center, y_center, width, height, angle
-                    _box = [float(val) for val in ann['bounding_box'].strip('[ ]').split(', ')]
-                    # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                    box_targets.append(cv2.boxPoints(((_box[0], _box[1]), (_box[2], _box[3]), _box[4])))
+            labels = [ann['word'] for ann in annotations if ann['word'] != '.']
+            # x_center, y_center, width, height, angle
+            _boxes = [list(map(float, ann['bounding_box'].strip('[ ]').split(', ')))
+                      for ann in annotations if ann['word'] != '.']
+            # (x, y) coordinates of top left, top right, bottom right, bottom left corners
+            box_targets = [cv2.boxPoints(((box[0], box[1]), (box[2], box[3]), box[4])) for box in _boxes]
 
             if not use_polygons:
                 # xmin, ymin, xmax, ymax
-                box_targets = [np.array([min(box_target[:, 0]), min(box_target[:, 1]), max(
-                    box_target[:, 0]), max(box_target[:, 1])], dtype=np_dtype) for box_target in box_targets]
+                box_targets = [np.concatenate((points.min(0), points.max(0)), axis=-1) for points in box_targets]
 
             # filter images without boxes
             if len(box_targets) > 0:
