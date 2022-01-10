@@ -32,9 +32,9 @@ class IMGUR5K(AbstractDataset):
         >>>                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
         >>> img, target = test_set[0]
     Args:
-        train: whether the subset should be the training one
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations file of the dataset
+        train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `AbstractDataset`.
     """
