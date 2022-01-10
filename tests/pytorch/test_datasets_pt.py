@@ -18,7 +18,7 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
-    assert isinstance(target['boxes'], np.ndarray)
+    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
     if is_polygons:
         assert target['boxes'].ndim == 3 and target['boxes'].shape[1:] == (4, 2)
     else:
@@ -216,6 +216,28 @@ def test_ic13_dataset(num_samples, rotate, mock_ic13):
     )
 
     assert len(ds) == num_samples
+    _validate_dataset(ds, input_size, is_polygons=rotate)
+
+
+@pytest.mark.parametrize(
+    "num_samples, rotate",
+    [
+        [3, True],  # Actual set has 7149 train and 796 test samples
+        [3, False]
+
+    ],
+)
+def test_imgur5k_dataset(num_samples, rotate, mock_imgur5k):
+    input_size = (512, 512)
+    ds = datasets.IMGUR5K(
+        *mock_imgur5k,
+        train=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+    )
+
+    assert len(ds) == num_samples - 1  # -1 because of the test set 90 / 10 split
+    assert repr(ds) == f"IMGUR5K(train={True})"
     _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
