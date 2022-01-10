@@ -474,6 +474,37 @@ Example:</p>
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt id="doctr.datasets.IMGUR5K">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.datasets.</code><code class="sig-name descname">IMGUR5K</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img_folder</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">label_path</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">train</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_polygons</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/datasets/imgur5k.html#IMGUR5K"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.datasets.IMGUR5K" title="Permalink to this definition">¶</a></dt>
+<dd><p>IMGUR5K dataset from <a class="reference external" href="https://arxiv.org/abs/2106.08385">“TextStyleBrush: Transfer of Text Aesthetics from a Single Example”</a> |
+<a class="reference external" href="https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset">“repository”</a>.</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download/generate the dataset from the repository.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IMGUR5K</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IMGUR5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">IMGUR5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the annotations file of the dataset</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="doctr-synthetic-datasets">
 <h3>docTR synthetic datasets<a class="headerlink" href="#doctr-synthetic-datasets" title="Permalink to this headline">¶</a></h3>
@@ -656,8 +687,8 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <span id="vocabs"></span><h2>Supported Vocabs<a class="headerlink" href="#supported-vocabs" title="Permalink to this headline">¶</a></h2>
 <p>Since textual content has to be encoded properly for models to interpret them efficiently, docTR supports multiple sets
 of vocabs.</p>
-<table class="colwidths-given docutils align-default" id="id1">
-<caption><span class="caption-text">docTR Vocabs</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<table class="colwidths-given docutils align-default" id="id2">
+<caption><span class="caption-text">docTR Vocabs</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 27%" />
 <col style="width: 7%" />
