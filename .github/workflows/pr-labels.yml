@@ -7,6 +7,7 @@ on:
 
 jobs:
   is-properly-labeled:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -25,4 +26,4 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { issue: { number: issue_number }, repo: { owner, repo }  } = context;
-            github.issues.createComment({ issue_number, owner, repo, body: 'Hey ${{ steps.commit.outputs.merger }} 👋\nYou merged this PR, but it isn't correctly labeled. The list of valid labels is available at https://github.com/mindee/doctr/blob/main/.github/verify_labels.py' });
+            github.issues.createComment({ issue_number, owner, repo, body: 'Hey ${{ steps.commit.outputs.merger }} 👋\nYou merged this PR, but it is not correctly labeled. The list of valid labels is available at https://github.com/mindee/doctr/blob/main/.github/verify_labels.py' });
