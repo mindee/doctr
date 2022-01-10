@@ -6,13 +6,15 @@
 import math
 from typing import Any, Dict, Tuple, Union
 
+import cv2
+import numpy as np
 import torch
 from PIL.Image import Image
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip']
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip', 'RandomPerspective']
 
 
 class Resize(T.Resize):
@@ -118,4 +120,83 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
             # Changing the relative bbox coordinates
             _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
             return _img, _target
+        return img, target
+
+
+class RandomPerspective(T.RandomPerspective):
+
+    def forward(
+            self, img: Union[torch.Tensor, Image],
+            target: Dict[str, Any]
+    ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
+        """
+          Args:
+            img: Image to be transformed.
+            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
+        Returns:
+            Tuple of PIL Image or Tensor and target
+         """
+
+        fill = self.fill
+        if isinstance(img, torch.Tensor):
+            if isinstance(fill, (int, float)):
+                fill = [float(fill)] * F._get_image_num_channels(img)
+            else:
+                fill = [float(f) for f in fill]
+
+        if torch.rand(1) < self.p:
+            cmap = [(0, 0, 0), (230, 230, 230), (195, 195, 195), (175, 175, 175), (250, 250, 250)]
+            bbox = []
+            label = []
+
+            #  Preparing mask
+            mask = np.zeros_like(img.permute(1, 2, 0))
+            width, height = F._get_image_size(img)
+
+            #  Drawing bounding boxes on mask with respective color
+            for ind, val in enumerate(target["boxes"]):
+                cv2.rectangle(
+                    mask, (int(val[0] * width), int(val[1] * height)),
+                    (int(val[2] * width), int(val[3] * height)),
+                    cmap[target["labels"][ind]], -1
+                )
+            mask = torch.from_numpy(mask).permute(2, 0, 1)
+            ddic = {}
+            startpoints, endpoints = self.get_params(width, height, self.distortion_scale)
+
+            #  transformed mask
+            transformed_mask = F.perspective(
+                mask, startpoints, endpoints, self.interpolation, fill
+            ).permute(1, 2, 0).numpy()
+
+            new_img = F.perspective(img, startpoints, endpoints, self.interpolation, fill)
+
+            #  filtering to separate bboxes of each label
+            mask_qr = cv2.inRange(transformed_mask, np.array([220, 220, 220]), np.array([240, 240, 240]))
+            mask_bar = cv2.inRange(transformed_mask, np.array([180, 180, 180]), np.array([200, 200, 200]))
+            mask_logo = cv2.inRange(transformed_mask, np.array([160, 160, 160]), np.array([180, 180, 180]))
+            mask_photo = cv2.inRange(transformed_mask, np.array([240, 240, 240]), np.array([255, 255, 255]))
+
+            #  finding contours of the masks of each label
+            contours_photo, _ = cv2.findContours(mask_photo, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours_bar, _ = cv2.findContours(mask_bar, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours_logo, _ = cv2.findContours(mask_logo, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours_qr, _ = cv2.findContours(mask_qr, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contour_name = [0, contours_qr, contours_bar, contours_logo, contours_photo]
+
+            #  new target
+            for lab in range(1, 5):
+                for i in range(np.count_nonzero(target["labels"] == lab)):
+                    try:
+                        bbox.append([
+                            min(contour_name[lab][i][..., 0]) / width,
+                            min(contour_name[lab][i][..., 1]) / height,
+                            max(contour_name[lab][i][..., 0]) / width,
+                            max(contour_name[lab][i][..., 1]) / height
+                        ])
+                        label.append(lab)
+                    except IndexError:
+                        pass
+            ddic.update({"boxes": np.array(bbox, dtype=np.float32).reshape(-1, 4), "labels": np.array(label)})
+            return new_img, ddic
         return img, target
