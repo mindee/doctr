@@ -22,6 +22,7 @@ class OCRDataset(AbstractDataset):
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        **kwargs: keyword arguments from `AbstractDataset`.
     """
 
     def __init__(
