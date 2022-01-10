@@ -241,7 +241,7 @@ def main(args):
             T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
         ]),
         sample_transforms=T.SampleCompose([
-            T.RandomPerspective(0.2, 1, interpolation=torchvision.transforms.functional.InterpolationMode("nearest")),
+            T.RandomPerspective(0.2, 0.5, interpolation=torchvision.transforms.functional.InterpolationMode("nearest")),
             T.RandomHorizontalFlip(p=0.5)])
     )
     train_loader = DataLoader(
