@@ -332,7 +332,7 @@ def parse_args():
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated documents')
-    parser.add_argument('--eval_straight', dest='eval_straight', action='store_true',
+    parser.add_argument('--eval-straight', action='store_true',
                         help='metrics evaluation with straight boxes instead of polygons to save time + memory')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
