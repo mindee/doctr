@@ -3,9 +3,10 @@ import math
 import numpy as np
 import pytest
 import torch
+import torchvision
 
 from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomHorizontalFlip,
-                              RandomRotate, Resize)
+                              RandomPerspective, RandomRotate, Resize)
 from doctr.transforms.functional import crop_detection, rotate_sample
 
 
@@ -271,4 +272,30 @@ def test_randomhorizontalflip(p):
     elif p == 0:
         assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
         assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
+    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
+
+
+@pytest.mark.parametrize("p", [1, 0])
+def test_randomperspective(p):
+    # testing for 2 cases, with transformation probability 1 and 0.
+    torch.manual_seed(23)
+    transform = RandomPerspective(0.2, p, interpolation=torchvision.transforms.functional.InterpolationMode("nearest"))
+    input_t = torch.ones((3, 32, 32), dtype=torch.float32)
+    target = {"boxes": np.array([[0., 0., 1., 1.]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    transformed, _target = transform(input_t, target)
+    assert isinstance(transformed, torch.Tensor)
+    assert transformed.shape == input_t.shape
+    assert transformed.dtype == input_t.dtype
+    # integrity check of targets
+    assert isinstance(_target, dict)
+    assert all(isinstance(val, np.ndarray) for val in _target.values())
+    assert _target["boxes"].dtype == np.float32
+    assert _target["labels"].dtype == np.int64
+    if p == 1:
+        print(_target)
+        assert np.all(_target["boxes"] == np.array([[0.03125, 0., 0.90625, 0.96875]], dtype=np.float32))
+
+    elif p == 0:
+        assert np.all(_target["boxes"] == np.array([[0., 0., 1., 1.]], dtype=np.float32))
+
     assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
