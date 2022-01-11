@@ -1,0 +1,17 @@
+numpy>=1.16.0
+scipy>=1.4.0
+h5py>=3.1.0
+opencv-python>=3.4.5.20
+PyMuPDF>=1.16.0,!=1.18.11,!=1.18.12
+pyclipper>=1.2.0
+shapely>=1.6.0
+matplotlib>=3.1.0,<3.4.3
+mplcursors>=0.3
+weasyprint>=52.2,<53.0
+unidecode>=1.0.0
+tensorflow>=2.4.0
+Pillow>=8.3.2
+tqdm>=4.30.0
+tensorflow-addons>=0.13.0
+rapidfuzz>=1.6.0
+keras<2.7.0
