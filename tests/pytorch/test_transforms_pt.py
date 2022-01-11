@@ -280,7 +280,7 @@ def test_randomperspective(p):
     # testing for 2 cases, with transformation probability 1 and 0.
     torch.manual_seed(23)
     transform = RandomPerspective(0.2, p, interpolation=torchvision.transforms.functional.InterpolationMode("nearest"))
-    input_t = torch.ones((3, 32, 32), dtype=torch.float32)
+    input_t = torch.zeros((3, 32, 32), dtype=torch.float32)
     target = {"boxes": np.array([[0., 0., 1., 1.]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
     transformed, _target = transform(input_t, target)
     assert isinstance(transformed, torch.Tensor)
@@ -292,7 +292,6 @@ def test_randomperspective(p):
     assert _target["boxes"].dtype == np.float32
     assert _target["labels"].dtype == np.int64
     if p == 1:
-        print(_target)
         assert np.all(_target["boxes"] == np.array([[0.03125, 0., 0.90625, 0.96875]], dtype=np.float32))
 
     elif p == 0:
