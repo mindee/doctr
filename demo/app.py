@@ -11,6 +11,7 @@ import streamlit as st
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import cv2
+import numpy as np
 import tensorflow as tf
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
@@ -21,8 +22,13 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from doctr.utils.visualization import visualize_page
 
-DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large"]
-RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
+FRAMEWORK = ["PyTorch", "TensorFlow"]
+
+TF_DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large"]
+TF_RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
+
+PT_DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large"]
+PT_RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
 
 
 def main():
@@ -60,8 +66,15 @@ def main():
 
     # Model selection
     st.sidebar.title("Model selection")
-    det_arch = st.sidebar.selectbox("Text detection model", DET_ARCHS)
-    reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
+    framework = st.sidebar.selectbox("Framework", FRAMEWORK)
+    # use framework specific model selection
+    if framework == "PyTorch":
+        os.environ["USE_TORCH"] = "1"
+    else:
+        os.environ["USE_TF"] = "1"
+    (archs_det, archs_reco) = (PT_DET_ARCHS, PT_RECO_ARCHS) if framework == "PyTorch" else (TF_DET_ARCHS, TF_RECO_ARCHS)
+    det_arch = st.sidebar.selectbox("Text detection model", archs_det)
+    reco_arch = st.sidebar.selectbox("Text recognition model", archs_reco)
 
     # For newline
     st.sidebar.write('\n')
@@ -80,9 +93,9 @@ def main():
                 # Forward the image to the model
                 processed_batches = predictor.det_predictor.pre_processor([doc[page_idx]])
                 out = predictor.det_predictor.model(processed_batches[0], return_preds=True)
-                seg_map = out["out_map"]
-                seg_map = tf.squeeze(seg_map[0, ...], axis=[2])
-                seg_map = cv2.resize(seg_map.numpy(), (doc[page_idx].shape[1], doc[page_idx].shape[0]),
+                seg_map = out["out_map"].numpy()
+                seg_map = np.squeeze(seg_map[0, ...], axis=2)
+                seg_map = cv2.resize(seg_map, (doc[page_idx].shape[1], doc[page_idx].shape[0]),
                                      interpolation=cv2.INTER_LINEAR)
                 # Plot the raw heatmap
                 fig, ax = plt.subplots()
