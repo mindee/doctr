@@ -150,12 +150,12 @@ class RandomPerspective(T.RandomPerspective):
             label = []
 
             #  Preparing mask
-            mask = np.zeros_like(img.permute(1, 2, 0))
-
             if isinstance(img, torch.Tensor):
                 height, width = img.shape[-2:]
-            elif isinstance(img, Image.Image):
+                mask = np.zeros_like(img.permute(1, 2, 0))
+            else:
                 width, height = img.size
+                mask = np.zeros_like(img)
 
             #  Drawing bounding boxes on mask with respective color
             for ind, val in enumerate(target["boxes"]):
