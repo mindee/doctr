@@ -280,7 +280,9 @@ def test_randomhorizontalflip(p):
     "p, input_image, input_type",
     [
         [1, Image.new('RGB', (32, 32), (0, 0, 0)), Image.Image],
-        [0, torch.zeros((3, 32, 32), dtype=torch.float32), torch.Tensor]
+        [1, torch.zeros((3, 32, 32), dtype=torch.float32), torch.Tensor],
+        [0, torch.zeros((3, 32, 32), dtype=torch.float32), torch.Tensor],
+        [0, Image.new('RGB', (32, 32), (0, 0, 0)), Image.Image]
     ]
 )
 def test_randomperspective(p, input_image, input_type):
