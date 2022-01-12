@@ -140,7 +140,7 @@ class RandomPerspective(T.RandomPerspective):
         fill = self.fill
         if isinstance(img, torch.Tensor):
             if isinstance(fill, (int, float)):
-                fill = [float(fill)] * F._get_image_num_channels(img)
+                fill = [float(fill)] * self._get_num_channels(img)
             else:
                 fill = [float(f) for f in fill]
 
@@ -204,3 +204,10 @@ class RandomPerspective(T.RandomPerspective):
             ddic.update({"boxes": np.array(bbox, dtype=np.float32).reshape(-1, 4), "labels": np.array(label)})
             return new_img, ddic
         return img, target
+
+    @staticmethod
+    def _get_num_channels(img):
+        if img.ndim == 2:
+            return 1
+        elif img.ndim > 2:
+            return img.shape[-3]
