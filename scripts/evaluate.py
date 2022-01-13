@@ -13,7 +13,7 @@ from tqdm import tqdm
 from doctr import datasets
 from doctr.file_utils import is_tf_available
 from doctr.models import ocr_predictor
-from doctr.models._utils import extract_crops
+from doctr.models._utils import extract_crops, extract_rcrops
 from doctr.utils.metrics import LocalizationConfusion, OCRMetric, TextMatch
 
 # Enable GPU growth if using TF
