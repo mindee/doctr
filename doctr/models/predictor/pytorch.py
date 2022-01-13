@@ -76,6 +76,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
+        # Crop images
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages
         )

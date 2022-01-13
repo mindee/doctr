@@ -76,9 +76,6 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         loc_preds = self.det_predictor(pages, **kwargs)
 
         # Crop images
-        if not isinstance(pages[0], np.ndarray):
-            pages = [page.numpy() for page in pages]
-
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=True, assume_straight_pages=self.assume_straight_pages
         )
