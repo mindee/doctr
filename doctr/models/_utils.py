@@ -74,7 +74,7 @@ def extract_rcrops(
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
-    src_pts = _boxes[:, 1:].astype(np.float32)
+    src_pts = _boxes[:, :3].astype(np.float32)
     # Preserve size
     d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
     d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)
@@ -216,7 +216,7 @@ def rectify_loc_preds(
     return np.stack(
         [np.roll(
             page_loc_pred,
-            orientation - 1,
+            orientation,
             axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
         axis=0
     ) if len(orientations) > 0 else None
