@@ -9,13 +9,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from torch import nn
 from torchvision.models.resnet import BasicBlock
 from torchvision.models.resnet import ResNet as TVResNet
-from torchvision.models.resnet import resnet18 as tv_resnet18, resnet34 as tv_resnet34, resnet50 as tv_resnet50
+from torchvision.models.resnet import resnet18 as tv_resnet18, resnet34 as tv_resnet34, resnet50 as tv_resnet50, resnet101 as tv_resnet101
 
 from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide', 'resnet_stage']
+__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide', 'resnet101', 'resnet_stage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -307,3 +307,24 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """
 
     return _tv_resnet('resnet50', pretrained, tv_resnet50, **kwargs)
+
+
+def resnet101(pretrained: bool = False, **kwargs: Any) -> TVResNet:
+    """ResNet-101 architecture as described in `"Deep Residual Learning for Image Recognition",
+    <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import resnet101
+        >>> model = resnet101(pretrained=False)
+        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A resnet101 model
+    """
+
+    return _tv_resnet('resnet101', pretrained, tv_resnet101, **kwargs)
