@@ -26,6 +26,7 @@ Public datasets
 .. autoclass:: SynthText
 .. autoclass:: IC03
 .. autoclass:: IC13
+.. autoclass:: IMGUR5K
 
 docTR synthetic datasets
 ^^^^^^^^^^^^^^^^^^^^^^^^

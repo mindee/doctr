@@ -30,9 +30,13 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
                 cv2.fillPoly(target, [np.int0(box)], 1)
             else:
                 target[int(box[1]): int(box[3]) + 1, int(box[0]): int(box[2]) + 1] = 1
+        if nb_samples > 1:
+            axes[0][idx].imshow(img)
+            axes[1][idx].imshow(target.astype(bool))
+        else:
+            axes[0].imshow(img)
+            axes[1].imshow(target.astype(bool))
 
-        axes[0][idx].imshow(img)
-        axes[1][idx].imshow(target.astype(bool))
     # Disable axis
     for ax in axes.ravel():
         ax.axis('off')
