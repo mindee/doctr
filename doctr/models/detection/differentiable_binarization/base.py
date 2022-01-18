@@ -224,7 +224,7 @@ class _DBNet:
         padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
         padded_polygon = np.array(padding.Execute(distance)[0])
 
-        # Fill the mask with 1 on the new shrank polygon
+        # Fill the mask with 1 on the new shrunken polygon
         cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
 
         # Get min/max to recover polygon after distance computation
@@ -322,17 +322,17 @@ class _DBNet:
                 subject = [tuple(coor) for coor in poly]
                 padding = pyclipper.PyclipperOffset()
                 padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                shrank = padding.Execute(-distance)
+                shrunken = padding.Execute(-distance)
 
                 # Draw polygon on gt if it is valid
-                if len(shrank) == 0:
+                if len(shrunken) == 0:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                shrank = np.array(shrank[0]).reshape(-1, 2)
-                if shrank.shape[0] <= 2 or not Polygon(shrank).is_valid:
+                shrunken = np.array(shrunken[0]).reshape(-1, 2)
+                if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                cv2.fillPoly(seg_target[idx], [shrank.astype(np.int32)], 1)
+                cv2.fillPoly(seg_target[idx], [shrunken.astype(np.int32)], 1)
 
                 # Draw on both thresh map and thresh mask
                 poly, thresh_target[idx], thresh_mask[idx] = self.draw_thresh_map(poly, thresh_target[idx],

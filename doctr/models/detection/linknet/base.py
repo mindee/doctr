@@ -176,9 +176,9 @@ class _LinkNet(BaseModel):
                         distance = area * (1 - np.power(0.4, 2)) / length
                         padding = pyclipper.PyclipperOffset()
                         padding.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                        shrank_polygon = np.array(padding.Execute(distance))
-                        if len(shrank_polygon) >= 1:
-                            cv2.fillPoly(edge_mask[idx], [shrank_polygon.astype(np.int32)[0]], 0)
+                        shrunken_polygon = np.array(padding.Execute(distance))
+                        if len(shrunken_polygon) >= 1:
+                            cv2.fillPoly(edge_mask[idx], [shrunken_polygon.astype(np.int32)[0]], 0)
                 else:
                     if box.shape == (4, 2):
                         box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]
