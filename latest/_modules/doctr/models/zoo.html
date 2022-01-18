@@ -298,8 +298,8 @@
     <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
@@ -317,10 +317,11 @@
 <span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
 <span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
 <span class="sd">            without rotated textual elements.</span>
-<span class="sd">        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</span>
-<span class="sd">            (potentially rotated) as straight bounding boxes.</span>
 <span class="sd">        preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before</span>
 <span class="sd">            running the detection model on it.</span>
+<span class="sd">        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</span>
+<span class="sd">            (potentially rotated) as straight bounding boxes.</span>
+<span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
@@ -331,8 +332,8 @@
         <span class="n">reco_arch</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
-        <span class="n">export_as_straight_boxes</span><span class="o">=</span><span class="n">export_as_straight_boxes</span><span class="p">,</span>
         <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">export_as_straight_boxes</span><span class="o">=</span><span class="n">export_as_straight_boxes</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 </pre></div>
