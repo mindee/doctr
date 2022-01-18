@@ -1,6 +1,6 @@
 name: 🐛 Bug report
 description: Create a report to help us improve the library
-labels: bug
+labels: 'type: bug'
 
 body:
 - type: markdown
