@@ -71,6 +71,8 @@ def main(args):
         e2e_metric = OCRMetric(iou_thresh=args.iou, use_polygons=not args.eval_straight)
 
     sample_idx = 0
+    extraction_fn = extract_crops if args.eval_straight else extract_rcrops
+
     for dataset in sets:
         for page, target in tqdm(dataset):
             # GT
@@ -84,7 +86,6 @@ def main(args):
                 gt_boxes = np.stack([xmin, ymin, xmax, ymax], axis=-1)
 
             # Forward
-            extraction_fn = extract_crops if args.eval_straight else extract_rcrops
             if is_tf_available():
                 out = predictor(page[None, ...])
                 crops = extraction_fn(page, gt_boxes)
