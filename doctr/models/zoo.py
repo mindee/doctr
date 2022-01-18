@@ -48,8 +48,8 @@ def ocr_predictor(
     reco_arch: str = 'crnn_vgg16_bn',
     pretrained: bool = False,
     assume_straight_pages: bool = True,
-    export_as_straight_boxes: bool = False,
     preserve_aspect_ratio: bool = False,
+    export_as_straight_boxes: bool = False,
     **kwargs: Any
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -67,10 +67,11 @@ def ocr_predictor(
         pretrained: If True, returns a model pre-trained on our OCR dataset
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
-        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
-            (potentially rotated) as straight bounding boxes.
         preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before
             running the detection model on it.
+        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
+            (potentially rotated) as straight bounding boxes.
+        kwargs: keyword args of `OCRPredictor`
 
     Returns:
         OCR predictor
@@ -81,7 +82,7 @@ def ocr_predictor(
         reco_arch,
         pretrained,
         assume_straight_pages=assume_straight_pages,
-        export_as_straight_boxes=export_as_straight_boxes,
         preserve_aspect_ratio=preserve_aspect_ratio,
+        export_as_straight_boxes=export_as_straight_boxes,
         **kwargs,
     )
