@@ -154,7 +154,7 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [256, 256, 512, 512],
         [True] * 4,
         [(2, 2), (2, 1), None, None],
-        False,
+        origin_stem=False,
         stem_channels=128,
         **kwargs,
     )

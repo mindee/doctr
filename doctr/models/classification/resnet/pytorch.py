@@ -150,7 +150,6 @@ def _resnet(
     output_channels: List[int],
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
-    origin_stem: bool = True,
     **kwargs: Any,
 ) -> ResNet:
 
@@ -230,7 +229,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [256, 256, 512, 512],
         [True] * 4,
         [(2, 2), (2, 1), None, None],
-        False,
+        origin_stem=False,
         stem_channels=128,
         **kwargs,
     )
@@ -282,7 +281,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [128, 256, 512, 1024],
         [False] * 4,
         [None] * 4,
-        True,
+        origin_stem=True,
         stem_channels=128,
         **kwargs,
     )
