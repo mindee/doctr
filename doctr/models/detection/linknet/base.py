@@ -9,6 +9,8 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
+import pyclipper
+from shapely.geometry import Polygon
 
 from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
@@ -122,6 +124,7 @@ class _LinkNet(BaseModel):
             edge_mask = np.zeros(target_shape, dtype=bool)
         else:
             seg_target = np.zeros(target_shape, dtype=np.uint8)
+            edge_mask = np.zeros(target_shape, dtype=np.uint8)
 
         seg_mask = np.ones(target_shape, dtype=bool)
 
@@ -137,9 +140,9 @@ class _LinkNet(BaseModel):
             if abs_boxes.ndim == 3:
                 abs_boxes[:, :, 0] *= w
                 abs_boxes[:, :, 1] *= h
-                abs_boxes = abs_boxes.round().astype(np.int32)
                 polys = abs_boxes
                 boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
+                abs_boxes = np.concatenate((abs_boxes.min(1), abs_boxes.max(1)), -1).round().astype(np.int32)
             else:
                 abs_boxes[:, [0, 2]] *= w
                 abs_boxes[:, [1, 3]] *= h
@@ -147,14 +150,35 @@ class _LinkNet(BaseModel):
                 polys = [None] * abs_boxes.shape[0]  # Unused
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
-            for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
+            for points, box, box_size in zip(polys, abs_boxes, boxes_size):
                 # Mask boxes that are too small
                 if box_size < self.min_size_box:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                # Fill polygon with 1
-                if not self.assume_straight_pages:
-                    cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
+
+                if _target.ndim == 3:
+                    # Fill polygon with 1
+                    cv2.fillPoly(seg_target[idx], [points.astype(np.int32)], 1)
+
+                    # Compute edge: first dilate then shrink and substract
+                    # Dilate polygon with pyclipper (Vati algorithm)
+                    poly = Polygon(points)
+                    area = poly.area
+                    length = poly.length
+                    distance = area * 1.5 / length  # compute distance to expand polygon
+                    offset = pyclipper.PyclipperOffset()
+                    offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+                    expanded_points = np.array(offset.Execute(distance))  # expand polygon
+                    if len(expanded_points) >= 1:
+                        cv2.fillPoly(edge_mask[idx], [expanded_points.astype(np.int32)[0]], 1)
+
+                        # Shrink with pyclipper to unfill the inside
+                        distance = area * (1 - np.power(0.4, 2)) / length
+                        padding = pyclipper.PyclipperOffset()
+                        padding.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+                        shrinked_polygon = np.array(padding.Execute(distance))
+                        if len(shrinked_polygon) >= 1:
+                            cv2.fillPoly(edge_mask[idx], [shrinked_polygon.astype(np.int32)[0]], 0)
                 else:
                     if box.shape == (4, 2):
                         box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]

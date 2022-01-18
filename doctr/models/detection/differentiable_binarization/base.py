@@ -216,7 +216,7 @@ class _DBNet:
         if polygon.ndim != 2 or polygon.shape[1] != 2:
             raise AttributeError("polygon should be a 2 dimensional array of coords")
 
-        # Augment polygon by shrink_ratio
+        # Reduce polygon by shrink_ratio
         polygon_shape = Polygon(polygon)
         distance = polygon_shape.area * (1 - np.power(self.shrink_ratio, 2)) / polygon_shape.length
         subject = [tuple(coor) for coor in polygon]  # Get coord as list of tuples
@@ -224,7 +224,7 @@ class _DBNet:
         padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
         padded_polygon = np.array(padding.Execute(distance)[0])
 
-        # Fill the mask with 1 on the new padded polygon
+        # Fill the mask with 1 on the new shrinked polygon
         cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
 
         # Get min/max to recover polygon after distance computation
