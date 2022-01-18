@@ -171,6 +171,77 @@ def mock_ic13(tmpdir_factory, mock_image_stream):
 
 
 @pytest.fixture(scope="session")
+def mock_imgur5k(tmpdir_factory, mock_image_stream):
+    file = BytesIO(mock_image_stream)
+    image_folder = tmpdir_factory.mktemp("images")
+    label_folder = tmpdir_factory.mktemp("dataset_info")
+    labels = {
+        "index_id": {
+            "YsaVkzl": {
+                "image_url": "https://i.imgur.com/YsaVkzl.jpg",
+                "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/YsaVkzl.jpg",
+                "image_hash": "993a7cbb04a7c854d1d841b065948369"
+            },
+            "wz3wHhN": {
+                "image_url": "https://i.imgur.com/wz3wHhN.jpg",
+                "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/wz3wHhN.jpg",
+                "image_hash": "9157426a98ee52f3e1e8d41fa3a99175"
+            },
+            "BRHSP23": {
+                "image_url": "https://i.imgur.com/BRHSP23.jpg",
+                "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/BRHSP23.jpg",
+                "image_hash": "aab01f7ac82ae53845b01674e9e34167"
+            }
+        },
+        "index_to_ann_map": {
+            "YsaVkzl": [
+                "YsaVkzl_0",
+                "YsaVkzl_1",
+                "YsaVkzl_2"],
+            "wz3wHhN": [
+                "wz3wHhN_0",
+                "wz3wHhN_1"],
+            "BRHSP23": [
+                "BRHSP23_0"]
+        },
+        "ann_id": {
+            "YsaVkzl_0": {
+                "word": "I",
+                "bounding_box": "[605.33, 1150.67, 614.33, 226.33, 81.0]"
+            },
+            "YsaVkzl_1": {
+                "word": "am",
+                "bounding_box": "[783.67, 654.67, 521.0, 222.33, 56.67]"
+            },
+            "YsaVkzl_2": {
+                "word": "a",
+                "bounding_box": "[959.0, 437.0, 76.67, 201.0, 38.33]"
+            },
+            "wz3wHhN_0": {
+                "word": "jedi",
+                "bounding_box": "[783.67, 654.67, 521.0, 222.33, 56.67]"
+            },
+            "wz3wHhN_1": {
+                "word": "!",
+                "bounding_box": "[959.0, 437.0, 76.67, 201.0, 38.33]"
+            },
+            "BRHSP23_0": {
+                "word": "jedi",
+                "bounding_box": "[783.67, 654.67, 521.0, 222.33, 56.67]"
+            }
+        }
+    }
+    label_file = label_folder.join("imgur5k_annotations.json")
+    with open(label_file, 'w') as f:
+        json.dump(labels, f)
+    for index_id in ['YsaVkzl', 'wz3wHhN', 'BRHSP23']:
+        fn_i = image_folder.join(f"{index_id}.jpg")
+        with open(fn_i, 'wb') as f:
+            f.write(file.getbuffer())
+    return str(image_folder), str(label_file)
+
+
+@pytest.fixture(scope="session")
 def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp('datasets')
     svhn_root = root.mkdir('svhn')

@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from torch import nn
 
 from doctr import models
 from doctr.io import Document, DocumentFile
@@ -42,6 +43,11 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
     )
+
+    if assume_straight_pages:
+        assert predictor.crop_orientation_predictor is None
+    else:
+        assert isinstance(predictor.crop_orientation_predictor, nn.Module)
 
     out = predictor(doc)
     assert isinstance(out, Document)

@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
@@ -11,6 +11,7 @@ from doctr.models.builder import DocumentBuilder
 
 from .._utils import extract_crops, extract_rcrops, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor
+from ..classification.predictor import CropOrientationPredictor
 
 __all__ = ['_OCRPredictor']
 
@@ -19,14 +20,26 @@ class _OCRPredictor:
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-        det_predictor: detection module
-        reco_predictor: recognition module
+        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
+            without rotated textual elements.
+        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
+            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
+            accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        kwargs: keyword args of `DocumentBuilder`
     """
 
-    doc_builder: DocumentBuilder
+    crop_orientation_predictor: Optional[CropOrientationPredictor]
 
-    def __init__(self) -> None:
-        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
+    def __init__(
+        self,
+        assume_straight_pages: bool = True,
+        straighten_pages: bool = False,
+        **kwargs: Any,
+    ) -> None:
+        self.assume_straight_pages = assume_straight_pages
+        self.straighten_pages = straighten_pages
+        self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
+        self.doc_builder = DocumentBuilder(**kwargs)
 
     @staticmethod
     def _generate_crops(
@@ -70,7 +83,7 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
         # Work at a page level
-        orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]
+        orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]  # type: ignore[misc]
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
             rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
