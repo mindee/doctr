@@ -38,14 +38,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34-bd8725db.pt',
     },
     'resnet50': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 32),
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-1a6c155e.pt',
     },
     'resnet34_wide': {
         'mean': (0.694, 0.695, 0.693),
@@ -53,6 +53,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 32, 32),
         'classes': list(VOCABS['french']),
         'url': None,
+    },
+    'resnet101': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 32),
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet101-330002d3.pt',
     },
 }
 
