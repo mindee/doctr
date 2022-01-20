@@ -9,7 +9,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from torch import nn
 from torchvision.models.resnet import BasicBlock
 from torchvision.models.resnet import ResNet as TVResNet
-from torchvision.models.resnet import resnet18 as tv_resnet18, resnet34 as tv_resnet34, resnet50 as tv_resnet50, resnet101 as tv_resnet101
+from torchvision.models.resnet import resnet18 as tv_resnet18
+from torchvision.models.resnet import resnet34 as tv_resnet34
+from torchvision.models.resnet import resnet50 as tv_resnet50
+from torchvision.models.resnet import resnet101 as tv_resnet101
 
 from doctr.datasets import VOCABS
 
