@@ -8,6 +8,7 @@ from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.predictor import OCRPredictor
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.utils.repr import NestedObject
 
 
 @pytest.mark.parametrize(
@@ -44,6 +45,11 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
     )
+
+    if assume_straight_pages:
+        assert predictor.crop_orientation_predictor is None
+    else:
+        assert isinstance(predictor.crop_orientation_predictor, NestedObject)
 
     out = predictor(doc)
     assert isinstance(out, Document)
