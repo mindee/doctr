@@ -48,6 +48,16 @@ def crop_boxes(
 
 
 def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[int, int]:
+    """Expands a 2-point line, so that the first is on the edge. In other terms, we extend the line in
+    the same direction until we meet one of the edges.
+
+    Args:
+        line: array of shape (2, 2) of the point supposed to be on one edge, and the shadow tip.
+        target_shape: the desired mask shape
+
+    Returns:
+        2D coordinates of the first point once we extended the line (on one of the edges)
+    """
     if any(coord == 0 or coord == size for coord, size in zip(line[0], target_shape[::-1])):
         return line[0]
     # Get the line equation
@@ -82,6 +92,17 @@ def create_shadow_mask(
     max_tip_width=0.5,
     max_tip_height=0.3,
 ) -> np.ndarray:
+    """Creates a random shadow mask
+
+    Args:
+        target_shape: the target shape (H, W)
+        min_base_width: the relative minimum shadow base width
+        max_tip_width: the relative maximum shadow tip width
+        max_tip_height: the relative maximum shadow tip height
+
+    Returns:
+        a numpy ndarray of shape (H, W, 1) with values in the range [0, 1]
+    """
 
     # Default base is top
     _params = np.random.rand(6)
