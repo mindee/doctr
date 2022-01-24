@@ -83,6 +83,19 @@ def mock_image(tmpdir_factory):
     return image
 
 
+@pytest.fixture(scope="session")
+def mock_tilted_payslip(tmpdir_factory):
+    url = 'https://3.bp.blogspot.com/-Es0oHTCrVEk/UnYA-iW9rYI/AAAAAAAAAFI/hWExrXFbo9U/s1600/003.jpg'
+    file = BytesIO(requests.get(url).content)
+    folder = tmpdir_factory.mktemp("images")
+    fn = str(folder.join("mock_payslip.jpeg"))
+    with open(fn, 'wb') as f:
+        f.write(file.getbuffer())
+    image = reader.read_img_as_numpy(fn)
+    image = geometry.rotate_image(image, 30, expand=True)
+    return image
+
+
 @pytest.fixture(scope="function")
 def mock_bitmap(mock_image):
     bitmap = np.squeeze(cv2.cvtColor(mock_image, cv2.COLOR_BGR2GRAY) / 255.)
@@ -101,5 +114,13 @@ def test_estimate_orientation(mock_image):
     assert abs(angle - 30.) < 1.
 
     rotated = geometry.rotate_image(mock_image, -angle)
+    angle_rotated = estimate_orientation(rotated)
+    assert abs(angle_rotated) < 1.
+
+
+def test_estimate_orientation(mock_tilted_payslip):
+    assert (estimate_orientation(mock_tilted_payslip) - 30.) < 1.
+
+    rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) < 1.

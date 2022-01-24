@@ -66,6 +66,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
+        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
+
         # Detect document rotation and rotate pages
         if self.straighten_pages:
             origin_page_orientations = [estimate_orientation(page) for page in pages]
@@ -91,8 +93,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if self.straighten_pages:
             boxes = [rotate_boxes(page_boxes,
                                   angle,
-                                  orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:]
-                                  ) for page_boxes, page, angle in zip(boxes, pages, origin_page_orientations)]
+                                  orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
+                                  target_shape=mask) for
+                                page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations,
+                                                                     origin_page_shapes)]
 
         out = self.doc_builder(
             boxes,
