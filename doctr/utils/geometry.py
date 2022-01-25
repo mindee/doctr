@@ -150,13 +150,6 @@ def remap_boxes(
     orig_height, orig_width = orig_shape
     dest_height, dest_width = dest_shape
     mboxes = loc_preds.copy()
-    # # remaps position of the box center for the destination image shape
-    # mboxes[:, 0] = ((loc_preds[:, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
-    # mboxes[:, 1] = ((loc_preds[:, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
-    # # remaps box dimension for the destination image shape
-    # mboxes[:, 2] = loc_preds[:, 2] * orig_width / dest_width
-    # mboxes[:, 3] = loc_preds[:, 3] * orig_height / dest_height
-
     mboxes[:, :, 0] = ((loc_preds[:, :, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
     mboxes[:, :, 1] = ((loc_preds[:, :, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
 
