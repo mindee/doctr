@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from math import ceil
-from typing import List, Tuple, Union, Optional
+from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np

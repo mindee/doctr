@@ -1,9 +1,7 @@
 from math import hypot
 
-import cv2
 import numpy as np
 import pytest
-
 
 from doctr.utils import geometry
 

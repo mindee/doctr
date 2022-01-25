@@ -95,8 +95,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                                   angle,
                                   orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
                                   target_shape=mask) for
-                                page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations,
-                                                                     origin_page_shapes)]
+                     page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations,
+                                                          origin_page_shapes)]
 
         out = self.doc_builder(
             boxes,
