@@ -74,7 +74,7 @@ def extract_rcrops(
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
-    src_pts = _boxes[:, 1:].astype(np.float32)
+    src_pts = _boxes[:, :3].astype(np.float32)
     # Preserve size
     d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
     d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)

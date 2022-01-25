@@ -155,3 +155,16 @@ def test_convert_to_relative_coords(abs_geoms, img_size, rel_geoms):
     # Wrong format
     with pytest.raises(ValueError):
         geometry.convert_to_relative_coords(np.zeros((3, 5)), (32, 32))
+
+
+def test_estimate_page_angle():
+    straight_polys = np.array(
+        [
+            [[0.3, 0.3], [0.4, 0.3], [0.4, 0.4], [0.3, 0.4]],
+            [[0.4, 0.4], [0.5, 0.4], [0.5, 0.5], [0.4, 0.5]],
+            [[0.5, 0.5], [0.6, 0.5], [0.6, 0.6], [0.5, 0.6]],
+        ]
+    )
+    rotated_polys = geometry.rotate_boxes(straight_polys, angle=20, orig_shape=(512, 512))
+    angle = geometry.estimate_page_angle(rotated_polys)
+    assert np.isclose(angle, 20)

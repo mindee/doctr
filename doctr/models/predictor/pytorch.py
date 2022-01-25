@@ -11,12 +11,10 @@ from torch import nn
 
 from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation
-from doctr.models.builder import DocumentBuilder
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
 
-from ..classification import crop_orientation_predictor
 from .base import _OCRPredictor
 
 __all__ = ['OCRPredictor']
@@ -30,12 +28,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
-        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
-            (potentially rotated) as straight bounding boxes.
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
-
+        kwargs: keyword args of `DocumentBuilder`
     """
 
     def __init__(
@@ -43,17 +39,14 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
-        export_as_straight_boxes: bool = False,
         straighten_pages: bool = False,
+        **kwargs: Any,
     ) -> None:
 
-        super().__init__()
+        nn.Module.__init__(self)
         self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
-        self.doc_builder = DocumentBuilder(export_as_straight_boxes=export_as_straight_boxes)
-        self.assume_straight_pages = assume_straight_pages
-        self.straighten_pages = straighten_pages
-        self.crop_orientation_predictor = crop_orientation_predictor(pretrained=True)
+        _OCRPredictor.__init__(self, assume_straight_pages, straighten_pages, **kwargs)
 
     @torch.no_grad()
     def forward(
@@ -77,6 +70,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         loc_preds = self.det_predictor(pages, **kwargs)
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
+
         # Crop images
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages

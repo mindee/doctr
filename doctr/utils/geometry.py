@@ -265,9 +265,13 @@ def estimate_page_angle(polys: np.ndarray) -> float:
     """Takes a batch of rotated previously ORIENTED polys (N, 4, 2) (rectified by the classifier) and return the
     estimated angle ccw in degrees
     """
+    # Compute mean left points and mean right point with respect to the reading direction (oriented polygon)
+    xleft = polys[:, 0, 0] + polys[:, 3, 0]
+    yleft = polys[:, 0, 1] + polys[:, 3, 1]
+    xright = polys[:, 1, 0] + polys[:, 2, 0]
+    yright = polys[:, 1, 1] + polys[:, 2, 1]
     return np.median(np.arctan(
-        (polys[:, 0, 1] - polys[:, 1, 1]) /  # Y axis from top to bottom!
-        (polys[:, 1, 0] - polys[:, 0, 0])
+        (yleft - yright) / (xright - xleft)  # Y axis from top to bottom!
     )) * 180 / np.pi
 
 
