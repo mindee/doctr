@@ -136,11 +136,11 @@ def remap_boxes(
     This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
     coordinates after a resizing of the image.
     Args:
-        loc_preds: (N, 6) array of RELATIVE locpred (x, y, w, h, alpha, c)
+        loc_preds: (N, 4, 2) array of RELATIVE loc_preds
         orig_shape: shape of the origin image
         dest_shape: shape of the destination image
     Returns:
-        A batch of rotated loc_preds (N, 6): (x, y, w, h, alpha, c) expressed in the destination referencial
+        A batch of rotated loc_preds (N, 4, 2) expressed in the destination referencial
     """
 
     if len(dest_shape) != 2:
