@@ -132,7 +132,7 @@ def remap_boxes(
     orig_shape: Tuple[int, int],
     dest_shape: Tuple[int, int]
 ) -> np.ndarray:
-    """ Remaps a batch of rotated locpred (x, y, w, h, alpha, c) expressed for an origin_shape to a destination_shape.
+    """ Remaps a batch of rotated locpred (N, 4, 2) expressed for an origin_shape to a destination_shape.
     This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
     coordinates after a resizing of the image.
     Args:
