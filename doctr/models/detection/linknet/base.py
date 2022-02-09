@@ -119,7 +119,6 @@ class _LinkNet(BaseModel):
 
         if self.assume_straight_pages:
             seg_target = np.zeros(target_shape, dtype=bool)
-            edge_mask = np.zeros(target_shape, dtype=bool)
         else:
             seg_target = np.zeros(target_shape, dtype=np.uint8)
 
@@ -159,19 +158,10 @@ class _LinkNet(BaseModel):
                     if box.shape == (4, 2):
                         box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
-                    # top edge
-                    edge_mask[idx, box[1], box[0]: min(box[2] + 1, w)] = True
-                    # bot edge
-                    edge_mask[idx, min(box[3], h - 1), box[0]: min(box[2] + 1, w)] = True
-                    # left edge
-                    edge_mask[idx, box[1]: min(box[3] + 1, h), box[0]] = True
-                    # right edge
-                    edge_mask[idx, box[1]: min(box[3] + 1, h), min(box[2], w - 1)] = True
 
         # Don't forget to switch back to channel first if PyTorch is used
         if not is_tf_available():
             seg_target = seg_target.transpose(0, 3, 1, 2)
             seg_mask = seg_mask.transpose(0, 3, 1, 2)
-            edge_mask = edge_mask.transpose(0, 3, 1, 2)
 
-        return seg_target, seg_mask, edge_mask
+        return seg_target, seg_mask
