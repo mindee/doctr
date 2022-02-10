@@ -12,7 +12,7 @@ from doctr.utils.common_types import AbstractFile
 
 from .html import read_html
 from .image import read_img_as_numpy
-from .pdf import PDF, read_pdf
+# from .pdf import PDF, read_pdf
 
 __all__ = ['DocumentFile']
 
@@ -20,39 +20,39 @@ __all__ = ['DocumentFile']
 class DocumentFile:
     """Read a document from multiple extensions"""
 
-    @classmethod
-    def from_pdf(cls, file: AbstractFile, **kwargs) -> PDF:
-        """Read a PDF file
+    # @classmethod
+    # def from_pdf(cls, file: AbstractFile, **kwargs) -> PDF:
+    #     """Read a PDF file
 
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+    #     Example::
+    #         >>> from doctr.documents import DocumentFile
+    #         >>> doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 
-        Args:
-            file: the path to the PDF file or a binary stream
-        Returns:
-            a PDF document
-        """
+    #     Args:
+    #         file: the path to the PDF file or a binary stream
+    #     Returns:
+    #         a PDF document
+    #     """
 
-        doc = read_pdf(file, **kwargs)
+    #     doc = read_pdf(file, **kwargs)
 
-        return PDF(doc)
+    #     return PDF(doc)
 
-    @classmethod
-    def from_url(cls, url: str, **kwargs) -> PDF:
-        """Interpret a web page as a PDF document
+    # @classmethod
+    # def from_url(cls, url: str, **kwargs) -> PDF:
+    #     """Interpret a web page as a PDF document
 
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> doc = DocumentFile.from_url("https://www.yoursite.com")
+    #     Example::
+    #         >>> from doctr.documents import DocumentFile
+    #         >>> doc = DocumentFile.from_url("https://www.yoursite.com")
 
-        Args:
-            url: the URL of the target web page
-        Returns:
-            a PDF document
-        """
-        pdf_stream = read_html(url)
-        return cls.from_pdf(pdf_stream, **kwargs)
+    #     Args:
+    #         url: the URL of the target web page
+    #     Returns:
+    #         a PDF document
+    #     """
+    #     pdf_stream = read_html(url)
+    #     return cls.from_pdf(pdf_stream, **kwargs)
 
     @classmethod
     def from_images(cls, files: Union[Sequence[AbstractFile], AbstractFile], **kwargs) -> List[np.ndarray]:
