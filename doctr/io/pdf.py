@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
-import fitz
+# import fitz
 import numpy as np
 
 from doctr.utils.common_types import AbstractFile, Bbox
