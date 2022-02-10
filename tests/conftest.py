@@ -3,7 +3,7 @@ import shutil
 import tempfile
 from io import BytesIO
 
-# import fitz
+import fitz
 import hdf5storage
 import numpy as np
 import pytest
@@ -17,22 +17,22 @@ def mock_vocab():
             '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
 
 
-# @pytest.fixture(scope="session")
-# def mock_pdf(tmpdir_factory):
+@pytest.fixture(scope="session")
+def mock_pdf(tmpdir_factory):
 
-#     doc = fitz.open()
+    doc = fitz.open()
 
-#     page = doc.new_page()
-#     page.insert_text(fitz.Point(50, 100), "I am a jedi!", fontsize=20)
-#     page = doc.new_page()
-#     page.insert_text(fitz.Point(50, 100), "No, I am your father.", fontsize=20)
+    page = doc.new_page()
+    page.insert_text(fitz.Point(50, 100), "I am a jedi!", fontsize=20)
+    page = doc.new_page()
+    page.insert_text(fitz.Point(50, 100), "No, I am your father.", fontsize=20)
 
-#     # Save the PDF
-#     fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
-#     with open(fn, 'wb') as f:
-#         doc.save(f)
+    # Save the PDF
+    fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
+    with open(fn, 'wb') as f:
+        doc.save(f)
 
-#     return str(fn)
+    return str(fn)
 
 
 @pytest.fixture(scope="session")
