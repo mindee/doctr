@@ -170,7 +170,7 @@ class LinkNet(_LinkNet, keras.Model):
         cardinality = tf.math.reduce_sum(prob_map[seg_mask] + seg_target[seg_mask])
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
-        return tf.math.reduce_mean(bce_loss[seg_mask]) + tf.math.reduce_mean(dice_loss)
+        return tf.math.reduce_mean(bce_loss[seg_mask]) + dice_loss
 
     def call(
         self,

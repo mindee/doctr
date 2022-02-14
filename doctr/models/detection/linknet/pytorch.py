@@ -184,7 +184,7 @@ class LinkNet(nn.Module, _LinkNet):
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
         # Only consider contributions overlaping the mask
-        return bce_loss[seg_mask].mean() + dice_loss.mean()
+        return bce_loss[seg_mask].mean() + dice_loss
 
 
 def _linknet(
