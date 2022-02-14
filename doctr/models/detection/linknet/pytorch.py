@@ -179,8 +179,8 @@ class LinkNet(nn.Module, _LinkNet):
 
         # Dice loss
         prob_map = torch.nn.functional.sigmoid(out_map)
-        inter = (prob_map[seg_mask] * target[seg_mask]).sum()
-        cardinality = (prob_map[seg_mask] + target[seg_mask]).sum()
+        inter = (prob_map[seg_mask] * seg_target[seg_mask]).sum()
+        cardinality = (prob_map[seg_mask] + seg_target[seg_mask]).sum()
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
         # Only consider contributions overlaping the mask

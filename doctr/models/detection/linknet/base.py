@@ -107,7 +107,7 @@ class _LinkNet(BaseModel):
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int],
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
 
         if any(t.dtype != np.float32 for t in target):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -143,7 +143,12 @@ class _LinkNet(BaseModel):
                 abs_boxes[:, [0, 2]] *= w
                 abs_boxes[:, [1, 3]] *= h
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                polys = [None] * abs_boxes.shape[0]  # Unused
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
