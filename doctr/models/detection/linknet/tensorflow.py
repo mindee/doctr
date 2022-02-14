@@ -139,7 +139,6 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         out_map: tf.Tensor,
         target: List[np.ndarray],
-        edge_factor: float = 2.,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -147,29 +146,25 @@ class LinkNet(_LinkNet, keras.Model):
         Args:
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            edge_factor: boost factor for box edges (in case of BCE)
 
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[1:3])
+        seg_target, seg_mask = self.build_target(target, out_map.shape[1:3])
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        if edge_factor > 0:
-            edge_mask = tf.convert_to_tensor(edge_mask, dtype=tf.bool)
 
-        # Get the cross_entropy for each entry
-        loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
+        # BCE loss
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
 
-        # Compute BCE loss with highlighted edges
-        if edge_factor > 0:
-            loss = tf.math.multiply(
-                1 + (edge_factor - 1) * tf.cast(edge_mask, out_map.dtype),
-                loss
-            )
+        # Dice loss
+        prob_map = tf.math.sigmoid(out_map)
+        inter = tf.math.reduce_sum(prob_map[seg_mask] * seg_target[seg_mask])
+        cardinality = tf.math.reduce_sum(prob_map[seg_mask] + seg_target[seg_mask])
+        dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
-        return tf.reduce_mean(loss[seg_mask])
+        return tf.math.reduce_mean(bce_loss[seg_mask]) + dice_loss
 
     def call(
         self,
