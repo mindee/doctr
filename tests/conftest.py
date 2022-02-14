@@ -4,7 +4,6 @@ import tempfile
 from io import BytesIO
 
 import cv2
-import fitz
 import hdf5storage
 import numpy as np
 import pytest
@@ -24,19 +23,13 @@ def mock_vocab():
 @pytest.fixture(scope="session")
 def mock_pdf(tmpdir_factory):
 
-    doc = fitz.open()
-
-    page = doc.new_page()
-    page.insert_text(fitz.Point(50, 100), "I am a jedi!", fontsize=20)
-    page = doc.new_page()
-    page.insert_text(fitz.Point(50, 100), "No, I am your father.", fontsize=20)
-
+    url = "https://github.com/mindee/doctr/releases/download/v0.5.0/mock_pdf.pdf"
+    file = BytesIO(requests.get(url).content)
     # Save the PDF
     fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
     with open(fn, 'wb') as f:
-        doc.save(f)
-
-    return str(fn)
+        f.write(file.getbuffer())
+    return fn
 
 
 @pytest.fixture(scope="session")

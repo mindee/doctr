@@ -1,32 +1,12 @@
 from io import BytesIO
 
-import fitz
 import numpy as np
 import pytest
 import requests
 
+from typing import List
+
 from doctr import io
-
-
-def test_convert_page_to_numpy(mock_pdf):
-    pdf = fitz.open(mock_pdf)
-    # Check correct read
-    rgb_page = io.pdf.convert_page_to_numpy(pdf[0], default_scales=(1, 1))
-    assert isinstance(rgb_page, np.ndarray)
-    assert rgb_page.shape == (842, 595, 3)
-
-    # Check channel order
-    bgr_page = io.pdf.convert_page_to_numpy(pdf[0], default_scales=(1, 1), bgr_output=True)
-    assert np.all(bgr_page == rgb_page[..., ::-1])
-
-    # Check resizing
-    resized_page = io.pdf.convert_page_to_numpy(pdf[0], output_size=(396, 306))
-    assert resized_page.shape == (396, 306, 3)
-
-    # Check rescaling
-    rgb_page = io.pdf.convert_page_to_numpy(pdf[0])
-    assert isinstance(rgb_page, np.ndarray)
-    assert rgb_page.shape == (1684, 1190, 3)
 
 
 def _check_doc_content(doc_tensors, num_pages):
@@ -36,13 +16,13 @@ def _check_doc_content(doc_tensors, num_pages):
     assert all(page.dtype == np.uint8 for page in doc_tensors)
 
 
-def test_read_pdf(mock_pdf):
-    doc = io.read_pdf(mock_pdf)
-    assert isinstance(doc, fitz.Document)
+def test_read_pdf_as_numpy(mock_pdf):
+    doc = io.read_pdf_as_numpy(mock_pdf)
+    assert isinstance(doc, List[np.ndarray])
 
     with open(mock_pdf, 'rb') as f:
         doc = io.read_pdf(f.read())
-    assert isinstance(doc, fitz.Document)
+    assert isinstance(doc, List[np.ndarray])
 
     # Wrong input type
     with pytest.raises(TypeError):
@@ -105,39 +85,5 @@ def test_document_file(mock_pdf, mock_image_stream):
     pages = io.DocumentFile.from_images(mock_image_stream)
     _check_doc_content(pages, 1)
 
-    assert isinstance(io.DocumentFile.from_pdf(mock_pdf).doc, fitz.Document)
-    assert isinstance(io.DocumentFile.from_url("https://www.google.com").doc, fitz.Document)
-
-
-def test_pdf(mock_pdf):
-
-    doc = io.DocumentFile.from_pdf(mock_pdf)
-
-    # As images
-    pages = doc.as_images()
-    num_pages = 2
-    _check_doc_content(pages, num_pages)
-
-    # Get words
-    words = doc.get_words()
-    assert isinstance(words, list) and len(words) == num_pages
-    assert len([word for page_words in words for word in page_words]) == 9
-    assert all(isinstance(bbox, tuple) and isinstance(value, str)
-               for page_words in words for (bbox, value) in page_words)
-    assert all(all(isinstance(coord, float) for coord in bbox) for page_words in words for (bbox, value) in page_words)
-
-    # Get lines
-    lines = doc.get_lines()
-    assert isinstance(lines, list) and len(lines) == num_pages
-    assert len([line for page_lines in lines for line in page_lines]) == 2
-    assert all(isinstance(bbox, tuple) and isinstance(value, str)
-               for page_lines in lines for (bbox, value) in page_lines)
-    assert all(all(isinstance(coord, float) for coord in bbox) for page_lines in lines for (bbox, value) in page_lines)
-
-    # Get artefacts
-    artefacts = doc.get_artefacts()
-    assert isinstance(artefacts, list) and len(artefacts) == num_pages
-    assert len([art for page_art in artefacts for art in page_art]) == 0
-    assert all(isinstance(bbox, tuple) for page_artefacts in artefacts for bbox in page_artefacts)
-    assert all(all(isinstance(coord, float) for coord in bbox)
-               for page_artefacts in artefacts for bbox in page_artefacts)
+    assert isinstance(io.DocumentFile.from_pdf(mock_pdf), List[np.ndarray])
+    assert isinstance(io.DocumentFile.from_url("https://www.google.com"), List[np.ndarray])
