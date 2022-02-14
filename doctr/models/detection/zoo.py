@@ -15,8 +15,8 @@ __all__ = ["detection_predictor"]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18']
-    ROT_ARCHS = []
+    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'linknet_resnet18_rotation']
+    ROT_ARCHS = ['linknet_resnet18_rotation']
 elif is_torch_available():
     ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'db_resnet50_rotation']
     ROT_ARCHS = ['db_resnet50_rotation']
