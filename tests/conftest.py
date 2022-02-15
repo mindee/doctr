@@ -22,11 +22,11 @@ def mock_vocab():
 
 @pytest.fixture(scope="session")
 def mock_pdf(tmpdir_factory):
-
     url = "https://github.com/mindee/doctr/releases/download/v0.5.0/mock_pdf.pdf"
     file = BytesIO(requests.get(url).content)
     # Save the PDF
-    fn = tmpdir_factory.mktemp("data").join("mock_pdf_file.pdf")
+    folder = tmpdir_factory.mktemp("data")
+    fn = str(folder.join("mock_pdf_file.pdf"))
     with open(fn, 'wb') as f:
         f.write(file.getbuffer())
     return fn

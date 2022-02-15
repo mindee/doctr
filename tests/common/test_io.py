@@ -4,8 +4,6 @@ import numpy as np
 import pytest
 import requests
 
-from typing import List
-
 from doctr import io
 
 
@@ -18,19 +16,21 @@ def _check_doc_content(doc_tensors, num_pages):
 
 def test_read_pdf_as_numpy(mock_pdf):
     doc = io.read_pdf_as_numpy(mock_pdf)
-    assert isinstance(doc, List[np.ndarray])
+    assert len(doc) == 1
+    assert isinstance(doc[0], np.ndarray)
 
     with open(mock_pdf, 'rb') as f:
-        doc = io.read_pdf(f.read())
-    assert isinstance(doc, List[np.ndarray])
+        doc = io.read_pdf_as_numpy(f.read())
+    assert len(doc) == 1
+    assert isinstance(doc[0], np.ndarray)
 
     # Wrong input type
     with pytest.raises(TypeError):
-        _ = io.read_pdf(123)
+        _ = io.read_pdf_as_numpy(123)
 
     # Wrong path
     with pytest.raises(FileNotFoundError):
-        _ = io.read_pdf("my_imaginary_file.pdf")
+        _ = io.read_pdf_as_numpy("my_imaginary_file.pdf")
 
 
 def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
@@ -85,5 +85,6 @@ def test_document_file(mock_pdf, mock_image_stream):
     pages = io.DocumentFile.from_images(mock_image_stream)
     _check_doc_content(pages, 1)
 
-    assert isinstance(io.DocumentFile.from_pdf(mock_pdf), List[np.ndarray])
-    assert isinstance(io.DocumentFile.from_url("https://www.google.com"), List[np.ndarray])
+    assert len(io.DocumentFile.from_pdf(mock_pdf)) == 1
+    assert isinstance(io.DocumentFile.from_pdf(mock_pdf)[0], np.ndarray)
+    assert isinstance(io.DocumentFile.from_url("https://www.google.com")[0], np.ndarray)

@@ -4,13 +4,12 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List
 
-import cv2
 import pdf2image
 import numpy as np
 
-from doctr.utils.common_types import AbstractFile, Bbox
+from doctr.utils.common_types import AbstractFile
 
 __all__ = ['read_pdf_as_numpy']
 
@@ -20,7 +19,7 @@ def read_pdf_as_numpy(file: AbstractFile) -> List[np.ndarray]:
 
     Example::
         >>> from doctr.documents import read_pdf
-        >>> doc = read_pdf("path/to/your/doc.pdf")
+        >>> doc = read_pdf_as_numpy("path/to/your/doc.pdf")
 
     Args:
         file: the path to the PDF file
