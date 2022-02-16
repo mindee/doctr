@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union, Optional
 
 import numpy as np
 import tensorflow as tf
@@ -75,9 +75,15 @@ class Resize(NestedObject):
             _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
         return _repr
 
-    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+    def __call__(
+        self,
+        img: tf.Tensor,
+        target: Optional[np.ndarray] = None,
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
+
         input_dtype = img.dtype
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
+        raw_shape = img.shape[:2]
         if self.preserve_aspect_ratio:
             # pad width
             if not self.symmetric_pad:
@@ -87,6 +93,21 @@ class Resize(NestedObject):
             else:
                 offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
             img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+
+        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+        if target is not None:
+            if self.preserve_aspect_ratio:
+                # Get absolute coords
+                if target.shape[1:] == (4,):
+                    target[:, [0, 2]] *= raw_shape[1] / self.output_size[1]
+                    target[:, [1, 3]] *= raw_shape[0] / self.output_size[0]
+                elif target.shape[1:] == (4, 2):
+                    target[..., 0] *= raw_shape[1] / self.output_size[1]
+                    target[..., 1] *= raw_shape[0] / self.output_size[0]
+                else:
+                    raise AssertionError
+            return tf.cast(img, dtype=input_dtype), target
+
         return tf.cast(img, dtype=input_dtype)
 
 

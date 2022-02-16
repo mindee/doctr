@@ -4,9 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union, Optional
 
 import torch
+import numpy as np
 from PIL.Image import Image
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
@@ -27,7 +28,12 @@ class Resize(T.Resize):
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
 
-    def forward(self, img: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        img: torch.Tensor,
+        target: Optional[np.ndarray] = None,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, np.ndarray]]:
+
         target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
         if not self.preserve_aspect_ratio or (target_ratio == actual_ratio):
@@ -41,11 +47,27 @@ class Resize(T.Resize):
 
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)
+            raw_shape = img.shape[-2:]
             # Pad (inverted in pytorch)
             _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
             if self.symmetric_pad:
                 half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
                 _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
+
+            # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+            if target is not None:
+                if self.preserve_aspect_ratio:
+                    # Get absolute coords
+                    if target.shape[1:] == (4,):
+                        target[:, [0, 2]] *= raw_shape[-1] / self.output_size[1]
+                        target[:, [1, 3]] *= raw_shape[-2] / self.output_size[0]
+                    elif target.shape[1:] == (4, 2):
+                        target[..., 0] *= raw_shape[-1] / self.output_size[1]
+                        target[..., 1] *= raw_shape[-2] / self.output_size[0]
+                    else:
+                        raise AssertionError
+                return pad(img, _pad), target
+
             return pad(img, _pad)
 
     def __repr__(self) -> str:
