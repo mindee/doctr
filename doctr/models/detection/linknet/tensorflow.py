@@ -139,6 +139,8 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         out_map: tf.Tensor,
         target: List[np.ndarray],
+        gamma: float = 2.,
+        alpha: float = .5,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -146,6 +148,8 @@ class LinkNet(_LinkNet, keras.Model):
         Args:
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            gamma: modulating factor in the focal loss formula
+            alpha: balancing factor in the focal loss formula
 
         Returns:
             A loss tensor
@@ -155,8 +159,18 @@ class LinkNet(_LinkNet, keras.Model):
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
 
-        # BCE loss
+        # Focal loss
         bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
+        if gamma and gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+        # Convert logits to prob, compute gamma factor
+        pred_prob = tf.sigmoid(out_map[seg_mask])
+        p_t = (seg_target[seg_mask] * pred_prob) + ((1 - seg_target[seg_mask]) * (1 - pred_prob))
+        modulating_factor = tf.pow((1.0 - p_t), gamma)
+        # Compute alpha factor
+        alpha_factor = seg_target[seg_mask] * alpha + (1 - seg_target[seg_mask]) * (1 - alpha)
+        # compute the final loss
+        focal_loss = tf.reduce_mean(alpha_factor * modulating_factor * bce_loss[seg_mask])
 
         # Dice loss
         prob_map = tf.math.sigmoid(out_map)
@@ -164,7 +178,7 @@ class LinkNet(_LinkNet, keras.Model):
         cardinality = tf.math.reduce_sum(prob_map[seg_mask] + seg_target[seg_mask])
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
-        return tf.math.reduce_mean(bce_loss[seg_mask]) + dice_loss
+        return focal_loss + dice_loss
 
     def call(
         self,
