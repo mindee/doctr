@@ -59,11 +59,11 @@ class Resize(T.Resize):
                 if self.preserve_aspect_ratio:
                     # Get absolute coords
                     if target.shape[1:] == (4,):
-                        target[:, [0, 2]] *= raw_shape[-1] / self.output_size[1]
-                        target[:, [1, 3]] *= raw_shape[-2] / self.output_size[0]
+                        target[:, [0, 2]] *= raw_shape[-1] / self.size[1]
+                        target[:, [1, 3]] *= raw_shape[-2] / self.size[0]
                     elif target.shape[1:] == (4, 2):
-                        target[..., 0] *= raw_shape[-1] / self.output_size[1]
-                        target[..., 1] *= raw_shape[-2] / self.output_size[0]
+                        target[..., 0] *= raw_shape[-1] / self.size[1]
+                        target[..., 1] *= raw_shape[-2] / self.size[0]
                     else:
                         raise AssertionError
                 return pad(img, _pad), target
