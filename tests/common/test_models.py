@@ -94,12 +94,19 @@ def test_get_bitmap_angle(mock_bitmap):
     assert abs(angle - 30.) < 1.
 
 
-def test_estimate_orientation(mock_image):
+def test_estimate_orientation(mock_image, mock_tilted_payslip):
     assert estimate_orientation(mock_image * 0) == 0
 
     angle = estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
 
     rotated = geometry.rotate_image(mock_image, -angle)
+    angle_rotated = estimate_orientation(rotated)
+    assert abs(angle_rotated) < 1.
+
+    mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
+    assert (estimate_orientation(mock_tilted_payslip) - 30.) < 1.
+
+    rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) < 1.
