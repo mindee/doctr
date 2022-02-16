@@ -3,12 +3,16 @@ import shutil
 import tempfile
 from io import BytesIO
 
+import cv2
 import fitz
 import hdf5storage
 import numpy as np
 import pytest
 import requests
 import scipy.io as sio
+
+from doctr.io import reader
+from doctr.utils import geometry
 
 
 @pytest.fixture(scope="session")
@@ -33,6 +37,26 @@ def mock_pdf(tmpdir_factory):
         doc.save(f)
 
     return str(fn)
+
+
+@pytest.fixture(scope="session")
+def mock_payslip(tmpdir_factory):
+    url = 'https://3.bp.blogspot.com/-Es0oHTCrVEk/UnYA-iW9rYI/AAAAAAAAAFI/hWExrXFbo9U/s1600/003.jpg'
+    file = BytesIO(requests.get(url).content)
+    folder = tmpdir_factory.mktemp("data")
+    fn = str(folder.join("mock_payslip.jpeg"))
+    with open(fn, 'wb') as f:
+        f.write(file.getbuffer())
+    return fn
+
+
+@pytest.fixture(scope="session")
+def mock_tilted_payslip(mock_payslip, tmpdir_factory):
+    image = reader.read_img_as_numpy(mock_payslip)
+    image = geometry.rotate_image(image, 30, expand=True)
+    tmp_path = str(tmpdir_factory.mktemp("data").join("mock_tilted_payslip.jpg"))
+    cv2.imwrite(tmp_path, image)
+    return tmp_path
 
 
 @pytest.fixture(scope="session")

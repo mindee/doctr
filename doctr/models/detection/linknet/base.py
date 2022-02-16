@@ -107,7 +107,7 @@ class _LinkNet(BaseModel):
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int],
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
 
         if any(t.dtype != np.float32 for t in target):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -119,7 +119,6 @@ class _LinkNet(BaseModel):
 
         if self.assume_straight_pages:
             seg_target = np.zeros(target_shape, dtype=bool)
-            edge_mask = np.zeros(target_shape, dtype=bool)
         else:
             seg_target = np.zeros(target_shape, dtype=np.uint8)
 
@@ -144,7 +143,12 @@ class _LinkNet(BaseModel):
                 abs_boxes[:, [0, 2]] *= w
                 abs_boxes[:, [1, 3]] *= h
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                polys = [None] * abs_boxes.shape[0]  # Unused
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
@@ -159,19 +163,10 @@ class _LinkNet(BaseModel):
                     if box.shape == (4, 2):
                         box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]
                     seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
-                    # top edge
-                    edge_mask[idx, box[1], box[0]: min(box[2] + 1, w)] = True
-                    # bot edge
-                    edge_mask[idx, min(box[3], h - 1), box[0]: min(box[2] + 1, w)] = True
-                    # left edge
-                    edge_mask[idx, box[1]: min(box[3] + 1, h), box[0]] = True
-                    # right edge
-                    edge_mask[idx, box[1]: min(box[3] + 1, h), min(box[2], w - 1)] = True
 
         # Don't forget to switch back to channel first if PyTorch is used
         if not is_tf_available():
             seg_target = seg_target.transpose(0, 3, 1, 2)
             seg_mask = seg_mask.transpose(0, 3, 1, 2)
-            edge_mask = edge_mask.transpose(0, 3, 1, 2)
 
-        return seg_target, seg_mask, edge_mask
+        return seg_target, seg_mask
