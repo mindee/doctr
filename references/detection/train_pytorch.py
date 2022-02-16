@@ -249,11 +249,12 @@ def main(args):
                 ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
             ]
         ),
-        sample_transforms=T.SampleCompose([
-            T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True),
-            T.RandomRotate(90, expand=True),
-            T.ImageTransform(T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True)),
-        ]) if args.rotation else None,
+        sample_transforms=T.SampleCompose(
+            [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True)]
+            + ([T.RandomRotate(90, expand=True),
+                T.ImageTransform(T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True))
+                ] if args.rotation else [])
+        ),
         use_polygons=args.rotation,
     )
 

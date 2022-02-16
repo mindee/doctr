@@ -198,11 +198,12 @@ def main(args):
                 T.RandomBrightness(.3),
             ]
         ),
-        sample_transforms=T.SampleCompose([
-            T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True),
-            T.RandomRotate(90, expand=True),
-            T.ImageTransform(T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True)),
-        ]) if args.rotation else None,
+        sample_transforms=T.SampleCompose(
+            [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True)]
+            + ([T.RandomRotate(90, expand=True),
+                T.ImageTransform(T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True))
+                ] if args.rotation else [])
+        ),
         use_polygons=args.rotation,
     )
     train_loader = DataLoader(
