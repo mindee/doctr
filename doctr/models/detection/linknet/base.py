@@ -121,7 +121,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
 
             if score < self.box_thresh:   # remove polygons with a weak objectness
                 continue
-            
+
             if self.assume_straight_pages:
                 _box = self.polygon_to_box(points)
             else:
@@ -154,7 +154,7 @@ class _LinkNet(BaseModel):
 
     min_size_box: int = 3
     assume_straight_pages: bool = True
-    shrink_ratio = 0.4
+    shrink_ratio = 0.5
 
     def build_target(
         self,
@@ -205,7 +205,7 @@ class _LinkNet(BaseModel):
                 if box_size < self.min_size_box:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                
+
                 # Negative shrink for gt, as described in paper
                 polygon = Polygon(poly)
                 distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
