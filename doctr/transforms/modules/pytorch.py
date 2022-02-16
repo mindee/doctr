@@ -4,10 +4,10 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
-from typing import Any, Dict, Tuple, Union, Optional
+from typing import Any, Dict, Optional, Tuple, Union
 
-import torch
 import numpy as np
+import torch
 from PIL.Image import Image
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
