@@ -23,10 +23,12 @@ class Resize(T.Resize):
         interpolation=F.InterpolationMode.BILINEAR,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
+        pad: bool = True,
     ) -> None:
         super().__init__(size, interpolation)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
+        self.pad = pad
 
     def forward(
         self,
@@ -37,6 +39,8 @@ class Resize(T.Resize):
         target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
         if not self.preserve_aspect_ratio or (target_ratio == actual_ratio):
+            if target is not None:
+                return super().forward(img), target
             return super().forward(img)
         else:
             # Resize
@@ -48,27 +52,41 @@ class Resize(T.Resize):
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)
             raw_shape = img.shape[-2:]
-            # Pad (inverted in pytorch)
-            _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
-            if self.symmetric_pad:
-                half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
-                _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
+            if self.pad:
+                # Pad (inverted in pytorch)
+                _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
+                if self.symmetric_pad:
+                    half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
+                    _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
+                img = pad(img, _pad)
 
             # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
             if target is not None:
                 if self.preserve_aspect_ratio:
                     # Get absolute coords
                     if target.shape[1:] == (4,):
-                        target[:, [0, 2]] *= raw_shape[-1] / self.size[1]
-                        target[:, [1, 3]] *= raw_shape[-2] / self.size[0]
+                        if self.pad and self.symmetric_pad:
+                            if np.max(target) <= 1:
+                                offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
+                            target[:, [0, 2]] = offset[0] + target[:, [0, 2]] * raw_shape[-1] / img.shape[-1]
+                            target[:, [1, 3]] = offset[1] + target[:, [1, 3]] * raw_shape[-2] / img.shape[-2]
+                        else:
+                            target[:, [0, 2]] *= raw_shape[-1] / img.shape[-1]
+                            target[:, [1, 3]] *= raw_shape[-2] / img.shape[-2]
                     elif target.shape[1:] == (4, 2):
-                        target[..., 0] *= raw_shape[-1] / self.size[1]
-                        target[..., 1] *= raw_shape[-2] / self.size[0]
+                        if self.pad and self.symmetric_pad:
+                            if np.max(target) <= 1:
+                                offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
+                            target[..., 0] = offset[0] + target[..., 0] * raw_shape[-1] / img.shape[-1]
+                            target[..., 1] = offset[1] + target[..., 1] * raw_shape[-2] / img.shape[-2]
+                        else:
+                            target[..., 0] *= raw_shape[-1] / img.shape[-1]
+                            target[..., 1] *= raw_shape[-2] / img.shape[-2]
                     else:
                         raise AssertionError
-                return pad(img, _pad), target
+                return img, target
 
-            return pad(img, _pad)
+            return img
 
     def __repr__(self) -> str:
         interpolate_str = self.interpolation.value

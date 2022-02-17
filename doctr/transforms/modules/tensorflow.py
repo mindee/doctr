@@ -63,11 +63,13 @@ class Resize(NestedObject):
         method: str = 'bilinear',
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
+        pad: bool = True
     ) -> None:
         self.output_size = output_size
         self.method = method
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
+        self.pad = pad
 
     def extra_repr(self) -> str:
         _repr = f"output_size={self.output_size}, method='{self.method}'"
@@ -85,25 +87,38 @@ class Resize(NestedObject):
         img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
         raw_shape = img.shape[:2]
         if self.preserve_aspect_ratio:
-            # pad width
-            if not self.symmetric_pad:
-                offset = (0, 0)
-            elif self.output_size[0] == img.shape[0]:
-                offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
-            else:
-                offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
-            img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+            if self.pad:
+                # pad width
+                if not self.symmetric_pad:
+                    offset = (0, 0)
+                elif self.output_size[0] == img.shape[0]:
+                    offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
+                else:
+                    offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+                img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
 
         # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
         if target is not None:
             if self.preserve_aspect_ratio:
                 # Get absolute coords
                 if target.shape[1:] == (4,):
-                    target[:, [0, 2]] *= raw_shape[1] / self.output_size[1]
-                    target[:, [1, 3]] *= raw_shape[0] / self.output_size[0]
+                    if self.pad and self.symmetric_pad:
+                        if np.max(target) <= 1:
+                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                        target[:, [0, 2]] = offset[1] + target[:, [0, 2]] * raw_shape[1] / img.shape[1]
+                        target[:, [1, 3]] = offset[0] + target[:, [1, 3]] * raw_shape[0] / img.shape[0]
+                    else:
+                        target[:, [0, 2]] *= raw_shape[1] / img.shape[1]
+                        target[:, [1, 3]] *= raw_shape[0] / img.shape[0]
                 elif target.shape[1:] == (4, 2):
-                    target[..., 0] *= raw_shape[1] / self.output_size[1]
-                    target[..., 1] *= raw_shape[0] / self.output_size[0]
+                    if self.pad and self.symmetric_pad:
+                        if np.max(target) <= 1:
+                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                        target[..., 0] = offset[1] + target[..., 0] * raw_shape[1] / img.shape[1]
+                        target[..., 1] = offset[0] + target[..., 1] * raw_shape[0] / img.shape[0]
+                    else:
+                        target[..., 0] *= raw_shape[1] / img.shape[1]
+                        target[..., 1] *= raw_shape[0] / img.shape[0]
                 else:
                     raise AssertionError
             return tf.cast(img, dtype=input_dtype), target

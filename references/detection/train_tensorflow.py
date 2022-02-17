@@ -199,9 +199,9 @@ def main(args):
             ]
         ),
         sample_transforms=T.SampleCompose(
-            [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True)]
+            [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=False, pad=False)]
             + ([T.RandomRotate(90, expand=True),
-                T.ImageTransform(T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True))
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=False, symmetric_pad=True, pad=True)
                 ] if args.rotation else [])
         ),
         use_polygons=args.rotation,
