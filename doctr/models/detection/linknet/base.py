@@ -212,17 +212,17 @@ class _LinkNet(BaseModel):
                 subject = [tuple(coor) for coor in poly]
                 padding = pyclipper.PyclipperOffset()
                 padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                shrinked = padding.Execute(-distance)
+                shrunken = padding.Execute(-distance)
 
                 # Draw polygon on gt if it is valid
-                if len(shrinked) == 0:
+                if len(shrunken) == 0:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                shrinked = np.array(shrinked[0]).reshape(-1, 2)
-                if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
+                shrunken = np.array(shrunken[0]).reshape(-1, 2)
+                if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                cv2.fillPoly(seg_target[idx], [shrinked.astype(np.int32)], 1)
+                cv2.fillPoly(seg_target[idx], [shrunken.astype(np.int32)], 1)
 
         # Don't forget to switch back to channel first if PyTorch is used
         if not is_tf_available():
