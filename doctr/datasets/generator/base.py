@@ -106,8 +106,8 @@ class _WordGenerator(AbstractDataset):
         self,
         vocab: str,
         num_samples: int,
-        min_chars: int = 1,
-        max_chars: int = 17,  # good match for 32x128 images with different fonts
+        min_chars: int,
+        max_chars: int,
         cache_samples: bool = False,
         font_family: Optional[Union[str, List[str]]] = None,
         img_transforms: Optional[Callable[[Any], Any]] = None,

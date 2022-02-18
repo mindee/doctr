@@ -20,10 +20,10 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import ColorJitter, Compose, Normalize
+from torchvision.transforms import ColorJitter, Compose, GaussianBlur, InterpolationMode, Normalize, RandomRotation
 
 from doctr import transforms as T
-from doctr.datasets import VOCABS, RecognitionDataset
+from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
 from utils import plot_recorder, plot_samples
@@ -174,6 +174,9 @@ def main(args):
 
     print(args)
 
+    if args.train_path is None and args.val_path is None and not args.use_synth:
+        raise ValueError("Please specify train and val data paths or take `--use_synth`")
+
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
@@ -181,11 +184,31 @@ def main(args):
 
     # Load val data generator
     st = time.time()
-    val_set = RecognitionDataset(
-        img_folder=os.path.join(args.val_path, 'images'),
-        labels_path=os.path.join(args.val_path, 'labels.json'),
-        img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-    )
+    if args.val_path is not None:
+        val_set = RecognitionDataset(
+            img_folder=os.path.join(args.val_path, 'images'),
+            labels_path=os.path.join(args.val_path, 'labels.json'),
+            img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+        )
+    else:
+        # Load synthetic data generator
+        val_set = WordGenerator(
+            vocab=VOCABS[args.vocab],
+            num_samples=2000000,
+            min_chars=1,
+            max_chars=17,
+            font_family=[os.path.join(args.fonts_folder, f)
+                         for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
+            img_transforms=Compose([
+                T.RandomApply(RandomRotation(
+                    [-6, 6], interpolation=InterpolationMode.BILINEAR, expand=True), .2),
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                T.RandomApply(T.ColorInversion(min_val=1.0), 1.0),
+                T.RandomApply(GaussianBlur(
+                    kernel_size=3, sigma=(0.3, 2.0)), .2),
+            ]),
+        )
+
     val_loader = DataLoader(
         val_set,
         batch_size=args.batch_size,
@@ -237,24 +260,44 @@ def main(args):
 
     st = time.time()
 
-    # Load train data generator
-    base_path = Path(args.train_path)
-    parts = [base_path] if base_path.joinpath('labels.json').is_file() else [
-        base_path.joinpath(sub) for sub in os.listdir(base_path)
-    ]
-    train_set = RecognitionDataset(
-        parts[0].joinpath('images'),
-        parts[0].joinpath('labels.json'),
-        img_transforms=Compose([
-            T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .1),
-            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-        ]),
-    )
-    if len(parts) > 1:
-        for subfolder in parts[1:]:
-            train_set.merge_dataset(RecognitionDataset(subfolder.joinpath('images'), subfolder.joinpath('labels.json')))
+    if args.train_path is not None:
+        # Load train data generator
+        base_path = Path(args.train_path)
+        parts = [base_path] if base_path.joinpath('labels.json').is_file() else [
+            base_path.joinpath(sub) for sub in os.listdir(base_path)
+        ]
+        train_set = RecognitionDataset(
+            parts[0].joinpath('images'),
+            parts[0].joinpath('labels.json'),
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), .1),
+                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            ]),
+        )
+        if len(parts) > 1:
+            for subfolder in parts[1:]:
+                train_set.merge_dataset(RecognitionDataset(
+                    subfolder.joinpath('images'), subfolder.joinpath('labels.json')))
+    else:
+        # Load synthetic data generator
+        train_set = WordGenerator(
+            vocab=VOCABS[args.vocab],
+            num_samples=10000000,
+            min_chars=1,
+            max_chars=17,
+            font_family=[os.path.join(args.fonts_folder, f)
+                         for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
+            img_transforms=Compose([
+                T.RandomApply(RandomRotation(
+                    [-6, 6], interpolation=InterpolationMode.BILINEAR, expand=True), .2),
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                T.RandomApply(T.ColorInversion(min_val=1.0), 1.0),
+                T.RandomApply(GaussianBlur(
+                    kernel_size=3, sigma=(0.3, 2.0)), .2),
+            ]),
+        )
 
     train_loader = DataLoader(
         train_set,
@@ -348,8 +391,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for text recognition (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('train_path', type=str, help='path to train data folder(s)')
-    parser.add_argument('val_path', type=str, help='path to val data folder')
+    parser.add_argument('--train_path', type=str, default=None, help='path to train data folder(s)')
+    parser.add_argument('--val_path', type=str, default=None, help='path to val data folder')
+    parser.add_argument('--use-synth', type=str, dest='use_synth', action='store_true',
+                        help='train on synthetic generated data')
+    parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts')
     parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')

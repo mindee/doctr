@@ -4,9 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from torch.utils.data._utils.collate import default_collate
-from torchvision.transforms import Compose, GaussianBlur, InterpolationMode, RandomRotation
-
-from doctr import transforms as T
 
 from .base import _CharacterGenerator, _WordGenerator
 
@@ -54,15 +51,4 @@ class WordGenerator(_WordGenerator):
         sample_transforms: composable transformations that will be applied to both the image and the target
     """
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        if self.img_transforms is None:
-            img_transforms = Compose([
-                T.RandomApply(RandomRotation(
-                    [-6, 6], interpolation=InterpolationMode.BILINEAR, expand=True), .2),
-                T.Resize((32, 128), preserve_aspect_ratio=True),
-                T.RandomApply(T.ColorInversion(min_val=1.0), 1.0),
-                T.RandomApply(GaussianBlur(
-                    kernel_size=3, sigma=(0.3, 2.0)), .2),
-            ])
-            setattr(self, 'img_transforms', img_transforms)
+    pass
