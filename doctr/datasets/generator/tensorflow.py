@@ -3,7 +3,11 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import numpy as np
 import tensorflow as tf
+
+from doctr import transforms as T
+from doctr.transforms.functional import rotated_img_tensor
 
 from .base import _CharacterGenerator, _WordGenerator
 
@@ -58,4 +62,15 @@ class WordGenerator(_WordGenerator):
         sample_transforms: composable transformations that will be applied to both the image and the target
     """
 
-    pass
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.img_transforms is None:
+            img_transforms = T.Compose([
+                T.RandomApply(T.LambdaTransformation(
+                    lambda x: rotated_img_tensor(x, np.random.choice([-6.0, 6.0]), expand=True)), .2),
+                T.Resize((32, 128), preserve_aspect_ratio=True),
+                T.RandomApply(T.ColorInversion(min_val=1.0), 1.0),
+                T.RandomApply(T.GaussianBlur(
+                    kernel_shape=3, std=(0.3, 2.0)), .2),
+            ])
+            setattr(self, 'img_transforms', img_transforms)
