@@ -131,9 +131,6 @@ def main(args):
 
     print(args)
 
-    if args.train_path is None and args.val_path is None and not args.use_synth:
-        raise ValueError("Please specify train and val data paths or take `--use_synth`")
-
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
@@ -243,7 +240,7 @@ def main(args):
                 T.RandomApply(T.LambdaTransformation(
                     lambda x: rotated_img_tensor(x, np.random.choice([-6.0, 6.0]), expand=True)), .2),
                 T.Resize((32, 128), preserve_aspect_ratio=True),
-                T.RandomApply(T.ColorInversion(min_val=1.0), 1.0),
+                T.RandomApply(T.ColorInversion(min_val=1.0), 0.9),
                 T.RandomApply(T.GaussianBlur(
                     kernel_shape=3, std=(0.3, 2.0)), .2),
             ])
@@ -350,9 +347,7 @@ def parse_args():
     parser.add_argument('train_path', type=str, default=None, help='path to train data folder(s)')
     parser.add_argument('val_path', type=str, default=None, help='path to val data folder')
     parser.add_argument('arch', type=str, help='text-recognition model to train')
-    parser.add_argument('--use-synth', dest='use_synth', action='store_true',
-                        help='train on synthetic generated data')
-    parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts')
+    parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts for synthetic data')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
