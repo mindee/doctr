@@ -153,7 +153,7 @@ def main(args):
             vocab=VOCABS[args.vocab],
             min_chars=1,
             max_chars=17,
-            num_samples=2000000,
+            num_samples=int(args.num_synth_samples * 0.2),
             font_family=[os.path.join(args.fonts_folder, f)
                          for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
             img_transforms=T.Compose([
@@ -233,7 +233,7 @@ def main(args):
             vocab=VOCABS[args.vocab],
             min_chars=1,
             max_chars=17,
-            num_samples=10000000,
+            num_samples=args.num_synth_samples,
             font_family=[os.path.join(args.fonts_folder, f)
                          for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
             img_transforms=T.Compose([
@@ -348,6 +348,8 @@ def parse_args():
     parser.add_argument('val_path', type=str, default=None, help='path to val data folder')
     parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts for synthetic data')
+    parser.add_argument('--num_synth_samples', type=int, default=8000000,
+                        help='number of synthetic samples to generate')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
