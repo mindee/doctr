@@ -28,6 +28,6 @@ VOCABS['legacy_french'] = VOCABS['latin'] + '°' + 'àâéèêëîïôùûçÀÂ
 VOCABS['french'] = VOCABS['english'] + 'àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ'
 VOCABS['portuguese'] = VOCABS['english'] + 'áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ'
 VOCABS['spanish'] = VOCABS['english'] + 'áéíóúüñÁÉÍÓÚÜÑ' + '¡¿'
-VOCABS['german'] = VOCABS['english'] + 'äöüßÄÖÜẞ'
+VOCABS['german'] = VOCABS['english'] + 'äöüßÄÖÜ'
 VOCABS['arabic'] = (VOCABS['digits'] + VOCABS['hindi_digits'] + VOCABS['arabic_letters'] + VOCABS['persian_letters'] +
                     VOCABS['arabic_diacritics'] + VOCABS['arabic_punctuation'] + VOCABS['punctuation'])
