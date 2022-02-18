@@ -394,7 +394,7 @@ def parse_args():
     parser.add_argument('train_path', type=str, default=None, help='path to train data folder(s)')
     parser.add_argument('val_path', type=str, default=None, help='path to val data folder')
     parser.add_argument('arch', type=str, help='text-recognition model to train')
-    parser.add_argument('--use-synth', type=str, dest='use_synth', action='store_true',
+    parser.add_argument('--use-synth', dest='use_synth', action='store_true',
                         help='train on synthetic generated data')
     parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
