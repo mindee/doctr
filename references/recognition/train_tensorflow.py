@@ -347,12 +347,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for text recognition (TensorFlow)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('--train_path', type=str, default=None, help='path to train data folder(s)')
-    parser.add_argument('--val_path', type=str, default=None, help='path to val data folder')
+    parser.add_argument('train_path', type=str, default=None, help='path to train data folder(s)')
+    parser.add_argument('val_path', type=str, default=None, help='path to val data folder')
+    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--use-synth', type=str, dest='use_synth', action='store_true',
                         help='train on synthetic generated data')
     parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts')
-    parser.add_argument('arch', type=str, help='text-recognition model to train')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
