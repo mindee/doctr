@@ -105,9 +105,9 @@ class _WordGenerator(AbstractDataset):
     def __init__(
         self,
         vocab: str,
-        num_samples: int,
         min_chars: int,
         max_chars: int,
+        num_samples: int,
         cache_samples: bool = False,
         font_family: Optional[Union[str, List[str]]] = None,
         img_transforms: Optional[Callable[[Any], Any]] = None,

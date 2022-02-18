@@ -154,9 +154,9 @@ def main(args):
         # Load synthetic data generator
         val_set = WordGenerator(
             vocab=VOCABS[args.vocab],
-            num_samples=2000000,
             min_chars=1,
             max_chars=17,
+            num_samples=2000000,
             font_family=[os.path.join(args.fonts_folder, f)
                          for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
             img_transforms=T.Compose([
@@ -234,9 +234,9 @@ def main(args):
         # Load synthetic data generator
         train_set = WordGenerator(
             vocab=VOCABS[args.vocab],
-            num_samples=2000000,
             min_chars=1,
             max_chars=17,
+            num_samples=10000000,
             font_family=[os.path.join(args.fonts_folder, f)
                          for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
             img_transforms=T.Compose([
