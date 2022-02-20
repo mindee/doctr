@@ -179,6 +179,10 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
+    vocab = VOCABS[args.vocab]
+    fonts = args.font.split(",")
+    val_hash, train_hash = None, None
+
     # Load val data generator
     st = time.time()
     if args.val_path is not None:
@@ -187,22 +191,20 @@ def main(args):
             labels_path=os.path.join(args.val_path, 'labels.json'),
             img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
         )
+        with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+            val_hash = hashlib.sha256(f.read()).hexdigest()
     else:
         # Load synthetic data generator
         val_set = WordGenerator(
-            vocab=VOCABS[args.vocab],
+            vocab=vocab,
             min_chars=1,
             max_chars=17,
-            num_samples=int(args.num_synth_samples * 0.2),
-            font_family=[os.path.join(args.fonts_folder, f)
-                         for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
+            num_samples=int(args.num_synth_samples * len(vocab) * 0.2),
+            font_family=fonts,
             img_transforms=Compose([
-                T.RandomApply(RandomRotation(
-                    [-6, 6], interpolation=InterpolationMode.BILINEAR, expand=True), .2),
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                T.RandomApply(T.ColorInversion(min_val=1.0), 1.0),
-                T.RandomApply(GaussianBlur(
-                    kernel_size=3, sigma=(0.3, 2.0)), .2),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(min_val=1.0), 0.9),
             ]),
         )
 
@@ -217,13 +219,11 @@ def main(args):
     )
     print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
           f"{len(val_loader)} batches)")
-    with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
-        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=VOCABS[args.vocab])
+    model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -277,22 +277,25 @@ def main(args):
             for subfolder in parts[1:]:
                 train_set.merge_dataset(RecognitionDataset(
                     subfolder.joinpath('images'), subfolder.joinpath('labels.json')))
+        with open(parts[0].joinpath('labels.json'), 'rb') as f:
+            train_hash = hashlib.sha256(f.read()).hexdigest()
     else:
         # Load synthetic data generator
         train_set = WordGenerator(
-            vocab=VOCABS[args.vocab],
+            vocab=vocab,
             min_chars=1,
             max_chars=17,
-            num_samples=args.num_synth_samples,
-            font_family=[os.path.join(args.fonts_folder, f)
-                         for f in os.listdir(args.fonts_folder) if f.endswith('.ttf')],
+            num_samples=args.num_synth_samples * len(vocab),
+            font_family=fonts,
             img_transforms=Compose([
                 T.RandomApply(RandomRotation(
                     [-6, 6], interpolation=InterpolationMode.BILINEAR, expand=True), .2),
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
                 T.RandomApply(T.ColorInversion(min_val=1.0), 0.9),
                 T.RandomApply(GaussianBlur(
                     kernel_size=3, sigma=(0.3, 2.0)), .2),
+                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
             ]),
         )
 
@@ -307,8 +310,6 @@ def main(args):
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
           f"{len(train_loader)} batches)")
-    with open(parts[0].joinpath('labels.json'), 'rb') as f:
-        train_hash = hashlib.sha256(f.read()).hexdigest()
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -388,12 +389,21 @@ def parse_args():
     parser = argparse.ArgumentParser(description='DocTR training script for text recognition (PyTorch)',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('train_path', type=str, default=None, help='path to train data folder(s)')
-    parser.add_argument('val_path', type=str, default=None, help='path to val data folder')
     parser.add_argument('arch', type=str, help='text-recognition model to train')
-    parser.add_argument('--fonts_folder', type=str, default=None, help='path to folder with fonts for synthetic data')
-    parser.add_argument('--num_synth_samples', type=int, default=8000000,
-                        help='number of synthetic samples to generate')
+    parser.add_argument('--train_path', type=str, default=None, help='path to train data folder(s)')
+    parser.add_argument('--val_path', type=str, default=None, help='path to val data folder')
+    parser.add_argument(
+        '--num_synth_samples',
+        type=int,
+        default=1000,
+        help='Multiplied by the vocab length gets you the number samples that will be used.'
+    )
+    parser.add_argument(
+        '--font',
+        type=str,
+        default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf",
+        help='Font family to be used'
+    )
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')

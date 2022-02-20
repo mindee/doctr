@@ -15,20 +15,35 @@ pip install -r references/requirements.txt
 
 You can start your training in TensorFlow:
 
+with own dataset:
+
 ```shell
-python references/recognition/train_tensorflow.py path/to/your/train_set path/to/your/val_set crnn_vgg16_bn --epochs 5
+python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
+
+with synthetic dataset:
+
+```shell
+python references/recognition/train_tensorflow.py crnn_vgg16_bn --epochs 5
+```
+
 or PyTorch:
 
+with own dataset:
+
 ```shell
-python references/recognition/train_pytorch.py path/to/your/train_set path/to/your/val_set crnn_vgg16_bn --epochs 5 --device 0
+python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5 --device 0
 ```
 
+with synthetic dataset:
 
+```shell
+python references/recognition/train_pytorch.py crnn_vgg16_bn --epochs 5 --device 0
+```
 
 ## Data format
 
-You need to provide both `train_path` and `val_path` arguments to start training. 
+If you want to train with your own data you need to provide `train_path` and/or `val_path` arguments to start training.
 Each of these paths must lead to a 2-elements folder:
 
 ```shell
@@ -40,7 +55,7 @@ Each of these paths must lead to a 2-elements folder:
 ├── labels.json
 ```
 
-The JSON files must contain word-labels for each picture as a string. 
+The JSON files must contain word-labels for each picture as a string.
 The order of entries in the json does not matter.
 
 ```shell
