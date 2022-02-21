@@ -78,6 +78,7 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         feat_extractor: IntermediateLayerGetter,
         num_classes: int = 1,
+        head_chans: int = 32,
         assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -100,13 +101,13 @@ class LinkNet(nn.Module, _LinkNet):
         self.fpn = LinkNetFPN(_shapes)
 
         self.classifier = nn.Sequential(
-            nn.ConvTranspose2d(_shapes[0][0], 32, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
-            nn.BatchNorm2d(32),
+            nn.ConvTranspose2d(_shapes[0][0], head_chans, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.BatchNorm2d(head_chans),
             nn.ReLU(inplace=True),
-            nn.Conv2d(32, 32, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(head_chans, head_chans, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(head_chans),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, num_classes, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(head_chans, num_classes, kernel_size=2, stride=2),
         )
 
         self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
