@@ -9,17 +9,29 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.models import resnet18
 from torchvision.models._utils import IntermediateLayerGetter
 
+from doctr.models.classification import resnet18, resnet34, resnet50
 from ...utils import load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet_resnet18']
+__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet_resnet18': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
+    },
+    'linknet_resnet34': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
+    },
+    'linknet_resnet50': {
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -235,3 +247,45 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """
 
     return _linknet('linknet_resnet18', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
+
+
+def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import linknet_resnet34
+        >>> model = linknet_resnet34(pretrained=True).eval()
+        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+        >>> with torch.no_grad(): out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet('linknet_resnet34', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
+
+
+def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Example::
+        >>> import torch
+        >>> from doctr.models import linknet_resnet18
+        >>> model = linknet_resnet18(pretrained=True).eval()
+        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+        >>> with torch.no_grad(): out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet('linknet_resnet50', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
