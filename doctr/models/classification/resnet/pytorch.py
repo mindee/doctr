@@ -12,13 +12,12 @@ from torchvision.models.resnet import ResNet as TVResNet
 from torchvision.models.resnet import resnet18 as tv_resnet18
 from torchvision.models.resnet import resnet34 as tv_resnet34
 from torchvision.models.resnet import resnet50 as tv_resnet50
-from torchvision.models.resnet import resnet101 as tv_resnet101
 
 from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide', 'resnet101', 'resnet_stage']
+__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide', 'resnet_stage']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -56,13 +55,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 32, 32),
         'classes': list(VOCABS['french']),
         'url': None,
-    },
-    'resnet101': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet101-330002d3.pt',
     },
 }
 

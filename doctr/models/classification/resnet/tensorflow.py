@@ -14,7 +14,7 @@ from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide', 'resnet101']
+__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -45,13 +45,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (32, 32, 3),
         'classes': list(VOCABS['french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-e75e4cdf.zip',
-    },
-    'resnet101': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet101-be71742b.zip',
     },
     'resnet34_wide': {
         'mean': (0.694, 0.695, 0.693),
@@ -392,40 +385,3 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
         stem_channels=128,
         **kwargs,
     )
-
-
-def resnet101(pretrained: bool = False, **kwargs: Any) -> ResNet:
-    """Resnet-101 architecture as described in `"Deep Residual Learning for Image Recognition",
-    <https://arxiv.org/pdf/1512.03385.pdf>`_.
-
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import resnet101
-        >>> model = resnet101(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained: boolean, True if model is pretrained
-
-    Returns:
-        A classification model
-    """
-
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs['resnet101']['classes']))
-    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs['resnet101']['input_shape'])
-
-    model = ResNet101(
-        weights=None,
-        include_top=True,
-        pooling=True,
-        input_shape=kwargs['input_shape'],
-        classes=kwargs['num_classes'],
-        classifier_activation=None,
-    )
-
-    # Load pretrained parameters
-    if pretrained:
-        load_pretrained_params(model, default_cfgs['resnet101']['url'])
-
-    return model

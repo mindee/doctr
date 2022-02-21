@@ -120,7 +120,7 @@ def _magc_resnet(
         stage_stride,
         stage_conv,
         stage_pooling,
-        partial(MAGC, headers=8, attn_scale=True),
+        attn_module=partial(MAGC, headers=8, attn_scale=True),
         **kwargs,
     )
     # Load pretrained parameters
