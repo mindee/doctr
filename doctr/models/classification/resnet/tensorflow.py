@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50, ResNet101
+from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.models import Sequential
 
 from doctr.datasets import VOCABS

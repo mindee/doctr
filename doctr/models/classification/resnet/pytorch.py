@@ -108,7 +108,6 @@ class ResNet(nn.Sequential):
     ) -> None:
 
         _layers: List[nn.Module]
-        inplanes = stem_channels
         if origin_stem:
             _layers = [
                 *conv_sequence_pt(3, stem_channels, True, True, kernel_size=7, padding=3, stride=2),
@@ -315,24 +314,3 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """
 
     return _tv_resnet('resnet50', pretrained, tv_resnet50, **kwargs)
-
-
-def resnet101(pretrained: bool = False, **kwargs: Any) -> TVResNet:
-    """ResNet-101 architecture as described in `"Deep Residual Learning for Image Recognition",
-    <https://arxiv.org/pdf/1512.03385.pdf>`_.
-
-    Example::
-        >>> import torch
-        >>> from doctr.models import resnet101
-        >>> model = resnet101(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
-        >>> out = model(input_tensor)
-
-    Args:
-        pretrained: boolean, True if model is pretrained
-
-    Returns:
-        A resnet101 model
-    """
-
-    return _tv_resnet('resnet101', pretrained, tv_resnet101, **kwargs)

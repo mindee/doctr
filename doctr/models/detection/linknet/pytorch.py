@@ -12,6 +12,7 @@ from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.models.classification import resnet18, resnet34, resnet50
+
 from ...utils import load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
@@ -113,7 +114,8 @@ class LinkNet(nn.Module, _LinkNet):
         self.fpn = LinkNetFPN(_shapes)
 
         self.classifier = nn.Sequential(
-            nn.ConvTranspose2d(_shapes[0][0], head_chans, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
+            nn.ConvTranspose2d(_shapes[0][0], head_chans, kernel_size=3, padding=1, output_padding=1, stride=2,
+                               bias=False),
             nn.BatchNorm2d(head_chans),
             nn.ReLU(inplace=True),
             nn.Conv2d(head_chans, head_chans, kernel_size=3, padding=1, bias=False),
@@ -266,7 +268,7 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet_resnet34', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
+    return _linknet('linknet_resnet34', pretrained, resnet34, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
 
 
 def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
@@ -287,4 +289,4 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet('linknet_resnet50', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
+    return _linknet('linknet_resnet50', pretrained, resnet50, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
