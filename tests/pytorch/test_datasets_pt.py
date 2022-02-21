@@ -10,7 +10,7 @@ from doctr import datasets
 from doctr.transforms import Resize
 
 
-def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
+def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False, has_boxes=True):
 
     # Fetch one sample
     img, target = ds[0]
@@ -18,17 +18,18 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
     assert isinstance(target, dict)
-    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
-    if is_polygons:
-        assert target['boxes'].ndim == 3 and target['boxes'].shape[1:] == (4, 2)
-    else:
-        assert target['boxes'].ndim == 2 and target['boxes'].shape[1:] == (4,)
-    assert np.all(np.logical_and(target['boxes'] <= 1, target['boxes'] >= 0))
+    if has_boxes:
+        assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
+        if is_polygons:
+            assert target['boxes'].ndim == 3 and target['boxes'].shape[1:] == (4, 2)
+        else:
+            assert target['boxes'].ndim == 2 and target['boxes'].shape[1:] == (4,)
+        assert np.all(np.logical_and(target['boxes'] <= 1, target['boxes'] >= 0))
+        assert len(target['labels']) == len(target['boxes'])
     if class_indices:
         assert isinstance(target['labels'], np.ndarray) and target['labels'].dtype == np.int64
     else:
         assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
-    assert len(target['labels']) == len(target['boxes'])
 
     # Check batching
     loader = DataLoader(
@@ -517,6 +518,5 @@ def test_mjsynth_dataset(mock_mjsynth_dataset):
     )
 
     assert len(ds) == 4  # Actual set has 7581382 train and 1337891 test samples
-    image, target = ds[0]
     assert repr(ds) == f"MJSynth(train={True})"
     _validate_dataset_recognition_part(ds, input_size)
