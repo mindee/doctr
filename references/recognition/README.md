@@ -24,6 +24,8 @@ or PyTorch:
 python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5 --device 0
 ```
 
+
+
 ## Data format
 
 You need to provide both `train_path` and `val_path` arguments to start training.
