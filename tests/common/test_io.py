@@ -83,8 +83,8 @@ def test_document_file(mock_pdf, mock_image_stream):
     pages = io.DocumentFile.from_images(mock_image_stream)
     _check_doc_content(pages, 1)
 
-    assert isinstance(io.DocumentFile.from_pdf(mock_pdf).doc, list)
-    assert isinstance(io.DocumentFile.from_url("https://www.google.com").doc, list)
+    assert isinstance(io.DocumentFile.from_pdf(mock_pdf), list)
+    assert isinstance(io.DocumentFile.from_url("https://www.google.com"), list)
 
 
 def test_pdf(mock_pdf):
