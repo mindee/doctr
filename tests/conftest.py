@@ -599,3 +599,29 @@ def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
     archive_path = root.join('ic03_train.zip')
     shutil.make_archive(root.join('ic03_train'), 'zip', str(ic03_root))
     return str(archive_path)
+
+
+@pytest.fixture(scope="session")
+def mock_mjsynth_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp('datasets')
+    mjsynth_root = root.mkdir('mjsynth')
+    image_folder = mjsynth_root.mkdir("images")
+    label_file = mjsynth_root.join("imlist.txt")
+    labels = [
+        "./mjsynth/images/12_I_34.jpg\n",
+        "./mjsynth/images/12_am_34.jpg\n",
+        "./mjsynth/images/12_a_34.jpg\n",
+        "./mjsynth/images/12_Jedi_34.jpg\n",
+        "./mjsynth/images/12_!_34.jpg\n",
+    ]
+
+    with open(label_file, "w") as f:
+        for label in labels:
+            f.write(label)
+
+    file = BytesIO(mock_image_stream)
+    for i in ['I', 'am', 'a', 'Jedi', '!']:
+        fn = image_folder.join(f"12_{i}_34.jpg")
+        with open(fn, 'wb') as f:
+            f.write(file.getbuffer())
+    return str(root), str(label_file)

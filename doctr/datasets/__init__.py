@@ -9,6 +9,7 @@ from .ic03 import *
 from .ic13 import *
 from .iiit5k import *
 from .imgur5k import *
+from .mjsynth import *
 from .ocr import *
 from .recognition import *
 from .sroie import *
