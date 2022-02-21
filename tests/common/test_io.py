@@ -1,6 +1,5 @@
 from io import BytesIO
 
-import fitz
 import numpy as np
 import pytest
 import requests

@@ -6,12 +6,12 @@
 from pathlib import Path
 from typing import Any, List
 
-import pypdfium2 as pdfium
 import numpy as np
+import pypdfium2 as pdfium
 
 from doctr.utils.common_types import AbstractFile
 
-__all__ = ['read_pdf', 'PDF']
+__all__ = ['read_pdf']
 
 
 def read_pdf(file: AbstractFile, default_scale: float = 2, **kwargs: Any) -> List[np.ndarray]:
