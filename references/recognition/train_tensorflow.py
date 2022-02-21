@@ -135,7 +135,6 @@ def main(args):
 
     vocab = VOCABS[args.vocab]
     fonts = args.font.split(",")
-    val_hash, train_hash = None, None
 
     # AMP
     if args.amp:
@@ -144,21 +143,23 @@ def main(args):
     st = time.time()
 
     if args.val_path is not None:
+        with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
+            val_hash = hashlib.sha256(f.read()).hexdigest()
+
         # Load val data generator
         val_set = RecognitionDataset(
             img_folder=os.path.join(args.val_path, 'images'),
             labels_path=os.path.join(args.val_path, 'labels.json'),
             img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
         )
-        with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
-            val_hash = hashlib.sha256(f.read()).hexdigest()
     else:
+        val_hash = None
         # Load synthetic data generator
         val_set = WordGenerator(
             vocab=vocab,
-            min_chars=1,
-            max_chars=17,
-            num_samples=int(args.num_synth_samples * len(vocab) * 0.2),
+            min_chars=args.min_chars,
+            max_chars=args.max_chars,
+            num_samples=args.val_samples * len(vocab),
             font_family=fonts,
             img_transforms=T.Compose([
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
@@ -208,6 +209,9 @@ def main(args):
         parts = [base_path] if base_path.joinpath('labels.json').is_file() else [
             base_path.joinpath(sub) for sub in os.listdir(base_path)
         ]
+        with open(parts[0].joinpath('labels.json'), 'rb') as f:
+            train_hash = hashlib.sha256(f.read()).hexdigest()
+
         train_set = RecognitionDataset(
             parts[0].joinpath('images'),
             parts[0].joinpath('labels.json'),
@@ -221,27 +225,23 @@ def main(args):
                 T.RandomBrightness(.3),
             ]),
         )
-
         if len(parts) > 1:
             for subfolder in parts[1:]:
                 train_set.merge_dataset(RecognitionDataset(
                     subfolder.joinpath('images'), subfolder.joinpath('labels.json')))
-        with open(parts[0].joinpath('labels.json'), 'rb') as f:
-            train_hash = hashlib.sha256(f.read()).hexdigest()
     else:
+        train_hash = None
         # Load synthetic data generator
         train_set = WordGenerator(
             vocab=vocab,
-            min_chars=1,
-            max_chars=17,
-            num_samples=args.num_synth_samples * len(vocab),
+            min_chars=args.min_chars,
+            max_chars=args.max_chars,
+            num_samples=args.train_samples * len(vocab),
             font_family=fonts,
             img_transforms=T.Compose([
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                 # Ensure we have a 90% split of white-background images
                 T.RandomApply(T.ColorInversion(min_val=1.0), 0.9),
-                T.RandomApply(T.GaussianBlur(
-                    kernel_shape=3, std=(0.3, 2.0)), .2),
                 T.RandomJpegQuality(60),
                 T.RandomSaturation(.3),
                 T.RandomContrast(.3),
@@ -349,10 +349,16 @@ def parse_args():
     parser.add_argument('--train_path', type=str, default=None, help='path to train data folder(s)')
     parser.add_argument('--val_path', type=str, default=None, help='path to val data folder')
     parser.add_argument(
-        '--num_synth_samples',
+        '--train-samples',
         type=int,
         default=1000,
-        help='Multiplied by the vocab length gets you the number samples that will be used.'
+        help='Multiplied by the vocab length gets you the number of synthetic training samples that will be used.'
+    )
+    parser.add_argument(
+        '--val-samples',
+        type=int,
+        default=20,
+        help='Multiplied by the vocab length gets you the number of synthetic validation samples that will be used.'
     )
     parser.add_argument(
         '--font',
@@ -360,6 +366,8 @@ def parse_args():
         default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf",
         help='Font family to be used'
     )
+    parser.add_argument('--min-chars', type=int, default=1, help='Minimum number of characters per synthetic sample')
+    parser.add_argument('--max-chars', type=int, default=30, help='Maximum number of characters per synthetic sample')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
