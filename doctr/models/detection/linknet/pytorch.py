@@ -191,7 +191,7 @@ class LinkNet(nn.Module, _LinkNet):
         bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
 
         # Dice loss
-        prob_map = torch.nn.functional.sigmoid(out_map)
+        prob_map = torch.sigmoid(out_map)
         inter = (prob_map[seg_mask] * seg_target[seg_mask]).sum()
         cardinality = (prob_map[seg_mask] + seg_target[seg_mask]).sum()
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
