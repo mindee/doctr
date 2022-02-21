@@ -10,7 +10,7 @@ from doctr.datasets import DataLoader
 from doctr.transforms import Resize
 
 
-def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False, has_boxes=True):
+def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False, target_includes_boxes=True):
 
     # Fetch one sample
     img, target = ds[0]
@@ -18,7 +18,7 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
     assert img.shape == (*input_size, 3)
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
-    if has_boxes:
+    if target_includes_boxes:
         assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
         if is_polygons:
             assert target['boxes'].ndim == 3 and target['boxes'].shape[1:] == (4, 2)
