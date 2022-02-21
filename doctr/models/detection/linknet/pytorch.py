@@ -277,8 +277,8 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
 
     Example::
         >>> import torch
-        >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18(pretrained=True).eval()
+        >>> from doctr.models import linknet_resnet50
+        >>> model = linknet_resnet50(pretrained=True).eval()
         >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
         >>> with torch.no_grad(): out = model(input_tensor)
 

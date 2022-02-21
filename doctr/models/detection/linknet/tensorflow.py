@@ -276,8 +276,8 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
 
     Example::
         >>> import tensorflow as tf
-        >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18(pretrained=True)
+        >>> from doctr.models import linknet_resnet34
+        >>> model = linknet_resnet34(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
 
@@ -303,8 +303,8 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
 
     Example::
         >>> import tensorflow as tf
-        >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18(pretrained=True)
+        >>> from doctr.models import linknet_resnet50
+        >>> model = linknet_resnet50(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
 
