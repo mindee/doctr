@@ -9,6 +9,8 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
+import pyclipper
+from shapely.geometry import Polygon
 
 from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
@@ -36,6 +38,51 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             box_thresh,
             bin_thresh,
             assume_straight_pages
+        )
+        self.unclip_ratio = 1.5
+
+    def polygon_to_box(
+        self,
+        points: np.ndarray,
+    ) -> np.ndarray:
+        """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
+
+        Args:
+            points: The first parameter.
+
+        Returns:
+            a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
+        """
+        if not self.assume_straight_pages:
+            # Compute the rectangle polygon enclosing the raw polygon
+            rect = cv2.minAreaRect(points)
+            points = cv2.boxPoints(rect)
+            # Add 1 pixel to correct cv2 approx
+            area = (rect[1][0] + 1) * (1 + rect[1][1])
+            length = 2 * (rect[1][0] + rect[1][1]) + 2
+        else:
+            poly = Polygon(points)
+            area = poly.area
+            length = poly.length
+        distance = area * self.unclip_ratio / length  # compute distance to expand polygon
+        offset = pyclipper.PyclipperOffset()
+        offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        _points = offset.Execute(distance)
+        # Take biggest stack of points
+        idx = 0
+        if len(_points) > 1:
+            max_size = 0
+            for _idx, p in enumerate(_points):
+                if len(p) > max_size:
+                    idx = _idx
+                    max_size = len(p)
+            # We ensure that _points can be correctly casted to a ndarray
+            _points = [_points[idx]]
+        expanded_points = np.asarray(_points)  # expand polygon
+        if len(expanded_points) < 1:
+            return None
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else np.roll(
+            cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0
         )
 
     def bitmap_to_boxes(
@@ -76,6 +123,11 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 continue
 
             if self.assume_straight_pages:
+                _box = self.polygon_to_box(points)
+            else:
+                _box = self.polygon_to_box(np.squeeze(contour))
+
+            if self.assume_straight_pages:
                 # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
@@ -102,12 +154,13 @@ class _LinkNet(BaseModel):
 
     min_size_box: int = 3
     assume_straight_pages: bool = True
+    shrink_ratio = 0.5
 
     def build_target(
         self,
         target: List[np.ndarray],
         output_shape: Tuple[int, int],
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray]:
 
         if any(t.dtype != np.float32 for t in target):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -117,12 +170,7 @@ class _LinkNet(BaseModel):
         h, w = output_shape
         target_shape = (len(target), h, w, 1)
 
-        if self.assume_straight_pages:
-            seg_target = np.zeros(target_shape, dtype=bool)
-            edge_mask = np.zeros(target_shape, dtype=bool)
-        else:
-            seg_target = np.zeros(target_shape, dtype=np.uint8)
-
+        seg_target = np.zeros(target_shape, dtype=np.uint8)
         seg_mask = np.ones(target_shape, dtype=bool)
 
         for idx, _target in enumerate(target):
@@ -144,7 +192,12 @@ class _LinkNet(BaseModel):
                 abs_boxes[:, [0, 2]] *= w
                 abs_boxes[:, [1, 3]] *= h
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                polys = [None] * abs_boxes.shape[0]  # Unused
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
@@ -152,26 +205,28 @@ class _LinkNet(BaseModel):
                 if box_size < self.min_size_box:
                     seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
-                # Fill polygon with 1
-                if not self.assume_straight_pages:
-                    cv2.fillPoly(seg_target[idx], [poly.astype(np.int32)], 1)
-                else:
-                    if box.shape == (4, 2):
-                        box = [np.min(box[:, 0]), np.min(box[:, 1]), np.max(box[:, 0]), np.max(box[:, 1])]
-                    seg_target[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = True
-                    # top edge
-                    edge_mask[idx, box[1], box[0]: min(box[2] + 1, w)] = True
-                    # bot edge
-                    edge_mask[idx, min(box[3], h - 1), box[0]: min(box[2] + 1, w)] = True
-                    # left edge
-                    edge_mask[idx, box[1]: min(box[3] + 1, h), box[0]] = True
-                    # right edge
-                    edge_mask[idx, box[1]: min(box[3] + 1, h), min(box[2], w - 1)] = True
+
+                # Negative shrink for gt, as described in paper
+                polygon = Polygon(poly)
+                distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
+                subject = [tuple(coor) for coor in poly]
+                padding = pyclipper.PyclipperOffset()
+                padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+                shrunken = padding.Execute(-distance)
+
+                # Draw polygon on gt if it is valid
+                if len(shrunken) == 0:
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    continue
+                shrunken = np.array(shrunken[0]).reshape(-1, 2)
+                if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    continue
+                cv2.fillPoly(seg_target[idx], [shrunken.astype(np.int32)], 1)
 
         # Don't forget to switch back to channel first if PyTorch is used
         if not is_tf_available():
             seg_target = seg_target.transpose(0, 3, 1, 2)
             seg_mask = seg_mask.transpose(0, 3, 1, 2)
-            edge_mask = edge_mask.transpose(0, 3, 1, 2)
 
-        return seg_target, seg_mask, edge_mask
+        return seg_target, seg_mask

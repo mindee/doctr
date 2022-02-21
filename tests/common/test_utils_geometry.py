@@ -1,3 +1,5 @@
+from math import hypot
+
 import numpy as np
 import pytest
 
@@ -26,6 +28,50 @@ def test_resolve_enclosing_rbbox():
     target1 = np.asarray([[.55, .65], [.05, .15], [.1, .1], [.6, .6]])
     target2 = np.asarray([[.05, .15], [.1, .1], [.6, .6], [.55, .65]])
     assert np.all(target1 - pred <= 1e-3) or np.all(target2 - pred <= 1e-3)
+
+
+def test_remap_boxes():
+    pred = geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (10, 10), (20, 20))
+    target = np.asarray([[[.375, .375], [.375, .625], [.625, .375], [.625, .625]]])
+    assert np.all(pred == target)
+
+    pred = geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (10, 10), (20, 10))
+    target = np.asarray([[[0.25, 0.375],
+                          [0.25, 0.625],
+                          [0.75, 0.375],
+                          [0.75, 0.625]]])
+    assert np.all(pred == target)
+
+    with pytest.raises(ValueError):
+        geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (80, 40, 150), (160, 40))
+
+    with pytest.raises(ValueError):
+        geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (80, 40), (160,))
+
+    orig_dimension = (100, 100)
+    dest_dimensions = (200, 100)
+    # Unpack dimensions
+    height_o, width_o = orig_dimension
+    height_d, width_d = dest_dimensions
+
+    orig_box = np.asarray([[[0.25, 0.25],
+                            [0.25, 0.25],
+                            [0.75, 0.75],
+                            [0.75, 0.75]]])
+
+    pred = geometry.remap_boxes(orig_box, orig_dimension, dest_dimensions)
+
+    # Switch to absolute coords
+    orig = np.stack((orig_box[:, :, 0] * width_o, orig_box[:, :, 1] * height_o), axis=2)[0]
+    dest = np.stack((pred[:, :, 0] * width_d, pred[:, :, 1] * height_d), axis=2)[0]
+
+    len_orig = hypot(orig[0][0] - orig[2][0], orig[0][1] - orig[2][1])
+    len_dest = hypot(dest[0][0] - dest[2][0], dest[0][1] - dest[2][1])
+    assert len_orig == len_dest
+
+    alpha_orig = np.rad2deg(np.arctan((orig[0][1] - orig[2][1]) / (orig[0][0] - orig[2][0])))
+    alpha_dest = np.rad2deg(np.arctan((dest[0][1] - dest[2][1]) / (dest[0][0] - dest[2][0])))
+    assert alpha_orig == alpha_dest
 
 
 def test_rotate_boxes():
@@ -109,3 +155,16 @@ def test_convert_to_relative_coords(abs_geoms, img_size, rel_geoms):
     # Wrong format
     with pytest.raises(ValueError):
         geometry.convert_to_relative_coords(np.zeros((3, 5)), (32, 32))
+
+
+def test_estimate_page_angle():
+    straight_polys = np.array(
+        [
+            [[0.3, 0.3], [0.4, 0.3], [0.4, 0.4], [0.3, 0.4]],
+            [[0.4, 0.4], [0.5, 0.4], [0.5, 0.5], [0.4, 0.5]],
+            [[0.5, 0.5], [0.6, 0.5], [0.6, 0.6], [0.5, 0.6]],
+        ]
+    )
+    rotated_polys = geometry.rotate_boxes(straight_polys, angle=20, orig_shape=(512, 512))
+    angle = geometry.estimate_page_angle(rotated_polys)
+    assert np.isclose(angle, 20)

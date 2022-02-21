@@ -171,7 +171,6 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         out_map: torch.Tensor,
         target: List[np.ndarray],
-        edge_factor: float = 2.,
     ) -> torch.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -179,26 +178,26 @@ class LinkNet(nn.Module, _LinkNet):
         Args:
             out_map: output feature map of the model of shape (N, 1, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            edge_factor: boost factor for box edges (in case of BCE)
 
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
+        seg_target, seg_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(seg_target).to(dtype=out_map.dtype), torch.from_numpy(seg_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
-        if edge_factor > 0:
-            edge_mask = torch.from_numpy(edge_mask).to(dtype=out_map.dtype, device=out_map.device)
 
-        # Get the cross_entropy for each entry
-        loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
+        # BCE loss
+        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
 
-        # Compute BCE loss with highlighted edges
-        if edge_factor > 0:
-            loss = ((1 + (edge_factor - 1) * edge_mask) * loss)
+        # Dice loss
+        prob_map = torch.nn.functional.sigmoid(out_map)
+        inter = (prob_map[seg_mask] * seg_target[seg_mask]).sum()
+        cardinality = (prob_map[seg_mask] + seg_target[seg_mask]).sum()
+        dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
+
         # Only consider contributions overlaping the mask
-        return loss[seg_mask].mean()
+        return bce_loss[seg_mask].mean() + dice_loss
 
 
 def _linknet(
