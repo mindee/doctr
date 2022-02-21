@@ -67,17 +67,20 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def resnet_stage(in_channels: int, out_channels: int, num_blocks: int) -> List[nn.Module]:
+def resnet_stage(in_channels: int, out_channels: int, num_blocks: int, stride: int) -> List[nn.Module]:
     _layers: List[nn.Module] = []
 
     in_chan = in_channels
+    s = stride
     for _ in range(num_blocks):
         downsample = None
         if in_chan != out_channels:
-            downsample = nn.Sequential(*conv_sequence_pt(in_chan, out_channels, False, True, kernel_size=1))
+            downsample = nn.Sequential(*conv_sequence_pt(in_chan, out_channels, False, True, kernel_size=1, stride=s))
 
-        _layers.append(BasicBlock(in_chan, out_channels, downsample=downsample))
+        _layers.append(BasicBlock(in_chan, out_channels, stride=s, downsample=downsample))
         in_chan = out_channels
+        # Only the first block can have stride != 1
+        s = 1
 
     return _layers
 
@@ -102,6 +105,7 @@ class ResNet(nn.Sequential):
         self,
         num_blocks: List[int],
         output_channels: List[int],
+        stage_stride: List[int],
         stage_conv: List[bool],
         stage_pooling: List[Optional[Tuple[int, int]]],
         origin_stem: bool = True,
@@ -115,7 +119,7 @@ class ResNet(nn.Sequential):
         inplanes = stem_channels
         if origin_stem:
             _layers = [
-                *conv_sequence_pt(3, stem_channels, True, True, kernel_size=7, padding=3),
+                *conv_sequence_pt(3, stem_channels, True, True, kernel_size=7, padding=3, stride=2),
                 nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
             ]
         else:
@@ -125,9 +129,9 @@ class ResNet(nn.Sequential):
                 nn.MaxPool2d(2),
             ]
         in_chans = [stem_channels] + output_channels[:-1]
-        for n_blocks, in_chan, out_chan, conv, pool in zip(num_blocks, in_chans, output_channels, stage_conv,
-                                                           stage_pooling):
-            _stage = resnet_stage(in_chan, out_chan, n_blocks)
+        for n_blocks, in_chan, out_chan, stride, conv, pool in zip(num_blocks, in_chans, output_channels, stage_stride,
+                                                                   stage_conv, stage_pooling):
+            _stage = resnet_stage(in_chan, out_chan, n_blocks, stride)
             if attn_module is not None:
                 _stage.append(attn_module(out_chan))
             if conv:
@@ -158,6 +162,7 @@ def _resnet(
     pretrained: bool,
     num_blocks: List[int],
     output_channels: List[int],
+    stage_stride: List[int],
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
     **kwargs: Any,
@@ -166,7 +171,7 @@ def _resnet(
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
 
     # Build the model
-    model = ResNet(num_blocks, output_channels, stage_conv, stage_pooling, **kwargs)
+    model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
@@ -237,6 +242,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         pretrained,
         [1, 2, 5, 3],
         [256, 256, 512, 512],
+        [1, 1, 1, 1],
         [True] * 4,
         [(2, 2), (2, 1), None, None],
         origin_stem=False,
@@ -289,6 +295,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
         pretrained,
         [3, 4, 6, 3],
         [128, 256, 512, 1024],
+        [1, 2, 2, 2],
         [False] * 4,
         [None] * 4,
         origin_stem=True,
