@@ -62,7 +62,7 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[int, i
         return line[0]
     # Get the line equation
     _tmp = line[1] - line[0]
-    _valid = _tmp > 0
+    _direction = _tmp > 0
     alpha = _tmp[1] / _tmp[0]
     beta = line[1, 1] - alpha * line[1, 0]
 
@@ -78,10 +78,10 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[int, i
         ((target_shape[0] - beta) / alpha, target_shape[0]),
     ]
     for point in solutions:
-        # Within the shape
+        # Skip points that are out of the final image
         if any(val < 0 or val > size for val, size in zip(point, target_shape[::-1])):
             continue
-        if all(val < ref if pos else val > ref for val, ref, pos in zip(point, line[1], _valid)):
+        if all(val < ref if _dir else val > ref for val, ref, _dir in zip(point, line[1], _direction)):
             return point
     raise ValueError
 
@@ -137,7 +137,6 @@ def create_shadow_mask(
     )[0].round().astype(np.int32)
     # Check approx quadrant
     quad_idx = int(_params[0] / .25)
-    print(quad_idx)
     # Top-bot
     if quad_idx % 2 == 0:
         intensity_mask = np.repeat(np.arange(target_shape[0])[:, None], target_shape[1], axis=1) / (target_shape[0] - 1)
