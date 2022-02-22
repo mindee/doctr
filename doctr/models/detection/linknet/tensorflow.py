@@ -158,7 +158,7 @@ class LinkNet(_LinkNet, keras.Model):
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        seg_mask = tf.cast(seg_mask, tf.float32)   
+        seg_mask = tf.cast(seg_mask, tf.float32)
 
         bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
         # Average on N, H, W
