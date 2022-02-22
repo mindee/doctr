@@ -184,7 +184,7 @@ def main(args):
 
     # Load val data generator
     st = time.time()
-    if args.val_path is not None:
+    if isinstance(args.val_path, str):
         with open(os.path.join(args.val_path, 'labels.json'), 'rb') as f:
             val_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -205,7 +205,7 @@ def main(args):
             img_transforms=Compose([
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                 # Ensure we have a 90% split of white-background images
-                T.RandomApply(T.ColorInversion(min_val=1.0), 0.9),
+                T.RandomApply(T.ColorInversion(), 0.9),
             ]),
         )
 
@@ -258,7 +258,7 @@ def main(args):
 
     st = time.time()
 
-    if args.train_path is not None:
+    if isinstance(args.train_path, str):
         # Load train data generator
         base_path = Path(args.train_path)
         parts = [base_path] if base_path.joinpath('labels.json').is_file() else [
@@ -293,7 +293,7 @@ def main(args):
             img_transforms=Compose([
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                 # Ensure we have a 90% split of white-background images
-                T.RandomApply(T.ColorInversion(min_val=1.0), 0.9),
+                T.RandomApply(T.ColorInversion(), 0.9),
                 ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
             ]),
         )
@@ -410,7 +410,7 @@ def parse_args():
         help='Font family to be used'
     )
     parser.add_argument('--min-chars', type=int, default=1, help='Minimum number of characters per synthetic sample')
-    parser.add_argument('--max-chars', type=int, default=30, help='Maximum number of characters per synthetic sample')
+    parser.add_argument('--max-chars', type=int, default=12, help='Maximum number of characters per synthetic sample')
     parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
     parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
     parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
