@@ -37,19 +37,21 @@ class Resize(T.Resize):
         if isinstance(self.size, int):
             target_ratio = img.shape[-2] / img.shape[-1]
             actual_ratio = img.shape[-2] / img.shape[-1]
-        elif isinstance(self.size, tuple):
+        elif isinstance(self.size, tuple) or isinstance(self.size, list):
             target_ratio = self.size[0] / self.size[1]
             actual_ratio = img.shape[-2] / img.shape[-1]
         else:
             raise AssertionError("size should be either a tuple or an int")
 
-        if not self.preserve_aspect_ratio or (target_ratio == actual_ratio and isinstance(self.size, tuple)):
+        if not self.preserve_aspect_ratio or (
+            target_ratio == actual_ratio and (isinstance(self.size, tuple) or isinstance(self.size, list))
+        ):
             if target is not None:
                 return super().forward(img), target
             return super().forward(img)
         else:
             # Resize
-            if isinstance(self.size, tuple):
+            if isinstance(self.size, tuple) or isinstance(self.size, list):
                 if actual_ratio > target_ratio:
                     tmp_size = (self.size[0], max(int(self.size[0] / actual_ratio), 1))
                 else:
@@ -63,7 +65,7 @@ class Resize(T.Resize):
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)
             raw_shape = img.shape[-2:]
-            if isinstance(self.size, tuple):
+            if isinstance(self.size, tuple) or isinstance(self.size, list):
                 # Pad (inverted in pytorch)
                 _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
                 if self.symmetric_pad:
@@ -76,7 +78,7 @@ class Resize(T.Resize):
                 if self.preserve_aspect_ratio:
                     # Get absolute coords
                     if target.shape[1:] == (4,):
-                        if isinstance(self.size, tuple) and self.symmetric_pad:
+                        if (isinstance(self.size, tuple) or isinstance(self.size, list)) and self.symmetric_pad:
                             if np.max(target) <= 1:
                                 offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
                             target[:, [0, 2]] = offset[0] + target[:, [0, 2]] * raw_shape[-1] / img.shape[-1]
@@ -85,7 +87,7 @@ class Resize(T.Resize):
                             target[:, [0, 2]] *= raw_shape[-1] / img.shape[-1]
                             target[:, [1, 3]] *= raw_shape[-2] / img.shape[-2]
                     elif target.shape[1:] == (4, 2):
-                        if isinstance(self.size, tuple) and self.symmetric_pad:
+                        if (isinstance(self.size, tuple) or isinstance(self.size, list)) and self.symmetric_pad:
                             if np.max(target) <= 1:
                                 offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
                             target[..., 0] = offset[0] + target[..., 0] * raw_shape[-1] / img.shape[-1]
