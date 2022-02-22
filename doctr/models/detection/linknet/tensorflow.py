@@ -158,23 +158,28 @@ class LinkNet(_LinkNet, keras.Model):
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        proba_map = tf.sigmoid(out_map[seg_mask])
+        seg_mask = tf.cast(seg_mask, tf.float32)   
+
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
+        # Average on N, H, W
+        bce_loss = tf.reduce_sum((bce_loss * seg_mask), (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
+        proba_map = tf.reduce_sum((tf.sigmoid(out_map) * seg_mask), (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
+        seg_target = tf.reduce_sum((seg_target * seg_mask), (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
 
         # Focal loss
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
         # Convert logits to prob, compute gamma factor
-        p_t = (seg_target[seg_mask] * proba_map) + ((1 - seg_target[seg_mask]) * (1 - proba_map))
+        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
         modulating_factor = tf.pow((1.0 - p_t), gamma)
         # Compute alpha factor
-        alpha_factor = seg_target[seg_mask] * alpha + (1 - seg_target[seg_mask]) * (1 - alpha)
+        alpha_factor = seg_target * alpha + (1 - seg_target) * (1 - alpha)
         # compute the final loss
-        focal_loss = tf.reduce_mean(alpha_factor * modulating_factor * bce_loss[seg_mask])
+        focal_loss = tf.reduce_mean(alpha_factor * modulating_factor * bce_loss)
 
         # Dice loss
-        inter = tf.math.reduce_sum(proba_map * seg_target[seg_mask])
-        cardinality = tf.math.reduce_sum(proba_map + seg_target[seg_mask])
+        inter = tf.math.reduce_sum(proba_map * seg_target)
+        cardinality = tf.math.reduce_sum(proba_map + seg_target)
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
         return focal_loss + dice_loss

@@ -177,22 +177,27 @@ class LinkNet(nn.Module, _LinkNet):
 
         seg_target, seg_mask = torch.from_numpy(seg_target).to(dtype=out_map.dtype), torch.from_numpy(seg_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
-        proba_map = torch.sigmoid(out_map)[seg_mask]
+        seg_mask = seg_mask.to(dtype=torch.float32)
+
+        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
+        # Average on N, H, W
+        bce_loss = (bce_loss * seg_mask).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
+        proba_map = (torch.sigmoid(out_map) * seg_mask).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
+        seg_target = (seg_target * seg_mask).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
 
         # Focal loss
-        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
         # Convert logits to prob, compute gamma factor
-        p_t = (seg_target[seg_mask] * proba_map) + ((1 - seg_target[seg_mask]) * (1 - proba_map))
+        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
         # Compute alpha factor
-        alpha_factor = seg_target[seg_mask] * alpha + (1 - seg_target[seg_mask]) * (1 - alpha)
+        alpha_factor = seg_target * alpha + (1 - seg_target) * (1 - alpha)
         # compute the final loss
-        focal_loss = (alpha_factor * (1. - p_t) ** gamma * bce_loss[seg_mask]).mean()
+        focal_loss = (alpha_factor * (1. - p_t) ** gamma * bce_loss).mean()
 
         # Dice loss
-        inter = (proba_map * seg_target[seg_mask]).sum()
-        cardinality = (proba_map + seg_target[seg_mask]).sum()
+        inter = (proba_map * seg_target).sum()
+        cardinality = (proba_map + seg_target).sum()
         dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
         # Return the full loss (equal sum of focal loss and dice loss)
