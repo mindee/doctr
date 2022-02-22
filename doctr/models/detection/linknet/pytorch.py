@@ -160,6 +160,7 @@ class LinkNet(nn.Module, _LinkNet):
         target: List[np.ndarray],
         gamma: float = 2.,
         alpha: float = .5,
+        eps: float = 1e-8,
     ) -> torch.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -179,29 +180,28 @@ class LinkNet(nn.Module, _LinkNet):
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         seg_mask = seg_mask.to(dtype=torch.float32)
 
-        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
-        # Average on N, H, W
-        bce_loss = (bce_loss * seg_mask).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
-        proba_map = (torch.sigmoid(out_map) * seg_mask).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
-        seg_target = (seg_target * seg_mask).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
+        bce_loss = F.binary_cross_entropy_with_logits(
+            out_map, seg_target, reduction='none',
+            pos_weight=alpha * torch.ones(out_map.shape[1], dtype=torch.float32, device=out_map.device),
+        )
+        proba_map = torch.sigmoid(out_map)
 
         # Focal loss
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
-        # Convert logits to prob, compute gamma factor
-        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
-        # Compute alpha factor
-        alpha_factor = seg_target * alpha + (1 - seg_target) * (1 - alpha)
-        # compute the final loss
-        focal_loss = (alpha_factor * (1. - p_t) ** gamma * bce_loss).mean()
+        p_t = (1 - proba_map) * seg_target + proba_map * (1 - seg_target)
+        # Unreduced version
+        focal_loss = p_t ** gamma * bce_loss
+        # Class reduced
+        focal_loss = (seg_mask * focal_loss).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
 
         # Dice loss
-        inter = (proba_map * seg_target).sum()
-        cardinality = (proba_map + seg_target).sum()
-        dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
+        inter = (seg_mask * proba_map * seg_target).sum((0, 2, 3))
+        cardinality = (seg_mask * (proba_map + seg_target)).sum((0, 2, 3))
+        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Return the full loss (equal sum of focal loss and dice loss)
-        return focal_loss + dice_loss
+        return focal_loss.mean() + dice_loss.mean()
 
 
 def _linknet(

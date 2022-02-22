@@ -141,6 +141,7 @@ class LinkNet(_LinkNet, keras.Model):
         target: List[np.ndarray],
         gamma: float = 2.,
         alpha: float = .5,
+        eps: float = 1e-8,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -161,10 +162,7 @@ class LinkNet(_LinkNet, keras.Model):
         seg_mask = tf.cast(seg_mask, tf.float32)
 
         bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
-        # Average on N, H, W
-        bce_loss = tf.reduce_sum((bce_loss * seg_mask), (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
-        proba_map = tf.reduce_sum((tf.sigmoid(out_map) * seg_mask), (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
-        seg_target = tf.reduce_sum((seg_target * seg_mask), (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
+        proba_map = tf.sigmoid(out_map)
 
         # Focal loss
         if gamma < 0:
@@ -175,14 +173,16 @@ class LinkNet(_LinkNet, keras.Model):
         # Compute alpha factor
         alpha_factor = seg_target * alpha + (1 - seg_target) * (1 - alpha)
         # compute the final loss
-        focal_loss = tf.reduce_mean(alpha_factor * modulating_factor * bce_loss)
+        focal_loss = tf.reduce_sum(
+            seg_mask * alpha_factor * modulating_factor * bce_loss, (0, 1, 2)
+        ) / tf.reduce_sum(seg_mask, (0, 1, 2))
 
         # Dice loss
-        inter = tf.math.reduce_sum(proba_map * seg_target)
-        cardinality = tf.math.reduce_sum(proba_map + seg_target)
-        dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
+        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
+        cardinality = tf.math.reduce_sum(seg_mask * (proba_map + seg_target), (0, 1, 2))
+        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
-        return focal_loss + dice_loss
+        return tf.reduce_mean(focal_loss) + tf.reduce_mean(dice_loss)
 
     def call(
         self,
