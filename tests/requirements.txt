@@ -2,4 +2,6 @@ pytest>=5.3.2
 requests>=2.20.0
 hdf5storage>=0.1.18
 coverage>=4.5.4
+onnx>=1.11.0
+onnxruntime>=1.10.0
 requirements-parser==0.2.0

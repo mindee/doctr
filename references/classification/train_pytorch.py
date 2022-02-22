@@ -28,6 +28,28 @@ from doctr.models import classification
 from utils import plot_recorder, plot_samples
 
 
+def export_to_onnx(model, name, val_loader_batch):
+    """Export the model to ONNX format.
+    """
+    dummy_input = val_loader_batch[0]
+    torch.onnx.export(
+        model,
+        dummy_input,
+        f"{name}.onnx",
+        input_names=['input'],
+        output_names=['logits'],
+        dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
+        export_params=True, opset_version=13, verbose=False
+    )
+    print(f"Model exported to {name}.onnx")
+    try:
+        from onnxruntime.quantization import quantize_qat
+        quantize_qat(f"{name}.onnx", f'{name}.quant.onnx')
+        print(f"Quantized model saved to {name}.quant.onnx")
+    except ImportError:
+        print("ONNX Runtime is not installed. Skipping quantization.")
+
+
 def record_lr(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -334,6 +356,9 @@ def main(args):
     if args.wb:
         run.finish()
 
+    if args.export_onnx:
+        export_to_onnx(model, exp_name, val_loader_batch=next(iter(val_loader)))
+
 
 def parse_args():
     import argparse
@@ -378,6 +403,8 @@ def parse_args():
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',
+                        help='Export the model to ONNX')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
