@@ -59,17 +59,15 @@ class Resize(NestedObject):
     """
     def __init__(
         self,
-        output_size: Tuple[int, int],
+        output_size: Union[int, Tuple[int, int]],
         method: str = 'bilinear',
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
-        pad: bool = True
     ) -> None:
         self.output_size = output_size
         self.method = method
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
-        self.pad = pad
 
     def extra_repr(self) -> str:
         _repr = f"output_size={self.output_size}, method='{self.method}'"
@@ -84,11 +82,18 @@ class Resize(NestedObject):
     ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
 
         input_dtype = img.dtype
-        img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
+        if isinstance(self.output_size, int):
+            wanted_size = (self.output_size, self.output_size)
+        elif isinstance(self.output_size, tuple):
+            wanted_size = self.output_size
+        else:
+            raise AssertionError("Output size should be either a Tuple or an int")
+        img = tf.image.resize(img, wanted_size, self.method, self.preserve_aspect_ratio)
+        # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
         raw_shape = img.shape[:2]
         if self.preserve_aspect_ratio:
-            if self.pad:
-                # pad width
+            if isinstance(self.output_size, tuple):
+                # In that case we need to pad because we want to enforce both width and height
                 if not self.symmetric_pad:
                     offset = (0, 0)
                 elif self.output_size[0] == img.shape[0]:
@@ -102,7 +107,7 @@ class Resize(NestedObject):
             if self.preserve_aspect_ratio:
                 # Get absolute coords
                 if target.shape[1:] == (4,):
-                    if self.pad and self.symmetric_pad:
+                    if isinstance(self.output_size, tuple) and self.symmetric_pad:
                         if np.max(target) <= 1:
                             offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
                         target[:, [0, 2]] = offset[1] + target[:, [0, 2]] * raw_shape[1] / img.shape[1]
@@ -111,7 +116,7 @@ class Resize(NestedObject):
                         target[:, [0, 2]] *= raw_shape[1] / img.shape[1]
                         target[:, [1, 3]] *= raw_shape[0] / img.shape[0]
                 elif target.shape[1:] == (4, 2):
-                    if self.pad and self.symmetric_pad:
+                    if isinstance(self.output_size, tuple) and self.symmetric_pad:
                         if np.max(target) <= 1:
                             offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
                         target[..., 0] = offset[1] + target[..., 0] * raw_shape[1] / img.shape[1]

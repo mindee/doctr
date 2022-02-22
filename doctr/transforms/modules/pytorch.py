@@ -19,16 +19,14 @@ __all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip']
 class Resize(T.Resize):
     def __init__(
         self,
-        size: Tuple[int, int],
+        size: Union[int, Tuple[int, int]],
         interpolation=F.InterpolationMode.BILINEAR,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
-        pad: bool = True,
     ) -> None:
         super().__init__(size, interpolation)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
-        self.pad = pad
 
     def forward(
         self,
@@ -36,23 +34,36 @@ class Resize(T.Resize):
         target: Optional[np.ndarray] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, np.ndarray]]:
 
-        target_ratio = self.size[0] / self.size[1]
-        actual_ratio = img.shape[-2] / img.shape[-1]
-        if not self.preserve_aspect_ratio or (target_ratio == actual_ratio):
+        if isinstance(self.size, int):
+            target_ratio = img.shape[-2] / img.shape[-1]
+            actual_ratio = img.shape[-2] / img.shape[-1]
+        elif isinstance(self.size, tuple):
+            target_ratio = self.size[0] / self.size[1]
+            actual_ratio = img.shape[-2] / img.shape[-1]
+        else:
+            raise AssertionError("size should be either a tuple or an int")
+
+        if not self.preserve_aspect_ratio or (target_ratio == actual_ratio and isinstance(self.size, tuple)):
             if target is not None:
                 return super().forward(img), target
             return super().forward(img)
         else:
             # Resize
-            if actual_ratio > target_ratio:
-                tmp_size = (self.size[0], max(int(self.size[0] / actual_ratio), 1))
-            else:
-                tmp_size = (max(int(self.size[1] * actual_ratio), 1), self.size[1])
+            if isinstance(self.size, tuple):
+                if actual_ratio > target_ratio:
+                    tmp_size = (self.size[0], max(int(self.size[0] / actual_ratio), 1))
+                else:
+                    tmp_size = (max(int(self.size[1] * actual_ratio), 1), self.size[1])
+            elif isinstance(self.size, int):  # self.size is the longest side, infer the other
+                if img.shape[-2] <= img.shape[-1]:
+                    tmp_size = (max(int(self.size * actual_ratio), 1), self.size)
+                else:
+                    tmp_size = (self.size, max(int(self.size / actual_ratio), 1))
 
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation)
             raw_shape = img.shape[-2:]
-            if self.pad:
+            if isinstance(self.size, tuple):
                 # Pad (inverted in pytorch)
                 _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
                 if self.symmetric_pad:
@@ -65,7 +76,7 @@ class Resize(T.Resize):
                 if self.preserve_aspect_ratio:
                     # Get absolute coords
                     if target.shape[1:] == (4,):
-                        if self.pad and self.symmetric_pad:
+                        if isinstance(self.size, tuple) and self.symmetric_pad:
                             if np.max(target) <= 1:
                                 offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
                             target[:, [0, 2]] = offset[0] + target[:, [0, 2]] * raw_shape[-1] / img.shape[-1]
@@ -74,7 +85,7 @@ class Resize(T.Resize):
                             target[:, [0, 2]] *= raw_shape[-1] / img.shape[-1]
                             target[:, [1, 3]] *= raw_shape[-2] / img.shape[-2]
                     elif target.shape[1:] == (4, 2):
-                        if self.pad and self.symmetric_pad:
+                        if isinstance(self.size, tuple) and self.symmetric_pad:
                             if np.max(target) <= 1:
                                 offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
                             target[..., 0] = offset[0] + target[..., 0] * raw_shape[-1] / img.shape[-1]

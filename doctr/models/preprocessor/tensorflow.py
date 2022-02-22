@@ -108,8 +108,16 @@ class PreProcessor(NestedObject):
             if x.dtype == tf.uint8:
                 x = tf.image.convert_image_dtype(x, dtype=tf.float32)
             # Resizing
-            if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
-                x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
+            if isinstance(self.resize.output_size, int):
+                if x.shape[1] != self.resize.output_size or x.shape[2] != self.resize.output_size:
+                    x = tf.image.resize(
+                        x, (self.resize.output_size, self.resize.output_size), method=self.resize.method
+                    )
+            elif isinstance(self.resize.output_size, tuple):
+                if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
+                    x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
+            else:
+                raise AssertionError("resize output size must be an int or a tuple")
 
             batches = [x]
 

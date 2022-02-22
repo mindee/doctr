@@ -199,11 +199,11 @@ def main(args):
             ]
         ),
         sample_transforms=T.SampleCompose(
-            ([T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True, pad=True)
+            ([T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)
               ] if not args.rotation else [])
-            + ([T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, pad=False),
+            + ([T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
                 T.RandomRotate(90, expand=True),
-                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True, pad=True)
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)
                 ] if args.rotation else [])
         ),
         use_polygons=args.rotation,

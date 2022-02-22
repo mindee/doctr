@@ -105,8 +105,15 @@ class PreProcessor(nn.Module):
             elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
                 raise TypeError("unsupported data type for torch.Tensor")
             # Resizing
-            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
-                x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
+            if isinstance(self.resize.size, int):
+                if x.shape[-2] != self.resize.size or x.shape[-1] != self.resize.size:
+                    x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
+            elif isinstance(self.resize.size, tuple):
+                if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
+                    x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
+            else:
+                raise AssertionError("resize size must be a tuple or an int")
+
             # Data type
             if x.dtype == torch.uint8:
                 x = x.to(dtype=torch.float32).div(255).clip(0, 1)
