@@ -195,18 +195,16 @@ class LinkNet(nn.Module, _LinkNet):
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         seg_mask = seg_mask.to(dtype=torch.float32)
 
-        bce_loss = F.binary_cross_entropy_with_logits(
-            out_map, seg_target, reduction='none',
-            pos_weight=alpha * torch.ones(out_map.shape[1], dtype=torch.float32, device=out_map.device),
-        )
+        bce_loss = bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
         proba_map = torch.sigmoid(out_map)
 
         # Focal loss
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
         p_t = proba_map * seg_target + (1 - proba_map) * (1 - seg_target)
+        alpha_t = alpha * seg_target + (1 - alpha) * (1 - seg_target)
         # Unreduced version
-        focal_loss = (1 - p_t) ** gamma * bce_loss
+        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
         # Class reduced
         focal_loss = (seg_mask * focal_loss).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
 

@@ -181,9 +181,9 @@ class LinkNet(_LinkNet, keras.Model):
             raise ValueError("Value of gamma should be greater than or equal to zero.")
         # Convert logits to prob, compute gamma factor
         p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
-        alpha = seg_target * alpha + (1 - seg_target) * (1 - alpha)
+        alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
         # Unreduced loss
-        focal_loss = alpha * (1 - p_t) ** gamma * bce_loss
+        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
         # Class reduced
         focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
 
