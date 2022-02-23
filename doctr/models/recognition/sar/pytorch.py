@@ -110,7 +110,7 @@ class SARDecoder(nn.Module):
         self,
         features: torch.Tensor,  # (N, C, H, W)
         holistic: torch.Tensor,  # (N, C)
-        gt: Optional[torch.Tensor] = None, # (N, L)
+        gt: Optional[torch.Tensor] = None,  # (N, L)
     ) -> torch.Tensor:
 
         if gt is None:
