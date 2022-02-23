@@ -66,7 +66,6 @@ _deps = [
     "hdf5storage>=0.1.18",
     "requests>=2.20.0",
     "requirements-parser==0.2.0",
-    "PyMuPDF>=1.16.0,!=1.18.11,!=1.18.12",  # 18.11 and 18.12 fail (issue #222)
     # Quality
     "flake8>=3.9.0",
     "isort>=5.7.0",
@@ -136,7 +135,6 @@ extras["testing"] = deps_list(
     "requests",
     "hdf5storage",
     "requirements-parser",
-    "PyMuPDF",
 )
 
 extras["quality"] = deps_list(
