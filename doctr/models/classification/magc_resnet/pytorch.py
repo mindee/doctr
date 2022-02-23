@@ -105,6 +105,7 @@ def _magc_resnet(
     pretrained: bool,
     num_blocks: List[int],
     output_channels: List[int],
+    stage_stride: List[int],
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
     **kwargs: Any,
@@ -116,9 +117,10 @@ def _magc_resnet(
     model = ResNet(
         num_blocks,
         output_channels,
+        stage_stride,
         stage_conv,
         stage_pooling,
-        partial(MAGC, headers=8, attn_scale=True),
+        attn_module=partial(MAGC, headers=8, attn_scale=True),
         **kwargs,
     )
     # Load pretrained parameters
@@ -152,7 +154,10 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         pretrained,
         [1, 2, 5, 3],
         [256, 256, 512, 512],
+        [1, 1, 1, 1],
         [True] * 4,
         [(2, 2), (2, 1), None, None],
+        origin_stem=False,
+        stem_channels=128,
         **kwargs,
     )

@@ -152,7 +152,7 @@ def _magc_resnet(
         stage_conv,
         stage_pooling,
         origin_stem,
-        partial(MAGC, headers=8, attn_scale=True),
+        attn_module=partial(MAGC, headers=8, attn_scale=True),
         **kwargs,
     )
     # Load pretrained parameters
@@ -190,5 +190,6 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [True] * 4,
         [(2, 2), (2, 1), None, None],
         False,
+        stem_channels=128,
         **kwargs,
     )
