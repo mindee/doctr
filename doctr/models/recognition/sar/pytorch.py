@@ -265,7 +265,7 @@ class SAR(nn.Module, RecognitionModel):
         # Compute loss
         # (N, L, vocab_size + 1)
         cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction='none')
-        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] < seq_len[:, None]
+        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
