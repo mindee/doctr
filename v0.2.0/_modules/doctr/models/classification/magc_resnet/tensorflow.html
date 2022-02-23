@@ -365,7 +365,7 @@
         <span class="n">stage_conv</span><span class="p">,</span>
         <span class="n">stage_pooling</span><span class="p">,</span>
         <span class="n">origin_stem</span><span class="p">,</span>
-        <span class="n">partial</span><span class="p">(</span><span class="n">MAGC</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">attn_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">attn_module</span><span class="o">=</span><span class="n">partial</span><span class="p">(</span><span class="n">MAGC</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">attn_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
@@ -403,6 +403,7 @@
         <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
         <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
         <span class="kc">False</span><span class="p">,</span>
+        <span class="n">stem_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 </pre></div>
