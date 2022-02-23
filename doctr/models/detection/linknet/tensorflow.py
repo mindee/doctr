@@ -13,17 +13,29 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model, Sequential, layers
 
-from doctr.models.classification import resnet18
+from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet_resnet18']
+__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet_resnet18': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'input_shape': (1024, 1024, 3),
+        'url': None,
+    },
+    'linknet_resnet34': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'input_shape': (1024, 1024, 3),
+        'url': None,
+    },
+    'linknet_resnet50': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'input_shape': (1024, 1024, 3),
@@ -270,5 +282,59 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         pretrained,
         resnet18,
         ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        **kwargs,
+    )
+
+
+def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import linknet_resnet34
+        >>> model = linknet_resnet34(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
+        'linknet_resnet34',
+        pretrained,
+        resnet34,
+        ['resnet_block_2', 'resnet_block_6', 'resnet_block_12', 'resnet_block_15'],
+        **kwargs,
+    )
+
+
+def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import linknet_resnet50
+        >>> model = linknet_resnet50(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
+        'linknet_resnet50',
+        pretrained,
+        resnet50,
+        ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         **kwargs,
     )
