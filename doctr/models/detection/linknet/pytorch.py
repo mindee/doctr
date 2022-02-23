@@ -189,9 +189,9 @@ class LinkNet(nn.Module, _LinkNet):
         # Focal loss
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
-        p_t = (1 - proba_map) * seg_target + proba_map * (1 - seg_target)
+        p_t = proba_map * seg_target + (1 - proba_map) * (1 - seg_target)
         # Unreduced version
-        focal_loss = p_t ** gamma * bce_loss
+        focal_loss = (1 - p_t) ** gamma * bce_loss
         # Class reduced
         focal_loss = (seg_mask * focal_loss).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
 
