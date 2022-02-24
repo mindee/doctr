@@ -21,11 +21,11 @@ __all__ = ['SAR', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_resnet31': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['legacy_french'],
-        'url': None,
+        'vocab': VOCABS['french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/sar_resnet31-a74cc7c9.pt',
     },
 }
 
