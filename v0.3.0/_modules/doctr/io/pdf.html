@@ -227,18 +227,17 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">fitz</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pypdfium2</span> <span class="k">as</span> <span class="nn">pdfium</span>
 
-<span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">Bbox</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractFile</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;PDF&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;read_pdf&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../io.html#doctr.io.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">:</span>
+<div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../io.html#doctr.io.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
 
 <span class="sd">    Example::</span>
@@ -247,164 +246,19 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        file: the path to the PDF file</span>
+<span class="sd">        scale: rendering scale (1 corresponds to 72dpi)</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported object type for argument &#39;file&#39;&quot;</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to access </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">fitz_args</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AbstractFile</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
-        <span class="n">fitz_args</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
-        <span class="n">fitz_args</span><span class="p">[</span><span class="s1">&#39;stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported object type for argument &#39;file&#39;&quot;</span><span class="p">)</span>
-
     <span class="c1"># Read pages with fitz and convert them to numpy ndarrays</span>
-    <span class="k">return</span> <span class="n">fitz</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="o">**</span><span class="n">fitz_args</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdf&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
-<span class="k">def</span> <span class="nf">convert_page_to_numpy</span><span class="p">(</span>
-    <span class="n">page</span><span class="p">:</span> <span class="n">fitz</span><span class="o">.</span><span class="n">fitz</span><span class="o">.</span><span class="n">Page</span><span class="p">,</span>
-    <span class="n">output_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">bgr_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">default_scales</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert a fitz page to a numpy-formatted image</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        page: the page of a file read with PyMuPDF</span>
-<span class="sd">        output_size: the expected output size of each page in format H x W. Default goes to 840 x 595 for A4 pdf,</span>
-<span class="sd">        if you want to increase the resolution while preserving the original A4 aspect ratio can pass (1024, 726)</span>
-<span class="sd">        rgb_output: whether the output ndarray channel order should be RGB instead of BGR.</span>
-<span class="sd">        default_scales: spatial scaling to be applied when output_size is not specified where (1, 1)</span>
-<span class="sd">            corresponds to 72 dpi rendering.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        the rendered image in numpy format</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># If no output size is specified, keep the origin one</span>
-    <span class="k">if</span> <span class="n">output_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">scales</span> <span class="o">=</span> <span class="p">(</span><span class="n">output_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">page</span><span class="o">.</span><span class="n">MediaBox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">output_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">page</span><span class="o">.</span><span class="n">MediaBox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Default 72 DPI (scales of (1, 1)) is unnecessarily low</span>
-        <span class="n">scales</span> <span class="o">=</span> <span class="n">default_scales</span>
-
-    <span class="n">transform_matrix</span> <span class="o">=</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span><span class="o">*</span><span class="n">scales</span><span class="p">)</span>
-
-    <span class="c1"># Generate the pixel map using the transformation matrix</span>
-    <span class="n">pixmap</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">get_pixmap</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">transform_matrix</span><span class="p">)</span>
-    <span class="c1"># Decode it into a numpy</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">pixmap</span><span class="o">.</span><span class="n">samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">pixmap</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">pixmap</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-
-    <span class="c1"># Switch the channel order</span>
-    <span class="k">if</span> <span class="n">bgr_output</span><span class="p">:</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">img</span>
-
-
-<div class="viewcode-block" id="PDF"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF">[docs]</a><span class="k">class</span> <span class="nc">PDF</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;PDF document template</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        doc: input PDF document</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">doc</span> <span class="o">=</span> <span class="n">doc</span>
-
-<div class="viewcode-block" id="PDF.as_images"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.as_images">[docs]</a>    <span class="k">def</span> <span class="nf">as_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Convert all document pages to images</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; pages = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;).as_images()</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            kwargs: keyword arguments of `convert_page_to_numpy`</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">]</span></div>
-
-    <span class="k">def</span> <span class="nf">get_page_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the annotations for all lines of a given page&quot;&quot;&quot;</span>
-        <span class="n">lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">prev_block</span><span class="p">,</span> <span class="n">prev_line</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="n">current_line</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
-        <span class="c1"># xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx</span>
-        <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_text_words</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">prev_block</span> <span class="o">==</span> <span class="n">info</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="ow">and</span> <span class="n">prev_line</span> <span class="o">==</span> <span class="n">info</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]:</span>
-                <span class="n">current_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
-                <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ymax</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_line</span><span class="p">)))</span>
-                <span class="n">current_line</span> <span class="o">=</span> <span class="p">[</span><span class="n">info</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span>
-                <span class="n">prev_block</span><span class="p">,</span> <span class="n">prev_line</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-                <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">info</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_line</span><span class="p">)))</span>
-
-        <span class="k">return</span> <span class="n">lines</span>
-
-<div class="viewcode-block" id="PDF.get_lines"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_lines">[docs]</a>    <span class="k">def</span> <span class="nf">get_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the annotations for all lines in the document</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; lines = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;).get_lines()</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            kwargs: keyword arguments of `fitz.Page.get_text_words`</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            the list of pages annotations, represented as a list of tuple (bounding box, value)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_page_lines</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">))]</span></div>
-
-    <span class="k">def</span> <span class="nf">get_page_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the annotations for all words of a given page&quot;&quot;&quot;</span>
-
-        <span class="c1"># xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx</span>
-        <span class="k">return</span> <span class="p">[(</span><span class="n">info</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_text_words</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
-
-<div class="viewcode-block" id="PDF.get_words"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_words">[docs]</a>    <span class="k">def</span> <span class="nf">get_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the annotations for all words in the document</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; words = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;).get_words()</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            kwargs: keyword arguments of `fitz.Page.get_text_words`</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            the list of pages annotations, represented as a list of tuple (bounding box, value)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_page_words</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">))]</span></div>
-
-    <span class="k">def</span> <span class="nf">get_page_artefacts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_image_bbox</span><span class="p">(</span><span class="n">artefact</span><span class="p">))</span>  <span class="c1"># type: ignore[misc]</span>
-                <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
-
-<div class="viewcode-block" id="PDF.get_artefacts"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_artefacts">[docs]</a>    <span class="k">def</span> <span class="nf">get_artefacts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the artefacts for the entire document</span>
-
-<span class="sd">        Example::</span>
-<span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
-<span class="sd">            &gt;&gt;&gt; artefacts = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;).get_artefacts()</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            the list of pages artefacts, represented as a list of bounding boxes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_page_artefacts</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">))]</span></div></div>
+    <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">render_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)]</span></div>
 </pre></div>
 
            </div>
