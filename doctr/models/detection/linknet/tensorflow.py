@@ -151,9 +151,6 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         out_map: tf.Tensor,
         target: List[np.ndarray],
-        gamma: float = 2.,
-        alpha: float = .5,
-        eps: float = 1e-8,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -161,8 +158,6 @@ class LinkNet(_LinkNet, keras.Model):
         Args:
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            gamma: modulating factor in the focal loss formula
-            alpha: balancing factor in the focal loss formula
 
         Returns:
             A loss tensor
@@ -171,28 +166,17 @@ class LinkNet(_LinkNet, keras.Model):
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        seg_mask = tf.cast(seg_mask, tf.float32)
 
+        # BCE loss
         bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
-        proba_map = tf.sigmoid(out_map)
-
-        # Focal loss
-        if gamma < 0:
-            raise ValueError("Value of gamma should be greater than or equal to zero.")
-        # Convert logits to prob, compute gamma factor
-        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
-        alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
-        # Unreduced loss
-        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
-        # Class reduced
-        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
 
         # Dice loss
-        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
-        cardinality = tf.math.reduce_sum(seg_mask * (proba_map + seg_target), (0, 1, 2))
-        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+        prob_map = tf.math.sigmoid(out_map)
+        inter = tf.math.reduce_sum(prob_map[seg_mask] * seg_target[seg_mask])
+        cardinality = tf.math.reduce_sum(prob_map[seg_mask] + seg_target[seg_mask])
+        dice_loss = 1 - 2 * inter / (cardinality + 1e-8)
 
-        return tf.reduce_mean(focal_loss) + tf.reduce_mean(dice_loss)
+        return tf.math.reduce_mean(bce_loss[seg_mask]) + dice_loss
 
     def call(
         self,
