@@ -15,8 +15,6 @@ from doctr.models.preprocessor import PreProcessor
         ["db_resnet50", (512, 512, 3), (512, 512, 1), True],
         ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True],
         ["linknet_resnet18", (512, 512, 3), (512, 512, 1), False],
-        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), False],
-        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):

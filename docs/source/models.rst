@@ -11,10 +11,6 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.resnet18
 
-.. autofunction:: doctr.models.classification.resnet34
-
-.. autofunction:: doctr.models.classification.resnet50
-
 .. autofunction:: doctr.models.classification.resnet31
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_small
@@ -36,10 +32,6 @@ doctr.models.detection
 ----------------------
 
 .. autofunction:: doctr.models.detection.linknet_resnet18
-
-.. autofunction:: doctr.models.detection.linknet_resnet34
-
-.. autofunction:: doctr.models.detection.linknet_resnet50
 
 .. autofunction:: doctr.models.detection.db_resnet50
 
