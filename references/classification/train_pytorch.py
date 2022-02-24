@@ -29,8 +29,7 @@ from utils import plot_recorder, plot_samples
 
 
 def export_to_onnx(model, name, val_loader_batch):
-    """Export the model to ONNX format.
-    """
+    """Export the model to ONNX format."""
     dummy_input = val_loader_batch[0]
     torch.onnx.export(
         model,
