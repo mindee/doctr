@@ -574,7 +574,8 @@ increasing saturation by a factor.</p>
 <dt id="doctr.transforms.RandomHorizontalFlip">
 <em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomHorizontalFlip</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomHorizontalFlip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomHorizontalFlip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds random horizontal flip to the input tensor/np.ndarray</p>
-<dl>
+<blockquote>
+<div><dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">RandomHorizontalFlip</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">RandomHorizontalFlip</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
@@ -586,10 +587,32 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="simple">
-<dt>Args:</dt><dd><p>p : probability of Horizontal Flip</p>
 </dd>
 </dl>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> – probability of Horizontal Flip</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="doctr.transforms.RandomShadow">
+<em class="property">class </em><code class="sig-prename descclassname">doctr.transforms.</code><code class="sig-name descname">RandomShadow</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">opacity_range</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules/tensorflow.html#RandomShadow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.transforms.RandomShadow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds random shade to the input image</p>
+<dl>
+<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">RandomShadow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">RandomShadow</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>opacity_range</strong> – minimum and maximum opacity of the shade</p>
 </dd>
 </dl>
 </dd></dl>
