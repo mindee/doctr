@@ -239,13 +239,16 @@ def main(args):
             num_samples=args.train_samples * len(vocab),
             font_family=fonts,
             img_transforms=T.Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Ensure we have a 90% split of white-background images
-                T.RandomApply(T.ColorInversion(), 0.9),
+                # Ensure we have a 95% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.95),
+                T.RandomApply(T.GaussianNoise(mean=0, std=.15), 0.2),
+                T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), .3),
                 T.RandomJpegQuality(60),
                 T.RandomSaturation(.3),
                 T.RandomContrast(.3),
                 T.RandomBrightness(.3),
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                T.RandomApply(T.ToGray(3), .5),
             ])
         )
 
