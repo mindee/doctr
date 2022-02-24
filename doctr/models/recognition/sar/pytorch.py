@@ -58,7 +58,7 @@ class AttentionModule(nn.Module):
     def forward(self, features: torch.Tensor, hidden_state: torch.Tensor) -> torch.Tensor:
         # shape (N, C, H, W) -> (N, attention_units, H, W)
         feat_projection = self.feat_conv(features)
-        # shape (N, L, rnn_units) -> (N, L, attention_units)
+        # shape (N, L, rnn_units) -> (N, L, attention_units, 1, 1)
         state_projection = self.state_conv(hidden_state).unsqueeze(-1).unsqueeze(-1)
         # (N, L, attention_units, H, W)
         projection = torch.tanh(feat_projection.unsqueeze(1) + state_projection)
