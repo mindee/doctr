@@ -15,6 +15,7 @@ import time
 import numpy as np
 import torch
 import torch.optim as optim
+import torchvision
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
@@ -239,7 +240,9 @@ def main(args):
             ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
             T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
         ]),
-        sample_transforms=T.RandomHorizontalFlip(p=0.5),
+        sample_transforms=T.SampleCompose([
+            T.RandomPerspective(0.2, 0.5, interpolation=torchvision.transforms.functional.InterpolationMode("nearest")),
+            T.RandomHorizontalFlip(p=0.5)])
     )
     train_loader = DataLoader(
         train_set,
