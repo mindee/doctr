@@ -3,7 +3,7 @@ import torch
 from torchvision.models.detection import FasterRCNN
 
 from doctr.models import obj_detection
-from doctr.models.obj_detection import from_hub
+from doctr.models.obj_detection.factory import from_hub
 
 
 @pytest.mark.parametrize(
