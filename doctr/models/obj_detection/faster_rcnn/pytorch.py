@@ -17,9 +17,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.485, 0.456, 0.406),
         'std': (0.229, 0.224, 0.225),
-        'anchor_sizes': [32, 64, 128, 256, 512],
-        'anchor_aspect_ratios': (0.5, 1., 2.),
-        'num_classes': 5,
+        'classes': ["background", "qr_code", "bar_code", "logo", "photo"],
         'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/fasterrcnn_mobilenet_v3_large_fpn-d5b2490d.pt',
     },
 }
@@ -31,11 +29,11 @@ def _fasterrcnn(arch: str, pretrained: bool, **kwargs: Any) -> FasterRCNN:
         "image_mean": default_cfgs[arch]['mean'],
         "image_std": default_cfgs[arch]['std'],
         "box_detections_per_img": 150,
-        "box_score_thresh": 0.15,
+        "box_score_thresh": 0.5,
         "box_positive_fraction": 0.35,
         "box_nms_thresh": 0.2,
         "rpn_nms_thresh": 0.2,
-        "num_classes": default_cfgs[arch]['num_classes'],
+        "num_classes": len(default_cfgs[arch]['classes']),
     }
 
     # Build the model
