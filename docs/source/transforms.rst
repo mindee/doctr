@@ -27,6 +27,7 @@ Here are all transformations that are available through docTR:
 .. autoclass:: ChannelShuffle
 .. autoclass:: GaussianNoise
 .. autoclass:: RandomHorizontalFlip
+.. autoclass:: RandomShadow
 
 
 Composing transformations

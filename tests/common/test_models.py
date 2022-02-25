@@ -12,7 +12,7 @@ from doctr.utils import geometry
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
-    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
                           for idx in range(num_crops)], dtype=np.float32)
@@ -46,7 +46,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
 
 def test_extract_rcrops(mock_pdf):  # noqa: F811
-    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array([[[idx / num_crops, idx / num_crops],
                            [idx / num_crops + .1, idx / num_crops],
