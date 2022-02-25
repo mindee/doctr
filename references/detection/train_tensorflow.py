@@ -141,7 +141,14 @@ def main(args):
     val_set = DetectionDataset(
         img_folder=os.path.join(args.val_path, 'images'),
         label_path=os.path.join(args.val_path, 'labels.json'),
-        img_transforms=T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True),
+        sample_transforms=T.SampleCompose(
+            ([T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)
+              ] if not args.rotation or args.eval_straight else [])
+            + ([T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                T.RandomRotate(90, expand=True),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)
+                ] if args.rotation and not args.eval_straight else [])
+        ),
         use_polygons=args.rotation and not args.eval_straight,
     )
     val_loader = DataLoader(
