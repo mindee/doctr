@@ -3,6 +3,7 @@ import torch
 from torchvision.models.detection import FasterRCNN
 
 from doctr.models import obj_detection
+from doctr.models.obj_detection import from_hub
 
 
 @pytest.mark.parametrize(
@@ -36,5 +37,5 @@ def test_detection_models(arch_name, input_shape, pretrained):
 
 
 def test_obj_det_from_hub():
-    model = obj_detection.from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn").eval()
+    model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn").eval()
     assert isinstance(model, FasterRCNN)
