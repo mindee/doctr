@@ -34,12 +34,16 @@ class _OCRPredictor:
         self,
         assume_straight_pages: bool = True,
         straighten_pages: bool = False,
+        preserve_aspect_ratio: bool = True,
+        symmetric_pad: bool = True,
         **kwargs: Any,
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
         self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
         self.doc_builder = DocumentBuilder(**kwargs)
+        self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.symmetric_pad = symmetric_pad
 
     @staticmethod
     def _generate_crops(
@@ -90,6 +94,32 @@ class _OCRPredictor:
             for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
         return rect_crops, rect_loc_preds
+
+    def _remove_padding(
+        self,
+        pages: List[np.ndarray],
+        loc_preds: List[np.ndarray],
+    ) -> List[np.ndarray]:
+        if self.preserve_aspect_ratio:
+            # Rectify loc_preds to remove padding
+            rectified_preds = []
+            for page, loc_pred in zip(pages, loc_preds):
+                h, w = page.shape[0], page.shape[1]
+                if h > w:
+                    # y unchanged, dilate x coord
+                    if self.symmetric_pad:
+                        loc_pred[:, :, 0] = (loc_pred[:, :, 0] - .5) * h / w + .5
+                    else:
+                        loc_pred[:, :, 0] *= h / w
+                elif w > h:
+                    # x unchanged, dilate y coord
+                    if self.symmetric_pad:
+                        loc_pred[:, :, 1] = (loc_pred[:, :, 1] - .5) * w / h + .5
+                    else:
+                        loc_pred[:, :, 1] *= w / h
+                rectified_preds.append(loc_pred)
+            return rectified_preds
+        return loc_preds
 
     @staticmethod
     def _process_predictions(
