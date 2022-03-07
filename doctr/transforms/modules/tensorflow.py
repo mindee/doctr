@@ -450,7 +450,7 @@ class RandomShadow(NestedObject):
                 dtype=tf.uint8
             )
         else:
-            return random_shadow(x, self.opacity_range)
+            return tf.clip_by_value(random_shadow(x, self.opacity_range), 0, 1)
 
     def extra_repr(self) -> str:
         return f"opacity_range={self.opacity_range}"
