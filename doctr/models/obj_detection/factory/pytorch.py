@@ -45,5 +45,6 @@ def from_hub(repo_id: str, **kwargs: Any) -> torch.nn.Module:
     # Load the checkpoint
     state_dict = torch.load(hf_hub_download(repo_id, filename='pytorch_model.bin', **kwargs), map_location='cpu')
     model.load_state_dict(state_dict)
+    model.cfg = cfg
 
     return model
