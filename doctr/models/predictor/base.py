@@ -25,6 +25,8 @@ class _OCRPredictor:
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        preserve_aspect_ratio: if True, resize preserving the aspect ratio (with padding)
+        symmetric_pad: if True and preserve_aspect_ratio is True, pas the image symmetrically.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -108,13 +110,13 @@ class _OCRPredictor:
                 if h > w:
                     # y unchanged, dilate x coord
                     if self.symmetric_pad:
-                        loc_pred[:, :, 0] = (loc_pred[:, :, 0] - .5) * h / w + .5
+                        loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - .5) * h / w + .5, 0, 1)
                     else:
                         loc_pred[:, :, 0] *= h / w
                 elif w > h:
                     # x unchanged, dilate y coord
                     if self.symmetric_pad:
-                        loc_pred[:, :, 1] = (loc_pred[:, :, 1] - .5) * w / h + .5
+                        loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - .5) * w / h + .5, 0, 1)
                     else:
                         loc_pred[:, :, 1] *= w / h
                 rectified_preds.append(loc_pred)
