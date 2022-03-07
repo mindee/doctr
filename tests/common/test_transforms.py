@@ -1,4 +1,8 @@
+import numpy as np
+import pytest
+
 from doctr.transforms import modules as T
+from doctr.transforms.functional.base import expand_line
 
 
 def test_imagetransform():
@@ -26,3 +30,20 @@ def test_randomapply():
     out = transfo(1)
     assert out == 0 or out == 1
     assert repr(transfo).endswith(", p=0.5)")
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        # Horizontal
+        np.array([[63, 1], [42, 1]]).astype(np.int32),
+        # Vertical
+        np.array([[1, 63], [1, 42]]).astype(np.int32),
+        # Normal
+        np.array([[1, 63], [12, 42]]).astype(np.int32),
+    ],
+)
+def test_expand_line(line):
+    out = expand_line(line, (100, 100))
+    assert isinstance(out, tuple)
+    assert all(isinstance(val, (float, int, np.int32, np.float64)) and val >= 0 for val in out)
