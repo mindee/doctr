@@ -40,7 +40,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         straighten_pages: bool = False,
-        preserve_aspect_ratio: bool = True,
+        preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = True,
         **kwargs: Any,
     ) -> None:
