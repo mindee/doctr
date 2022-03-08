@@ -39,6 +39,7 @@ release = doctr.__version__ + '-git'
 extensions = [
 	'sphinx.ext.autodoc',
 	'sphinx.ext.napoleon',
+	'sphinx.ext.intersphinx',
 	'sphinx.ext.viewcode',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
@@ -48,6 +49,11 @@ extensions = [
     'recommonmark',
     'sphinx_markdown_tables',
 ]
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'pypdfium2': ('https://pypdfium2.readthedocs.io/', None),
+}
 
 napoleon_use_ivar = True
 
