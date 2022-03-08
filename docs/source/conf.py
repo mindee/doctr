@@ -52,7 +52,7 @@ extensions = [
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'pypdfium2': ('https://pypdfium2.readthedocs.io/', None),
+    'pypdfium2': ('https://pypdfium2.readthedocs.io/en/stable/', None),
 }
 
 napoleon_use_ivar = True
