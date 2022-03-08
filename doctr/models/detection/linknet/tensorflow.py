@@ -293,23 +293,14 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     )
 
 
-<<<<<<< HEAD
 def linknet_resnet18_rotation(pretrained: bool = False, **kwargs: Any) -> LinkNet:
-=======
-def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
->>>>>>> main
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Example::
         >>> import tensorflow as tf
-<<<<<<< HEAD
         >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18_rotation(pretrained=True)
-=======
-        >>> from doctr.models import linknet_resnet34
-        >>> model = linknet_resnet34(pretrained=True)
->>>>>>> main
+        >>> model = linknet_resnet18(pretrained=True)
         >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
         >>> out = model(input_tensor)
 
@@ -321,12 +312,33 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """
 
     return _linknet(
-<<<<<<< HEAD
         'linknet_resnet18_rotation',
         pretrained,
         resnet18,
         ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
-=======
+        **kwargs,
+    )
+
+
+def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import linknet_resnet34
+        >>> model = linknet_resnet34(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
         'linknet_resnet34',
         pretrained,
         resnet34,
@@ -358,6 +370,5 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         pretrained,
         resnet50,
         ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
->>>>>>> main
         **kwargs,
     )
