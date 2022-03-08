@@ -141,13 +141,16 @@ class RandomShadow(torch.nn.Module):
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         # Reshape the distribution
-        if x.dtype == torch.uint8:
-            return (255 * random_shadow(
-                x.to(dtype=torch.float32) / 255,
-                self.opacity_range,
-            )).round().clip(0, 255).to(dtype=torch.uint8)
-        else:
-            return random_shadow(x, self.opacity_range)
+        try:
+            if x.dtype == torch.uint8:
+                return (255 * random_shadow(
+                    x.to(dtype=torch.float32) / 255,
+                    self.opacity_range,
+                )).round().clip(0, 255).to(dtype=torch.uint8)
+            else:
+                return random_shadow(x, self.opacity_range).clip(0, 1)
+        except ValueError:
+            return x
 
     def extra_repr(self) -> str:
         return f"opacity_range={self.opacity_range}"

@@ -451,7 +451,7 @@ def test_random_shadow(input_dtype, input_shape):
     assert transformed.shape == input_shape
     assert transformed.dtype == input_dtype
     # The shadow will darken the picture
-    assert tf.math.reduce_mean(input_t) > tf.math.reduce_mean(transformed)
+    assert tf.math.reduce_mean(input_t) >= tf.math.reduce_mean(transformed)
     assert tf.math.reduce_all(transformed >= 0)
     if input_dtype == tf.uint8:
         assert tf.reduce_all(transformed <= 255)
