@@ -129,10 +129,10 @@ class LinkNetPostProcessor(DetectionPostProcessor):
 
             if self.assume_straight_pages:
                 # compute relative polygon to get rid of img shape
+                x, y, w, h = _box
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
-                _box = cv2.boxPoints(cv2.minAreaRect(contour))
                 # compute relative box to get rid of img shape
                 _box[:, 0] /= width
                 _box[:, 1] /= height
