@@ -294,7 +294,7 @@ def test_random_shadow(input_dtype, input_shape):
     assert transformed.shape == input_shape
     assert transformed.dtype == input_dtype
     # The shadow will darken the picture
-    assert input_t.float().mean() > transformed.float().mean()
+    assert input_t.float().mean() >= transformed.float().mean()
     assert torch.all(transformed >= 0)
     if input_dtype == torch.uint8:
         assert torch.all(transformed <= 255)
