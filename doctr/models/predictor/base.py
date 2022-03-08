@@ -110,15 +110,27 @@ class _OCRPredictor:
                 if h > w:
                     # y unchanged, dilate x coord
                     if self.symmetric_pad:
-                        loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - .5) * h / w + .5, 0, 1)
+                        if self.assume_straight_pages:
+                            loc_pred[:, [0, 2]] = np.clip((loc_pred[:, [0, 2]] - .5) * h / w + .5, 0, 1)
+                        else:
+                            loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - .5) * h / w + .5, 0, 1)
                     else:
-                        loc_pred[:, :, 0] *= h / w
+                        if self.assume_straight_pages:
+                            loc_pred[:, [0, 2]] *= h / w
+                        else:
+                            loc_pred[:, :, 0] *= h / w
                 elif w > h:
                     # x unchanged, dilate y coord
                     if self.symmetric_pad:
-                        loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - .5) * w / h + .5, 0, 1)
+                        if self.assume_straight_pages:
+                            loc_pred[:, [1, 3]] = np.clip((loc_pred[:, [1, 3]] - .5) * w / h + .5, 0, 1)
+                        else:
+                            loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - .5) * w / h + .5, 0, 1)
                     else:
-                        loc_pred[:, :, 1] *= w / h
+                        if self.assume_straight_pages:
+                            loc_pred[:, [1, 3]] *= w / h
+                        else:
+                            loc_pred[:, :, 1] *= w / h
                 rectified_preds.append(loc_pred)
             return rectified_preds
         return loc_preds
