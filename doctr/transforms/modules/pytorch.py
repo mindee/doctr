@@ -13,7 +13,9 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip']
+from ..functional.pytorch import random_shadow
+
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip', 'RandomShadow']
 
 
 class Resize(T.Resize):
@@ -172,3 +174,33 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
             _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
             return _img, _target
         return img, target
+
+
+class RandomShadow(torch.nn.Module):
+    """Adds random shade to the input image
+
+       Example::
+           >>> from doctr.transforms import RandomShadow
+           >>> import tensorflow as tf
+           >>> transfo = RandomShadow(0., 1.)
+           >>> out = transfo(torch.rand((3, 64, 64)))
+
+       Args:
+           opacity_range : minimum and maximum opacity of the shade
+       """
+    def __init__(self, opacity_range: Tuple[float, float] = None) -> None:
+        super().__init__()
+        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
+
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+        # Reshape the distribution
+        if x.dtype == torch.uint8:
+            return (255 * random_shadow(
+                x.to(dtype=torch.float32) / 255,
+                self.opacity_range,
+            )).round().clip(0, 255).to(dtype=torch.uint8)
+        else:
+            return random_shadow(x, self.opacity_range)
+
+    def extra_repr(self) -> str:
+        return f"opacity_range={self.opacity_range}"

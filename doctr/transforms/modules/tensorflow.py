@@ -12,9 +12,11 @@ import tensorflow_addons as tfa
 
 from doctr.utils.repr import NestedObject
 
+from ..functional.tensorflow import random_shadow
+
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
            'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
-           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip']
+           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip', 'RandomShadow']
 
 
 class Compose(NestedObject):
@@ -437,8 +439,9 @@ class RandomHorizontalFlip(NestedObject):
             }
            >>> out = transfo(image, target)
 
-       Args:
-           p : probability of Horizontal Flip"""
+   Args:
+       p : probability of Horizontal Flip
+    """
     def __init__(self, p: float) -> None:
         super().__init__()
         self.p = p
@@ -462,3 +465,37 @@ class RandomHorizontalFlip(NestedObject):
             _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
             return _img, _target
         return img, target
+
+
+class RandomShadow(NestedObject):
+    """Adds random shade to the input image
+
+       Example::
+           >>> from doctr.transforms import RandomShadow
+           >>> import tensorflow as tf
+           >>> transfo = RandomShadow(0., 1.)
+           >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+       Args:
+           opacity_range : minimum and maximum opacity of the shade
+       """
+    def __init__(self, opacity_range: Tuple[float, float] = None) -> None:
+        super().__init__()
+        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
+
+    def __call__(self, x: tf.Tensor) -> tf.Tensor:
+        # Reshape the distribution
+        if x.dtype == tf.uint8:
+            return tf.cast(
+                tf.clip_by_value(
+                    tf.math.round(255 * random_shadow(tf.cast(x, dtype=tf.float32) / 255, self.opacity_range)),
+                    0,
+                    255,
+                ),
+                dtype=tf.uint8
+            )
+        else:
+            return random_shadow(x, self.opacity_range)
+
+    def extra_repr(self) -> str:
+        return f"opacity_range={self.opacity_range}"

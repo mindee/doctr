@@ -35,7 +35,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
 
     assert not reco_predictor.model.training
 
-    doc = DocumentFile.from_pdf(mock_pdf).as_images()
+    doc = DocumentFile.from_pdf(mock_pdf)
 
     predictor = OCRPredictor(
         det_predictor,

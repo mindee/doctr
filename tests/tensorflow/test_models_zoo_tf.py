@@ -39,7 +39,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
     )
 
-    doc = DocumentFile.from_pdf(mock_pdf).as_images()
+    doc = DocumentFile.from_pdf(mock_pdf)
 
     predictor = OCRPredictor(
         det_predictor,
