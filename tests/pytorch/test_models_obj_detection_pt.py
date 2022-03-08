@@ -1,7 +1,9 @@
 import pytest
 import torch
+from torchvision.models.detection import FasterRCNN
 
 from doctr.models import obj_detection
+from doctr.models.obj_detection.factory import from_hub
 
 
 @pytest.mark.parametrize(
@@ -32,3 +34,8 @@ def test_detection_models(arch_name, input_shape, pretrained):
         target = [{k: v.cuda() for k, v in t.items()} for t in target]
     out = model(input_tensor, target)
     assert isinstance(out, dict) and all(isinstance(v, torch.Tensor) for v in out.values())
+
+
+def test_obj_det_from_hub():
+    model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn").eval()
+    assert isinstance(model, FasterRCNN)
