@@ -264,7 +264,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <section id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">¶</a></h2>
 <p>The task consists of localizing textual elements in a given image.
-While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).</p>
+While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).
+Our latest detection models works with rotated and skewed documents!</p>
 <section id="available-architectures">
 <h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this headline">¶</a></h3>
 <p>The following architectures are currently supported:</p>
@@ -273,6 +274,9 @@ While those text elements can represent many things, in docTR, we will consider 
 <li><p><a class="reference external" href="models.html#doctr.models.detection.db_resnet50">db_resnet50</a></p></li>
 <li><p><a class="reference external" href="models.html#doctr.models.detection.db_mobilenet_v3_large">db_mobilenet_v3_large</a></p></li>
 </ul>
+<p>We also provide 2 models working with any kind of rotated documents:
+* <a class="reference external" href="models.html#doctr.models.detection.linknet_resnet18_rotation">linknet_resnet18_rotation</a>
+* <a class="reference external" href="models.html#doctr.models.detection.db_resnet50_rotation">db_resnet50_rotation</a></p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -337,6 +341,18 @@ Explanations about the metrics being used are available in <a class="reference i
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
 </div>
+<p>You can pass specific boolean arguments to the predictor:</p>
+<ul class="simple">
+<li><p><cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.</p></li>
+<li><p><cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.</p></li>
+<li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
+</ul>
+<p>For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>NB: for the moment, <cite>db_resnet50_rotation</cite> is pretrained in Pytorch only and <cite>linknet_resnet18_rotation</cite> in Tensorflow only.</p>
 </section>
 </section>
 <section id="text-recognition">
@@ -708,6 +724,21 @@ Explanations about the metrics being used are available in <a class="reference i
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>You can pass specific boolean arguments to the predictor:</p>
+<ul class="simple">
+<li><p><cite>assume_straight_pages</cite></p></li>
+<li><p><cite>preserve_aspect_ratio</cite></p></li>
+<li><p><cite>symmetric_pad</cite></p></li>
+</ul>
+<p>Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).</p>
+<ul class="simple">
+<li><p><cite>export_as_straight_boxes</cite>: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.</p></li>
+</ul>
+<p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
