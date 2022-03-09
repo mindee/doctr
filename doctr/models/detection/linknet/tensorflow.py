@@ -19,7 +19,7 @@ from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
+__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50', 'linknet_resnet18_rotation']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -28,6 +28,12 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.264, 0.2749, 0.287),
         'input_shape': (1024, 1024, 3),
         'url': None,
+    },
+    'linknet_resnet18_rotation': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'input_shape': (1024, 1024, 3),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/linknet_resnet18-a48e6ed3.zip',
     },
     'linknet_resnet34': {
         'mean': (0.798, 0.785, 0.772),
@@ -279,6 +285,33 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
 
     return _linknet(
         'linknet_resnet18',
+        pretrained,
+        resnet18,
+        ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        **kwargs,
+    )
+
+
+def linknet_resnet18_rotation(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Example::
+        >>> import tensorflow as tf
+        >>> from doctr.models import linknet_resnet18
+        >>> model = linknet_resnet18(pretrained=True)
+        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+        >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
+        'linknet_resnet18_rotation',
         pretrained,
         resnet18,
         ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
