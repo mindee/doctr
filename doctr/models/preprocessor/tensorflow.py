@@ -108,7 +108,7 @@ class PreProcessor(NestedObject):
             if x.dtype == tf.uint8:
                 x = tf.image.convert_image_dtype(x, dtype=tf.float32)
             # Resizing
-            if x.shape[1] != self.resize.output_size[0] or x.shape[2] != self.resize.output_size[1]:
+            if (x.shape[1], x.shape[2]) != self.resize.output_size:  # type: ignore[index]
                 x = tf.image.resize(x, self.resize.output_size, method=self.resize.method)
 
             batches = [x]
