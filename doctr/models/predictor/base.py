@@ -25,6 +25,8 @@ class _OCRPredictor:
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        preserve_aspect_ratio: if True, resize preserving the aspect ratio (with padding)
+        symmetric_pad: if True and preserve_aspect_ratio is True, pas the image symmetrically.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -34,12 +36,16 @@ class _OCRPredictor:
         self,
         assume_straight_pages: bool = True,
         straighten_pages: bool = False,
+        preserve_aspect_ratio: bool = True,
+        symmetric_pad: bool = True,
         **kwargs: Any,
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
         self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
         self.doc_builder = DocumentBuilder(**kwargs)
+        self.preserve_aspect_ratio = preserve_aspect_ratio
+        self.symmetric_pad = symmetric_pad
 
     @staticmethod
     def _generate_crops(
@@ -90,6 +96,44 @@ class _OCRPredictor:
             for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
         return rect_crops, rect_loc_preds
+
+    def _remove_padding(
+        self,
+        pages: List[np.ndarray],
+        loc_preds: List[np.ndarray],
+    ) -> List[np.ndarray]:
+        if self.preserve_aspect_ratio:
+            # Rectify loc_preds to remove padding
+            rectified_preds = []
+            for page, loc_pred in zip(pages, loc_preds):
+                h, w = page.shape[0], page.shape[1]
+                if h > w:
+                    # y unchanged, dilate x coord
+                    if self.symmetric_pad:
+                        if self.assume_straight_pages:
+                            loc_pred[:, [0, 2]] = np.clip((loc_pred[:, [0, 2]] - .5) * h / w + .5, 0, 1)
+                        else:
+                            loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - .5) * h / w + .5, 0, 1)
+                    else:
+                        if self.assume_straight_pages:
+                            loc_pred[:, [0, 2]] *= h / w
+                        else:
+                            loc_pred[:, :, 0] *= h / w
+                elif w > h:
+                    # x unchanged, dilate y coord
+                    if self.symmetric_pad:
+                        if self.assume_straight_pages:
+                            loc_pred[:, [1, 3]] = np.clip((loc_pred[:, [1, 3]] - .5) * w / h + .5, 0, 1)
+                        else:
+                            loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - .5) * w / h + .5, 0, 1)
+                    else:
+                        if self.assume_straight_pages:
+                            loc_pred[:, [1, 3]] *= w / h
+                        else:
+                            loc_pred[:, :, 1] *= w / h
+                rectified_preds.append(loc_pred)
+            return rectified_preds
+        return loc_preds
 
     @staticmethod
     def _process_predictions(
