@@ -265,8 +265,8 @@
 
 
 <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">]</span>
-    <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">]</span>
+    <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">]</span>
 <span class="k">elif</span> <span class="n">is_torch_available</span><span class="p">():</span>
     <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">]</span>
     <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">]</span>

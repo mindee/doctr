@@ -245,7 +245,7 @@
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">LinkNetPostProcessor</span><span class="p">,</span> <span class="n">_LinkNet</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LinkNet&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LinkNet&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -254,6 +254,12 @@
         <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.5.0/linknet_resnet18-a48e6ed3.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
@@ -510,6 +516,33 @@
         <span class="p">[</span><span class="s1">&#39;resnet_block_1&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_3&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_5&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_7&#39;</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">linknet_resnet18_rotation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
+
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.models import linknet_resnet18</span>
+<span class="sd">        &gt;&gt;&gt; model = linknet_resnet18(pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        text detection architecture</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
+        <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">resnet18</span><span class="p">,</span>
+        <span class="p">[</span><span class="s1">&#39;resnet_block_1&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_3&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_5&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_7&#39;</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="linknet_resnet34"><a class="viewcode-back" href="../../../../../models.html#doctr.models.detection.linknet_resnet34">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
