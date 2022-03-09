@@ -44,7 +44,7 @@ class Resize(T.Resize):
         else:
             target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
-  
+
         if not self.preserve_aspect_ratio or (
             target_ratio == actual_ratio and (isinstance(self.size, (tuple, list)))
         ):
