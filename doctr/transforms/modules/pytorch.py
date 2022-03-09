@@ -30,6 +30,9 @@ class Resize(T.Resize):
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
 
+        if not isinstance(self.size, (int, tuple, list)):
+            raise AssertionError("size should be either a tuple, a list or an int")
+
     def forward(
         self,
         img: torch.Tensor,
@@ -38,13 +41,10 @@ class Resize(T.Resize):
 
         if isinstance(self.size, int):
             target_ratio = img.shape[-2] / img.shape[-1]
-            actual_ratio = img.shape[-2] / img.shape[-1]
-        elif isinstance(self.size, (tuple, list)):
-            target_ratio = self.size[0] / self.size[1]
-            actual_ratio = img.shape[-2] / img.shape[-1]
         else:
-            raise AssertionError("size should be either a tuple or an int")
-
+            target_ratio = self.size[0] / self.size[1]
+        actual_ratio = img.shape[-2] / img.shape[-1]
+  
         if not self.preserve_aspect_ratio or (
             target_ratio == actual_ratio and (isinstance(self.size, (tuple, list)))
         ):
