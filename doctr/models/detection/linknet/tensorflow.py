@@ -19,7 +19,6 @@ from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
 
-
 __all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50', 'linknet_resnet18_rotation']
 
 
