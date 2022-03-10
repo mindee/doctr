@@ -20,17 +20,16 @@ __all__ = ["IMGUR5K"]
 class IMGUR5K(AbstractDataset):
     """IMGUR5K dataset from `"TextStyleBrush: Transfer of Text Aesthetics from a Single Example"
     <https://arxiv.org/abs/2106.08385>`_ |
-    `"repository" <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
+    `repository <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
 
-    Example::
-        >>> # NOTE: You need to download/generate the dataset from the repository.
-        >>> from doctr.datasets import IMGUR5K
-        >>> train_set = IMGUR5K(train=True, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
-        >>>                     label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
-        >>> img, target = train_set[0]
-        >>> test_set = IMGUR5K(train=False, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
-        >>>                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
-        >>> img, target = test_set[0]
+    >>> # NOTE: You need to download/generate the dataset from the repository.
+    >>> from doctr.datasets import IMGUR5K
+    >>> train_set = IMGUR5K(train=True, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
+    >>>                     label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
+    >>> img, target = train_set[0]
+    >>> test_set = IMGUR5K(train=False, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
+    >>>                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
+    >>> img, target = test_set[0]
 
     Args:
         img_folder: folder with all the images of the dataset

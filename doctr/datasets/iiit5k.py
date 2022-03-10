@@ -21,11 +21,10 @@ class IIIT5K(VisionDataset):
     `"BMVC 2012 Scene Text Recognition using Higher Order Language Priors"
     <https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf>`_.
 
-    Example::
-        >>> # NOTE: this dataset is for character-level localization
-        >>> from doctr.datasets import IIIT5K
-        >>> train_set = IIIT5K(train=True, download=True)
-        >>> img, target = train_set[0]
+    >>> # NOTE: this dataset is for character-level localization
+    >>> from doctr.datasets import IIIT5K
+    >>> train_set = IIIT5K(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

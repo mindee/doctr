@@ -18,10 +18,9 @@ class DocArtefacts(VisionDataset):
     """Object detection dataset for non-textual elements in documents.
     The dataset includes a variety of synthetic document pages with non-textual elements.
 
-    Example::
-        >>> from doctr.datasets import DocArtefacts
-        >>> train_set = DocArtefacts(download=True)
-        >>> img, target = train_set[0]
+    >>> from doctr.datasets import DocArtefacts
+    >>> train_set = DocArtefacts(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

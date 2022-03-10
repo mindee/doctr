@@ -20,10 +20,10 @@ __all__ = ["DetectionDataset"]
 class DetectionDataset(AbstractDataset):
     """Implements a text detection dataset
 
-    Example::
-        >>> from doctr.datasets import DetectionDataset
-        >>> train_set = DetectionDataset(img_folder="/path/to/images", label_path="/path/to/labels.json")
-        >>> img, target = train_set[0]
+    >>> from doctr.datasets import DetectionDataset
+    >>> train_set = DetectionDataset(img_folder="/path/to/images",
+    >>>                              label_path="/path/to/labels.json")
+    >>> img, target = train_set[0]
 
     Args:
         img_folder: folder with all the images of the dataset

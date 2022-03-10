@@ -20,10 +20,9 @@ class SROIE(VisionDataset):
     """SROIE dataset from `"ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction"
     <https://arxiv.org/pdf/2103.10213.pdf>`_.
 
-    Example::
-        >>> from doctr.datasets import SROIE
-        >>> train_set = SROIE(train=True, download=True)
-        >>> img, target = train_set[0]
+    >>> from doctr.datasets import SROIE
+    >>> train_set = SROIE(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

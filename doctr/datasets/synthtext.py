@@ -21,10 +21,9 @@ class SynthText(VisionDataset):
     <https://arxiv.org/abs/1604.06646>`_ | `"repository" <https://github.com/ankush-me/SynthText>`_ |
     `"website" <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_.
 
-    Example::
-        >>> from doctr.datasets import SynthText
-        >>> train_set = SynthText(train=True, download=True)
-        >>> img, target = train_set[0]
+    >>> from doctr.datasets import SynthText
+    >>> train_set = SynthText(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

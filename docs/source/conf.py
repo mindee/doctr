@@ -27,6 +27,7 @@ author = 'François-Guillaume Fernandez, Charles Gaillard'
 
 # The full version, including alpha/beta/rc tags
 version = doctr.__version__
+release = doctr.__version__ + '-git'
 
 # -- General configuration ---------------------------------------------------
 

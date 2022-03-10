@@ -18,10 +18,9 @@ class IC03(VisionDataset):
     """IC03 dataset from `"ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions"
     <http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions>`_.
 
-    Example::
-        >>> from doctr.datasets import IC03
-        >>> train_set = IC03(train=True, download=True)
-        >>> img, target = train_set[0]
+    >>> from doctr.datasets import IC03
+    >>> train_set = IC03(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one
