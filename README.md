@@ -90,7 +90,7 @@ plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 ![Synthesis sample](https://github.com/mindee/doctr/releases/download/v0.3.1/synthesized_sample.png)
 
 
-The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`). 
+The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
 To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/io.html#document-structure):
 
 You can also export them as a nested dict, more appropriate for JSON format:
@@ -104,7 +104,7 @@ For examples & further details about the export format, please refer to [this se
 
 ### Prerequisites
 
-Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR. 
+Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
 
 Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
 
@@ -274,7 +274,7 @@ If you wish to cite this project, feel free to use this [BibTeX](http://www.bibt
 
 If you scrolled down to this section, you most likely appreciate open source. Do you feel like extending the range of our supported characters? Or perhaps submitting a paper implementation? Or contributing in any other way?
 
-You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](CONTRIBUTING.md)) for you to easily do so!
+You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](https://mindee.github.io/doctr/io.html#codebase-structure)) for you to easily do so!
 
 
 ## License
