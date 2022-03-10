@@ -40,13 +40,17 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         straighten_pages: bool = False,
+        preserve_aspect_ratio: bool = False,
+        symmetric_pad: bool = True,
         **kwargs: Any,
     ) -> None:
 
         nn.Module.__init__(self)
         self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
-        _OCRPredictor.__init__(self, assume_straight_pages, straighten_pages, **kwargs)
+        _OCRPredictor.__init__(
+            self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
+        )
 
     @torch.no_grad()
     def forward(
@@ -70,6 +74,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         loc_preds = self.det_predictor(pages, **kwargs)
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
+
+        # Rectify crops if aspect ratio
+        loc_preds = self._remove_padding(pages, loc_preds)
 
         # Crop images
         crops, loc_preds = self._prepare_crops(

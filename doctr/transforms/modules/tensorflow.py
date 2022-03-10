@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -61,7 +61,7 @@ class Resize(NestedObject):
     """
     def __init__(
         self,
-        output_size: Tuple[int, int],
+        output_size: Union[int, Tuple[int, int]],
         method: str = 'bilinear',
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
@@ -71,24 +71,67 @@ class Resize(NestedObject):
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
 
+        if isinstance(self.output_size, int):
+            self.wanted_size = (self.output_size, self.output_size)
+        elif isinstance(self.output_size, (tuple, list)):
+            self.wanted_size = self.output_size
+        else:
+            raise AssertionError("Output size should be either a list, a tuple or an int")
+
     def extra_repr(self) -> str:
         _repr = f"output_size={self.output_size}, method='{self.method}'"
         if self.preserve_aspect_ratio:
             _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
         return _repr
 
-    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+    def __call__(
+        self,
+        img: tf.Tensor,
+        target: Optional[np.ndarray] = None,
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
+
         input_dtype = img.dtype
-        img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
+
+        img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio)
+        # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
+        raw_shape = img.shape[:2]
         if self.preserve_aspect_ratio:
-            # pad width
-            if not self.symmetric_pad:
-                offset = (0, 0)
-            elif self.output_size[0] == img.shape[0]:
-                offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
-            else:
-                offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
-            img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+            if isinstance(self.output_size, (tuple, list)):
+                # In that case we need to pad because we want to enforce both width and height
+                if not self.symmetric_pad:
+                    offset = (0, 0)
+                elif self.output_size[0] == img.shape[0]:
+                    offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
+                else:
+                    offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+                img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+
+        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+        if target is not None:
+            if self.preserve_aspect_ratio:
+                # Get absolute coords
+                if target.shape[1:] == (4,):
+                    if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
+                        if np.max(target) <= 1:
+                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                        target[:, [0, 2]] = offset[1] + target[:, [0, 2]] * raw_shape[1] / img.shape[1]
+                        target[:, [1, 3]] = offset[0] + target[:, [1, 3]] * raw_shape[0] / img.shape[0]
+                    else:
+                        target[:, [0, 2]] *= raw_shape[1] / img.shape[1]
+                        target[:, [1, 3]] *= raw_shape[0] / img.shape[0]
+                elif target.shape[1:] == (4, 2):
+                    if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
+                        if np.max(target) <= 1:
+                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                        target[..., 0] = offset[1] + target[..., 0] * raw_shape[1] / img.shape[1]
+                        target[..., 1] = offset[0] + target[..., 1] * raw_shape[0] / img.shape[0]
+                    else:
+                        target[..., 0] *= raw_shape[1] / img.shape[1]
+                        target[..., 1] *= raw_shape[0] / img.shape[0]
+                else:
+                    raise AssertionError
+            return tf.cast(img, dtype=input_dtype), target
+
         return tf.cast(img, dtype=input_dtype)
 
 
