@@ -20,7 +20,6 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import ColorJitter, Compose, GaussianBlur, Grayscale, Normalize
 from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscale, InterpolationMode, Normalize,
                                     RandomPerspective)
 
