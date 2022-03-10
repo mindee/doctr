@@ -154,8 +154,8 @@ extras["docs_specific"] = deps_list(
     "docutils",
     "recommonmark",
     "sphinx-markdown-tables",
-    "sphinx-tabs>=3.3.0",
-    "furo>=2022.3.4",
+    "sphinx-tabs",
+    "furo",
 )
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
