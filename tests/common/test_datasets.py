@@ -1,4 +1,3 @@
-from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -46,6 +45,7 @@ def test_abstractdataset(mock_image_path):
 
     # Check inplace modifications
     ds.data = [(ds.data[0][0], {"label": "A"})]
+
     def inplace_transfo(x, target):
         target["label"] += "B"
         return x, target
