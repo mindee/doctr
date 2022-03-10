@@ -2,6 +2,8 @@ sphinx<3.5.0
 sphinx-rtd-theme==0.4.3
 sphinxemoji>=0.1.8
 sphinx-copybutton>=0.3.1
+sphinx-tabs>=3.3.0
 docutils<0.18
 recommonmark>=0.7.1
 sphinx-markdown-tables>=0.0.15
+furo>=2022.3.4
