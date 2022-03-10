@@ -21,6 +21,8 @@ from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, GaussianBlur, Grayscale, Normalize
+from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscale, InterpolationMode, Normalize,
+                                    RandomPerspective)
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -293,12 +295,13 @@ def main(args):
             font_family=fonts,
             img_transforms=Compose([
                 # Ensure we have a 95% split of white-background images
-                T.RandomApply(T.ColorInversion(), 0.95),
-                T.RandomApply(T.GaussianNoise(mean=0, std=.15), 0.2),
-                T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
-                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                T.RandomApply(T.ColorInversion(min_val=0.5), 0.95),
+                T.RandomApply(T.GaussianNoise(mean=0, std=.1), .2),
+                T.RandomApply(GaussianBlur(kernel_size=(5, 5), sigma=(0.1, 2)), .3),
+                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.3),
                 T.RandomApply(Grayscale(3), .5),
+                RandomPerspective(distortion_scale=0.15, interpolation=InterpolationMode.BILINEAR, p=0.8),
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
             ]),
         )
 
