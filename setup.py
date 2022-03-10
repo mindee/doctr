@@ -76,7 +76,7 @@ _deps = [
     "sphinx>=3.5.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
-    "docutils>=0.18",
+    "docutils<0.18",
     "recommonmark>=0.7.1",
     "sphinx-markdown-tables>=0.0.15",
     "sphinx-tabs>=3.3.0",
