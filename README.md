@@ -274,7 +274,7 @@ If you wish to cite this project, feel free to use this [BibTeX](http://www.bibt
 
 If you scrolled down to this section, you most likely appreciate open source. Do you feel like extending the range of our supported characters? Or perhaps submitting a paper implementation? Or contributing in any other way?
 
-You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](https://mindee.github.io/doctr/io.html#codebase-structure)) for you to easily do so!
+You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](CONTRIBUTING.md)) for you to easily do so!
 
 
 ## License
