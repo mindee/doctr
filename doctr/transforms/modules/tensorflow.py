@@ -22,11 +22,10 @@ __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', '
 class Compose(NestedObject):
     """Implements a wrapper that will apply transformations sequentially
 
-    Example::
-        >>> from doctr.transforms import Compose, Resize
-        >>> import tensorflow as tf
-        >>> transfos = Compose([Resize((32, 32))])
-        >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> from doctr.transforms import Compose, Resize
+    >>> import tensorflow as tf
+    >>> transfos = Compose([Resize((32, 32))])
+    >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         transforms: list of transformation modules
@@ -47,11 +46,10 @@ class Compose(NestedObject):
 class Resize(NestedObject):
     """Resizes a tensor to a target size
 
-    Example::
-        >>> from doctr.transforms import Resize
-        >>> import tensorflow as tf
-        >>> transfo = Resize((32, 32))
-        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> from doctr.transforms import Resize
+    >>> import tensorflow as tf
+    >>> transfo = Resize((32, 32))
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         output_size: expected output size
@@ -138,11 +136,10 @@ class Resize(NestedObject):
 class Normalize(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
 
-    Example::
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> from doctr.transforms import Normalize
+    >>> import tensorflow as tf
+    >>> transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         mean: average value per channel
@@ -164,11 +161,10 @@ class Normalize(NestedObject):
 class LambdaTransformation(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
 
-    Example::
-        >>> from doctr.transforms import LambdaTransformation
-        >>> import tensorflow as tf
-        >>> transfo = LambdaTransformation(lambda x: x/ 255.)
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> from doctr.transforms import LambdaTransformation
+    >>> import tensorflow as tf
+    >>> transfo = LambdaTransformation(lambda x: x/ 255.)
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         fn: the function to be applied to the input tensor
@@ -183,11 +179,10 @@ class LambdaTransformation(NestedObject):
 class ToGray(NestedObject):
     """Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor
 
-    Example::
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = ToGray()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> from doctr.transforms import Normalize
+    >>> import tensorflow as tf
+    >>> transfo = ToGray()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
     def __init__(self, num_output_channels: int = 1):
         self.num_output_channels = num_output_channels
@@ -201,11 +196,10 @@ class RandomBrightness(NestedObject):
     """Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
     to all pixels
 
-    Example:
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Brightness()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> from doctr.transforms import Normalize
+    >>> import tensorflow as tf
+    >>> transfo = Brightness()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
