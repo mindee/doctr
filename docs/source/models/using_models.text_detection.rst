@@ -15,6 +15,7 @@ The following architectures are currently supported:
 * `db_mobilenet_v3_large <models.html#doctr.models.detection.db_mobilenet_v3_large>`_
 
 We also provide 2 models working with any kind of rotated documents:
+
 * `linknet_resnet18_rotation <models.html#doctr.models.detection.linknet_resnet18_rotation>`_
 * `db_resnet50_rotation <models.html#doctr.models.detection.db_resnet50_rotation>`_
 

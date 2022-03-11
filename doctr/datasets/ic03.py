@@ -18,6 +18,9 @@ class IC03(VisionDataset):
     """IC03 dataset from `"ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions"
     <http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions>`_.
 
+    .. image:: dataset_images/ic03-grid.png
+        :align: center
+
     >>> from doctr.datasets import IC03
     >>> train_set = IC03(train=True, download=True)
     >>> img, target = train_set[0]

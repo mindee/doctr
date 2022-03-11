@@ -21,6 +21,9 @@ class SynthText(VisionDataset):
     <https://arxiv.org/abs/1604.06646>`_ | `"repository" <https://github.com/ankush-me/SynthText>`_ |
     `"website" <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_.
 
+    .. image:: dataset_images/svt-grid.png
+        :align: center
+
     >>> from doctr.datasets import SynthText
     >>> train_set = SynthText(train=True, download=True)
     >>> img, target = train_set[0]

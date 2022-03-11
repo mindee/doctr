@@ -18,6 +18,9 @@ class SVT(VisionDataset):
     """SVT dataset from `"The Street View Text Dataset - UCSD Computer Vision"
     <http://vision.ucsd.edu/~kai/svt/>`_.
 
+    .. image:: dataset_images/svt-grid.png
+        :align: center
+
     >>> from doctr.datasets import SVT
     >>> train_set = SVT(train=True, download=True)
     >>> img, target = train_set[0]

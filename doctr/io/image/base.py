@@ -21,9 +21,8 @@ def read_img_as_numpy(
 ) -> np.ndarray:
     """Read an image file into numpy format
 
-    Example::
-        >>> from doctr.documents import read_img
-        >>> page = read_img("path/to/your/doc.jpg")
+    >>> from doctr.documents import read_img
+    >>> page = read_img("path/to/your/doc.jpg")
 
     Args:
         file: the path to the image file

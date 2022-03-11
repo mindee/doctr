@@ -20,6 +20,9 @@ class SVHN(VisionDataset):
     """SVHN dataset from `"The Street View House Numbers (SVHN) Dataset"
     <http://ufldl.stanford.edu/housenumbers/>`_.
 
+    .. image:: dataset_images/svhn-grid.png
+        :align: center
+
     >>> from doctr.datasets import SVHN
     >>> train_set = SVHN(train=True, download=True)
     >>> img, target = train_set[0]

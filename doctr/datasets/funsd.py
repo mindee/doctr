@@ -20,6 +20,9 @@ class FUNSD(VisionDataset):
     """FUNSD dataset from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents"
     <https://arxiv.org/pdf/1905.13538.pdf>`_.
 
+    .. image:: dataset_images/funsd-grid.png
+        :align: center
+
     >>> from doctr.datasets import FUNSD
     >>> train_set = FUNSD(train=True, download=True)
     >>> img, target = train_set[0]

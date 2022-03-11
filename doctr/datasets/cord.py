@@ -20,6 +20,9 @@ class CORD(VisionDataset):
     """CORD dataset from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing"
     <https://openreview.net/pdf?id=SJl3z659UH>`_.
 
+    .. image:: dataset_images/cord-grid.png
+        :align: center
+
     >>> from doctr.datasets import CORD
     >>> train_set = CORD(train=True, download=True)
     >>> img, target = train_set[0]

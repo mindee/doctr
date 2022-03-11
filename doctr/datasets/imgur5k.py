@@ -22,6 +22,11 @@ class IMGUR5K(AbstractDataset):
     <https://arxiv.org/abs/2106.08385>`_ |
     `repository <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
 
+    .. image:: dataset_images/imgur5k-grid.png
+        :align: center
+        :width: 630
+        :height: 400
+
     >>> # NOTE: You need to download/generate the dataset from the repository.
     >>> from doctr.datasets import IMGUR5K
     >>> train_set = IMGUR5K(train=True, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
