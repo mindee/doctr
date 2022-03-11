@@ -28,8 +28,8 @@ class SampleCompose(NestedObject):
                 >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
                 >>> import tensorflow as tf
                 >>> import numpy as np
-                >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
-                >>> out, out_boxes = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
+                >>> transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
+                >>> out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
 
         .. tab:: PyTorch
 
