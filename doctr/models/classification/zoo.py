@@ -49,12 +49,11 @@ def crop_orientation_predictor(
 ) -> CropOrientationPredictor:
     """Orientation classification architecture.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.models import crop_orientation_predictor
-        >>> model = crop_orientation_predictor(arch='classif_mobilenet_v3_small', pretrained=True)
-        >>> input_crop = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
-        >>> out = model([input_crop])
+    >>> import numpy as np
+    >>> from doctr.models import crop_orientation_predictor
+    >>> model = crop_orientation_predictor(arch='classif_mobilenet_v3_small', pretrained=True)
+    >>> input_crop = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+    >>> out = model([input_crop])
 
     Args:
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small')

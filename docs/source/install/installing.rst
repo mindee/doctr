@@ -5,7 +5,6 @@ Installation
 
 This library requires `Python <https://www.python.org/downloads/>`_ 3.6 or higher.
 
-
 Prerequisites
 =============
 
@@ -23,7 +22,6 @@ For MacOS users, you can install them using `Homebrew <https://brew.sh/>`_ as fo
     brew install cairo pango gdk-pixbuf libffi
 
 For Windows users, those dependencies are included in GTK. You can find the latest installer over `here <https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases>`_.
-
 
 Via Python Package
 ==================
@@ -50,7 +48,6 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
       .. code:: bash
 
          pip install python-doctr[pytorch]
-
 
 Via Git
 =======

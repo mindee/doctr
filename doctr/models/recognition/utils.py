@@ -13,6 +13,12 @@ __all__ = ['merge_strings', 'merge_multi_strings']
 def merge_strings(a: str, b: str, dil_factor: float) -> str:
     """Merges 2 character sequences in the best way to maximize the alignment of their overlapping characters.
 
+    >>> from doctr.model.recognition.utils import merge_sequences
+    >>> merge_sequences('abcd', 'cdefgh', 1.4)
+    'abcdefgh'
+    >>> merge_sequences('abcdi', 'cdefgh', 1.4)
+    'abcdefgh'
+
     Args:
         a: first char seq, suffix should be similar to b's prefix.
         b: second char seq, prefix should be similar to a's suffix.
@@ -21,13 +27,6 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
 
     Returns:
         A merged character sequence.
-
-    Example::
-        >>> from doctr.model.recognition.utils import merge_sequences
-        >>> merge_sequences('abcd', 'cdefgh', 1.4)
-        'abcdefgh'
-        >>> merge_sequences('abcdi', 'cdefgh', 1.4)
-        'abcdefgh'
     """
     seq_len = min(len(a), len(b))
     if seq_len == 0:  # One sequence is empty, return the other
@@ -62,6 +61,10 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
 def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
     """Recursively merges consecutive string sequences with overlapping characters.
 
+    >>> from doctr.model.recognition.utils import merge_multi_sequences
+    >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)
+    'abcdefghijkl'
+
     Args:
         seq_list: list of sequences to merge. Sequences need to be ordered from left to right.
         dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
@@ -69,11 +72,6 @@ def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
 
     Returns:
         A merged character sequence
-
-    Example::
-        >>> from doctr.model.recognition.utils import merge_multi_sequences
-        >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)
-        'abcdefghijkl'
     """
     def _recursive_merge(a: str, seq_list: List[str], dil_factor: float) -> str:
         # Recursive version of compute_overlap

@@ -38,12 +38,11 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredict
 def recognition_predictor(arch: str = 'crnn_vgg16_bn', pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
     """Text recognition architecture.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.models import recognition_predictor
-        >>> model = recognition_predictor(pretrained=True)
-        >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
-        >>> out = model([input_page])
+    >>> import numpy as np
+    >>> from doctr.models import recognition_predictor
+    >>> model = recognition_predictor(pretrained=True)
+    >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
+    >>> out = model([input_page])
 
     Args:
         arch: name of the architecture to use (e.g. 'crnn_vgg16_bn')

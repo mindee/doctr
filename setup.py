@@ -73,7 +73,7 @@ _deps = [
     "mypy>=0.812",
     "pydocstyle>=6.1.1",
     # Docs
-    "sphinx>=3.5.0",
+    "sphinx>=4.0.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
     "docutils<0.18",
