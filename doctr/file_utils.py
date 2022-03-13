@@ -31,8 +31,6 @@ logger = logging.getLogger()
 logger.setLevel(level=logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stderr))
 
-_tf_available = False
-_torch_available = False
 
 if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES:
     logger.info("\033[1mBoth PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
@@ -48,9 +46,13 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
             logger.info(f"\n\033[1mDocTR version {__version__}:\tPyTorch {_torch_version} is enabled.\033[0m\n")
             _torch_available = True
         except importlib_metadata.PackageNotFoundError:
-            raise ModuleNotFoundError("PyTorch is installed but not available. Please check your installation.")
+            logger.error("PyTorch is installed but not available. Please check your installation.")
+            _torch_available = False
+else:
+    _torch_available = False
 
-elif USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
+
+if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
     _tf_available = importlib.util.find_spec("tensorflow") is not None
     if _tf_available:
         candidates = (
@@ -79,7 +81,8 @@ elif USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_
             _tf_available = False
         else:
             logger.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
-            _tf_available = True
+else:
+    _tf_available = False
 
 
 if not _torch_available and not _tf_available:
