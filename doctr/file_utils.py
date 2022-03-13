@@ -10,6 +10,8 @@ import logging
 import os
 import sys
 
+from .version import __version__
+
 if sys.version_info < (3, 8):
     import importlib_metadata
 else:
@@ -30,11 +32,14 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     if _torch_available:
         try:
             _torch_version = importlib_metadata.version("torch")
-            logging.info(f"PyTorch version {_torch_version} available.")
+            print(f"\nDocTR version {__version__}: \tPyTorch {_torch_version} is enabled.\n\n"
+                  "If you want to use TensorFlow instead please use:\n"
+                  "`export USE_TF=1` and `export USE_TORCH=0` in your environment.\n")
         except importlib_metadata.PackageNotFoundError:
             _torch_available = False
 else:
     logging.info("Disabling PyTorch because USE_TF is set")
+    print("Disabling PyTorch because USE_TF is set")
     _torch_available = False
 
 
@@ -64,11 +69,15 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
     if _tf_available:
         if int(_tf_version.split('.')[0]) < 2:  # type: ignore[union-attr]
             logging.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
+            print(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
             _tf_available = False
         else:
-            logging.info(f"TensorFlow version {_tf_version} available.")
+            print(f"\nDocTR version {__version__}: \tTensorFlow {_tf_version} is enabled.\n\n"
+                  "If you want to use PyTorch instead please use:\n"
+                  "`export USE_TORCH=1` and `export USE_TF=0` in your environment.\n")
 else:
     logging.info("Disabling Tensorflow because USE_TORCH is set")
+    print("Disabling Tensorflow because USE_TORCH is set")
     _tf_available = False
 
 
