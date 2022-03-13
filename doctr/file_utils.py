@@ -83,7 +83,7 @@ elif _tf_available and not _torch_available:
     logger.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
 else:
     logger.info("\033[1mBoth PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
-                "To use PyTorch, set `USE_TORCH=1` and `USE_TF=0` in your environment variables.\033[0m")
+                "To use PyTorch, set `USE_TORCH=1` in your environment variables.\033[0m")
 
 
 def is_torch_available():
