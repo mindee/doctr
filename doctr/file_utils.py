@@ -26,24 +26,30 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
+# config root logger
+logger = logging.getLogger()
+logger.setLevel(level=logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+_tf_available = False
+_torch_available = False
+
+if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES:
+    logger.info("Both PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
+                "To use PyTorch, set `USE_TORCH=1` and `USE_TF=0` in your environment variables.")
+    USE_TF, USE_TORCH = "1", "0"
+
 
 if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
     _torch_available = importlib.util.find_spec("torch") is not None
     if _torch_available:
         try:
             _torch_version = importlib_metadata.version("torch")
-            print(f"\nDocTR version {__version__}: \tPyTorch {_torch_version} is enabled.\n\n"
-                  "If you want to use TensorFlow instead please use:\n"
-                  "`export USE_TF=1` and `export USE_TORCH=0` in your environment.\n")
+            logger.info(f"\n\033[1mDocTR version {__version__}:\tPyTorch {_torch_version} is enabled.\033[0m\n")
         except importlib_metadata.PackageNotFoundError:
-            _torch_available = False
-else:
-    logging.info("Disabling PyTorch because USE_TF is set")
-    print("Disabling PyTorch because USE_TF is set")
-    _torch_available = False
+            raise ModuleNotFoundError("PyTorch is installed but not available. Please check your installation.")
 
-
-if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
+elif USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
     _tf_available = importlib.util.find_spec("tensorflow") is not None
     if _tf_available:
         candidates = (
@@ -68,17 +74,10 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         _tf_available = _tf_version is not None
     if _tf_available:
         if int(_tf_version.split('.')[0]) < 2:  # type: ignore[union-attr]
-            logging.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
-            print(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
+            logger.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
             _tf_available = False
         else:
-            print(f"\nDocTR version {__version__}: \tTensorFlow {_tf_version} is enabled.\n\n"
-                  "If you want to use PyTorch instead please use:\n"
-                  "`export USE_TORCH=1` and `export USE_TF=0` in your environment.\n")
-else:
-    logging.info("Disabling Tensorflow because USE_TORCH is set")
-    print("Disabling Tensorflow because USE_TORCH is set")
-    _tf_available = False
+            logger.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
 
 
 if not _torch_available and not _tf_available:
