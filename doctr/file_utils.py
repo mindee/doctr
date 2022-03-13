@@ -35,8 +35,8 @@ _tf_available = False
 _torch_available = False
 
 if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    logger.info("Both PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
-                "To use PyTorch, set `USE_TORCH=1` and `USE_TF=0` in your environment variables.")
+    logger.info("\033[1mBoth PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
+                "To use PyTorch, set `USE_TORCH=1` and `USE_TF=0` in your environment variables.\033[0m")
     USE_TF, USE_TORCH = "1", "0"
 
 
