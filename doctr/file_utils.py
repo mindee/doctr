@@ -31,7 +31,6 @@ logger = logging.getLogger()
 logger.setLevel(level=logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stderr))
 
-
 if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
     _torch_available = importlib.util.find_spec("torch") is not None
     if _torch_available:
@@ -85,6 +84,7 @@ elif _tf_available and not _torch_available:
 else:
     logger.info("\033[1mBoth PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
                 "To use PyTorch, set `USE_TORCH=1` and `USE_TF=0` in your environment variables.\033[0m")
+
 
 def is_torch_available():
     return _torch_available
