@@ -77,7 +77,8 @@ else:
 if not _torch_available and not _tf_available:
     raise ModuleNotFoundError("DocTR requires either TensorFlow or PyTorch to be installed. Please ensure one of them"
                               " is installed and that either USE_TF or USE_TORCH is enabled.")
-elif _torch_available and not _tf_available:
+
+if _torch_available and not _tf_available:
     logger.info(f"\n\033[1mDocTR version {__version__}:\tPyTorch {_torch_version} is enabled.\033[0m\n")
 elif _tf_available and not _torch_available:
     logger.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
