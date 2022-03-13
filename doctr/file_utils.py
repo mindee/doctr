@@ -46,6 +46,7 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
         try:
             _torch_version = importlib_metadata.version("torch")
             logger.info(f"\n\033[1mDocTR version {__version__}:\tPyTorch {_torch_version} is enabled.\033[0m\n")
+            _torch_available = True
         except importlib_metadata.PackageNotFoundError:
             raise ModuleNotFoundError("PyTorch is installed but not available. Please check your installation.")
 
@@ -78,6 +79,7 @@ elif USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_
             _tf_available = False
         else:
             logger.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
+            _tf_available = True
 
 
 if not _torch_available and not _tf_available:
