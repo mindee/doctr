@@ -29,7 +29,7 @@ USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 # config root logger
 logger = logging.getLogger()
 logger.setLevel(level=logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger.addHandler(logging.StreamHandler(sys.stderr))
 
 _tf_available = False
 _torch_available = False
