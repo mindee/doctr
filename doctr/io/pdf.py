@@ -25,7 +25,7 @@ def read_pdf(file: AbstractFile, scale: float = 2, **kwargs: Any) -> List[np.nda
     Args:
         file: the path to the PDF file
         scale: rendering scale (1 corresponds to 72dpi)
-        kwargs: additional parameters to :func:`pypdfium2.render_pdf_topil`
+        kwargs: additional parameters to :func:`pypdfium2._helpers.pdf_renderer.render_pdf_topil`
     Returns:
         the list of pages decoded as numpy ndarray of shape H x W x C
     """
