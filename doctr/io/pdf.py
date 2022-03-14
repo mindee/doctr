@@ -25,7 +25,7 @@ def read_pdf(file: AbstractFile, scale: float = 2, **kwargs: Any) -> List[np.nda
     Args:
         file: the path to the PDF file
         scale: rendering scale (1 corresponds to 72dpi)
-        kwargs: additional parameters to :func:`pypdfium2.render_pdf_base`
+        kwargs: additional parameters to :func:`pypdfium2.render_pdf_topil`
     Returns:
         the list of pages decoded as numpy ndarray of shape H x W x C
     """
@@ -38,4 +38,5 @@ def read_pdf(file: AbstractFile, scale: float = 2, **kwargs: Any) -> List[np.nda
     if isinstance(file, str) and not os.path.isfile(file):
         raise FileNotFoundError(f"unable to access {file}")
 
-    return [np.asarray(img) for img, _num in pdfium.render_pdf_topil(file, scale=scale, **kwargs)]
+    # Rasterise pages to PIL images with pypdfium2 and convert to numpy ndarrays
+    return [np.asarray(img) for img, _ in pdfium.render_pdf_topil(file, scale=scale, **kwargs)]
