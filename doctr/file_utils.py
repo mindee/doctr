@@ -25,11 +25,12 @@ ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
+USE_DOCTR_LOGGER = os.environ.get("USE_DOCTR_LOGGER", "OFF").upper()
 
-# config root logger
-logger = logging.getLogger()
-logger.setLevel(level=logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stderr))
+if USE_DOCTR_LOGGER in ENV_VARS_TRUE_VALUES:
+    # config doctr logger
+    logging.getLogger().setLevel(level=logging.INFO)
+    logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
 
 if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
     _torch_available = importlib.util.find_spec("torch") is not None
@@ -37,7 +38,7 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
         try:
             _torch_version = importlib_metadata.version("torch")
         except importlib_metadata.PackageNotFoundError:
-            logger.error("PyTorch is installed but not available. Please check your installation.")
+            logging.error("PyTorch is installed but not available. Please check your installation.")
             _torch_available = False
 else:
     _torch_available = False
@@ -68,7 +69,7 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         _tf_available = _tf_version is not None
     if _tf_available:
         if int(_tf_version.split('.')[0]) < 2:  # type: ignore[union-attr]
-            logger.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
+            logging.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
             _tf_available = False
 else:
     _tf_available = False
@@ -79,12 +80,13 @@ if not _torch_available and not _tf_available:
                               " is installed and that either USE_TF or USE_TORCH is enabled.")
 
 if _torch_available and not _tf_available:
-    logger.info(f"\n\033[1mDocTR version {__version__}:\tPyTorch {_torch_version} is enabled.\033[0m\n")
+    logging.info(f"\n\033[1mDocTR version {__version__}:\tPyTorch {_torch_version} is enabled.\033[0m\n")
 elif _tf_available and not _torch_available:
-    logger.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
+    logging.info(f"\n\033[1mDocTR version {__version__}:\tTensorFlow {_tf_version} is enabled.\033[0m\n")
 else:
-    logger.info("\033[1mBoth PyTorch and TensorFlow are available. Will use TensorFlow by default.\n"
-                "To use PyTorch, set `USE_TORCH=1` in your environment variables.\033[0m")
+    logging.info(f"\n\033[1mDocTR version {__version__}:\tBoth PyTorch and TensorFlow are available.\n "
+                 "\t\t\tWill use TensorFlow by default.\n"
+                "\t\t\tTo use PyTorch, set `USE_TORCH=1` in your environment variables.\033[0m\n")
 
 
 def is_torch_available():
