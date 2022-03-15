@@ -258,7 +258,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
 <dt id="doctr.models.detection.db_resnet50">
-<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.differentiable_binarization.DBNet<a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization.html#db_resnet50"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.differentiable_binarization.DBNet<a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization.html#db_resnet50"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">¶</a></dt>
 <dd><p>DBNet as described in <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>, using a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -272,7 +272,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text detection architecture</p>
@@ -290,7 +290,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.</p>
 <dl class="py function">
 <dt id="doctr.models.detection.db_resnet50_predictor">
-<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.core.DetectionPredictor<a class="reference internal" href="_modules/doctr/models/detection/zoo.html#db_resnet50_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50_predictor" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.detection.</code><code class="sig-name descname">db_resnet50_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.detection.core.DetectionPredictor<a class="reference internal" href="_modules/doctr/models/detection/zoo.html#db_resnet50_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50_predictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -304,7 +304,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Detection predictor</p>
@@ -373,7 +373,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
 <dt id="doctr.models.recognition.crnn_vgg16_bn">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.crnn.CRNN<a class="reference internal" href="_modules/doctr/models/recognition/crnn.html#crnn_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.crnn.CRNN<a class="reference internal" href="_modules/doctr/models/recognition/crnn.html#crnn_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">¶</a></dt>
 <dd><p>CRNN with a VGG-16 backbone as described in <a class="reference external" href="https://arxiv.org/pdf/1602.05875.pdf">“Convolutional RNN: an Enhanced Model for Extracting Features
 from Sequential Data”</a>.</p>
 <dl>
@@ -388,7 +388,7 @@ from Sequential Data”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
@@ -398,7 +398,7 @@ from Sequential Data”</a>.</p>
 
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_vgg16_bn">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_vgg16_bn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">¶</a></dt>
 <dd><p>SAR with a VGG16 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
 Baseline for Irregular Text Recognition”</a>.</p>
 <dl>
@@ -413,7 +413,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
@@ -423,7 +423,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_resnet31">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_resnet31"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.sar.SAR<a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_resnet31"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31" title="Permalink to this definition">¶</a></dt>
 <dd><p>SAR with a resnet-31 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
 Baseline for Irregular Text Recognition”</a>.</p>
 <p class="rubric">Example</p>
@@ -436,7 +436,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>text recognition architecture</p>
@@ -454,7 +454,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <p>Combining the right components around a given architecture for easier usage.</p>
 <dl class="py function">
 <dt id="doctr.models.recognition.crnn_vgg16_bn_predictor">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#crnn_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">crnn_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#crnn_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Text recognition architecture using a CRNN with a VGG16 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -468,7 +468,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Recognition predictor</p>
@@ -478,7 +478,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_vgg16_bn_predictor">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_vgg16_bn_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_vgg16_bn_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn_predictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Text detection architecture using a SAR with a VGG16 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -492,7 +492,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Recognition predictor</p>
@@ -502,7 +502,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 
 <dl class="py function">
 <dt id="doctr.models.recognition.sar_resnet31_predictor">
-<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_resnet31_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31_predictor" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.recognition.</code><code class="sig-name descname">sar_resnet31_predictor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.recognition.core.RecognitionPredictor<a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_resnet31_predictor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.recognition.sar_resnet31_predictor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Text detection architecture using a SAR with a ResNet-31 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -516,7 +516,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Recognition predictor</p>
@@ -594,7 +594,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>
 <dl class="py function">
 <dt id="doctr.models.zoo.ocr_db_crnn_vgg">
-<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_crnn_vgg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_crnn_vgg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_crnn_vgg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_crnn_vgg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_crnn_vgg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_crnn_vgg" title="Permalink to this definition">¶</a></dt>
 <dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
 backbone as text recognition architecture.</p>
 <dl>
@@ -609,7 +609,7 @@ backbone as text recognition architecture.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>OCR predictor</p>
@@ -619,7 +619,7 @@ backbone as text recognition architecture.</p>
 
 <dl class="py function">
 <dt id="doctr.models.zoo.ocr_db_sar_resnet">
-<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_sar_resnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_sar_resnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_sar_resnet" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_sar_resnet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_sar_resnet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_sar_resnet" title="Permalink to this definition">¶</a></dt>
 <dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN
 backbone as text recognition architecture.</p>
 <dl>
@@ -634,7 +634,7 @@ backbone as text recognition architecture.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>OCR predictor</p>
@@ -644,7 +644,7 @@ backbone as text recognition architecture.</p>
 
 <dl class="py function">
 <dt id="doctr.models.zoo.ocr_db_sar_vgg">
-<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_sar_vgg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_sar_vgg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_sar_vgg" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.zoo.</code><code class="sig-name descname">ocr_db_sar_vgg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pretrained</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span> &#x2192; doctr.models.core.OCRPredictor<a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_sar_vgg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_sar_vgg" title="Permalink to this definition">¶</a></dt>
 <dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN
 backbone as text recognition architecture.</p>
 <dl>
@@ -659,7 +659,7 @@ backbone as text recognition architecture.</p>
 </dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<em>bool</em>) – If True, returns a model pre-trained on ImageNet</p>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>OCR predictor</p>
@@ -674,7 +674,7 @@ backbone as text recognition architecture.</p>
 <p>Utility functions to make the most of document analysis models.</p>
 <dl class="py function">
 <dt id="doctr.models.export.convert_to_tflite">
-<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_tflite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_tflite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a><a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a model to TFLite format</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
@@ -693,14 +693,14 @@ backbone as text recognition architecture.</p>
 <dd class="field-even"><p>the model</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bytes</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="doctr.models.export.convert_to_fp16">
-<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_fp16</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#convert_to_fp16"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_fp16" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">convert_to_fp16</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a><a class="reference internal" href="_modules/doctr/models/export.html#convert_to_fp16"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.convert_to_fp16" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a model to half precision</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
@@ -719,14 +719,14 @@ backbone as text recognition architecture.</p>
 <dd class="field-even"><p>the serialized FP16 model</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bytes</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt id="doctr.models.export.quantize_model">
-<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">quantize_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em>, <em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>int<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; bytes<a class="reference internal" href="_modules/doctr/models/export.html#quantize_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.quantize_model" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">doctr.models.export.</code><code class="sig-name descname">quantize_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tf_model</span><span class="p">:</span> <span class="n">keras.engine.training.Model</span></em>, <em class="sig-param"><span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a><a class="reference internal" href="_modules/doctr/models/export.html#quantize_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#doctr.models.export.quantize_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Quantize a Tensorflow model</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
@@ -748,7 +748,7 @@ backbone as text recognition architecture.</p>
 <dd class="field-even"><p>the serialized quantized model</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bytes</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)">bytes</a></p>
 </dd>
 </dl>
 </dd></dl>

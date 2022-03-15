@@ -216,6 +216,7 @@
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
+<span class="kn">import</span> <span class="nn">os.path</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 
@@ -237,18 +238,21 @@
 <span class="sd">    Args:</span>
 <span class="sd">        file: the path to the PDF file</span>
 <span class="sd">        scale: rendering scale (1 corresponds to 72dpi)</span>
+<span class="sd">        kwargs: additional parameters to :func:`pypdfium2._helpers.pdf_renderer.render_pdf_topil`</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x 3</span>
+<span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x C</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;unsupported object type for argument &#39;file&#39;&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to access </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Read pages with fitz and convert them to numpy ndarrays</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">render_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)]</span></div>
+    <span class="c1"># Rasterise pages to PIL images with pypdfium2 and convert to numpy ndarrays</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">img</span><span class="p">)</span> <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">render_pdf_topil</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span></div>
 </pre></div>
 
            </div>
