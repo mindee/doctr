@@ -76,11 +76,11 @@ Supported datasets
    :caption: Package Reference
    :hidden:
 
-   package_reference/datasets
-   package_reference/io
-   package_reference/models
-   package_reference/transforms
-   package_reference/utils
+   modules/datasets
+   modules/io
+   modules/models
+   modules/transforms
+   modules/utils
 
 
    .. toctree::
@@ -97,4 +97,4 @@ Supported datasets
    :caption: Notes
    :hidden:
 
-   development/changelog
+   changelog
