@@ -25,9 +25,9 @@ class SampleCompose(NestedObject):
 
             .. code:: python
 
-                >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
-                >>> import tensorflow as tf
                 >>> import numpy as np
+                >>> import tensorflow as tf
+                >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
                 >>> transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
                 >>> out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
 
@@ -66,8 +66,8 @@ class ImageTransform(NestedObject):
 
             .. code:: python
 
-                >>> from doctr.transforms import ImageTransform, ColorInversion
                 >>> import tensorflow as tf
+                >>> from doctr.transforms import ImageTransform, ColorInversion
                 >>> transfo = ImageTransform(ColorInversion((32, 32)))
                 >>> out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)
 
@@ -104,8 +104,8 @@ class ColorInversion(NestedObject):
 
             .. code:: python
 
-                >>> from doctr.transforms import ColorInversion
                 >>> import tensorflow as tf
+                >>> from doctr.transforms import ColorInversion
                 >>> transfo = ColorInversion(min_val=0.6)
                 >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -140,8 +140,8 @@ class OneOf(NestedObject):
 
             .. code:: python
 
-                >>> from doctr.transforms import OneOf
                 >>> import tensorflow as tf
+                >>> from doctr.transforms import OneOf
                 >>> transfo = OneOf([JpegQuality(), Gamma()])
                 >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
@@ -179,8 +179,8 @@ class RandomApply(NestedObject):
 
             .. code:: python
 
-                >>> from doctr.transforms import RandomApply
                 >>> import tensorflow as tf
+                >>> from doctr.transforms import RandomApply
                 >>> transfo = RandomApply(Gamma(), p=.5)
                 >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 

@@ -22,8 +22,8 @@ __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', '
 class Compose(NestedObject):
     """Implements a wrapper that will apply transformations sequentially
 
-    >>> from doctr.transforms import Compose, Resize
     >>> import tensorflow as tf
+    >>> from doctr.transforms import Compose, Resize
     >>> transfos = Compose([Resize((32, 32))])
     >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
@@ -46,8 +46,8 @@ class Compose(NestedObject):
 class Resize(NestedObject):
     """Resizes a tensor to a target size
 
-    >>> from doctr.transforms import Resize
     >>> import tensorflow as tf
+    >>> from doctr.transforms import Resize
     >>> transfo = Resize((32, 32))
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
@@ -136,8 +136,8 @@ class Resize(NestedObject):
 class Normalize(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
 
-    >>> from doctr.transforms import Normalize
     >>> import tensorflow as tf
+    >>> from doctr.transforms import Normalize
     >>> transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -161,8 +161,8 @@ class Normalize(NestedObject):
 class LambdaTransformation(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
 
-    >>> from doctr.transforms import LambdaTransformation
     >>> import tensorflow as tf
+    >>> from doctr.transforms import LambdaTransformation
     >>> transfo = LambdaTransformation(lambda x: x/ 255.)
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -179,8 +179,8 @@ class LambdaTransformation(NestedObject):
 class ToGray(NestedObject):
     """Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor
 
-    >>> from doctr.transforms import ToGray
     >>> import tensorflow as tf
+    >>> from doctr.transforms import ToGray
     >>> transfo = ToGray()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
@@ -196,8 +196,8 @@ class RandomBrightness(NestedObject):
     """Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
     to all pixels
 
-    >>> from doctr.transforms import RandomBrightness
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomBrightness
     >>> transfo = RandomBrightness()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -219,8 +219,8 @@ class RandomContrast(NestedObject):
     """Randomly adjust contrast of a tensor (batch of images or image) by adjusting
     each pixel: (img - mean) * contrast_factor + mean.
 
-    >>> from doctr.transforms import RandomContrast
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomContrast
     >>> transfo = RandomContrast()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -241,8 +241,8 @@ class RandomSaturation(NestedObject):
     """Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and
     increasing saturation by a factor.
 
-    >>> from doctr.transforms import RandomSaturation
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomSaturation
     >>> transfo = RandomSaturation()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -262,8 +262,8 @@ class RandomSaturation(NestedObject):
 class RandomHue(NestedObject):
     """Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta
 
-    >>> from doctr.transforms import RandomHue
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomHue
     >>> transfo = RandomHue()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -283,8 +283,8 @@ class RandomHue(NestedObject):
 class RandomGamma(NestedObject):
     """randomly performs gamma correction for a tensor (batch of images or image)
 
-    >>> from doctr.transforms import RandomGamma
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomGamma
     >>> transfo = RandomGamma()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
@@ -319,8 +319,8 @@ class RandomGamma(NestedObject):
 class RandomJpegQuality(NestedObject):
     """Randomly adjust jpeg quality of a 3 dimensional RGB image
 
-    >>> from doctr.transforms import RandomJpegQuality
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomJpegQuality
     >>> transfo = RandomJpegQuality()
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
@@ -344,8 +344,8 @@ class RandomJpegQuality(NestedObject):
 class GaussianBlur(NestedObject):
     """Randomly adjust jpeg quality of a 3 dimensional RGB image
 
-    >>> from doctr.transforms import GaussianBlur
     >>> import tensorflow as tf
+    >>> from doctr.transforms import GaussianBlur
     >>> transfo = GaussianBlur(3, (.1, 5))
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
@@ -381,8 +381,8 @@ class ChannelShuffle(NestedObject):
 class GaussianNoise(NestedObject):
     """Adds Gaussian Noise to the input tensor
 
-    >>> from doctr.transforms import GaussianNoise
     >>> import tensorflow as tf
+    >>> from doctr.transforms import GaussianNoise
     >>> transfo = GaussianNoise(0., 1.)
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
@@ -413,8 +413,8 @@ class GaussianNoise(NestedObject):
 class RandomHorizontalFlip(NestedObject):
     """Adds random horizontal flip to the input tensor/np.ndarray
 
-    >>> from doctr.transforms import RandomHorizontalFlip
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomHorizontalFlip
     >>> transfo = RandomHorizontalFlip(p=0.5)
     >>> image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
     >>> target = {
@@ -454,8 +454,8 @@ class RandomHorizontalFlip(NestedObject):
 class RandomShadow(NestedObject):
     """Adds random shade to the input image
 
-    >>> from doctr.transforms import RandomShadow
     >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomShadow
     >>> transfo = RandomShadow(0., 1.)
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 

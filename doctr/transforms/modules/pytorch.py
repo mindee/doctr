@@ -116,8 +116,8 @@ class Resize(T.Resize):
 class GaussianNoise(torch.nn.Module):
     """Adds Gaussian Noise to the input tensor
 
-    >>> from doctr.transforms import GaussianNoise
     >>> import torch
+    >>> from doctr.transforms import GaussianNoise
     >>> transfo = GaussianNoise(0., 1.)
     >>> out = transfo(torch.rand((3, 224, 224)))
 
@@ -181,8 +181,8 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
 class RandomShadow(torch.nn.Module):
     """Adds random shade to the input image
 
+    >>> import torch
     >>> from doctr.transforms import RandomShadow
-    >>> import tensorflow as tf
     >>> transfo = RandomShadow((0., 1.))
     >>> out = transfo(torch.rand((3, 64, 64)))
 
