@@ -5,7 +5,7 @@ doctr.models
 
 
 doctr.models.classification
-----------------------
+---------------------------
 
 .. autofunction:: doctr.models.classification.vgg16_bn_r
 
