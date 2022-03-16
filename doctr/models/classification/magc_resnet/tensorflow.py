@@ -167,12 +167,27 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition",
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import magc_resnet31
-        >>> model = magc_resnet31(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
-        >>> out = model(input_tensor)
+    .. tabs::
+
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.models import magc_resnet31
+                >>> model = magc_resnet31(pretrained=False)
+                >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+                >>> out = model(input_tensor)
+
+        .. tab:: PyTorch
+
+            .. code:: python
+
+                >>> import torch
+                >>> from doctr.models import magc_resnet31
+                >>> model = magc_resnet31(pretrained=False)
+                >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
+                >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
