@@ -59,9 +59,9 @@ body:
     required: true
 - type: textarea
   attributes:
-    label: Active backend
+    label: Deep Learning backend
     description: |
-      Please run the following snippet inside your code and paste the output below.
+      Please run the following snippet and paste the output below.
       ```python
       from doctr.file_utils import is_tf_available, is_torch_available
 
