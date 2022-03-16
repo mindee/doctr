@@ -29,6 +29,7 @@ The following architectures are currently supported:
 * `db_mobilenet_v3_large <models.html#doctr.models.detection.db_mobilenet_v3_large>`_
 
 We also provide 2 models working with any kind of rotated documents:
+
 * `linknet_resnet18_rotation <models.html#doctr.models.detection.linknet_resnet18_rotation>`_
 * `db_resnet50_rotation <models.html#doctr.models.detection.db_resnet50_rotation>`_
 
@@ -73,7 +74,7 @@ You can pass specific boolean arguments to the predictor:
 
 For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
 
-    >>> from doctr.models import detection_predictor  
+    >>> from doctr.models import detection_predictor
     >>> predictor = detection_predictor('db_resnet50_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 NB: for the moment, `db_resnet50_rotation` is pretrained in Pytorch only and `linknet_resnet18_rotation` in Tensorflow only.
