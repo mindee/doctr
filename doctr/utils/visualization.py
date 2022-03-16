@@ -219,13 +219,16 @@ def visualize_page(
                             int(page['dimensions'][1] * word['geometry'][0][0]),
                             int(page['dimensions'][0] * word['geometry'][0][1])
                         )
-                    ax.text(
-                        *text_loc,
-                        word['value'],
-                        size=10,
-                        alpha=0.5,
-                        color=(0, 0, 1),
-                    )
+
+                    if len(word['geometry']) == 2:
+                        # We draw only if boxes are in straight format
+                        ax.text(
+                            *text_loc,
+                            word['value'],
+                            size=10,
+                            alpha=0.5,
+                            color=(0, 0, 1),
+                        )
 
         if display_artefacts:
             for artefact in block['artefacts']:
@@ -252,7 +255,6 @@ def visualize_page(
 def synthesize_page(
     page: Dict[str, Any],
     draw_proba: bool = False,
-    font_size: int = 13,
     font_family: Optional[str] = None,
 ) -> np.ndarray:
     """Draw a the content of the element page (OCR response) on a blank page.
