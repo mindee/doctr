@@ -291,12 +291,17 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-34 backbone.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import db_resnet34
-        >>> model = db_resnet34(pretrained=True)
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    .. tabs::
+
+        .. tab:: PyTorch
+
+            .. code:: python
+
+                >>> import torch
+                >>> from doctr.models import db_resnet34
+                >>> model = db_resnet34(pretrained=True)
+                >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+                >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -319,12 +324,27 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import db_resnet50
-        >>> model = db_resnet50(pretrained=True)
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    .. tabs::
+
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.models import db_resnet50
+                >>> model = db_resnet50(pretrained=True)
+                >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+                >>> out = model(input_tensor)
+
+        .. tab:: PyTorch
+
+            .. code:: python
+
+                >>> import torch
+                >>> from doctr.models import db_resnet50
+                >>> model = db_resnet50(pretrained=True)
+                >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+                >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -347,12 +367,27 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a MobileNet V3 Large backbone.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import db_mobilenet_v3_large
-        >>> model = db_mobilenet_v3_large(pretrained=True)
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    .. tabs::
+
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.models import db_mobilenet_v3_large
+                >>> model = db_mobilenet_v3_large(pretrained=True)
+                >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+                >>> out = model(input_tensor)
+
+        .. tab:: PyTorch
+
+            .. code:: python
+
+                >>> import torch
+                >>> from doctr.models import db_mobilenet_v3_large
+                >>> model = db_mobilenet_v3_large(pretrained=True)
+                >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+                >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -376,12 +411,17 @@ def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
     <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
     This model is trained with rotated documents
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import db_resnet50_rotation
-        >>> model = db_resnet50_rotation(pretrained=True)
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> out = model(input_tensor)
+     .. tabs::
+
+        .. tab:: PyTorch
+
+            .. code:: python
+
+                >>> import torch
+                >>> from doctr.models import db_resnet50_rotation
+                >>> model = db_resnet50_rotation(pretrained=True)
+                >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+                >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset

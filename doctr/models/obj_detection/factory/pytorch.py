@@ -17,15 +17,15 @@ __all__ = ['from_hub']
 def from_hub(repo_id: str, **kwargs: Any) -> torch.nn.Module:
     """Instantiate & load a pretrained model from HF hub.
 
-    Example::
-        >>> from doctr.models.obj_detection import from_hub
-        >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn").eval()
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> with torch.no_grad(): out = model(input_tensor)
+    >>> from doctr.models.obj_detection import from_hub
+    >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn").eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> with torch.no_grad(): out = model(input_tensor)
 
     Args:
         repo_id: HuggingFace model hub repo
         kwargs: kwargs of `hf_hub_download`
+
     Returns:
         Model loaded with the checkpoint
     """

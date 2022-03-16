@@ -60,12 +60,17 @@ def fasterrcnn_mobilenet_v3_large_fpn(pretrained: bool = False, **kwargs: Any) -
     """Faster-RCNN architecture with a MobileNet V3 backbone as described in `"Faster R-CNN: Towards Real-Time
     Object Detection with Region Proposal Networks" <https://arxiv.org/pdf/1506.01497.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models.obj_detection import fasterrcnn_mobilenet_v3_large_fpn
-        >>> model = fasterrcnn_mobilenet_v3_large_fpn(pretrained=True).eval()
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> with torch.no_grad(): out = model(input_tensor)
+    .. tabs::
+
+        .. tab:: PyTorch
+
+            .. code:: python
+
+                >>> import torch
+                >>> from doctr.models.obj_detection import fasterrcnn_mobilenet_v3_large_fpn
+                >>> model = fasterrcnn_mobilenet_v3_large_fpn(pretrained=True).eval()
+                >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+                >>> with torch.no_grad(): out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our object detection dataset

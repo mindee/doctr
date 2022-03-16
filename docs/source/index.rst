@@ -30,7 +30,7 @@ Main Features
    :caption: Getting started
    :hidden:
 
-   installing
+   install/installing
    notebooks
 
 
@@ -67,8 +67,8 @@ Supported datasets
    :caption: Using docTR
    :hidden:
 
-   using_models
-   using_model_export
+   models/using_models
+   models/using_model_export
 
 
 .. toctree::
@@ -76,11 +76,20 @@ Supported datasets
    :caption: Package Reference
    :hidden:
 
-   datasets
-   io
-   models
-   transforms
-   utils
+   package_reference/datasets
+   package_reference/io
+   package_reference/models
+   package_reference/transforms
+   package_reference/utils
+
+
+   .. toctree::
+   :maxdepth: 2
+   :caption: Development
+   :hidden:
+
+   development/contributing
+   development/code_of_conduct
 
 
 .. toctree::
@@ -88,4 +97,4 @@ Supported datasets
    :caption: Notes
    :hidden:
 
-   changelog
+   development/changelog
