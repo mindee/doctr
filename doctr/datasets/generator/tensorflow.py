@@ -13,10 +13,9 @@ __all__ = ['CharacterGenerator', 'WordGenerator']
 class CharacterGenerator(_CharacterGenerator):
     """Implements a character image generation dataset
 
-    Example::
-        >>> from doctr.datasets import CharacterGenerator
-        >>> ds = CharacterGenerator(vocab='abdef')
-        >>> img, target = ds[0]
+    >>> from doctr.datasets import CharacterGenerator
+    >>> ds = CharacterGenerator(vocab='abdef')
+    >>> img, target = ds[0]
 
     Args:
         vocab: vocabulary to take the character from
@@ -42,10 +41,9 @@ class CharacterGenerator(_CharacterGenerator):
 class WordGenerator(_WordGenerator):
     """Implements a character image generation dataset
 
-    Example::
-        >>> from doctr.datasets import WordGenerator
-        >>> ds = WordGenerator(vocab='abdef')
-        >>> img, target = ds[0]
+    >>> from doctr.datasets import WordGenerator
+    >>> ds = WordGenerator(vocab='abdef')
+    >>> img, target = ds[0]
 
     Args:
         vocab: vocabulary to take the character from

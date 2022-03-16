@@ -34,12 +34,11 @@ def default_collate(samples):
 class DataLoader:
     """Implements a dataset wrapper for fast data loading
 
-    Example::
-        >>> from doctr.datasets import FUNSD, DataLoader
-        >>> train_set = CORD(train=True, download=True)
-        >>> train_loader = DataLoader(train_set, batch_size=32)
-        >>> train_iter = iter(train_loader)
-        >>> images, targets = next(train_iter)
+    >>> from doctr.datasets import FUNSD, DataLoader
+    >>> train_set = CORD(train=True, download=True)
+    >>> train_loader = DataLoader(train_set, batch_size=32)
+    >>> train_iter = iter(train_loader)
+    >>> images, targets = next(train_iter)
 
     Args:
         dataset: the dataset
