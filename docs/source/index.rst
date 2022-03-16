@@ -30,7 +30,7 @@ Main Features
    :caption: Getting started
    :hidden:
 
-   install/installing
+   getting_started/installing
    notebooks
 
 
@@ -67,8 +67,8 @@ Supported datasets
    :caption: Using docTR
    :hidden:
 
-   models/using_models
-   models/using_model_export
+   using_doctr/using_models
+   using_doctr/using_model_export
 
 
 .. toctree::
@@ -85,11 +85,11 @@ Supported datasets
 
    .. toctree::
    :maxdepth: 2
-   :caption: Development
+   :caption: Contributing
    :hidden:
 
-   development/contributing
-   development/code_of_conduct
+   contributing/code_of_conduct
+   contributing/contributing
 
 
 .. toctree::
