@@ -116,16 +116,15 @@ class Resize(T.Resize):
 class GaussianNoise(torch.nn.Module):
     """Adds Gaussian Noise to the input tensor
 
-       Example::
-           >>> from doctr.transforms import GaussianNoise
-           >>> import torch
-           >>> transfo = GaussianNoise(0., 1.)
-           >>> out = transfo(torch.rand((3, 224, 224)))
+    >>> from doctr.transforms import GaussianNoise
+    >>> import torch
+    >>> transfo = GaussianNoise(0., 1.)
+    >>> out = transfo(torch.rand((3, 224, 224)))
 
-       Args:
-           mean : mean of the gaussian distribution
-           std : std of the gaussian distribution
-       """
+    Args:
+        mean : mean of the gaussian distribution
+        std : std of the gaussian distribution
+    """
     def __init__(self, mean: float = 0., std: float = 1.) -> None:
         super().__init__()
         self.std = std
@@ -166,6 +165,7 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
         Args:
             img: Image to be flipped.
             target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
+
         Returns:
             Tuple of PIL Image or Tensor and target
         """
@@ -181,15 +181,14 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
 class RandomShadow(torch.nn.Module):
     """Adds random shade to the input image
 
-       Example::
-           >>> from doctr.transforms import RandomShadow
-           >>> import tensorflow as tf
-           >>> transfo = RandomShadow(0., 1.)
-           >>> out = transfo(torch.rand((3, 64, 64)))
+    >>> from doctr.transforms import RandomShadow
+    >>> import tensorflow as tf
+    >>> transfo = RandomShadow((0., 1.))
+    >>> out = transfo(torch.rand((3, 64, 64)))
 
-       Args:
-           opacity_range : minimum and maximum opacity of the shade
-       """
+    Args:
+        opacity_range : minimum and maximum opacity of the shade
+    """
     def __init__(self, opacity_range: Tuple[float, float] = None) -> None:
         super().__init__()
         self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
