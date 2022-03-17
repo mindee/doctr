@@ -113,8 +113,8 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     <https://arxiv.org/pdf/1905.02244.pdf>`_, with rectangular pooling.
 
     >>> import torch
-    >>> from doctr.models import mobilenet_v3_small
-    >>> model = mobilenet_v3_small(pretrained=False)
+    >>> from doctr.models import mobilenet_v3_small_r
+    >>> model = mobilenet_v3_small_r(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
     >>> out = model(input_tensor)
 

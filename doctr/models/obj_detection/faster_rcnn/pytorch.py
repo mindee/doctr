@@ -62,7 +62,7 @@ def fasterrcnn_mobilenet_v3_large_fpn(pretrained: bool = False, **kwargs: Any) -
 
     >>> import torch
     >>> from doctr.models.obj_detection import fasterrcnn_mobilenet_v3_large_fpn
-    >>> model = fasterrcnn_mobilenet_v3_large_fpn(pretrained=True).eval()
+    >>> model = fasterrcnn_mobilenet_v3_large_fpn(pretrained=True)
     >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
     >>> out = model(input_tensor)
 
