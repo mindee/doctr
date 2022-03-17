@@ -54,23 +54,9 @@ def conv_sequence_pt(
 ) -> List[nn.Module]:
     """Builds a convolutional-based layer sequence
 
-    .. tabs::
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> from tensorflow.keras import Sequential
-                >>> from doctr.models import conv_sequence
-                >>> module = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=[224, 224, 3]))
-
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> from torch.nn import Sequential
-                >>> from doctr.models import conv_sequence
-                >>> module = Sequential(conv_sequence(3, 32, True, True, kernel_size=3))
+    >>> from torch.nn import Sequential
+    >>> from doctr.models import conv_sequence
+    >>> module = Sequential(conv_sequence(3, 32, True, True, kernel_size=3))
 
     Args:
         out_channels: number of output channels

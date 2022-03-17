@@ -192,27 +192,11 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """ResNet-18 architecture as described in `"Deep Residual Learning for Image Recognition",
     <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
-    .. tabs::
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.models import resnet18
-                >>> model = resnet18(pretrained=False)
-                >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-                >>> out = model(input_tensor)
-
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.models import resnet18
-                >>> model = resnet18(pretrained=False)
-                >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
-                >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import resnet18
+    >>> model = resnet18(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -229,27 +213,11 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
     <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
 
-    .. tabs::
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.models import resnet31
-                >>> model = resnet31(pretrained=False)
-                >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-                >>> out = model(input_tensor)
-
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.models import resnet31
-                >>> model = resnet31(pretrained=False)
-                >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
-                >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import resnet31
+    >>> model = resnet31(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -276,27 +244,11 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """ResNet-34 architecture as described in `"Deep Residual Learning for Image Recognition",
     <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
-    .. tabs::
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.models import resnet34
-                >>> model = resnet34(pretrained=False)
-                >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-                >>> out = model(input_tensor)
-
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.models import resnet34
-                >>> model = resnet34(pretrained=False)
-                >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
-                >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import resnet34
+    >>> model = resnet34(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -312,27 +264,11 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """ResNet-34 architecture as described in `"Deep Residual Learning for Image Recognition",
     <https://arxiv.org/pdf/1512.03385.pdf>`_ with twice as many output channels.
 
-    .. tabs::
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.models import resnet34_wide
-                >>> model = resnet34_wide(pretrained=False)
-                >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-                >>> out = model(input_tensor)
-
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.models import resnet34_wide
-                >>> model = resnet34_wide(pretrained=False)
-                >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
-                >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import resnet34_wide
+    >>> model = resnet34_wide(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -359,27 +295,11 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """ResNet-50 architecture as described in `"Deep Residual Learning for Image Recognition",
     <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
-    .. tabs::
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.models import resnet50
-                >>> model = resnet50(pretrained=False)
-                >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-                >>> out = model(input_tensor)
-
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.models import resnet50
-                >>> model = resnet50(pretrained=False)
-                >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
-                >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import resnet50
+    >>> model = resnet50(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
