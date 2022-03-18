@@ -254,14 +254,14 @@
 <div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../io.html#doctr.io.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
     <span class="sd">"""Read a PDF file and convert it into an image in numpy format</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import read_pdf</span>
-<span class="sd">        &gt;&gt;&gt; doc = read_pdf("path/to/your/doc.pdf")</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.documents import read_pdf</span>
+<span class="sd">    &gt;&gt;&gt; doc = read_pdf("path/to/your/doc.pdf")</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        file: the path to the PDF file</span>
 <span class="sd">        scale: rendering scale (1 corresponds to 72dpi)</span>
 <span class="sd">        kwargs: additional parameters to :func:`pypdfium2._helpers.pdf_renderer.render_pdf_topil`</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x C</span>
 <span class="sd">    """</span>

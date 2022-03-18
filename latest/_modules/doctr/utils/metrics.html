@@ -294,11 +294,10 @@
 <span class="sd">    where :math:`\mathcal{W}` is the set of all possible character sequences,</span>
 <span class="sd">    :math:`N` is a strictly positive integer.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import TextMatch</span>
-<span class="sd">        &gt;&gt;&gt; metric = TextMatch()</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(['Hello', 'world'], ['hello', 'world'])</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import TextMatch</span>
+<span class="sd">    &gt;&gt;&gt; metric = TextMatch()</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(['Hello', 'world'], ['hello', 'world'])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -359,6 +358,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    """</span>
@@ -388,6 +388,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoA matrix of shape (N, M)</span>
 <span class="sd">    """</span>
@@ -594,12 +595,11 @@
 <span class="sd">    where :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
-<span class="sd">        &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
+<span class="sd">    &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
@@ -699,13 +699,12 @@
 <span class="sd">    :math:`\mathcal{L}` is the set of possible character sequences,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
-<span class="sd">        &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
-<span class="sd">        ['hello'], ['hello', 'world'])</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">    &gt;&gt;&gt;               ['hello'], ['hello', 'world'])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
@@ -837,13 +836,12 @@
 <span class="sd">    :math:`\mathcal{C}` is the set of possible class indices,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import DetectionMetric</span>
-<span class="sd">        &gt;&gt;&gt; metric = DetectionMetric(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
-<span class="sd">        np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import DetectionMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = DetectionMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">    &gt;&gt;&gt;               np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>

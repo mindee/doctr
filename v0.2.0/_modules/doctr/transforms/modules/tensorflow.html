@@ -258,11 +258,10 @@
 <div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Implements a wrapper that will apply transformations sequentially</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Compose, Resize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfos = Compose([Resize((32, 32))])</span>
-<span class="sd">        &gt;&gt;&gt; out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import Compose, Resize</span>
+<span class="sd">    &gt;&gt;&gt; transfos = Compose([Resize((32, 32))])</span>
+<span class="sd">    &gt;&gt;&gt; out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transforms: list of transformation modules</span>
@@ -283,11 +282,10 @@
 <div class="viewcode-block" id="Resize"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Resize">[docs]</a><span class="k">class</span> <span class="nc">Resize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Resizes a tensor to a target size</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Resize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Resize((32, 32))</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import Resize</span>
+<span class="sd">    &gt;&gt;&gt; transfo = Resize((32, 32))</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        output_size: expected output size</span>
@@ -374,11 +372,10 @@
 <div class="viewcode-block" id="Normalize"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.Normalize">[docs]</a><span class="k">class</span> <span class="nc">Normalize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Normalize a tensor to a Gaussian distribution for each channel</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">    &gt;&gt;&gt; transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        mean: average value per channel</span>
@@ -400,11 +397,10 @@
 <div class="viewcode-block" id="LambdaTransformation"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.LambdaTransformation">[docs]</a><span class="k">class</span> <span class="nc">LambdaTransformation</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Normalize a tensor to a Gaussian distribution for each channel</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import LambdaTransformation</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = LambdaTransformation(lambda x: x/ 255.)</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import LambdaTransformation</span>
+<span class="sd">    &gt;&gt;&gt; transfo = LambdaTransformation(lambda x: x/ 255.)</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        fn: the function to be applied to the input tensor</span>
@@ -419,11 +415,10 @@
 <div class="viewcode-block" id="ToGray"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ToGray">[docs]</a><span class="k">class</span> <span class="nc">ToGray</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = ToGray()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import ToGray</span>
+<span class="sd">    &gt;&gt;&gt; transfo = ToGray()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 <span class="sd">    """</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_output_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_output_channels</span> <span class="o">=</span> <span class="n">num_output_channels</span>
@@ -437,11 +432,10 @@
     <span class="sd">"""Randomly adjust brightness of a tensor (batch of images or image) by adding a delta</span>
 <span class="sd">    to all pixels</span>
 
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Brightness()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomBrightness</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomBrightness()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
@@ -461,11 +455,10 @@
     <span class="sd">"""Randomly adjust contrast of a tensor (batch of images or image) by adjusting</span>
 <span class="sd">    each pixel: (img - mean) * contrast_factor + mean.</span>
 
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Contrast()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomContrast</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomContrast()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor&lt;1)</span>
@@ -484,11 +477,10 @@
     <span class="sd">"""Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and</span>
 <span class="sd">    increasing saturation by a factor.</span>
 
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Saturation()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomSaturation</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomSaturation()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor&lt;1)</span>
@@ -506,11 +498,10 @@
 <div class="viewcode-block" id="RandomHue"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomHue">[docs]</a><span class="k">class</span> <span class="nc">RandomHue</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Hue()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomHue</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomHue()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
@@ -528,11 +519,10 @@
 <div class="viewcode-block" id="RandomGamma"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomGamma">[docs]</a><span class="k">class</span> <span class="nc">RandomGamma</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""randomly performs gamma correction for a tensor (batch of images or image)</span>
 
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = Gamma()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomGamma</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomGamma()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        min_gamma: non-negative real number, lower bound for gamma param</span>
@@ -565,11 +555,10 @@
 <div class="viewcode-block" id="RandomJpegQuality"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomJpegQuality">[docs]</a><span class="k">class</span> <span class="nc">RandomJpegQuality</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Randomly adjust jpeg quality of a 3 dimensional RGB image</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = JpegQuality()</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomJpegQuality</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomJpegQuality()</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        min_quality: int between [0, 100]</span>
@@ -591,11 +580,10 @@
 <div class="viewcode-block" id="GaussianBlur"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.GaussianBlur">[docs]</a><span class="k">class</span> <span class="nc">GaussianBlur</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Randomly adjust jpeg quality of a 3 dimensional RGB image</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.transforms import GaussianBlur</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; transfo = GaussianBlur(3, (.1, 5))</span>
-<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import GaussianBlur</span>
+<span class="sd">    &gt;&gt;&gt; transfo = GaussianBlur(3, (.1, 5))</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        kernel_shape: size of the blurring kernel</span>
@@ -629,16 +617,15 @@
 <div class="viewcode-block" id="GaussianNoise"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.GaussianNoise">[docs]</a><span class="k">class</span> <span class="nc">GaussianNoise</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Adds Gaussian Noise to the input tensor</span>
 
-<span class="sd">       Example::</span>
-<span class="sd">           &gt;&gt;&gt; from doctr.transforms import GaussianNoise</span>
-<span class="sd">           &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">           &gt;&gt;&gt; transfo = GaussianNoise(0., 1.)</span>
-<span class="sd">           &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import GaussianNoise</span>
+<span class="sd">    &gt;&gt;&gt; transfo = GaussianNoise(0., 1.)</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
-<span class="sd">       Args:</span>
-<span class="sd">           mean : mean of the gaussian distribution</span>
-<span class="sd">           std : std of the gaussian distribution</span>
-<span class="sd">       """</span>
+<span class="sd">    Args:</span>
+<span class="sd">        mean : mean of the gaussian distribution</span>
+<span class="sd">        std : std of the gaussian distribution</span>
+<span class="sd">    """</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">std</span>
@@ -662,19 +649,18 @@
 <div class="viewcode-block" id="RandomHorizontalFlip"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomHorizontalFlip">[docs]</a><span class="k">class</span> <span class="nc">RandomHorizontalFlip</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Adds random horizontal flip to the input tensor/np.ndarray</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">           &gt;&gt;&gt; from doctr.transforms import RandomHorizontalFlip</span>
-<span class="sd">           &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">           &gt;&gt;&gt; transfo = RandomHorizontalFlip(p=0.5)</span>
-<span class="sd">           &gt;&gt;&gt; image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)</span>
-<span class="sd">           &gt;&gt;&gt; target = {</span>
-<span class="sd">            "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),</span>
-<span class="sd">            "labels": np.ones(1, dtype= np.int64)</span>
-<span class="sd">            }</span>
-<span class="sd">           &gt;&gt;&gt; out = transfo(image, target)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomHorizontalFlip</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomHorizontalFlip(p=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)</span>
+<span class="sd">    &gt;&gt;&gt; target = {</span>
+<span class="sd">    &gt;&gt;&gt; "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),</span>
+<span class="sd">    &gt;&gt;&gt; "labels": np.ones(1, dtype= np.int64)</span>
+<span class="sd">    &gt;&gt;&gt; }</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(image, target)</span>
 
-<span class="sd">   Args:</span>
-<span class="sd">       p : probability of Horizontal Flip</span>
+<span class="sd">    Args:</span>
+<span class="sd">        p : probability of Horizontal Flip</span>
 <span class="sd">    """</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -704,15 +690,14 @@
 <div class="viewcode-block" id="RandomShadow"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomShadow">[docs]</a><span class="k">class</span> <span class="nc">RandomShadow</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
     <span class="sd">"""Adds random shade to the input image</span>
 
-<span class="sd">       Example::</span>
-<span class="sd">           &gt;&gt;&gt; from doctr.transforms import RandomShadow</span>
-<span class="sd">           &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">           &gt;&gt;&gt; transfo = RandomShadow(0., 1.)</span>
-<span class="sd">           &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomShadow</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomShadow(0., 1.)</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
-<span class="sd">       Args:</span>
-<span class="sd">           opacity_range : minimum and maximum opacity of the shade</span>
-<span class="sd">       """</span>
+<span class="sd">    Args:</span>
+<span class="sd">        opacity_range : minimum and maximum opacity of the shade</span>
+<span class="sd">    """</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">opacity_range</span> <span class="o">=</span> <span class="n">opacity_range</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">opacity_range</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="mf">.2</span><span class="p">,</span> <span class="mf">.8</span><span class="p">)</span>
