@@ -58,11 +58,10 @@ class TextMatch:
     where :math:`\mathcal{W}` is the set of all possible character sequences,
     :math:`N` is a strictly positive integer.
 
-    Example::
-        >>> from doctr.utils import TextMatch
-        >>> metric = TextMatch()
-        >>> metric.update(['Hello', 'world'], ['hello', 'world'])
-        >>> metric.summary()
+    >>> from doctr.utils import TextMatch
+    >>> metric = TextMatch()
+    >>> metric.update(['Hello', 'world'], ['hello', 'world'])
+    >>> metric.summary()
     """
 
     def __init__(self) -> None:
@@ -123,6 +122,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
         boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
+
     Returns:
         the IoU matrix of shape (N, M)
     """
@@ -152,6 +152,7 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     Args:
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
         boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
+
     Returns:
         the IoA matrix of shape (N, M)
     """
@@ -358,12 +359,11 @@ class LocalizationConfusion:
     where :math:`\mathcal{B}` is the set of possible bounding boxes,
     :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.utils import LocalizationConfusion
-        >>> metric = LocalizationConfusion(iou_thresh=0.5)
-        >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))
-        >>> metric.summary()
+    >>> import numpy as np
+    >>> from doctr.utils import LocalizationConfusion
+    >>> metric = LocalizationConfusion(iou_thresh=0.5)
+    >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))
+    >>> metric.summary()
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
@@ -463,13 +463,12 @@ class OCRMetric:
     :math:`\mathcal{L}` is the set of possible character sequences,
     :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.utils import OCRMetric
-        >>> metric = OCRMetric(iou_thresh=0.5)
-        >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
-        ['hello'], ['hello', 'world'])
-        >>> metric.summary()
+    >>> import numpy as np
+    >>> from doctr.utils import OCRMetric
+    >>> metric = OCRMetric(iou_thresh=0.5)
+    >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
+    >>>               ['hello'], ['hello', 'world'])
+    >>> metric.summary()
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
@@ -601,13 +600,12 @@ class DetectionMetric:
     :math:`\mathcal{C}` is the set of possible class indices,
     :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.utils import DetectionMetric
-        >>> metric = DetectionMetric(iou_thresh=0.5)
-        >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
-        np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))
-        >>> metric.summary()
+    >>> import numpy as np
+    >>> from doctr.utils import DetectionMetric
+    >>> metric = DetectionMetric(iou_thresh=0.5)
+    >>> metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),
+    >>>               np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))
+    >>> metric.summary()
 
     Args:
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match

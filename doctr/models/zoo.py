@@ -59,12 +59,11 @@ def ocr_predictor(
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.models import ocr_predictor
-        >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
-        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
-        >>> out = model([input_page])
+    >>> import numpy as np
+    >>> from doctr.models import ocr_predictor
+    >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+    >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+    >>> out = model([input_page])
 
     Args:
         det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')

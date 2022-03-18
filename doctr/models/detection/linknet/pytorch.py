@@ -248,12 +248,11 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18(pretrained=True).eval()
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> with torch.no_grad(): out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import linknet_resnet18
+    >>> model = linknet_resnet18(pretrained=True).eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -269,12 +268,11 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import linknet_resnet34
-        >>> model = linknet_resnet34(pretrained=True).eval()
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> with torch.no_grad(): out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import linknet_resnet34
+    >>> model = linknet_resnet34(pretrained=True).eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -290,12 +288,11 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import linknet_resnet50
-        >>> model = linknet_resnet50(pretrained=True).eval()
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> with torch.no_grad(): out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import linknet_resnet50
+    >>> model = linknet_resnet50(pretrained=True).eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset

@@ -344,12 +344,11 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
     """SAR with a resnet-31 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
     Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
-    Example:
-        >>> import tensorflow as tf
-        >>> from doctr.models import sar_resnet31
-        >>> model = sar_resnet31(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import sar_resnet31
+    >>> model = sar_resnet31(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
