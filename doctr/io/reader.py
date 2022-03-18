@@ -24,12 +24,12 @@ class DocumentFile:
     def from_pdf(cls, file: AbstractFile, **kwargs) -> List[np.ndarray]:
         """Read a PDF file
 
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+        >>> from doctr.documents import DocumentFile
+        >>> doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 
         Args:
             file: the path to the PDF file or a binary stream
+
         Returns:
             the list of pages decoded as numpy ndarray of shape H x W x 3
         """
@@ -40,12 +40,12 @@ class DocumentFile:
     def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
         """Interpret a web page as a PDF document
 
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> doc = DocumentFile.from_url("https://www.yoursite.com")
+        >>> from doctr.documents import DocumentFile
+        >>> doc = DocumentFile.from_url("https://www.yoursite.com")
 
         Args:
             url: the URL of the target web page
+
         Returns:
             the list of pages decoded as numpy ndarray of shape H x W x 3
         """
@@ -56,12 +56,12 @@ class DocumentFile:
     def from_images(cls, files: Union[Sequence[AbstractFile], AbstractFile], **kwargs) -> List[np.ndarray]:
         """Read an image file (or a collection of image files) and convert it into an image in numpy format
 
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
+        >>> from doctr.documents import DocumentFile
+        >>> pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
 
         Args:
             files: the path to the image file or a binary stream, or a collection of those
+
         Returns:
             the list of pages decoded as numpy ndarray of shape H x W x 3
         """

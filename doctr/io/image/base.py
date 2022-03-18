@@ -21,14 +21,14 @@ def read_img_as_numpy(
 ) -> np.ndarray:
     """Read an image file into numpy format
 
-    Example::
-        >>> from doctr.documents import read_img
-        >>> page = read_img("path/to/your/doc.jpg")
+    >>> from doctr.documents import read_img
+    >>> page = read_img("path/to/your/doc.jpg")
 
     Args:
         file: the path to the image file
         output_size: the expected output size of each page in format H x W
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
+
     Returns:
         the page decoded as numpy ndarray of shape H x W x 3
     """

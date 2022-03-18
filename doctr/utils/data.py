@@ -52,9 +52,8 @@ def download_from_url(
 ) -> Path:
     """Download a file using its URL
 
-    Example::
-        >>> from doctr.models import download_from_url
-        >>> download_from_url("https://yoursource.com/yourcheckpoint-yourhash.zip")
+    >>> from doctr.models import download_from_url
+    >>> download_from_url("https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
         url: the URL of the file to download
