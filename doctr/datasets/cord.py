@@ -20,10 +20,12 @@ class CORD(VisionDataset):
     """CORD dataset from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing"
     <https://openreview.net/pdf?id=SJl3z659UH>`_.
 
-    Example::
-        >>> from doctr.datasets import CORD
-        >>> train_set = CORD(train=True, download=True)
-        >>> img, target = train_set[0]
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/cord-grid.png
+        :align: center
+
+    >>> from doctr.datasets import CORD
+    >>> train_set = CORD(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one
