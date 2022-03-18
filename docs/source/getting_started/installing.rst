@@ -37,12 +37,19 @@ Install the last stable release of the package using `pip <https://pip.pypa.io/e
 
 We strive towards reducing framework-specific dependencies to a minimum, but some necessary features are developed by third-parties for specific frameworks. To avoid missing some dependencies for a specific framework, you can install specific builds as follows:
 
-.. code:: bash
+.. tabs::
 
-    # for TensorFlow
-    pip install "python-doctr[tf]"
-    # for PyTorch
-    pip install "python-doctr[torch]"
+    .. tab:: TensorFlow
+
+        .. code:: bash
+
+            pip install python-doctr[tensorflow]
+
+    .. tab:: PyTorch
+
+        .. code:: bash
+
+            pip install python-doctr[pytorch]
 
 
 Via Git
@@ -50,17 +57,18 @@ Via Git
 
 Install the library in developper mode:
 
-.. code:: bash
+.. tabs::
 
-    git clone https://github.com/mindee/doctr.git
-    pip install -e doctr/.
+    .. tab:: TensorFlow
 
-Again, for framework-specific builds:
+        .. code:: bash
 
-.. code:: bash
+            git clone https://github.com/mindee/doctr.git
+            pip install -e doctr/.[tf]
 
-    git clone https://github.com/mindee/doctr.git
-    # for TensorFlow
-    pip install -e doctr/.[tf]
-    # for PyTorch
-    pip install -e doctr/.[torch]
+    .. tab:: PyTorch
+
+        .. code:: bash
+
+            git clone https://github.com/mindee/doctr.git
+            pip install -e doctr/.[torch]

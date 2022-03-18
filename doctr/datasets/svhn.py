@@ -20,10 +20,12 @@ class SVHN(VisionDataset):
     """SVHN dataset from `"The Street View House Numbers (SVHN) Dataset"
     <http://ufldl.stanford.edu/housenumbers/>`_.
 
-    Example::
-        >>> from doctr.datasets import SVHN
-        >>> train_set = SVHN(train=True, download=True)
-        >>> img, target = train_set[0]
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svhn-grid.png
+        :align: center
+
+    >>> from doctr.datasets import SVHN
+    >>> train_set = SVHN(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

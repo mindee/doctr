@@ -280,14 +280,16 @@ def _master(
 
 def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     """MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
-    Example::
-        >>> import torch
-        >>> from doctr.models import master
-        >>> model = master(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 48, 160))
-        >>> out = model(input_tensor)
+
+    >>> import torch
+    >>> from doctr.models import master
+    >>> model = master(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 48, 160))
+    >>> out = model(input_tensor)
+
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
     Returns:
         text recognition architecture
     """

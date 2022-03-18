@@ -18,10 +18,12 @@ class SVT(VisionDataset):
     """SVT dataset from `"The Street View Text Dataset - UCSD Computer Vision"
     <http://vision.ucsd.edu/~kai/svt/>`_.
 
-    Example::
-        >>> from doctr.datasets import SVT
-        >>> train_set = SVT(train=True, download=True)
-        >>> img, target = train_set[0]
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svt-grid.png
+        :align: center
+
+    >>> from doctr.datasets import SVT
+    >>> train_set = SVT(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+from copy import deepcopy
 from typing import Any, List, Tuple
 
 import tensorflow as tf
@@ -22,7 +23,7 @@ class AbstractDataset(_AbstractDataset):
         # Read image
         img = read_img_as_tensor(os.path.join(self.root, img_name), dtype=tf.float32)
 
-        return img, target
+        return img, deepcopy(target)
 
     @staticmethod
     def collate_fn(samples: List[Tuple[tf.Tensor, Any]]) -> Tuple[tf.Tensor, List[Any]]:

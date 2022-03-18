@@ -19,15 +19,17 @@ __all__ = ["IC13"]
 class IC13(AbstractDataset):
     """IC13 dataset from `"ICDAR 2013 Robust Reading Competition" <https://rrc.cvc.uab.es/>`_.
 
-    Example::
-        >>> # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.
-        >>> from doctr.datasets import IC13
-        >>> train_set = IC13(img_folder="/path/to/Challenge2_Training_Task12_Images",
-        >>>                  label_folder="/path/to/Challenge2_Training_Task1_GT")
-        >>> img, target = train_set[0]
-        >>> test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",
-        >>>                 label_folder="/path/to/Challenge2_Test_Task1_GT")
-        >>> img, target = test_set[0]
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/ic13-grid.png
+        :align: center
+
+    >>> # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.
+    >>> from doctr.datasets import IC13
+    >>> train_set = IC13(img_folder="/path/to/Challenge2_Training_Task12_Images",
+    >>>                  label_folder="/path/to/Challenge2_Training_Task1_GT")
+    >>> img, target = train_set[0]
+    >>> test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",
+    >>>                 label_folder="/path/to/Challenge2_Test_Task1_GT")
+    >>> img, target = test_set[0]
 
     Args:
         img_folder: folder with all the images of the dataset
