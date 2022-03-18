@@ -460,12 +460,11 @@
     <span class="sd">"""CRNN with a VGG-16 backbone as described in `"An End-to-End Trainable Neural Network for Image-based</span>
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition" &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_vgg16_bn</span>
-<span class="sd">        &gt;&gt;&gt; model = crnn_vgg16_bn(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import crnn_vgg16_bn</span>
+<span class="sd">    &gt;&gt;&gt; model = crnn_vgg16_bn(pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
@@ -481,12 +480,11 @@
     <span class="sd">"""CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based</span>
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition" &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_mobilenet_v3_small</span>
-<span class="sd">        &gt;&gt;&gt; model = crnn_mobilenet_v3_small(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import crnn_mobilenet_v3_small</span>
+<span class="sd">    &gt;&gt;&gt; model = crnn_mobilenet_v3_small(pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
@@ -502,12 +500,11 @@
     <span class="sd">"""CRNN with a MobileNet V3 Large backbone as described in `"An End-to-End Trainable Neural Network for Image-based</span>
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition" &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import crnn_mobilenet_v3_large</span>
-<span class="sd">        &gt;&gt;&gt; model = crnn_mobilenet_v3_large(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import crnn_mobilenet_v3_large</span>
+<span class="sd">    &gt;&gt;&gt; model = crnn_mobilenet_v3_large(pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>

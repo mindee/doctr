@@ -290,12 +290,11 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CropOrientationPredictor</span><span class="p">:</span>
     <span class="sd">"""Orientation classification architecture.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import crop_orientation_predictor</span>
-<span class="sd">        &gt;&gt;&gt; model = crop_orientation_predictor(arch='classif_mobilenet_v3_small', pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_crop = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([input_crop])</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import crop_orientation_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = crop_orientation_predictor(arch='classif_mobilenet_v3_small', pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_crop = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; out = model([input_crop])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        arch: name of the architecture to use (e.g. 'mobilenet_v3_small')</span>

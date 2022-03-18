@@ -468,12 +468,11 @@
     <span class="sd">"""Resnet-18 architecture as described in `"Deep Residual Learning for Image Recognition",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet18</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet18(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet18</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet18(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
@@ -500,12 +499,11 @@
 <span class="sd">    `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_. Downsizing: (H, W) --&gt; (H/8, W/4)</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet31</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet31(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet31</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet31(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
@@ -532,12 +530,11 @@
     <span class="sd">"""Resnet-34 architecture as described in `"Deep Residual Learning for Image Recognition",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet34</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet34(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet34</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet34(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
@@ -563,12 +560,11 @@
     <span class="sd">"""Resnet-50 architecture as described in `"Deep Residual Learning for Image Recognition",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet50</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet50(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet50</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet50(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
@@ -600,12 +596,11 @@
     <span class="sd">"""Resnet-34 architecture as described in `"Deep Residual Learning for Image Recognition",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_ with twice as many output channels for each stage.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet34_wide</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet34_wide(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet34_wide</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet34_wide(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>

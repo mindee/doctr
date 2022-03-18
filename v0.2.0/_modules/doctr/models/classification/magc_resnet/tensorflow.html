@@ -408,12 +408,11 @@
 <span class="sd">    `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import torch</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import magc_resnet31</span>
-<span class="sd">        &gt;&gt;&gt; model = magc_resnet31(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import magc_resnet31</span>
+<span class="sd">    &gt;&gt;&gt; model = magc_resnet31(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>

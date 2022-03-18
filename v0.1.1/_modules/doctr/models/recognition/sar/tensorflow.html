@@ -585,12 +585,11 @@
     <span class="sd">"""SAR with a resnet-31 feature extractor as described in `"Show, Attend and Read:A Simple and Strong</span>
 <span class="sd">    Baseline for Irregular Text Recognition" &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
-<span class="sd">    Example:</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import sar_resnet31</span>
-<span class="sd">        &gt;&gt;&gt; model = sar_resnet31(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import sar_resnet31</span>
+<span class="sd">    &gt;&gt;&gt; model = sar_resnet31(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 64, 256, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>

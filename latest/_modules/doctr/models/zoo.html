@@ -300,12 +300,11 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">"""End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')</span>

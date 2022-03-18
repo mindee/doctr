@@ -524,12 +524,11 @@
 <div class="viewcode-block" id="master"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.master">[docs]</a><span class="k">def</span> <span class="nf">master</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
     <span class="sd">"""MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import master</span>
-<span class="sd">        &gt;&gt;&gt; model = master(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 48, 160, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import master</span>
+<span class="sd">    &gt;&gt;&gt; model = master(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 48, 160, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
