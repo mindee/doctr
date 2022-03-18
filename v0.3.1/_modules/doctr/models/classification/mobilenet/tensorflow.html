@@ -182,21 +182,26 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/installing.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
@@ -513,7 +518,7 @@
     <span class="k">return</span> <span class="n">model</span>
 
 
-<div class="viewcode-block" id="mobilenet_v3_small"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<div class="viewcode-block" id="mobilenet_v3_small"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="sd">"""MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -535,7 +540,7 @@
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_small'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mobilenet_v3_small_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<div class="viewcode-block" id="mobilenet_v3_small_r"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="sd">"""MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_, with rectangular pooling.</span>
@@ -557,7 +562,7 @@
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_small_r'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mobilenet_v3_large"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<div class="viewcode-block" id="mobilenet_v3_large"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="sd">"""MobileNetV3-Large architecture as described in</span>
 <span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -578,7 +583,7 @@
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_large'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mobilenet_v3_large_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<div class="viewcode-block" id="mobilenet_v3_large_r"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="sd">"""MobileNetV3-Large architecture as described in</span>
 <span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -599,7 +604,7 @@
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_large_r'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mobilenet_v3_small_orientation"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small_orientation">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<div class="viewcode-block" id="mobilenet_v3_small_orientation"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_orientation">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="sd">"""MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
