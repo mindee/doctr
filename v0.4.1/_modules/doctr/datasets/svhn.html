@@ -256,10 +256,12 @@
     <span class="sd">"""SVHN dataset from `"The Street View House Numbers (SVHN) Dataset"</span>
 <span class="sd">    &lt;http://ufldl.stanford.edu/housenumbers/&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import SVHN</span>
-<span class="sd">        &gt;&gt;&gt; train_set = SVHN(train=True, download=True)</span>
-<span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svhn-grid.png</span>
+<span class="sd">        :align: center</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import SVHN</span>
+<span class="sd">    &gt;&gt;&gt; train_set = SVHN(train=True, download=True)</span>
+<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>

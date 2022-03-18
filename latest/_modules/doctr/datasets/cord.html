@@ -256,10 +256,12 @@
     <span class="sd">"""CORD dataset from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing"</span>
 <span class="sd">    &lt;https://openreview.net/pdf?id=SJl3z659UH&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import CORD</span>
-<span class="sd">        &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
-<span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/cord-grid.png</span>
+<span class="sd">        :align: center</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import CORD</span>
+<span class="sd">    &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
+<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>

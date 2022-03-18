@@ -270,12 +270,11 @@
 <div class="viewcode-block" id="DataLoader"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.loader.DataLoader">[docs]</a><span class="k">class</span> <span class="nc">DataLoader</span><span class="p">:</span>
     <span class="sd">"""Implements a dataset wrapper for fast data loading</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import FUNSD, DataLoader</span>
-<span class="sd">        &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
-<span class="sd">        &gt;&gt;&gt; train_loader = DataLoader(train_set, batch_size=32)</span>
-<span class="sd">        &gt;&gt;&gt; train_iter = iter(train_loader)</span>
-<span class="sd">        &gt;&gt;&gt; images, targets = next(train_iter)</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import FUNSD, DataLoader</span>
+<span class="sd">    &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
+<span class="sd">    &gt;&gt;&gt; train_loader = DataLoader(train_set, batch_size=32)</span>
+<span class="sd">    &gt;&gt;&gt; train_iter = iter(train_loader)</span>
+<span class="sd">    &gt;&gt;&gt; images, targets = next(train_iter)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset: the dataset</span>

@@ -256,17 +256,21 @@
 <div class="viewcode-block" id="IMGUR5K"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.IMGUR5K">[docs]</a><span class="k">class</span> <span class="nc">IMGUR5K</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
     <span class="sd">"""IMGUR5K dataset from `"TextStyleBrush: Transfer of Text Aesthetics from a Single Example"</span>
 <span class="sd">    &lt;https://arxiv.org/abs/2106.08385&gt;`_ |</span>
-<span class="sd">    `"repository" &lt;https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset&gt;`_.</span>
+<span class="sd">    `repository &lt;https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; # NOTE: You need to download/generate the dataset from the repository.</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import IMGUR5K</span>
-<span class="sd">        &gt;&gt;&gt; train_set = IMGUR5K(train=True, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",</span>
-<span class="sd">        &gt;&gt;&gt;                     label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")</span>
-<span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
-<span class="sd">        &gt;&gt;&gt; test_set = IMGUR5K(train=False, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",</span>
-<span class="sd">        &gt;&gt;&gt;                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")</span>
-<span class="sd">        &gt;&gt;&gt; img, target = test_set[0]</span>
+<span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/imgur5k-grid.png</span>
+<span class="sd">        :align: center</span>
+<span class="sd">        :width: 630</span>
+<span class="sd">        :height: 400</span>
+
+<span class="sd">    &gt;&gt;&gt; # NOTE: You need to download/generate the dataset from the repository.</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import IMGUR5K</span>
+<span class="sd">    &gt;&gt;&gt; train_set = IMGUR5K(train=True, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",</span>
+<span class="sd">    &gt;&gt;&gt;                     label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")</span>
+<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; test_set = IMGUR5K(train=False, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",</span>
+<span class="sd">    &gt;&gt;&gt;                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")</span>
+<span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
