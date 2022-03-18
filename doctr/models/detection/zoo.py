@@ -57,12 +57,11 @@ def detection_predictor(
 ) -> DetectionPredictor:
     """Text detection architecture.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.models import detection_predictor
-        >>> model = detection_predictor(arch='db_resnet50', pretrained=True)
-        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
-        >>> out = model([input_page])
+    >>> import numpy as np
+    >>> from doctr.models import detection_predictor
+    >>> model = detection_predictor(arch='db_resnet50', pretrained=True)
+    >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+    >>> out = model([input_page])
 
     Args:
         arch: name of the architecture to use (e.g. 'db_resnet50')

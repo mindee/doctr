@@ -249,12 +249,11 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a VGG-16 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import crnn_vgg16_bn
-        >>> model = crnn_vgg16_bn(pretrained=True)
-        >>> input_tensor = torch.rand(1, 3, 32, 128)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import crnn_vgg16_bn
+    >>> model = crnn_vgg16_bn(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
@@ -270,12 +269,11 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import crnn_mobilenet_v3_small
-        >>> model = crnn_mobilenet_v3_small(pretrained=True)
-        >>> input_tensor = torch.rand(1, 3, 32, 128)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import crnn_mobilenet_v3_small
+    >>> model = crnn_mobilenet_v3_small(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
@@ -291,12 +289,11 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a MobileNet V3 Large backbone as described in `"An End-to-End Trainable Neural Network for Image-based
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import crnn_mobilenet_v3_large
-        >>> model = crnn_mobilenet_v3_large(pretrained=True)
-        >>> input_tensor = torch.rand(1, 3, 32, 128)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import crnn_mobilenet_v3_large
+    >>> model = crnn_mobilenet_v3_large(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
