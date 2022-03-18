@@ -73,13 +73,14 @@ _deps = [
     "mypy>=0.812",
     "pydocstyle>=6.1.1",
     # Docs
-    "sphinx<3.5.0",
-    "sphinx-rtd-theme==0.4.3",
+    "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
     "docutils<0.18",
     "recommonmark>=0.7.1",
     "sphinx-markdown-tables>=0.0.15",
+    "sphinx-tabs>=3.3.0",
+    "furo>=2022.3.4",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -148,12 +149,13 @@ extras["quality"] = deps_list(
 
 extras["docs_specific"] = deps_list(
     "sphinx",
-    "sphinx-rtd-theme",
     "sphinxemoji",
     "sphinx-copybutton",
     "docutils",
     "recommonmark",
     "sphinx-markdown-tables",
+    "sphinx-tabs",
+    "furo",
 )
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
