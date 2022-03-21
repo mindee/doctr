@@ -228,12 +228,13 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
+    def __call__(self, img: Any, target: Dict[str, Any]) -> Tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
-        r_img, r_polys = F.rotate_sample(img, target, angle, self.expand)
+        r_img, r_polys = F.rotate_sample(img, target['boxes'], angle, self.expand)
         # Removes deleted boxes
         is_kept = (r_polys.max(1) > r_polys.min(1)).sum(1) == 2
-        return r_img, r_polys[is_kept]
+        target['boxes'] = r_polys[is_kept]
+        return r_img, target
 
 
 class RandomCrop(NestedObject):
