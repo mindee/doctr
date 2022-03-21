@@ -17,15 +17,21 @@ import torch
 import torch.optim as optim
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
-from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
+from torch.optim.lr_scheduler import MultiplicativeLR, OneCycleLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import ColorJitter, Compose, GaussianBlur
+from torchvision.transforms import ColorJitter, Compose, GaussianBlur, InterpolationMode
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import obj_detection
 from doctr.utils import DetectionMetric
 from utils import plot_recorder, plot_samples
+
+
+def polygons_to_bboxes(target):
+    # (N, 4, 2)
+    target['boxes'] = np.concatenate((target['boxes'].min(1), target['boxes'].max(1)), -1)
+    return target
 
 
 def record_lr(
@@ -178,10 +184,17 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     st = time.time()
+    spatial_size = (args.input_size, args.input_size)
     val_set = DocArtefacts(
         train=False,
         download=True,
-        img_transforms=T.Resize((args.input_size, args.input_size)),
+        img_transforms=Compose([
+            T.RandomApply(T.RandomShadow((.2, .8)), p=0.5),
+            T.RandomApply(T.GaussianNoise(0., 0.1), p=0.5),
+            T.RandomApply(GaussianBlur(kernel_size=(5, 5), sigma=(0.1, 2)), .3),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
+            T.Resize(spatial_size),
+        ]),
     )
     val_loader = DataLoader(
         val_set,
@@ -234,12 +247,20 @@ def main(args):
         train=True,
         download=True,
         img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
-            T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
-            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
+            # Real-world aug
+            T.RandomApply(T.RandomShadow((.2, .8)), p=0.5),
+            # Acquisition-digital augmentation
+            T.RandomApply(T.GaussianNoise(0., 0.1), p=0.5),
+            T.RandomApply(GaussianBlur(kernel_size=(5, 5), sigma=(0.1, 2)), .3),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
         ]),
-        sample_transforms=T.RandomHorizontalFlip(p=0.5),
+        sample_transforms=T.SampleCompose([
+            T.RandomHorizontalFlip(p=0.5),
+            T.RandomRotate(15, expand=True),
+            T.ImageTransform(T.Resize(spatial_size, interpolation=InterpolationMode.BILINEAR)),
+            # Convert back to boxes for Faster
+            lambda x, y: (x, polygons_to_bboxes(y)),
+        ]),
     )
     train_loader = DataLoader(
         train_set,
@@ -265,15 +286,15 @@ def main(args):
             p.reguires_grad_(False)
 
     # Optimizer
-    optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
-                          lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = optim.Adam([p for p in model.parameters() if p.requires_grad], args.lr,
+                           betas=(0.95, 0.99), eps=1e-6, weight_decay=args.weight_decay)
     # LR Finder
     if args.find_lr:
         lrs, losses = record_lr(model, train_loader, optimizer, amp=args.amp)
         plot_recorder(lrs, losses)
         return
     # Scheduler
-    scheduler = StepLR(optimizer, step_size=8, gamma=0.7)
+    scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(train_loader))
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -290,10 +311,10 @@ def main(args):
                 "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
-                "input_size": args.input_size,
-                "optimizer": "sgd",
+                "input_size": spatial_size,
+                "optimizer": "adam",
                 "framework": "pytorch",
-                "scheduler": "step",
+                "scheduler": "onecycle",
                 "pretrained": args.pretrained,
                 "amp": args.amp,
             }
