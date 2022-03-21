@@ -113,16 +113,12 @@ class SARDecoder(nn.Module):
         gt: Optional[torch.Tensor] = None,  # (N, L)
     ) -> torch.Tensor:
 
-        if isinstance(gt, torch.Tensor) and self.training:
-            # (N, L) --> (N, L, embedding_units)
-            symbol = self.embed(gt)
-        else:
-            # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
-            symbol = torch.zeros(features.shape[0], device=features.device, dtype=torch.long)
-            # (N, embedding_units)
-            symbol = self.embed(symbol)
-            # (N, L, embedding_units)
-            symbol = symbol.unsqueeze(1).expand(-1, self.max_length + 1, -1)
+        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
+        symbol = torch.zeros(features.shape[0], device=features.device, dtype=torch.long)
+        # (N, embedding_units)
+        symbol = self.embed(symbol)
+        # (N, L, embedding_units)
+        symbol = symbol.unsqueeze(1).expand(-1, self.max_length + 1, -1)
 
         # (N, L + 1, embedding_units)
         symbol = torch.cat((holistic.unsqueeze(1), symbol), dim=1)
@@ -134,7 +130,8 @@ class SARDecoder(nn.Module):
             dtype=features.dtype,
         )
 
-        decoding_iter = self.max_length + 1 if gt is None else 1
+        # decoding_iter = self.max_length + 1 if gt is None else 1
+        decoding_iter = self.max_length + 1
         for t in range(decoding_iter):
             # (N, L + 1, rnn_units)
             logits = self.rnn(symbol)[0]
@@ -144,13 +141,11 @@ class SARDecoder(nn.Module):
             logits = torch.cat((logits, glimpse), -1)
             # (N, L + 1, vocab_size + 1)
             decoded = self.output_dense(logits)
-            if isinstance(gt, torch.Tensor) and self.training:
-                char_logits = decoded[:, 1:]
-            else:
-                char_logits[:, t] = decoded[:, t + 1]
-                if t < decoding_iter - 1:
-                    # update symbol with predicted logits for t + 1 step
-                    symbol[:, t + 2] = self.embed(decoded[:, t + 1].argmax(-1))
+
+            char_logits[:, t] = decoded[:, t + 1]
+            if t < decoding_iter - 1:
+                # update symbol with predicted logits for t + 1 step
+                symbol[:, t + 2] = self.embed(decoded[:, t + 1].argmax(-1))
 
         return char_logits
 
