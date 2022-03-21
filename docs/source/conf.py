@@ -103,7 +103,7 @@ html_theme_options = {
 
 html_logo = '_static/images/Logo-docTR-white.png'
 html_favicon = '_static/images/favicon.ico'
-
+html_title = 'docTR documentation'
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
