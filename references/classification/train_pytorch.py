@@ -20,7 +20,7 @@ from torch.nn.functional import cross_entropy
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscale, InterpolationMode, Normalize,
-                                    RandomRotation)
+                                    RandomPerspective, RandomRotation)
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
@@ -242,14 +242,16 @@ def main(args):
         num_samples=args.train_samples * len(vocab),
         cache_samples=True,
         img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .9),
-            # GaussianNoise
-            T.RandomApply(Grayscale(3), .1),
-            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            # Photometric
+            T.RandomApply(T.ColorInversion(), .95),
+            T.RandomApply(T.GaussianNoise(mean=0, std=.1), .2),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=.3),
             T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
-            RandomRotation(15, interpolation=InterpolationMode.BILINEAR),
+            T.RandomApply(Grayscale(3), .1),
+            # Geometric
+            RandomPerspective(distortion_scale=0.3, interpolation=InterpolationMode.BILINEAR, p=0.8),
+            RandomRotation(10, interpolation=InterpolationMode.BILINEAR),
+            T.Resize((args.input_size, args.input_size)),
         ]),
         font_family=fonts,
     )
