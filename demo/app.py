@@ -21,7 +21,7 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from doctr.utils.visualization import visualize_page
 
-DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large"]
+DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18_rotation"]
 RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
 
 
@@ -73,7 +73,10 @@ def main():
 
         else:
             with st.spinner('Loading model...'):
-                predictor = ocr_predictor(det_arch, reco_arch, pretrained=True)
+                predictor = ocr_predictor(
+                    det_arch, reco_arch, pretrained=True,
+                    assume_straight_pages=(det_arch != "linknet_resnet18_rotation")
+                )
 
             with st.spinner('Analyzing...'):
 
@@ -97,8 +100,9 @@ def main():
 
                 # Page reconsitution under input page
                 page_export = out.pages[0].export()
-                img = out.pages[0].synthesize()
-                cols[3].image(img, clamp=True)
+                if det_arch != "linknet_resnet18_rotation":
+                    img = out.pages[0].synthesize()
+                    cols[3].image(img, clamp=True)
 
                 # Display JSON
                 st.markdown("\nHere are your analysis results in JSON format:")
