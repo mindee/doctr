@@ -7,10 +7,12 @@ import string
 import unicodedata
 from collections.abc import Sequence
 from functools import partial
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, TypeVar, Union
 
+import cv2
 import numpy as np
 
 from doctr.io.image import get_img_shape
@@ -161,3 +163,43 @@ def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tupl
 
     target['boxes'] = convert_to_relative_coords(target['boxes'], get_img_shape(img))
     return img, target
+
+
+def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> List[np.ndarray]:
+    """Crop a set of bounding boxes from an image
+
+    Args:
+        img: the image to crop
+        geoms: a set of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
+
+    Returns:
+        a list of cropped images
+    """
+    cropped_parts = list()
+    img = cv2.imread(img_path)
+
+    # Polygon
+    if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
+        height, width = img.shape[:2]
+        for bbox in geoms:
+            bbox = np.expand_dims(bbox, axis=1)
+            rect = cv2.minAreaRect(bbox)
+            box = np.int0(cv2.boxPoints(rect))
+
+            center, size, angle = tuple(map(int, rect[0])), tuple(map(int, rect[1])), rect[2]
+            print(angle)
+
+            M = cv2.getRotationMatrix2D(center, angle, 1)
+            rotated_img = cv2.warpAffine(img, M, (width, height))
+            crop = cv2.getRectSubPix(rotated_img, size, center)
+            # rotate crop back if upside
+            if angle > 50:  # TODO: how to solve save ?
+                crop = cv2.rotate(crop, cv2.ROTATE_90_CLOCKWISE)
+            cropped_parts.append(crop)
+
+    if geoms.ndim == 2 and geoms.shape[1] == 4:
+        for bbox in geoms:
+            crop = img[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
+            cropped_parts.append(crop)
+
+    return cropped_parts

@@ -4,14 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 from scipy import io as sio
 from tqdm import tqdm
 
 from .datasets import VisionDataset
-from .utils import convert_target_to_relative
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ['SynthText']
 
@@ -31,6 +31,7 @@ class SynthText(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -41,6 +42,7 @@ class SynthText(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -53,6 +55,7 @@ class SynthText(VisionDataset):
             **kwargs
         )
         self.train = train
+        use_polygons = True if recognition_task else use_polygons
 
         # Load mat data
         tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
@@ -64,7 +67,7 @@ class SynthText(VisionDataset):
         labels = mat_data['txt'][0][set_slice]
         del mat_data
 
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
@@ -82,7 +85,20 @@ class SynthText(VisionDataset):
                 # xmin, ymin, xmax, ymax
                 word_boxes = np.concatenate((word_boxes.min(axis=1), word_boxes.max(axis=1)), axis=1)
 
-            self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
+            if recognition_task:
+                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
+                i = 0
+                for crop, label in zip(crops, labels):
+                    print(label)
+                    from PIL import Image
+                    im = Image.fromarray(crop)
+                    im.save(f"{i}.png")
+                    i += 1
+                    self.data.append((crop, dict(labels=label)))
+                import sys
+                sys.exit(0)
+            else:
+                self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
 
         self.root = tmp_root
 
