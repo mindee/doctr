@@ -4,12 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import defusedxml.ElementTree as ET
 import numpy as np
 
 from .datasets import VisionDataset
+from .utils import crop_bboxes_from_image
 
 __all__ = ['IC03']
 
@@ -28,6 +29,7 @@ class IC03(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -42,14 +44,17 @@ class IC03(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
         url, sha256, file_name = self.TRAIN if train else self.TEST
         super().__init__(url, file_name, sha256, True, **kwargs)
         self.train = train
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
+        # ic03 dataset has no rotated bboxes -> use straight ones if recognition task
+        use_polygons = False if recognition_task else use_polygons
 
         # Load xml data
         tmp_root = os.path.join(
@@ -89,20 +94,25 @@ class IC03(VisionDataset):
 
             # filter images without boxes
             if len(_boxes) > 0:
-                # Convert them to relative
-                w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
                 boxes = np.asarray(_boxes, dtype=np_dtype)
-                if use_polygons:
-                    boxes[:, :, 0] /= w
-                    boxes[:, :, 1] /= h
-                else:
-                    boxes[:, [0, 2]] /= w
-                    boxes[:, [1, 3]] /= h
-
                 # Get the labels
                 labels = [lab.text for rect in rectangles for lab in rect if lab.text]
 
-                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
+                if recognition_task:
+                    crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
+                    for crop, label in zip(crops, labels):
+                        self.data.append((crop, dict(labels=[label])))
+                else:
+                    # Convert coordinates to relative
+                    w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
+                    if use_polygons:
+                        boxes[:, :, 0] /= w
+                        boxes[:, :, 1] /= h
+                    else:
+                        boxes[:, [0, 2]] /= w
+                        boxes[:, [1, 3]] /= h
+
+                    self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 

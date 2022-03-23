@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import copy
 from math import ceil
 from typing import List, Optional, Tuple, Union
 
@@ -301,3 +302,42 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
         return boxes.clip(0, 1)
 
     raise ValueError(f"invalid format for arg `geoms`: {geoms.shape}")
+
+
+def crop_image_sections(image: np.ndarray, geoms: np.ndarray) -> List[np.ndarray]:
+    """Crop a set of polygons from an image
+
+    Args:
+        image: image as numpy array
+        geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
+
+    Returns:
+        a list of cropped images
+    """
+
+    cropped_parts = list()
+
+    # Polygon
+    if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
+        height, width = image.shape[:2]
+        for bbox in geoms:
+            bbox = np.expand_dims(bbox, axis=1)
+            rect = cv2.minAreaRect(bbox)
+
+            center, size, angle = tuple(map(int, rect[0])), tuple(map(int, rect[1])), rect[2]
+
+            M = cv2.getRotationMatrix2D(center, angle, 1)
+            rotated_img = cv2.warpAffine(image, M, (width, height))
+            crop = cv2.getRectSubPix(rotated_img, size, center)
+            # rotate crop back if upside
+            if angle > 40.0:
+                crop = cv2.rotate(crop, cv2.ROTATE_90_CLOCKWISE)
+            cropped_parts.append(crop)
+
+    if geoms.ndim == 2 and geoms.shape[1] == 4:
+        for bbox in geoms:
+            # use copy to avoid memory leak
+            crop = copy.copy(image[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])])
+            cropped_parts.append(crop)
+
+    return cropped_parts

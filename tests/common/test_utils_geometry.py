@@ -168,3 +168,25 @@ def test_estimate_page_angle():
     rotated_polys = geometry.rotate_boxes(straight_polys, angle=20, orig_shape=(512, 512))
     angle = geometry.estimate_page_angle(rotated_polys)
     assert np.isclose(angle, 20)
+
+
+def test_crop_image_sections():
+    img = np.ones((512, 512, 3), dtype=np.float32)
+
+    # Polygon (N, 4, 2)
+    geoms = np.array(
+        [
+            [[100, 100], [200, 100], [200, 200], [100, 200]],
+            [[200, 200], [300, 300], [300, 300], [200, 300]]
+        ], dtype=np.float32
+    )
+    crops = geometry.crop_image_sections(img, geoms)
+    assert isinstance(crops, list) and len(crops) == 2 and all(isinstance(c, np.ndarray) for c in crops)
+    assert all(c.shape == (100, 100, 3) for c in crops)
+
+    # (N, 4)
+    geoms = np.array([[100, 100, 200, 200],
+                      [200, 200, 300, 300]])
+    crops = geometry.crop_image_sections(img, geoms)
+    assert isinstance(crops, list) and len(crops) == 2 and all(isinstance(c, np.ndarray) for c in crops)
+    assert all(c.shape == (100, 100, 3) for c in crops)

@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -32,6 +31,7 @@ class IIIT5K(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -42,6 +42,7 @@ class IIIT5K(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -50,7 +51,7 @@ class IIIT5K(VisionDataset):
             None,
             file_hash=self.SHA256,
             extract_archive=True,
-            pre_transforms=convert_target_to_relative,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs
         )
         self.train = train
@@ -60,7 +61,7 @@ class IIIT5K(VisionDataset):
         mat_file = 'trainCharBound' if self.train else 'testCharBound'
         mat_data = sio.loadmat(os.path.join(tmp_root, f'{mat_file}.mat'))[mat_file][0]
 
-        self.data: List[Tuple[Path, Dict[str, Any]]] = []
+        self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
 
         for img_path, label, box_targets in mat_data:
@@ -71,23 +72,26 @@ class IIIT5K(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, _raw_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
-            if use_polygons:
-                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                box_targets = [
-                    [
-                        [box[0], box[1]],
-                        [box[0] + box[2], box[1]],
-                        [box[0] + box[2], box[1] + box[3]],
-                        [box[0], box[1] + box[3]],
-                    ] for box in box_targets
-                ]
+            if recognition_task:
+                self.data.append((_raw_path, dict(labels=_raw_label)))
             else:
-                # xmin, ymin, xmax, ymax
-                box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
+                if use_polygons:
+                    # (x, y) coordinates of top left, top right, bottom right, bottom left corners
+                    box_targets = [
+                        [
+                            [box[0], box[1]],
+                            [box[0] + box[2], box[1]],
+                            [box[0] + box[2], box[1] + box[3]],
+                            [box[0], box[1] + box[3]],
+                        ] for box in box_targets
+                    ]
+                else:
+                    # xmin, ymin, xmax, ymax
+                    box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
-            # label are casted to list where each char corresponds to the character's bounding box
-            self.data.append((_raw_path, dict(boxes=np.asarray(
-                box_targets, dtype=np_dtype), labels=list(_raw_label))))
+                # label are casted to list where each char corresponds to the character's bounding box
+                self.data.append((_raw_path, dict(boxes=np.asarray(
+                    box_targets, dtype=np_dtype), labels=list(_raw_label))))
 
         self.root = tmp_root
 

@@ -51,10 +51,11 @@ class SynthText(VisionDataset):
             None,
             file_hash=None,
             extract_archive=True,
-            pre_transforms=convert_target_to_relative,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs
         )
         self.train = train
+        # synthtext has rotated bboxes -> use polygons for recognition task
         use_polygons = True if recognition_task else use_polygons
 
         # Load mat data
@@ -87,16 +88,8 @@ class SynthText(VisionDataset):
 
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
-                i = 0
                 for crop, label in zip(crops, labels):
-                    print(label)
-                    from PIL import Image
-                    im = Image.fromarray(crop)
-                    im.save(f"{i}.png")
-                    i += 1
                     self.data.append((crop, dict(labels=label)))
-                import sys
-                sys.exit(0)
             else:
                 self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
 

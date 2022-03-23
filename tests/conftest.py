@@ -182,11 +182,11 @@ def mock_ic13(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
     image_folder = tmpdir_factory.mktemp("images")
     label_folder = tmpdir_factory.mktemp("labels")
-    labels = ["1309, 2240, 1440, 2341, 'I'\n",
-              "800, 2240, 1440, 2341, 'am'\n",
-              "500, 2240, 1440, 2341, 'a'\n",
-              "900, 2240, 1440, 2341, 'jedi'\n",
-              "400, 2240, 1440, 2341, '!'"]
+    labels = ["100, 100, 200, 200,  'I'\n",
+              "250, 300, 455, 678, 'am'\n",
+              "321, 485, 529, 607, 'a'\n",
+              "235, 121, 325, 621, 'jedi'\n",
+              "468, 589, 1120, 2520, '!'"]
     for i in range(5):
         fn_l = label_folder.join(f"gt_mock_image_file_{i}.txt")
         with open(fn_l, 'w') as f:
