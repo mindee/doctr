@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import AbstractDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
@@ -68,8 +69,6 @@ class IMGUR5K(AbstractDataset):
         self.data: List[Tuple[Union[Path, np.ndarray], Dict[str, Any]]] = []
         self.train = train
         np_dtype = np.float32
-        # imgur5k has rotated bboxes -> use polygons for recognition task
-        use_polygons = True if recognition_task else use_polygons
 
         img_names = os.listdir(img_folder)
         train_samples = int(len(img_names) * 0.9)
@@ -78,7 +77,7 @@ class IMGUR5K(AbstractDataset):
         with open(label_path) as f:
             annotation_file = json.load(f)
 
-        for img_name in img_names[set_slice]:
+        for img_name in tqdm(iterable=img_names[set_slice], desc='Unpacking IMGUR5K', total=len(img_names[set_slice])):
             img_path = Path(img_folder, img_name)
             img_id = img_name.split(".")[0]
 
@@ -110,7 +109,7 @@ class IMGUR5K(AbstractDataset):
                     crops = crop_bboxes_from_image(img_path=os.path.join(self.root, img_name),
                                                    geoms=np.asarray(box_targets, dtype=np_dtype))
                     for crop, label in zip(crops, labels):
-                        self.data.append((crop, dict(labels=label)))
+                        self.data.append((crop, dict(labels=[label])))
                 else:
                     self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
 

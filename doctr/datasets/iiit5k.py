@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import scipy.io as sio
+from tqdm import tqdm
 
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative
@@ -64,7 +65,7 @@ class IIIT5K(VisionDataset):
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
 
-        for img_path, label, box_targets in mat_data:
+        for img_path, label, box_targets in tqdm(iterable=mat_data, desc='Unpacking IIIT5K', total=len(mat_data)):
             _raw_path = img_path[0]
             _raw_label = label[0]
 
@@ -73,7 +74,7 @@ class IIIT5K(VisionDataset):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, _raw_path)}")
 
             if recognition_task:
-                self.data.append((_raw_path, dict(labels=_raw_label)))
+                self.data.append((_raw_path, dict(labels=[_raw_label])))
             else:
                 if use_polygons:
                     # (x, y) coordinates of top left, top right, bottom right, bottom left corners

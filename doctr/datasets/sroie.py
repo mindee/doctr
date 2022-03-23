@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative
@@ -53,7 +54,7 @@ class SROIE(VisionDataset):
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
 
-        for img_path in os.listdir(tmp_root):
+        for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking SROIE', total=len(os.listdir(tmp_root))):
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):

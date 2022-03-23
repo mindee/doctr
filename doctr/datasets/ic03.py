@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import defusedxml.ElementTree as ET
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
 from .utils import crop_bboxes_from_image
@@ -53,8 +54,6 @@ class IC03(VisionDataset):
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
-        # ic03 dataset has no rotated bboxes -> use straight ones if recognition task
-        use_polygons = False if recognition_task else use_polygons
 
         # Load xml data
         tmp_root = os.path.join(
@@ -62,7 +61,7 @@ class IC03(VisionDataset):
         xml_tree = ET.parse(os.path.join(tmp_root, 'words.xml'))
         xml_root = xml_tree.getroot()
 
-        for image in xml_root:
+        for image in tqdm(iterable=xml_root, desc='Unpacking IC03', total=len(xml_root)):
             name, resolution, rectangles = image
 
             # File existence check

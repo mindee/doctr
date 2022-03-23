@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
@@ -56,8 +57,6 @@ class FUNSD(VisionDataset):
         )
         self.train = train
         np_dtype = np.float32
-        # funsd dataset has no rotated bboxes -> use straight ones if recognition task
-        use_polygons = False if recognition_task else use_polygons
 
         # Use the subset
         subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
@@ -65,7 +64,7 @@ class FUNSD(VisionDataset):
         # # List images
         tmp_root = os.path.join(self.root, subfolder, 'images')
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
-        for img_path in os.listdir(tmp_root):
+        for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking FUNSD', total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
@@ -92,7 +91,7 @@ class FUNSD(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
                                                geoms=np.asarray(box_targets, dtype=np_dtype))
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, dict(labels=label)))
+                    self.data.append((crop, dict(labels=[label])))
             else:
                 self.data.append((
                     img_path,

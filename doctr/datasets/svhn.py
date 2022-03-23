@@ -61,8 +61,6 @@ class SVHN(VisionDataset):
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
-        # svhn dataset has no rotated bboxes -> use straight ones if recognition task
-        use_polygons = False if recognition_task else use_polygons
 
         tmp_root = os.path.join(self.root, 'train' if train else 'test')
 
@@ -116,7 +114,7 @@ class SVHN(VisionDataset):
                 if recognition_task:
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_name), geoms=box_targets)
                     for crop, label in zip(crops, label_targets):
-                        self.data.append((crop, dict(labels=label)))
+                        self.data.append((crop, dict(labels=[label])))
                 else:
                     self.data.append((img_name, dict(boxes=box_targets, labels=label_targets)))
 

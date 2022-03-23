@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
@@ -62,10 +63,8 @@ class CORD(VisionDataset):
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         self.train = train
         np_dtype = np.float32
-        # cord has rotated bboxes -> use polygons for recognition task
-        use_polygons = True if recognition_task else use_polygons
 
-        for img_path in os.listdir(tmp_root):
+        for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking CORD', total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
@@ -98,7 +97,7 @@ class CORD(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
                                                geoms=np.asarray(box_targets, dtype=int).clip(min=0))
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, dict(labels=label)))
+                    self.data.append((crop, dict(labels=[label])))
             else:
                 self.data.append((
                     img_path,

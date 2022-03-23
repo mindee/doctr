@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import AbstractDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
@@ -60,12 +61,10 @@ class IC13(AbstractDataset):
 
         self.data: List[Tuple[Union[Path, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
-        # ic13 dataset has no rotated bboxes -> use straight ones if recognition task
-        use_polygons = False if recognition_task else use_polygons
 
         img_names = os.listdir(img_folder)
 
-        for img_name in img_names:
+        for img_name in tqdm(iterable=img_names, desc='Unpacking IC13', total=len(img_names)):
 
             img_path = Path(img_folder, img_name)
             label_path = Path(label_folder, "gt_" + Path(img_name).stem + ".txt")
@@ -75,7 +74,7 @@ class IC13(AbstractDataset):
                     [val[:-1] if val.endswith(",") else val for val in row]
                     for row in csv.reader(f, delimiter=' ', quotechar="'")
                 ]
-            labels = [line[-1] for line in _lines]
+            labels = [line[-1].replace("\"", "") for line in _lines]
             # xmin, ymin, xmax, ymax
             box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
             if use_polygons:
@@ -94,6 +93,6 @@ class IC13(AbstractDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=img_path, geoms=box_targets)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, dict(labels=label)))
+                    self.data.append((crop, dict(labels=[label])))
             else:
                 self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
