@@ -12,7 +12,7 @@ from doctr.utils import geometry
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
-    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
                           for idx in range(num_crops)], dtype=np.float32)
@@ -46,7 +46,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
 
 def test_extract_rcrops(mock_pdf):  # noqa: F811
-    doc_img = DocumentFile.from_pdf(mock_pdf).as_images()[0]
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array([[[idx / num_crops, idx / num_crops],
                            [idx / num_crops + .1, idx / num_crops],
@@ -94,12 +94,19 @@ def test_get_bitmap_angle(mock_bitmap):
     assert abs(angle - 30.) < 1.
 
 
-def test_estimate_orientation(mock_image):
+def test_estimate_orientation(mock_image, mock_tilted_payslip):
     assert estimate_orientation(mock_image * 0) == 0
 
     angle = estimate_orientation(mock_image)
     assert abs(angle - 30.) < 1.
 
     rotated = geometry.rotate_image(mock_image, -angle)
+    angle_rotated = estimate_orientation(rotated)
+    assert abs(angle_rotated) < 1.
+
+    mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
+    assert (estimate_orientation(mock_tilted_payslip) - 30.) < 1.
+
+    rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) < 1.

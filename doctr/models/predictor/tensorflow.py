@@ -41,12 +41,16 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         straighten_pages: bool = False,
+        preserve_aspect_ratio: bool = False,
+        symmetric_pad: bool = True,
         **kwargs: Any,
     ) -> None:
 
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
-        _OCRPredictor.__init__(self, assume_straight_pages, straighten_pages, **kwargs)
+        _OCRPredictor.__init__(
+            self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
+        )
 
     def __call__(
         self,
@@ -68,6 +72,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
 
+        # Rectify crops if aspect ratio
+        loc_preds = self._remove_padding(pages, loc_preds)
+
         # Crop images
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=True, assume_straight_pages=self.assume_straight_pages
@@ -83,8 +90,12 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            boxes = [rotate_boxes(page_boxes, angle, orig_shape=page.shape[:2]) for
-                     page_boxes, page, angle in zip(boxes, pages, origin_page_orientations)]
+            boxes = [rotate_boxes(page_boxes,
+                                  angle,
+                                  orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
+                                  target_shape=mask) for
+                     page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations,
+                                                          origin_page_shapes)]
 
         out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[misc]
         return out

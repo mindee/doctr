@@ -152,7 +152,7 @@ def _magc_resnet(
         stage_conv,
         stage_pooling,
         origin_stem,
-        partial(MAGC, headers=8, attn_scale=True),
+        attn_module=partial(MAGC, headers=8, attn_scale=True),
         **kwargs,
     )
     # Load pretrained parameters
@@ -167,12 +167,11 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition",
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import magc_resnet31
-        >>> model = magc_resnet31(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import magc_resnet31
+    >>> model = magc_resnet31(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -190,5 +189,6 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [True] * 4,
         [(2, 2), (2, 1), None, None],
         False,
+        stem_channels=128,
         **kwargs,
     )

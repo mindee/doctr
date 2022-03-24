@@ -7,18 +7,24 @@ def test_headers():
     shebang = ["#!usr/bin/python\n"]
     blank_line = "\n"
 
-    _copyright_str = f"-{datetime.now().year}" if datetime.now().year > 2021 else ""
-    copyright_notice = [f"# Copyright (C) 2021{_copyright_str}, Mindee.\n"]
+    starting_year = 2021
+    current_year = datetime.now().year
+    year_str = [current_year] + [f"{starting_year}-{current_year}" for year in range(starting_year, current_year)]
+    if starting_year == current_year:
+        year_str = year_str[:1]
+
+    copyright_notices = [[f"# Copyright (C) {_str}, Mindee.\n"] for _str in year_str]
     license_notice = [
         "# This program is licensed under the Apache License version 2.\n",
         "# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.\n"
     ]
 
     # Define all header options
-    headers = [
+    headers = [[
         shebang + [blank_line] + copyright_notice + [blank_line] + license_notice,
         copyright_notice + [blank_line] + license_notice
-    ]
+    ] for copyright_notice in copyright_notices]
+    headers = [_header for year_header in headers for _header in year_header]
 
     excluded_files = ["version.py", "__init__.py"]
     invalid_files = []

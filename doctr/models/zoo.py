@@ -18,6 +18,7 @@ def _predictor(
     pretrained: bool,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
+    symmetric_pad: bool = True,
     det_bs: int = 2,
     reco_bs: int = 128,
     **kwargs,
@@ -30,6 +31,7 @@ def _predictor(
         batch_size=det_bs,
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
+        symmetric_pad=symmetric_pad,
     )
 
     # Recognition
@@ -39,6 +41,8 @@ def _predictor(
         det_predictor,
         reco_predictor,
         assume_straight_pages=assume_straight_pages,
+        preserve_aspect_ratio=preserve_aspect_ratio,
+        symmetric_pad=symmetric_pad,
         **kwargs
     )
 
@@ -49,17 +53,17 @@ def ocr_predictor(
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
+    symmetric_pad: bool = True,
     export_as_straight_boxes: bool = False,
     **kwargs: Any
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.models import ocr_predictor
-        >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
-        >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
-        >>> out = model([input_page])
+    >>> import numpy as np
+    >>> from doctr.models import ocr_predictor
+    >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+    >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+    >>> out = model([input_page])
 
     Args:
         det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
@@ -69,6 +73,7 @@ def ocr_predictor(
             without rotated textual elements.
         preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before
             running the detection model on it.
+        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.
         export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
             (potentially rotated) as straight bounding boxes.
         kwargs: keyword args of `OCRPredictor`
@@ -83,6 +88,7 @@ def ocr_predictor(
         pretrained,
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
+        symmetric_pad=symmetric_pad,
         export_as_straight_boxes=export_as_straight_boxes,
         **kwargs,
     )

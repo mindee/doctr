@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from math import ceil
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -127,11 +127,43 @@ def rotate_abs_geoms(
     return rotated_polys
 
 
+def remap_boxes(
+    loc_preds: np.ndarray,
+    orig_shape: Tuple[int, int],
+    dest_shape: Tuple[int, int]
+) -> np.ndarray:
+    """ Remaps a batch of rotated locpred (N, 4, 2) expressed for an origin_shape to a destination_shape.
+    This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
+    coordinates after a resizing of the image.
+
+    Args:
+        loc_preds: (N, 4, 2) array of RELATIVE loc_preds
+        orig_shape: shape of the origin image
+        dest_shape: shape of the destination image
+
+    Returns:
+        A batch of rotated loc_preds (N, 4, 2) expressed in the destination referencial
+    """
+
+    if len(dest_shape) != 2:
+        raise ValueError(f"Mask length should be 2, was found at: {len(dest_shape)}")
+    if len(orig_shape) != 2:
+        raise ValueError(f"Image_shape length should be 2, was found at: {len(orig_shape)}")
+    orig_height, orig_width = orig_shape
+    dest_height, dest_width = dest_shape
+    mboxes = loc_preds.copy()
+    mboxes[:, :, 0] = ((loc_preds[:, :, 0] * orig_width) + (dest_width - orig_width) / 2) / dest_width
+    mboxes[:, :, 1] = ((loc_preds[:, :, 1] * orig_height) + (dest_height - orig_height) / 2) / dest_height
+
+    return mboxes
+
+
 def rotate_boxes(
     loc_preds: np.ndarray,
     angle: float,
     orig_shape: Tuple[int, int],
     min_angle: float = 1.,
+    target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
     (4, 2) of an angle, if angle > min_angle, around the center of the page.
@@ -176,6 +208,11 @@ def rotate_boxes(
     rotated_boxes = np.stack(
         (rotated_points[:, :, 0] / orig_shape[1], rotated_points[:, :, 1] / orig_shape[0]), axis=-1
     )
+
+    # Apply a mask if requested
+    if target_shape is not None:
+        rotated_boxes = remap_boxes(rotated_boxes, orig_shape=orig_shape, dest_shape=target_shape)
+
     return rotated_boxes
 
 

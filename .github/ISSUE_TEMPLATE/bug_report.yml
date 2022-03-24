@@ -57,6 +57,19 @@ body:
       ```
   validations:
     required: true
+- type: textarea
+  attributes:
+    label: Deep Learning backend
+    description: |
+      Please run the following snippet and paste the output below.
+      ```python
+      from doctr.file_utils import is_tf_available, is_torch_available
+
+      print(f"is_tf_available: {is_tf_available()}")
+      print(f"is_torch_available: {is_torch_available()}")
+      ```
+  validations:
+    required: true
 - type: markdown
   attributes:
     value: >

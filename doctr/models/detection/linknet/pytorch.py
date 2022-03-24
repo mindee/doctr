@@ -9,17 +9,30 @@ import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.models import resnet18
 from torchvision.models._utils import IntermediateLayerGetter
+
+from doctr.models.classification import resnet18, resnet34, resnet50
 
 from ...utils import load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet_resnet18']
+__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet_resnet18': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
+    },
+    'linknet_resnet34': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
+    },
+    'linknet_resnet50': {
         'input_shape': (3, 1024, 1024),
         'mean': (.5, .5, .5),
         'std': (1., 1., 1.),
@@ -78,6 +91,7 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         feat_extractor: IntermediateLayerGetter,
         num_classes: int = 1,
+        head_chans: int = 32,
         assume_straight_pages: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -100,13 +114,14 @@ class LinkNet(nn.Module, _LinkNet):
         self.fpn = LinkNetFPN(_shapes)
 
         self.classifier = nn.Sequential(
-            nn.ConvTranspose2d(_shapes[0][0], 32, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False),
-            nn.BatchNorm2d(32),
+            nn.ConvTranspose2d(_shapes[0][0], head_chans, kernel_size=3, padding=1, output_padding=1, stride=2,
+                               bias=False),
+            nn.BatchNorm2d(head_chans),
             nn.ReLU(inplace=True),
-            nn.Conv2d(32, 32, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(head_chans, head_chans, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(head_chans),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, num_classes, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(head_chans, num_classes, kernel_size=2, stride=2),
         )
 
         self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
@@ -158,7 +173,9 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         out_map: torch.Tensor,
         target: List[np.ndarray],
-        edge_factor: float = 2.,
+        gamma: float = 2.,
+        alpha: float = .5,
+        eps: float = 1e-8,
     ) -> torch.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -166,26 +183,38 @@ class LinkNet(nn.Module, _LinkNet):
         Args:
             out_map: output feature map of the model of shape (N, 1, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            edge_factor: boost factor for box edges (in case of BCE)
+            gamma: modulating factor in the focal loss formula
+            alpha: balancing factor in the focal loss formula
 
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
+        seg_target, seg_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(seg_target).to(dtype=out_map.dtype), torch.from_numpy(seg_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
-        if edge_factor > 0:
-            edge_mask = torch.from_numpy(edge_mask).to(dtype=out_map.dtype, device=out_map.device)
+        seg_mask = seg_mask.to(dtype=torch.float32)
 
-        # Get the cross_entropy for each entry
-        loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
+        bce_loss = bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
+        proba_map = torch.sigmoid(out_map)
 
-        # Compute BCE loss with highlighted edges
-        if edge_factor > 0:
-            loss = ((1 + (edge_factor - 1) * edge_mask) * loss)
-        # Only consider contributions overlaping the mask
-        return loss[seg_mask].mean()
+        # Focal loss
+        if gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+        p_t = proba_map * seg_target + (1 - proba_map) * (1 - seg_target)
+        alpha_t = alpha * seg_target + (1 - alpha) * (1 - seg_target)
+        # Unreduced version
+        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+        # Class reduced
+        focal_loss = (seg_mask * focal_loss).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
+
+        # Dice loss
+        inter = (seg_mask * proba_map * seg_target).sum((0, 2, 3))
+        cardinality = (seg_mask * (proba_map + seg_target)).sum((0, 2, 3))
+        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+
+        # Return the full loss (equal sum of focal loss and dice loss)
+        return focal_loss.mean() + dice_loss.mean()
 
 
 def _linknet(
@@ -219,12 +248,11 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18(pretrained=True).eval()
-        >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-        >>> with torch.no_grad(): out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import linknet_resnet18
+    >>> model = linknet_resnet18(pretrained=True).eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -234,3 +262,43 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """
 
     return _linknet('linknet_resnet18', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
+
+
+def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    >>> import torch
+    >>> from doctr.models import linknet_resnet34
+    >>> model = linknet_resnet34(pretrained=True).eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet('linknet_resnet34', pretrained, resnet34, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
+
+
+def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    >>> import torch
+    >>> from doctr.models import linknet_resnet50
+    >>> model = linknet_resnet50(pretrained=True).eval()
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet('linknet_resnet50', pretrained, resnet50, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)

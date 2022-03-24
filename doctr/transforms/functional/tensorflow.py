@@ -13,9 +13,9 @@ import tensorflow_addons as tfa
 
 from doctr.utils.geometry import compute_expanded_shape, rotate_abs_geoms
 
-from .base import crop_boxes
+from .base import create_shadow_mask, crop_boxes
 
-__all__ = ["invert_colors", "rotate_sample", "crop_detection"]
+__all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
 
 
 def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
@@ -135,3 +135,28 @@ def crop_detection(
     boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
     return cropped_img, boxes
+
+
+def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) -> tf.Tensor:
+    """Apply a random shadow to a given image
+
+    Args:
+        img: image to modify
+        opacity_range: the minimum and maximum desired opacity of the shadow
+
+    Returns:
+        shaded image
+    """
+
+    shadow_mask = create_shadow_mask(img.shape[:2], **kwargs)
+
+    opacity = np.random.uniform(*opacity_range)
+    shadow_tensor = 1 - tf.convert_to_tensor(shadow_mask[..., None], dtype=tf.float32)
+
+    # Add some blur to make it believable
+    k = 7 + int(2 * 4 * np.random.rand(1))
+    shadow_tensor = tfa.image.gaussian_filter2d(
+        shadow_tensor, filter_shape=k, sigma=np.random.uniform(.5, 5.),
+    )
+
+    return opacity * shadow_tensor * img + (1 - opacity) * img

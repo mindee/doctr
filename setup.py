@@ -60,6 +60,7 @@ _deps = [
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
     "keras<2.7.0",
+    "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
@@ -72,13 +73,14 @@ _deps = [
     "mypy>=0.812",
     "pydocstyle>=6.1.1",
     # Docs
-    "sphinx<3.5.0",
-    "sphinx-rtd-theme==0.4.3",
+    "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
     "docutils<0.18",
     "recommonmark>=0.7.1",
     "sphinx-markdown-tables>=0.0.15",
+    "sphinx-tabs>=3.3.0",
+    "furo>=2022.3.4",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -104,6 +106,7 @@ install_requires = [
     deps["Pillow"],
     deps["tqdm"],
     deps["rapidfuzz"],
+    deps["huggingface-hub"],
 ]
 
 extras = {}
@@ -146,12 +149,13 @@ extras["quality"] = deps_list(
 
 extras["docs_specific"] = deps_list(
     "sphinx",
-    "sphinx-rtd-theme",
     "sphinxemoji",
     "sphinx-copybutton",
     "docutils",
     "recommonmark",
     "sphinx-markdown-tables",
+    "sphinx-tabs",
+    "furo",
 )
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
