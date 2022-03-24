@@ -227,28 +227,33 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
     _validate_dataset(ds, input_size, class_indices=True, is_polygons=rotate)
 
 
+# NOTE: following datasets support also recognition task
+
 @pytest.mark.parametrize(
-    "input_size, num_samples, rotate",
+    "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True],  # Actual set has 626 training samples and 360 test samples
-        [[512, 512], 3, False],
+        [[512, 512], 3, True, False],  # Actual set has 626 training samples and 360 test samples
+        [[512, 512], 3, False, False],
+        [[32, 128], 15, True, True],  # recognition
+        [[32, 128], 15, False, True],
     ],
 )
-def test_sroie(input_size, num_samples, rotate, mock_sroie_dataset):
+def test_sroie(input_size, num_samples, rotate, recognition, mock_sroie_dataset):
     # monkeypatch the path to temporary dataset
     datasets.SROIE.TRAIN = (mock_sroie_dataset, None)
 
     ds = datasets.SROIE(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
+        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
         cache_dir="/".join(mock_sroie_dataset.split("/")[:-2]), cache_subdir=mock_sroie_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
     assert repr(ds) == f"SROIE(train={True})"
-    _validate_dataset(ds, input_size, is_polygons=rotate)
+    if recognition:
+        _validate_dataset_recognition_part(ds, input_size)
+    else:
+        _validate_dataset(ds, input_size, is_polygons=rotate)
 
-
-# NOTE: following datasets support also recognition task
 
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",

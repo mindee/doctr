@@ -6,13 +6,13 @@
 import csv
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 from tqdm import tqdm
 
 from .datasets import VisionDataset
-from .utils import convert_target_to_relative
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ['SROIE']
 
@@ -31,6 +31,7 @@ class SROIE(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -43,15 +44,23 @@ class SROIE(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
-        super().__init__(url, None, sha256, True, pre_transforms=convert_target_to_relative, **kwargs)
+        super().__init__(
+            url,
+            None,
+            sha256,
+            True,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
+            **kwargs
+        )
         self.train = train
 
         tmp_root = os.path.join(self.root, 'images')
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking SROIE', total=len(os.listdir(tmp_root))):
@@ -74,7 +83,12 @@ class SROIE(VisionDataset):
                 # xmin, ymin, xmax, ymax
                 coords = np.concatenate((coords.min(axis=1), coords.max(axis=1)), axis=1)
 
-            self.data.append((img_path, dict(boxes=coords, labels=labels)))
+            if recognition_task:
+                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path), geoms=coords)
+                for crop, label in zip(crops, labels):
+                    self.data.append((crop, dict(labels=[label])))
+            else:
+                self.data.append((img_path, dict(boxes=coords, labels=labels)))
 
         self.root = tmp_root
 
