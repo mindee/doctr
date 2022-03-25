@@ -17,18 +17,17 @@ class MJSynth(AbstractDataset):
     """MJSynth dataset from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition"
     <https://www.robots.ox.ac.uk/~vgg/data/text/>`_.
 
-    Example::
-        >>> # NOTE: This is a pure recognition dataset without bounding box labels.
-        >>> # NOTE: You need to download the dataset.
-        >>> from doctr.datasets import MJSynth
-        >>> train_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",
-        >>>                     label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt",
-        >>>                     train=True)
-        >>> img, target = train_set[0]
-        >>> test_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",
-        >>>                    label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt")
-        >>>                    train=False)
-        >>> img, target = test_set[0]
+    >>> # NOTE: This is a pure recognition dataset without bounding box labels.
+    >>> # NOTE: You need to download the dataset.
+    >>> from doctr.datasets import MJSynth
+    >>> train_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",
+    >>>                     label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt",
+    >>>                     train=True)
+    >>> img, target = train_set[0]
+    >>> test_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",
+    >>>                    label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt")
+    >>>                    train=False)
+    >>> img, target = test_set[0]
 
     Args:
         img_folder: folder with all the images of the dataset
