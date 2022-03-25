@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Choosing the right model" href="using_models.html" /><link rel="prev" title="Installation" href="installing.html" />
+    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Choosing the right model" href="using_doctr/using_models.html" /><link rel="prev" title="Installation" href="getting_started/installing.html" />
 
     <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-4.4.0, furo 2022.03.04"/>
         <title>docTR Notebooks - docTR documentation</title>
@@ -183,21 +183,26 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started/installing.html">Installation</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
@@ -237,39 +242,42 @@
           <section id="doctr-notebooks">
 <h1>docTR Notebooks<a class="headerlink" href="#doctr-notebooks" title="Permalink to this headline">#</a></h1>
 <p>Here are some notebooks compiled for users to better leverage the library capabilities:</p>
-<div class="table-wrapper"><table border="1" class="docutils">
-<thead>
-<tr>
-<th align="left">Notebook</th>
-<th align="left">Description</th>
-<th align="right"></th>
-</tr>
-</thead>
+<div class="table-wrapper"><table class="docutils align-default">
+<colgroup>
+<col style="width: 39%"/>
+<col style="width: 17%"/>
+<col style="width: 44%"/>
+</colgroup>
 <tbody>
-<tr>
-<td align="left"><a href="https://github.com/mindee/notebooks/blob/main/doctr/quicktour.ipynb">Quicktour</a></td>
-<td align="left">A presentation of the main features of docTR</td>
-<td align="right"><a href="https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/></a></td>
+<tr class="row-odd"><td><p>Notebook</p></td>
+<td><p>Description</p></td>
+<td><p>Colab</p></td>
 </tr>
-<tr>
-<td align="left"><a href="https://github.com/mindee/notebooks/blob/main/doctr/export_as_pdfa.ipynb">Export as PDF/A</a></td>
-<td align="left">Produce searchable PDFs from docTR results</td>
-<td align="right"><a href="https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/export_as_pdfa.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/></a></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mindee/notebooks/blob/main/doctr/quicktour.ipynb">[Quicktour]</a></p></td>
+<td><p>A presentation of the main features of docTR</p></td>
+<td><a class="reference external image-reference" href="https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb"><img alt="https://colab.research.google.com/assets/colab-badge.svg" src="https://colab.research.google.com/assets/colab-badge.svg"/></a>
+</td>
 </tr>
-<tr>
-<td align="left"><a href="https://github.com/mindee/notebooks/blob/main/doctr/artefact_detection.ipynb">Artefact detection</a></td>
-<td align="left">Object detection for artefacts in documents</td>
-<td align="right"><a href="https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/artefact_detection.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg"/></a></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/mindee/notebooks/blob/main/doctr/export_as_pdfa.ipynb">[Export as PDF/A]</a></p></td>
+<td><p>Produce searchable PDFs from docTR results</p></td>
+<td><a class="reference external image-reference" href="https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/export_as_pdfa.ipynb"><img alt="https://colab.research.google.com/assets/colab-badge.svg" src="https://colab.research.google.com/assets/colab-badge.svg"/></a>
+</td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://github.com/mindee/notebooks/blob/main/doctr/artefact_detection.ipynb">[Artefact detection]</a></p></td>
+<td><p>Object detection for artefacts in documents</p></td>
+<td><a class="reference external image-reference" href="https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/artefact_detection.ipynb"><img alt="https://colab.research.google.com/assets/colab-badge.svg" src="https://colab.research.google.com/assets/colab-badge.svg"/></a>
+</td>
 </tr>
 </tbody>
-</table></div></section>
+</table></div>
+</section>
 
         </article>
       </div>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="using_models.html">
+          <a class="next-page" href="using_doctr/using_models.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
@@ -278,7 +286,7 @@
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="installing.html">
+          <a class="prev-page" href="getting_started/installing.html">
               <svg><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">

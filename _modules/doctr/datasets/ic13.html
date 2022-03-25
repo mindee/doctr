@@ -182,21 +182,26 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
@@ -234,7 +239,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.datasets.ic13</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
@@ -252,21 +257,26 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"IC13"</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="IC13"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.IC13">[docs]</a><span class="k">class</span> <span class="nc">IC13</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
+<div class="viewcode-block" id="IC13"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.IC13">[docs]</a><span class="k">class</span> <span class="nc">IC13</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
     <span class="sd">"""IC13 dataset from `"ICDAR 2013 Robust Reading Competition" &lt;https://rrc.cvc.uab.es/&gt;`_.</span>
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import IC13</span>
-<span class="sd">        &gt;&gt;&gt; train_set = IC13(img_folder="/path/to/Challenge2_Training_Task12_Images",</span>
-<span class="sd">        &gt;&gt;&gt;                  label_folder="/path/to/Challenge2_Training_Task1_GT")</span>
-<span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
-<span class="sd">        &gt;&gt;&gt; test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",</span>
-<span class="sd">        &gt;&gt;&gt;                 label_folder="/path/to/Challenge2_Test_Task1_GT")</span>
-<span class="sd">        &gt;&gt;&gt; img, target = test_set[0]</span>
+
+<span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/ic13-grid.png</span>
+<span class="sd">        :align: center</span>
+
+<span class="sd">    &gt;&gt;&gt; # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import IC13</span>
+<span class="sd">    &gt;&gt;&gt; train_set = IC13(img_folder="/path/to/Challenge2_Training_Task12_Images",</span>
+<span class="sd">    &gt;&gt;&gt;                  label_folder="/path/to/Challenge2_Training_Task1_GT")</span>
+<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",</span>
+<span class="sd">    &gt;&gt;&gt;                 label_folder="/path/to/Challenge2_Test_Task1_GT")</span>
+<span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
 <span class="sd">        label_folder: folder with all annotation files for the images</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
+<span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -302,7 +312,7 @@
             <span class="c1"># xmin, ymin, xmax, ymax</span>
             <span class="n">box_targets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">line</span><span class="p">[:</span><span class="mi">4</span><span class="p">]))</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">_lines</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
-                <span class="c1"># x_center, y_center, width, height, 0</span>
+                <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
                 <span class="n">box_targets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
                     <span class="p">[</span>
                         <span class="p">[</span>

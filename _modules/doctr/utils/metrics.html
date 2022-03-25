@@ -182,21 +182,26 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
@@ -234,7 +239,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.utils.metrics</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License version 2.</span>
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
@@ -271,7 +276,7 @@
     <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">unidecode_match</span><span class="p">,</span> <span class="n">unicase_match</span>
 
 
-<div class="viewcode-block" id="TextMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch">[docs]</a><span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
+<div class="viewcode-block" id="TextMatch"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch">[docs]</a><span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">"""Implements text match metric (word-level accuracy) for recognition task.</span>
 
 <span class="sd">    The raw aggregated metric is computed as follows:</span>
@@ -294,17 +299,16 @@
 <span class="sd">    where :math:`\mathcal{W}` is the set of all possible character sequences,</span>
 <span class="sd">    :math:`N` is a strictly positive integer.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import TextMatch</span>
-<span class="sd">        &gt;&gt;&gt; metric = TextMatch()</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(['Hello', 'world'], ['hello', 'world'])</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import TextMatch</span>
+<span class="sd">    &gt;&gt;&gt; metric = TextMatch()</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(['Hello', 'world'], ['hello', 'world'])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 <span class="sd">    """</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-<div class="viewcode-block" id="TextMatch.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+<div class="viewcode-block" id="TextMatch.update"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gt</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pred</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -328,7 +332,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TextMatch.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<div class="viewcode-block" id="TextMatch.summary"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
         <span class="sd">"""Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
@@ -359,6 +363,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    """</span>
@@ -388,6 +393,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoA matrix of shape (N, M)</span>
 <span class="sd">    """</span>
@@ -568,7 +574,7 @@
     <span class="k">return</span> <span class="n">keep</span>
 
 
-<div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
+<div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">"""Implements common confusion metrics and mean IoU for localization evaluation.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
@@ -594,12 +600,11 @@
 <span class="sd">    where :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
-<span class="sd">        &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
+<span class="sd">    &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
@@ -621,7 +626,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span> <span class="o">=</span> <span class="n">use_broadcasting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-<div class="viewcode-block" id="LocalizationConfusion.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">preds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="LocalizationConfusion.update"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.LocalizationConfusion.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">preds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">"""Updates the metric</span>
 
 <span class="sd">        Args:</span>
@@ -645,7 +650,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="LocalizationConfusion.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<div class="viewcode-block" id="LocalizationConfusion.summary"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
         <span class="sd">"""Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
@@ -670,7 +675,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span></div>
 
 
-<div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
+<div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">"""Implements an end-to-end OCR metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
@@ -699,13 +704,12 @@
 <span class="sd">    :math:`\mathcal{L}` is the set of possible character sequences,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
-<span class="sd">        &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
-<span class="sd">        ['hello'], ['hello', 'world'])</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">    &gt;&gt;&gt;               ['hello'], ['hello', 'world'])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
@@ -727,7 +731,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span> <span class="o">=</span> <span class="n">use_broadcasting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-<div class="viewcode-block" id="OCRMetric.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+<div class="viewcode-block" id="OCRMetric.update"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gt_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -770,7 +774,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="OCRMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<div class="viewcode-block" id="OCRMetric.summary"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
         <span class="sd">"""Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
@@ -808,7 +812,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
-<div class="viewcode-block" id="DetectionMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric">[docs]</a><span class="k">class</span> <span class="nc">DetectionMetric</span><span class="p">:</span>
+<div class="viewcode-block" id="DetectionMetric"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.DetectionMetric">[docs]</a><span class="k">class</span> <span class="nc">DetectionMetric</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">"""Implements an object detection metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
@@ -837,13 +841,12 @@
 <span class="sd">    :math:`\mathcal{C}` is the set of possible class indices,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import DetectionMetric</span>
-<span class="sd">        &gt;&gt;&gt; metric = DetectionMetric(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
-<span class="sd">        np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import DetectionMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = DetectionMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">    &gt;&gt;&gt;               np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
@@ -865,7 +868,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">use_broadcasting</span> <span class="o">=</span> <span class="n">use_broadcasting</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-<div class="viewcode-block" id="DetectionMetric.update"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+<div class="viewcode-block" id="DetectionMetric.update"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.DetectionMetric.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gt_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -903,7 +906,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="DetectionMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<div class="viewcode-block" id="DetectionMetric.summary"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.DetectionMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
         <span class="sd">"""Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
