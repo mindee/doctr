@@ -48,7 +48,14 @@ def _vgg(
     model.classifier = nn.Linear(512, kwargs['num_classes'])
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # Replace classifier layer with default to match the vocab size to load pretrained weights
+            model.classifier = nn.Linear(in_features=512, out_features=len(default_cfgs[arch]['classes']))
+            load_pretrained_params(model, default_cfgs[arch]['url'])
+            # Init new head with the vocab size from kwargs
+            model.linear = nn.Linear(in_features=512, out_features=kwargs['num_classes'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 

@@ -8,6 +8,7 @@
 from typing import Any, Dict, List, Optional
 
 from torchvision.models import mobilenetv3
+from torch import nn
 
 from doctr.datasets import VOCABS
 
@@ -79,7 +80,16 @@ def _mobilenet_v3(
 
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # Replace classifier layer with default to match the vocab size to load pretrained weights
+            model.classifier[-1] = nn.Linear(in_features=model.classifier[0].out_features,
+                                             out_features=len(default_cfgs[arch]['classes']))
+            load_pretrained_params(model, default_cfgs[arch]['url'])
+            # Init new head with the vocab size from kwargs
+            model.classifier[-1] = nn.Linear(in_features=model.classifier[0].out_features,
+                                             out_features=kwargs['num_classes'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     model.cfg = default_cfgs[arch]
 
