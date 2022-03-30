@@ -14,7 +14,7 @@ from .common_types import BoundingBox, Polygon4P
 
 __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
            'rotate_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle',
-           'convert_to_relative_coords', 'rotate_abs_geoms']
+           'convert_to_relative_coords', 'rotate_abs_geoms', 'crop_image_sections']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
