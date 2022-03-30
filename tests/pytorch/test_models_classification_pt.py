@@ -6,6 +6,21 @@ import torch
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
 
+def _test_classification(model, input_shape, output_size, batch_size=2):
+    # Forward
+    with torch.no_grad():
+        out = model(torch.rand((batch_size, *input_shape), dtype=torch.float32))
+    # Output checks
+    assert isinstance(out, torch.Tensor)
+    assert out.dtype == torch.float32
+    assert out.numpy().shape == (batch_size, *output_size)
+    # Check FP16
+    if torch.cuda.is_available():
+        model = model.half().cuda()
+        with torch.no_grad():
+            out = model(torch.rand((batch_size, *input_shape), dtype=torch.float16).cuda())
+        assert out.dtype == torch.float16
+
 
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
@@ -23,21 +38,12 @@ from doctr.models.classification.predictor import CropOrientationPredictor
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
     # Model
-    batch_size = 2
     model = classification.__dict__[arch_name](pretrained=True).eval()
-    # Forward
-    with torch.no_grad():
-        out = model(torch.rand((batch_size, *input_shape), dtype=torch.float32))
-    # Output checks
-    assert isinstance(out, torch.Tensor)
-    assert out.dtype == torch.float32
-    assert out.numpy().shape == (batch_size, *output_size)
-    # Check FP16
-    if torch.cuda.is_available():
-        model = model.half().cuda()
-        with torch.no_grad():
-            out = model(torch.rand((batch_size, *input_shape), dtype=torch.float16).cuda())
-        assert out.dtype == torch.float16
+    _test_classification(model, input_shape, output_size)
+    # test pretrained model with different num_classes
+    model = classification.__dict__[arch_name](pretrained=True, num_classes=108).eval()
+    _test_classification(model, input_shape, output_size=(108,))
+
 
 
 @pytest.mark.parametrize(
