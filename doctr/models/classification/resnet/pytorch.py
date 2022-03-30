@@ -165,14 +165,10 @@ def _resnet(
     model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) and arch in ['resnet18', 'resnet34', 'resnet50']:
-            # Replace classifier layer with default to match the vocab size to load pretrained weights
-            model.fc = nn.Linear(in_features=2048 if arch == 'resnet50' else 512,
-                                 out_features=len(default_cfgs[arch]['classes']))
-            load_pretrained_params(model, default_cfgs[arch]['url'])
-            # Init new head with the vocab size from kwargs
-            model.fc = nn.Linear(in_features=2048 if arch == 'resnet50' else 512,
-                                 out_features=kwargs['num_classes'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
         else:
             load_pretrained_params(model, default_cfgs[arch]['url'])
 
@@ -192,7 +188,12 @@ def _tv_resnet(
     model = arch_fn(**kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['fc.weight', 'fc.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 

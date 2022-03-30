@@ -122,7 +122,6 @@ class CRNN(RecognitionModel, nn.Module):
         super().__init__()
         self.vocab = vocab
         self.cfg = cfg
-        self.rnn_units = rnn_units
         self.max_length = 32
         self.feat_extractor = feature_extractor
 
@@ -135,11 +134,11 @@ class CRNN(RecognitionModel, nn.Module):
         self.feat_extractor.train()
 
         self.decoder = nn.LSTM(
-            input_size=lstm_in, hidden_size=self.rnn_units, batch_first=True, num_layers=2, bidirectional=True,
+            input_size=lstm_in, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True,
         )
 
         # features units = 2 * rnn_units because bidirectional layers
-        self.linear = nn.Linear(in_features=2 * self.rnn_units, out_features=len(vocab) + 1)
+        self.linear = nn.Linear(in_features=2 * rnn_units, out_features=len(vocab) + 1)
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
 
@@ -242,11 +241,9 @@ def _crnn(
     # Load pretrained parameters
     if pretrained:
         if _cfg['vocab'] != default_cfgs[arch]['vocab']:
-            # Replace linear layer with default to match the vocab size to load pretrained weights
-            model.linear = nn.Linear(in_features=model.rnn_units * 2, out_features=len(default_cfgs[arch]['vocab']) + 1)
-            load_pretrained_params(model, _cfg['url'])
-            # Init new head with the vocab size from kwargs
-            model.linear = nn.Linear(in_features=model.rnn_units * 2, out_features=len(_cfg['vocab']) + 1)
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, _cfg['url'], pop_entrys=['linear.weight', 'linear.bias'])
         else:
             load_pretrained_params(model, _cfg['url'])
 

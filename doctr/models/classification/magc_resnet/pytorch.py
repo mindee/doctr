@@ -126,13 +126,9 @@ def _magc_resnet(
     # Load pretrained parameters
     if pretrained:
         if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
-            # Replace classifier layer with default to match the vocab size to load pretrained weights
-            model[13] = nn.Linear(in_features=model[10][4].out_channels,
-                                  out_features=len(default_cfgs[arch]['classes']))
-            load_pretrained_params(model, default_cfgs[arch]['url'])
-            # Init new head with the vocab size from kwargs
-            model[13] = nn.Linear(in_features=model[10][4].out_channels,
-                                  out_features=kwargs['num_classes'])
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
         else:
             load_pretrained_params(model, default_cfgs[arch]['url'])
 
