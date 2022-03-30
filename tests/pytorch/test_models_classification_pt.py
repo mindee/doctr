@@ -6,6 +6,7 @@ import torch
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
 
+
 def _test_classification(model, input_shape, output_size, batch_size=2):
     # Forward
     with torch.no_grad():
@@ -43,7 +44,6 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     # test pretrained model with different num_classes
     model = classification.__dict__[arch_name](pretrained=True, num_classes=108).eval()
     _test_classification(model, input_shape, output_size=(108,))
-
 
 
 @pytest.mark.parametrize(
