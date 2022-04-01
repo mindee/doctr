@@ -86,13 +86,8 @@ https://github.com/mindee/doctr
 """
 
     # add model configuration
-    model_config = {
-        'arch': run_config.arch,
-        'input_shape': model.cfg['input_shape'],
-        'mean': model.cfg['mean'],
-        'std': model.cfg['std'],
-        'vocab': model.cfg['vocab'],
-    }
+    model_config = model.cfg
+    model_config['arch'] = run_config.arch
 
     commit_message = f'Add {model_name} model'
 
