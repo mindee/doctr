@@ -17,6 +17,7 @@ import torch
 import torch.optim as optim
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
+from references.hub import login_to_hub, push_to_hf_hub
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, GaussianBlur
@@ -170,7 +171,11 @@ def evaluate(model, val_loader, metric, amp=False):
 
 
 def main(args):
+
     print(args)
+
+    if args.push_to_hub:
+        login_to_hub()
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
@@ -329,6 +334,9 @@ def main(args):
     if args.wb:
         run.finish()
 
+    if args.push_to_hub:
+        push_to_hf_hub(model, exp_name, tag='object-detection', run_config=args)
+
 
 def parse_args():
     import argparse
@@ -349,8 +357,8 @@ def parse_args():
                         help='Display unormalized training samples')
     parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
                         help='freeze model backbone for fine-tuning')
-    parser.add_argument('--wb', dest='wb', action='store_true',
-                        help='Log to Weights & Biases')
+    parser.add_argument('--wb', dest='wb', action='store_true', help='Log to Weights & Biases')
+    parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
