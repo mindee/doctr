@@ -23,7 +23,7 @@ def login_to_hub() -> None:
         HfApi().set_access_token(access_token)
     else:
         subprocess.call(['huggingface-cli', 'login'])
-        access_token = HfFolder().get_token()
+        HfApi().set_access_token(HfFolder().get_token())
     # check if git lfs is installed
     try:
         subprocess.call(['git', 'lfs', 'version'])
@@ -42,7 +42,7 @@ def save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Di
         torch.save(model.state_dict(), weights_path)
     elif is_tf_available():
         import tensorflow as tf  # noqa: F401
-        weights_path = save_directory / 'tf_model.weights'
+        weights_path = save_directory / 'tf_model' / 'weights'
         model.save_weights(str(weights_path))
     else:
         raise RuntimeError("Neither PyTorch nor TensorFlow is available.")
