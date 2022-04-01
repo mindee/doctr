@@ -33,7 +33,7 @@ def login_to_hub() -> None:
                       Then run `git lfs install` (you only have to do this once).')
 
 
-def save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Dict[str, str]):
+def save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Dict[str, str]) -> None:
     save_directory = Path(save_dir)
 
     if is_torch_available():
@@ -53,7 +53,7 @@ def save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Di
         json.dump(model_config, f, indent=2)
 
 
-def push_to_hf_hub(model: Any, model_name: str, tag: str, run_config: Any):
+def push_to_hf_hub(model: Any, model_name: str, tag: str, run_config: Any) -> None:
 
     # default readme
     readme = f"""
