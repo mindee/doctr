@@ -61,27 +61,35 @@ def push_to_hf_hub(model: Any, model_name: str, tag: str, run_config: Any) -> No
 language: en
 ---
 
-# docTR
+<p align="center">
+  <img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="60%">
+</p>
+
+**Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
+
 ## Task: {tag}
 
 https://github.com/mindee/doctr
 
-## Example usage:
+### Example usage:
 
 ```python
-# PyTorch
+>>> from doctr.io import DocumentFile
 >>> from doctr.models import ocr_predictor
 >>> from doctr.models.<task> import from_hub
+>>>
+>>> img = DocumentFile.from_images(['<image_path>'])
+>>> # Load your model from the hub
 >>> model = from_hub('mindee/my-recognition-model').eval()
+>>> # Pass it to the predictor
 >>> predictor = ocr_predictor(det_arch='db_mobilenet_v3_large',
->>>                           reco_arch=model, pretrained=True)
+>>>                           reco_arch=model,
+>>>                           pretrained=True)
+>>> # Get your predictions
 >>> res = predictor(img)
-
-# TensorFlow
->>> TODO
 ```
 
-## Run Configuration
+### Run Configuration
 {json.dumps(vars(run_config))}
 """
 
