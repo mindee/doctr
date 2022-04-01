@@ -50,7 +50,7 @@ def save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Di
     config_path = save_directory / 'config.json'
 
     with config_path.open('w') as f:
-        json.dump(model_config, f, indent=2)
+        json.dump(model_config, f, indent=2, ensure_ascii=False)
 
 
 def push_to_hf_hub(model: Any, model_name: str, tag: str, run_config: Any) -> None:
