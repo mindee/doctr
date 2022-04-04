@@ -19,6 +19,9 @@ __all__ = ['login_to_hub', 'push_to_hf_hub']
 
 
 def login_to_hub() -> None:
+    """Login to huggingface hub
+    """
+
     access_token = HfFolder.get_token()
     if access_token is not None and HfApi()._is_valid_token(access_token):
         print("Huggingface Hub token found and valid")
@@ -36,6 +39,14 @@ def login_to_hub() -> None:
 
 
 def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Dict[str, str]) -> None:
+    """Save model and config to disk for pushing to huggingface hub
+
+    Args:
+        model: TF or PyTorch model to be saved
+        save_dir: directory to save model and config
+        model_config: model configuration
+    """
+
     save_directory = Path(save_dir)
 
     if is_torch_available():
@@ -56,6 +67,14 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: D
 
 
 def push_to_hf_hub(model: Any, model_name: str, tag: str, run_config: Any) -> None:
+    """Save model and its configuration on HF hub
+
+    Args:
+        model: TF or PyTorch model to be saved
+        model_name: name of the model which is also the repository name
+        tag: task name
+        run_config: run configuration
+    """
 
     # default readme
     readme = f"""
