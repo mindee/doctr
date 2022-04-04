@@ -92,8 +92,8 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
     >>> export_classification_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
 
     Args:
-        model: the pytorch model to be exported
-        exp_name: the name of the exported model
+        model: the PyTorch model to be exported
+        exp_name: the name for the exported model
         dummy_input: the dummy input to the model
 
     Returns:
