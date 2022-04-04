@@ -7,11 +7,12 @@ import logging
 from typing import Any, List, Optional
 
 import torch
+from onnxruntime.quantization import quantize_dynamic
 from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ['load_pretrained_params', 'conv_sequence_pt']
+__all__ = ['load_pretrained_params', 'conv_sequence_pt', 'export_classification_model_to_onnx']
 
 
 def load_pretrained_params(
@@ -82,3 +83,33 @@ def conv_sequence_pt(
         conv_seq.append(nn.ReLU(inplace=True))
 
     return conv_seq
+
+
+def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_input: torch.Tensor) -> List[str]:
+    """Export classification model to ONNX format.
+
+    >>> from doctr.models.utils import export_classification_model_to_onnx
+    >>> export_classification_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
+
+    Args:
+        model: the pytorch model to be exported
+        exp_name: the name of the exported model
+        dummy_input: the dummy input to the model
+
+    Returns:
+        list of exported model files
+    """
+
+    torch.onnx.export(
+        model,
+        dummy_input,
+        f"{exp_name}.onnx",
+        input_names=['input'],
+        output_names=['logits'],
+        dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
+        export_params=True, opset_version=13, verbose=False
+    )
+    logging.info(f"Model exported to {exp_name}.onnx")
+    quantize_dynamic(f"{exp_name}.onnx", f'{exp_name}.quant.onnx')
+    logging.info(f"Quantized model saved to {exp_name}.quant.onnx")
+    return [f"{exp_name}.onnx", f"{exp_name}.quant.onnx"]

@@ -6,10 +6,10 @@ import numpy as np
 import onnxruntime
 import pytest
 import torch
-from onnxruntime.quantization import quantize_qat
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
+from doctr.models.utils import export_classification_model_to_onnx
 
 
 @pytest.mark.parametrize(
@@ -116,23 +116,15 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     batch_size = 2
     model = classification.__dict__[arch_name](pretrained=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    try:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Export
-            torch.onnx.export(
-                model,
-                dummy_input,
-                os.path.join(tmpdir, "model.onnx"),
-                input_names=['input'],
-                output_names=['logits'],
-                dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
-                export_params=True, opset_version=13, verbose=False
-            )
-            # Inference
-            quantize_qat(os.path.join(tmpdir, "model.onnx"), os.path.join(tmpdir, "model.quant.onnx"))
-            ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.quant.onnx"))
-            ort_outs = ort_session.run(['logits'], {'input': dummy_input.numpy()})
-            assert isinstance(ort_outs, list) and len(ort_outs) == 1
-            assert ort_outs[0].shape == (batch_size, *output_size)
-    except RuntimeError:
-        assert False
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Export
+        model_paths = export_classification_model_to_onnx(model,
+                                                          exp_name=os.path.join(tmpdir, "model"),
+                                                          dummy_input=dummy_input)
+        assert len(model_paths) == 2 and all(os.path.exists(path) for path in model_paths)
+        # Inference
+        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
+                                                   providers=["CPUExecutionProvider"])
+        ort_outs = ort_session.run(['logits'], {'input': dummy_input.numpy()})
+        assert isinstance(ort_outs, list) and len(ort_outs) == 1
+        assert ort_outs[0].shape == (batch_size, *output_size)

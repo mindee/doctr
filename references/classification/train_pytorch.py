@@ -25,28 +25,8 @@ from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscal
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
 from doctr.models import classification
+from doctr.models.utils import export_classification_model_to_onnx
 from utils import plot_recorder, plot_samples
-
-
-def export_to_onnx(model, name, val_loader_batch):
-    """Export the model to ONNX format."""
-    dummy_input = val_loader_batch[0]
-    torch.onnx.export(
-        model,
-        dummy_input,
-        f"{name}.onnx",
-        input_names=['input'],
-        output_names=['logits'],
-        dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
-        export_params=True, opset_version=13, verbose=False
-    )
-    print(f"Model exported to {name}.onnx")
-    try:
-        from onnxruntime.quantization import quantize_qat
-        quantize_qat(f"{name}.onnx", f'{name}.quant.onnx')
-        print(f"Quantized model saved to {name}.quant.onnx")
-    except ImportError:
-        print("ONNX Runtime is not installed. Skipping quantization.")
 
 
 def record_lr(
@@ -356,7 +336,11 @@ def main(args):
         run.finish()
 
     if args.export_onnx:
-        export_to_onnx(model, exp_name, val_loader_batch=next(iter(val_loader)))
+        print("Exporting model to ONNX...")
+        dummy_batch = next(iter(val_loader))
+        dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
+        model_paths = export_classification_model_to_onnx(model, exp_name, dummy_input)
+        print(f"Exported model saved in {model_paths[0]} and {model_paths[1]}")
 
 
 def parse_args():
