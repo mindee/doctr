@@ -339,8 +339,8 @@ def main(args):
         print("Exporting model to ONNX...")
         dummy_batch = next(iter(val_loader))
         dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
-        model_paths = export_classification_model_to_onnx(model, exp_name, dummy_input)
-        print(f"Exported model saved in {model_paths[0]} and {model_paths[1]}")
+        model_path = export_classification_model_to_onnx(model, exp_name, dummy_input)
+        print(f"Exported model saved in {model_path}")
 
 
 def parse_args():

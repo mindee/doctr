@@ -7,7 +7,6 @@ import logging
 from typing import Any, List, Optional
 
 import torch
-from onnxruntime.quantization import quantize_dynamic
 from torch import nn
 
 from doctr.utils.data import download_from_url
@@ -83,7 +82,7 @@ def conv_sequence_pt(
     return conv_seq
 
 
-def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_input: torch.Tensor) -> List[str]:
+def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_input: torch.Tensor) -> str:
     """Export classification model to ONNX format.
 
     >>> from doctr.models.utils import export_classification_model_to_onnx
@@ -95,7 +94,7 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
         dummy_input: the dummy input to the model
 
     Returns:
-        list of exported model files
+        the path to the exported model
     """
 
     torch.onnx.export(
@@ -108,6 +107,4 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
         export_params=True, opset_version=13, verbose=False
     )
     logging.info(f"Model exported to {exp_name}.onnx")
-    quantize_dynamic(f"{exp_name}.onnx", f'{exp_name}.quant.onnx')
-    logging.info(f"Quantized model saved to {exp_name}.quant.onnx")
-    return [f"{exp_name}.onnx", f"{exp_name}.quant.onnx"]
+    return f"{exp_name}.onnx"
