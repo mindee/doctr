@@ -108,8 +108,6 @@ install_requires = [
     deps["Pillow"],
     deps["tqdm"],
     deps["rapidfuzz"],
-    deps["onnx"],
-    deps["onnxruntime"],
     deps["huggingface-hub"],
 ]
 
@@ -129,6 +127,8 @@ extras["tf-cpu"] = deps_list(
 extras["torch"] = deps_list(
     "torch",
     "torchvision",
+    "onnx",
+    "onnxruntime",
 )
 
 extras["all"] = (
