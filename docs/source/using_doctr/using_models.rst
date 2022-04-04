@@ -17,6 +17,7 @@ Text Detection
 
 The task consists of localizing textual elements in a given image.
 While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don't).
+Our latest detection models works with rotated and skewed documents!
 
 Available architectures
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -26,6 +27,11 @@ The following architectures are currently supported:
 * `linknet_resnet18 <models.html#doctr.models.detection.linknet_resnet18>`_
 * `db_resnet50 <models.html#doctr.models.detection.db_resnet50>`_
 * `db_mobilenet_v3_large <models.html#doctr.models.detection.db_mobilenet_v3_large>`_
+
+We also provide 2 models working with any kind of rotated documents:
+
+* `linknet_resnet18_rotation <models.html#doctr.models.detection.linknet_resnet18_rotation>`_
+* `db_resnet50_rotation <models.html#doctr.models.detection.db_resnet50_rotation>`_
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
@@ -59,6 +65,19 @@ Detection predictors
     >>> predictor = detection_predictor('db_resnet50')
     >>> dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
     >>> out = model([dummy_img])
+
+You can pass specific boolean arguments to the predictor:
+
+* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
+
+For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
+
+    >>> from doctr.models import detection_predictor
+    >>> predictor = detection_predictor('db_resnet50_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+
+NB: for the moment, `db_resnet50_rotation` is pretrained in Pytorch only and `linknet_resnet18_rotation` in Tensorflow only.
 
 
 Text Recognition
@@ -226,6 +245,22 @@ Those architectures involve one stage of text detection, and one stage of text r
     >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
     >>> input_page = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
     >>> out = model([input_page])
+
+
+You can pass specific boolean arguments to the predictor:
+
+* `assume_straight_pages`
+* `preserve_aspect_ratio`
+* `symmetric_pad`
+
+Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).
+
+* `export_as_straight_boxes`: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.
+
+For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
+
+    >>> from doctr.model import ocr_predictor
+    >>> model = ocr_predictor('linknet_resnet18_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 
 What should I do with the output?

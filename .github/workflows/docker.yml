@@ -12,9 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build docker image
-        run: docker build . -t doctr-py3.8.1-tf2.4-slim
+        run: docker build . -t doctr-tf-py3.8-slim
       - name: Run docker container
-        run: docker run doctr-py3.8.1-tf2.4-slim python -c 'import doctr'
+        run: docker run doctr-tf-py3.8-slim python -c 'import doctr'
 
   pytest-api:
     runs-on: ubuntu-latest

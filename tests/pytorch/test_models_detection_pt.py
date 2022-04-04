@@ -14,6 +14,8 @@ from doctr.models.detection.predictor import DetectionPredictor
         ["db_resnet50", (3, 512, 512), (1, 512, 512), True],
         ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True],
         ["linknet_resnet18", (3, 512, 512), (1, 512, 512), False],
+        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), False],
+        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), False],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob):

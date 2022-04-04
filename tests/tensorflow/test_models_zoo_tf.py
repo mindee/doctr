@@ -39,7 +39,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
     )
 
-    doc = DocumentFile.from_pdf(mock_pdf).as_images()
+    doc = DocumentFile.from_pdf(mock_pdf)
 
     predictor = OCRPredictor(
         det_predictor,
@@ -90,6 +90,24 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
                                  [0.56705294, 0.18241881],
                                  [0.51385817, 0.21002172]])
     assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised)
+
+    det_predictor = detection_predictor(
+        'db_resnet50', pretrained=True, batch_size=2, assume_straight_pages=True,
+        preserve_aspect_ratio=True, symmetric_pad=True
+    )
+
+    predictor = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=True,
+        straighten_pages=True,
+        preserve_aspect_ratio=True,
+        symmetric_pad=True,
+    )
+
+    out = predictor(doc)
+
+    assert out.pages[0].blocks[0].lines[0].words[0].value == 'Mr.'
 
 
 @pytest.mark.parametrize(

@@ -58,12 +58,11 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> tv_vgg.VGG:
     <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization, rectangular pooling and a simpler
     classification head.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import vgg16_bn_r
-        >>> model = vgg16_bn_r(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import vgg16_bn_r
+    >>> model = vgg16_bn_r(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet

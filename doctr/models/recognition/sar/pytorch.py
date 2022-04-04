@@ -30,31 +30,48 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
+class SAREncoder(nn.Module):
+
+    def __init__(self, in_feats: int, rnn_units: int, dropout_prob: float = 0.) -> None:
+
+        super().__init__()
+        self.rnn = nn.LSTM(in_feats, rnn_units, 2, batch_first=True, dropout=dropout_prob)
+        self.linear = nn.Linear(rnn_units, rnn_units)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+
+        # (N, L, C) --> (N, T, C)
+        encoded = self.rnn(x)[0]
+        # (N, C)
+        return self.linear(encoded[:, -1, :])
+
+
 class AttentionModule(nn.Module):
 
     def __init__(self, feat_chans: int, state_chans: int, attention_units: int) -> None:
         super().__init__()
         self.feat_conv = nn.Conv2d(feat_chans, attention_units, 3, padding=1)
         # No need to add another bias since both tensors are summed together
-        self.state_conv = nn.Conv2d(state_chans, attention_units, 1, bias=False)
-        self.attention_projector = nn.Conv2d(attention_units, 1, 1, bias=False)
+        self.state_conv = nn.Linear(state_chans, attention_units, bias=False)
+        self.attention_projector = nn.Linear(attention_units, 1, bias=False)
 
     def forward(self, features: torch.Tensor, hidden_state: torch.Tensor) -> torch.Tensor:
-        # shape (N, vgg_units, H, W) -> (N, attention_units, H, W)
+        # shape (N, C, H, W) -> (N, attention_units, H, W)
         feat_projection = self.feat_conv(features)
-        # shape (N, rnn_units, 1, 1) -> (N, attention_units, 1, 1)
-        state_projection = self.state_conv(hidden_state)
-        projection = torch.tanh(feat_projection + state_projection)
-        # shape (N, attention_units, H, W) -> (N, 1, H, W)
-        attention = self.attention_projector(projection)
-        # shape (N, 1, H, W) -> (N, H * W)
-        attention = torch.flatten(attention, 1)
-        # shape (N, H * W) -> (N, 1, H, W)
-        attention = torch.softmax(attention, 1).reshape(-1, 1, features.shape[-2], features.shape[-1])
+        # shape (N, L, rnn_units) -> (N, L, attention_units)
+        state_projection = self.state_conv(hidden_state).unsqueeze(-1).unsqueeze(-1)
+        # (N, L, attention_units, H, W)
+        projection = torch.tanh(feat_projection.unsqueeze(1) + state_projection)
+        # (N, L, H, W, 1)
+        attention = self.attention_projector(projection.permute(0, 1, 3, 4, 2))
+        # shape (N, L, H, W, 1) -> (N, L, H * W)
+        attention = torch.flatten(attention, 2)
+        attention = torch.softmax(attention, -1)
+        # shape (N, L, H * W) -> (N, L, 1, H, W)
+        attention = attention.reshape(-1, hidden_state.shape[1], features.shape[-2], features.shape[-1])
 
-        glimpse = (features * attention).sum(dim=(2, 3))
-
-        return glimpse
+        # (N, L, C)
+        return (features.unsqueeze(1) * attention.unsqueeze(2)).sum(dim=(3, 4))
 
 
 class SARDecoder(nn.Module):
@@ -78,57 +95,63 @@ class SARDecoder(nn.Module):
         attention_units: int,
         num_decoder_layers: int = 2,
         feat_chans: int = 512,
+        dropout_prob: float = 0.,
     ) -> None:
 
         super().__init__()
         self.vocab_size = vocab_size
-        self.lstm_cells = nn.ModuleList([
-            nn.LSTMCell(rnn_units, rnn_units) for _ in range(num_decoder_layers)
-        ])
-        self.embed = nn.Linear(self.vocab_size + 1, embedding_units, bias=False)
+        self.rnn = nn.LSTM(rnn_units, rnn_units, 2, batch_first=True, dropout=dropout_prob)
+        self.embed = nn.Embedding(self.vocab_size + 1, embedding_units)
         self.attention_module = AttentionModule(feat_chans, rnn_units, attention_units)
         self.output_dense = nn.Linear(2 * rnn_units, vocab_size + 1)
         self.max_length = max_length
 
     def forward(
         self,
-        features: torch.Tensor,
-        holistic: torch.Tensor,
-        gt: Optional[torch.Tensor] = None,
+        features: torch.Tensor,  # (N, C, H, W)
+        holistic: torch.Tensor,  # (N, C)
+        gt: Optional[torch.Tensor] = None,  # (N, L)
     ) -> torch.Tensor:
 
-        # initialize states (each of shape (N, rnn_units))
-        hx = [None, None]
-        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
-        symbol = torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=features.dtype)
-        logits_list = []
-        for t in range(self.max_length + 1):  # keep 1 step for <eos>
+        if gt is None:
+            # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
+            symbol = torch.zeros(features.shape[0], device=features.device, dtype=torch.long)
+            # (N, embedding_units)
+            symbol = self.embed(symbol)
+            # (N, L, embedding_units)
+            symbol = symbol.unsqueeze(1).expand(-1, self.max_length + 1, -1)
+        else:
+            # (N, L) --> (N, L, embedding_units)
+            symbol = self.embed(gt)
+        # (N, L + 1, embedding_units)
+        symbol = torch.cat((holistic.unsqueeze(1), symbol), dim=1)
 
-            # one-hot symbol with depth vocab_size + 1
-            # embeded_symbol: shape (N, embedding_units)
-            embeded_symbol = self.embed(symbol)
+        # (N, L, vocab_size + 1)
+        char_logits = torch.zeros(
+            (features.shape[0], self.max_length + 1, self.vocab_size + 1),
+            device=features.device,
+            dtype=features.dtype,
+        )
 
-            hx[0] = self.lstm_cells[0](embeded_symbol, hx[0])
-            hx[1] = self.lstm_cells[1](hx[0][0], hx[1])  # type: ignore[index]
-            logits, _ = hx[1]  # type: ignore[misc]
-
-            glimpse = self.attention_module(
-                features, logits.unsqueeze(-1).unsqueeze(-1),  # type: ignore[has-type]
-            )
-            # logits: shape (N, rnn_units), glimpse: shape (N, 1)
-            logits = torch.cat([logits, glimpse], 1)  # type: ignore[has-type]
-            # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
-            logits = self.output_dense(logits)
-            # update symbol with predicted logits for t+1 step
-            if gt is not None:
-                _symbol = gt[:, t]  # type: ignore[index]
+        decoding_iter = self.max_length + 1 if gt is None else 1
+        for t in range(decoding_iter):
+            # (N, L + 1, rnn_units)
+            logits = self.rnn(symbol)[0]
+            # (N, L + 1, C)
+            glimpse = self.attention_module(features, logits)
+            # (N, L + 1, 2 * rnn_units)
+            logits = torch.cat((logits, glimpse), -1)
+            # (N, L + 1, vocab_size + 1)
+            decoded = self.output_dense(logits)
+            if gt is None:
+                char_logits[:, t] = decoded[:, t + 1]
+                if t < decoding_iter - 1:
+                    # update symbol with predicted logits for t + 1 step
+                    symbol[:, t + 2] = self.embed(decoded[:, t + 1].argmax(-1))
             else:
-                _symbol = logits.argmax(-1)
-            symbol = F.one_hot(_symbol, self.vocab_size + 1).to(dtype=features.dtype)
-            logits_list.append(logits)
-        outputs = torch.stack(logits_list, 1)  # shape (N, max_length + 1, vocab_size + 1)
+                char_logits = decoded[:, 1:]
 
-        return outputs
+        return char_logits
 
 
 class SAR(nn.Module, RecognitionModel):
@@ -176,7 +199,7 @@ class SAR(nn.Module, RecognitionModel):
         # Switch back to original mode
         self.feat_extractor.train()
 
-        self.encoder = nn.LSTM(out_shape[-1], rnn_units, 2, batch_first=True, dropout=dropout_prob)
+        self.encoder = SAREncoder(out_shape[1], rnn_units, dropout_prob)
 
         self.decoder = SARDecoder(
             rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders, out_shape[1],
@@ -193,9 +216,12 @@ class SAR(nn.Module, RecognitionModel):
     ) -> Dict[str, Any]:
 
         features = self.feat_extractor(x)['features']
-        pooled_features = features.max(dim=-2).values  # vertical max pooling
-        _, (encoded, _) = self.encoder(pooled_features)
-        encoded = encoded[-1]
+        # Vertical max pooling --> (N, C, W)
+        pooled_features = features.max(dim=-2).values
+        # (N, W, C)
+        pooled_features = pooled_features.permute((0, 2, 1))
+        # (N, C)
+        encoded = self.encoder(pooled_features)
         if target is not None:
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)  # type: ignore[assignment]
@@ -237,9 +263,9 @@ class SAR(nn.Module, RecognitionModel):
         # Add one for additional <eos> token
         seq_len = seq_len + 1
         # Compute loss
+        # (N, L, vocab_size + 1)
         cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction='none')
-        # Compute mask
-        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] < seq_len[:, None]
+        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
@@ -306,12 +332,11 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
     """SAR with a resnet-31 feature extractor as described in `"Show, Attend and Read:A Simple and Strong
     Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
-    Example:
-        >>> import torch
-        >>> from doctr.models import sar_resnet31
-        >>> model = sar_resnet31(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 128))
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import sar_resnet31
+    >>> model = sar_resnet31(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 128))
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset

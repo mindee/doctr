@@ -12,9 +12,9 @@ from torchvision.transforms import functional as F
 
 from doctr.utils.geometry import rotate_abs_geoms
 
-from .base import crop_boxes
+from .base import create_shadow_mask, crop_boxes
 
-__all__ = ["invert_colors", "rotate_sample", "crop_detection"]
+__all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
 
 
 def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
@@ -101,3 +101,27 @@ def crop_detection(
     boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
     return cropped_img, boxes
+
+
+def random_shadow(img: torch.Tensor, opacity_range: Tuple[float, float], **kwargs) -> torch.Tensor:
+    """Crop and image and associated bboxes
+
+    Args:
+        img: image to modify
+        opacity_range: the minimum and maximum desired opacity of the shadow
+
+    Returns:
+        shaded image
+    """
+
+    shadow_mask = create_shadow_mask(img.shape[1:], **kwargs)  # type: ignore[arg-type]
+
+    opacity = np.random.uniform(*opacity_range)
+    shadow_tensor = 1 - torch.from_numpy(shadow_mask[None, ...])
+
+    # Add some blur to make it believable
+    k = 7 + 2 * int(4 * np.random.rand(1))
+    sigma = np.random.uniform(.5, 5.)
+    shadow_tensor = F.gaussian_blur(shadow_tensor, k, sigma=[sigma, sigma])
+
+    return opacity * shadow_tensor * img + (1 - opacity) * img

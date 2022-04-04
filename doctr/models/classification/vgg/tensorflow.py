@@ -91,12 +91,11 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> VGG:
     <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization, rectangular pooling and a simpler
     classification head.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import vgg16_bn_r
-        >>> model = vgg16_bn_r(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import vgg16_bn_r
+    >>> model = vgg16_bn_r(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet

@@ -7,19 +7,20 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.models import Sequential
 
 from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet18', 'resnet31']
+__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'resnet18': {
-        'mean': (0.5, 0.5, 0.5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'classes': list(VOCABS['french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-d4634669.zip',
@@ -29,7 +30,28 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (1., 1., 1.),
         'input_shape': (32, 32, 3),
         'classes': list(VOCABS['french']),
-        'url': None,
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet31-5a47a60b.zip',
+    },
+    'resnet34': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34-5dcc97ca.zip',
+    },
+    'resnet50': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-e75e4cdf.zip',
+    },
+    'resnet34_wide': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34_wide-c1271816.zip',
     },
 }
 
@@ -122,6 +144,7 @@ class ResNet(Sequential):
         stage_conv: whether to add a conv_sequence after each stage
         stage_pooling: pooling to add after each stage (if None, no pooling)
         origin_stem: whether to use the orginal ResNet stem or ResNet-31's
+        stem_channels: number of output channels of the stem convolutions
         attn_module: attention module to use in each stage
         include_top: whether the classifier head should be instantiated
         num_classes: number of output classes
@@ -136,25 +159,25 @@ class ResNet(Sequential):
         stage_conv: List[bool],
         stage_pooling: List[Optional[Tuple[int, int]]],
         origin_stem: bool = True,
+        stem_channels: int = 64,
         attn_module: Optional[Callable[[int], layers.Layer]] = None,
         include_top: bool = True,
         num_classes: int = 1000,
         input_shape: Optional[Tuple[int, int, int]] = None,
     ) -> None:
 
+        inplanes = stem_channels
         if origin_stem:
             _layers = [
-                *conv_sequence(64, 'relu', True, kernel_size=7, strides=2, input_shape=input_shape),
+                *conv_sequence(inplanes, 'relu', True, kernel_size=7, strides=2, input_shape=input_shape),
                 layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'),
             ]
-            inplanes = 64
         else:
             _layers = [
-                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=input_shape),
-                *conv_sequence(128, 'relu', True, kernel_size=3),
+                *conv_sequence(inplanes // 2, 'relu', True, kernel_size=3, input_shape=input_shape),
+                *conv_sequence(inplanes, 'relu', True, kernel_size=3),
                 layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
             ]
-            inplanes = 128
 
         for n_blocks, out_chan, down, conv, pool in zip(num_blocks, output_channels, stage_downsample, stage_conv,
                                                         stage_pooling):
@@ -204,12 +227,11 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """Resnet-18 architecture as described in `"Deep Residual Learning for Image Recognition",
     <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import resnet18
-        >>> model = resnet18(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import resnet18
+    >>> model = resnet18(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -236,12 +258,11 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",
     <https://arxiv.org/pdf/1811.00751.pdf>`_. Downsizing: (H, W) --> (H/8, W/4)
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import resnet31
-        >>> model = resnet31(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import resnet31
+    >>> model = resnet31(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -259,5 +280,103 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [True] * 4,
         [(2, 2), (2, 1), None, None],
         False,
+        stem_channels=128,
+        **kwargs,
+    )
+
+
+def resnet34(pretrained: bool = False, **kwargs: Any) -> ResNet:
+    """Resnet-34 architecture as described in `"Deep Residual Learning for Image Recognition",
+    <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import resnet34
+    >>> model = resnet34(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A classification model
+    """
+
+    return _resnet(
+        'resnet34',
+        pretrained,
+        [3, 4, 6, 3],
+        [64, 128, 256, 512],
+        [False, True, True, True],
+        [False] * 4,
+        [None] * 4,
+        True,
+        **kwargs,
+    )
+
+
+def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
+    """Resnet-50 architecture as described in `"Deep Residual Learning for Image Recognition",
+    <https://arxiv.org/pdf/1512.03385.pdf>`_.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import resnet50
+    >>> model = resnet50(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A classification model
+    """
+
+    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs['resnet50']['classes']))
+    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs['resnet50']['input_shape'])
+
+    model = ResNet50(
+        weights=None,
+        include_top=True,
+        pooling=True,
+        input_shape=kwargs['input_shape'],
+        classes=kwargs['num_classes'],
+        classifier_activation=None,
+    )
+
+    # Load pretrained parameters
+    if pretrained:
+        load_pretrained_params(model, default_cfgs['resnet50']['url'])
+
+    return model
+
+
+def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
+    """Resnet-34 architecture as described in `"Deep Residual Learning for Image Recognition",
+    <https://arxiv.org/pdf/1512.03385.pdf>`_ with twice as many output channels for each stage.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import resnet34_wide
+    >>> model = resnet34_wide(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A classification model
+    """
+
+    return _resnet(
+        'resnet34_wide',
+        pretrained,
+        [3, 4, 6, 3],
+        [128, 256, 512, 1024],
+        [False, True, True, True],
+        [False] * 4,
+        [None] * 4,
+        True,
+        stem_channels=128,
         **kwargs,
     )

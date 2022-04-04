@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import random
-from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -12,19 +12,20 @@ import tensorflow_addons as tfa
 
 from doctr.utils.repr import NestedObject
 
+from ..functional.tensorflow import random_shadow
+
 __all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
            'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
-           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip']
+           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip', 'RandomShadow']
 
 
 class Compose(NestedObject):
     """Implements a wrapper that will apply transformations sequentially
 
-    Example::
-        >>> from doctr.transforms import Compose, Resize
-        >>> import tensorflow as tf
-        >>> transfos = Compose([Resize((32, 32))])
-        >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import Compose, Resize
+    >>> transfos = Compose([Resize((32, 32))])
+    >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         transforms: list of transformation modules
@@ -45,11 +46,10 @@ class Compose(NestedObject):
 class Resize(NestedObject):
     """Resizes a tensor to a target size
 
-    Example::
-        >>> from doctr.transforms import Resize
-        >>> import tensorflow as tf
-        >>> transfo = Resize((32, 32))
-        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import Resize
+    >>> transfo = Resize((32, 32))
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         output_size: expected output size
@@ -59,7 +59,7 @@ class Resize(NestedObject):
     """
     def __init__(
         self,
-        output_size: Tuple[int, int],
+        output_size: Union[int, Tuple[int, int]],
         method: str = 'bilinear',
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
@@ -69,35 +69,77 @@ class Resize(NestedObject):
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
 
+        if isinstance(self.output_size, int):
+            self.wanted_size = (self.output_size, self.output_size)
+        elif isinstance(self.output_size, (tuple, list)):
+            self.wanted_size = self.output_size
+        else:
+            raise AssertionError("Output size should be either a list, a tuple or an int")
+
     def extra_repr(self) -> str:
         _repr = f"output_size={self.output_size}, method='{self.method}'"
         if self.preserve_aspect_ratio:
             _repr += f", preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}"
         return _repr
 
-    def __call__(self, img: tf.Tensor) -> tf.Tensor:
+    def __call__(
+        self,
+        img: tf.Tensor,
+        target: Optional[np.ndarray] = None,
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
+
         input_dtype = img.dtype
-        img = tf.image.resize(img, self.output_size, self.method, self.preserve_aspect_ratio)
+
+        img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio)
+        # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
+        raw_shape = img.shape[:2]
         if self.preserve_aspect_ratio:
-            # pad width
-            if not self.symmetric_pad:
-                offset = (0, 0)
-            elif self.output_size[0] == img.shape[0]:
-                offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
-            else:
-                offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
-            img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+            if isinstance(self.output_size, (tuple, list)):
+                # In that case we need to pad because we want to enforce both width and height
+                if not self.symmetric_pad:
+                    offset = (0, 0)
+                elif self.output_size[0] == img.shape[0]:
+                    offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
+                else:
+                    offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+                img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+
+        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+        if target is not None:
+            if self.preserve_aspect_ratio:
+                # Get absolute coords
+                if target.shape[1:] == (4,):
+                    if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
+                        if np.max(target) <= 1:
+                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                        target[:, [0, 2]] = offset[1] + target[:, [0, 2]] * raw_shape[1] / img.shape[1]
+                        target[:, [1, 3]] = offset[0] + target[:, [1, 3]] * raw_shape[0] / img.shape[0]
+                    else:
+                        target[:, [0, 2]] *= raw_shape[1] / img.shape[1]
+                        target[:, [1, 3]] *= raw_shape[0] / img.shape[0]
+                elif target.shape[1:] == (4, 2):
+                    if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
+                        if np.max(target) <= 1:
+                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                        target[..., 0] = offset[1] + target[..., 0] * raw_shape[1] / img.shape[1]
+                        target[..., 1] = offset[0] + target[..., 1] * raw_shape[0] / img.shape[0]
+                    else:
+                        target[..., 0] *= raw_shape[1] / img.shape[1]
+                        target[..., 1] *= raw_shape[0] / img.shape[0]
+                else:
+                    raise AssertionError
+            return tf.cast(img, dtype=input_dtype), target
+
         return tf.cast(img, dtype=input_dtype)
 
 
 class Normalize(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
 
-    Example::
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import Normalize
+    >>> transfo = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         mean: average value per channel
@@ -119,11 +161,10 @@ class Normalize(NestedObject):
 class LambdaTransformation(NestedObject):
     """Normalize a tensor to a Gaussian distribution for each channel
 
-    Example::
-        >>> from doctr.transforms import LambdaTransformation
-        >>> import tensorflow as tf
-        >>> transfo = LambdaTransformation(lambda x: x/ 255.)
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import LambdaTransformation
+    >>> transfo = LambdaTransformation(lambda x: x/ 255.)
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         fn: the function to be applied to the input tensor
@@ -138,11 +179,10 @@ class LambdaTransformation(NestedObject):
 class ToGray(NestedObject):
     """Convert a RGB tensor (batch of images or image) to a 3-channels grayscale tensor
 
-    Example::
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = ToGray()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import ToGray
+    >>> transfo = ToGray()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
     def __init__(self, num_output_channels: int = 1):
         self.num_output_channels = num_output_channels
@@ -156,11 +196,10 @@ class RandomBrightness(NestedObject):
     """Randomly adjust brightness of a tensor (batch of images or image) by adding a delta
     to all pixels
 
-    Example:
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Brightness()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomBrightness
+    >>> transfo = RandomBrightness()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
@@ -180,11 +219,10 @@ class RandomContrast(NestedObject):
     """Randomly adjust contrast of a tensor (batch of images or image) by adjusting
     each pixel: (img - mean) * contrast_factor + mean.
 
-    Example:
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Contrast()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomContrast
+    >>> transfo = RandomContrast()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor<1)
@@ -203,11 +241,10 @@ class RandomSaturation(NestedObject):
     """Randomly adjust saturation of a tensor (batch of images or image) by converting to HSV and
     increasing saturation by a factor.
 
-    Example:
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Saturation()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomSaturation
+    >>> transfo = RandomSaturation()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor<1)
@@ -225,11 +262,10 @@ class RandomSaturation(NestedObject):
 class RandomHue(NestedObject):
     """Randomly adjust hue of a tensor (batch of images or image) by converting to HSV and adding a delta
 
-    Example::
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Hue()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomHue
+    >>> transfo = RandomHue()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
@@ -247,11 +283,10 @@ class RandomHue(NestedObject):
 class RandomGamma(NestedObject):
     """randomly performs gamma correction for a tensor (batch of images or image)
 
-    Example:
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = Gamma()
-        >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomGamma
+    >>> transfo = RandomGamma()
+    >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
         min_gamma: non-negative real number, lower bound for gamma param
@@ -284,11 +319,10 @@ class RandomGamma(NestedObject):
 class RandomJpegQuality(NestedObject):
     """Randomly adjust jpeg quality of a 3 dimensional RGB image
 
-    Example::
-        >>> from doctr.transforms import Normalize
-        >>> import tensorflow as tf
-        >>> transfo = JpegQuality()
-        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomJpegQuality
+    >>> transfo = RandomJpegQuality()
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         min_quality: int between [0, 100]
@@ -310,11 +344,10 @@ class RandomJpegQuality(NestedObject):
 class GaussianBlur(NestedObject):
     """Randomly adjust jpeg quality of a 3 dimensional RGB image
 
-    Example::
-        >>> from doctr.transforms import GaussianBlur
-        >>> import tensorflow as tf
-        >>> transfo = GaussianBlur(3, (.1, 5))
-        >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import GaussianBlur
+    >>> transfo = GaussianBlur(3, (.1, 5))
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
         kernel_shape: size of the blurring kernel
@@ -348,16 +381,15 @@ class ChannelShuffle(NestedObject):
 class GaussianNoise(NestedObject):
     """Adds Gaussian Noise to the input tensor
 
-       Example::
-           >>> from doctr.transforms import GaussianNoise
-           >>> import tensorflow as tf
-           >>> transfo = GaussianNoise(0., 1.)
-           >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import GaussianNoise
+    >>> transfo = GaussianNoise(0., 1.)
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
-       Args:
-           mean : mean of the gaussian distribution
-           std : std of the gaussian distribution
-       """
+    Args:
+        mean : mean of the gaussian distribution
+        std : std of the gaussian distribution
+    """
     def __init__(self, mean: float = 0., std: float = 1.) -> None:
         super().__init__()
         self.std = std
@@ -381,19 +413,19 @@ class GaussianNoise(NestedObject):
 class RandomHorizontalFlip(NestedObject):
     """Adds random horizontal flip to the input tensor/np.ndarray
 
-    Example::
-           >>> from doctr.transforms import RandomHorizontalFlip
-           >>> import tensorflow as tf
-           >>> transfo = RandomHorizontalFlip(p=0.5)
-           >>> image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
-           >>> target = {
-            "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),
-            "labels": np.ones(1, dtype= np.int64)
-            }
-           >>> out = transfo(image, target)
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomHorizontalFlip
+    >>> transfo = RandomHorizontalFlip(p=0.5)
+    >>> image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
+    >>> target = {
+    >>> "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),
+    >>> "labels": np.ones(1, dtype= np.int64)
+    >>> }
+    >>> out = transfo(image, target)
 
-       Args:
-           p : probability of Horizontal Flip"""
+    Args:
+        p : probability of Horizontal Flip
+    """
     def __init__(self, p: float) -> None:
         super().__init__()
         self.p = p
@@ -417,3 +449,36 @@ class RandomHorizontalFlip(NestedObject):
             _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
             return _img, _target
         return img, target
+
+
+class RandomShadow(NestedObject):
+    """Adds random shade to the input image
+
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomShadow
+    >>> transfo = RandomShadow(0., 1.)
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+        opacity_range : minimum and maximum opacity of the shade
+    """
+    def __init__(self, opacity_range: Tuple[float, float] = None) -> None:
+        super().__init__()
+        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
+
+    def __call__(self, x: tf.Tensor) -> tf.Tensor:
+        # Reshape the distribution
+        if x.dtype == tf.uint8:
+            return tf.cast(
+                tf.clip_by_value(
+                    tf.math.round(255 * random_shadow(tf.cast(x, dtype=tf.float32) / 255, self.opacity_range)),
+                    0,
+                    255,
+                ),
+                dtype=tf.uint8
+            )
+        else:
+            return tf.clip_by_value(random_shadow(x, self.opacity_range), 0, 1)
+
+    def extra_repr(self) -> str:
+        return f"opacity_range={self.opacity_range}"

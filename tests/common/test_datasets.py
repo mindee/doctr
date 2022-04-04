@@ -42,3 +42,14 @@ def test_abstractdataset(mock_image_path):
     ds.sample_transforms = lambda x, y: (x, y + 1)
     img3, target3 = ds[0]
     assert np.all(img3.numpy() == img.numpy()) and (target3 == (target + 1))
+
+    # Check inplace modifications
+    ds.data = [(ds.data[0][0], {"label": "A"})]
+
+    def inplace_transfo(x, target):
+        target["label"] += "B"
+        return x, target
+    ds.sample_transforms = inplace_transfo
+    _, t = ds[0]
+    _, t = ds[0]
+    assert t['label'] == "AB"

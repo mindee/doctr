@@ -30,7 +30,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """
     def __init__(
         self,
-        bin_thresh: float = 0.5,
+        bin_thresh: float = 0.1,
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
     ) -> None:
@@ -39,7 +39,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             bin_thresh,
             assume_straight_pages
         )
-        self.unclip_ratio = 1.5
+        self.unclip_ratio = 1.2
 
     def polygon_to_box(
         self,
@@ -103,13 +103,12 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, alpha, score for the box
         """
         height, width = bitmap.shape[:2]
-        min_size_box = 1 + int(height / 512)
         boxes = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < 2):
                 continue
             # Compute objectness
             if self.assume_straight_pages:
@@ -129,10 +128,10 @@ class LinkNetPostProcessor(DetectionPostProcessor):
 
             if self.assume_straight_pages:
                 # compute relative polygon to get rid of img shape
+                x, y, w, h = _box
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
-                _box = cv2.boxPoints(cv2.minAreaRect(contour))
                 # compute relative box to get rid of img shape
                 _box[:, 0] /= width
                 _box[:, 1] /= height

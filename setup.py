@@ -14,7 +14,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-version = "0.5.1a0"
+version = "0.6.0a0"
 sha = 'Unknown'
 src_folder = 'doctr'
 package_index = 'python-doctr'
@@ -45,7 +45,7 @@ _deps = [
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
     "tensorflow>=2.4.0",
-    "PyMuPDF>=1.16.0,!=1.18.11,!=1.18.12",  # 18.11 and 18.12 fail (issue #222)
+    "pypdfium2>=1.0.0",
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0,<3.4.3",
@@ -62,6 +62,7 @@ _deps = [
     "keras<2.7.0",
     "onnx>=1.11.0",
     "onnxruntime>=1.10.0"
+    "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
@@ -74,13 +75,14 @@ _deps = [
     "mypy>=0.812",
     "pydocstyle>=6.1.1",
     # Docs
-    "sphinx<3.5.0",
-    "sphinx-rtd-theme==0.4.3",
+    "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
     "docutils<0.18",
     "recommonmark>=0.7.1",
     "sphinx-markdown-tables>=0.0.15",
+    "sphinx-tabs>=3.3.0",
+    "furo>=2022.3.4",
 ]
 
 deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
@@ -96,7 +98,7 @@ install_requires = [
     deps["scipy"],
     deps["h5py"],
     deps["opencv-python"],
-    deps["PyMuPDF"],
+    deps["pypdfium2"],
     deps["pyclipper"],
     deps["shapely"],
     deps["matplotlib"],
@@ -108,6 +110,7 @@ install_requires = [
     deps["rapidfuzz"],
     deps["onnx"],
     deps["onnxruntime"],
+    deps["huggingface-hub"],
 ]
 
 extras = {}
@@ -150,12 +153,13 @@ extras["quality"] = deps_list(
 
 extras["docs_specific"] = deps_list(
     "sphinx",
-    "sphinx-rtd-theme",
     "sphinxemoji",
     "sphinx-copybutton",
     "docutils",
     "recommonmark",
     "sphinx-markdown-tables",
+    "sphinx-tabs",
+    "furo",
 )
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
