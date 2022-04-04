@@ -15,3 +15,5 @@ Pillow>=8.3.2
 tqdm>=4.30.0
 rapidfuzz>=1.6.0
 huggingface-hub>=0.4.0
+onnx>=1.11.0
+onnxruntime>=1.11.0

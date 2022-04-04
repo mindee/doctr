@@ -62,7 +62,7 @@ _deps = [
     "keras<2.7.0",
     "huggingface-hub>=0.4.0",
     "onnx>=1.11.0",
-    "onnxruntime>=1.10.0",
+    "onnxruntime>=1.11.0",
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
