@@ -85,7 +85,10 @@ def conv_sequence_pt(
 def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_input: torch.Tensor) -> str:
     """Export classification model to ONNX format.
 
+    >>> import torch
+    >>> from doctr.models.classification import resnet18
     >>> from doctr.models.utils import export_classification_model_to_onnx
+    >>> model = resnet18(pretrained=True)
     >>> export_classification_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
 
     Args:
@@ -96,7 +99,6 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
     Returns:
         the path to the exported model
     """
-
     torch.onnx.export(
         model,
         dummy_input,
