@@ -5,6 +5,7 @@
 
 
 import math
+from copy import deepcopy
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -141,8 +142,15 @@ def _magc_resnet(
     **kwargs: Any,
 ) -> ResNet:
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
-    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
+    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     # Build the model
     model = ResNet(
@@ -153,6 +161,7 @@ def _magc_resnet(
         stage_pooling,
         origin_stem,
         attn_module=partial(MAGC, headers=8, attn_scale=True),
+        cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters

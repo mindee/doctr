@@ -171,6 +171,7 @@ def main(args):
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         num_classes=len(vocab),
+        classes=list(vocab),
         include_top=True,
     )
 
