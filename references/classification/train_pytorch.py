@@ -16,7 +16,6 @@ import numpy as np
 import torch
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
-from references.hub import login_to_hub, push_to_hf_hub
 from torch.nn.functional import cross_entropy
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
@@ -25,7 +24,7 @@ from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscal
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
-from doctr.models import classification
+from doctr.models import classification, login_to_hub, push_to_hf_hub
 from utils import plot_recorder, plot_samples
 
 

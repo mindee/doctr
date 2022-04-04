@@ -18,14 +18,13 @@ import numpy as np
 import torch
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
-from references.hub import login_to_hub, push_to_hf_hub
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
-from doctr.models import recognition
+from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
 from utils import plot_recorder, plot_samples
 

@@ -15,6 +15,8 @@ from huggingface_hub import HfApi, HfFolder, Repository
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
+__all__ = ['login_to_hub', 'push_to_hf_hub']
+
 
 def login_to_hub() -> None:
     access_token = HfFolder.get_token()
@@ -33,7 +35,7 @@ def login_to_hub() -> None:
                       Then run `git lfs install` (you only have to do this once).')
 
 
-def save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Dict[str, str]) -> None:
+def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, model_config: Dict[str, str]) -> None:
     save_directory = Path(save_dir)
 
     if is_torch_available():
@@ -105,7 +107,7 @@ https://github.com/mindee/doctr
 
     with repo.commit(commit_message):
 
-        save_model_and_config_for_hf_hub(model, repo.local_dir, model_config=model_config)
+        _save_model_and_config_for_hf_hub(model, repo.local_dir, model_config=model_config)
         readme_path = Path(repo.local_dir) / 'README.md'
         readme_path.write_text(readme)
 

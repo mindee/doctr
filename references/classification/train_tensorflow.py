@@ -16,8 +16,9 @@ import numpy as np
 import tensorflow as tf
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
-from references.hub import login_to_hub, push_to_hf_hub
 from tensorflow.keras import mixed_precision
+
+from doctr.models import login_to_hub, push_to_hf_hub
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
