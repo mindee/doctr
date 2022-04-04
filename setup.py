@@ -60,13 +60,13 @@ _deps = [
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
     "keras<2.7.0",
+    "onnx>=1.11.0",
+    "onnxruntime>=1.10.0"
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
     "hdf5storage>=0.1.18",
     "requests>=2.20.0",
-    "onnx>=1.11.0",
-    "onnxruntime>=1.10.0",
     "requirements-parser==0.2.0",
     # Quality
     "flake8>=3.9.0",
@@ -106,6 +106,8 @@ install_requires = [
     deps["Pillow"],
     deps["tqdm"],
     deps["rapidfuzz"],
+    deps["onnx"],
+    deps["onnxruntime"],
 ]
 
 extras = {}
@@ -136,8 +138,6 @@ extras["testing"] = deps_list(
     "coverage",
     "requests",
     "hdf5storage",
-    "onnx",
-    "onnxruntime",
     "requirements-parser",
 )
 
