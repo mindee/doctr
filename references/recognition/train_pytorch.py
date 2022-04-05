@@ -386,7 +386,7 @@ def main(args):
         run.finish()
 
     if args.push_to_hub:
-        push_to_hf_hub(model, exp_name, tag='text-recognition', run_config=args)
+        push_to_hf_hub(model, exp_name, task='recognition', run_config=args)
 
 
 def parse_args():

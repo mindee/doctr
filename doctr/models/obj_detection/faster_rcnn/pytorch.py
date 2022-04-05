@@ -39,6 +39,7 @@ def _fasterrcnn(arch: str, pretrained: bool, **kwargs: Any) -> FasterRCNN:
     # Build the model
     _kwargs.update(kwargs)
     model = faster_rcnn.__dict__[arch](pretrained=False, pretrained_backbone=False, **_kwargs)
+    model.cfg = default_cfgs[arch]
 
     if pretrained:
         # Load pretrained parameters
