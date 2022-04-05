@@ -5,6 +5,7 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from torchvision.models import mobilenetv3
@@ -63,6 +64,12 @@ def _mobilenet_v3(
 ) -> mobilenetv3.MobileNetV3:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     if arch.startswith("mobilenet_v3_small"):
         model = mobilenetv3.mobilenet_v3_small(**kwargs)
@@ -79,9 +86,15 @@ def _mobilenet_v3(
 
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'],
+                                   pop_entrys=['classifier.3.weight', 'classifier.3.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
-    model.cfg = default_cfgs[arch]
+    model.cfg = _cfg
 
     return model
 

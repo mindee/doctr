@@ -5,6 +5,7 @@
 
 
 import math
+from copy import deepcopy
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -48,6 +49,7 @@ class MAGC(nn.Module):
         headers: int = 8,
         attn_scale: bool = False,
         ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
 
@@ -112,6 +114,12 @@ def _magc_resnet(
 ) -> ResNet:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     # Build the model
     model = ResNet(
@@ -121,11 +129,17 @@ def _magc_resnet(
         stage_conv,
         stage_pooling,
         attn_module=partial(MAGC, headers=8, attn_scale=True),
+        cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
