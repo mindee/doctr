@@ -3,6 +3,7 @@ import os
 import tempfile
 
 import pytest
+import tensorflow as tf
 
 from doctr.models import classification, detection, obj_detection, recognition
 from doctr.models.factory import _save_model_and_config_for_hf_hub
@@ -35,14 +36,15 @@ from doctr.models.factory import _save_model_and_config_for_hf_hub
 )
 def test_models_for_hub(arch_name, task_name, tmpdir):
     with tempfile.TemporaryDirectory() as tmp_dir:
+        tf.keras.backend.clear_session()
         if task_name == "classification":
-            model = classification.__dict__[arch_name](pretrained=False)
+            model = classification.__dict__[arch_name](pretrained=True)
         elif task_name == "detection":
-            model = detection.__dict__[arch_name](pretrained=False)
+            model = detection.__dict__[arch_name](pretrained=True)
         elif task_name == "recognition":
-            model = recognition.__dict__[arch_name](pretrained=False)
+            model = recognition.__dict__[arch_name](pretrained=True)
         elif task_name == "obj_detection":
-            model = obj_detection.__dict__[arch_name](pretrained=False)
+            model = obj_detection.__dict__[arch_name](pretrained=True)
 
         _save_model_and_config_for_hf_hub(model, arch=arch_name, task=task_name, save_dir=tmp_dir)
 
