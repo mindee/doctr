@@ -136,16 +136,14 @@ https://github.com/mindee/doctr
 ```
 """
 
-    # add run configuration to readme if available and set architecture
+    # add run configuration to readme if available
     if run_config is not None:
+        arch = run_config.arch
         readme += f"""
 ### Run Configuration
 
 {json.dumps(vars(run_config), indent=2, ensure_ascii=False)}
 """
-        arch = run_config.arch
-    else:
-        arch = arch
 
     commit_message = f'Add {model_name} model'
 
