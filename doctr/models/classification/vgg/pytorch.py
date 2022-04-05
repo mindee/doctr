@@ -48,7 +48,13 @@ def _vgg(
     model.classifier = nn.Linear(512, kwargs['num_classes'])
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'],
+                                   pop_entrys=['classifier.weight', 'classifier.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 

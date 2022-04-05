@@ -8,18 +8,18 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_shape",
+    "arch_name, input_shape, pretrained",
     [
-        ["crnn_vgg16_bn", (3, 32, 128)],
-        ["crnn_mobilenet_v3_small", (3, 32, 128)],
-        ["crnn_mobilenet_v3_large", (3, 32, 128)],
-        ["sar_resnet31", (3, 32, 128)],
-        ["master", (3, 48, 160)],
+        ["crnn_vgg16_bn", (3, 32, 128), True],
+        ["crnn_mobilenet_v3_small", (3, 32, 128), True],
+        ["crnn_mobilenet_v3_large", (3, 32, 128), True],
+        ["sar_resnet31", (3, 32, 128), False],
+        ["master", (3, 48, 160), False],
     ],
 )
-def test_recognition_models(arch_name, input_shape, mock_vocab):
+def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
     batch_size = 4
-    model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=False, input_shape=input_shape).eval()
+    model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=pretrained, input_shape=input_shape).eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = ["i", "am", "a", "jedi"]

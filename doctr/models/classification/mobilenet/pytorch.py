@@ -79,7 +79,13 @@ def _mobilenet_v3(
 
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'],
+                                   pop_entrys=['classifier.3.weight', 'classifier.3.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     model.cfg = default_cfgs[arch]
 

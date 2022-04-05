@@ -240,7 +240,12 @@ def _crnn(
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)  # type: ignore[arg-type]
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        if _cfg['vocab'] != default_cfgs[arch]['vocab']:
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, _cfg['url'], pop_entrys=['linear.weight', 'linear.bias'])
+        else:
+            load_pretrained_params(model, _cfg['url'])
 
     return model
 
