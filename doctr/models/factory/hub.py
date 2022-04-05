@@ -138,8 +138,11 @@ https://github.com/mindee/doctr
 
     # add run configuration to readme if available and set architecture
     if run_config is not None:
-        readme = readme + f'\n### Run Configuration\n + \
-        {json.dumps(vars(run_config), indent=2, ensure_ascii=False)}'
+        readme += f"""
+### Run Configuration
+
+{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}
+"""
         arch = run_config.arch
     else:
         arch = arch
