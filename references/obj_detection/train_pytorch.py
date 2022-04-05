@@ -334,7 +334,7 @@ def main(args):
         run.finish()
 
     if args.push_to_hub:
-        push_to_hf_hub(model, exp_name, tag='obj_detection', run_config=args)
+        push_to_hf_hub(model, exp_name, task='obj_detection', run_config=args)
 
 
 def parse_args():
