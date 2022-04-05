@@ -25,6 +25,7 @@ from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscal
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
 from doctr.models import classification
+from doctr.models.utils import export_classification_model_to_onnx
 from utils import plot_recorder, plot_samples
 
 
@@ -334,6 +335,13 @@ def main(args):
     if args.wb:
         run.finish()
 
+    if args.export_onnx:
+        print("Exporting model to ONNX...")
+        dummy_batch = next(iter(val_loader))
+        dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
+        model_path = export_classification_model_to_onnx(model, exp_name, dummy_input)
+        print(f"Exported model saved in {model_path}")
+
 
 def parse_args():
     import argparse
@@ -378,6 +386,8 @@ def parse_args():
                         help='Log to Weights & Biases')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',
+                        help='Export the model to ONNX')
     parser.add_argument('--sched', type=str, default='cosine', help='scheduler to use')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
