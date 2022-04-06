@@ -109,6 +109,30 @@ def test_recognition_zoo(arch_name):
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
 
 
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
+    ],
+)
+def test_crnn_beam_search(arch_name):
+    batch_size = 2
+    # Model
+    predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
+    # object check
+    assert isinstance(predictor, RecognitionPredictor)
+    input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
+    out = predictor(input_tensor, beam_width=10, top_paths=10)
+    assert isinstance(out, list) and len(out) == batch_size
+    assert all(isinstance(words, list) and
+               isinstance(confs, list) and
+               all([isinstance(word, str) for word in words]) and
+               all([isinstance(conf, float) for conf in confs])
+               for words, confs in out)
+
+
 def test_recognition_zoo_error():
     with pytest.raises(ValueError):
         _ = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)
