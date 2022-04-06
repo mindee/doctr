@@ -31,3 +31,6 @@ VOCABS['spanish'] = VOCABS['english'] + 'áéíóúüñÁÉÍÓÚÜÑ' + '¡¿'
 VOCABS['german'] = VOCABS['english'] + 'äöüßÄÖÜẞ'
 VOCABS['arabic'] = (VOCABS['digits'] + VOCABS['hindi_digits'] + VOCABS['arabic_letters'] + VOCABS['persian_letters'] +
                     VOCABS['arabic_diacritics'] + VOCABS['arabic_punctuation'] + VOCABS['punctuation'])
+VOCABS['vietnamese'] = (VOCABS['english'] +
+                        'áàảạãăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựiíìỉĩịýỳỷỹỵ' +
+                        'ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰIÍÌỈĨỊÝỲỶỸỴ')
