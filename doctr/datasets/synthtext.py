@@ -108,7 +108,7 @@ class SynthText(VisionDataset):
     def extra_repr(self) -> str:
         return f"train={self.train}"
 
-    def _pickle_read(self, path: str) -> Any:
+    def _pickle_read(self, path: str) -> None:
         with open(path, 'rb') as f:
             while True:
                 try:
