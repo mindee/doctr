@@ -14,7 +14,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-version = "0.5.1a0"
+version = "0.6.0a0"
 sha = 'Unknown'
 src_folder = 'doctr'
 package_index = 'python-doctr'
@@ -65,6 +65,7 @@ _deps = [
     "pytest>=5.3.2",
     "coverage>=4.5.4",
     "hdf5storage>=0.1.18",
+    "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     "requirements-parser==0.2.0",
     # Quality
@@ -137,6 +138,7 @@ extras["testing"] = deps_list(
     "coverage",
     "requests",
     "hdf5storage",
+    "onnxruntime",
     "requirements-parser",
 )
 

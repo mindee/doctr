@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
+from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from torch import nn
@@ -105,6 +106,7 @@ class ResNet(nn.Sequential):
         attn_module: Optional[Callable[[int], nn.Module]] = None,
         include_top: bool = True,
         num_classes: int = 1000,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         _layers: List[nn.Module]
@@ -139,6 +141,7 @@ class ResNet(nn.Sequential):
             ])
 
         super().__init__(*_layers)
+        self.cfg = cfg
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -160,12 +163,23 @@ def _resnet(
 ) -> ResNet:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     # Build the model
-    model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, **kwargs)
+    model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
@@ -178,12 +192,25 @@ def _tv_resnet(
 ) -> TVResNet:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     # Build the model
     model = arch_fn(**kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['fc.weight', 'fc.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    model.cfg = _cfg
 
     return model
 

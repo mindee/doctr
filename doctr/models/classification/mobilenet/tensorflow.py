@@ -220,9 +220,16 @@ def _mobilenet_v3(
     rect_strides: bool = False,
     **kwargs: Any
 ) -> MobileNetV3:
+
+    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
-    _cfg['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
