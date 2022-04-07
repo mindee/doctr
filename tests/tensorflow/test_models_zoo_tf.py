@@ -13,14 +13,14 @@ from doctr.models.recognition.zoo import recognition_predictor
 from doctr.utils.repr import NestedObject
 
 
-@pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages",
-    [
-        [True, False],
-        [False, False],
-        [True, True],
-    ]
-)
+# @pytest.mark.parametrize(
+#     "assume_straight_pages, straighten_pages",
+#     [
+#         [True, False],
+#         [False, False],
+#         [True, True],
+#     ]
+# )
 # def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
 #     det_bsize = 4
 #     det_predictor = DetectionPredictor(
