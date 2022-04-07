@@ -21,45 +21,45 @@ from doctr.utils.repr import NestedObject
         [True, True],
     ]
 )
-def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
-    det_bsize = 4
-    det_predictor = DetectionPredictor(
-        PreProcessor(output_size=(512, 512), batch_size=det_bsize),
-        detection.db_mobilenet_v3_large(
-            pretrained=True,
-            pretrained_backbone=False,
-            input_shape=(512, 512, 3),
-            assume_straight_pages=assume_straight_pages,
-        )
-    )
+# def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
+#     det_bsize = 4
+#     det_predictor = DetectionPredictor(
+#         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
+#         detection.db_mobilenet_v3_large(
+#             pretrained=True,
+#             pretrained_backbone=False,
+#             input_shape=(512, 512, 3),
+#             assume_straight_pages=assume_straight_pages,
+#         )
+#     )
 
-    reco_bsize = 16
-    reco_predictor = RecognitionPredictor(
-        PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
-        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
-    )
+#     reco_bsize = 16
+#     reco_predictor = RecognitionPredictor(
+#         PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
+#         recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
+#     )
 
-    doc = DocumentFile.from_pdf(mock_pdf)
+#     doc = DocumentFile.from_pdf(mock_pdf)
 
-    predictor = OCRPredictor(
-        det_predictor,
-        reco_predictor,
-        assume_straight_pages=assume_straight_pages,
-        straighten_pages=straighten_pages,
-    )
+#     predictor = OCRPredictor(
+#         det_predictor,
+#         reco_predictor,
+#         assume_straight_pages=assume_straight_pages,
+#         straighten_pages=straighten_pages,
+#     )
 
-    if assume_straight_pages:
-        assert predictor.crop_orientation_predictor is None
-    else:
-        assert isinstance(predictor.crop_orientation_predictor, NestedObject)
+#     if assume_straight_pages:
+#         assert predictor.crop_orientation_predictor is None
+#     else:
+#         assert isinstance(predictor.crop_orientation_predictor, NestedObject)
 
-    out = predictor(doc)
-    assert isinstance(out, Document)
-    assert len(out.pages) == 2
-    # Dimension check
-    with pytest.raises(ValueError):
-        input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
-        _ = predictor([input_page])
+#     out = predictor(doc)
+#     assert isinstance(out, Document)
+#     assert len(out.pages) == 2
+#     # Dimension check
+#     with pytest.raises(ValueError):
+#         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
+#         _ = predictor([input_page])
 
 
 def test_trained_ocr_predictor(mock_tilted_payslip):
