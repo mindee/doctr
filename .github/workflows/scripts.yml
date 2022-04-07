@@ -48,10 +48,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
 
-      - name: Run analysis script
-        run: |
-          wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
-          python scripts/analyze.py sample.pdf --noblock
+      # - name: Run analysis script
+      #   run: |
+      #     wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
+      #     python scripts/analyze.py sample.pdf --noblock
 
   test-evaluate:
     runs-on: ${{ matrix.os }}
