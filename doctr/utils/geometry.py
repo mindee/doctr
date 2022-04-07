@@ -331,8 +331,8 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
         _boxes[2:] += 1
     if channels_last:
         return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
-    else:
-        return [img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes]
+
+    return [img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
 
 def extract_rcrops(
