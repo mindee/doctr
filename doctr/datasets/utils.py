@@ -178,7 +178,7 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     img = np.array(Image.open(img_path))
     # Polygon
     if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
-        return extract_rcrops(img, geoms.astype(dtype=np.int))
+        return extract_rcrops(img, geoms.astype(dtype=int))
     if geoms.ndim == 2 and geoms.shape[1] == 4:
-        return extract_crops(img, geoms.astype(dtype=np.int))
+        return extract_crops(img, geoms.astype(dtype=int))
     raise ValueError("Invalid geometry format")

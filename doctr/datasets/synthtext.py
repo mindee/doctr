@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
+import pickle
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
@@ -58,6 +59,12 @@ class SynthText(VisionDataset):
 
         # Load mat data
         tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
+        pickle_path = os.path.join(tmp_root, 'SynthText_reco.pkl')
+
+        if recognition_task and os.path.exists(pickle_path):
+            self._pickle_read(pickle_path)
+            return
+
         mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
         train_samples = int(len(mat_data['imnames'][0]) * 0.9)
         set_slice = slice(train_samples) if self.train else slice(train_samples, None)
@@ -86,12 +93,25 @@ class SynthText(VisionDataset):
 
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
-                for crop, label in zip(crops, labels):
-                    self.data.append((crop, dict(labels=[label])))
+                with open(pickle_path, 'ab+') as f:
+                    for crop, label in zip(crops, labels):
+                        pickle.dump((crop, label), f)
             else:
                 self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
+
+        if recognition_task:
+            self._pickle_read(pickle_path)
 
         self.root = tmp_root
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
+
+    def _pickle_read(self, path: str) -> Any:
+        with open(path, 'rb') as f:
+            while True:
+                try:
+                    crop, label = pickle.load(f)
+                    self.data.append((crop, dict(labels=[label])))
+                except EOFError:
+                    break

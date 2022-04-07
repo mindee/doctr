@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
 from math import ceil
 from typing import List, Optional, Tuple, Union
 
@@ -330,9 +331,9 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
         # Add last index
         _boxes[2:] += 1
     if channels_last:
-        return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
+        return deepcopy([img[box[1]: box[3], box[0]: box[2]] for box in _boxes])
 
-    return [img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes]
+    return deepcopy([img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes])
 
 
 def extract_rcrops(
@@ -360,7 +361,7 @@ def extract_rcrops(
     # Project relative coordinates
     _boxes = polys.copy()
     height, width = img.shape[:2] if channels_last else img.shape[-2:]
-    if _boxes.dtype != np.int:
+    if _boxes.dtype != int:
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
