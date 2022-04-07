@@ -5,6 +5,7 @@
 
 
 import math
+from copy import deepcopy
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -141,8 +142,15 @@ def _magc_resnet(
     **kwargs: Any,
 ) -> ResNet:
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
-    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
+    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     # Build the model
     model = ResNet(
@@ -152,7 +160,8 @@ def _magc_resnet(
         stage_conv,
         stage_pooling,
         origin_stem,
-        partial(MAGC, headers=8, attn_scale=True),
+        attn_module=partial(MAGC, headers=8, attn_scale=True),
+        cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters
@@ -167,12 +176,11 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition",
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import magc_resnet31
-        >>> model = magc_resnet31(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import magc_resnet31
+    >>> model = magc_resnet31(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -190,5 +198,6 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [True] * 4,
         [(2, 2), (2, 1), None, None],
         False,
+        stem_channels=128,
         **kwargs,
     )

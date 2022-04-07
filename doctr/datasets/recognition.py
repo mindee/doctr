@@ -16,10 +16,10 @@ __all__ = ["RecognitionDataset"]
 class RecognitionDataset(AbstractDataset):
     """Dataset implementation for text recognition tasks
 
-    Example::
-        >>> from doctr.datasets import RecognitionDataset
-        >>> train_set = RecognitionDataset(img_folder="/path/to/images", labels_path="/path/to/labels.json")
-        >>> img, target = train_set[0]
+    >>> from doctr.datasets import RecognitionDataset
+    >>> train_set = RecognitionDataset(img_folder="/path/to/images",
+    >>>                                labels_path="/path/to/labels.json")
+    >>> img, target = train_set[0]
 
     Args:
         img_folder: path to the images folder

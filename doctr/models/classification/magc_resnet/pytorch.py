@@ -5,6 +5,7 @@
 
 
 import math
+from copy import deepcopy
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -48,6 +49,7 @@ class MAGC(nn.Module):
         headers: int = 8,
         attn_scale: bool = False,
         ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
 
@@ -105,25 +107,39 @@ def _magc_resnet(
     pretrained: bool,
     num_blocks: List[int],
     output_channels: List[int],
+    stage_stride: List[int],
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
     **kwargs: Any,
 ) -> ResNet:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     # Build the model
     model = ResNet(
         num_blocks,
         output_channels,
+        stage_stride,
         stage_conv,
         stage_pooling,
-        partial(MAGC, headers=8, attn_scale=True),
+        attn_module=partial(MAGC, headers=8, attn_scale=True),
+        cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
@@ -133,12 +149,11 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition",
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import magc_resnet31
-        >>> model = magc_resnet31(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import magc_resnet31
+    >>> model = magc_resnet31(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -152,7 +167,10 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         pretrained,
         [1, 2, 5, 3],
         [256, 256, 512, 512],
+        [1, 1, 1, 1],
         [True] * 4,
         [(2, 2), (2, 1), None, None],
+        origin_stem=False,
+        stem_channels=128,
         **kwargs,
     )

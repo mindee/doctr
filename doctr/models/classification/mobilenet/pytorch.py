@@ -5,6 +5,7 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from torchvision.models import mobilenetv3
@@ -63,6 +64,12 @@ def _mobilenet_v3(
 ) -> mobilenetv3.MobileNetV3:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     if arch.startswith("mobilenet_v3_small"):
         model = mobilenetv3.mobilenet_v3_small(**kwargs)
@@ -79,9 +86,15 @@ def _mobilenet_v3(
 
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'],
+                                   pop_entrys=['classifier.3.weight', 'classifier.3.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
 
-    model.cfg = default_cfgs[arch]
+    model.cfg = _cfg
 
     return model
 
@@ -91,12 +104,11 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import mobilenet_v3_small
-        >>> model = mobilenetv3_small(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import mobilenet_v3_small
+    >>> model = mobilenetv3_small(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -113,12 +125,11 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_, with rectangular pooling.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import mobilenet_v3_small_r
-        >>> model = mobilenet_v3_small_r(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import mobilenet_v3_small_r
+    >>> model = mobilenet_v3_small_r(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -140,12 +151,11 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import mobilenetv3_large
-        >>> model = mobilenetv3_large(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import mobilenet_v3_large
+    >>> model = mobilenet_v3_large(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -161,12 +171,11 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_, with rectangular pooling.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import mobilenet_v3_large_r
-        >>> model = mobilenet_v3_large_r(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import mobilenet_v3_large_r
+    >>> model = mobilenet_v3_large_r(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -187,12 +196,11 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> m
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import mobilenet_v3_small_orientation
-        >>> model = mobilenet_v3_small_orientation(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import mobilenet_v3_small_orientation
+    >>> model = mobilenet_v3_small_orientation(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained

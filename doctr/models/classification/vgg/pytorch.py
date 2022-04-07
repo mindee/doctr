@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
 from typing import Any, Dict
 
 from torch import nn
@@ -35,6 +36,12 @@ def _vgg(
 ) -> tv_vgg.VGG:
 
     kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    kwargs.pop('classes')
 
     # Build the model
     model = tv_vgg.__dict__[tv_arch](**kwargs)
@@ -48,7 +55,15 @@ def _vgg(
     model.classifier = nn.Linear(512, kwargs['num_classes'])
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
+            # The number of classes is not the same as the number of classes in the pretrained model =>
+            # remove the last layer weights
+            load_pretrained_params(model, default_cfgs[arch]['url'],
+                                   pop_entrys=['classifier.weight', 'classifier.bias'])
+        else:
+            load_pretrained_params(model, default_cfgs[arch]['url'])
+
+    model.cfg = _cfg
 
     return model
 
@@ -58,12 +73,11 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> tv_vgg.VGG:
     <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization, rectangular pooling and a simpler
     classification head.
 
-    Example::
-        >>> import torch
-        >>> from doctr.models import vgg16_bn_r
-        >>> model = vgg16_bn_r(pretrained=False)
-        >>> input_tensor = torch.rand((1, 3, 224, 224), dtype=torch.float32)
-        >>> out = model(input_tensor)
+    >>> import torch
+    >>> from doctr.models import vgg16_bn_r
+    >>> model = vgg16_bn_r(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet

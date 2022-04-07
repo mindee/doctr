@@ -220,9 +220,16 @@ def _mobilenet_v3(
     rect_strides: bool = False,
     **kwargs: Any
 ) -> MobileNetV3:
+
+    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = kwargs.get('input_shape', default_cfgs[arch]['input_shape'])
-    _cfg['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
@@ -282,12 +289,11 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import mobilenetv3_large
-        >>> model = mobilenetv3_small(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import mobilenet_v3_small
+    >>> model = mobilenet_v3_small(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -304,12 +310,11 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_, with rectangular pooling.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import mobilenet_v3_small_r
-        >>> model = mobilenet_v3_small_r(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import mobilenet_v3_small_r
+    >>> model = mobilenet_v3_small_r(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -326,12 +331,11 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import mobilenetv3_large
-        >>> model = mobilenetv3_large(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import mobilenet_v3_large
+    >>> model = mobilenet_v3_large(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -347,12 +351,11 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import mobilenet_v3_large_r
-        >>> model = mobilenet_v3_large_r(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import mobilenet_v3_large_r
+    >>> model = mobilenet_v3_large_r(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained
@@ -368,12 +371,11 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> M
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import mobilenet_v3_small_orientation
-        >>> model = mobilenet_v3_small_orientation(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import mobilenet_v3_small_orientation
+    >>> model = mobilenet_v3_small_orientation(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained: boolean, True if model is pretrained

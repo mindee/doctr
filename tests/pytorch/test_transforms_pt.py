@@ -5,7 +5,7 @@ import pytest
 import torch
 
 from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomHorizontalFlip,
-                              RandomRotate, Resize)
+                              RandomRotate, RandomShadow, Resize)
 from doctr.transforms.functional import crop_detection, rotate_sample
 
 
@@ -272,3 +272,31 @@ def test_randomhorizontalflip(p):
         assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
         assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
     assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+        [torch.float32, (3, 64, 32)],
+        [torch.uint8, (3, 64, 32)],
+    ]
+)
+def test_random_shadow(input_dtype, input_shape):
+    transform = RandomShadow((.2, .8))
+    input_t = torch.ones(input_shape, dtype=torch.float32)
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round()
+    input_t = input_t.to(dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, torch.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    # The shadow will darken the picture
+    assert input_t.float().mean() >= transformed.float().mean()
+    assert torch.all(transformed >= 0)
+    if input_dtype == torch.uint8:
+        assert torch.all(transformed <= 255)
+    else:
+        assert torch.all(transformed <= 1.)

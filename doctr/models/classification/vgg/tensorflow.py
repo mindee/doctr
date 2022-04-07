@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 from tensorflow.keras import layers
@@ -46,6 +47,7 @@ class VGG(Sequential):
         include_top: bool = False,
         num_classes: int = 1000,
         input_shape: Optional[Tuple[int, int, int]] = None,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         _layers = []
@@ -63,6 +65,7 @@ class VGG(Sequential):
                 layers.Dense(num_classes)
             ])
         super().__init__(_layers)
+        self.cfg = cfg
 
 
 def _vgg(
@@ -76,9 +79,16 @@ def _vgg(
 
     kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
     kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     # Build the model
-    model = VGG(num_blocks, planes, rect_pools, **kwargs)
+    model = VGG(num_blocks, planes, rect_pools, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
@@ -91,12 +101,11 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> VGG:
     <https://arxiv.org/pdf/1409.1556.pdf>`_, modified by adding batch normalization, rectangular pooling and a simpler
     classification head.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import vgg16_bn_r
-        >>> model = vgg16_bn_r(pretrained=False)
-        >>> input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import vgg16_bn_r
+    >>> model = vgg16_bn_r(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet

@@ -20,10 +20,12 @@ class FUNSD(VisionDataset):
     """FUNSD dataset from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents"
     <https://arxiv.org/pdf/1905.13538.pdf>`_.
 
-    Example::
-        >>> from doctr.datasets import FUNSD
-        >>> train_set = FUNSD(train=True, download=True)
-        >>> img, target = train_set[0]
+    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/funsd-grid.png
+        :align: center
+
+    >>> from doctr.datasets import FUNSD
+    >>> train_set = FUNSD(train=True, download=True)
+    >>> img, target = train_set[0]
 
     Args:
         train: whether the subset should be the training one

@@ -109,10 +109,10 @@ jobs:
           unzip toy_recogition_set-036a4d80.zip -d reco_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/recognition/train_tensorflow.py ./reco_set ./reco_set crnn_vgg16_bn -b 4 --epochs 1
+        run: python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
-        run: python references/recognition/train_pytorch.py ./reco_set ./reco_set crnn_mobilenet_v3_small -b 4 --epochs 1
+        run: python references/recognition/train_pytorch.py crnn_mobilenet_v3_small --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
 
   latency-text-recognition:
     runs-on: ${{ matrix.os }}

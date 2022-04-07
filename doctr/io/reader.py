@@ -58,12 +58,12 @@ class DocumentFile:
     def from_images(cls, files: Union[Sequence[AbstractFile], AbstractFile], **kwargs) -> List[np.ndarray]:
         """Read an image file (or a collection of image files) and convert it into an image in numpy format
 
-        Example::
-            >>> from doctr.documents import DocumentFile
-            >>> pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
+        >>> from doctr.documents import DocumentFile
+        >>> pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
 
         Args:
             files: the path to the image file or a binary stream, or a collection of those
+
         Returns:
             the list of pages decoded as numpy ndarray of shape H x W x 3
         """

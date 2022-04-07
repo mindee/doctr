@@ -13,17 +13,35 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model, Sequential, layers
 
-from doctr.models.classification import resnet18
+from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet_resnet18']
+__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50', 'linknet_resnet18_rotation']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'linknet_resnet18': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'input_shape': (1024, 1024, 3),
+        'url': None,
+    },
+    'linknet_resnet18_rotation': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'input_shape': (1024, 1024, 3),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/linknet_resnet18-a48e6ed3.zip',
+    },
+    'linknet_resnet34': {
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'input_shape': (1024, 1024, 3),
+        'url': None,
+    },
+    'linknet_resnet50': {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'input_shape': (1024, 1024, 3),
@@ -139,7 +157,9 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         out_map: tf.Tensor,
         target: List[np.ndarray],
-        edge_factor: float = 2.,
+        gamma: float = 2.,
+        alpha: float = .5,
+        eps: float = 1e-8,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
         <https://github.com/tensorflow/addons/>`_.
@@ -147,29 +167,38 @@ class LinkNet(_LinkNet, keras.Model):
         Args:
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            edge_factor: boost factor for box edges (in case of BCE)
+            gamma: modulating factor in the focal loss formula
+            alpha: balancing factor in the focal loss formula
 
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask, edge_mask = self.build_target(target, out_map.shape[1:3])
+        seg_target, seg_mask = self.build_target(target, out_map.shape[1:3])
 
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        if edge_factor > 0:
-            edge_mask = tf.convert_to_tensor(edge_mask, dtype=tf.bool)
+        seg_mask = tf.cast(seg_mask, tf.float32)
 
-        # Get the cross_entropy for each entry
-        loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
+        proba_map = tf.sigmoid(out_map)
 
-        # Compute BCE loss with highlighted edges
-        if edge_factor > 0:
-            loss = tf.math.multiply(
-                1 + (edge_factor - 1) * tf.cast(edge_mask, out_map.dtype),
-                loss
-            )
+        # Focal loss
+        if gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+        # Convert logits to prob, compute gamma factor
+        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
+        alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
+        # Unreduced loss
+        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+        # Class reduced
+        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
 
-        return tf.reduce_mean(loss[seg_mask])
+        # Dice loss
+        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
+        cardinality = tf.math.reduce_sum(seg_mask * (proba_map + seg_target), (0, 1, 2))
+        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+
+        return tf.reduce_mean(focal_loss) + tf.reduce_mean(dice_loss)
 
     def call(
         self,
@@ -240,12 +269,11 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
-    Example::
-        >>> import tensorflow as tf
-        >>> from doctr.models import linknet_resnet18
-        >>> model = linknet_resnet18(pretrained=True)
-        >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
-        >>> out = model(input_tensor)
+    >>> import tensorflow as tf
+    >>> from doctr.models import linknet_resnet18
+    >>> model = linknet_resnet18(pretrained=True)
+    >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
@@ -259,5 +287,83 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         pretrained,
         resnet18,
         ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        **kwargs,
+    )
+
+
+def linknet_resnet18_rotation(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import linknet_resnet18_rotation
+    >>> model = linknet_resnet18_rotation(pretrained=True)
+    >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
+        'linknet_resnet18_rotation',
+        pretrained,
+        resnet18,
+        ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        **kwargs,
+    )
+
+
+def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import linknet_resnet34
+    >>> model = linknet_resnet34(pretrained=True)
+    >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
+        'linknet_resnet34',
+        pretrained,
+        resnet34,
+        ['resnet_block_2', 'resnet_block_6', 'resnet_block_12', 'resnet_block_15'],
+        **kwargs,
+    )
+
+
+def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import linknet_resnet50
+    >>> model = linknet_resnet50(pretrained=True)
+    >>> input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+
+    Returns:
+        text detection architecture
+    """
+
+    return _linknet(
+        'linknet_resnet50',
+        pretrained,
+        resnet50,
+        ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         **kwargs,
     )

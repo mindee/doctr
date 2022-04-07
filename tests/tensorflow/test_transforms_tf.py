@@ -429,3 +429,31 @@ def test_randomhorizontalflip(p):
             tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([0] * 16 + [1] * 16, dtype=tf.float64)
         )
     assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
+
+
+@pytest.mark.parametrize(
+    "input_dtype,input_shape",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+        [tf.float32, (64, 32, 3)],
+        [tf.uint8, (64, 32, 3)],
+    ]
+)
+def test_random_shadow(input_dtype, input_shape):
+    transform = T.RandomShadow((.2, .8))
+    input_t = tf.random.uniform(input_shape, dtype=tf.float32)
+    if input_dtype == tf.uint8:
+        input_t = tf.math.round((255 * input_t))
+    input_t = tf.cast(input_t, dtype=input_dtype)
+    transformed = transform(input_t)
+    assert isinstance(transformed, tf.Tensor)
+    assert transformed.shape == input_shape
+    assert transformed.dtype == input_dtype
+    # The shadow will darken the picture
+    assert tf.math.reduce_mean(input_t) >= tf.math.reduce_mean(transformed)
+    assert tf.math.reduce_all(transformed >= 0)
+    if input_dtype == tf.uint8:
+        assert tf.reduce_all(transformed <= 255)
+    else:
+        assert tf.reduce_all(transformed <= 1.)
