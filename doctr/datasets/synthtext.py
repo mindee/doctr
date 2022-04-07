@@ -62,6 +62,7 @@ class SynthText(VisionDataset):
         # Load mat data
         tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
         pickle_file_name = 'SynthText_Reco_train.pkl' if self.train else 'SynthText_Reco_test.pkl'
+        pickle_file_name = 'Poly_' + pickle_file_name if use_polygons else pickle_file_name
         pickle_path = os.path.join(tmp_root, pickle_file_name)
 
         if recognition_task and os.path.exists(pickle_path):
