@@ -56,10 +56,13 @@ class SynthText(VisionDataset):
             **kwargs
         )
         self.train = train
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        np_dtype = np.float32
 
         # Load mat data
         tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
-        pickle_path = os.path.join(tmp_root, 'SynthText_reco.pkl')
+        pickle_file_name = 'SynthText_Reco_train.pkl' if self.train else 'SynthText_Reco_test.pkl'
+        pickle_path = os.path.join(tmp_root, pickle_file_name)
 
         if recognition_task and os.path.exists(pickle_path):
             self._pickle_read(pickle_path)
@@ -72,9 +75,6 @@ class SynthText(VisionDataset):
         boxes = mat_data['wordBB'][0][set_slice]
         labels = mat_data['txt'][0][set_slice]
         del mat_data
-
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
-        np_dtype = np.float32
 
         for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
                                               desc='Unpacking SynthText', total=len(paths)):
