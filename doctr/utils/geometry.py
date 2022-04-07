@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import copy
 from math import ceil
 from typing import List, Optional, Tuple, Union
 
@@ -14,7 +13,7 @@ from .common_types import BoundingBox, Polygon4P
 
 __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
            'rotate_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle',
-           'convert_to_relative_coords', 'rotate_abs_geoms', 'crop_image_sections']
+           'convert_to_relative_coords', 'rotate_abs_geoms', 'extract_crops', 'extract_rcrops']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -304,40 +303,83 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
     raise ValueError(f"invalid format for arg `geoms`: {geoms.shape}")
 
 
-def crop_image_sections(image: np.ndarray, geoms: np.ndarray) -> List[np.ndarray]:
-    """Crop a set of polygons from an image
+def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
+    """Created cropped images from list of bounding boxes
 
     Args:
-        image: image as numpy array
-        geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
+        img: input image
+        boxes: bounding boxes of shape (N, 4) where N is the number of boxes, and the relative
+            coordinates (xmin, ymin, xmax, ymax)
+        channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
-        a list of cropped images
+        list of cropped images
     """
+    if boxes.shape[0] == 0:
+        return []
+    if boxes.shape[1] != 4:
+        raise AssertionError("boxes are expected to be relative and in order (xmin, ymin, xmax, ymax)")
 
-    cropped_parts = list()
+    # Project relative coordinates
+    _boxes = boxes.copy()
+    h, w = img.shape[:2] if channels_last else img.shape[-2:]
+    if _boxes.dtype != int:
+        _boxes[:, [0, 2]] *= w
+        _boxes[:, [1, 3]] *= h
+        _boxes = _boxes.round().astype(int)
+        # Add last index
+        _boxes[2:] += 1
+    if channels_last:
+        return [img[box[1]: box[3], box[0]: box[2]] for box in _boxes]
+    else:
+        return [img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes]
 
-    # Polygon
-    if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
-        height, width = image.shape[:2]
-        for bbox in geoms:
-            bbox = np.expand_dims(bbox, axis=1)
-            rect = cv2.minAreaRect(bbox)
 
-            center, size, angle = tuple(map(int, rect[0])), tuple(map(int, rect[1])), rect[2]
+def extract_rcrops(
+    img: np.ndarray,
+    polys: np.ndarray,
+    dtype=np.float32,
+    channels_last: bool = True
+) -> List[np.ndarray]:
+    """Created cropped images from list of rotated bounding boxes
 
-            M = cv2.getRotationMatrix2D(center, angle, 1)
-            rotated_img = cv2.warpAffine(image, M, (width, height))
-            crop = cv2.getRectSubPix(rotated_img, size, center)
-            # rotate crop back if upside
-            if angle > 40.0:
-                crop = cv2.rotate(crop, cv2.ROTATE_90_CLOCKWISE)
-            cropped_parts.append(crop)
+    Args:
+        img: input image
+        polys: bounding boxes of shape (N, 4, 2)
+        dtype: target data type of bounding boxes
+        channels_last: whether the channel dimensions is the last one instead of the last one
 
-    if geoms.ndim == 2 and geoms.shape[1] == 4:
-        for bbox in geoms:
-            # use copy to avoid memory leak
-            crop = copy.copy(image[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])])
-            cropped_parts.append(crop)
+    Returns:
+        list of cropped images
+    """
+    if polys.shape[0] == 0:
+        return []
+    if polys.shape[1:] != (4, 2):
+        raise AssertionError("polys are expected to be quadrilateral, of shape (N, 4, 2)")
 
-    return cropped_parts
+    # Project relative coordinates
+    _boxes = polys.copy()
+    height, width = img.shape[:2] if channels_last else img.shape[-2:]
+    if _boxes.dtype != np.int:
+        _boxes[:, :, 0] *= width
+        _boxes[:, :, 1] *= height
+
+    src_pts = _boxes[:, :3].astype(np.float32)
+    # Preserve size
+    d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
+    d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)
+    # (N, 3, 2)
+    dst_pts = np.zeros((_boxes.shape[0], 3, 2), dtype=dtype)
+    dst_pts[:, 1, 0] = dst_pts[:, 2, 0] = d1 - 1
+    dst_pts[:, 2, 1] = d2 - 1
+    # Use a warp transformation to extract the crop
+    crops = [
+        cv2.warpAffine(
+            img if channels_last else img.transpose(1, 2, 0),
+            # Transformation matrix
+            cv2.getAffineTransform(src_pts[idx], dst_pts[idx]),
+            (int(d1[idx]), int(d2[idx])),
+        )
+        for idx in range(_boxes.shape[0])
+    ]
+    return crops

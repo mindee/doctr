@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image
 
 from doctr.io.image import get_img_shape
-from doctr.utils.geometry import convert_to_relative_coords, crop_image_sections
+from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extract_rcrops
 
 from .vocabs import VOCABS
 
@@ -176,4 +176,10 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
         a list of cropped images
     """
     img = np.array(Image.open(img_path))
-    return crop_image_sections(img, geoms)
+    # Polygon
+    if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
+        return extract_rcrops(img, geoms.astype(dtype=np.int))
+    elif geoms.ndim == 2 and geoms.shape[1] == 4:
+        return extract_crops(img, geoms.astype(dtype=np.int))
+    else:
+        raise ValueError("Invalid geometry format")

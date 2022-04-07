@@ -1,8 +1,10 @@
+from copy import deepcopy
 from math import hypot
 
 import numpy as np
 import pytest
 
+from doctr.io import DocumentFile
 from doctr.utils import geometry
 
 
@@ -170,23 +172,63 @@ def test_estimate_page_angle():
     assert np.isclose(angle, 20)
 
 
-def test_crop_image_sections():
-    img = np.ones((512, 512, 3), dtype=np.float32)
+def test_extract_crops(mock_pdf):  # noqa: F811
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
+    num_crops = 2
+    rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
+                          for idx in range(num_crops)], dtype=np.float32)
+    abs_boxes = np.array([[int(idx * doc_img.shape[1] / num_crops),
+                           int(idx * doc_img.shape[0]) / num_crops,
+                           int((idx + 1) * doc_img.shape[1] / num_crops),
+                           int((idx + 1) * doc_img.shape[0] / num_crops)]
+                          for idx in range(num_crops)], dtype=np.float32)
 
-    # Polygon (N, 4, 2)
-    geoms = np.array(
-        [
-            [[100, 100], [200, 100], [200, 200], [100, 200]],
-            [[200, 200], [300, 300], [300, 300], [200, 300]]
-        ], dtype=np.float32
-    )
-    crops = geometry.crop_image_sections(img, geoms)
-    assert isinstance(crops, list) and len(crops) == 2 and all(isinstance(c, np.ndarray) for c in crops)
-    assert all(c.shape == (100, 100, 3) for c in crops)
+    with pytest.raises(AssertionError):
+        geometry.extract_crops(doc_img, np.zeros((1, 5)))
 
-    # (N, 4)
-    geoms = np.array([[100, 100, 200, 200],
-                      [200, 200, 300, 300]])
-    crops = geometry.crop_image_sections(img, geoms)
-    assert isinstance(crops, list) and len(crops) == 2 and all(isinstance(c, np.ndarray) for c in crops)
-    assert all(c.shape == (100, 100, 3) for c in crops)
+    for boxes in (rel_boxes, abs_boxes):
+        croped_imgs = geometry.extract_crops(doc_img, boxes)
+        # Number of crops
+        assert len(croped_imgs) == num_crops
+        # Data type and shape
+        assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+        assert all(crop.ndim == 3 for crop in croped_imgs)
+
+    # Identity
+    assert np.all(doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32),
+                                                    channels_last=True)[0])
+    torch_img = np.transpose(doc_img, axes=(-1, 0, 1))
+    assert np.all(torch_img == np.transpose(
+        geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=False)[0],
+        axes=(-1, 0, 1)
+    ))
+
+    # No box
+    assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
+
+
+def test_extract_rcrops(mock_pdf):  # noqa: F811
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
+    num_crops = 2
+    rel_boxes = np.array([[[idx / num_crops, idx / num_crops],
+                           [idx / num_crops + .1, idx / num_crops],
+                           [idx / num_crops + .1, idx / num_crops + .1],
+                           [idx / num_crops, idx / num_crops]]
+                          for idx in range(num_crops)], dtype=np.float32)
+    abs_boxes = deepcopy(rel_boxes)
+    abs_boxes[:, :, 0] *= doc_img.shape[1]
+    abs_boxes[:, :, 1] *= doc_img.shape[0]
+    abs_boxes = abs_boxes.astype(np.int)
+
+    with pytest.raises(AssertionError):
+        geometry.extract_rcrops(doc_img, np.zeros((1, 8)))
+    for boxes in (rel_boxes, abs_boxes):
+        croped_imgs = geometry.extract_rcrops(doc_img, boxes)
+        # Number of crops
+        assert len(croped_imgs) == num_crops
+        # Data type and shape
+        assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+        assert all(crop.ndim == 3 for crop in croped_imgs)
+
+    # No box
+    assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2))) == []
