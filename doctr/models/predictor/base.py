@@ -8,8 +8,9 @@ from typing import Any, List, Optional, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
+from doctr.utils.geometry import extract_crops, extract_rcrops
 
-from .._utils import extract_crops, extract_rcrops, rectify_crops, rectify_loc_preds
+from .._utils import rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor
 from ..classification.predictor import CropOrientationPredictor
 

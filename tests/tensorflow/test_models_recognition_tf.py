@@ -4,12 +4,12 @@ import tensorflow as tf
 
 from doctr.io import DocumentFile
 from doctr.models import recognition
-from doctr.models._utils import extract_crops
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.crnn.tensorflow import CTCPostProcessor
 from doctr.models.recognition.master.tensorflow import MASTERPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.tensorflow import SARPostProcessor
+from doctr.utils.geometry import extract_crops
 
 
 @pytest.mark.parametrize(
