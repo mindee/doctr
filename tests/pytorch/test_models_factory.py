@@ -5,7 +5,17 @@ import tempfile
 import pytest
 
 from doctr.models import classification, detection, obj_detection, recognition
-from doctr.models.factory import _save_model_and_config_for_hf_hub
+from doctr.models.factory import _save_model_and_config_for_hf_hub, push_to_hf_hub
+
+
+def test_push_to_hf_hub():
+    model = classification.resnet18(pretrained=False)
+    with pytest.raises(ValueError):
+        # run_config and/or arch must be specified
+        push_to_hf_hub(model, model_name='test', task='classification')
+    with pytest.raises(ValueError):
+        # task must be one of classification, detection, recognition, obj_detection
+        push_to_hf_hub(model, model_name='test', task='invalid_task', arch='mobilenet_v3_small')
 
 
 @pytest.mark.parametrize(
