@@ -85,7 +85,7 @@ def test_encode_sequences(sequences, vocab, target_size, sos, eos, pad, dynamic_
     ]
 )
 def test_convert_target_to_relative(target, mock_image_stream):
-    img = np.array([[3, 32, 128]]) # ImageTensor
+    img = np.array([[3, 32, 128]])  # ImageTensor
     back_img, target = utils.convert_target_to_relative(img, target)
     assert img.all() == back_img.all()
     assert (target['boxes'].all() >= 0) & (target['boxes'].all() <= 1)
