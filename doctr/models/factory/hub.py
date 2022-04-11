@@ -97,9 +97,9 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
         **kwargs: keyword arguments for push_to_hf_hub
     """
     run_config = kwargs.get('run_config', None)
-    arch = kwargs.get('arch', None)
+    arch = kwargs.get('arch', '')
 
-    if run_config is None and arch is None:
+    if run_config is None and arch is '':
         raise ValueError('run_config or arch must be specified')
     if task not in ['classification', 'detection', 'recognition', 'obj_detection']:
         raise ValueError('task must be one of classification, detection, recognition, obj_detection')
