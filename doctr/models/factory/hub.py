@@ -17,10 +17,20 @@ from huggingface_hub import HfApi, HfFolder, Repository
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
+from ..detection import zoo as det_zoo
+from ..recognition import zoo as reco_zoo
+
 if is_torch_available():
     import torch
 
 __all__ = ['login_to_hub', 'push_to_hf_hub', '_save_model_and_config_for_hf_hub']
+
+
+AVAILABLE_ARCHS = {
+    'detection': det_zoo.ARCHS + det_zoo.ROT_ARCHS,
+    'recognition': reco_zoo.ARCHS,
+    'obj_detection': ['fasterrcnn_mobilenet_v3_large_fpn'] if is_torch_available() else None
+}
 
 
 def login_to_hub() -> None:
@@ -142,6 +152,10 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
         arch = run_config.arch
         readme += textwrap.dedent(f"""### Run Configuration
                                   \n{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}""")
+
+    if arch not in AVAILABLE_ARCHS[task]:
+        raise ValueError(f'Architecture: {arch} for task: {task} not found.\
+                         \nAvailable architectures: {AVAILABLE_ARCHS}')
 
     commit_message = f'Add {model_name} model'
 

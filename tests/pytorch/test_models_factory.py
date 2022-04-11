@@ -16,6 +16,9 @@ def test_push_to_hf_hub():
     with pytest.raises(ValueError):
         # task must be one of classification, detection, recognition, obj_detection
         push_to_hf_hub(model, model_name='test', task='invalid_task', arch='mobilenet_v3_small')
+    with pytest.raises(ValueError):
+        # arch not in available architectures for task
+        push_to_hf_hub(model, model_name='test', task='detection', arch='crnn_mobilenet_v3_large')
 
 
 @pytest.mark.parametrize(
