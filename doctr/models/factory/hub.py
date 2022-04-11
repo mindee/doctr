@@ -97,9 +97,9 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
         **kwargs: keyword arguments for push_to_hf_hub
     """
     run_config = kwargs.get('run_config', None)
-    arch = kwargs.get('arch', '')
+    arch = kwargs.get('arch', None)
 
-    if run_config is None and arch is '':
+    if run_config is None and arch is None:
         raise ValueError('run_config or arch must be specified')
     if task not in ['classification', 'detection', 'recognition', 'obj_detection']:
         raise ValueError('task must be one of classification, detection, recognition, obj_detection')
@@ -153,7 +153,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
         readme += textwrap.dedent(f"""### Run Configuration
                                   \n{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}""")
 
-    if arch not in AVAILABLE_ARCHS[task]:
+    if arch not in AVAILABLE_ARCHS[task]:  # type: ignore
         raise ValueError(f'Architecture: {arch} for task: {task} not found.\
                          \nAvailable architectures: {AVAILABLE_ARCHS}')
 
