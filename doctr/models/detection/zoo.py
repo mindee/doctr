@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any
+from typing import Any, List
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
@@ -15,11 +15,13 @@ __all__ = ["detection_predictor"]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'linknet_resnet18_rotation']
-    ROT_ARCHS = ['linknet_resnet18_rotation']
+    ARCHS: List[str] = ['db_resnet50', 'db_mobilenet_v3_large',
+                        'linknet_resnet18', 'linknet_resnet18_rotation']
+    ROT_ARCHS: List[str] = ['linknet_resnet18_rotation']
 elif is_torch_available():
-    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'db_resnet50_rotation']
-    ROT_ARCHS = ['db_resnet50_rotation']
+    ARCHS: List[str] = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large',
+                        'linknet_resnet18', 'db_resnet50_rotation']
+    ROT_ARCHS: List[str] = ['db_resnet50_rotation']
 
 
 def _predictor(
