@@ -7,14 +7,16 @@ import string
 import unicodedata
 from collections.abc import Sequence
 from functools import partial
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from typing import Sequence as SequenceType
 from typing import Tuple, TypeVar, Union
 
 import numpy as np
+from PIL import Image
 
 from doctr.io.image import get_img_shape
-from doctr.utils.geometry import convert_to_relative_coords
+from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extract_rcrops
 
 from .vocabs import VOCABS
 
@@ -161,3 +163,20 @@ def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tupl
 
     target['boxes'] = convert_to_relative_coords(target['boxes'], get_img_shape(img))
     return img, target
+
+
+def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> List[np.ndarray]:
+    """Crop a set of bounding boxes from an image
+    Args:
+        img_path: path to the image
+        geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
+    Returns:
+        a list of cropped images
+    """
+    img = np.array(Image.open(img_path))
+    # Polygon
+    if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
+        return extract_rcrops(img, geoms.astype(dtype=int))
+    if geoms.ndim == 2 and geoms.shape[1] == 4:
+        return extract_crops(img, geoms.astype(dtype=int))
+    raise ValueError("Invalid geometry format")

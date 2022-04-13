@@ -343,8 +343,15 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
         A classification model
     """
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs['resnet50']['classes']))
-    kwargs['input_shape'] = kwargs.get('input_shape', default_cfgs['resnet50']['input_shape'])
+    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs['resnet50']['classes']))
+    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs['resnet50']['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs['resnet50']['classes'])
+
+    _cfg = deepcopy(default_cfgs['resnet50'])
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     model = ResNet50(
         weights=None,
@@ -354,6 +361,8 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
         classes=kwargs['num_classes'],
         classifier_activation=None,
     )
+
+    model.cfg = _cfg
 
     # Load pretrained parameters
     if pretrained:

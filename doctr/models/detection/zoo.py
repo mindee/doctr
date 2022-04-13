@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any
+from typing import Any, List
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
@@ -12,6 +12,9 @@ from ..preprocessor import PreProcessor
 from .predictor import DetectionPredictor
 
 __all__ = ["detection_predictor"]
+
+ARCHS: List[str]
+ROT_ARCHS: List[str]
 
 
 if is_tf_available():
