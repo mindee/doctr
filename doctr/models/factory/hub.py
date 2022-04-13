@@ -13,17 +13,18 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
-from huggingface_hub import HfApi, HfFolder, Repository
+from huggingface_hub import HfApi, HfFolder, Repository, hf_hub_download, snapshot_download
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
 from ..detection import zoo as det_zoo
 from ..recognition import zoo as reco_zoo
+from doctr import models
 
 if is_torch_available():
     import torch
 
-__all__ = ['login_to_hub', 'push_to_hf_hub', '_save_model_and_config_for_hf_hub']
+__all__ = ['login_to_hub', 'push_to_hf_hub', 'from_hub', '_save_model_and_config_for_hf_hub']
 
 
 AVAILABLE_ARCHS = {
@@ -124,12 +125,11 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
 
     ```python
     >>> from doctr.io import DocumentFile
-    >>> from doctr.models import ocr_predictor
-    >>> from doctr.models.<task> import from_hub
+    >>> from doctr.models import ocr_predictor, from_hub
 
     >>> img = DocumentFile.from_images(['<image_path>'])
     >>> # Load your model from the hub
-    >>> model = from_hub('mindee/my-model').eval()
+    >>> model = from_hub('mindee/my-model')
 
     >>> # Pass it to the predictor
     >>> # If your model is a recognition model:
@@ -170,3 +170,37 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
         readme_path.write_text(readme)
 
     repo.git_push()
+
+
+def from_hub(repo_id: str, **kwargs: Any):
+    """Instantiate & load a pretrained model from HF hub.
+
+    >>> from doctr.models import from_hub
+    >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn")
+    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        repo_id: HuggingFace model hub repo
+        kwargs: kwargs of `hf_hub_download` or `snapshot_download`
+
+    Returns:
+        Model loaded with the checkpoint
+    """
+
+    # Get the config
+    with open(hf_hub_download(repo_id, filename='config.json', **kwargs), 'rb') as f:
+        cfg = json.load(f)
+
+    model = models.__dict__[cfg['task']].__dict__[cfg['arch']](pretrained=False)
+    # update cfg
+    model.cfg.update(cfg)
+
+    # Load the checkpoint
+    if is_torch_available():
+        state_dict = torch.load(hf_hub_download(repo_id, filename='pytorch_model.bin', **kwargs), map_location='cpu')
+        model.load_state_dict(state_dict)
+    else: # tf - load only weights file from repository
+        model.load_weights(snapshot_download(repo_id, allow_regex=['tf_model/weights.data*']))
+
+    return model
