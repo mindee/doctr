@@ -6,12 +6,13 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
-from .utils import convert_target_to_relative
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ['CORD']
 
@@ -30,6 +31,7 @@ class CORD(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
     TRAIN = ('https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip',
@@ -42,18 +44,26 @@ class CORD(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
         url, sha256 = self.TRAIN if train else self.TEST
-        super().__init__(url, None, sha256, True, pre_transforms=convert_target_to_relative, **kwargs)
+        super().__init__(
+            url,
+            None,
+            sha256,
+            True,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
+            **kwargs
+        )
 
-        # # List images
+        # List images
         tmp_root = os.path.join(self.root, 'image')
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         self.train = train
         np_dtype = np.float32
-        for img_path in os.listdir(tmp_root):
+        for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking CORD', total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
@@ -82,10 +92,17 @@ class CORD(VisionDataset):
 
             text_targets, box_targets = zip(*_targets)
 
-            self.data.append((
-                img_path,
-                dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets))
-            ))
+            if recognition_task:
+                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
+                                               geoms=np.asarray(box_targets, dtype=int).clip(min=0))
+                for crop, label in zip(crops, list(text_targets)):
+                    self.data.append((crop, dict(labels=[label])))
+            else:
+                self.data.append((
+                    img_path,
+                    dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets))
+                ))
+
         self.root = tmp_root
 
     def extra_repr(self) -> str:
