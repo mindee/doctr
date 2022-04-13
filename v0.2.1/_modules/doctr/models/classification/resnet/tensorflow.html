@@ -586,8 +586,15 @@
 <span class="sd">        A classification model</span>
 <span class="sd">    """</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'num_classes'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="s1">'resnet50'</span><span class="p">][</span><span class="s1">'classes'</span><span class="p">]))</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'input_shape'</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="s1">'resnet50'</span><span class="p">][</span><span class="s1">'input_shape'</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_classes"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="s1">'resnet50'</span><span class="p">][</span><span class="s1">'classes'</span><span class="p">]))</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"input_shape"</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="s1">'resnet50'</span><span class="p">][</span><span class="s1">'input_shape'</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'classes'</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="s1">'resnet50'</span><span class="p">][</span><span class="s1">'classes'</span><span class="p">])</span>
+
+    <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="s1">'resnet50'</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'classes'</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'classes'</span><span class="p">)</span>
 
     <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet50</span><span class="p">(</span>
         <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -597,6 +604,8 @@
         <span class="n">classes</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">],</span>
         <span class="n">classifier_activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">_cfg</span>
 
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
