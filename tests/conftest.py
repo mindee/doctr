@@ -182,11 +182,11 @@ def mock_ic13(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
     image_folder = tmpdir_factory.mktemp("images")
     label_folder = tmpdir_factory.mktemp("labels")
-    labels = ["1309, 2240, 1440, 2341, 'I'\n",
-              "800, 2240, 1440, 2341, 'am'\n",
-              "500, 2240, 1440, 2341, 'a'\n",
-              "900, 2240, 1440, 2341, 'jedi'\n",
-              "400, 2240, 1440, 2341, '!'"]
+    labels = ["100, 100, 200, 200,  'I'\n",
+              "250, 300, 455, 678, 'am'\n",
+              "321, 485, 529, 607, 'a'\n",
+              "235, 121, 325, 621, 'jedi'\n",
+              "468, 589, 1120, 2520, '!'"]
     for i in range(5):
         fn_l = label_folder.join(f"gt_mock_image_file_{i}.txt")
         with open(fn_l, 'w') as f:
@@ -234,27 +234,27 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
         "ann_id": {
             "YsaVkzl_0": {
                 "word": "I",
-                "bounding_box": "[605.33, 1150.67, 614.33, 226.33, 81.0]"
+                "bounding_box": "[305.33, 850.67, 432.33, 115.33, 5.0]"
             },
             "YsaVkzl_1": {
                 "word": "am",
-                "bounding_box": "[783.67, 654.67, 521.0, 222.33, 56.67]"
+                "bounding_box": "[546.67, 455.67, 345.0, 212.33, 18.67]"
             },
             "YsaVkzl_2": {
                 "word": "a",
-                "bounding_box": "[959.0, 437.0, 76.67, 201.0, 38.33]"
+                "bounding_box": "[566.0, 437.0, 76.67, 201.0, 25.33]"
             },
             "wz3wHhN_0": {
                 "word": "jedi",
-                "bounding_box": "[783.67, 654.67, 521.0, 222.33, 56.67]"
+                "bounding_box": "[544.67, 345.67, 76.0, 222.33, 34.67]"
             },
             "wz3wHhN_1": {
                 "word": "!",
-                "bounding_box": "[959.0, 437.0, 76.67, 201.0, 38.33]"
+                "bounding_box": "[545.0, 437.0, 76.67, 201.0, 23.33]"
             },
             "BRHSP23_0": {
                 "word": "jedi",
-                "bounding_box": "[783.67, 654.67, 521.0, 222.33, 56.67]"
+                "bounding_box": "[555.67, 432.67, 220.0, 120.33, 7.67]"
             }
         }
     }
