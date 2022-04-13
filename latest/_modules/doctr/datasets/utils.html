@@ -250,14 +250,16 @@
 <span class="kn">import</span> <span class="nn">unicodedata</span>
 <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span> <span class="k">as</span> <span class="n">SequenceType</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 
 <span class="kn">from</span> <span class="nn">doctr.io.image</span> <span class="kn">import</span> <span class="n">get_img_shape</span>
-<span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">convert_to_relative_coords</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">convert_to_relative_coords</span><span class="p">,</span> <span class="n">extract_crops</span><span class="p">,</span> <span class="n">extract_rcrops</span>
 
 <span class="kn">from</span> <span class="nn">.vocabs</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
@@ -404,6 +406,23 @@
 
     <span class="n">target</span><span class="p">[</span><span class="s1">'boxes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_to_relative_coords</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="s1">'boxes'</span><span class="p">],</span> <span class="n">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
+
+
+<span class="k">def</span> <span class="nf">crop_bboxes_from_image</span><span class="p">(</span><span class="n">img_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">geoms</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">"""Crop a set of bounding boxes from an image</span>
+<span class="sd">    Args:</span>
+<span class="sd">        img_path: path to the image</span>
+<span class="sd">        geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        a list of cropped images</span>
+<span class="sd">    """</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">))</span>
+    <span class="c1"># Polygon</span>
+    <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">extract_rcrops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">extract_crops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid geometry format"</span><span class="p">)</span>
 </pre></div>
         </article>
       </div>
