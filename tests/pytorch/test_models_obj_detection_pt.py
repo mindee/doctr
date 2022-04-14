@@ -1,6 +1,5 @@
 import pytest
 import torch
-from torchvision.models.detection import FasterRCNN
 
 from doctr.models import obj_detection
 

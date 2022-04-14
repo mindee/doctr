@@ -15,11 +15,11 @@ from typing import Any
 
 from huggingface_hub import HfApi, HfFolder, Repository, hf_hub_download, snapshot_download
 
+from doctr import models
 from doctr.file_utils import is_tf_available, is_torch_available
 
 from ..detection import zoo as det_zoo
 from ..recognition import zoo as reco_zoo
-from doctr import models
 
 if is_torch_available():
     import torch
@@ -177,8 +177,6 @@ def from_hub(repo_id: str, **kwargs: Any):
 
     >>> from doctr.models import from_hub
     >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn")
-    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-    >>> out = model(input_tensor)
 
     Args:
         repo_id: HuggingFace model hub repo
@@ -192,15 +190,16 @@ def from_hub(repo_id: str, **kwargs: Any):
     with open(hf_hub_download(repo_id, filename='config.json', **kwargs), 'rb') as f:
         cfg = json.load(f)
 
-    model = models.__dict__[cfg['task']].__dict__[cfg['arch']](pretrained=False)
-    # update cfg
-    model.cfg.update(cfg)
+    model = models.__dict__[cfg['task']].__dict__[cfg['arch']](pretrained=False, **cfg)
 
     # Load the checkpoint
     if is_torch_available():
         state_dict = torch.load(hf_hub_download(repo_id, filename='pytorch_model.bin', **kwargs), map_location='cpu')
         model.load_state_dict(state_dict)
-    else: # tf - load only weights file from repository
+    else:  # tf - load only weights file from repository
         model.load_weights(snapshot_download(repo_id, allow_regex=['tf_model/weights.data*']))
+
+    # update cfg
+    model.cfg = cfg
 
     return model
