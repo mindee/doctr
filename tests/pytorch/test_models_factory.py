@@ -21,31 +21,32 @@ def test_push_to_hf_hub():
         push_to_hf_hub(model, model_name='test', task='detection', arch='crnn_mobilenet_v3_large')
 
 
-@pytest.mark.parametrize(  # TODO: upload dummy models and fill dummy_model_id
+@pytest.mark.parametrize(
     "arch_name, task_name, dummy_model_id",
     [
-        ["vgg16_bn_r", "classification", ""],
-        ["resnet18", "classification", ""],
-        ["resnet31", "classification", ""],
-        ["resnet34", "classification", ""],
-        ["resnet34_wide", "classification", ""],
-        ["resnet50", "classification", ""],
-        ["magc_resnet31", "classification", ""],
-        ["mobilenet_v3_small", "classification", ""],
-        ["mobilenet_v3_large", "classification", ""],
-        ["db_resnet34", "detection", ""],
-        ["db_resnet50", "detection", ""],
-        ["db_mobilenet_v3_large", "detection", ""],
-        ["db_resnet50_rotation", "detection", ""],
-        ["linknet_resnet18", "detection", ""],
-        ["linknet_resnet34", "detection", ""],
-        ["linknet_resnet50", "detection", ""],
-        ["crnn_vgg16_bn", "recognition", ""],
-        ["crnn_mobilenet_v3_small", "recognition", ""],
-        ["crnn_mobilenet_v3_large", "recognition", ""],
-        ["sar_resnet31", "recognition", ""],
-        ["master", "recognition", ""],
-        ["fasterrcnn_mobilenet_v3_large_fpn", "obj_detection", ""],
+        ["vgg16_bn_r", "classification", "Felix92/doctr-dummy-torch-vgg16-bn-r"],
+        ["resnet18", "classification", "Felix92/doctr-dummy-torch-resnet18"],
+        ["resnet31", "classification", "Felix92/doctr-dummy-torch-resnet31"],
+        ["resnet34", "classification", "Felix92/doctr-dummy-torch-resnet34"],
+        ["resnet34_wide", "classification", "Felix92/doctr-dummy-torch-resnet34-wide"],
+        ["resnet50", "classification", "Felix92/doctr-dummy-torch-resnet50"],
+        ["magc_resnet31", "classification", "Felix92/doctr-dummy-torch-magc-resnet31"],
+        ["mobilenet_v3_small", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-small"],
+        ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-large"],
+        ["db_resnet34", "detection", "Felix92/doctr-dummy-torch-db-resnet34"],
+        ["db_resnet50", "detection", "Felix92/doctr-dummy-torch-db-resnet50"],
+        ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-torch-db-mobilenet-v3-large"],
+        ["db_resnet50_rotation", "detection", "Felix92/doctr-dummy-torch-db-resnet50-rotation"],
+        ["linknet_resnet18", "detection", "Felix92/doctr-dummy-torch-linknet-resnet18"],
+        ["linknet_resnet34", "detection", "Felix92/doctr-dummy-torch-linknet-resnet34"],
+        ["linknet_resnet50", "detection", "Felix92/doctr-dummy-torch-linknet-resnet50"],
+        ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-torch-crnn-vgg16-bn"],
+        ["crnn_mobilenet_v3_small", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-small"],
+        ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large"],
+        #  ["sar_resnet31", "recognition", ""],  enable after model fix !
+        #  ["master", "recognition", ""],  enable after model fix !
+        ["fasterrcnn_mobilenet_v3_large_fpn", "obj_detection",
+         "Felix92/doctr-dummy-torch-fasterrcnn-mobilenet-v3-large-fpn"],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
@@ -65,4 +66,4 @@ def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
 
         # test from hub
         hub_model = from_hub(repo_id=dummy_model_id)
-        assert isinstance(hub_model, model)
+        assert isinstance(hub_model, type(model))

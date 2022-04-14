@@ -192,7 +192,15 @@ def from_hub(repo_id: str, **kwargs: Any):
     with open(hf_hub_download(repo_id, filename='config.json', **kwargs), 'rb') as f:
         cfg = json.load(f)
 
-    model = models.__dict__[cfg['task']].__dict__[cfg['arch']](pretrained=False, **cfg)
+    arch = cfg['arch']
+    task = cfg['task']
+    # Fix to pass the cfg directly
+    cfg.pop('arch')
+    cfg.pop('task')
+
+    model = models.__dict__[task].__dict__[arch](pretrained=False)
+    # update cfg
+    model.cfg = cfg
 
     # Load the checkpoint
     if is_torch_available():
@@ -200,8 +208,5 @@ def from_hub(repo_id: str, **kwargs: Any):
         model.load_state_dict(state_dict)
     else:  # tf - load only weights file from repository
         model.load_weights(snapshot_download(repo_id, allow_regex=['tf_model/weights.data*']))
-
-    # update cfg
-    model.cfg = cfg
 
     return model

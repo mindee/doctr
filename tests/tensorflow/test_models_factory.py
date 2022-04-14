@@ -66,4 +66,4 @@ def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
 
         # test from hub
         hub_model = from_hub(repo_id=dummy_model_id)
-        assert isinstance(hub_model, model)
+        assert isinstance(hub_model, type(model))
