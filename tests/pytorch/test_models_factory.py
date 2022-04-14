@@ -43,8 +43,8 @@ def test_push_to_hf_hub():
         ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-torch-crnn-vgg16-bn"],
         ["crnn_mobilenet_v3_small", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-small"],
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large"],
-        #  ["sar_resnet31", "recognition", ""],  enable after model fix !
-        #  ["master", "recognition", ""],  enable after model fix !
+        #  ["sar_resnet31", "recognition", ""],  enable after model is fixed !
+        #  ["master", "recognition", ""],  enable after model is fixed !
         ["fasterrcnn_mobilenet_v3_large_fpn", "obj_detection",
          "Felix92/doctr-dummy-torch-fasterrcnn-mobilenet-v3-large-fpn"],
     ],

@@ -194,7 +194,6 @@ def from_hub(repo_id: str, **kwargs: Any):
 
     arch = cfg['arch']
     task = cfg['task']
-    # Fix to pass the cfg directly
     cfg.pop('arch')
     cfg.pop('task')
 
@@ -206,7 +205,8 @@ def from_hub(repo_id: str, **kwargs: Any):
     if is_torch_available():
         state_dict = torch.load(hf_hub_download(repo_id, filename='pytorch_model.bin', **kwargs), map_location='cpu')
         model.load_state_dict(state_dict)
-    else:  # tf - load only weights file from repository
-        model.load_weights(snapshot_download(repo_id, allow_regex=['tf_model/weights.data*']))
+    else:  # tf
+        repo_path = snapshot_download(repo_id, **kwargs)
+        model.load_weights(os.path.join(repo_path, 'tf_model', 'weights'))
 
     return model
