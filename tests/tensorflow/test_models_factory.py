@@ -63,5 +63,6 @@ def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
         assert all(key in model.cfg.keys() for key in tmp_config.keys())
 
         # test from hub
+        tf.keras.backend.clear_session()
         hub_model = from_hub(repo_id=dummy_model_id)
         assert isinstance(hub_model, type(model))
