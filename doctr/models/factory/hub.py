@@ -18,6 +18,7 @@ from huggingface_hub import HfApi, HfFolder, Repository, hf_hub_download, snapsh
 from doctr import models
 from doctr.file_utils import is_tf_available, is_torch_available
 
+from ..classification import zoo as classif_zoo
 from ..detection import zoo as det_zoo
 from ..recognition import zoo as reco_zoo
 
@@ -28,6 +29,7 @@ __all__ = ['login_to_hub', 'push_to_hf_hub', 'from_hub', '_save_model_and_config
 
 
 AVAILABLE_ARCHS = {
+    'classification': classif_zoo.ARCHS,
     'detection': det_zoo.ARCHS + det_zoo.ROT_ARCHS,
     'recognition': reco_zoo.ARCHS,
     'obj_detection': ['fasterrcnn_mobilenet_v3_large_fpn'] if is_torch_available() else None
