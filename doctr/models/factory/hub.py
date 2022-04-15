@@ -18,10 +18,6 @@ from huggingface_hub import HfApi, HfFolder, Repository, hf_hub_download, snapsh
 from doctr import models
 from doctr.file_utils import is_tf_available, is_torch_available
 
-from ..classification import zoo as classif_zoo
-from ..detection import zoo as det_zoo
-from ..recognition import zoo as reco_zoo
-
 if is_torch_available():
     import torch
 
@@ -29,9 +25,9 @@ __all__ = ['login_to_hub', 'push_to_hf_hub', 'from_hub', '_save_model_and_config
 
 
 AVAILABLE_ARCHS = {
-    'classification': classif_zoo.ARCHS,
-    'detection': det_zoo.ARCHS + det_zoo.ROT_ARCHS,
-    'recognition': reco_zoo.ARCHS,
+    'classification': models.classification.zoo.ARCHS,
+    'detection': models.detection.zoo.ARCHS + models.detection.zoo.ROT_ARCHS,
+    'recognition': models.recognition.zoo.ARCHS,
     'obj_detection': ['fasterrcnn_mobilenet_v3_large_fpn'] if is_torch_available() else None
 }
 
@@ -197,7 +193,29 @@ def from_hub(repo_id: str, **kwargs: Any):
     cfg.pop('arch')
     cfg.pop('task')
 
-    model = models.__dict__[task].__dict__[arch](pretrained=False)
+    if task == 'classification':
+        model = models.classification.__dict__[arch](
+            pretrained=False,
+            classes=cfg['classes'],
+            num_classes=cfg['num_classes']
+        )
+    elif task == 'detection':
+        model = models.detection.__dict__[arch](pretrained=False)
+    elif task == 'recognition':
+        model = models.recognition.__dict__[arch](
+            pretrained=False,
+            input_shape=cfg['input_shape'],
+            vocab=cfg['vocab']
+        )
+    elif task == 'obj_detection':
+        model = models.obj_detection.__dict__[arch](
+            pretrained=False,
+            image_mean=cfg['mean'],
+            image_std=cfg['std'],
+            max_size=cfg['input_shape'][-1],
+            num_classes=len(cfg['classes']),
+        )
+
     # update cfg
     model.cfg = cfg
 
