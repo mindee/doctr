@@ -200,7 +200,9 @@ def from_hub(repo_id: str, **kwargs: Any):
             num_classes=cfg['num_classes']
         )
     elif task == 'detection':
-        model = models.detection.__dict__[arch](pretrained=False)
+        model = models.detection.__dict__[arch](
+            pretrained=False
+        )
     elif task == 'recognition':
         model = models.recognition.__dict__[arch](
             pretrained=False,
@@ -216,10 +218,10 @@ def from_hub(repo_id: str, **kwargs: Any):
             num_classes=len(cfg['classes']),
         )
 
-    # update cfg
+    # update model cfg
     model.cfg = cfg
 
-    # Load the checkpoint
+    # Load checkpoint
     if is_torch_available():
         state_dict = torch.load(hf_hub_download(repo_id, filename='pytorch_model.bin', **kwargs), map_location='cpu')
         model.load_state_dict(state_dict)

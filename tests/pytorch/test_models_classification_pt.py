@@ -82,6 +82,9 @@ def test_classification_zoo(arch_name):
     # Model
     predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
     predictor.model.eval()
+
+    with pytest.raises(ValueError):
+        predictor = classification.zoo.crop_orientation_predictor(arch='wrong_model', pretrained=False)
     # object check
     assert isinstance(predictor, CropOrientationPredictor)
     input_tensor = torch.rand((batch_size, 3, 128, 128))
