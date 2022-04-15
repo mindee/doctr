@@ -207,7 +207,7 @@ def from_hub(repo_id: str, **kwargs: Any):
             input_shape=cfg['input_shape'],
             vocab=cfg['vocab']
         )
-    elif task == 'obj_detection':
+    elif task == 'obj_detection' and is_torch_available():
         model = models.obj_detection.__dict__[arch](
             pretrained=False,
             image_mean=cfg['mean'],
