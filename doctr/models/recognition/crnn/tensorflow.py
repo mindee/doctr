@@ -12,12 +12,12 @@ from tensorflow.keras.models import Model, Sequential
 
 from doctr.datasets import VOCABS
 
-from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
+from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r, resnet31
 from ...utils.tensorflow import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_mobilenet_v3_small',
-           'crnn_mobilenet_v3_large']
+           'crnn_mobilenet_v3_large', 'crnn_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
@@ -35,6 +35,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_mobilenet_v3_small-7f36edec.zip',
     },
     'crnn_mobilenet_v3_large': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 128, 3),
+        'vocab': VOCABS['french'],
+        'url': None,
+    },
+    'crnn_resnet31': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 128, 3),
@@ -309,3 +316,24 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """
 
     return _crnn('crnn_mobilenet_v3_large', pretrained, mobilenet_v3_large_r, **kwargs)
+
+
+
+def crnn_resnet31(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with a MobileNet V3 Large backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models import crnn_mobilenet_v3_large
+    >>> model = crnn_mobilenet_v3_large(pretrained=True)
+    >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn('crnn_resnet31', pretrained, resnet31, **kwargs)
