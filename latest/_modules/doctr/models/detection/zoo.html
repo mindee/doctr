@@ -261,10 +261,11 @@
 
 
 <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'db_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'linknet_resnet18'</span><span class="p">,</span> <span class="s1">'linknet_resnet18_rotation'</span><span class="p">]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'db_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'linknet_resnet18'</span><span class="p">,</span> <span class="s1">'linknet_resnet34'</span><span class="p">,</span> <span class="s1">'linknet_resnet50'</span><span class="p">]</span>
     <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'linknet_resnet18_rotation'</span><span class="p">]</span>
 <span class="k">elif</span> <span class="n">is_torch_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet34'</span><span class="p">,</span> <span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'db_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'linknet_resnet18'</span><span class="p">,</span> <span class="s1">'db_resnet50_rotation'</span><span class="p">]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet34'</span><span class="p">,</span> <span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'db_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'linknet_resnet18'</span><span class="p">,</span>
+             <span class="s1">'linknet_resnet34'</span><span class="p">,</span> <span class="s1">'linknet_resnet50'</span><span class="p">]</span>
     <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet50_rotation'</span><span class="p">]</span>
 
 
