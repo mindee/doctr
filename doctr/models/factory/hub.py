@@ -13,22 +13,21 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
-from huggingface_hub import HfApi, HfFolder, Repository
+from huggingface_hub import HfApi, HfFolder, Repository, hf_hub_download, snapshot_download
 
+from doctr import models
 from doctr.file_utils import is_tf_available, is_torch_available
-
-from ..detection import zoo as det_zoo
-from ..recognition import zoo as reco_zoo
 
 if is_torch_available():
     import torch
 
-__all__ = ['login_to_hub', 'push_to_hf_hub', '_save_model_and_config_for_hf_hub']
+__all__ = ['login_to_hub', 'push_to_hf_hub', 'from_hub', '_save_model_and_config_for_hf_hub']
 
 
 AVAILABLE_ARCHS = {
-    'detection': det_zoo.ARCHS + det_zoo.ROT_ARCHS,
-    'recognition': reco_zoo.ARCHS,
+    'classification': models.classification.zoo.ARCHS,
+    'detection': models.detection.zoo.ARCHS + models.detection.zoo.ROT_ARCHS,
+    'recognition': models.recognition.zoo.ARCHS,
     'obj_detection': ['fasterrcnn_mobilenet_v3_large_fpn'] if is_torch_available() else None
 }
 
@@ -124,12 +123,11 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
 
     ```python
     >>> from doctr.io import DocumentFile
-    >>> from doctr.models import ocr_predictor
-    >>> from doctr.models.<task> import from_hub
+    >>> from doctr.models import ocr_predictor, from_hub
 
     >>> img = DocumentFile.from_images(['<image_path>'])
     >>> # Load your model from the hub
-    >>> model = from_hub('mindee/my-model').eval()
+    >>> model = from_hub('mindee/my-model')
 
     >>> # Pass it to the predictor
     >>> # If your model is a recognition model:
@@ -170,3 +168,65 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
         readme_path.write_text(readme)
 
     repo.git_push()
+
+
+def from_hub(repo_id: str, **kwargs: Any):
+    """Instantiate & load a pretrained model from HF hub.
+
+    >>> from doctr.models import from_hub
+    >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn")
+
+    Args:
+        repo_id: HuggingFace model hub repo
+        kwargs: kwargs of `hf_hub_download` or `snapshot_download`
+
+    Returns:
+        Model loaded with the checkpoint
+    """
+
+    # Get the config
+    with open(hf_hub_download(repo_id, filename='config.json', **kwargs), 'rb') as f:
+        cfg = json.load(f)
+
+    arch = cfg['arch']
+    task = cfg['task']
+    cfg.pop('arch')
+    cfg.pop('task')
+
+    if task == 'classification':
+        model = models.classification.__dict__[arch](
+            pretrained=False,
+            classes=cfg['classes'],
+            num_classes=cfg['num_classes']
+        )
+    elif task == 'detection':
+        model = models.detection.__dict__[arch](
+            pretrained=False
+        )
+    elif task == 'recognition':
+        model = models.recognition.__dict__[arch](
+            pretrained=False,
+            input_shape=cfg['input_shape'],
+            vocab=cfg['vocab']
+        )
+    elif task == 'obj_detection' and is_torch_available():
+        model = models.obj_detection.__dict__[arch](
+            pretrained=False,
+            image_mean=cfg['mean'],
+            image_std=cfg['std'],
+            max_size=cfg['input_shape'][-1],
+            num_classes=len(cfg['classes']),
+        )
+
+    # update model cfg
+    model.cfg = cfg
+
+    # Load checkpoint
+    if is_torch_available():
+        state_dict = torch.load(hf_hub_download(repo_id, filename='pytorch_model.bin', **kwargs), map_location='cpu')
+        model.load_state_dict(state_dict)
+    else:  # tf
+        repo_path = snapshot_download(repo_id, **kwargs)
+        model.load_weights(os.path.join(repo_path, 'tf_model', 'weights'))
+
+    return model

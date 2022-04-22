@@ -18,10 +18,11 @@ ROT_ARCHS: List[str]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'linknet_resnet18_rotation']
+    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
     ROT_ARCHS = ['linknet_resnet18_rotation']
 elif is_torch_available():
-    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'db_resnet50_rotation']
+    ARCHS = ['db_resnet34', 'db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18',
+             'linknet_resnet34', 'linknet_resnet50']
     ROT_ARCHS = ['db_resnet50_rotation']
 
 
