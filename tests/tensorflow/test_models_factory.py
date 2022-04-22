@@ -5,12 +5,12 @@ import tempfile
 import pytest
 import tensorflow as tf
 
-from doctr.models import classification, detection, obj_detection, recognition
-from doctr.models.factory import _save_model_and_config_for_hf_hub, push_to_hf_hub
+from doctr import models
+from doctr.models.factory import _save_model_and_config_for_hf_hub, from_hub, push_to_hf_hub
 
 
 def test_push_to_hf_hub():
-    model = classification.resnet18(pretrained=False)
+    model = models.classification.resnet18(pretrained=False)
     with pytest.raises(ValueError):
         # run_config and/or arch must be specified
         push_to_hf_hub(model, model_name='test', task='classification')
@@ -23,41 +23,32 @@ def test_push_to_hf_hub():
 
 
 @pytest.mark.parametrize(
-    "arch_name, task_name",
+    "arch_name, task_name, dummy_model_id",
     [
-        ["vgg16_bn_r", "classification"],
-        ["resnet18", "classification"],
-        ["resnet31", "classification"],
-        ["resnet34", "classification"],
-        ["resnet34_wide", "classification"],
-        ["resnet50", "classification"],
-        ["magc_resnet31", "classification"],
-        ["mobilenet_v3_small", "classification"],
-        ["mobilenet_v3_large", "classification"],
-        ["db_resnet50", "detection"],
-        ["db_mobilenet_v3_large", "detection"],
-        ["linknet_resnet18", "detection"],
-        ["linknet_resnet18_rotation", "detection"],
-        ["linknet_resnet34", "detection"],
-        ["linknet_resnet50", "detection"],
-        ["crnn_vgg16_bn", "recognition"],
-        ["crnn_mobilenet_v3_small", "recognition"],
-        ["crnn_mobilenet_v3_large", "recognition"],
-        ["sar_resnet31", "recognition"],
-        ["master", "recognition"],
+        ["vgg16_bn_r", "classification", "Felix92/doctr-dummy-tf-vgg16-bn-r"],
+        ["resnet18", "classification", "Felix92/doctr-dummy-tf-resnet18"],
+        ["resnet31", "classification", "Felix92/doctr-dummy-tf-resnet31"],
+        ["resnet34", "classification", "Felix92/doctr-dummy-tf-resnet34"],
+        ["resnet34_wide", "classification", "Felix92/doctr-dummy-tf-resnet34-wide"],
+        ["resnet50", "classification", "Felix92/doctr-dummy-tf-resnet50"],
+        ["magc_resnet31", "classification", "Felix92/doctr-dummy-tf-magc-resnet31"],
+        ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-tf-mobilenet-v3-large"],
+        ["db_resnet50", "detection", "Felix92/doctr-dummy-tf-db-resnet50"],
+        ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-tf-db-mobilenet-v3-large"],
+        ["linknet_resnet18", "detection", "Felix92/doctr-dummy-tf-linknet-resnet18"],
+        ["linknet_resnet18_rotation", "detection", "Felix92/doctr-dummy-tf-linknet-resnet18-rotation"],
+        ["linknet_resnet34", "detection", "Felix92/doctr-dummy-tf-linknet-resnet34"],
+        ["linknet_resnet50", "detection", "Felix92/doctr-dummy-tf-linknet-resnet50"],
+        ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-tf-crnn-vgg16-bn"],
+        ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-tf-crnn-mobilenet-v3-large"],
+        ["sar_resnet31", "recognition", "Felix92/doctr-dummy-tf-sar-resnet31"],
+        ["master", "recognition", "Felix92/doctr-dummy-tf-master"],
     ],
 )
-def test_models_for_hub(arch_name, task_name, tmpdir):
+def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
     with tempfile.TemporaryDirectory() as tmp_dir:
         tf.keras.backend.clear_session()
-        if task_name == "classification":
-            model = classification.__dict__[arch_name](pretrained=True)
-        elif task_name == "detection":
-            model = detection.__dict__[arch_name](pretrained=True)
-        elif task_name == "recognition":
-            model = recognition.__dict__[arch_name](pretrained=True)
-        elif task_name == "obj_detection":
-            model = obj_detection.__dict__[arch_name](pretrained=True)
+        model = models.__dict__[task_name].__dict__[arch_name](pretrained=True)
 
         _save_model_and_config_for_hf_hub(model, arch=arch_name, task=task_name, save_dir=tmp_dir)
 
@@ -70,3 +61,8 @@ def test_models_for_hub(arch_name, task_name, tmpdir):
         assert arch_name == tmp_config['arch']
         assert task_name == tmp_config['task']
         assert all(key in model.cfg.keys() for key in tmp_config.keys())
+
+        # test from hub
+        tf.keras.backend.clear_session()
+        hub_model = from_hub(repo_id=dummy_model_id)
+        assert isinstance(hub_model, type(model))

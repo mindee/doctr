@@ -61,6 +61,8 @@ def test_classification_zoo(arch_name):
     batch_size = 16
     # Model
     predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
+    with pytest.raises(ValueError):
+        predictor = classification.zoo.crop_orientation_predictor(arch='wrong_model', pretrained=False)
     # object check
     assert isinstance(predictor, CropOrientationPredictor)
     input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
