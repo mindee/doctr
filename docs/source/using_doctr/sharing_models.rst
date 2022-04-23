@@ -48,7 +48,8 @@ Pushing to the Huggingface Hub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can also push your trained model to the Huggingface Hub.
-You need only to provide the task type, a name for your trained model and the model name itself.
+You need only to provide the task type (classification, detection, recognition or obj_detection), a name for your trained model (NOTE:
+existing repositories will not be overwritten) and the model name itself.
 
 - Prerequisites:
     - huggingface account (you can easy create one at https://huggingface.co/)
@@ -56,9 +57,10 @@ You need only to provide the task type, a name for your trained model and the mo
 
 .. code:: python3
 
-    from doctr import models
-    my_awesome_model = models.recognition.crnn_mobilenet_v3_small(pretrained=True)
-    push_to_hf_hub(my_awesome_model, model_name='doctr-crnn-mobilenet-v3-small', task='recognition', arch='crnn_mobilenet_v3_small')
+    from doctr.models import recognition, login_to_hub, push_to_hf_hub
+    login_to_hub()
+    my_awesome_model = recognition.crnn_mobilenet_v3_small(pretrained=True)
+    push_to_hf_hub(my_awesome_model, model_name='doctr-crnn-mobilenet-v3-small-v1', task='recognition', arch='crnn_mobilenet_v3_small')
 
 It is also possible to push your model directly after training.
 
