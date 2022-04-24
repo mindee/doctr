@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, List
+from typing import Any, List, Union
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
@@ -27,22 +27,25 @@ elif is_torch_available():
 
 
 def _predictor(
-    arch: str,
+    arch: Union[str, Any],
     pretrained: bool,
     assume_straight_pages: bool = True,
     **kwargs: Any
 ) -> DetectionPredictor:
 
-    if arch not in ARCHS:
+    if isinstance(arch, str) and arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
-    if arch not in ROT_ARCHS and not assume_straight_pages:
+    if isinstance(arch, str) and arch not in ROT_ARCHS and not assume_straight_pages:
         raise AssertionError("You are trying to use a model trained on straight pages while not assuming"
                              " your pages are straight. If you have only straight documents, don't pass"
                              f" assume_straight_pages=False, otherwise you should use one of these archs: {ROT_ARCHS}")
 
     # Detection
-    _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
+    if isinstance(arch, str):
+        _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
+    else:
+        _model = arch
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 1)
@@ -54,7 +57,7 @@ def _predictor(
 
 
 def detection_predictor(
-    arch: str = 'db_resnet50',
+    arch: Union[str, Any] = 'db_resnet50',
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     **kwargs: Any
@@ -68,7 +71,7 @@ def detection_predictor(
     >>> out = model([input_page])
 
     Args:
-        arch: name of the architecture to use (e.g. 'db_resnet50')
+        arch: name of the architecture or model itself to use (e.g. 'db_resnet50')
         pretrained: If True, returns a model pre-trained on our text detection dataset
         assume_straight_pages: If True, fit straight boxes to the page
 

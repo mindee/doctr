@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, List
+from typing import Any, List, Union
 
 from doctr.file_utils import is_tf_available
 from doctr.models.preprocessor import PreProcessor
@@ -17,12 +17,16 @@ __all__ = ["recognition_predictor"]
 ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master']
 
 
-def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
+def _predictor(arch: Union[str, Any], pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
 
-    if arch not in ARCHS:
+    if isinstance(arch, str) and arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
-    _model = recognition.__dict__[arch](pretrained=pretrained)
+    if isinstance(arch, str):
+        _model = recognition.__dict__[arch](pretrained=pretrained)
+    else:
+        _model = arch
+
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 32)
@@ -35,7 +39,11 @@ def _predictor(arch: str, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     return predictor
 
 
-def recognition_predictor(arch: str = 'crnn_vgg16_bn', pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
+def recognition_predictor(
+    arch: Union[str, Any] = 'crnn_vgg16_bn',
+    pretrained: bool = False,
+    **kwargs: Any
+) -> RecognitionPredictor:
     """Text recognition architecture.
 
     Example::
@@ -46,7 +54,7 @@ def recognition_predictor(arch: str = 'crnn_vgg16_bn', pretrained: bool = False,
         >>> out = model([input_page])
 
     Args:
-        arch: name of the architecture to use (e.g. 'crnn_vgg16_bn')
+        arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')
         pretrained: If True, returns a model pre-trained on our text recognition dataset
 
     Returns:
