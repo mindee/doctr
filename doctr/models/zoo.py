@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, Union
+from typing import Any
 
 from .detection.zoo import detection_predictor
 from .predictor import OCRPredictor
@@ -13,8 +13,8 @@ __all__ = ["ocr_predictor"]
 
 
 def _predictor(
-    det_arch: Union[str, Any],
-    reco_arch: Union[str, Any],
+    det_arch: Any,
+    reco_arch: Any,
     pretrained: bool,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
@@ -48,8 +48,8 @@ def _predictor(
 
 
 def ocr_predictor(
-    det_arch: Union[str, Any] = 'db_resnet50',
-    reco_arch: Union[str, Any] = 'crnn_vgg16_bn',
+    det_arch: Any = 'db_resnet50',
+    reco_arch: Any = 'crnn_vgg16_bn',
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,

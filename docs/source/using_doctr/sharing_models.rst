@@ -36,9 +36,9 @@ This section shows you how you can easily load a pretrained model from the Huggi
             from doctr.models import ocr_predictor, from_hub
             image = DocumentFile.from_images(['data/example.jpg'])
             # Load a custom detection model from huggingface hub
-            det_model = from_hub('Felix92/doctr-dummy-torch-db-mobilenet-v3-large').eval()
+            det_model = from_hub('Felix92/doctr-dummy-torch-db-mobilenet-v3-large')
             # Load a custom recognition model from huggingface hub
-            reco_model = from_hub('Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large').eval()
+            reco_model = from_hub('Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large')
             # You can easily plug in this models to the OCR predictor
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
             result = predictor(image)

@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, List, Union
+from typing import Any, List
 
 from doctr.file_utils import is_tf_available
 from doctr.models.preprocessor import PreProcessor
@@ -17,7 +17,7 @@ __all__ = ["recognition_predictor"]
 ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master']
 
 
-def _predictor(arch: Union[str, Any], pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
+def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
 
     if isinstance(arch, str) and arch not in ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
@@ -40,7 +40,7 @@ def _predictor(arch: Union[str, Any], pretrained: bool, **kwargs: Any) -> Recogn
 
 
 def recognition_predictor(
-    arch: Union[str, Any] = 'crnn_vgg16_bn',
+    arch: Any = 'crnn_vgg16_bn',
     pretrained: bool = False,
     **kwargs: Any
 ) -> RecognitionPredictor:

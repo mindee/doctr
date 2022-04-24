@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, List, Union
+from typing import Any, List
 
 from doctr.file_utils import is_tf_available, is_torch_available
 
@@ -27,7 +27,7 @@ elif is_torch_available():
 
 
 def _predictor(
-    arch: Union[str, Any],
+    arch: Any,
     pretrained: bool,
     assume_straight_pages: bool = True,
     **kwargs: Any
@@ -57,7 +57,7 @@ def _predictor(
 
 
 def detection_predictor(
-    arch: Union[str, Any] = 'db_resnet50',
+    arch: Any = 'db_resnet50',
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     **kwargs: Any
