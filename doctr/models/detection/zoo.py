@@ -34,7 +34,7 @@ def _predictor(
 ) -> DetectionPredictor:
 
     if isinstance(arch, str):
-        if arch not in ARCHS:
+        if arch not in ARCHS + ROT_ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
 
         if arch not in ROT_ARCHS and not assume_straight_pages:

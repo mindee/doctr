@@ -2,6 +2,7 @@ Share your model with the community
 ===================================
 
 docTR's focus is on open source, so if you also feel in love with than we appreciate sharing your trained model with the community.
+To make it easy for you, we have integrated a interface to the huggingface hub.
 
 .. currentmodule:: doctr.models.factory
 
@@ -21,9 +22,9 @@ This section shows you how you can easily load a pretrained model from the Huggi
             from doctr.models import ocr_predictor, from_hub
             image = DocumentFile.from_images(['data/example.jpg'])
             # Load a custom detection model from huggingface hub
-            det_model = from_hub('Felix92/doctr-dummy-tf-db-mobilenet-v3-large')
+            det_model = from_hub('Felix92/doctr-tf-db-resnet50')
             # Load a custom recognition model from huggingface hub
-            reco_model = from_hub('Felix92/doctr-dummy-tf-crnn-mobilenet-v3-large')
+            reco_model = from_hub('Felix92/doctr-tf-crnn-vgg16-bn-french')
             # You can easily plug in this models to the OCR predictor
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
             result = predictor(image)
@@ -36,9 +37,9 @@ This section shows you how you can easily load a pretrained model from the Huggi
             from doctr.models import ocr_predictor, from_hub
             image = DocumentFile.from_images(['data/example.jpg'])
             # Load a custom detection model from huggingface hub
-            det_model = from_hub('Felix92/doctr-dummy-torch-db-mobilenet-v3-large')
+            det_model = from_hub('Felix92/doctr-torch-db-mobilenet-v3-large')
             # Load a custom recognition model from huggingface hub
-            reco_model = from_hub('Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large')
+            reco_model = from_hub('Felix92/doctr-torch-crnn-mobilenet-v3-large-french')
             # You can easily plug in this models to the OCR predictor
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
             result = predictor(image)
@@ -99,9 +100,9 @@ Detection
 +---------------------------------+-------------------------------------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**                          |     **Framework**      |
 +=================================+=================================================+========================+
-| db_mobilenet_v3_large (dummy)   | Felix92/doctr-dummy-torch-db-mobilenet-v3-large | PyTorch                |
+| db_mobilenet_v3_large (dummy)   | Felix92/doctr-torch-db-mobilenet-v3-large       | PyTorch                |
 +---------------------------------+-------------------------------------------------+------------------------+
-| db_mobilenet_v3_large (dummy)   | Felix92/doctr-dummy-tf-db-mobilenet-v3-large    | TensorFlow             |
+| db_resnet50 (dummy)             | Felix92/doctr-tf-db-resnet50                    | TensorFlow             |
 +---------------------------------+-------------------------------------------------+------------------------+
 
 
@@ -111,7 +112,7 @@ Recognition
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**                            |     **Language**    |     **Framework**      |
 +=================================+===================================================+=====================+========================+
-| crnn_mobilenet_v3_large (dummy) | Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large | french              | PyTorch                |
+| crnn_mobilenet_v3_large (dummy) | Felix92/doctr-torch-crnn-mobilenet-v3-large       | french              | PyTorch                |
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+
-| crnn_mobilenet_v3_large (dummy) | Felix92/doctr-dummy-tf-crnn-mobilenet-v3-large    | french              | TensorFlow             |
+| crnn_vgg16_bn (dummy)           | Felix92/doctr-tf-crnn-vgg16-bn-french             | french              | TensorFlow             |
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+
