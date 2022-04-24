@@ -25,6 +25,7 @@ elif is_torch_available():
              'linknet_resnet34', 'linknet_resnet50']
     ROT_ARCHS = ['db_resnet50_rotation']
 
+
 def _predictor(
     arch: Any,
     pretrained: bool,
