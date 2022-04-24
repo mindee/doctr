@@ -33,18 +33,21 @@ def _predictor(
     **kwargs: Any
 ) -> DetectionPredictor:
 
-    if isinstance(arch, str) and arch not in ARCHS:
-        raise ValueError(f"unknown architecture '{arch}'")
-
-    if isinstance(arch, str) and arch not in ROT_ARCHS and not assume_straight_pages:
-        raise AssertionError("You are trying to use a model trained on straight pages while not assuming"
-                             " your pages are straight. If you have only straight documents, don't pass"
-                             f" assume_straight_pages=False, otherwise you should use one of these archs: {ROT_ARCHS}")
-
-    # Detection
     if isinstance(arch, str):
+        if arch not in ARCHS:
+            raise ValueError(f"unknown architecture '{arch}'")
+
+        if arch not in ROT_ARCHS and not assume_straight_pages:
+            raise AssertionError("You are trying to use a model trained on straight pages while not assuming"
+                                 " your pages are straight. If you have only straight documents, don't pass"
+                                 " assume_straight_pages=False, otherwise you should use one of these archs:"
+                                 f"{ROT_ARCHS}")
+
         _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
     else:
+        if not isinstance(arch, (detection.DBNet, detection.LinkNet)):
+            raise ValueError(f"unknown architecture: {type(arch)}")
+
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
 

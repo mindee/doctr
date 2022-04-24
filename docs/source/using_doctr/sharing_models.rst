@@ -59,8 +59,8 @@ existing repositories will not be overwritten) and the model name itself.
 
     from doctr.models import recognition, login_to_hub, push_to_hf_hub
     login_to_hub()
-    my_awesome_model = recognition.crnn_mobilenet_v3_small(pretrained=True)
-    push_to_hf_hub(my_awesome_model, model_name='doctr-crnn-mobilenet-v3-small-v1', task='recognition', arch='crnn_mobilenet_v3_small')
+    my_awesome_model = recognition.crnn_mobilenet_v3_large(pretrained=True)
+    push_to_hf_hub(my_awesome_model, model_name='doctr-crnn-mobilenet-v3-large-french-v1', task='recognition', arch='crnn_mobilenet_v3_large')
 
 It is also possible to push your model directly after training.
 

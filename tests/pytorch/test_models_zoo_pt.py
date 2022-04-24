@@ -91,3 +91,11 @@ def test_zoo_models(det_arch, reco_arch):
     reco_model = recognition.__dict__[reco_arch](pretrained=True)
     predictor = models.ocr_predictor(det_model, reco_model)
     _test_predictor(predictor)
+
+    # passing recognition model as detection model
+    with pytest.raises(ValueError):
+        models.ocr_predictor(det_arch=reco_model, pretrained=True)
+
+    # passing detection model as recognition model
+    with pytest.raises(ValueError):
+        models.ocr_predictor(reco_arch=det_model, pretrained=True)
