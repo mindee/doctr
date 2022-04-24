@@ -46,6 +46,7 @@ def _predictor(
         _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
     else:
         _model = arch
+        _model.assume_straight_pages = assume_straight_pages
 
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])

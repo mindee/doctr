@@ -79,6 +79,7 @@ Pretrained community models
 ---------------------------
 
 This section is to provide some tables for pretrained community models.
+Feel free to open a pull request or issue to add your model to this list.
 
 Classification
 ^^^^^^^^^^^^^^
