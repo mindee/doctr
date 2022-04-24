@@ -52,8 +52,8 @@ You need only to provide the task type (classification, detection, recognition o
 existing repositories will not be overwritten) and the model name itself.
 
 - Prerequisites:
-    - huggingface account (you can easy create one at https://huggingface.co/)
-    - installed Git LFS (check installation at: https://git-lfs.github.com/)
+    - Huggingface account (you can easy create one at https://huggingface.co/)
+    - installed Git LFS (check installation at: https://git-lfs.github.com/) in the repository
 
 .. code:: python3
 
@@ -68,11 +68,11 @@ It is also possible to push your model directly after training.
 
     .. tab:: TensorFlow
 
-        python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_small --push-to-hub
+        python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
     .. tab:: PyTorch
 
-        python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_small --push-to-hub
+        python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
 
 Pretrained community models

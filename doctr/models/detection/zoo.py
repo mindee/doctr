@@ -25,7 +25,6 @@ elif is_torch_available():
              'linknet_resnet34', 'linknet_resnet50']
     ROT_ARCHS = ['db_resnet50_rotation']
 
-
 def _predictor(
     arch: Any,
     pretrained: bool,
@@ -46,6 +45,7 @@ def _predictor(
         _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
     else:
         _model = arch
+
     kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
     kwargs['std'] = kwargs.get('std', _model.cfg['std'])
     kwargs['batch_size'] = kwargs.get('batch_size', 1)
