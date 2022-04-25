@@ -16,15 +16,15 @@ from ...classification import resnet31
 from ...utils.tensorflow import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ['SAR', 'sar_resnet31']
+__all__ = ["SAR", "sar_resnet31"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'sar_resnet31': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 128, 3),
-        'vocab': VOCABS['legacy_french'],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/sar_resnet31-9ee49970.zip',
+    "sar_resnet31": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 128, 3),
+        "vocab": VOCABS["legacy_french"],
+        "url": "https://github.com/mindee/doctr/releases/download/v0.3.0/sar_resnet31-9ee49970.zip",
     },
 }
 
@@ -36,20 +36,33 @@ class AttentionModule(layers.Layer, NestedObject):
         attention_units: number of hidden attention units
 
     """
-    def __init__(
-        self,
-        attention_units: int
-    ) -> None:
+
+    def __init__(self, attention_units: int) -> None:
 
         super().__init__()
         self.hidden_state_projector = layers.Conv2D(
-            attention_units, 1, strides=1, use_bias=False, padding='same', kernel_initializer='he_normal',
+            attention_units,
+            1,
+            strides=1,
+            use_bias=False,
+            padding="same",
+            kernel_initializer="he_normal",
         )
         self.features_projector = layers.Conv2D(
-            attention_units, 3, strides=1, use_bias=True, padding='same', kernel_initializer='he_normal',
+            attention_units,
+            3,
+            strides=1,
+            use_bias=True,
+            padding="same",
+            kernel_initializer="he_normal",
         )
         self.attention_projector = layers.Conv2D(
-            1, 1, strides=1, use_bias=False, padding="same", kernel_initializer='he_normal',
+            1,
+            1,
+            strides=1,
+            use_bias=False,
+            padding="same",
+            kernel_initializer="he_normal",
         )
         self.flatten = layers.Flatten()
 
@@ -91,6 +104,7 @@ class SARDecoder(layers.Layer, NestedObject):
         num_decoder_layers: number of LSTM layers to stack
 
     """
+
     def __init__(
         self,
         rnn_units: int,
@@ -174,7 +188,7 @@ class SAR(Model, RecognitionModel):
 
     """
 
-    _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder', 'postprocessor']
+    _children_names: List[str] = ["feat_extractor", "encoder", "decoder", "postprocessor"]
 
     def __init__(
         self,
@@ -199,7 +213,7 @@ class SAR(Model, RecognitionModel):
         self.encoder = Sequential(
             [
                 layers.LSTM(units=rnn_units, return_sequences=True),
-                layers.LSTM(units=rnn_units, return_sequences=False)
+                layers.LSTM(units=rnn_units, return_sequences=False),
             ]
         )
         # Initialize the kernels (watch out for reduce_max)
@@ -312,30 +326,30 @@ def _sar(
     backbone_fn,
     pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> SAR:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
+    _cfg["input_shape"] = input_shape or _cfg["input_shape"]
+    _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
 
     # Feature extractor
     feat_extractor = backbone_fn(
         pretrained=pretrained_backbone,
-        input_shape=_cfg['input_shape'],
+        input_shape=_cfg["input_shape"],
         include_top=False,
     )
 
-    kwargs['vocab'] = _cfg['vocab']
+    kwargs["vocab"] = _cfg["vocab"]
 
     # Build the model
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, default_cfgs[arch]["url"])
 
     return model
 
@@ -357,4 +371,4 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
         text recognition architecture
     """
 
-    return _sar('sar_resnet31', pretrained, resnet31, **kwargs)
+    return _sar("sar_resnet31", pretrained, resnet31, **kwargs)
