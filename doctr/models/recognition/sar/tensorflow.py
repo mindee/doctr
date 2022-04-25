@@ -128,7 +128,7 @@ class SARDecoder(layers.Layer, NestedObject):
         )
         self.embed = layers.Dense(embedding_units, use_bias=False, input_shape=(None, self.vocab_size + 1))
         self.attention_module = AttentionModule(attention_units)
-        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True, input_shape=(None, 2 * rnn_units))
+        self.output_dense = layers.Dense(vocab_size + 1, use_bias=True)
         self.max_length = max_length
 
         # Initialize kernels
