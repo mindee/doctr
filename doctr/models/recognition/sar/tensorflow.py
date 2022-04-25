@@ -115,7 +115,6 @@ class SARDecoder(layers.Layer, NestedObject):
         rnn_units: int,
         max_length: int,
         vocab_size: int,
-        embedding_units: int,
         attention_units: int,
         num_decoder_layers: int = 2,
         input_shape: Optional[List[Tuple[Optional[int]]]] = None,
@@ -126,7 +125,7 @@ class SARDecoder(layers.Layer, NestedObject):
         self.lstm_decoder = layers.StackedRNNCells(
             [layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_layers)]
         )
-        self.embed = layers.Dense(embedding_units, use_bias=False, input_shape=(None, self.vocab_size + 1))
+        self.embed = layers.Dense(rnn_units, use_bias=False, input_shape=(None, self.vocab_size + 1))
         self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(vocab_size + 1, use_bias=True)
         self.max_length = max_length
@@ -297,7 +296,6 @@ class SAR(Model, RecognitionModel):
         feature_extractor,
         vocab: str,
         rnn_units: int = 512,
-        embedding_units: int = 512,
         attention_units: int = 512,
         max_length: int = 30,
         num_decoders: int = 2,
@@ -325,7 +323,6 @@ class SAR(Model, RecognitionModel):
             rnn_units=rnn_units,
             max_length=max_length,
             vocab_size=len(vocab),
-            embedding_units=embedding_units,
             attention_units=attention_units,
             num_decoder_layers=num_decoders,
         )
