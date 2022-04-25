@@ -6,7 +6,9 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 from tensorflow.keras import Model, Sequential, layers
 
 from doctr.datasets import VOCABS
@@ -76,19 +78,22 @@ class AttentionModule(layers.Layer, NestedObject):
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, 1, 1, rnn_units) -> (N, 1, 1, attention_units)
         hidden_state_projection = self.hidden_state_projector(hidden_state, **kwargs)
-        # shape (N, H, W, vgg_units) -> (N, H, W, attention_units)
+        # shape (N, H, W, D) -> (N, H, W, attention_units)
         features_projection = self.features_projector(features, **kwargs)
+        # shape (N, 1, 1, attention_units) + (N, H, W, attention_units) -> (N, H, W, attention_units)
         projection = tf.math.tanh(hidden_state_projection + features_projection)
         # shape (N, H, W, attention_units) -> (N, H, W, 1)
         attention = self.attention_projector(projection, **kwargs)
         # shape (N, H, W, 1) -> (N, H * W)
-        attention = self.flatten(attention)
+        attention_shape = [tf.shape(attention)[k] for k in range(len(attention.shape))]
+        attention = tf.reshape(attention, attention_shape[:-3] + [H * W])
         attention = tf.nn.softmax(attention)
         # shape (N, H * W) -> (N, H, W, 1)
-        attention_map = tf.reshape(attention, [-1, H, W, 1])
+        attention_map = tf.reshape(attention, attention_shape)
+        # shape (N, H, W, D) x (N, H, W, 1) -> (N, H, W, D)
         glimpse = tf.math.multiply(features, attention_map)
-        # shape (N, H * W) -> (N, 1)
-        glimpse = tf.reduce_sum(glimpse, axis=[1, 2])
+        # shape (N, H, W, D) -> (N, D)
+        glimpse = tf.reduce_sum(glimpse, axis=[-3, -2])
         return glimpse
 
 
@@ -130,47 +135,144 @@ class SARDecoder(layers.Layer, NestedObject):
         if input_shape is not None:
             self.attention_module.call(layers.Input(input_shape[0][1:]), layers.Input((1, 1, rnn_units)))
 
-    def call(
-        self,
-        features: tf.Tensor,
-        holistic: tf.Tensor,
-        gt: Optional[tf.Tensor] = None,
-        **kwargs: Any,
-    ) -> tf.Tensor:
+    def embed_token(self, token: tf.Tensor, **kwargs):
+        return self.embed(tf.one_hot(token, depth=self.vocab_size + 1), **kwargs)
 
-        # initialize states (each of shape (N, rnn_units))
-        states = self.lstm_decoder.get_initial_state(
-            inputs=None, batch_size=features.shape[0], dtype=features.dtype
-        )
-        # run first step of lstm
-        # holistic: shape (N, rnn_units)
-        _, states = self.lstm_decoder(holistic, states, **kwargs)
-        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
-        symbol = tf.fill(features.shape[0], self.vocab_size + 1)
+    def greedy_decode(self, symbol, states, gt):
+        # if gt is None:
+        #     raise ValueError("Need to provide labels during training for teacher forcing")
+
         logits_list = []
-        if kwargs.get('training') and gt is None:
-            raise ValueError('Need to provide labels during training for teacher forcing')
+
         for t in range(self.max_length + 1):  # keep 1 step for <eos>
             # one-hot symbol with depth vocab_size + 1
             # embeded_symbol: shape (N, embedding_units)
             embeded_symbol = self.embed(tf.one_hot(symbol, depth=self.vocab_size + 1), **kwargs)
             logits, states = self.lstm_decoder(embeded_symbol, states, **kwargs)
             glimpse = self.attention_module(
-                features, tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1), **kwargs,
+                features,
+                tf.expand_dims(tf.expand_dims(logits, axis=1), axis=1),
+                **kwargs,
             )
             # logits: shape (N, rnn_units), glimpse: shape (N, 1)
             logits = tf.concat([logits, glimpse], axis=-1)
             # shape (N, rnn_units + 1) -> (N, vocab_size + 1)
             logits = self.output_dense(logits, **kwargs)
             # update symbol with predicted logits for t+1 step
-            if kwargs.get('training'):
+            if gt is not None:
+                # Teacher forcing
                 symbol = gt[:, t]  # type: ignore[index]
             else:
                 symbol = tf.argmax(logits, axis=-1)
             logits_list.append(logits)
-        outputs = tf.stack(logits_list, axis=1)  # shape (N, max_length + 1, vocab_size + 1)
+        scores = tf.stack(logits_list, axis=1)
 
-        return outputs
+        return scores
+
+    def beam_decode(self, symbol, states, beam_width):
+        states = tfa.seq2seq.tile_batch(states, multiplier=beam_width)
+
+        cell_output_layer = SARCellOutputLayer(
+            attention_module=self.attention_module,
+            output_dense=self.output_dense,
+            feature_map=features,
+        )
+
+        beam_search_decoder = tfa.seq2seq.BeamSearchDecoder(
+            cell=self.lstm_decoder,
+            beam_width=self.beam_width,
+            embedding_fn=self.embed_token,
+            output_layer=cell_output_layer,
+            output_all_scores=True,
+            maximum_iterations=tf.constant(self.max_length + 1, dtype=tf.int32),
+        )
+
+        outputs, _, _ = beam_search_decoder(
+            embedding=None,
+            start_tokens=symbol,
+            end_token=self.vocab_size,
+            initial_state=states,
+        )
+
+        # shape (N, seq_length, beam_width, vocab_size + 1)
+        log_probs = outputs.beam_search_decoder_output.scores
+        # shape (N, beam_width, seq_length, vocab_size + 1)
+        log_probs = tf.transpose(log_probs, (0, 2, 1, 3))
+
+        # shape (N, seq_length, beam_width)
+        ids = outputs.predicted_ids
+        # shape (N, beam_width, seq_length)
+        ids = tf.transpose(ids, (0, 2, 1))
+
+        # Build beam sequences scores: shape (N, beam_width, seq_length, vocab_size + 1)
+        oh_ids = tf.one_hot(ids, axis=-1, depth=self.vocab_size + 1)
+        oh_ids = tf.where(oh_ids == 0.0, np.nan, oh_ids)
+        scores = oh_ids * tf.math.exp(log_probs)
+
+        return scores
+
+    def call(
+        self,
+        features: tf.Tensor,
+        holistic: tf.Tensor,
+        gt: Optional[tf.Tensor] = None,
+        beam_width: Optional[int] = None,
+        **kwargs: Any,
+    ) -> tf.Tensor:
+
+        # initialize states (each of shape (N, rnn_units))
+        states = self.lstm_decoder.get_initial_state(
+            inputs=None, batch_size=tf.shape(features)[0], dtype=features.dtype
+        )
+        # run first step of lstm
+        # holistic: shape (N, rnn_units)
+        _, states = self.lstm_decoder(holistic, states, **kwargs)
+        # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
+        symbol = tf.fill((tf.shape[features][0],), self.vocab_size + 1)
+
+        if kwargs.get("training") or beam_width is None:
+            # Scores here are logits: shape (N, max_length + 1, vocab_size + 1)
+            scores = self.greedy_decode(symbol=symbol, states=states, gt=gt)
+        else:
+            # Scores here are probabilities: shape (N, beam_width, seq_length, vocab_size + 1)
+            scores = self.beam_decode(symbol=symbol, states=states, beam_width=beam_width)
+
+        return scores
+
+
+class SARCellOutputLayer(layers.Layer):
+    def __init__(
+        self,
+        attention_module: AttentionModule,
+        output_dense: layers.Dense,
+        feature_map: tf.Tensor,
+        **kwargs,
+    ):
+        self.attention_module = attention_module
+        self.output_dense = output_dense
+        self.feature_map = feature_map
+        super(SARCellOutputLayer, self).__init__(**kwargs)
+
+    def call(self, inputs: tf.Tensor, **kwargs):
+        # inputs: shape (N, B, rnn_units) -> (B, N, rnn_units)
+        inputs = tf.transpose(inputs, (1, 0, 2))
+        # glimpse: shape (N, H, W, D) | (B, N, 1, 1, rnn_units) -> (B, N, D)
+        glimpse = self.attention_module(
+            self.feature_map,
+            tf.expand_dims(tf.expand_dims(inputs, axis=-2), axis=-2),
+            **kwargs,
+        )
+        # logits: shape [inputs (B, N, rnn_units), glimpse (B, N, D)] -> (B, N, rnn_units + D)
+        logits = tf.concat([inputs, glimpse], axis=-1)
+        # shape (B, N, rnn_units + D) -> (B, N, vocab_size + 1)
+        logits = self.output_dense(logits, **kwargs)
+        # shape (B, N, vocab_size + 1) -> (N, B, vocab_size + 1)
+        logits = tf.transpose(logits, (1, 0, 2))
+
+        return logits
+
+    def compute_output_shape(self, input_shape: tf.Tensor):
+        return self.output_dense.compute_output_shape(input_shape)
 
 
 class SAR(Model, RecognitionModel):
@@ -220,8 +322,12 @@ class SAR(Model, RecognitionModel):
         self.encoder.build(input_shape=(None,) + self.feat_extractor.output_shape[2:])
 
         self.decoder = SARDecoder(
-            rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders,
-            input_shape=[self.feat_extractor.output_shape, self.encoder.output_shape]
+            rnn_units=rnn_units,
+            max_length=max_length,
+            vocab_size=len(vocab),
+            embedding_units=embedding_units,
+            attention_units=attention_units,
+            num_decoder_layers=num_decoders,
         )
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
@@ -231,6 +337,7 @@ class SAR(Model, RecognitionModel):
         model_output: tf.Tensor,
         gt: tf.Tensor,
         seq_len: tf.Tensor,
+        from_logits: bool = True,
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -239,18 +346,32 @@ class SAR(Model, RecognitionModel):
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
+            from_logits: Whether model_output is expected to be a logits tensor. By default, we assume that
+            model_output encodes logits.
 
         Returns:
             The loss of the model on the batch
         """
         # Input length : number of timesteps
-        input_len = tf.shape(model_output)[1]
+        input_len = tf.shape(model_output)[-2]
         # Add one for additional <eos> token
         seq_len = seq_len + 1
         # One-hot gt labels
-        oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
-        # Compute loss
-        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
+        oh_gt = tf.one_hot(gt, depth=model_output.shape[-1])
+
+        if from_logits:
+            # Compute loss
+            cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
+
+        else:
+            # Take the top sequence
+            model_output = model_output[:, 0, ...]
+            # Convert scores from log probabilities to probabilities
+            model_output = tf.math.exp(model_output)
+            # Compute loss
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False, reduction="none")
+            cce = loss(oh_gt[:, :input_len], model_output[:, :input_len])
+
         # Compute mask
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len)
@@ -264,16 +385,24 @@ class SAR(Model, RecognitionModel):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        beam_width: Optional[int] = None,
+        top_sequences: Optional[int] = None,
         **kwargs: Any,
     ) -> Dict[str, Any]:
-
+        # Feature extraction: shape (N, H, W, D)
         features = self.feat_extractor(x, **kwargs)
-        pooled_features = tf.reduce_max(features, axis=1)  # vertical max pooling
+        # Vertical max pooling: shape (N, H, W, D) -> (N, W, D)
+        pooled_features = tf.reduce_max(features, axis=1)
+        # Bilayer LSTM Encoder: shape (N, W, D) -> (N, rnn_units)
         encoded = self.encoder(pooled_features, **kwargs)
+        # Encode target
         if target is not None:
             gt, seq_len = self.build_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
-        decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
+        # Bilayer LSTM with attention decoder
+        decoded_features = self.decoder(
+            features=features, holistic=encoded, gt=None if target is None else gt, beam_width=beam_width, **kwargs
+        )
 
         out: Dict[str, tf.Tensor] = {}
         if return_model_output:
@@ -281,10 +410,12 @@ class SAR(Model, RecognitionModel):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(decoded_features)
+            out["preds"] = self.postprocessor(decoded_features, top_sequences=top_sequences)
 
         if target is not None:
-            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)
+            out["loss"] = self.compute_loss(
+                decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None
+            )
 
         return out
 
@@ -294,30 +425,45 @@ class SARPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
-        ignore_case: if True, ignore case of letters
-        ignore_accents: if True, ignore accents of letters
     """
 
-    def __call__(
-        self,
-        logits: tf.Tensor,
-    ) -> List[Tuple[str, float]]:
+    def __call__(self, scores: tf.Tensor, top_sequences: Optional[int] = None) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
-        out_idxs = tf.math.argmax(logits, axis=2)
+        out_idxs = tf.math.argmax(scores, axis=-1)
+
         # N x L
-        probs = tf.gather(tf.nn.softmax(logits, axis=-1), out_idxs, axis=-1, batch_dims=2)
-        # Take the minimum confidence of the sequence
-        probs = tf.math.reduce_min(probs, axis=1)
+        if top_sequences:
+            # Compute sequence probabilities
+            probs = tf.gather(scores, out_idxs, axis=-1, batch_dims=3)
+            # Take the minimum confidence of beam top sequences
+            probs = tf.math.reduce_min(probs, axis=-1)[:, : self.top_sequences].numpy().tolist()
+        else:
+            # Compute sequence probabilities
+            probs = tf.nn.softmax(scores, axis=-1)
+            probs = tf.gather(probs, out_idxs, axis=-1, batch_dims=2)
+            # Take the minimum confidence of the sequence
+            probs = tf.math.reduce_min(probs, axis=-1).numpy()
 
         # decode raw output of the model with tf_label_to_idx
-        out_idxs = tf.cast(out_idxs, dtype='int32')
+        out_idxs = tf.cast(out_idxs, dtype="int32")
         embedding = tf.constant(self._embedding, dtype=tf.string)
         decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
-        decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
+        decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[..., 0]
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        if top_sequences:
+            word_values = [
+                [word.decode() for word in beam_words[: self.top_sequences]]
+                for beam_words in decoded_strings_pred.numpy().tolist()
+            ]
+            output = [
+                list(zip(sequence_words, sequence_probs)) for sequence_words, sequence_probs in zip(word_values, probs)
+            ]
+        else:
+            word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
+            output = list(zip(word_values, probs))
+
+        return output
 
 
 def _sar(
