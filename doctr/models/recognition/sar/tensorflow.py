@@ -179,7 +179,7 @@ class SARDecoder(layers.Layer, NestedObject):
 
         beam_search_decoder = tfa.seq2seq.BeamSearchDecoder(
             cell=self.lstm_decoder,
-            beam_width=self.beam_width,
+            beam_width=beam_width,
             embedding_fn=self.embed_token,
             output_layer=cell_output_layer,
             output_all_scores=True,
@@ -224,7 +224,7 @@ class SARDecoder(layers.Layer, NestedObject):
         # holistic: shape (N, rnn_units)
         _, states = self.lstm_decoder(holistic, states, **kwargs)
         # Initialize with the index of virtual START symbol (placed after <eos> so that the one-hot is only zeros)
-        symbol = tf.fill((tf.shape[features][0],), self.vocab_size + 1)
+        symbol = tf.fill((tf.shape(features)[0],), self.vocab_size + 1)
 
         if kwargs.get("training") or beam_width is None:
             # Scores here are logits: shape (N, max_length + 1, vocab_size + 1)
