@@ -137,7 +137,7 @@ class SARDecoder(layers.Layer, NestedObject):
     def embed_token(self, token: tf.Tensor, **kwargs):
         return self.embed(tf.one_hot(token, depth=self.vocab_size + 1), **kwargs)
 
-    def greedy_decode(self, symbol, states, gt):
+    def greedy_decode(self, symbol, states, features, gt, **kwargs):
         # if gt is None:
         #     raise ValueError("Need to provide labels during training for teacher forcing")
 
@@ -168,7 +168,7 @@ class SARDecoder(layers.Layer, NestedObject):
 
         return scores
 
-    def beam_decode(self, symbol, states, beam_width):
+    def beam_decode(self, symbol, states, features, beam_width, **kwargs):
         states = tfa.seq2seq.tile_batch(states, multiplier=beam_width)
 
         cell_output_layer = SARCellOutputLayer(
@@ -187,10 +187,7 @@ class SARDecoder(layers.Layer, NestedObject):
         )
 
         outputs, _, _ = beam_search_decoder(
-            embedding=None,
-            start_tokens=symbol,
-            end_token=self.vocab_size,
-            initial_state=states,
+            embedding=None, start_tokens=symbol, end_token=self.vocab_size, initial_state=states, **kwargs
         )
 
         # shape (N, seq_length, beam_width, vocab_size + 1)
@@ -231,10 +228,10 @@ class SARDecoder(layers.Layer, NestedObject):
 
         if kwargs.get("training") or beam_width is None:
             # Scores here are logits: shape (N, max_length + 1, vocab_size + 1)
-            scores = self.greedy_decode(symbol=symbol, states=states, gt=gt)
+            scores = self.greedy_decode(symbol=symbol, states=states, gt=gt, features=features, **kwargs)
         else:
             # Scores here are probabilities: shape (N, beam_width, seq_length, vocab_size + 1)
-            scores = self.beam_decode(symbol=symbol, states=states, beam_width=beam_width)
+            scores = self.beam_decode(symbol=symbol, states=states, features=features, beam_width=beam_width, **kwargs)
 
         return scores
 
