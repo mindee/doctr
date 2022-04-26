@@ -430,13 +430,13 @@ class SARPostProcessor(RecognitionPostProcessor):
             # Compute sequence probabilities
             probs = tf.gather(scores, out_idxs, axis=-1, batch_dims=3)
             # Take the minimum confidence of beam top sequences
-            probs = tf.math.reduce_min(probs, axis=-1)[:, : self.top_sequences].numpy().tolist()
+            probs = tf.math.reduce_min(probs, axis=-1)[:, :top_sequences]
         else:
             # Compute sequence probabilities
             probs = tf.nn.softmax(scores, axis=-1)
             probs = tf.gather(probs, out_idxs, axis=-1, batch_dims=2)
             # Take the minimum confidence of the sequence
-            probs = tf.math.reduce_min(probs, axis=-1).numpy()
+            probs = tf.math.reduce_min(probs, axis=-1)
 
         # decode raw output of the model with tf_label_to_idx
         out_idxs = tf.cast(out_idxs, dtype="int32")
@@ -447,14 +447,14 @@ class SARPostProcessor(RecognitionPostProcessor):
 
         if top_sequences:
             word_values = [
-                [word.decode() for word in beam_words[: self.top_sequences]]
-                for beam_words in decoded_strings_pred.numpy().tolist()
+                [word.decode() for word in beam_words[:top_sequences]]
+                for beam_words in decoded_strings_pred
             ]
             output = [
                 list(zip(sequence_words, sequence_probs)) for sequence_words, sequence_probs in zip(word_values, probs)
             ]
         else:
-            word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
+            word_values = [word.decode() for word in decoded_strings_pred]
             output = list(zip(word_values, probs))
 
         return output
