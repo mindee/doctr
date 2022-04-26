@@ -427,16 +427,16 @@ class SARPostProcessor(RecognitionPostProcessor):
 
         # N x L
         if top_sequences:
-            # Compute sequence probabilities
-            probs = tf.gather(scores, out_idxs, axis=-1, batch_dims=3)
-            # Take the minimum confidence of beam top sequences
-            probs = tf.math.reduce_min(probs, axis=-1)[:, :top_sequences]
+            # Compute sequence log-probabilities (scores are log probabilities)
+            log_probs = tf.gather(scores, out_idxs, axis=-1, batch_dims=3)
+            # Take the geometric mean probability of the sequence
+            probs = tf.math.exp(tf.math.reduce_mean(log_probs, axis=-1))[:, : top_sequences]
         else:
             # Compute sequence probabilities
             probs = tf.nn.softmax(scores, axis=-1)
             probs = tf.gather(probs, out_idxs, axis=-1, batch_dims=2)
-            # Take the minimum confidence of the sequence
-            probs = tf.math.reduce_min(probs, axis=-1)
+            # Take the geometric mean probability of the sequence
+            probs = tf.math.exp(tf.math.reduce_mean(tf.math.log(probs), axis=-1))
 
         # decode raw output of the model with tf_label_to_idx
         out_idxs = tf.cast(out_idxs, dtype="int32")
