@@ -33,10 +33,10 @@ def _predictor(
     **kwargs: Any
 ) -> DetectionPredictor:
 
-    if arch not in ARCHS:
+    if arch not in ARCHS and arch not in ROT_ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
-    if arch not in ROT_ARCHS and not assume_straight_pages:
+    if arch in ARCHS and not assume_straight_pages:
         raise AssertionError("You are trying to use a model trained on straight pages while not assuming"
                              " your pages are straight. If you have only straight documents, don't pass"
                              f" assume_straight_pages=False, otherwise you should use one of these archs: {ROT_ARCHS}")
