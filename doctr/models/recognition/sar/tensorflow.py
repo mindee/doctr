@@ -182,7 +182,7 @@ class SARDecoder(layers.Layer, NestedObject):
             beam_width=beam_width,
             embedding_fn=self.embed_token,
             output_layer=cell_output_layer,
-            output_all_scores=True,
+            output_all_scores=False,
             maximum_iterations=tf.constant(self.max_length + 1, dtype=tf.int32),
         )
 
@@ -190,20 +190,20 @@ class SARDecoder(layers.Layer, NestedObject):
             embedding=None, start_tokens=symbol, end_token=self.vocab_size, initial_state=states, **kwargs
         )
 
-        # shape (N, seq_length, beam_width, vocab_size + 1)
+        # shape (N, seq_length, beam_width)
         log_probs = outputs.beam_search_decoder_output.scores
-        # shape (N, beam_width, seq_length, vocab_size + 1)
-        log_probs = tf.transpose(log_probs, (0, 2, 1, 3))
+        # shape (N, beam_width, seq_length)
+        log_probs = tf.transpose(log_probs, (0, 2, 1))
 
         # shape (N, seq_length, beam_width)
         ids = outputs.predicted_ids
         # shape (N, beam_width, seq_length)
         ids = tf.transpose(ids, (0, 2, 1))
 
-        # Build beam sequences scores: shape (N, beam_width, seq_length, vocab_size + 1)
+        # Build beam sequences scores as in greedy decoding: shape (N, beam_width, seq_length, vocab_size + 1)
         oh_ids = tf.one_hot(ids, axis=-1, depth=self.vocab_size + 1)
         oh_ids = tf.where(oh_ids == 0.0, np.nan, oh_ids)
-        scores = oh_ids * tf.math.exp(log_probs)
+        scores = oh_ids * log_probs[..., None]
 
         return scores
 
