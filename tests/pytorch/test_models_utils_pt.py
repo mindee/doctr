@@ -16,10 +16,16 @@ def test_load_pretrained_params(tmpdir_factory):
     # Pass an incorrect hash
     with pytest.raises(ValueError):
         load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir))
-    # Let tit resolve the hash from the file name
+    # Let it resolve the hash from the file name
     load_pretrained_params(model, url, cache_dir=str(cache_dir))
     # Check that the file was downloaded & the archive extracted
     assert os.path.exists(cache_dir.join('models').join(url.rpartition("/")[-1]))
+    # Check ignore keys
+    load_pretrained_params(model, url, cache_dir=str(cache_dir), ignore_keys=["2.weight"])
+    # non matching keys
+    model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4), nn.ReLU(), nn.Linear(4, 1))
+    with pytest.raises(ValueError):
+        load_pretrained_params(model, url, cache_dir=str(cache_dir), ignore_keys=["2.weight"])
 
 
 def test_conv_sequence():
