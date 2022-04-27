@@ -4,12 +4,14 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import defusedxml.ElementTree as ET
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
+from .utils import crop_bboxes_from_image
 
 __all__ = ['SVT']
 
@@ -28,6 +30,7 @@ class SVT(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -38,12 +41,13 @@ class SVT(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.train = train
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         # Load xml data
@@ -52,7 +56,7 @@ class SVT(VisionDataset):
             os.path.join(tmp_root, 'test.xml'))
         xml_root = xml_tree.getroot()
 
-        for image in xml_root:
+        for image in tqdm(iterable=xml_root, desc='Unpacking SVT', total=len(xml_root)):
             name, _, _, resolution, rectangles = image
 
             # File existence check
@@ -81,20 +85,26 @@ class SVT(VisionDataset):
                      float(rect.attrib['y']) + float(rect.attrib['height'])]  # type: ignore[list-item]
                     for rect in rectangles
                 ]
-            # Convert them to relative
-            w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
-            boxes = np.asarray(_boxes, dtype=np_dtype)
-            if use_polygons:
-                boxes[:, :, 0] /= w
-                boxes[:, :, 1] /= h
-            else:
-                boxes[:, [0, 2]] /= w
-                boxes[:, [1, 3]] /= h
 
+            boxes = np.asarray(_boxes, dtype=np_dtype)
             # Get the labels
             labels = [lab.text for rect in rectangles for lab in rect]
 
-            self.data.append((name.text, dict(boxes=boxes, labels=labels)))
+            if recognition_task:
+                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
+                for crop, label in zip(crops, labels):
+                    self.data.append((crop, dict(labels=[label])))
+            else:
+                # Convert coordinates to relative
+                w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
+                if use_polygons:
+                    boxes[:, :, 0] /= w
+                    boxes[:, :, 1] /= h
+                else:
+                    boxes[:, [0, 2]] /= w
+                    boxes[:, [1, 3]] /= h
+
+                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 
