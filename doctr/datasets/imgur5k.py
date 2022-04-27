@@ -6,13 +6,14 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import AbstractDataset
-from .utils import convert_target_to_relative
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ["IMGUR5K"]
 
@@ -41,6 +42,7 @@ class IMGUR5K(AbstractDataset):
         label_path: path to the annotations file of the dataset
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -50,16 +52,21 @@ class IMGUR5K(AbstractDataset):
         label_path: str,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
-        super().__init__(img_folder, pre_transforms=convert_target_to_relative, **kwargs)
+        super().__init__(
+            img_folder,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
+            **kwargs
+        )
 
         # File existence check
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(
                 f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[Path, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[Path, np.ndarray], Dict[str, Any]]] = []
         self.train = train
         np_dtype = np.float32
 
@@ -70,7 +77,7 @@ class IMGUR5K(AbstractDataset):
         with open(label_path) as f:
             annotation_file = json.load(f)
 
-        for img_name in img_names[set_slice]:
+        for img_name in tqdm(iterable=img_names[set_slice], desc='Unpacking IMGUR5K', total=len(img_names[set_slice])):
             img_path = Path(img_folder, img_name)
             img_id = img_name.split(".")[0]
 
@@ -98,7 +105,13 @@ class IMGUR5K(AbstractDataset):
 
             # filter images without boxes
             if len(box_targets) > 0:
-                self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
+                if recognition_task:
+                    crops = crop_bboxes_from_image(img_path=os.path.join(self.root, img_name),
+                                                   geoms=np.asarray(box_targets, dtype=np_dtype))
+                    for crop, label in zip(crops, labels):
+                        self.data.append((crop, dict(labels=[label])))
+                else:
+                    self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
