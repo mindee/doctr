@@ -24,11 +24,11 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
     else:
         assert target['boxes'].ndim == 2 and target['boxes'].shape[1:] == (4,)
     assert np.all(np.logical_and(target['boxes'] <= 1, target['boxes'] >= 0))
-    assert len(target['labels']) == len(target['boxes'])
     if class_indices:
         assert isinstance(target['labels'], np.ndarray) and target['labels'].dtype == np.int64
     else:
         assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
+    assert len(target['labels']) == len(target['boxes'])
 
     # Check batching
     loader = DataLoader(
