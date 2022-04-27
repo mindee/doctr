@@ -110,6 +110,7 @@ def _magc_resnet(
     stage_stride: List[int],
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ResNet:
 
@@ -134,12 +135,13 @@ def _magc_resnet(
     )
     # Load pretrained parameters
     if pretrained:
+        _kwargs = {}
         if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
             # The number of classes is not the same as the number of classes in the pretrained model =>
             # remove the last layer weights
-            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
-        else:
-            load_pretrained_params(model, default_cfgs[arch]['url'])
+            _kwargs = {"ignore_keys": ignore_keys}
+
+        load_pretrained_params(model, default_cfgs[arch]['url'], **_kwargs)
 
     return model
 
@@ -172,5 +174,6 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [(2, 2), (2, 1), None, None],
         origin_stem=False,
         stem_channels=128,
+        ignore_keys=['13.weight', '13.bias'],
         **kwargs,
     )
