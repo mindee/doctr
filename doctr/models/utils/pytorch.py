@@ -48,8 +48,8 @@ def load_pretrained_params(
             for key in ignore_keys:
                 state_dict.pop(key)
             missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
-            if len(missing_keys) != len(ignore_keys) or len(unexpected_keys) > 0:
-                raise AssertionError("unable to load state_dict")
+            if set(missing_keys) != set(ignore_keys) or len(unexpected_keys) > 0:
+                raise ValueError("unable to load state_dict, due to non-matching keys.")
         else:
             # Load weights
             model.load_state_dict(state_dict)
