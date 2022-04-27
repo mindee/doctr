@@ -19,7 +19,7 @@ def load_pretrained_params(
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
     overwrite: bool = False,
-    pop_entrys: Optional[List[str]] = None,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
@@ -32,7 +32,7 @@ def load_pretrained_params(
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
         overwrite: should the zip extraction be enforced if the archive has already been extracted
-        pop_entrys: list of weights to be removed from the state_dict
+        ignore_keys: list of weights to be ignored from the state_dict
     """
 
     if url is None:
@@ -44,12 +44,15 @@ def load_pretrained_params(
         state_dict = torch.load(archive_path, map_location='cpu')
 
         # Remove weights from the state_dict
-        if pop_entrys is not None:
-            for key in pop_entrys:
+        if ignore_keys is not None and len(ignore_keys) > 0:
+            for key in ignore_keys:
                 state_dict.pop(key)
-
-        # Load weights
-        model.load_state_dict(state_dict, strict=False)
+            missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+            if len(missing_keys) != len(ignore_keys) or len(unexpected_keys) > 0:
+                raise AssertionError("unable to load state_dict")
+        else:
+            # Load weights
+            model.load_state_dict(state_dict)
 
 
 def conv_sequence_pt(
