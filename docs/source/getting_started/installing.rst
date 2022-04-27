@@ -43,13 +43,13 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
 
         .. code:: bash
 
-            pip install python-doctr[tf]
+            pip install python-doctr[tensorflow]
 
     .. tab:: PyTorch
 
         .. code:: bash
 
-            pip install python-doctr[torch]
+            pip install python-doctr[pytorch]
 
 
 Via Git
