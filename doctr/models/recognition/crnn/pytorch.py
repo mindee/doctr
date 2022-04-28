@@ -221,6 +221,7 @@ def _crnn(
     pretrained: bool,
     backbone_fn: Callable[[Any], nn.Module],
     pretrained_backbone: bool = True,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> CRNN:
 
@@ -240,12 +241,10 @@ def _crnn(
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)  # type: ignore[arg-type]
     # Load pretrained parameters
     if pretrained:
-        if _cfg['vocab'] != default_cfgs[arch]['vocab']:
-            # The number of classes is not the same as the number of classes in the pretrained model =>
-            # remove the last layer weights
-            load_pretrained_params(model, _cfg['url'], pop_entrys=['linear.weight', 'linear.bias'])
-        else:
-            load_pretrained_params(model, _cfg['url'])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if kwargs['num_classes'] == len(default_cfgs[arch]['classes']) else None
+        load_pretrained_params(model, _cfg['url'], ignore_keys=_ignore_keys)
 
     return model
 
@@ -267,7 +266,7 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_vgg16_bn', pretrained, vgg16_bn_r, **kwargs)
+    return _crnn('crnn_vgg16_bn', pretrained, vgg16_bn_r, ignore_keys=['linear.weight', 'linear.bias'], **kwargs)
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -287,7 +286,13 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_mobilenet_v3_small', pretrained, mobilenet_v3_small_r, **kwargs)
+    return _crnn(
+        'crnn_mobilenet_v3_small',
+        pretrained,
+        mobilenet_v3_small_r,
+        ignore_keys=['linear.weight', 'linear.bias'],
+        **kwargs,
+    )
 
 
 def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -307,4 +312,10 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn('crnn_mobilenet_v3_large', pretrained, mobilenet_v3_large_r, **kwargs)
+    return _crnn(
+        'crnn_mobilenet_v3_large',
+        pretrained,
+        mobilenet_v3_large_r,
+        ignore_keys=['linear.weight', 'linear.bias'],
+        **kwargs,
+    )

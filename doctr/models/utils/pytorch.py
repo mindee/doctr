@@ -28,7 +28,7 @@ def load_pretrained_params(
     >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
-        model: the keras model to be loaded
+        model: the PyTorch model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
         overwrite: should the zip extraction be enforced if the archive has already been extracted
