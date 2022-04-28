@@ -297,10 +297,10 @@ def test_ic13_dataset(input_size, num_samples, rotate, recognition, mock_ic13):
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 4, True, False],  # Actual set has 7149 train and 796 test samples
-        [[512, 512], 4, False, False],
-        [[32, 128], 7, True, True],  # recognition
-        [[32, 128], 7, False, True],
+        [[512, 512], 3, True, False],  # Actual set has 7149 train and 796 test samples
+        [[512, 512], 3, False, False],
+        [[32, 128], 5, True, True],  # recognition
+        [[32, 128], 5, False, True],
     ],
 )
 def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, mock_imgur5k):

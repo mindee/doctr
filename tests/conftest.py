@@ -218,11 +218,6 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
                 "image_url": "https://i.imgur.com/BRHSP23.jpg",
                 "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/BRHSP23.jpg",
                 "image_hash": "aab01f7ac82ae53845b01674e9e34167"
-            },
-            "xt5GH67": {
-                "image_url": "https://i.imgur.com/xt5GH67.jpg",
-                "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/xt5GH67.jpg",
-                "image_hash": "88b01f7ac82ac53845b0t674e9g34167"
             }
         },
         "index_to_ann_map": {
@@ -235,9 +230,6 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
             "BRHSP23": [
                 "BRHSP23_0",
                 "BRHSP23_1"],
-            "xt5GH67": [
-                "xt5GH67_0",
-                "xt5GH67_1"],
         },
         "ann_id": {
             "YsaVkzl_0": {
@@ -264,20 +256,12 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
                 "word": "!",
                 "bounding_box": "[566.0, 437.0, 76.67, 201.0, 25.33]"
             },
-            "xt5GH67_0": {
-                "word": "!",
-                "bounding_box": "[320.0, 450.0, 86.67, 211.0, 45.33]"
-            },
-            "xt5GH67_1": {
-                "word": "!",
-                "bounding_box": "[309.0, 447.0, 77.67, 207.0, 10.33]"
-            },
         }
     }
     label_file = label_folder.join("imgur5k_annotations.json")
     with open(label_file, 'w') as f:
         json.dump(labels, f)
-    for index_id in ['YsaVkzl', 'wz3wHhN', 'BRHSP23', 'xt5GH67']:
+    for index_id in ['YsaVkzl', 'wz3wHhN', 'BRHSP23']:
         fn_i = image_folder.join(f"{index_id}.jpg")
         with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
