@@ -477,6 +477,34 @@ can be a significant save of time.</p>
 </dd>
 </dl>
 </dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.MJSynth">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">MJSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/mjsynth.html#MJSynth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.MJSynth" title="Permalink to this definition">#</a></dt>
+<dd><p>MJSynth dataset from <a class="reference external" href="https://www.robots.ox.ac.uk/~vgg/data/text/">“Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: This is a pure recognition dataset without bounding box labels.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">MJSynth</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">MJSynth</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">"/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px"</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">"/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt"</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">MJSynth</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">"/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px"</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">"/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the file with the labels</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 </section>
 <section id="doctr-synthetic-datasets">
 <h3>docTR synthetic datasets<a class="headerlink" href="#doctr-synthetic-datasets" title="Permalink to this headline">#</a></h3>

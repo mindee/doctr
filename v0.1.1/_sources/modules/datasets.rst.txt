@@ -27,6 +27,7 @@ Public datasets
 .. autoclass:: IC03
 .. autoclass:: IC13
 .. autoclass:: IMGUR5K
+.. autoclass:: MJSynth
 
 docTR synthetic datasets
 ^^^^^^^^^^^^^^^^^^^^^^^^
