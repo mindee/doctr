@@ -304,6 +304,7 @@ def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, mock_imgu
     else:
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
+
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
