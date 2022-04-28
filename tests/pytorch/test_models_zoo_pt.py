@@ -58,15 +58,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         _ = predictor([input_page])
 
 
-@pytest.mark.parametrize(
-    "det_arch, reco_arch",
-    [
-        ["db_mobilenet_v3_large", "crnn_mobilenet_v3_large"],
-    ],
-)
-def test_zoo_models(det_arch, reco_arch):
-    # Model
-    predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
+def _test_predictor(predictor):
     # Output checks
     assert isinstance(predictor, OCRPredictor)
 
@@ -81,3 +73,29 @@ def test_zoo_models(det_arch, reco_arch):
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
         _ = predictor([input_page])
+
+
+@pytest.mark.parametrize(
+    "det_arch, reco_arch",
+    [
+        ["db_mobilenet_v3_large", "crnn_mobilenet_v3_large"],
+    ],
+)
+def test_zoo_models(det_arch, reco_arch):
+    # Model
+    predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
+    _test_predictor(predictor)
+
+    # passing model instance directly
+    det_model = detection.__dict__[det_arch](pretrained=True)
+    reco_model = recognition.__dict__[reco_arch](pretrained=True)
+    predictor = models.ocr_predictor(det_model, reco_model)
+    _test_predictor(predictor)
+
+    # passing recognition model as detection model
+    with pytest.raises(ValueError):
+        models.ocr_predictor(det_arch=reco_model, pretrained=True)
+
+    # passing detection model as recognition model
+    with pytest.raises(ValueError):
+        models.ocr_predictor(reco_arch=det_model, pretrained=True)

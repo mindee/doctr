@@ -71,6 +71,7 @@ Supported datasets
    :hidden:
 
    using_doctr/using_models
+   using_doctr/sharing_models
    using_doctr/using_model_export
 
 
