@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from torch import nn
 from torchvision.models import vgg as tv_vgg
