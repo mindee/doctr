@@ -175,13 +175,10 @@ def _resnet(
     model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        _kwargs = {}
-        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
-            # The number of classes is not the same as the number of classes in the pretrained model =>
-            # remove the last layer weights
-            _kwargs = {"ignore_keys": ignore_keys}
-            _kwargs = {"ignore_keys": ['13.weight', '13.bias']}
-        load_pretrained_params(model, default_cfgs[arch]['url'], **_kwargs)
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if kwargs['num_classes'] == len(default_cfgs[arch]['classes']) else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     return model
 
