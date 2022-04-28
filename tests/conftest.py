@@ -223,13 +223,13 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
         "index_to_ann_map": {
             "YsaVkzl": [
                 "YsaVkzl_0",
-                "YsaVkzl_1",
-                "YsaVkzl_2"],
+                "YsaVkzl_1"],
             "wz3wHhN": [
                 "wz3wHhN_0",
                 "wz3wHhN_1"],
             "BRHSP23": [
-                "BRHSP23_0"]
+                "BRHSP23_0",
+                "BRHSP23_1"],
         },
         "ann_id": {
             "YsaVkzl_0": {
@@ -240,22 +240,22 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
                 "word": "am",
                 "bounding_box": "[546.67, 455.67, 345.0, 212.33, 18.67]"
             },
-            "YsaVkzl_2": {
-                "word": "a",
-                "bounding_box": "[566.0, 437.0, 76.67, 201.0, 25.33]"
-            },
             "wz3wHhN_0": {
-                "word": "jedi",
+                "word": "a",
                 "bounding_box": "[544.67, 345.67, 76.0, 222.33, 34.67]"
             },
             "wz3wHhN_1": {
-                "word": "!",
+                "word": "jedi",
                 "bounding_box": "[545.0, 437.0, 76.67, 201.0, 23.33]"
             },
             "BRHSP23_0": {
-                "word": "jedi",
+                "word": "!",
                 "bounding_box": "[555.67, 432.67, 220.0, 120.33, 7.67]"
-            }
+            },
+            "BRHSP23_1": {
+                "word": "!",
+                "bounding_box": "[566.0, 437.0, 76.67, 201.0, 25.33]"
+            },
         }
     }
     label_file = label_folder.join("imgur5k_annotations.json")
