@@ -284,8 +284,8 @@ def test_ic13_dataset(input_size, num_samples, rotate, recognition, mock_ic13):
     [
         [[512, 512], 3, True, False],  # Actual set has 7149 train and 796 test samples
         [[512, 512], 3, False, False],
-        [[32, 128], 6, True, True],  # recognition
-        [[32, 128], 6, False, True],
+        [[32, 128], 5, True, True],  # recognition
+        [[32, 128], 5, False, True],
     ],
 )
 def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, mock_imgur5k):
