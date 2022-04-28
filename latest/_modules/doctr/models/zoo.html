@@ -190,6 +190,7 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -256,8 +257,8 @@
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span>
-    <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -291,8 +292,8 @@
 
 
 <div class="viewcode-block" id="ocr_predictor"><a class="viewcode-back" href="../../../modules/models.html#doctr.models.ocr_predictor">[docs]</a><span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
-    <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'db_resnet50'</span><span class="p">,</span>
-    <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">'db_resnet50'</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -309,8 +310,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')</span>
-<span class="sd">        reco_arch: name of the recognition architecture to use (e.g. 'crnn_vgg16_bn', 'sar_resnet31')</span>
+<span class="sd">        det_arch: name of the detection architecture or the model itself to use</span>
+<span class="sd">            (e.g. 'db_resnet50', 'db_mobilenet_v3_large')</span>
+<span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
+<span class="sd">            (e.g. 'crnn_vgg16_bn', 'sar_resnet31')</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
 <span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
 <span class="sd">            without rotated textual elements.</span>

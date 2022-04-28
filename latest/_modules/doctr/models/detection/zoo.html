@@ -190,6 +190,7 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -270,22 +271,30 @@
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span>
-    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
 
-    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span> <span class="o">+</span> <span class="n">ROT_ARCHS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ROT_ARCHS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">assume_straight_pages</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"You are trying to use a model trained on straight pages while not assuming"</span>
-                             <span class="s2">" your pages are straight. If you have only straight documents, don't pass"</span>
-                             <span class="sa">f</span><span class="s2">" assume_straight_pages=False, otherwise you should use one of these archs: </span><span class="si">{</span><span class="n">ROT_ARCHS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ROT_ARCHS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">assume_straight_pages</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"You are trying to use a model trained on straight pages while not assuming"</span>
+                                 <span class="s2">" your pages are straight. If you have only straight documents, don't pass"</span>
+                                 <span class="s2">" assume_straight_pages=False, otherwise you should use one of these archs:"</span>
+                                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ROT_ARCHS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="c1"># Detection</span>
-    <span class="n">_model</span> <span class="o">=</span> <span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">)</span>
+        <span class="n">_model</span> <span class="o">=</span> <span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="p">(</span><span class="n">detection</span><span class="o">.</span><span class="n">DBNet</span><span class="p">,</span> <span class="n">detection</span><span class="o">.</span><span class="n">LinkNet</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arch</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>
+        <span class="n">_model</span><span class="o">.</span><span class="n">assume_straight_pages</span> <span class="o">=</span> <span class="n">assume_straight_pages</span>
+
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mean'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">'std'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'std'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'std'</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">'batch_size'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'batch_size'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -297,7 +306,7 @@
 
 
 <div class="viewcode-block" id="detection_predictor"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.detection.detection_predictor">[docs]</a><span class="k">def</span> <span class="nf">detection_predictor</span><span class="p">(</span>
-    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'db_resnet50'</span><span class="p">,</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">'db_resnet50'</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
@@ -311,7 +320,7 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        arch: name of the architecture to use (e.g. 'db_resnet50')</span>
+<span class="sd">        arch: name of the architecture or model itself to use (e.g. 'db_resnet50')</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        assume_straight_pages: If True, fit straight boxes to the page</span>
 

@@ -190,6 +190,7 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -260,12 +261,18 @@
 <span class="n">ARCHS</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="s1">'crnn_mobilenet_v3_small'</span><span class="p">,</span> <span class="s1">'crnn_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'sar_resnet31'</span><span class="p">,</span> <span class="s1">'master'</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
 
-    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 
-    <span class="n">_model</span> <span class="o">=</span> <span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
+        <span class="n">_model</span> <span class="o">=</span> <span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="p">(</span><span class="n">recognition</span><span class="o">.</span><span class="n">CRNN</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">SAR</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">MASTER</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arch</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>
+
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mean'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">'std'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'std'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'std'</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s1">'batch_size'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'batch_size'</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
@@ -278,7 +285,11 @@
     <span class="k">return</span> <span class="n">predictor</span>
 
 
-<div class="viewcode-block" id="recognition_predictor"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.recognition.recognition_predictor">[docs]</a><span class="k">def</span> <span class="nf">recognition_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
+<div class="viewcode-block" id="recognition_predictor"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.recognition.recognition_predictor">[docs]</a><span class="k">def</span> <span class="nf">recognition_predictor</span><span class="p">(</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
     <span class="sd">"""Text recognition architecture.</span>
 
 <span class="sd">    Example::</span>
@@ -289,7 +300,7 @@
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        arch: name of the architecture to use (e.g. 'crnn_vgg16_bn')</span>
+<span class="sd">        arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text recognition dataset</span>
 
 <span class="sd">    Returns:</span>

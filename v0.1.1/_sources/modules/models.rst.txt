@@ -68,3 +68,13 @@ doctr.models.zoo
 ----------------
 
 .. autofunction:: doctr.models.ocr_predictor
+
+
+doctr.models.factory
+--------------------
+
+.. autofunction:: doctr.models.factory.login_to_hub
+
+.. autofunction:: doctr.models.factory.from_hub
+
+.. autofunction:: doctr.models.factory.push_to_hf_hub
