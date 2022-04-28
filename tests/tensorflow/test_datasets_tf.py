@@ -490,3 +490,17 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
         _validate_dataset_recognition_part(ds, input_size)
     else:
         _validate_dataset(ds, input_size, is_polygons=rotate)
+
+
+# NOTE: following datasets are only for recognition task
+
+def test_mjsynth_dataset(mock_mjsynth_dataset):
+    input_size = (32, 128)
+    ds = datasets.MJSynth(
+        *mock_mjsynth_dataset,
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True),
+    )
+
+    assert len(ds) == 4  # Actual set has 7581382 train and 1337891 test samples
+    assert repr(ds) == f"MJSynth(train={True})"
+    _validate_dataset_recognition_part(ds, input_size)
