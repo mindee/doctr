@@ -243,7 +243,7 @@ def _crnn(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs['num_classes'] == len(default_cfgs[arch]['classes']) else None
+        _ignore_keys = ignore_keys if _cfg['vocab'] == default_cfgs[arch]['vocab'] else None
         load_pretrained_params(model, _cfg['url'], ignore_keys=_ignore_keys)
 
     return model
