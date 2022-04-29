@@ -134,7 +134,7 @@ Use your own datasets
 ---------------------
 
 Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project.
-However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.
+However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools more easily.
 You can find further information about the format in references.
 
 .. code:: python3
