@@ -89,7 +89,7 @@ This datasets contains the information to train or validate a text recognition m
     # Crop boxes as is (can contain irregular)
     train_set = CORD(train=True, download=True, recognition_task=True)
     # Crop rotated boxes (always regular)
-    train_set = CORD(train=True, download=True, use_polygons=True, recognition_task)
+    train_set = CORD(train=True, download=True, use_polygons=True, recognition_task=True)
     img, target = train_set[0]
 
 
