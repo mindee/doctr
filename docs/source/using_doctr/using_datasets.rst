@@ -9,6 +9,8 @@ can be a significant save of time.
 
 Available Datasets
 ------------------
+In the package reference you will also find some samples for each dataset.
+
 Here are all datasets that are available through docTR:
 
 Detection
@@ -37,6 +39,15 @@ Detection
 +-----------------------------+---------------------------------+---------------------------------+----------------------------------+
 | IMGUR5K                     | 7149                            | 796                             | Handwritten / external resources |
 +-----------------------------+---------------------------------+---------------------------------+----------------------------------+
+
+.. code:: python3
+
+    from doctr.datasets import CORD
+    # Load straight boxes
+    train_set = CORD(train=True, download=True)
+    # Load rotated boxes
+    train_set = CORD(train=True, download=True, use_polygons=True)
+    img, target = train_set[0]
 
 
 Recognition
@@ -68,6 +79,15 @@ Recognition
 | MJSynth                     | 7581382                         | 1337891                         | english                                     |
 +-----------------------------+---------------------------------+---------------------------------+---------------------------------------------+
 
+.. code:: python3
+
+    from doctr.datasets import CORD
+    # Crop boxes as is (can contain irregular)
+    train_set = CORD(train=True, download=True, recognition_task=True)
+    # Crop rotated boxes (always regular)
+    train_set = CORD(train=True, download=True, use_polygons=True, recognition_task)
+    img, target = train_set[0]
+
 
 Object Detection
 ^^^^^^^^^^^^^^^^
@@ -78,28 +98,49 @@ Object Detection
 | DocArtefacts                | 2700                            | 300                             |["background", "qr_code", "bar_code", "logo", "photo"] |
 +-----------------------------+---------------------------------+---------------------------------+-------------------------------------------------------+
 
+.. code:: python3
+
+    from doctr.datasets import DocArtefacts
+    train_set = DocArtefacts(train=True, download=True)
+    img, target = train_set[0]
 
 
-# TODO: ALL !!!
+Synthetic dataset generator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+docTR provides also some generator objects, which can be used to generate synthetic datasets.
+Both are also integrated in the training scripts to train a classification or recognition model.
 
-docTR synthetic datasets
-^^^^^^^^^^^^^^^^^^^^^^^^
+.. code:: python3
 
-.. autoclass:: CharacterGenerator
-.. autoclass:: WordGenerator
+    from doctr.datasets import CharacterGenerator
+    ds = CharacterGenerator(vocab='abdef', num_samples=100)
+    img, target = ds[0]
+
+.. code:: python3
+
+    from doctr.datasets import WordGenerator
+    ds = WordGenerator(vocab='abdef', min_chars=1, max_chars=32, num_samples=100)
+    img, target = ds[0]
 
 
 Use your own datasets
 ---------------------
 
-Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project. However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.
+Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project.
+However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.
+You can find further information about the format in references.
 
-TODO: explain structure ?
+.. code:: python3
 
-.. autoclass:: DetectionDataset
-.. autoclass:: RecognitionDataset
-.. autoclass:: OCRDataset
+    from doctr.datasets import DetectionDataset
+    # Load a detection dataset
+    train_set = DetectionDataset(img_folder="/path/to/images", label_path="/path/to/labels.json")
+    # Load a recognition Dataset
+    train_set = RecognitionDataset(img_folder="/path/to/images", labels_path="/path/to/labels.json")
+    # Load a OCR dataset which contains anotations for the boxes and labels
+    train_set = OCRDataset(img_folder="/path/to/images", label_file="/path/to/labels.json")
+    img, target = train_set[0]
 
 
 Data Loading
@@ -107,21 +148,10 @@ Data Loading
 
 Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.
 
+.. code:: python3
 
-TODO: explain how to load with code snippets !
-
-.. tabs::
-
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            # todo
-
-    .. tab:: PyTorch
-
-        .. code:: python3
-
-            # todo
-
-
+    from doctr.datasets import CORD, DataLoader
+    train_set = CORD(train=True, download=True)
+    train_loader = DataLoader(train_set, batch_size=32)
+    train_iter = iter(train_loader)
+    images, targets = next(train_iter)

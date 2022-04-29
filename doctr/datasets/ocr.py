@@ -18,6 +18,11 @@ __all__ = ['OCRDataset']
 class OCRDataset(AbstractDataset):
     """Implements an OCR dataset
 
+    >>> from doctr.datasets import OCRDataset
+    >>> train_set = OCRDataset(img_folder="/path/to/images",
+    >>>                        label_file="/path/to/labels.json")
+    >>> img, target = train_set[0]
+
     Args:
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
