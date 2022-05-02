@@ -10,7 +10,7 @@ To make it easy for you, we have integrated a interface to the huggingface hub.
 Loading from Huggingface Hub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section shows you how you can easily load a pretrained model from the Huggingface Hub.
+This section shows how you can easily load a pretrained model from the Huggingface Hub.
 
 .. tabs::
 
@@ -69,11 +69,15 @@ It is also possible to push your model directly after training.
 
     .. tab:: TensorFlow
 
-        python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+        .. code:: bash
+
+            python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
     .. tab:: PyTorch
 
-        python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+        .. code:: bash
+
+            python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
 
 Pretrained community models

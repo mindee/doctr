@@ -249,7 +249,7 @@
 To make it easy for you, we have integrated a interface to the huggingface hub.</p>
 <section id="loading-from-huggingface-hub">
 <h2>Loading from Huggingface Hub<a class="headerlink" href="#loading-from-huggingface-hub" title="Permalink to this headline">#</a></h2>
-<p>This section shows you how you can easily load a pretrained model from the Huggingface Hub.</p>
+<p>This section shows how you can easily load a pretrained model from the Huggingface Hub.</p>
 <div class="sphinx-tabs docutils container">
 <div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.io</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">from_hub</span>
@@ -300,8 +300,12 @@ existing repositories will not be overwritten) and the model name itself.</p>
 </div>
 <p>It is also possible to push your model directly after training.</p>
 <div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><p>python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large –name doctr-crnn-mobilenet-v3-large –push-to-hub</p>
-</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><p>python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large –name doctr-crnn-mobilenet-v3-large –push-to-hub</p>
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+</pre></div>
+</div>
 </div></div>
 <section id="pretrained-community-models">
 <h3>Pretrained community models<a class="headerlink" href="#pretrained-community-models" title="Permalink to this headline">#</a></h3>

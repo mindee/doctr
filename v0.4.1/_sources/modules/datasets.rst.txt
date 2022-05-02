@@ -72,6 +72,9 @@ of vocabs.
    * - digits
      - 10
      - 0123456789
+   * - hindi_digits
+     - 10
+     - ٠١٢٣٤٥٦٧٨٩
    * - ascii_letters
      - 52
      - abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -81,6 +84,21 @@ of vocabs.
    * - currency
      - 5
      - £€¥¢฿
+   * - ancient_greek
+     - 48
+     - αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ
+   * - arabic_letters
+     - 37
+     - ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي
+   * - persian_letters
+     - 5
+     - پچڢڤگ
+   * - arabic_diacritics
+     - 2
+     - 'ًٌٍَُِّْ'
+   * - arabic_punctuation
+     - 5
+     - ؟؛«»—
    * - latin
      - 94
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
@@ -102,5 +120,14 @@ of vocabs.
    * - german
      - 108
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ
+   * - arabic
+     - 101
+     - ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيپچڢڤگ؟؛«»—0123456789٠١٢٣٤٥٦٧٨٩'ًٌٍَُِّْ'!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+   * - czech
+     - 130
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ
+   * - vietnamese
+     - 234
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áàảạãăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựiíìỉĩịýỳỷỹỵÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰIÍÌỈĨỊÝỲỶỸỴ
 
 .. autofunction:: encode_sequences
