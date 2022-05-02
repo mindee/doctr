@@ -3,52 +3,53 @@ doctr.datasets
 
 .. currentmodule:: doctr.datasets
 
-Whether it is for training or for evaluation, having predefined objects to access datasets in your prefered framework
-can be a significant save of time.
-
-
 .. _datasets:
 
-Available Datasets
-------------------
-Here are all datasets that are available through docTR:
-
-
-Public datasets
-^^^^^^^^^^^^^^^
+doctr.datasets
+--------------
 
 .. autoclass:: FUNSD
+
 .. autoclass:: SROIE
+
 .. autoclass:: CORD
+
 .. autoclass:: IIIT5K
+
 .. autoclass:: SVT
+
 .. autoclass:: SVHN
+
 .. autoclass:: SynthText
+
 .. autoclass:: IC03
+
 .. autoclass:: IC13
+
 .. autoclass:: IMGUR5K
+
 .. autoclass:: MJSynth
 
-docTR synthetic datasets
-^^^^^^^^^^^^^^^^^^^^^^^^
-
 .. autoclass:: DocArtefacts
+
+Synthetic dataset generator
+---------------------------
+
 .. autoclass:: CharacterGenerator
+
 .. autoclass:: WordGenerator
 
-docTR private datasets
-^^^^^^^^^^^^^^^^^^^^^^
-
-Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project. However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.
+Custom dataset loader
+---------------------
 
 .. autoclass:: DetectionDataset
+
 .. autoclass:: RecognitionDataset
+
 .. autoclass:: OCRDataset
 
-
-Data Loading
-------------
-Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.
+Dataloader
+---------------------
 
 .. autoclass:: doctr.datasets.loader.DataLoader
 

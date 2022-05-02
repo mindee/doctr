@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Share your model with the community" href="sharing_models.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Choose a ready to use dataset" href="using_datasets.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
         <title>Choosing the right model - docTR documentation</title>
@@ -191,6 +191,7 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
 </ul>
@@ -318,7 +319,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 </tr>
 </tbody>
 </table></div>
-<p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+<p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities</em></p>
 <p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
@@ -418,7 +419,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </tr>
 </tbody>
 </table></div>
-<p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+<p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metric being used (exact match) are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p>While most of our recognition models were trained on our french vocab (cf. <a class="reference internal" href="../modules/datasets.html#vocabs"><span class="std std-ref">Supported Vocabs</span></a>), you can easily access the vocab of any model as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
@@ -547,7 +548,7 @@ Explanations about the metric being used (exact match) are available in <a class
 </tr>
 </tbody>
 </table></div>
-<p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+<p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
 <p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
@@ -841,12 +842,12 @@ To get a better understanding of our document model, check our <a class="referen
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="sharing_models.html">
+          <a class="next-page" href="using_datasets.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Share your model with the community</div>
+                <div class="title">Choose a ready to use dataset</div>
               </div>
               <svg><use href="#svg-arrow-right"></use></svg>
             </a>
