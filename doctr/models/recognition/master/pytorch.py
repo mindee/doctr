@@ -8,15 +8,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
-from torch.nn import Sequential
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from doctr.models import magc_resnet31
+from doctr.models.classification import magc_resnet31
+from torch.nn import Sequential
 
 from ...utils.pytorch import load_pretrained_params
-from ..transformer.pytorch import Decoder, PositionalEncoding
+from ..transformer.pytorch import Decoder, Encoder
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -84,17 +84,18 @@ class MASTER(_MASTER, nn.Module):
         self.num_heads = num_heads
 
         self.feat_extractor = feature_extractor
-        self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
-            num_layers=num_layers,
-            d_model=d_model,
-            num_heads=num_heads,
-            feed_forward_dimensions=dff,
-            vocab_size=self.vocab_size,
-            dropout=dropout,
+             vocab_size=self.vocab_size + 3,
+             num_layers=num_layers,
+             num_heads=self.num_heads,
+             d_model=d_model,
+             dropout=dropout,
+             ffd=dff,
+             max_length=self.max_length,
         )
-        self.encoder = PositionalEncoding(d_model, dropout, max_length)
+
+        self.encode_stage = Encoder(d_model, dropout)
 
         self.linear = nn.Linear(d_model, self.vocab_size + 3)
         self.decode_stage = MultiInputSequential(self.decoder, self.linear)
@@ -172,21 +173,19 @@ class MASTER(_MASTER, nn.Module):
         b, c, h, w = features.shape[:4]
         # --> (N, H * W, C)
         features = features.reshape((b, c, h * w)).permute(0, 2, 1)
-        encoded = self.encoder(features)
+        encoded = self.encode_stage(features)
         decoded = self.decode_stage(gt, encoded)
-        #print(decoded)
-        print(decoded.size())
 
         out: Dict[str, Any] = {}
 
-        if self.training:
-            if target is None:
-                raise AssertionError("In training mode, you need to pass a value to 'target'")
+        #if self.training:
+        #    if target is None:
+        #        raise AssertionError("In training mode, you need to pass a value to 'target'")
             # Compute logits
-            output = self.decode_stage(encoded)
-            logits = self.linear(output)
-        else:
-            logits = self.decode(encoded)
+        #    logits = self.decode_stage(gt, encoded)
+        #    logits = self.linear(output)
+        #else:
+        #    logits = self.decode(encoded)
 
         if target is not None:
             out['loss'] = self.compute_loss(decoded, gt, seq_len)
