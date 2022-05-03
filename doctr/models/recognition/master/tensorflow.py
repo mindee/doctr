@@ -89,8 +89,6 @@ class MASTER(_MASTER, Model):
         look_ahead_mask = create_look_ahead_mask(tf.shape(target)[1])
         target_padding_mask = create_padding_mask(target, self.vocab_size + 2)  # Pad symbol
         combined_mask = tf.maximum(target_padding_mask, look_ahead_mask)
-        print(combined_mask)
-        print(combined_mask.shape)
         return combined_mask
 
     @staticmethod
@@ -162,11 +160,7 @@ class MASTER(_MASTER, Model):
         if kwargs.get('training', False):
             if target is None:
                 raise AssertionError("In training mode, you need to pass a value to 'target'")
-            print(gt)
-            print(gt.shape)
             tgt_mask = self.make_mask(gt)
-            print(tgt_mask)
-            print(tgt_mask.shape)
             # Compute logits
             output = self.decoder(gt, encoded, tgt_mask, None, **kwargs)
             logits = self.linear(output, **kwargs)
