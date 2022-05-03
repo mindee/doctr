@@ -155,6 +155,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
                 out = model(images, targets, return_preds=True)
         else:
             out = model(images, targets, return_preds=True)
+            print(out)
         # Compute metric
         if len(out['preds']):
             words, _ = zip(*out['preds'])

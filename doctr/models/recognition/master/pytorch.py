@@ -12,10 +12,11 @@ from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from doctr.models.classification import magc_resnet31
+from doctr.models.classification.magc_resnet.pytorch import magc_resnet31
+from torch.nn import Sequential
 
 from ...utils.pytorch import load_pretrained_params
-from ..transformer.pytorch import Decoder, positional_encoding
+from ..transformer.pytorch import Decoder, Encoder
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -23,13 +24,39 @@ __all__ = ['MASTER', 'master']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'input_shape': (3, 48, 160),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
     },
 }
+
+class Generator(nn.Module):
+    """
+    Define standard linear + softmax generation step.
+    """
+
+    def __init__(self, hidden_dim, vocab_size):
+        """
+        :param hidden_dim: dim of model
+        :param vocab_size: size of vocabulary
+        """
+        super(Generator, self).__init__()
+        self.fc = nn.Linear(hidden_dim, vocab_size)
+
+    def forward(self, x):
+        return self.fc(x)
+
+
+class MultiInputSequential(Sequential):
+    def forward(self, *_inputs):
+        for m_module_index, m_module in enumerate(self):
+            if m_module_index == 0:
+                m_input = m_module(*_inputs)
+            else:
+                m_input = m_module(m_input)
+        return m_input
 
 
 class MASTER(_MASTER, nn.Module):
@@ -61,7 +88,7 @@ class MASTER(_MASTER, nn.Module):
         num_layers: int = 3,
         max_length: int = 50,
         dropout: float = 0.2,
-        input_shape: Tuple[int, int, int] = (3, 48, 160),
+        input_shape: Tuple[int, int, int] = (3, 32, 128),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
@@ -76,35 +103,39 @@ class MASTER(_MASTER, nn.Module):
         self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
-            num_layers=num_layers,
-            d_model=d_model,
-            num_heads=num_heads,
-            dff=dff,
-            vocab_size=self.vocab_size,
-            maximum_position_encoding=max_length,
-            dropout=dropout,
+            _multi_heads_count=self.num_heads,
+            _dimensions=d_model,
+            _dropout=dropout,
+            _feed_forward_size=dff,
+            _n_classes=self.vocab_size + 3,
         )
-        self.register_buffer('feature_pe', positional_encoding(input_shape[1] * input_shape[2], d_model))
-        self.linear = nn.Linear(d_model, self.vocab_size + 3)
+        #self.register_buffer('feature_pe', positional_encoding(input_shape[1] * input_shape[2], d_model))
+        #self.linear = nn.Linear(d_model, self.vocab_size + 3)
+        self.encoder = Encoder(
+            _dimensions=d_model,
+            _dropout=dropout)
+
+        self.generator = Generator(d_model, self.vocab_size + 3)
+        self.decode_stage = MultiInputSequential(self.decoder, self.generator)
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
-        for n, m in self.named_modules():
+        #for n, m in self.named_modules():
             # Don't override the initialization of the backbone
-            if n.startswith('feat_extractor.'):
-                continue
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
+        #    if n.startswith('feat_extractor.'):
+        #        continue
+        #    if isinstance(m, nn.Conv2d):
+        #        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+        #    elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+        #        nn.init.constant_(m.weight, 1)
+        #        nn.init.constant_(m.bias, 0)
 
-    def make_mask(self, target: torch.Tensor) -> torch.Tensor:
-        size = target.size(1)
-        look_ahead_mask = ~ (torch.triu(torch.ones(size, size, device=target.device)) == 1).transpose(0, 1)[:, None]
-        target_padding_mask = torch.eq(target, self.vocab_size + 2)  # Pad symbol
-        combined_mask = target_padding_mask | look_ahead_mask
-        return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
+    #def make_mask(self, target: torch.Tensor) -> torch.Tensor:
+    #    size = target.size(1)
+    #    look_ahead_mask = ~ (torch.triu(torch.ones(size, size, device=target.device)) == 1).transpose(0, 1)[:, None]
+    #    target_padding_mask = torch.eq(target, self.vocab_size + 2)  # Pad symbol
+    #    combined_mask = target_padding_mask | look_ahead_mask
+    #    return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
     @staticmethod
     def compute_loss(
@@ -156,40 +187,47 @@ class MASTER(_MASTER, nn.Module):
             A torch tensor, containing logits
         """
 
-        # Encode
-        features = self.feat_extractor(x)['features']
-        b, c, h, w = features.shape[:4]
-        # --> (N, H * W, C)
-        features = features.reshape((b, c, h * w)).permute(0, 2, 1)
-        encoded = features + self.feature_pe[:, :h * w, :]
-
-        out: Dict[str, Any] = {}
-
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
-        if self.training:
-            if target is None:
-                raise AssertionError("In training mode, you need to pass a value to 'target'")
-            tgt_mask = self.make_mask(gt)
-            # Compute logits
-            output = self.decoder(gt, encoded, tgt_mask, None)
-            logits = self.linear(output)
 
-        else:
-            logits = self.decode(encoded)
+        # Encode
+        features = self.feat_extractor(x)['features']
+        b, c, h, w = features.shape[:4]
+        # --> (N, H * W, C)
+        features = features.reshape((b, c, h * w)).permute(0, 2, 1)
+        encoded = self.encoder(features)
+        decoded = self.decode_stage(gt, encoded)
+        print(decoded)
+        print(decoded.size())
+        #encoded = features + self.feature_pe[:, :h * w, :]
+
+        out: Dict[str, Any] = {}
+
+
+
+        #if self.training:
+            #if target is None:
+            #    raise AssertionError("In training mode, you need to pass a value to 'target'")
+            #tgt_mask = self.make_mask(gt)
+            # Compute logits
+            #output = self.decoder(gt, encoded, tgt_mask, None)
+        #    logits = self.linear(output)
+
+        #else:
+        #    logits = self.decode(encoded)
 
         if target is not None:
-            out['loss'] = self.compute_loss(logits, gt, seq_len)
+            out['loss'] = self.compute_loss(decoded, gt, seq_len)
 
         if return_model_output:
-            out['out_map'] = logits
+            out['out_map'] = decoded
 
         if return_preds:
-            predictions = self.postprocessor(logits)
+            predictions = self.postprocessor(decoded)
             out['preds'] = predictions
 
         return out
@@ -211,9 +249,10 @@ class MASTER(_MASTER, nn.Module):
 
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
-            ys_mask = self.make_mask(ys)
-            output = self.decoder(ys, encoded, ys_mask, None)
-            logits = self.linear(output)
+            #ys_mask = self.make_mask(ys)
+            #output = self.decoder(ys, encoded, ys_mask, None)
+            #logits = self.linear(output)
+            logits = self.decoder(ys, encoded)
             prob = F.softmax(logits, dim=-1)
             next_word = torch.max(prob, dim=-1).indices
             ys[:, i + 1] = next_word[:, i + 1]
@@ -231,7 +270,9 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         logits: torch.Tensor,
     ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
+        print(logits.size())
         out_idxs = logits.argmax(-1)
+        print(out_idxs)
         # N x L
         probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
         # Take the minimum confidence of the sequence

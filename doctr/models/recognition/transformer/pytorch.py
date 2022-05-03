@@ -1,91 +1,180 @@
-# Copyright (C) 2021-2022, Mindee.
+# -*- coding: utf-8 -*-
+# @Author: Wenwen Yu
+# @Email: yuwenwen62@gmail.com
+# @Created Time: 10/3/2020 1:27 PM
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
-
+import copy
 import math
-from typing import Optional
 
 import torch
+import torch.nn.functional as F
 from torch import nn
+from torch.nn import Dropout
 
-__all__ = ['Decoder', 'positional_encoding']
+__all__ = ['Decoder', 'Encoder']
 
 
-def positional_encoding(position: int, d_model: int = 512, dtype=torch.float32) -> torch.Tensor:
-    """Implementation borrowed from this pytorch tutorial:
-    <https://pytorch.org/tutorials/beginner/transformer_tutorial.html>`_.
+def clones(_to_clone_module, _clone_times, _is_deep=True):
+    """Produce N identical layers."""
+    copy_method = copy.deepcopy if _is_deep else copy.copy
+    return nn.ModuleList([copy_method(_to_clone_module) for _ in range(_clone_times if _is_deep else 1)])
 
-    Args:
-        position: Number of positions to encode
-        d_model: depth of the encoding
+class MultiHeadAttention(nn.Module):
+    def __init__(self, _multi_attention_heads, _dimensions, _dropout=0.1):
+        """
+        :param _multi_attention_heads: number of self attention head
+        :param _dimensions: dimension of model
+        :param _dropout:
+        """
+        super(MultiHeadAttention, self).__init__()
 
-    Returns:
-        2D positional encoding as described in Transformer paper.
-    """
-    pe = torch.zeros(position, d_model)
-    pos = torch.arange(0, position, dtype=dtype).unsqueeze(1)
-    div_term = torch.exp(torch.arange(0, d_model, 2, dtype=dtype) * (-math.log(10000.0) / d_model))
-    pe[:, 0::2] = torch.sin(pos * div_term)
-    pe[:, 1::2] = torch.cos(pos * div_term)
-    return pe.unsqueeze(0)
+        assert _dimensions % _multi_attention_heads == 0
+        # requires d_v = d_k, d_q = d_k = d_v = d_m / h
+        self.d_k = int(_dimensions / _multi_attention_heads)
+        self.h = _multi_attention_heads
+        self.linears = clones(nn.Linear(_dimensions, _dimensions), 4)  # (q, k, v, last output layer)
+        self.attention = None
+        self.dropout = nn.Dropout(p=_dropout)
+
+    def dot_product_attention(self, _query, _key, _value, _mask):
+        """
+        Compute 'Scaled Dot Product Attention
+        :param _query: (N, h, seq_len, d_q), h is multi-head
+        :param _key: (N, h, seq_len, d_k)
+        :param _value: (N, h, seq_len, d_v)
+        :param _mask: None or (N, 1, seq_len, seq_len), 0 will be replaced with -1e9
+        :return:
+        """
+
+        d_k = _value.size(-1)
+        score = torch.matmul(_query, _key.transpose(-2, -1)) / math.sqrt(d_k)  # (N, h, seq_len, seq_len)
+        if _mask is not None:
+            score = score.masked_fill(_mask == 0, -1e9)  # score (N, h, seq_len, seq_len)
+        p_attn = F.softmax(score, dim=-1)
+        # (N, h, seq_len, d_v), (N, h, seq_len, seq_len)
+        return torch.matmul(p_attn, _value), p_attn
+
+    def forward(self, _query, _key, _value, _mask):
+        batch_size = _query.size(0)
+
+        # do all the linear projections in batch from d_model => h x d_k
+        # (N, seq_len, d_m) -> (N, seq_len, h, d_k) -> (N, h, seq_len, d_k)
+        _query, _key, _value = \
+            [l(x).view(batch_size, -1, self.h, self.d_k).transpose(1, 2)
+             for l, x in zip(self.linears, (_query, _key, _value))]
+
+        # apply attention on all the projected vectors in batch.
+        # (N, h, seq_len, d_v), (N, h, seq_len, seq_len)
+        product_and_attention = self.dot_product_attention(_query, _key, _value, _mask=_mask)
+        x = product_and_attention[0]
+        # self.attention = self.dropout(product_and_attention[1])
+
+        # "Concat" using a view and apply a final linear.
+        # (N, seq_len, d_m)
+        x = x.transpose(1, 2).contiguous() \
+            .view(batch_size, -1, self.h * self.d_k)
+
+        # (N, seq_len, d_m)
+        return self.linears[-1](x)
+
+
+class PositionwiseFeedForward(nn.Module):
+    def __init__(self, _dimensions, _feed_forward_dimensions, _dropout=0.1):
+        super(PositionwiseFeedForward, self).__init__()
+        self.w_1 = nn.Linear(_dimensions, _feed_forward_dimensions)
+        self.w_2 = nn.Linear(_feed_forward_dimensions, _dimensions)
+        self.dropout = nn.Dropout(p=_dropout)
+
+    def forward(self, _input_tensor):
+        return self.w_2(self.dropout(F.relu(self.w_1(_input_tensor))))
+
+
+class PositionalEncoding(nn.Module):
+    """Implement the PE function."""
+
+    def __init__(self, _dimensions, _dropout=0.1, _max_len=5000):
+        """
+        :param _dimensions:
+        :param _dropout:
+        :param _max_len:
+        """
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=_dropout)
+
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(_max_len, _dimensions)
+        position = torch.arange(0, _max_len).unsqueeze(1).float()
+        div_term = torch.exp(torch.arange(0, _dimensions, 2).float() *
+                             -(math.log(10000.0) / _dimensions))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+
+    def forward(self, _input_tensor):
+        _input_tensor = _input_tensor + self.pe[:, :_input_tensor.size(1)]  # pe 1 5000 512
+        return self.dropout(_input_tensor)
+
+
+class Encoder(nn.Module):
+    def __init__(self, _dimensions, _dropout):
+        super(Encoder, self).__init__()
+        self.position = PositionalEncoding(_dimensions, _dropout)
+
+
+    def forward(self, _input_tensor):
+        output = self.position(_input_tensor)
+        return output
 
 
 class Decoder(nn.Module):
-
-    pos_encoding: torch.Tensor
-
-    def __init__(
-        self,
-        num_layers: int = 3,
-        d_model: int = 512,
-        num_heads: int = 8,
-        dff: int = 2048,
-        vocab_size: int = 120,
-        maximum_position_encoding: int = 50,
-        dropout: float = 0.2,
-    ) -> None:
-        super().__init__()
-
-        self.d_model = d_model
-        self.num_layers = num_layers
-
-        self.embedding = nn.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
-        self.register_buffer('pos_encoding', positional_encoding(maximum_position_encoding, d_model))
-
-        self.dec_layers = nn.ModuleList([
-            nn.TransformerDecoderLayer(
-                d_model=d_model,
-                nhead=num_heads,
-                dim_feedforward=dff,
-                dropout=dropout,
-                activation='relu',
-                batch_first=True,
-            ) for _ in range(num_layers)
+    def __init__(self, _multi_heads_count, _dimensions, _dropout, _feed_forward_size, _n_classes,
+                 _padding_symbol=0):
+        # forward_size = 2048
+        super(Decoder, self).__init__()
+        self.attention = nn.ModuleList([
+            MultiHeadAttention(_multi_heads_count, _dimensions, _dropout)
+            for _ in range(3)
         ])
+        self.source_attention = nn.ModuleList([
+            MultiHeadAttention(_multi_heads_count, _dimensions, _dropout)
+            for _ in range(3)
+        ])
+        self.position_feed_forward = nn.ModuleList([
+            PositionwiseFeedForward(_dimensions, _feed_forward_size, _dropout)
+            for _ in range(3)
+        ])
+        self.position = PositionalEncoding(_dimensions, _dropout)
+        self.dropout = Dropout(_dropout)
+        self.layer_norm = torch.nn.LayerNorm(_dimensions, eps=1e-6)
+        self.embedding = nn.Embedding(_n_classes, _dimensions)
+        self.sqrt_model_size = math.sqrt(_dimensions)
+        self.padding_symbol = _padding_symbol
 
-        self.dropout = nn.Dropout(dropout)
+    def _generate_target_mask(self, _source, _target):
+        target_pad_mask = (_target != self.padding_symbol).unsqueeze(1).unsqueeze(3)  # (b, 1, len_src, 1)
+        target_length = _target.size(1)
+        target_sub_mask = torch.tril(
+            torch.ones((target_length, target_length), dtype=torch.uint8, device=_source.device)
+        )
+        source_mask = torch.ones((target_length, _source.size(1)), dtype=torch.uint8, device=_source.device)
+        target_mask = target_pad_mask & target_sub_mask.bool()
+        return source_mask, target_mask
 
-    def forward(
-        self,
-        x: torch.Tensor,
-        enc_output: torch.Tensor,
-        look_ahead_mask: torch.Tensor,
-        padding_mask: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
 
-        seq_len = x.shape[1]  # Batch first = True
-
-        x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
-        x *= math.sqrt(self.d_model)
-        x += self.pos_encoding[:, :seq_len, :]
-        x = self.dropout(x)
-
-        # Batch first = True in decoder
-        for i in range(self.num_layers):
-            x = self.dec_layers[i](
-                tgt=x, memory=enc_output, tgt_mask=look_ahead_mask, memory_mask=padding_mask
+    def forward(self, _target_result, _memory):
+        target = self.embedding(_target_result) * self.sqrt_model_size
+        target = self.position(target)
+        source_mask, target_mask = self._generate_target_mask(_memory, _target_result)
+        output = target
+        for i in range(self.stacks):
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(
+                self.attention[i](normed_output, normed_output, normed_output, target_mask)
             )
-
-        # shape (batch_size, target_seq_len, d_model)
-        return x
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(
+                self.source_attention[i](normed_output, _memory, _memory, source_mask))
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(self.position_feed_forward[i](normed_output))
+        return self.layer_norm(output)
