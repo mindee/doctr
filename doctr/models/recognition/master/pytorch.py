@@ -8,15 +8,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
+from torch.nn import Sequential
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from doctr.models.classification.magc_resnet.pytorch import magc_resnet31
-from torch.nn import Sequential
+from doctr.models import magc_resnet31
 
 from ...utils.pytorch import load_pretrained_params
-from ..transformer.pytorch import Decoder, Encoder
+from ..transformer.pytorch import Decoder, PositionalEncoding
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -31,22 +31,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': None,
     },
 }
-
-class Generator(nn.Module):
-    """
-    Define standard linear + softmax generation step.
-    """
-
-    def __init__(self, hidden_dim, vocab_size):
-        """
-        :param hidden_dim: dim of model
-        :param vocab_size: size of vocabulary
-        """
-        super(Generator, self).__init__()
-        self.fc = nn.Linear(hidden_dim, vocab_size)
-
-    def forward(self, x):
-        return self.fc(x)
 
 
 class MultiInputSequential(Sequential):
@@ -103,39 +87,29 @@ class MASTER(_MASTER, nn.Module):
         self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
 
         self.decoder = Decoder(
-            _multi_heads_count=self.num_heads,
-            _dimensions=d_model,
-            _dropout=dropout,
-            _feed_forward_size=dff,
-            _n_classes=self.vocab_size + 3,
+            num_layers=num_layers,
+            d_model=d_model,
+            num_heads=num_heads,
+            feed_forward_dimensions=dff,
+            vocab_size=self.vocab_size,
+            dropout=dropout,
         )
-        #self.register_buffer('feature_pe', positional_encoding(input_shape[1] * input_shape[2], d_model))
-        #self.linear = nn.Linear(d_model, self.vocab_size + 3)
-        self.encoder = Encoder(
-            _dimensions=d_model,
-            _dropout=dropout)
+        self.encoder = PositionalEncoding(d_model, dropout, max_length)
 
-        self.generator = Generator(d_model, self.vocab_size + 3)
-        self.decode_stage = MultiInputSequential(self.decoder, self.generator)
+        self.linear = nn.Linear(d_model, self.vocab_size + 3)
+        self.decode_stage = MultiInputSequential(self.decoder, self.linear)
 
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
-        #for n, m in self.named_modules():
+        for n, m in self.named_modules():
             # Don't override the initialization of the backbone
-        #    if n.startswith('feat_extractor.'):
-        #        continue
-        #    if isinstance(m, nn.Conv2d):
-        #        nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-        #    elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-        #        nn.init.constant_(m.weight, 1)
-        #        nn.init.constant_(m.bias, 0)
-
-    #def make_mask(self, target: torch.Tensor) -> torch.Tensor:
-    #    size = target.size(1)
-    #    look_ahead_mask = ~ (torch.triu(torch.ones(size, size, device=target.device)) == 1).transpose(0, 1)[:, None]
-    #    target_padding_mask = torch.eq(target, self.vocab_size + 2)  # Pad symbol
-    #    combined_mask = target_padding_mask | look_ahead_mask
-    #    return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
+            if n.startswith('feat_extractor.'):
+                continue
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
     @staticmethod
     def compute_loss(
@@ -193,7 +167,6 @@ class MASTER(_MASTER, nn.Module):
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
-
         # Encode
         features = self.feat_extractor(x)['features']
         b, c, h, w = features.shape[:4]
@@ -201,24 +174,19 @@ class MASTER(_MASTER, nn.Module):
         features = features.reshape((b, c, h * w)).permute(0, 2, 1)
         encoded = self.encoder(features)
         decoded = self.decode_stage(gt, encoded)
-        print(decoded)
+        #print(decoded)
         print(decoded.size())
-        #encoded = features + self.feature_pe[:, :h * w, :]
 
         out: Dict[str, Any] = {}
 
-
-
-        #if self.training:
-            #if target is None:
-            #    raise AssertionError("In training mode, you need to pass a value to 'target'")
-            #tgt_mask = self.make_mask(gt)
+        if self.training:
+            if target is None:
+                raise AssertionError("In training mode, you need to pass a value to 'target'")
             # Compute logits
-            #output = self.decoder(gt, encoded, tgt_mask, None)
-        #    logits = self.linear(output)
-
-        #else:
-        #    logits = self.decode(encoded)
+            output = self.decode_stage(encoded)
+            logits = self.linear(output)
+        else:
+            logits = self.decode(encoded)
 
         if target is not None:
             out['loss'] = self.compute_loss(decoded, gt, seq_len)
