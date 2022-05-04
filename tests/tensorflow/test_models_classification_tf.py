@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import cv2
 import numpy as np
 import pytest
@@ -5,6 +8,7 @@ import tensorflow as tf
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
+from doctr.models.utils import export_classification_model_to_saved_model
 
 
 @pytest.mark.parametrize(
@@ -78,3 +82,36 @@ def test_crop_orientation_model(mock_text_box):
     text_box_270 = np.rot90(text_box_0, 3)
     classifier = classification.crop_orientation_predictor("mobilenet_v3_small_orientation", pretrained=True)
     assert classifier([text_box_0, text_box_90, text_box_180, text_box_270]) == [0, 1, 2, 3]
+
+
+@pytest.mark.parametrize(
+    "arch_name, input_shape, output_size",
+    [
+        ["vgg16_bn_r", (32, 32, 3), (126,)],
+        ["resnet18", (32, 32, 3), (126,)],
+        ["resnet31", (32, 32, 3), (126,)],
+        ["resnet34", (32, 32, 3), (126,)],
+        ["resnet34_wide", (32, 32, 3), (126,)],
+        ["resnet50", (32, 32, 3), (126,)],
+        ["magc_resnet31", (32, 32, 3), (126,)],
+        ["mobilenet_v3_small", (32, 32, 3), (126,)],
+        ["mobilenet_v3_large", (32, 32, 3), (126,)],
+        ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
+    ],
+)
+def test_models_saved_model_export(arch_name, input_shape, output_size):
+    # Model
+    batch_size = 2
+    model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
+    dummy_input = tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Export
+        model_path = export_classification_model_to_saved_model(model, folder_name=tmpdir, dummy_input=dummy_input)
+        assert os.path.exists(model_path)
+        # Inference
+        tf.keras.backend.clear_session()
+        model = tf.saved_model.load(model_path)
+        out = model(dummy_input)
+        assert isinstance(out, tf.Tensor)
+        assert out.dtype == tf.float32
+        assert out.numpy().shape == (batch_size, *output_size)

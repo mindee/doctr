@@ -8,6 +8,7 @@ import os
 from typing import Any, Callable, List, Optional, Union
 from zipfile import ZipFile
 
+import tensorflow as tf
 from tensorflow.keras import Model, layers
 
 from doctr.utils.data import download_from_url
@@ -15,7 +16,8 @@ from doctr.utils.data import download_from_url
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
-__all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter']
+__all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter',
+           'export_classification_model_to_saved_model']
 
 
 def load_pretrained_params(
@@ -118,3 +120,28 @@ class IntermediateLayerGetter(Model):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
+
+
+def export_classification_model_to_saved_model(model: Model, folder_name: str, dummy_input: tf.Tensor) -> str:
+    """Export classification model to SavedModel format.
+
+    >>> import tensorflow as tf
+    >>> from doctr.models.classification import resnet18
+    >>> from doctr.models.utils import export_classification_model_to_saved_model
+    >>> model = resnet18(pretrained=True, include_top=True)
+    >>> export_classification_model_to_saved_model(model, "my_model",
+    >>> dummy_input=tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32))
+
+    Args:
+        model: the keras model to be exported
+        folder_name: the folder name for the exported model
+        dummy_input: the dummy input to the model
+
+    Returns:
+        the path to the exported model
+    """
+    # Check input
+    _ = model(dummy_input, training=False)
+    tf.saved_model.save(model, f"{folder_name}")
+    logging.info(f"Model exported to {folder_name}")
+    return f"{folder_name}"
