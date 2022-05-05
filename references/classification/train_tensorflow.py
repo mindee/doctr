@@ -309,7 +309,7 @@ def main(args):
 
     if args.export_onnx:
         print("Exporting model to ONNX...")
-        dummy_input = [tf.TensorSpec([None, 32, 32, 3], tf.float32, name="input")]
+        dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
         model_path, _ = export_classification_model_to_onnx(model, exp_name, dummy_input)
         print(f"Exported model saved in {model_path}")
 
