@@ -130,7 +130,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path = export_classification_model_to_onnx(model,
-                                                         exp_name=os.path.join(tmpdir, "model"),
+                                                         model_name=os.path.join(tmpdir, "model"),
                                                          dummy_input=dummy_input)
         assert os.path.exists(model_path)
         # Inference

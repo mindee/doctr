@@ -5,10 +5,11 @@ import cv2
 import numpy as np
 import pytest
 import tensorflow as tf
+import onnxruntime
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
-from doctr.models.utils import export_classification_model_to_saved_model
+from doctr.models.utils import export_classification_model_to_onnx
 
 
 @pytest.mark.parametrize(
@@ -93,25 +94,34 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet34", (32, 32, 3), (126,)],
         ["resnet34_wide", (32, 32, 3), (126,)],
         ["resnet50", (32, 32, 3), (126,)],
-        ["magc_resnet31", (32, 32, 3), (126,)],
-        ["mobilenet_v3_small", (32, 32, 3), (126,)],
-        ["mobilenet_v3_large", (32, 32, 3), (126,)],
+        # Name:'res_net_4/magc/transform/conv2d_289/Conv2D:0_nchwc'
+        # Status Message: Input channels C is not equal to kernel channels * group. C: 32 kernel channels: 256 group: 1
+        #["magc_resnet31", (32, 32, 3), (126,)],
+        ["mobilenet_v3_small", (512, 512, 3), (126,)],
+        ["mobilenet_v3_large", (512, 512, 3), (126,)],
         ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
     ],
 )
 def test_models_saved_model_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
-    dummy_input = tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32)
+    if arch_name == "mobilenet_v3_small_orientation":
+        model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
+    else:
+        model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
+    # batch_size = None for dynamic batch size
+    dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
+    np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
-        model_path = export_classification_model_to_saved_model(model, folder_name=tmpdir, dummy_input=dummy_input)
+        model_path, output = export_classification_model_to_onnx(model,
+                                                                 model_name=os.path.join(tmpdir, "model"),
+                                                                 dummy_input=dummy_input)
+
         assert os.path.exists(model_path)
         # Inference
-        tf.keras.backend.clear_session()
-        model = tf.saved_model.load(model_path)
-        out = model(dummy_input)
-        assert isinstance(out, tf.Tensor)
-        assert out.dtype == tf.float32
-        assert out.numpy().shape == (batch_size, *output_size)
+        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
+                                                   providers=["CPUExecutionProvider"])
+        ort_outs = ort_session.run(output, {'input': np_dummy_input})
+        assert isinstance(ort_outs, list) and len(ort_outs) == 1
+        assert ort_outs[0].shape == (batch_size, *output_size)

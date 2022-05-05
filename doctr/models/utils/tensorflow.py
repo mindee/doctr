@@ -5,10 +5,11 @@
 
 import logging
 import os
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union, Tuple
 from zipfile import ZipFile
 
 import tensorflow as tf
+import tf2onnx
 from tensorflow.keras import Model, layers
 
 from doctr.utils.data import download_from_url
@@ -17,7 +18,7 @@ logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
 __all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter',
-           'export_classification_model_to_saved_model']
+           'export_classification_model_to_onnx']
 
 
 def load_pretrained_params(
@@ -122,26 +123,30 @@ class IntermediateLayerGetter(Model):
         return f"{self.__class__.__name__}()"
 
 
-def export_classification_model_to_saved_model(model: Model, folder_name: str, dummy_input: tf.Tensor) -> str:
-    """Export classification model to SavedModel format.
+def export_classification_model_to_onnx(model: Model, model_name: str, dummy_input: List[tf.TensorSpec]) -> Tuple[str, List[str]]:
+    """Export classification model to ONNX format.
 
     >>> import tensorflow as tf
     >>> from doctr.models.classification import resnet18
-    >>> from doctr.models.utils import export_classification_model_to_saved_model
-    >>> model = resnet18(pretrained=True, include_top=True)
-    >>> export_classification_model_to_saved_model(model, "my_model",
-    >>> dummy_input=tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32))
+    >>> from doctr.models.utils import export_classification_model_to_onnx
+    >>> model = resnet18(pretrained=True)
+    >>> export_classification_model_to_onnx(model, "my_model",
+    >>> dummy_input=[tf.TensorSpec([None, 32, 32, 3], tf.float32, name="input")])
 
     Args:
         model: the keras model to be exported
-        folder_name: the folder name for the exported model
+        model_name: the name for the exported model
         dummy_input: the dummy input to the model
 
     Returns:
         the path to the exported model
     """
-    # Check input
-    _ = model(dummy_input, training=False)
-    tf.saved_model.save(model, f"{folder_name}")
-    logging.info(f"Model exported to {folder_name}")
-    return f"{folder_name}"
+    model_proto, external_tensor_storage = tf2onnx.convert.from_keras(
+        model,
+        opset=13,
+        input_signature=dummy_input,
+        output_path=f"{model_name}.onnx",
+    )
+    output = [n.name for n in model_proto.graph.output]
+    logging.info(f"Model exported to {model_name}.onnx")
+    return f"{model_name}.onnx", output

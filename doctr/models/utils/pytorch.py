@@ -92,7 +92,7 @@ def conv_sequence_pt(
     return conv_seq
 
 
-def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_input: torch.Tensor) -> str:
+def export_classification_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.Tensor) -> str:
     """Export classification model to ONNX format.
 
     >>> import torch
@@ -103,7 +103,7 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
 
     Args:
         model: the PyTorch model to be exported
-        exp_name: the name for the exported model
+        model_name: the name for the exported model
         dummy_input: the dummy input to the model
 
     Returns:
@@ -112,11 +112,11 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
     torch.onnx.export(
         model,
         dummy_input,
-        f"{exp_name}.onnx",
+        f"{model_name}.onnx",
         input_names=['input'],
         output_names=['logits'],
         dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
         export_params=True, opset_version=13, verbose=False
     )
-    logging.info(f"Model exported to {exp_name}.onnx")
-    return f"{exp_name}.onnx"
+    logging.info(f"Model exported to {model_name}.onnx")
+    return f"{model_name}.onnx"
