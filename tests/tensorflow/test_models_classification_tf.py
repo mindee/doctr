@@ -3,9 +3,9 @@ import tempfile
 
 import cv2
 import numpy as np
+import onnxruntime
 import pytest
 import tensorflow as tf
-import onnxruntime
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor

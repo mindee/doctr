@@ -5,7 +5,7 @@
 
 import logging
 import os
-from typing import Any, Callable, List, Optional, Union, Tuple
+from typing import Any, Callable, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
 import tensorflow as tf
@@ -123,13 +123,15 @@ class IntermediateLayerGetter(Model):
         return f"{self.__class__.__name__}()"
 
 
-def export_classification_model_to_onnx(model: Model, model_name: str, dummy_input: List[tf.TensorSpec]) -> Tuple[str, List[str]]:
+def export_classification_model_to_onnx(model: Model,
+                                        model_name: str,
+                                        dummy_input: List[tf.TensorSpec]) -> Tuple[str, List[str]]:
     """Export classification model to ONNX format.
 
     >>> import tensorflow as tf
     >>> from doctr.models.classification import resnet18
     >>> from doctr.models.utils import export_classification_model_to_onnx
-    >>> model = resnet18(pretrained=True)
+    >>> model = resnet18(pretrained=True, include_top=True)
     >>> export_classification_model_to_onnx(model, "my_model",
     >>> dummy_input=[tf.TensorSpec([None, 32, 32, 3], tf.float32, name="input")])
 
