@@ -149,6 +149,7 @@ def export_classification_model_to_onnx(model: Model,
         input_signature=dummy_input,
         output_path=f"{model_name}.onnx",
     )
+    # Get the output layer names
     output = [n.name for n in model_proto.graph.output]
     logging.info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx", output
