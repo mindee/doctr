@@ -64,7 +64,7 @@ def mock_tilted_payslip(mock_payslip, tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_text_box_stream():
-    url = 'https://www.pngitem.com/pimgs/m/357-3579845_love-neon-loveislove-word-text-typography-freetoedit-picsart.png'
+    url = 'https://png.pngitem.com/pimgs/s/88-882812_peace-word-graphics-hd-png-download.png'
     return requests.get(url).content
 
 
