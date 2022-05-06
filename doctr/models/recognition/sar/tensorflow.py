@@ -430,7 +430,7 @@ class SARPostProcessor(RecognitionPostProcessor):
             # Compute sequence log-probabilities (scores are log probabilities)
             log_probs = tf.gather(scores, out_idxs, axis=-1, batch_dims=3)
             # Take the geometric mean probability of the sequence
-            probs = tf.math.exp(tf.math.reduce_mean(log_probs, axis=-1))[:, : top_sequences]
+            probs = tf.math.exp(tf.math.reduce_mean(log_probs, axis=-1))[:, :top_sequences]
         else:
             # Compute sequence probabilities
             probs = tf.nn.softmax(scores, axis=-1)
@@ -446,18 +446,9 @@ class SARPostProcessor(RecognitionPostProcessor):
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[..., 0]
 
         if top_sequences:
-            word_values = [
-                [word.decode() for word in beam_words[:top_sequences]]
-                for beam_words in decoded_strings_pred
-            ]
-            output = [
-                list(zip(sequence_words, sequence_probs)) for sequence_words, sequence_probs in zip(word_values, probs)
-            ]
-        else:
-            word_values = [word.decode() for word in decoded_strings_pred]
-            output = list(zip(word_values, probs))
+            decoded_strings_pred = decoded_strings_pred[:, :top_sequences]
 
-        return output
+        return {"predictions": decoded_strings_pred, "probabilities": probs}
 
 
 def _sar(
