@@ -6,7 +6,9 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 from tensorflow.keras import Model, Sequential, layers
 
 from doctr.utils.repr import NestedObject
