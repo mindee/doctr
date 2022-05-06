@@ -70,6 +70,7 @@ class MASTER(_MASTER, nn.Module):
         self.max_length = max_length
         self.d_model = d_model
         self.vocab = vocab
+        self.exportable = exportable
         self.cfg = cfg
         self.vocab_size = len(vocab)
 
@@ -178,6 +179,9 @@ class MASTER(_MASTER, nn.Module):
         encoded = self.positional_encoding(features)
 
         out: Dict[str, Any] = {}
+        if self.exportable:
+            out['logits'] = self.decode(encoded)
+            return out
 
         if self.training and target is None:
             raise ValueError('Need to provide labels during training')

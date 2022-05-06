@@ -119,7 +119,6 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
             model_name=os.path.join(tmpdir, "model"),
             dummy_input=dummy_input
         )
-
         assert os.path.exists(model_path)
         # Inference
         ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),

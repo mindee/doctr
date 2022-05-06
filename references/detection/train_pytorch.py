@@ -24,6 +24,7 @@ from torchvision.transforms import ColorJitter, Compose, Normalize
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
 from doctr.models import detection, login_to_hub, push_to_hf_hub
+from doctr.models.utils import export_model_to_onnx
 from doctr.utils.metrics import LocalizationConfusion
 from utils import plot_recorder, plot_samples
 
@@ -370,6 +371,13 @@ def main(args):
     if args.push_to_hub:
         push_to_hf_hub(model, exp_name, task='detection', run_config=args)
 
+    if args.export_onnx:
+        print("Exporting model to ONNX...")
+        dummy_batch = next(iter(val_loader))
+        dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
+        model_path = export_model_to_onnx(model, exp_name, dummy_input)
+        print(f"Exported model saved in {model_path}")
+
 
 def parse_args():
     import argparse
@@ -397,6 +405,8 @@ def parse_args():
     parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',
+                        help='Export the model to ONNX')
     parser.add_argument('--rotation', dest='rotation', action='store_true',
                         help='train with rotated documents')
     parser.add_argument('--eval-straight', action='store_true',

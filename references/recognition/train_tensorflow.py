@@ -29,6 +29,7 @@ if any(gpu_devices):
 from doctr import transforms as T
 from doctr.datasets import VOCABS, DataLoader, RecognitionDataset, WordGenerator
 from doctr.models import recognition
+from doctr.models.utils import export_model_to_onnx
 from doctr.utils.metrics import TextMatch
 from utils import plot_recorder, plot_samples
 
@@ -347,6 +348,12 @@ def main(args):
     if args.push_to_hub:
         push_to_hf_hub(model, exp_name, task='recognition', run_config=args)
 
+    if args.export_onnx:
+        print("Exporting model to ONNX...")
+        dummy_input = [tf.TensorSpec([None, args.input_size, 4 * args.input_size, 3], tf.float32, name="input")]
+        model_path, _ = export_model_to_onnx(model, exp_name, dummy_input)
+        print(f"Exported model saved in {model_path}")
+
 
 def parse_args():
     import argparse
@@ -391,6 +398,8 @@ def parse_args():
     parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',
+                        help='Export the model to ONNX')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()

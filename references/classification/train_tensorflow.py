@@ -19,6 +19,7 @@ from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
 
 from doctr.models import login_to_hub, push_to_hf_hub
+from doctr.models.utils import export_model_to_onnx
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
