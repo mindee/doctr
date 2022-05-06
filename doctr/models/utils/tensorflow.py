@@ -141,9 +141,9 @@ def export_classification_model_to_onnx(model: Model,
         dummy_input: the dummy input to the model
 
     Returns:
-        the path to the exported model
+        the path to the exported model and a list with the output layer names
     """
-    model_proto, external_tensor_storage = tf2onnx.convert.from_keras(
+    model_proto, _ = tf2onnx.convert.from_keras(
         model,
         opset=13,
         input_signature=dummy_input,
