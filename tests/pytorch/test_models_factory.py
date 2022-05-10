@@ -30,7 +30,6 @@ def test_push_to_hf_hub():
         ["resnet34", "classification", "Felix92/doctr-dummy-torch-resnet34"],
         ["resnet34_wide", "classification", "Felix92/doctr-dummy-torch-resnet34-wide"],
         ["resnet50", "classification", "Felix92/doctr-dummy-torch-resnet50"],
-        ["magc_resnet31", "classification", "Felix92/doctr-dummy-torch-magc-resnet31"],
         ["mobilenet_v3_small", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-small"],
         ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-large"],
         ["db_resnet34", "detection", "Felix92/doctr-dummy-torch-db-resnet34"],
@@ -43,8 +42,6 @@ def test_push_to_hf_hub():
         ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-torch-crnn-vgg16-bn"],
         ["crnn_mobilenet_v3_small", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-small"],
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large"],
-        #  ["sar_resnet31", "recognition", ""],  enable after model is fixed !
-        #  ["master", "recognition", ""],  enable after model is fixed !
         ["fasterrcnn_mobilenet_v3_large_fpn", "obj_detection",
          "Felix92/doctr-dummy-torch-fasterrcnn-mobilenet-v3-large-fpn"],
     ],

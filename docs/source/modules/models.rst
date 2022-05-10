@@ -27,8 +27,6 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_small_orientation
 
-.. autofunction:: doctr.models.classification.magc_resnet31
-
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 
@@ -56,10 +54,6 @@ doctr.models.recognition
 .. autofunction:: doctr.models.recognition.crnn_mobilenet_v3_small
 
 .. autofunction:: doctr.models.recognition.crnn_mobilenet_v3_large
-
-.. autofunction:: doctr.models.recognition.sar_resnet31
-
-.. autofunction:: doctr.models.recognition.master
 
 .. autofunction:: doctr.models.recognition.recognition_predictor
 

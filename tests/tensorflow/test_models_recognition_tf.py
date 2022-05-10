@@ -6,9 +6,7 @@ from doctr.io import DocumentFile
 from doctr.models import recognition
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.crnn.tensorflow import CTCPostProcessor
-from doctr.models.recognition.master.tensorflow import MASTERPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.models.recognition.sar.tensorflow import SARPostProcessor
 from doctr.utils.geometry import extract_crops
 
 
@@ -18,8 +16,6 @@ from doctr.utils.geometry import extract_crops
         ["crnn_vgg16_bn", (32, 128, 3)],
         ["crnn_mobilenet_v3_small", (32, 128, 3)],
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
-        ["sar_resnet31", (32, 128, 3)],
-        ["master", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -43,9 +39,7 @@ def test_recognition_models(arch_name, input_shape):
 @pytest.mark.parametrize(
     "post_processor, input_shape",
     [
-        [SARPostProcessor, [2, 30, 119]],
         [CTCPostProcessor, [2, 30, 119]],
-        [MASTERPostProcessor, [2, 30, 119]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -93,8 +87,6 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
         "crnn_vgg16_bn",
         "crnn_mobilenet_v3_small",
         "crnn_mobilenet_v3_large",
-        "sar_resnet31",
-        "master"
     ],
 )
 def test_recognition_zoo(arch_name):

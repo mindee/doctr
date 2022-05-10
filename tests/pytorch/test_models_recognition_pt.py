@@ -3,7 +3,6 @@ import torch
 
 from doctr.models import recognition
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
-from doctr.models.recognition.master.pytorch import MASTERPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 
 
@@ -13,8 +12,6 @@ from doctr.models.recognition.predictor import RecognitionPredictor
         ["crnn_vgg16_bn", (3, 32, 128), True],
         ["crnn_mobilenet_v3_small", (3, 32, 128), True],
         ["crnn_mobilenet_v3_large", (3, 32, 128), True],
-        ["sar_resnet31", (3, 32, 128), False],
-        ["master", (3, 48, 160), False],
     ],
 )
 def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
@@ -42,7 +39,6 @@ def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
     "post_processor, input_shape",
     [
         [CTCPostProcessor, [2, 119, 30]],
-        [MASTERPostProcessor, [2, 119, 30]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -62,8 +58,6 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
         "crnn_vgg16_bn",
         "crnn_mobilenet_v3_small",
         "crnn_mobilenet_v3_large",
-        "sar_resnet31",
-        "master"
     ],
 )
 def test_recognition_zoo(arch_name):

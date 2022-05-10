@@ -14,7 +14,6 @@ from .predictor import CropOrientationPredictor
 __all__ = ["crop_orientation_predictor"]
 
 ARCHS: List[str] = [
-    'magc_resnet31',
     'mobilenet_v3_small', 'mobilenet_v3_small_r', 'mobilenet_v3_large', 'mobilenet_v3_large_r',
     'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide',
     'vgg16_bn_r'

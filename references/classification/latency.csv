@@ -11,8 +11,6 @@ vgg16_bn_r,"(32, 32)",pytorch,cpu,160.66,1.89
 vgg16_bn_r,"(32, 32)",pytorch,gpu,9.2,1.54
 resnet31,"(32, 32)",pytorch,cpu,,
 resnet31,"(32, 32)",pytorch,gpu,25.1,0.94
-magc_resnet31,"(32, 32)",pytorch,cpu,,
-magc_resnet31,"(32, 32)",pytorch,gpu,25.82,0.43
 mobilenet_v3_small,"(32, 32)",tensorflow,cpu,85.35,1.06
 mobilenet_v3_small,"(32, 32)",tensorflow,gpu,30.61,0.54
 mobilenet_v3_small_r,"(32, 32)",tensorflow,cpu,243.89,2.04
@@ -27,5 +25,3 @@ vgg16_bn_r,"(32, 32)",tensorflow,cpu,182.68,18.75
 vgg16_bn_r,"(32, 32)",tensorflow,gpu,9.04,1.1
 resnet31,"(32, 32)",tensorflow,cpu,,
 resnet31,"(32, 32)",tensorflow,gpu,28.35,0.84
-magc_resnet31,"(32, 32)",tensorflow,cpu,,
-magc_resnet31,"(32, 32)",tensorflow,gpu,32.71,2.66

@@ -31,7 +31,6 @@ def test_push_to_hf_hub():
         ["resnet34", "classification", "Felix92/doctr-dummy-tf-resnet34"],
         ["resnet34_wide", "classification", "Felix92/doctr-dummy-tf-resnet34-wide"],
         ["resnet50", "classification", "Felix92/doctr-dummy-tf-resnet50"],
-        ["magc_resnet31", "classification", "Felix92/doctr-dummy-tf-magc-resnet31"],
         ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-tf-mobilenet-v3-large"],
         ["db_resnet50", "detection", "Felix92/doctr-dummy-tf-db-resnet50"],
         ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-tf-db-mobilenet-v3-large"],
@@ -41,8 +40,6 @@ def test_push_to_hf_hub():
         ["linknet_resnet50", "detection", "Felix92/doctr-dummy-tf-linknet-resnet50"],
         ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-tf-crnn-vgg16-bn"],
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-tf-crnn-mobilenet-v3-large"],
-        ["sar_resnet31", "recognition", "Felix92/doctr-dummy-tf-sar-resnet31"],
-        ["master", "recognition", "Felix92/doctr-dummy-tf-master"],
     ],
 )
 def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
