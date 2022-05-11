@@ -395,7 +395,7 @@ class SAR(Model, RecognitionModel):
         encoded = self.encoder(pooled_features, **kwargs)
         # Encode target
         if target is not None:
-            gt, seq_len = self.build_target(target)
+            gt, seq_len = self.compute_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
         # Bilayer LSTM with attention decoder
         decoded_features = self.decoder(
