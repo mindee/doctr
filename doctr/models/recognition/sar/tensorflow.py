@@ -470,7 +470,6 @@ def _sar(
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
     _cfg["rnn_units"] = kwargs.get("rnn_units", _cfg["rnn_units"])
-    _cfg["embedding_units"] = kwargs.get("embedding_units", _cfg["rnn_units"])
     _cfg["attention_units"] = kwargs.get("attention_units", _cfg["rnn_units"])
     _cfg["max_length"] = kwargs.get("max_length", _cfg["max_length"])
     _cfg["num_decoders"] = kwargs.get("num_decoders", _cfg["num_decoders"])
@@ -484,7 +483,6 @@ def _sar(
 
     kwargs["vocab"] = _cfg["vocab"]
     kwargs["rnn_units"] = _cfg["rnn_units"]
-    kwargs["embedding_units"] = _cfg["embedding_units"]
     kwargs["attention_units"] = _cfg["attention_units"]
     kwargs["max_length"] = _cfg["max_length"]
     kwargs["num_decoders"] = _cfg["num_decoders"]
