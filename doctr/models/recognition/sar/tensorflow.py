@@ -336,6 +336,7 @@ class SAR(Model, RecognitionModel):
         gt: tf.Tensor,
         seq_len: tf.Tensor,
         from_logits: bool = True,
+        **kwargs
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -358,6 +359,9 @@ class SAR(Model, RecognitionModel):
         oh_gt = tf.one_hot(gt, depth=model_output.shape[-1])
 
         if from_logits:
+            # Label smoothing
+            if kwargs.get("conf_matrix") is not None:
+                oh_gt = tf.matmul(oh_gt, kwargs.get("conf_matrix"))
             # Compute loss
             cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
 
@@ -412,7 +416,7 @@ class SAR(Model, RecognitionModel):
 
         if target is not None:
             out["loss"] = self.compute_loss(
-                decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None
+                decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None, **kwargs
             )
 
         return out
