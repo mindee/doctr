@@ -90,12 +90,14 @@ class AttentionModule(nn.Module):
 
 class SARDecoder(nn.Module):
     """Implements decoder module of the SAR model
+
     Args:
         rnn_units: number of hidden units in recurrent cells
         max_length: maximum length of a sequence
         vocab_size: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
+
     """
     def __init__(
         self,
