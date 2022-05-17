@@ -50,139 +50,101 @@ class AttentionModule(nn.Module):
 
     def __init__(self, feat_chans: int, state_chans: int, attention_units: int) -> None:
         super().__init__()
-        self.feat_conv = nn.Conv2d(feat_chans, attention_units, 3, padding=1)
+        self.lstm_cell = nn.LSTMCell(feat_chans, state_chans)
+        self.feat_conv = nn.Conv2d(feat_chans, attention_units, kernel_size=3, padding='same')
         # No need to add another bias since both tensors are summed together
-        self.state_conv = nn.Linear(state_chans, attention_units, bias=False)
-        self.attention_projector = nn.Linear(attention_units, 1, bias=False)
+        self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1, bias=False, padding='same')
+        self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1, bias=False, padding='same')
 
-    def forward(self, features: torch.Tensor, hidden_state: torch.Tensor) -> torch.Tensor:
-        # shape (N, C, H, W) -> (N, attention_units, H, W)
+    def forward(self,
+                prev_logit: torch.Tensor,
+                features: torch.Tensor,
+                hidden_state_init: torch.Tensor,
+                cell_state_init: torch.Tensor,
+                hidden_state: torch.Tensor,
+                cell_state: torch.Tensor) -> torch.Tensor:
+
+        height_feat_map, width_feat_map = features.shape[-2:]
+        hidden_state, cell_state = self.lstm_cell(prev_logit, (hidden_state_init, cell_state_init))
+        hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
+
         feat_projection = self.feat_conv(features)
-        # shape (N, L, rnn_units) -> (N, L, attention_units)
-        state_projection = self.state_conv(hidden_state).unsqueeze(-1).unsqueeze(-1)
-        # (N, L, attention_units, H, W)
-        projection = torch.tanh(feat_projection.unsqueeze(1) + state_projection)
-        # (N, L, H, W, 1)
-        attention = self.attention_projector(projection.permute(0, 1, 3, 4, 2))
-        # shape (N, L, H, W, 1) -> (N, L, H * W)
-        attention = torch.flatten(attention, 2)
-        attention = torch.softmax(attention, -1)
-        # shape (N, L, H * W) -> (N, L, 1, H, W)
-        attention = attention.reshape(-1, hidden_state.shape[1], features.shape[-2], features.shape[-1])
+        hidden_state = hidden_state.view(hidden_state.size(0), hidden_state.size(1), 1, 1)
+        state_projection = self.state_conv(hidden_state)
 
-        # (N, L, C)
-        return (features.unsqueeze(1) * attention.unsqueeze(2)).sum(dim=(3, 4))
+        attention_weights = torch.tanh(torch.add(feat_projection, state_projection, alpha=1))
+        attention_weights = self.attention_projector(attention_weights)
+        B, C, H, W = attention_weights.size()
+        assert C == 1
+
+        attention_weights = F.softmax(attention_weights.view(B, -1), dim=-1).view(B, C, H, W)
+        # fuse features and attention weights
+        return torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
 
 
-class SequentialSARDecoder(nn.Module):
+class SARDecoder(nn.Module):
+    """Implements decoder module of the SAR model
+    Args:
+        rnn_units: number of hidden units in recurrent cells
+        max_length: maximum length of a sequence
+        vocab_size: number of classes in the model alphabet
+        embedding_units: number of hidden embedding units
+        attention_units: number of hidden attention units
+    """
+    def __init__(
+        self,
+        rnn_units: int,
+        max_length: int,
+        vocab_size: int,
+        embedding_units: int,
+        attention_units: int = 512,
+        feat_chans: int = 512,
+        dropout_prob: float = 0.,
+    ) -> None:
 
-    def __init__(self,
-                 num_classes=37,
-                 d_k=64,
-                 d_model=512,
-                 d_enc=512,
-                 pred_dropout=0.0,
-                 mask=True,
-                 max_seq_len=40,
-                 start_idx=0,
-                 **kwargs):
         super().__init__()
+        self.vocab_size = vocab_size
+        self.max_length = max_length
 
-        self.num_classes = num_classes
-        self.d_k = d_k
-        self.start_idx = start_idx
-        self.max_seq_len = max_seq_len
-        self.mask = mask
+        self.embed = nn.Embedding(self.vocab_size + 1, embedding_units)
+        self.attention_module = AttentionModule(feat_chans, rnn_units, attention_units)
+        self.output_dense = nn.Linear(rnn_units, self.vocab_size + 1)
+        self.dropout = nn.Dropout(dropout_prob)
 
-        encoder_rnn_out_size = d_enc * 1
-        decoder_rnn_out_size = encoder_rnn_out_size * 1
-        # 2D attention layer
-        self.conv1x1_1 = nn.Conv2d(decoder_rnn_out_size, d_k, kernel_size=1, stride=1)
-        self.conv3x3_1 = nn.Conv2d(d_model, d_k, kernel_size=3, stride=1, padding=1)
-        self.conv1x1_2 = nn.Conv2d(d_k, 1, kernel_size=1, stride=1)
+        self.lstm_cell = nn.LSTMCell(embedding_units, rnn_units)
 
+    def forward(self, features: torch.Tensor, encoded: torch.Tensor, gt):
 
-        self.rnn_decoder_layer1 = nn.LSTMCell(encoder_rnn_out_size, encoder_rnn_out_size)
-        self.rnn_decoder_layer2 = nn.LSTMCell(encoder_rnn_out_size, encoder_rnn_out_size)
-
-        # Decoder input embedding
-        self.embedding = nn.Embedding(self.num_classes + 1, encoder_rnn_out_size)
-
-        # Prediction layer
-        self.pred_dropout = nn.Dropout(pred_dropout)
-        pred_num_class = self.num_classes + 1
-        self.prediction = nn.Linear(d_model, pred_num_class)
-
-    def _2d_attention(self,
-                      y_prev,
-                      feat,
-                      holistic_feat,
-                      hx1,
-                      cx1,
-                      hx2,
-                      cx2):
-        _, _, h_feat, w_feat = feat.size()
-        hx1, cx1 = self.rnn_decoder_layer1(y_prev, (hx1, cx1))
-        hx2, cx2 = self.rnn_decoder_layer2(hx1, (hx2, cx2))
-
-        tile_hx2 = hx2.view(hx2.size(0), hx2.size(1), 1, 1)
-        attn_query = self.conv1x1_1(tile_hx2)  # bsz * attn_size * 1 * 1
-        attn_query = attn_query.expand(-1, -1, h_feat, w_feat)
-        attn_key = self.conv3x3_1(feat)
-        attn_weight = torch.tanh(torch.add(attn_key, attn_query, alpha=1))
-        attn_weight = self.conv1x1_2(attn_weight)
-        bsz, c, h, w = attn_weight.size()
-        assert c == 1
-
-
-        attn_weight = F.softmax(attn_weight.view(bsz, -1), dim=-1)
-        attn_weight = attn_weight.view(bsz, c, h, w)
-
-        attn_feat = torch.sum(
-            torch.mul(feat, attn_weight), (2, 3), keepdim=False)  # n * c
-
-        # linear transformation
-        y = self.prediction(attn_feat)
-
-        return y, hx1, hx1, hx2, hx2
-
-    def forward(self, feat, out_enc, gt):
         if gt is not None:
-            tgt_embedding = self.embedding(gt)
+            gt_embedding = self.embed(gt)
 
         outputs = []
-        start_token = torch.full((feat.size(0), ),
-                                 0,
-                                 device=feat.device,
-                                 dtype=torch.long)
-        start_token = self.embedding(start_token)
-        print(start_token.size())
-        for i in range(-1, self.max_seq_len + 1):
-            if i == -1:
-                hx1, cx1 = self.rnn_decoder_layer1(out_enc)
-                hx2, cx2 = self.rnn_decoder_layer2(hx1)
-                if gt is None:
-                    y_prev = start_token
+        _symbol = self.embed(
+            torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=torch.int)
+        )
+
+        # init hidden state
+        hidden_state_init, cell_state_init = self.lstm_cell(encoded)
+        hidden_state, cell_state = self.lstm_cell(hidden_state_init)
+        if gt is None:
+            prev_symbol = _symbol
+
+        for t in range(self.max_length):
+            if gt is not None:
+                prev_symbol = gt_embedding[:, t, :]
+            glimpse = self.attention_module(prev_symbol, features, hidden_state_init,
+                                            cell_state_init, hidden_state, cell_state)
+            logits = self.output_dense(glimpse)
+            if gt is not None:
+                logits = self.dropout(logits)
             else:
-                if gt is not None:
-                    y_prev = tgt_embedding[:, i, :]
-                y, hx1, cx1, hx2, cx2 = self._2d_attention(y_prev, feat, out_enc, hx1, cx1, hx2, cx2)
-                if gt is not None:
-                    y = self.pred_dropout(y)
-                else: # TODO: returned gerade immer 31 Zeichen
-                    y = F.softmax(y, -1)
-                    print(y.size())
-                    _, max_idx = torch.max(y, dim=1, keepdim=False)
-                    char_embedding = self.embedding(max_idx)
-                    y_prev = char_embedding
-                outputs.append(y)
+                logits = F.softmax(input=logits, dim=-1)
+                _, idx = torch.max(logits, dim=1, keepdim=False)
+                prev_symbol = self.embed(idx)
 
-        print(len(outputs))
-        outputs = torch.stack(outputs, 1)
-        print(outputs.size())
+            outputs.append(logits)
 
-        return outputs
-
+        return torch.stack(outputs, 1)
 
 
 class SAR(nn.Module, RecognitionModel):
@@ -209,7 +171,6 @@ class SAR(nn.Module, RecognitionModel):
         embedding_units: int = 512,
         attention_units: int = 512,
         max_length: int = 30,
-        num_decoders: int = 2,
         dropout_prob: float = 0.,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
         cfg: Optional[Dict[str, Any]] = None,
@@ -231,13 +192,8 @@ class SAR(nn.Module, RecognitionModel):
         self.feat_extractor.train()
 
         self.encoder = SAREncoder(out_shape[1], rnn_units, dropout_prob)
-
-        #self.decoder = SARDecoder(
-        #    rnn_units, max_length, len(vocab), embedding_units, attention_units, num_decoders, out_shape[1],
-        #)
-        print(out_shape[1])
-        print(out_shape)
-        self.decoder = SequentialSARDecoder(num_classes=len(vocab), d_k=out_shape[1], max_seq_len=max_length)
+        self.decoder = SARDecoder(rnn_units, self.max_length, len(self.vocab),
+                                  embedding_units, attention_units, dropout_prob=dropout_prob)
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
 
@@ -348,7 +304,7 @@ def _sar(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(False), # pretrained_backbone
+        backbone_fn(pretrained_backbone),
         {layer: 'features'},
     )
     kwargs['vocab'] = _cfg['vocab']
