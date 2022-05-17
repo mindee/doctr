@@ -121,31 +121,37 @@ class SARDecoder(nn.Module):
 
     def forward(self, features: torch.Tensor, encoded: torch.Tensor, gt):
 
+        outputs = []
+
         if gt is not None:
             gt_embedding = self.embed(gt)
-
-        outputs = []
-        _symbol = self.embed(
-            torch.zeros((features.shape[0], self.vocab_size + 1), device=features.device, dtype=torch.int)
-        )
+        else:
+            # init symbol
+            prev_symbol = self.embed(
+                torch.full((features.size(0), ), fill_value=self.vocab_size, device=features.device, dtype=torch.long)
+            )
 
         # init hidden state
         hidden_state_init, cell_state_init = self.lstm_cell(encoded)
         hidden_state, cell_state = self.lstm_cell(hidden_state_init)
-        if gt is None:
-            prev_symbol = _symbol
 
         for t in range(self.max_length):
             if gt is not None:
+                # (N, t, embedding_units)
                 prev_symbol = gt_embedding[:, t, :]
+            # (N, C)
             glimpse = self.attention_module(prev_symbol, features, hidden_state_init,
                                             cell_state_init, hidden_state, cell_state)
+            # (N, vocab_size + 1)
             logits = self.output_dense(glimpse)
             if gt is not None:
+                # (N, vocab_size + 1)
                 logits = self.dropout(logits)
             else:
+                # (N, vocab_size + 1)
                 logits = F.softmax(input=logits, dim=-1)
                 _, idx = torch.max(logits, dim=1, keepdim=False)
+                # (N, rnn_units)
                 prev_symbol = self.embed(idx)
 
             outputs.append(logits)
