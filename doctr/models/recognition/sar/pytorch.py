@@ -57,29 +57,35 @@ class AttentionModule(nn.Module):
         self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1, bias=False, padding='same')
 
     def forward(self,
-                prev_logit: torch.Tensor,
-                features: torch.Tensor,
-                hidden_state_init: torch.Tensor,
-                cell_state_init: torch.Tensor,
-                hidden_state: torch.Tensor,
-                cell_state: torch.Tensor) -> torch.Tensor:
+                prev_logit: torch.Tensor,  # (N, C)
+                features: torch.Tensor,  # (N, C, H, W)
+                hidden_state_init: torch.Tensor,  # (N, C)
+                cell_state_init: torch.Tensor,  # (N, C)
+                hidden_state: torch.Tensor,  # (N, C)
+                cell_state: torch.Tensor  # (N, C)
+                ) -> torch.Tensor:
 
         height_feat_map, width_feat_map = features.shape[-2:]
+        # (N, state_chans), (N, state_chans)
         hidden_state, cell_state = self.lstm_cell(prev_logit, (hidden_state_init, cell_state_init))
         hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
 
+        # (N, feat_chans, H, W) --> (N, attention_units, H, W)
         feat_projection = self.feat_conv(features)
+        # (N, state_chans, 1, 1) --> (N, attention_units, 1, 1)
         hidden_state = hidden_state.view(hidden_state.size(0), hidden_state.size(1), 1, 1)
         state_projection = self.state_conv(hidden_state)
-
+        # (N, attention_units, 1, 1) --> (N, attention_units, height_feat_map, width_feat_map)
         attention_weights = torch.tanh(torch.add(feat_projection, state_projection, alpha=1))
+        # (N, attention_units, height_feat_map, width_feat_map) --> (N, 1, height_feat_map, width_feat_map)
         attention_weights = self.attention_projector(attention_weights)
         B, C, H, W = attention_weights.size()
-        assert C == 1
 
+        # (B, H, W) --> (B, 1, H, W)
         attention_weights = F.softmax(attention_weights.view(B, -1), dim=-1).view(B, C, H, W)
-        # fuse features and attention weights
-        return torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
+        # fuse features and attention weights (N, C)
+        glimpse = torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
+        return glimpse
 
 
 class SARDecoder(nn.Module):
