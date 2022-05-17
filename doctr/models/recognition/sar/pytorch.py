@@ -65,7 +65,6 @@ class AttentionModule(nn.Module):
                 cell_state: torch.Tensor  # (N, C)
                 ) -> torch.Tensor:
 
-        height_feat_map, width_feat_map = features.shape[-2:]
         # (N, state_chans), (N, state_chans)
         hidden_state, cell_state = self.lstm_cell(prev_logit, (hidden_state_init, cell_state_init))
         hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
