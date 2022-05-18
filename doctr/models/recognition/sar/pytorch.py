@@ -51,20 +51,21 @@ class AttentionModule(nn.Module):
     def __init__(self, feat_chans: int, state_chans: int, attention_units: int) -> None:
         super().__init__()
         self.lstm_cell = nn.LSTMCell(feat_chans, state_chans)
-        self.feat_conv = nn.Conv2d(feat_chans, attention_units, kernel_size=3, padding='same')
-        # No need to add another bias since both tensors are summed together
-        self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1, bias=False, padding='same')
-        self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1, bias=False, padding='same')
+        self.feat_conv = nn.Conv2d(feat_chans, attention_units, kernel_size=3, padding=1)
+        self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1)
+        self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1)
 
-    def forward(self,
-                prev_logit: torch.Tensor,  # (N, C)
-                features: torch.Tensor,  # (N, C, H, W)
-                hidden_state_init: torch.Tensor,  # (N, C)
-                cell_state_init: torch.Tensor,  # (N, C)
-                hidden_state: torch.Tensor,  # (N, C)
-                cell_state: torch.Tensor  # (N, C)
-                ) -> torch.Tensor:
+    def forward(
+        self,
+        prev_logit: torch.Tensor,  # (N, C)
+        features: torch.Tensor,  # (N, C, H, W)
+        hidden_state_init: torch.Tensor,  # (N, C)
+        cell_state_init: torch.Tensor,  # (N, C)
+        hidden_state: torch.Tensor,  # (N, C)
+        cell_state: torch.Tensor  # (N, C)
+    ) -> torch.Tensor:
 
+        height_feat_map, width_feat_map = features.size()[2:]
         # (N, state_chans), (N, state_chans)
         hidden_state, cell_state = self.lstm_cell(prev_logit, (hidden_state_init, cell_state_init))
         hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
@@ -74,6 +75,7 @@ class AttentionModule(nn.Module):
         # (N, state_chans, 1, 1) --> (N, attention_units, 1, 1)
         hidden_state = hidden_state.view(hidden_state.size(0), hidden_state.size(1), 1, 1)
         state_projection = self.state_conv(hidden_state)
+        state_projection = state_projection.expand(-1, -1, height_feat_map, width_feat_map)
         # (N, attention_units, 1, 1) --> (N, attention_units, height_feat_map, width_feat_map)
         attention_weights = torch.tanh(torch.add(feat_projection, state_projection, alpha=1))
         # (N, attention_units, height_feat_map, width_feat_map) --> (N, 1, height_feat_map, width_feat_map)
@@ -83,8 +85,7 @@ class AttentionModule(nn.Module):
         # (B, H, W) --> (B, 1, H, W)
         attention_weights = F.softmax(attention_weights.view(B, -1), dim=-1).view(B, C, H, W)
         # fuse features and attention weights (N, C)
-        glimpse = torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
-        return glimpse
+        return torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
 
 
 class SARDecoder(nn.Module):
@@ -129,7 +130,7 @@ class SARDecoder(nn.Module):
         else:
             # init symbol
             prev_symbol = self.embed(
-                torch.full((features.size(0), ), fill_value=self.vocab_size, device=features.device, dtype=torch.long)
+                torch.full((features.size(0), ), self.vocab_size, device=features.device, dtype=torch.long)
             )
 
         # init hidden state
@@ -151,7 +152,7 @@ class SARDecoder(nn.Module):
             else:
                 # (N, vocab_size + 1)
                 logits = F.softmax(input=logits, dim=-1)
-                _, idx = torch.max(logits, dim=1, keepdim=False)
+                _, idx = torch.max(logits, dim=-1, keepdim=False)
                 # (N, rnn_units)
                 prev_symbol = self.embed(idx)
 
