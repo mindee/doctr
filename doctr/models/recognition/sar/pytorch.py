@@ -21,8 +21,8 @@ __all__ = ['SAR', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'sar_resnet31': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['legacy_french'],
         'url': None,
@@ -98,7 +98,7 @@ class SARDecoder(nn.Module):
         max_length: int,
         vocab_size: int,
         embedding_units: int,
-        attention_units: int = 512,
+        attention_units: int,
         feat_chans: int = 512,
         dropout_prob: float = 0.,
     ) -> None:
@@ -110,7 +110,7 @@ class SARDecoder(nn.Module):
         self.embed = nn.Linear(self.vocab_size + 1, embedding_units)
         self.embed_tgt = nn.Embedding(embedding_units, self.vocab_size + 1)
         self.attention_module = AttentionModule(feat_chans, rnn_units, attention_units)
-        self.lstm_cells = nn.ModuleList([nn.LSTMCell(rnn_units, rnn_units) for _ in range(self.max_length + 1)])
+        self.lstm_cell = nn.LSTMCell(rnn_units, rnn_units)
         self.output_dense = nn.Linear(2 * rnn_units, self.vocab_size + 1)
         self.dropout = nn.Dropout(dropout_prob)
 
@@ -149,8 +149,8 @@ class SARDecoder(nn.Module):
                     prev_symbol = prev_symbol.scatter_(1, index.unsqueeze(1), 1)
 
             # (N, C), (N, C)  take the last hidden state and cell state from current timestep
-            hidden_state_init, cell_state_init = self.lstm_cells[t](prev_symbol, (hidden_state_init, cell_state_init))
-            hidden_state, cell_state = self.lstm_cells[t](hidden_state_init, (hidden_state, cell_state))
+            hidden_state_init, cell_state_init = self.lstm_cell(prev_symbol, (hidden_state_init, cell_state_init))
+            hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
             # (N, C, H, W), (N, C) --> (N, C)
             glimpse = self.attention_module(features, hidden_state)
             # (N, C), (N, C) --> (N, 2 * C)
@@ -185,7 +185,7 @@ class SAR(nn.Module, RecognitionModel):
         vocab: str,
         rnn_units: int = 512,
         embedding_units: int = 512,
-        attention_units: int = 512,
+        attention_units: int = 64,
         max_length: int = 30,
         dropout_prob: float = 0.,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
@@ -308,6 +308,7 @@ def _sar(
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
     pretrained_backbone: bool = True,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any
 ) -> SAR:
 
@@ -330,7 +331,10 @@ def _sar(
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if _cfg['vocab'] != default_cfgs[arch]['vocab'] else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     return model
 
@@ -352,4 +356,14 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
         text recognition architecture
     """
 
-    return _sar('sar_resnet31', pretrained, resnet31, '10', **kwargs)
+    return _sar(
+        'sar_resnet31',
+        pretrained,
+        resnet31,
+        '10',
+        ignore_keys=[
+            'decoder.embed.weight', 'decoder.embed_tgt.weight',
+            'decoder.output_dense.weight', 'decoder.output_dense.bias'
+        ],
+        **kwargs,
+    )
