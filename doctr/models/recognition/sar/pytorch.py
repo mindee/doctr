@@ -106,75 +106,58 @@ class SARDecoder(nn.Module):
         self.vocab_size = vocab_size
         self.max_length = max_length
 
-        self.embed = nn.Linear(self.vocab_size + 1, embedding_units) #nn.Embedding(self.vocab_size + 1, embedding_units)
-        self.embed_tgt = nn.Embedding(rnn_units, self.vocab_size + 1)
+        self.embed = nn.Linear(self.vocab_size + 1, embedding_units)
+        self.embed_tgt = nn.Embedding(embedding_units, self.vocab_size + 1)
         self.attention_module = AttentionModule(feat_chans, rnn_units, attention_units)
+        self.lstm_cells = nn.ModuleList([nn.LSTMCell(rnn_units, rnn_units) for _ in range(self.max_length + 1)])
         self.output_dense = nn.Linear(2 * rnn_units, self.vocab_size + 1)
         self.dropout = nn.Dropout(dropout_prob)
-
-        self.lstm_cell = nn.ModuleList([nn.LSTMCell(embedding_units, rnn_units) for _ in range(self.max_length + 1)])
-        self.softmax = nn.LogSoftmax(dim=1)
-
 
     def forward(
         self,
         features: torch.Tensor,  # (N, C, H, W)
         encoded: torch.Tensor,  # (N, C)
         gt: Optional[torch.Tensor] = None  # (N, L)
-    ) -> List[torch.Tensor]:
+    ) -> torch.Tensor:
 
         if gt is not None:
             gt_embedding = self.embed_tgt(gt)
-        else:
-            prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
-            prev_symbol[:, self.vocab_size] = 1.0
-            prev_symbol = self.embed(prev_symbol)
 
+        logits_list: List[torch.Tensor] = []
 
-
-        outputs = []
-        batch_size = encoded.size(0)
-        y_onehot = torch.zeros(batch_size, self.vocab_size + 1, device=features.device)
+        # TODO: refactor this / write down some steps and shapes
+        # borrowed/adopted from original implementation
         for t in range(self.max_length + 1):
             if t == 0:
-                inputs_y = encoded # size [batch, hidden_units]
-                # LSTM layer 1 initialization:
-                hx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_1
-                cx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_1
-                # LSTM layer 2 initialization:
-                hx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_2
-                cx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_2
+                # init first LSTMCell states with zero (N, C), (N, C)
+                hidden_state_init = torch.zeros(features.size(0), features.size(1), device=features.device)
+                cell_state_init = torch.zeros(features.size(0), features.size(1), device=features.device)
+                hidden_state, cell_state = hidden_state_init, cell_state_init
+                prev_symbol = encoded
             elif t == 1:
-                #y_onehot.zero_()
-                y_onehot[:,self.vocab_size] = 1.0
-                inputs_y = y_onehot
-                inputs_y = self.embed(inputs_y) # [batch, hidden_units]
+                prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
+                prev_symbol[:, self.vocab_size] = 1.0  # identifier for <eos>
+                prev_symbol = self.embed(prev_symbol)
             else:
                 if gt is not None:
-                    inputs_y = gt_embedding[:, t-2, :] # [batch, output_classes]
+                    prev_symbol = self.embed(gt_embedding[:, t - 2, :])
                 else:
-                    # greedy search for now - beam search to be implemented!
-                    index = torch.argmax(outputs[t-1], dim=-1) # [batch]
-                    index = index.unsqueeze(1) # [batch, 1]
-                    y_onehot.zero_()
-                    inputs_y = y_onehot.scatter_(1, index, 1) # [batch, output_classes]
+                    index = torch.argmax(logits_list[t - 1], dim=-1)
+                    prev_symbol = prev_symbol.scatter_(1, index.unsqueeze(1), 1)
 
-                inputs_y = self.embed(inputs_y) # [batch, hidden_units_encoder]
+            hidden_state_init, cell_state_init = self.lstm_cells[t](prev_symbol, (hidden_state_init, cell_state_init))
+            hidden_state, cell_state = self.lstm_cells[t](hidden_state_init, (hidden_state, cell_state))
 
-            # LSTM cells combined with attention and fusion layer
-            hx_1, cx_1 = self.lstm_cell[t](inputs_y, (hx_1,cx_1))
-            hx_2, cx_2 = self.lstm_cell[t](hx_1, (hx_2,cx_2))
-            glimpse = self.attention_module(features, hx_2) # [batch, D], [batch, 1, H, W]
-            combine = torch.cat((hx_2, glimpse), dim=1) # [batch, hidden_units_decoder+D]
-            out = self.output_dense(combine) # [batch, output_classes]
-            out = self.softmax(out) # [batch, output_classes]
-            outputs.append(out)
+            glimpse = self.attention_module(features, hidden_state)
+            logits = torch.cat([hidden_state, glimpse], dim=1)
+            if gt is not None:
+                logits = self.dropout(logits)
+            logits_list.append(torch.log_softmax(self.output_dense(logits), dim=-1))
 
-        outputs = outputs[1:] # [seq_len, batch, output_classes]
-        outputs = torch.stack(outputs) # [seq_len, batch, output_classes]
-        outputs = outputs.permute(1,0,2) # [batch, seq_len, output_classes]
+        outputs = torch.stack(logits_list[1:]).permute(1, 0, 2)
 
         return outputs
+
 
 class SAR(nn.Module, RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
@@ -187,7 +170,6 @@ class SAR(nn.Module, RecognitionModel):
         embedding_units: number of embedding units
         attention_units: number of hidden units in attention module
         max_length: maximum word length handled by the model
-        num_decoders: number of LSTM to stack in decoder layer
         dropout_prob: dropout probability of the encoder LSTM
         cfg: default setup dict of the model
     """
