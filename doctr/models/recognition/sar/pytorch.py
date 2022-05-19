@@ -89,7 +89,6 @@ class SARDecoder(nn.Module):
         vocab_size: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
-        num_decoder_layers: number of LSTMCell layers to stack
 
     """
     def __init__(
@@ -98,9 +97,8 @@ class SARDecoder(nn.Module):
         max_length: int,
         vocab_size: int,
         embedding_units: int,
-        attention_units: int,
+        attention_units: int = 512,
         feat_chans: int = 512,
-        num_decoder_layers: int = 2,
         dropout_prob: float = 0.,
     ) -> None:
 
@@ -114,11 +112,8 @@ class SARDecoder(nn.Module):
         self.output_dense = nn.Linear(2 * rnn_units, self.vocab_size + 1)
         self.dropout = nn.Dropout(dropout_prob)
 
-        self.lstm_cell = nn.LSTMCell(rnn_units, rnn_units)
+        self.lstm_cell = nn.ModuleList([nn.LSTMCell(embedding_units, rnn_units) for _ in range(self.max_length + 1)])
         self.softmax = nn.LogSoftmax(dim=1)
-
-
-
 
 
     def forward(
@@ -130,14 +125,10 @@ class SARDecoder(nn.Module):
 
         if gt is not None:
             gt_embedding = self.embed_tgt(gt)
-
-        # init previous symbol
-        prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
-        prev_symbol[:, self.vocab_size] = 1.0
-        prev_symbol = self.embed(prev_symbol)
-        # init hidden state
-        hidden_state_init, cell_state_init = self.lstm_cell(encoded)
-        hidden_state, cell_state = self.lstm_cell(hidden_state_init)
+        else:
+            prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
+            prev_symbol[:, self.vocab_size] = 1.0
+            prev_symbol = self.embed(prev_symbol)
 
 
 
@@ -145,20 +136,19 @@ class SARDecoder(nn.Module):
         batch_size = encoded.size(0)
         y_onehot = torch.zeros(batch_size, self.vocab_size + 1, device=features.device)
         for t in range(self.max_length + 1):
-            #if t == 0:
-            #    inputs_y = encoded # size [batch, hidden_units]
-            #    # LSTM layer 1 initialization:
-            #    hx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_1
-            #    cx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_1
-            #    # LSTM layer 2 initialization:
-            #    hx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_2
-            #    cx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_2
             if t == 0:
+                inputs_y = encoded # size [batch, hidden_units]
+                # LSTM layer 1 initialization:
+                hx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_1
+                cx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_1
+                # LSTM layer 2 initialization:
+                hx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_2
+                cx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_2
+            elif t == 1:
                 #y_onehot.zero_()
-                #y_onehot[:,self.vocab_size] = 1.0
-                #inputs_y = y_onehot
-                #inputs_y = self.embed(inputs_y) # [batch, hidden_units]
-                inputs_y = prev_symbol
+                y_onehot[:,self.vocab_size] = 1.0
+                inputs_y = y_onehot
+                inputs_y = self.embed(inputs_y) # [batch, hidden_units]
             else:
                 if gt is not None:
                     inputs_y = gt_embedding[:, t-2, :] # [batch, output_classes]
@@ -172,10 +162,10 @@ class SARDecoder(nn.Module):
                 inputs_y = self.embed(inputs_y) # [batch, hidden_units_encoder]
 
             # LSTM cells combined with attention and fusion layer
-            hidden_state_init, cell_state_init = self.lstm_cell(inputs_y, (hidden_state_init, cell_state_init))
-            hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
-            glimpse = self.attention_module(features, hidden_state) # [batch, D], [batch, 1, H, W]
-            combine = torch.cat((hidden_state, glimpse), dim=1) # [batch, hidden_units_decoder+D]
+            hx_1, cx_1 = self.lstm_cell[t](inputs_y, (hx_1,cx_1))
+            hx_2, cx_2 = self.lstm_cell[t](hx_1, (hx_2,cx_2))
+            glimpse = self.attention_module(features, hx_2) # [batch, D], [batch, 1, H, W]
+            combine = torch.cat((hx_2, glimpse), dim=1) # [batch, hidden_units_decoder+D]
             out = self.output_dense(combine) # [batch, output_classes]
             out = self.softmax(out) # [batch, output_classes]
             outputs.append(out)
