@@ -18,7 +18,12 @@ from ...backbones import resnet31
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ["SAR", "SARPostProcessor", "sar_resnet31"]
+# __all__ = ["SAR", "SARPostProcessor", "sar_resnet31"]
+__all__ = ["SAR", "SAR_without_feature_extractor",
+           "SAR_feature_extractor_with_lstm_encoder",
+           "SAR_without_lstm_encoder",
+           "SARPostProcessor",
+           "sar_resnet31"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "sar_resnet31": {
@@ -397,6 +402,401 @@ class SAR(Model, RecognitionModel):
         pooled_features = tf.reduce_max(features, axis=1)
         # Bilayer LSTM Encoder: shape (N, W, D) -> (N, rnn_units)
         encoded = self.encoder(pooled_features, **kwargs)
+        # Encode target
+        if target is not None:
+            gt, seq_len = self.compute_target(target)
+            seq_len = tf.cast(seq_len, tf.int32)
+        # Bilayer LSTM with attention decoder
+        decoded_features = self.decoder(
+            features=features, holistic=encoded, gt=None if target is None else gt, beam_width=beam_width, **kwargs
+        )
+
+        out: Dict[str, tf.Tensor] = {}
+
+        if return_model_output:
+            out["out_map"] = decoded_features
+
+        if target is None or return_preds:
+            # Post-process boxes
+            out["preds"] = self.postprocessor(decoded_features, top_sequences=top_sequences)
+
+        if target is not None:
+            out["loss"] = self.compute_loss(
+                decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None, **kwargs
+            )
+
+        return out
+
+
+class SAR_feature_extractor_with_lstm_encoder(Model, RecognitionModel):
+    """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
+    Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
+
+    Args:
+        feature_extractor: the backbone serving as feature extractor
+        vocab: vocabulary used for encoding
+        rnn_units: number of hidden units in both encoder and decoder LSTM
+        embedding_units: number of embedding units
+        attention_units: number of hidden units in attention module
+        max_length: maximum word length handled by the model
+        num_decoders: number of LSTM to stack in decoder layer
+
+    """
+
+    _children_names: List[str] = ["feat_extractor", "encoder"]
+
+    def __init__(
+        self,
+        feature_extractor,
+        rnn_units: int = 512,
+        cfg: Optional[Dict[str, Any]] = None,
+    ) -> None:
+
+        super().__init__()
+        self.cfg = cfg
+
+        self.feat_extractor = feature_extractor
+
+        self.encoder = Sequential(
+            [
+                layers.LSTM(units=rnn_units, return_sequences=True),
+                layers.LSTM(units=rnn_units, return_sequences=False),
+            ]
+        )
+        # Initialize the kernels (watch out for reduce_max)
+        self.encoder.build(input_shape=(None,) + self.feat_extractor.output_shape[2:])
+
+        # self.decoder = SARDecoder(
+        #     rnn_units=rnn_units,
+        #     max_length=max_length,
+        #     vocab_size=len(vocab),
+        #     attention_units=attention_units,
+        #     num_decoder_layers=num_decoders,
+        # )
+        #
+        # self.postprocessor = SARPostProcessor(vocab=vocab)
+
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        # Feature extraction: shape (N, H, W, D)
+        features = self.feat_extractor(x, **kwargs)
+        # Vertical max pooling: shape (N, H, W, D) -> (N, W, D)
+        pooled_features = tf.reduce_max(features, axis=1)
+        # # Bilayer LSTM Encoder: shape (N, W, D) -> (N, rnn_units)
+        encoded = self.encoder(pooled_features, **kwargs)
+
+        # # Encode target
+        # if target is not None:
+        #     gt, seq_len = self.compute_target(target)
+        #     seq_len = tf.cast(seq_len, tf.int32)
+        # # Bilayer LSTM with attention decoder
+        # decoded_features = self.decoder(
+        #     features=features, holistic=encoded, gt=None if target is None else gt, beam_width=beam_width, **kwargs
+        # )
+
+        out: Dict[str, tf.Tensor] = {}
+        out["features"] = features
+        out["encoded"] = encoded
+        # if return_model_output:
+        #     out["out_map"] = decoded_features
+        #
+        # if target is None or return_preds:
+        #     # Post-process boxes
+        #     out["preds"] = self.postprocessor(decoded_features, top_sequences=top_sequences)
+        #
+        # if target is not None:
+        #     out["loss"] = self.compute_loss(
+        #         decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None, **kwargs
+        #     )
+
+        return out
+
+
+class SAR_without_lstm_encoder(Model, RecognitionModel):
+    """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
+    Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
+
+    Args:
+        feature_extractor: the backbone serving as feature extractor
+        vocab: vocabulary used for encoding
+        rnn_units: number of hidden units in both encoder and decoder LSTM
+        embedding_units: number of embedding units
+        attention_units: number of hidden units in attention module
+        max_length: maximum word length handled by the model
+        num_decoders: number of LSTM to stack in decoder layer
+
+    """
+
+    # _children_names: List[str] = ["feat_extractor", "encoder", "decoder", "postprocessor"]
+    _children_names: List[str] = ["decoder", "postprocessor"]
+
+    def __init__(
+        self,
+        # feature_extractor,
+        # feat_extractor_output_shape : Tuple[int],# B x H x W x C
+        vocab: str,
+        rnn_units: int = 512,
+        attention_units: int = 512,
+        max_length: int = 30,
+        num_decoders: int = 2,
+        cfg: Optional[Dict[str, Any]] = None,
+    ) -> None:
+
+        super().__init__()
+        self.vocab = vocab
+        self.cfg = cfg
+
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+
+        # # self.feat_extractor = feature_extractor
+        # self.feat_extractor_output_shape = feat_extractor_output_shape
+        #
+        # self.encoder = Sequential(
+        #     [
+        #         layers.LSTM(units=rnn_units, return_sequences=True),
+        #         layers.LSTM(units=rnn_units, return_sequences=False),
+        #     ]
+        # )
+        # # Initialize the kernels (watch out for reduce_max)
+        # self.encoder.build(input_shape=(None,) + self.feat_extractor_output_shape[2:])
+
+        self.decoder = SARDecoder(
+            rnn_units=rnn_units,
+            max_length=max_length,
+            vocab_size=len(vocab),
+            attention_units=attention_units,
+            num_decoder_layers=num_decoders,
+        )
+
+        self.postprocessor = SARPostProcessor(vocab=vocab)
+
+    @staticmethod
+    def compute_loss(
+        model_output: tf.Tensor,
+        gt: tf.Tensor,
+        seq_len: tf.Tensor,
+        from_logits: bool = True,
+        **kwargs
+    ) -> tf.Tensor:
+        """Compute categorical cross-entropy loss for the model.
+        Sequences are masked after the EOS character.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+            from_logits: Whether model_output is expected to be a logits tensor. By default, we assume that
+            model_output encodes logits.
+
+        Returns:
+            The loss of the model on the batch
+        """
+        # Input length : number of timesteps
+        input_len = tf.shape(model_output)[-2]
+        # Add one for additional <eos> token
+        seq_len = seq_len + 1
+        # One-hot gt labels
+        oh_gt = tf.one_hot(gt, depth=model_output.shape[-1])
+
+        if from_logits:
+            # Label smoothing
+            if kwargs.get("conf_matrix") is not None:
+                oh_gt = tf.matmul(oh_gt, kwargs.get("conf_matrix"))
+            # Compute loss
+            cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
+
+        else:
+            # Take the top sequence
+            model_output = model_output[:, 0, ...]
+            # Convert scores from log probabilities to probabilities
+            model_output = tf.math.exp(model_output)
+            # Compute loss
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False, reduction="none")
+            cce = loss(oh_gt[:, :input_len], model_output[:, :input_len])
+
+        # Compute mask
+        mask_values = tf.zeros_like(cce)
+        mask_2d = tf.sequence_mask(seq_len, input_len)
+        masked_loss = tf.where(mask_2d, cce, mask_values)
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
+        return tf.expand_dims(ce_loss, axis=1)
+
+    def call(
+        self,
+        # x: tf.Tensor,
+        features: tf.Tensor,
+        encoded: tf.Tensor,# encoded features with a lstm
+        target: Optional[List[str]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
+        beam_width: Optional[int] = None,
+        top_sequences: Optional[int] = None,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        # Feature extraction: shape (N, H, W, D)
+        # features = self.feat_extractor(x, **kwargs)
+        # Vertical max pooling: shape (N, H, W, D) -> (N, W, D)
+
+        # pooled_features = tf.reduce_max(features, axis=1)
+        # # Bilayer LSTM Encoder: shape (N, W, D) -> (N, rnn_units)
+        # encoded = self.encoder(pooled_features, **kwargs)
+
+        # Encode target
+        if target is not None:
+            gt, seq_len = self.compute_target(target)
+            seq_len = tf.cast(seq_len, tf.int32)
+        # Bilayer LSTM with attention decoder
+        decoded_features = self.decoder(
+            features=features, holistic=encoded, gt=None if target is None else gt, beam_width=beam_width, **kwargs
+        )
+
+        out: Dict[str, tf.Tensor] = {}
+        if return_model_output:
+            out["out_map"] = decoded_features
+
+        if target is None or return_preds:
+            # Post-process boxes
+            out["preds"] = self.postprocessor(decoded_features, top_sequences=top_sequences)
+
+        if target is not None:
+            out["loss"] = self.compute_loss(
+                decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None, **kwargs
+            )
+
+        return out
+
+
+class SAR_without_feature_extractor(Model, RecognitionModel):
+    """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
+    Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
+
+    Args:
+        feature_extractor: the backbone serving as feature extractor
+        vocab: vocabulary used for encoding
+        rnn_units: number of hidden units in both encoder and decoder LSTM
+        embedding_units: number of embedding units
+        attention_units: number of hidden units in attention module
+        max_length: maximum word length handled by the model
+        num_decoders: number of LSTM to stack in decoder layer
+
+    """
+
+    # _children_names: List[str] = ["feat_extractor", "encoder", "decoder", "postprocessor"]
+    _children_names: List[str] = ["encoder", "decoder", "postprocessor"]
+
+    def __init__(
+        self,
+        # feature_extractor,
+        feat_extractor_output_shape : Tuple[int],# B x H x W x C
+        vocab: str,
+        rnn_units: int = 512,
+        attention_units: int = 512,
+        max_length: int = 30,
+        num_decoders: int = 2,
+        cfg: Optional[Dict[str, Any]] = None,
+    ) -> None:
+
+        super().__init__()
+        self.vocab = vocab
+        self.cfg = cfg
+
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+
+        # self.feat_extractor = feature_extractor
+        self.feat_extractor_output_shape = feat_extractor_output_shape
+
+        self.encoder = Sequential(
+            [
+                layers.LSTM(units=rnn_units, return_sequences=True),
+                layers.LSTM(units=rnn_units, return_sequences=False),
+            ]
+        )
+        # Initialize the kernels (watch out for reduce_max)
+        self.encoder.build(input_shape=(None,) + self.feat_extractor_output_shape[2:])
+
+        self.decoder = SARDecoder(
+            rnn_units=rnn_units,
+            max_length=max_length,
+            vocab_size=len(vocab),
+            attention_units=attention_units,
+            num_decoder_layers=num_decoders,
+        )
+
+        self.postprocessor = SARPostProcessor(vocab=vocab)
+
+    @staticmethod
+    def compute_loss(
+        model_output: tf.Tensor,
+        gt: tf.Tensor,
+        seq_len: tf.Tensor,
+        from_logits: bool = True,
+        **kwargs
+    ) -> tf.Tensor:
+        """Compute categorical cross-entropy loss for the model.
+        Sequences are masked after the EOS character.
+
+        Args:
+            gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
+            seq_len: lengths of each gt word inside the batch
+            from_logits: Whether model_output is expected to be a logits tensor. By default, we assume that
+            model_output encodes logits.
+
+        Returns:
+            The loss of the model on the batch
+        """
+        # Input length : number of timesteps
+        input_len = tf.shape(model_output)[-2]
+        # Add one for additional <eos> token
+        seq_len = seq_len + 1
+        # One-hot gt labels
+        oh_gt = tf.one_hot(gt, depth=model_output.shape[-1])
+
+        if from_logits:
+            # Label smoothing
+            if kwargs.get("conf_matrix") is not None:
+                oh_gt = tf.matmul(oh_gt, kwargs.get("conf_matrix"))
+            # Compute loss
+            cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
+
+        else:
+            # Take the top sequence
+            model_output = model_output[:, 0, ...]
+            # Convert scores from log probabilities to probabilities
+            model_output = tf.math.exp(model_output)
+            # Compute loss
+            loss = tf.keras.losses.CategoricalCrossentropy(from_logits=False, reduction="none")
+            cce = loss(oh_gt[:, :input_len], model_output[:, :input_len])
+
+        # Compute mask
+        mask_values = tf.zeros_like(cce)
+        mask_2d = tf.sequence_mask(seq_len, input_len)
+        masked_loss = tf.where(mask_2d, cce, mask_values)
+        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
+        return tf.expand_dims(ce_loss, axis=1)
+
+    def call(
+        self,
+        # x: tf.Tensor,
+        features: tf.Tensor,
+        target: Optional[List[str]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
+        beam_width: Optional[int] = None,
+        top_sequences: Optional[int] = None,
+        **kwargs: Any,
+    ) -> Dict[str, Any]:
+        # Feature extraction: shape (N, H, W, D)
+        # features = self.feat_extractor(x, **kwargs)
+
+        # Vertical max pooling: shape (N, H, W, D) -> (N, W, D)
+        pooled_features = tf.reduce_max(features, axis=1)
+        # Bilayer LSTM Encoder: shape (N, W, D) -> (N, rnn_units)
+        encoded = self.encoder(pooled_features, **kwargs)
+
         # Encode target
         if target is not None:
             gt, seq_len = self.compute_target(target)
