@@ -50,25 +50,17 @@ class AttentionModule(nn.Module):
 
     def __init__(self, feat_chans: int, state_chans: int, attention_units: int) -> None:
         super().__init__()
-        self.lstm_cell = nn.LSTMCell(feat_chans, state_chans)
         self.feat_conv = nn.Conv2d(feat_chans, attention_units, kernel_size=3, padding=1)
         self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1)
         self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1)
 
     def forward(
         self,
-        prev_logit: torch.Tensor,  # (N, C)
         features: torch.Tensor,  # (N, C, H, W)
-        hidden_state_init: torch.Tensor,  # (N, C)
-        cell_state_init: torch.Tensor,  # (N, C)
         hidden_state: torch.Tensor,  # (N, C)
-        cell_state: torch.Tensor  # (N, C)
     ) -> torch.Tensor:
 
         height_feat_map, width_feat_map = features.size()[2:]
-        # (N, state_chans), (N, state_chans)
-        hidden_state, cell_state = self.lstm_cell(prev_logit, (hidden_state_init, cell_state_init))
-        hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
 
         # (N, feat_chans, H, W) --> (N, attention_units, H, W)
         feat_projection = self.feat_conv(features)
@@ -97,6 +89,7 @@ class SARDecoder(nn.Module):
         vocab_size: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
+        num_decoder_layers: number of LSTMCell layers to stack
 
     """
     def __init__(
@@ -105,8 +98,9 @@ class SARDecoder(nn.Module):
         max_length: int,
         vocab_size: int,
         embedding_units: int,
-        attention_units: int = 512,
+        attention_units: int,
         feat_chans: int = 512,
+        num_decoder_layers: int = 2,
         dropout_prob: float = 0.,
     ) -> None:
 
@@ -114,52 +108,83 @@ class SARDecoder(nn.Module):
         self.vocab_size = vocab_size
         self.max_length = max_length
 
-        self.embed = nn.Embedding(self.vocab_size + 1, embedding_units)
+        self.embed = nn.Linear(self.vocab_size + 1, embedding_units) #nn.Embedding(self.vocab_size + 1, embedding_units)
+        self.embed_tgt = nn.Embedding(rnn_units, self.vocab_size + 1)
         self.attention_module = AttentionModule(feat_chans, rnn_units, attention_units)
-        self.output_dense = nn.Linear(rnn_units, self.vocab_size + 1)
+        self.output_dense = nn.Linear(2 * rnn_units, self.vocab_size + 1)
         self.dropout = nn.Dropout(dropout_prob)
 
-        self.lstm_cell = nn.LSTMCell(embedding_units, rnn_units)
+        self.lstm_cell = nn.LSTMCell(rnn_units, rnn_units)
+        self.softmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, features: torch.Tensor, encoded: torch.Tensor, gt):
 
-        outputs = []
+
+
+
+    def forward(
+        self,
+        features: torch.Tensor,  # (N, C, H, W)
+        encoded: torch.Tensor,  # (N, C)
+        gt: Optional[torch.Tensor] = None  # (N, L)
+    ) -> List[torch.Tensor]:
 
         if gt is not None:
-            gt_embedding = self.embed(gt)
-        else:
-            # init symbol
-            prev_symbol = self.embed(
-                torch.full((features.size(0), ), self.vocab_size, device=features.device, dtype=torch.long)
-            )
+            gt_embedding = self.embed_tgt(gt)
 
+        # init previous symbol
+        prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
+        prev_symbol[:, self.vocab_size] = 1.0
+        prev_symbol = self.embed(prev_symbol)
         # init hidden state
         hidden_state_init, cell_state_init = self.lstm_cell(encoded)
         hidden_state, cell_state = self.lstm_cell(hidden_state_init)
 
-        for t in range(self.max_length):
-            if gt is not None:
-                # (N, t, embedding_units)
-                prev_symbol = gt_embedding[:, t, :]
-            # (N, C)
-            glimpse = self.attention_module(prev_symbol, features, hidden_state_init,
-                                            cell_state_init, hidden_state, cell_state)
-            # (N, vocab_size + 1)
-            logits = self.output_dense(glimpse)
-            if gt is not None:
-                # (N, vocab_size + 1)
-                logits = self.dropout(logits)
+
+
+        outputs = []
+        batch_size = encoded.size(0)
+        y_onehot = torch.zeros(batch_size, self.vocab_size + 1, device=features.device)
+        for t in range(self.max_length + 1):
+            #if t == 0:
+            #    inputs_y = encoded # size [batch, hidden_units]
+            #    # LSTM layer 1 initialization:
+            #    hx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_1
+            #    cx_1 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_1
+            #    # LSTM layer 2 initialization:
+            #    hx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial h0_2
+            #    cx_2 = torch.zeros(batch_size, encoded.size(1), dtype=torch.float).to(features.device) # initial c0_2
+            if t == 0:
+                #y_onehot.zero_()
+                #y_onehot[:,self.vocab_size] = 1.0
+                #inputs_y = y_onehot
+                #inputs_y = self.embed(inputs_y) # [batch, hidden_units]
+                inputs_y = prev_symbol
             else:
-                # (N, vocab_size + 1)
-                logits = F.softmax(input=logits, dim=-1)
-                _, idx = torch.max(logits, dim=-1, keepdim=False)
-                # (N, rnn_units)
-                prev_symbol = self.embed(idx)
+                if gt is not None:
+                    inputs_y = gt_embedding[:, t-2, :] # [batch, output_classes]
+                else:
+                    # greedy search for now - beam search to be implemented!
+                    index = torch.argmax(outputs[t-1], dim=-1) # [batch]
+                    index = index.unsqueeze(1) # [batch, 1]
+                    y_onehot.zero_()
+                    inputs_y = y_onehot.scatter_(1, index, 1) # [batch, output_classes]
 
-            outputs.append(logits)
+                inputs_y = self.embed(inputs_y) # [batch, hidden_units_encoder]
 
-        return torch.stack(outputs, 1)
+            # LSTM cells combined with attention and fusion layer
+            hidden_state_init, cell_state_init = self.lstm_cell(inputs_y, (hidden_state_init, cell_state_init))
+            hidden_state, cell_state = self.lstm_cell(hidden_state_init, (hidden_state, cell_state))
+            glimpse = self.attention_module(features, hidden_state) # [batch, D], [batch, 1, H, W]
+            combine = torch.cat((hidden_state, glimpse), dim=1) # [batch, hidden_units_decoder+D]
+            out = self.output_dense(combine) # [batch, output_classes]
+            out = self.softmax(out) # [batch, output_classes]
+            outputs.append(out)
 
+        outputs = outputs[1:] # [seq_len, batch, output_classes]
+        outputs = torch.stack(outputs) # [seq_len, batch, output_classes]
+        outputs = outputs.permute(1,0,2) # [batch, seq_len, output_classes]
+
+        return outputs
 
 class SAR(nn.Module, RecognitionModel):
     """Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for
