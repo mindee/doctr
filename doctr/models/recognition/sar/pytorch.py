@@ -51,8 +51,9 @@ class AttentionModule(nn.Module):
     def __init__(self, feat_chans: int, state_chans: int, attention_units: int) -> None:
         super().__init__()
         self.feat_conv = nn.Conv2d(feat_chans, attention_units, kernel_size=3, padding=1)
-        self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1)
-        self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1)
+        # No need to add another bias since both tensors are summed together
+        self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1, bias=False)
+        self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1, bias=False)
 
     def forward(
         self,
@@ -74,7 +75,7 @@ class AttentionModule(nn.Module):
         attention_weights = self.attention_projector(attention_weights)
         B, C, H, W = attention_weights.size()
 
-        # (B, H, W) --> (B, 1, H, W)
+        # (N, H, W) --> (N, 1, H, W)
         attention_weights = F.softmax(attention_weights.view(B, -1), dim=-1).view(B, C, H, W)
         # fuse features and attention weights (N, C)
         return torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
@@ -116,7 +117,7 @@ class SARDecoder(nn.Module):
     def forward(
         self,
         features: torch.Tensor,  # (N, C, H, W)
-        encoded: torch.Tensor,  # (N, C)
+        holistic: torch.Tensor,  # (N, C)
         gt: Optional[torch.Tensor] = None  # (N, L)
     ) -> torch.Tensor:
 
@@ -125,38 +126,42 @@ class SARDecoder(nn.Module):
 
         logits_list: List[torch.Tensor] = []
 
-        # TODO: refactor this / write down some steps and shapes
-        # borrowed/adopted from original implementation
-        for t in range(self.max_length + 1):
+        for t in range(self.max_length + 1):  # 32
             if t == 0:
-                # init first LSTMCell states with zero (N, C), (N, C)
-                hidden_state_init = torch.zeros(features.size(0), features.size(1), device=features.device)
-                cell_state_init = torch.zeros(features.size(0), features.size(1), device=features.device)
+                # step to init the first states of the LSTMCell
+                hidden_state_init = cell_state_init = \
+                    torch.zeros(features.size(0), features.size(1), device=features.device)
                 hidden_state, cell_state = hidden_state_init, cell_state_init
-                prev_symbol = encoded
+                prev_symbol = holistic
             elif t == 1:
+                # step to init a 'blank' sequence of length vocab_size + 1 filled with zeros
+                # (N, vocab_size + 1) --> (N, embedding_units)
                 prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
-                prev_symbol[:, self.vocab_size] = 1.0  # identifier for <eos>
                 prev_symbol = self.embed(prev_symbol)
             else:
                 if gt is not None:
-                    prev_symbol = self.embed(gt_embedding[:, t - 2, :])
+                    #(N, embedding_units) -2 because of <bos> and <eos> (same)
+                    prev_symbol = self.embed(gt_embedding[:, t - 2])
                 else:
                     index = torch.argmax(logits_list[t - 1], dim=-1)
+                    # (1, embedding_units)
+                    prev_symbol.zero_()
                     prev_symbol = prev_symbol.scatter_(1, index.unsqueeze(1), 1)
 
+            # (N, C), (N, C)  take the last hidden state and cell state from current timestep
             hidden_state_init, cell_state_init = self.lstm_cells[t](prev_symbol, (hidden_state_init, cell_state_init))
             hidden_state, cell_state = self.lstm_cells[t](hidden_state_init, (hidden_state, cell_state))
-
+            # (N, C, H, W), (N, C) --> (N, C)
             glimpse = self.attention_module(features, hidden_state)
+            # (N, C), (N, C) --> (N, 2 * C)
             logits = torch.cat([hidden_state, glimpse], dim=1)
             if gt is not None:
                 logits = self.dropout(logits)
-            logits_list.append(torch.log_softmax(self.output_dense(logits), dim=-1))
+            # (N, vocab_size + 1)
+            logits_list.append(self.output_dense(logits))
 
-        outputs = torch.stack(logits_list[1:]).permute(1, 0, 2)
-
-        return outputs
+        # (max_length + 1, N, vocab_size + 1) --> (N, max_length + 1, vocab_size + 1)
+        return torch.stack(logits_list[1:]).permute(1, 0, 2)
 
 
 class SAR(nn.Module, RecognitionModel):

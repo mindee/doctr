@@ -64,7 +64,7 @@ def mock_tilted_payslip(mock_payslip, tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_text_box_stream():
-    url = 'https://traum-deutung.de/wp-content/uploads/2016/07/traum-wort-deutung-symbol.jpg'
+    url = 'https://png.pngitem.com/pimgs/s/88-882812_peace-word-graphics-hd-png-download.png'
     return requests.get(url).content
 
 
