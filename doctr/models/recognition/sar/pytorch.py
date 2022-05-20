@@ -61,24 +61,24 @@ class AttentionModule(nn.Module):
         hidden_state: torch.Tensor,  # (N, C)
     ) -> torch.Tensor:
 
-        height_feat_map, width_feat_map = features.size()[2:]
+        H_f, W_f = features.shape[2:]
 
         # (N, feat_chans, H, W) --> (N, attention_units, H, W)
         feat_projection = self.feat_conv(features)
         # (N, state_chans, 1, 1) --> (N, attention_units, 1, 1)
         hidden_state = hidden_state.view(hidden_state.size(0), hidden_state.size(1), 1, 1)
         state_projection = self.state_conv(hidden_state)
-        state_projection = state_projection.expand(-1, -1, height_feat_map, width_feat_map)
-        # (N, attention_units, 1, 1) --> (N, attention_units, height_feat_map, width_feat_map)
-        attention_weights = torch.tanh(torch.add(feat_projection, state_projection, alpha=1))
-        # (N, attention_units, height_feat_map, width_feat_map) --> (N, 1, height_feat_map, width_feat_map)
+        state_projection = state_projection.expand(-1, -1, H_f, W_f)
+        # (N, attention_units, 1, 1) --> (N, attention_units, H_f, W_f)
+        attention_weights = torch.tanh(feat_projection + state_projection)
+        # (N, attention_units, H_f, W_f) --> (N, 1, H_f, W_f)
         attention_weights = self.attention_projector(attention_weights)
         B, C, H, W = attention_weights.size()
 
         # (N, H, W) --> (N, 1, H, W)
-        attention_weights = F.softmax(attention_weights.view(B, -1), dim=-1).view(B, C, H, W)
+        attention_weights = torch.softmax(attention_weights.view(B, -1), dim=-1).view(B, C, H, W)
         # fuse features and attention weights (N, C)
-        return torch.sum(torch.mul(features, attention_weights), dim=(2, 3), keepdim=False)
+        return (features * attention_weights).sum(dim=(2, 3))
 
 
 class SARDecoder(nn.Module):
@@ -143,9 +143,9 @@ class SARDecoder(nn.Module):
                     #(N, embedding_units) -2 because of <bos> and <eos> (same)
                     prev_symbol = self.embed(gt_embedding[:, t - 2])
                 else:
-                    index = torch.argmax(logits_list[t - 1], dim=-1)
+                    # -1 to start at timestep where prev_symbol was initialized
+                    index = logits_list[t - 1].argmax(-1)
                     # (1, embedding_units)
-                    prev_symbol.zero_()
                     prev_symbol = prev_symbol.scatter_(1, index.unsqueeze(1), 1)
 
             # (N, C), (N, C)  take the last hidden state and cell state from current timestep
