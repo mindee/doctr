@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
-        'vocab': VOCABS['legacy_french'],
+        'vocab': VOCABS['french'],
         'url': None,
     },
 }
@@ -155,8 +155,7 @@ class SARDecoder(nn.Module):
             glimpse = self.attention_module(features, hidden_state)
             # (N, C), (N, C) --> (N, 2 * C)
             logits = torch.cat([hidden_state, glimpse], dim=1)
-            if gt is not None:
-                logits = self.dropout(logits)
+            logits = self.dropout(logits)
             # (N, vocab_size + 1)
             logits_list.append(self.output_dense(logits))
 
