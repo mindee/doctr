@@ -81,13 +81,25 @@ It is also possible to push your model directly after training.
 
 
 Pretrained community models
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This section is to provide some tables for pretrained community models.
 Feel free to open a pull request or issue to add your model to this list.
 
+Naming conventions
+------------------
+
+We suggest using the following naming conventions for your models:
+
+**Classification:** ``doctr-<architecture>-<vocab>``
+
+**Detection:** ``doctr-<architecture>``
+
+**Recognition:** ``doctr-<architecture>-<vocab>``
+
+
 Classification
-^^^^^^^^^^^^^^
+--------------
 
 +---------------------------------+-------------------------------------+-----------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**              |     **Vocabulary**    |     **Framework**      |
@@ -99,7 +111,7 @@ Classification
 
 
 Detection
-^^^^^^^^^
+---------
 
 +---------------------------------+-------------------------------------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**                          |     **Framework**      |
@@ -111,7 +123,7 @@ Detection
 
 
 Recognition
-^^^^^^^^^^^
+-----------
 
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**                            |     **Language**    |     **Framework**      |
