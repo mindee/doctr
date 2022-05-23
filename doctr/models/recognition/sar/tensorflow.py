@@ -649,6 +649,10 @@ class SAR_without_lstm_encoder(Model, RecognitionModel):
             gt, seq_len = self.compute_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
         # Bilayer LSTM with attention decoder
+        if "conf_matrix" in kwargs :
+            label_smoothing_weights = kwargs.pop("conf_matrix")
+        else :
+            label_smoothing_weights = None
         decoded_features = self.decoder(
             features=features, holistic=encoded, gt=None if target is None else gt, beam_width=beam_width, **kwargs
         )
@@ -662,6 +666,7 @@ class SAR_without_lstm_encoder(Model, RecognitionModel):
             out["preds"] = self.postprocessor(decoded_features, top_sequences=top_sequences)
 
         if target is not None:
+            kwargs["conf_matrix"] = label_smoothing_weights
             out["loss"] = self.compute_loss(
                 decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None, **kwargs
             )
@@ -795,6 +800,11 @@ class SAR_without_feature_extractor(Model, RecognitionModel):
         # Vertical max pooling: shape (N, H, W, D) -> (N, W, D)
         pooled_features = tf.reduce_max(features, axis=1)
         # Bilayer LSTM Encoder: shape (N, W, D) -> (N, rnn_units)
+        if "conf_matrix" in kwargs : 
+            label_smoothing_weights = kwargs.pop("conf_matrix")
+        else :
+            label_smoothing_weights = None
+                
         encoded = self.encoder(pooled_features, **kwargs)
 
         # Encode target
@@ -815,6 +825,7 @@ class SAR_without_feature_extractor(Model, RecognitionModel):
             out["preds"] = self.postprocessor(decoded_features, top_sequences=top_sequences)
 
         if target is not None:
+            kwargs["conf_matrix"] = label_smoothing_weights
             out["loss"] = self.compute_loss(
                 decoded_features, gt, seq_len, from_logits=kwargs.get("training") or beam_width is None, **kwargs
             )
