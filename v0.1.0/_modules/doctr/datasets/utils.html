@@ -317,7 +317,10 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        A list encoding the input_string"""</span>
 
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"some characters cannot be found in 'vocab'"</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">decode_sequence</span><span class="p">(</span>
