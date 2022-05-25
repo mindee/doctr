@@ -72,7 +72,10 @@ def encode_string(
     Returns:
         A list encoding the input_string"""
 
-    return list(map(vocab.index, input_string))  # type: ignore[arg-type]
+    try:
+        return list(map(vocab.index, input_string))  # type: ignore[arg-type]
+    except ValueError:
+        raise ValueError("some characters cannot be found in 'vocab'")
 
 
 def decode_sequence(
