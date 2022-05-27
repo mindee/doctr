@@ -55,8 +55,7 @@ class PreProcessor(nn.Module):
         Returns:
             list of batched samples (*, C, H, W)
         """
-
-        num_batches = int(math.ceil(len(samples) / self.batch_size))
+        num_batches = int(math.ceil(len(list(samples)) / self.batch_size))
         batches = [
             torch.stack(samples[idx * self.batch_size: min((idx + 1) * self.batch_size, len(samples))], dim=0)
             for idx in range(int(num_batches))
