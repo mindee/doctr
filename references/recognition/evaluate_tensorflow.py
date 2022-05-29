@@ -86,7 +86,6 @@ def main(args):
         img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
 
-    # Monkeypatch
     _ds = datasets.__dict__[args.dataset](
         train=False,
         download=True,

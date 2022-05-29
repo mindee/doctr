@@ -73,7 +73,7 @@ def main(args):
         pretrained=True if args.resume is None else False,
         input_shape=(3, args.input_size, 4 * args.input_size),
         vocab=VOCABS[args.vocab],
-    )
+    ).eval()
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -90,7 +90,6 @@ def main(args):
         img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
 
-    # Monkeypatch
     _ds = datasets.__dict__[args.dataset](
         train=False,
         download=True,

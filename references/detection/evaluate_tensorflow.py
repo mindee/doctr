@@ -35,7 +35,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     for images, targets in tqdm(val_loader):
         images = batch_transforms(images)
         targets = [t['boxes'] for t in targets]
-        out = model(images, targets, training=False, return_boxes=True)
+        out = model(images, targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
@@ -82,14 +82,19 @@ def main(args):
     ds = datasets.__dict__[args.dataset](
         train=True,
         download=True,
-        rotated_bbox=args.rotation,
+        use_polygons=args.rotation,
         sample_transforms=T.Resize(input_shape[:2]),
     )
     # Monkeypatch
     subfolder = ds.root.split("/")[-2:]
     ds.root = str(Path(ds.root).parent.parent)
     ds.data = [(os.path.join(*subfolder, name), target) for name, target in ds.data]
-    _ds = datasets.__dict__[args.dataset](train=False, rotated_bbox=args.rotation)
+    _ds = datasets.__dict__[args.dataset](
+        train=False,
+        download=True,
+        use_polygons=args.rotation,
+        sample_transforms=T.Resize(input_shape[:2]),
+    )
     subfolder = _ds.root.split("/")[-2:]
     ds.data.extend([(os.path.join(*subfolder, name), target) for name, target in _ds.data])
 
@@ -106,7 +111,7 @@ def main(args):
     batch_transforms = T.Normalize(mean=mean, std=std)
 
     # Metrics
-    metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=input_shape[:2])
+    metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=input_shape[:2])
 
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric)
