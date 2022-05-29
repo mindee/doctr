@@ -153,7 +153,7 @@ jobs:
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: python references/recognition/evaluate_tensorflow.py crnn_vgg16_bn
+        run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
         run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small
