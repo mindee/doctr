@@ -293,7 +293,7 @@ class SAR(Model, RecognitionModel):
         # vertical max pooling --> (N, C, W)
         pooled_features = tf.reduce_max(features, axis=1)
         # holistic (N, C)
-        encoded = self.encoder(pooled_features)
+        encoded = self.encoder(pooled_features, **kwargs)
 
         if target is not None:
             gt, seq_len = self.build_target(target)
@@ -302,7 +302,7 @@ class SAR(Model, RecognitionModel):
         if kwargs.get('training', False) and gt is None:
             raise ValueError('Need to provide labels during training for teacher forcing')
 
-        decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
+        decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if return_model_output:
