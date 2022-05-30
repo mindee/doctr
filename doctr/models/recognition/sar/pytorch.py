@@ -145,7 +145,8 @@ class SARDecoder(nn.Module):
                 else:
                     # -1 to start at timestep where prev_symbol was initialized
                     index = logits_list[t - 1].argmax(-1)
-                    # (1, embedding_units)
+                    # update prev_symbol with ones at the index of the previous logit vector
+                    # (N, embedding_units)
                     prev_symbol = prev_symbol.scatter_(1, index.unsqueeze(1), 1)
 
             # (N, C), (N, C)  take the last hidden state and cell state from current timestep
@@ -184,7 +185,7 @@ class SAR(nn.Module, RecognitionModel):
         vocab: str,
         rnn_units: int = 512,
         embedding_units: int = 512,
-        attention_units: int = 64,
+        attention_units: int = 512,
         max_length: int = 30,
         dropout_prob: float = 0.,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
@@ -207,8 +208,14 @@ class SAR(nn.Module, RecognitionModel):
         self.feat_extractor.train()
 
         self.encoder = SAREncoder(out_shape[1], rnn_units, dropout_prob)
-        self.decoder = SARDecoder(rnn_units, self.max_length, len(self.vocab),
-                                  embedding_units, attention_units, dropout_prob=dropout_prob)
+        self.decoder = SARDecoder(
+            rnn_units,
+            self.max_length,
+            len(self.vocab),
+            embedding_units,
+            attention_units,
+            dropout_prob=dropout_prob,
+        )
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
 
@@ -221,9 +228,9 @@ class SAR(nn.Module, RecognitionModel):
     ) -> Dict[str, Any]:
 
         features = self.feat_extractor(x)['features']
-        # Vertical max pooling --> (N, C, W)
-        pooled_features = F.max_pool2d(features, kernel_size=(features.shape[2], 1), stride=(1, 1))
-        pooled_features = pooled_features.squeeze(2)
+        # NOTE: use max instead of functional max_pool2d which leads to ONNX incompatibility (kernel_size)
+        # Vertical max pooling (N, C, H, W) --> (N, C, W)
+        pooled_features = features.max(dim=-2).values
         # (N, W, C)
         pooled_features = pooled_features.permute(0, 2, 1).contiguous()
         # (N, C)
@@ -257,8 +264,8 @@ class SAR(nn.Module, RecognitionModel):
         Sequences are masked after the EOS character.
 
         Args:
-            gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
+            gt: the encoded tensor with gt labels
             seq_len: lengths of each gt word inside the batch
 
         Returns:
@@ -279,7 +286,11 @@ class SAR(nn.Module, RecognitionModel):
 
 
 class SARPostProcessor(RecognitionPostProcessor):
-    """Post processor for SAR architectures"""
+    """Post processor for SAR architectures
+
+    Args:
+        vocab: string containing the ordered sequence of supported characters
+    """
 
     def __call__(
         self,
