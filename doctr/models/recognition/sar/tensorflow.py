@@ -47,9 +47,9 @@ class SAREncoder(layers.Layer, NestedObject):
             ]
         )
 
-    def call(self, x: tf.Tensor) -> tf.Tensor:
+    def call(self, x: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
         # (N, C)
-        return self.rnn(x)
+        return self.rnn(x, **kwargs)
 
 
 class AttentionModule(layers.Layer, NestedObject):
