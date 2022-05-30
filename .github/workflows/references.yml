@@ -152,10 +152,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
-        name: Benchmark latency (TF)
+        name: Evaluate text recognition (TF)
         run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small --dataset IIIT5K
       - if: matrix.framework == 'pytorch'
-        name: Benchmark latency (PT)
+        name: Evaluate text recognition (PT)
         run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small --dataset IIIT5K
 
   latency-text-recognition:
@@ -295,10 +295,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
-        name: Benchmark latency (TF)
+        name: Evaluate text detection (TF)
         run: python references/detection/evaluate_tensorflow.py db_mobilenet_v3_large
       - if: matrix.framework == 'pytorch'
-        name: Benchmark latency (PT)
+        name: Evaluate text detection (PT)
         run: python references/detection/evaluate_pytorch.py db_mobilenet_v3_large
 
   latency-text-detection:
