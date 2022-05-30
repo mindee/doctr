@@ -85,13 +85,13 @@ class AttentionModule(layers.Layer, NestedObject):
 
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, H, W, vgg_units) -> (N, H, W, attention_units)
-        features_projection = self.features_projector(features)
+        features_projection = self.features_projector(features, **kwargs)
         # shape (N, 1, 1, rnn_units) -> (N, 1, 1, attention_units)
         hidden_state = tf.expand_dims(tf.expand_dims(hidden_state, axis=1), axis=1)
-        hidden_state_projection = self.hidden_state_projector(hidden_state)
+        hidden_state_projection = self.hidden_state_projector(hidden_state, **kwargs)
         projection = tf.math.tanh(hidden_state_projection + features_projection)
         # shape (N, H, W, attention_units) -> (N, H, W, 1)
-        attention = self.attention_projector(projection)
+        attention = self.attention_projector(projection, **kwargs)
         # shape (N, H, W, 1) -> (N, H * W)
         attention = self.flatten(attention)
         attention = tf.nn.softmax(attention)
@@ -111,7 +111,7 @@ class SARDecoder(layers.Layer, NestedObject):
         vocab_size: number of classes in the model alphabet
         embedding_units: number of hidden embedding units
         attention_units: number of hidden attention units
-        num_decoder_layers: number of LSTM layers to stack
+        num_decoder_cells: number of LSTMCell layers to stack
         dropout_prob: dropout probability
 
     """
@@ -122,7 +122,7 @@ class SARDecoder(layers.Layer, NestedObject):
         vocab_size: int,
         embedding_units: int,
         attention_units: int,
-        num_decoder_layers: int = 2,
+        num_decoder_cells: int = 2,
         dropout_prob: float = 0.,
     ) -> None:
 
@@ -130,11 +130,11 @@ class SARDecoder(layers.Layer, NestedObject):
         self.vocab_size = vocab_size
         self.max_length = max_length
 
-        self.embed = layers.Dense(embedding_units)
+        self.embed = layers.Dense(embedding_units, use_bias=False)
         self.embed_tgt = layers.Embedding(embedding_units, self.vocab_size + 1)
 
         self.lstm_cells = layers.StackedRNNCells(
-            [layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_layers)]
+            [layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_cells)]
         )
         self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(self.vocab_size + 1, use_bias=True)
@@ -145,10 +145,11 @@ class SARDecoder(layers.Layer, NestedObject):
         features: tf.Tensor,
         holistic: tf.Tensor,
         gt: Optional[tf.Tensor] = None,
+        **kwargs: Any,
     ) -> tf.Tensor:
 
         if gt is not None:
-            gt_embedding = self.embed_tgt(gt)
+            gt_embedding = self.embed_tgt(gt, **kwargs)
 
         logits_list: List[tf.Tensor] = []
 
@@ -163,11 +164,11 @@ class SARDecoder(layers.Layer, NestedObject):
                 # step to init a 'blank' sequence of length vocab_size + 1 filled with zeros
                 # (N, vocab_size + 1) --> (N, embedding_units)
                 prev_symbol = tf.zeros([features.shape[0], self.vocab_size + 1])
-                prev_symbol = self.embed(prev_symbol)
+                prev_symbol = self.embed(prev_symbol, **kwargs)
             else:
                 if gt is not None:
                     #(N, embedding_units) -2 because of <bos> and <eos> (same)
-                    prev_symbol = self.embed(gt_embedding[:, t - 2])
+                    prev_symbol = self.embed(gt_embedding[:, t - 2], **kwargs)
                 else:
                     # -1 to start at timestep where prev_symbol was initialized
                     index = tf.argmax(logits_list[t - 1], axis=-1)
@@ -181,16 +182,16 @@ class SARDecoder(layers.Layer, NestedObject):
                     )
 
             # (N, C), (N, C)  take the last hidden state and cell state from current timestep
-            _, states = self.lstm_cells(prev_symbol, states)
+            _, states = self.lstm_cells(prev_symbol, states, **kwargs)
             # states = (hidden_state, cell_state)
             hidden_state = states[0][0]
             # (N, H, W, C), (N, C) --> (N, C)
-            glimpse = self.attention_module(features, hidden_state)
+            glimpse = self.attention_module(features, hidden_state, **kwargs)
             # (N, C), (N, C) --> (N, 2 * C)
             logits = tf.concat([hidden_state, glimpse], axis=1)
-            logits = self.dropout(logits)
+            logits = self.dropout(logits, **kwargs)
             # (N, vocab_size + 1)
-            logits_list.append(self.output_dense(logits))
+            logits_list.append(self.output_dense(logits, **kwargs))
 
         # (max_length + 1, N, vocab_size + 1) --> (N, max_length + 1, vocab_size + 1)
         return tf.transpose(tf.stack(logits_list[1:]), (1, 0, 2))
@@ -207,7 +208,7 @@ class SAR(Model, RecognitionModel):
         embedding_units: number of embedding units
         attention_units: number of hidden units in attention module
         max_length: maximum word length handled by the model
-        num_decoder_layers: number of LSTM layers to stack
+        num_decoder_cells: number of LSTMCell layers to stack
         dropout_prob: dropout probability for the encoder and decoder
 
     """
@@ -222,7 +223,7 @@ class SAR(Model, RecognitionModel):
         embedding_units: int = 512,
         attention_units: int = 512,
         max_length: int = 30,
-        num_decoder_layers: int = 2,
+        num_decoder_cells: int = 2,
         dropout_prob: float = 0.,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -241,7 +242,7 @@ class SAR(Model, RecognitionModel):
             len(vocab),
             embedding_units,
             attention_units,
-            num_decoder_layers,
+            num_decoder_cells,
             dropout_prob,
         )
 
