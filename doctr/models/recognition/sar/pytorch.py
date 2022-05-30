@@ -228,6 +228,7 @@ class SAR(nn.Module, RecognitionModel):
     ) -> Dict[str, Any]:
 
         features = self.feat_extractor(x)['features']
+        # NOTE: use max instead of functional max_pool2d which leads to ONNX incompatibility (kernel_size)
         # Vertical max pooling (N, C, H, W) --> (N, C, W)
         pooled_features = features.max(dim=-2).values
         # (N, W, C)
