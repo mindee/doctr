@@ -27,8 +27,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-d4634669.zip',
     },
     'resnet31': {
-        'mean': (0.5, 0.5, 0.5),
-        'std': (1., 1., 1.),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
         'input_shape': (32, 32, 3),
         'classes': list(VOCABS['french']),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet31-5a47a60b.zip',
