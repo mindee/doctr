@@ -28,7 +28,6 @@ if any(gpu_devices):
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import classification
-from doctr.models.utils import export_model_to_onnx
 from utils import plot_recorder, plot_samples
 
 
