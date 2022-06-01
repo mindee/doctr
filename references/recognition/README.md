@@ -43,6 +43,7 @@ Each of these paths must lead to a 2-elements folder:
 The JSON files must contain word-labels for each picture as a string.
 The order of entries in the json does not matter.
 
+# labels.json
 ```shell
 {
     "img_1.jpg": "I",
