@@ -156,4 +156,3 @@ class Decoder(nn.Module):
             normed_output = self.layer_norm(output)
             output = output + self.dropout(self.position_feed_forward[i](normed_output))
         return self.layer_norm(output)
-
