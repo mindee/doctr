@@ -72,3 +72,47 @@ def test_encode_sequences(sequences, vocab, target_size, sos, eos, pad, dynamic_
         assert isinstance(out, np.ndarray)
         assert out.shape == out_shape
         assert np.all(out == np.asarray(gts)), print(out, gts)
+
+
+# NOTE: main test in test_utils_geometry.py
+@pytest.mark.parametrize(
+    "target",
+    [
+        # Boxes
+        {'boxes': np.random.rand(3, 4), 'labels': ['a', 'b', 'c']},
+        # Polygons
+        {'boxes': np.random.rand(3, 4, 2), 'labels': ['a', 'b', 'c']},
+    ]
+)
+def test_convert_target_to_relative(target, mock_image_stream):
+    img = np.array([[3, 32, 128]])  # ImageTensor
+    back_img, target = utils.convert_target_to_relative(img, target)
+    assert img.all() == back_img.all()
+    assert (target['boxes'].all() >= 0) & (target['boxes'].all() <= 1)
+
+
+# NOTE: main test in test_utils_geometry.py (extract_rcrops, extract_crops)
+@pytest.mark.parametrize(
+    "geoms",
+    [
+        # Boxes
+        np.random.randint(low=1, high=20, size=(3, 4)),
+        # Polygons
+        np.random.randint(low=1, high=20, size=(3, 4, 2)),
+    ]
+)
+def test_crop_bboxes_from_image(geoms, mock_image_path):
+    num_crops = 3
+
+    with pytest.raises(ValueError):
+        utils.crop_bboxes_from_image(mock_image_path, geoms=np.zeros((3, 1)))
+
+    with pytest.raises(FileNotFoundError):
+        utils.crop_bboxes_from_image('123', geoms=np.zeros((2, 4)))
+
+    cropped_imgs = utils.crop_bboxes_from_image(mock_image_path, geoms=geoms)
+    # Number of crops
+    assert len(cropped_imgs) == num_crops
+    # Data type and shape
+    assert all(isinstance(crop, np.ndarray) for crop in cropped_imgs)
+    assert all(crop.ndim == 3 for crop in cropped_imgs)

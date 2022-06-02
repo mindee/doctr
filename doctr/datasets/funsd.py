@@ -6,12 +6,13 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import VisionDataset
-from .utils import convert_target_to_relative
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ['FUNSD']
 
@@ -30,6 +31,7 @@ class FUNSD(VisionDataset):
     Args:
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+        recognition_task: whether the dataset should be used for recognition task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -41,6 +43,7 @@ class FUNSD(VisionDataset):
         self,
         train: bool = True,
         use_polygons: bool = False,
+        recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -49,7 +52,7 @@ class FUNSD(VisionDataset):
             self.FILE_NAME,
             self.SHA256,
             True,
-            pre_transforms=convert_target_to_relative,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs
         )
         self.train = train
@@ -60,8 +63,8 @@ class FUNSD(VisionDataset):
 
         # # List images
         tmp_root = os.path.join(self.root, subfolder, 'images')
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
-        for img_path in os.listdir(tmp_root):
+        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking FUNSD', total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
@@ -84,10 +87,16 @@ class FUNSD(VisionDataset):
                     ] for box in box_targets
                 ]
 
-            self.data.append((
-                img_path,
-                dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
-            ))
+            if recognition_task:
+                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
+                                               geoms=np.asarray(box_targets, dtype=np_dtype))
+                for crop, label in zip(crops, list(text_targets)):
+                    self.data.append((crop, dict(labels=[label])))
+            else:
+                self.data.append((
+                    img_path,
+                    dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
+                ))
 
         self.root = tmp_root
 

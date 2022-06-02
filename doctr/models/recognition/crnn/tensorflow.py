@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -56,37 +56,64 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
     def __call__(
         self,
-        logits: tf.Tensor
-    ) -> List[Tuple[str, float]]:
+        logits: tf.Tensor,
+        beam_width: int = 1,
+        top_paths: int = 1,
+    ) -> Union[List[Tuple[str, float]], List[Tuple[List[str], List[float]]]]:
         """
         Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
 
         Args:
             logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1
+            beam_width: An int scalar >= 0 (beam search beam width).
+            top_paths: An int scalar >= 0, <= beam_width (controls output size).
 
         Returns:
             A list of decoded words of length BATCH_SIZE
+
 
         """
         # Decode CTC
         _decoded, _log_prob = tf.nn.ctc_beam_search_decoder(
             tf.transpose(logits, perm=[1, 0, 2]),
-            tf.fill(logits.shape[0], logits.shape[1]),
-            beam_width=1, top_paths=1,
+            tf.fill(tf.shape(logits)[:1], tf.shape(logits)[1]),
+            beam_width=beam_width,
+            top_paths=top_paths,
         )
-        out_idxs = tf.sparse.to_dense(_decoded[0], default_value=len(self.vocab))
-        probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))
+
+        _decoded = tf.sparse.concat(
+            1,
+            [tf.sparse.expand_dims(dec, axis=1) for dec in _decoded],
+            expand_nonconcat_dims=True,
+        )  # dim : batchsize x beamwidth x actual_max_len_predictions
+        out_idxs = tf.sparse.to_dense(_decoded, default_value=len(self.vocab))
 
         # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(tf.constant(self._embedding, dtype=tf.string), out_idxs),
-            axis=-1
+            inputs=tf.nn.embedding_lookup(
+                tf.constant(self._embedding, dtype=tf.string), out_idxs
+            ),
+            axis=-1,
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
-        decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
-        word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
+        decoded_strings_pred = tf.sparse.to_dense(
+            _decoded_strings_pred.to_sparse(), default_value="not valid"
+        )[
+            :, :, 0
+        ]  # dim : batch_size x beam_width
 
+        if top_paths == 1:
+            probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))  # dim : batchsize
+            decoded_strings_pred = tf.squeeze(decoded_strings_pred, axis=1)
+            word_values = [
+                word.decode() for word in decoded_strings_pred.numpy().tolist()
+            ]
+        else:
+            probs = tf.math.exp(_log_prob)  # dim : batchsize x beamwidth
+            word_values = [
+                [word.decode() for word in words] for words in decoded_strings_pred.numpy().tolist()
+            ]
         return list(zip(word_values, probs.numpy().tolist()))
 
 
@@ -101,7 +128,7 @@ class CRNN(RecognitionModel, Model):
         cfg: configuration dictionary
     """
 
-    _children_names: List[str] = ['feat_extractor', 'decoder', 'postprocessor']
+    _children_names: List[str] = ["feat_extractor", "decoder", "postprocessor"]
 
     def __init__(
         self,
@@ -109,6 +136,8 @@ class CRNN(RecognitionModel, Model):
         vocab: str,
         rnn_units: int = 128,
         cfg: Optional[Dict[str, Any]] = None,
+        beam_width: int = 1,
+        top_paths: int = 1,
     ) -> None:
         # Initialize kernels
         h, w, c = feature_extractor.output_shape[1:]
@@ -129,6 +158,9 @@ class CRNN(RecognitionModel, Model):
         self.decoder.build(input_shape=(None, w, h * c))
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
+
+        self.beam_width = beam_width
+        self.top_paths = top_paths
 
     def compute_loss(
         self,
@@ -158,6 +190,8 @@ class CRNN(RecognitionModel, Model):
         target: Optional[List[str]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        beam_width: int = 1,
+        top_paths: int = 1,
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
@@ -175,7 +209,9 @@ class CRNN(RecognitionModel, Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(logits)
+            out["preds"] = self.postprocessor(
+                logits, beam_width=beam_width, top_paths=top_paths
+            )
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, target)

@@ -98,6 +98,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         super().__init__()
         self.cfg = cfg
+        self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
         # Identify the number of channels for the FPN initialization
@@ -124,7 +125,7 @@ class LinkNet(nn.Module, _LinkNet):
             nn.ConvTranspose2d(head_chans, num_classes, kernel_size=2, stride=2),
         )
 
-        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
+        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=self.assume_straight_pages)
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
