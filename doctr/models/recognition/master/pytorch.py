@@ -15,7 +15,7 @@ from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
 
 from ...utils.pytorch import load_pretrained_params
-from ..transformer.pytorch import Decoder, positional_encoding
+from ..transformer.pytorch import Decoder, PositionalEncoding
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -23,9 +23,9 @@ __all__ = ['MASTER', 'master']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'master': {
-        'mean': (.5, .5, .5),
-        'std': (1., 1., 1.),
-        'input_shape': (3, 48, 160),
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'],
         'url': None,
     },
@@ -61,7 +61,7 @@ class MASTER(_MASTER, nn.Module):
         num_layers: int = 3,
         max_length: int = 50,
         dropout: float = 0.2,
-        input_shape: Tuple[int, int, int] = (3, 48, 160),
+        input_shape: Tuple[int, int, int] = (3, 32, 128),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
@@ -70,23 +70,21 @@ class MASTER(_MASTER, nn.Module):
         self.vocab = vocab
         self.cfg = cfg
         self.vocab_size = len(vocab)
-        self.num_heads = num_heads
 
         self.feat_extractor = feature_extractor
-        self.seq_embedding = nn.Embedding(self.vocab_size + 3, d_model)  # 3 more for EOS/SOS/PAD
+        self.positional_encoding = PositionalEncoding(d_model, dropout)
 
         self.decoder = Decoder(
             num_layers=num_layers,
             d_model=d_model,
             num_heads=num_heads,
             dff=dff,
-            vocab_size=self.vocab_size,
-            maximum_position_encoding=max_length,
+            vocab_size=self.vocab_size + 3,
+            max_length=self.max_length,
             dropout=dropout,
         )
-        self.register_buffer('feature_pe', positional_encoding(input_shape[1] * input_shape[2], d_model))
-        self.linear = nn.Linear(d_model, self.vocab_size + 3)
 
+        self.linear = nn.Linear(d_model, self.vocab_size + 3)
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
         for n, m in self.named_modules():
@@ -99,12 +97,6 @@ class MASTER(_MASTER, nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def make_mask(self, target: torch.Tensor) -> torch.Tensor:
-        size = target.size(1)
-        look_ahead_mask = ~ (torch.triu(torch.ones(size, size, device=target.device)) == 1).transpose(0, 1)[:, None]
-        target_padding_mask = torch.eq(target, self.vocab_size + 2)  # Pad symbol
-        combined_mask = target_padding_mask | look_ahead_mask
-        return torch.tile(combined_mask.permute(1, 0, 2), (self.num_heads, 1, 1))
 
     @staticmethod
     def compute_loss(
@@ -161,7 +153,7 @@ class MASTER(_MASTER, nn.Module):
         b, c, h, w = features.shape[:4]
         # --> (N, H * W, C)
         features = features.reshape((b, c, h * w)).permute(0, 2, 1)
-        encoded = features + self.feature_pe[:, :h * w, :]
+        encoded = self.positional_encoding(features)
 
         out: Dict[str, Any] = {}
 
@@ -171,14 +163,9 @@ class MASTER(_MASTER, nn.Module):
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
-        if self.training:
-            if target is None:
-                raise AssertionError("In training mode, you need to pass a value to 'target'")
-            tgt_mask = self.make_mask(gt)
             # Compute logits
-            output = self.decoder(gt, encoded, tgt_mask, None)
+            output = self.decoder(gt, encoded)
             logits = self.linear(output)
-
         else:
             logits = self.decode(encoded)
 
@@ -189,8 +176,7 @@ class MASTER(_MASTER, nn.Module):
             out['out_map'] = logits
 
         if return_preds:
-            predictions = self.postprocessor(logits)
-            out['preds'] = predictions
+            out['preds'] = self.postprocessor(logits)
 
         return out
 
@@ -206,17 +192,17 @@ class MASTER(_MASTER, nn.Module):
         b = encoded.size(0)
 
         # Padding symbol + SOS at the beginning
-        ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)
-        ys[:, 0] = self.vocab_size + 1
+        ys = torch.ones((b, self.max_length), dtype=torch.long, device=encoded.device) * self.vocab_size + 2 # pad
+        ys[:, 0] = self.vocab_size + 1 # sos
+
 
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
-            ys_mask = self.make_mask(ys)
-            output = self.decoder(ys, encoded, ys_mask, None)
+            output = self.decoder(ys, encoded)
             logits = self.linear(output)
-            prob = F.softmax(logits, dim=-1)
+            prob = torch.softmax(logits, dim=-1)
             next_word = torch.max(prob, dim=-1).indices
-            ys[:, i + 1] = next_word[:, i + 1]
+            ys[:, i + 1] = next_word[:, i]
 
         # Shape (N, max_length, vocab_size + 1)
         return logits
