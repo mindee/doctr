@@ -13,6 +13,36 @@ from torch import nn
 __all__ = ['Decoder', 'PositionalEncoding']
 
 
+class PositionalEncoding(nn.Module):
+    """ Compute positional encoding """
+
+    def __init__(self, d_model: int, dropout_prob: float = 0.1, max_len: int = 5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout_prob)
+
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1).float()
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        self.register_buffer("pe", pe.unsqueeze(0))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: embeddings (batch, max_len, d_model)
+
+        Returns:
+            positional embeddings (batch, max_len, d_model)
+        """
+        x = x + self.pe[:, : x.size(1)]
+        return self.dropout(x)
+
+
+# TODO: ---------------------------------------------------------------------------------------
+
+
 def clones(_to_clone_module, _clone_times, _is_deep=True):
     """Produce N identical layers."""
     copy_method = copy.deepcopy if _is_deep else copy.copy
@@ -86,33 +116,6 @@ class PositionwiseFeedForward(nn.Module):
 
     def forward(self, _input_tensor):
         return self.w_2(self.dropout(torch.relu(self.w_1(_input_tensor))))
-
-
-class PositionalEncoding(nn.Module):
-    """Implement the PE function."""
-    def __init__(self, _dimensions, _dropout=0.1, _max_len=5000):
-        """
-        :param _dimensions:
-        :param _dropout:
-        :param _max_len:
-        """
-        super(PositionalEncoding, self).__init__()
-        self.dropout = nn.Dropout(p=_dropout)
-
-        # Compute the positional encodings once in log space.
-        pe = torch.zeros(_max_len, _dimensions)
-        position = torch.arange(0, _max_len).unsqueeze(1).float()
-        div_term = torch.exp(torch.arange(0, _dimensions, 2).float() *
-                             -(math.log(10000.0) / _dimensions))
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0)
-        self.register_buffer('pe', pe)
-
-    def forward(self, _input_tensor):
-        _input_tensor = _input_tensor + self.pe[:, :_input_tensor.size(1)]  # pe 1 5000 512
-        return self.dropout(_input_tensor)
-
 
 
 class Decoder(nn.Module):
