@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import math
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -67,24 +68,24 @@ class MASTER(_MASTER, nn.Module):
         super().__init__()
 
         self.max_length = max_length
+        self.d_model = d_model
         self.vocab = vocab
         self.cfg = cfg
         self.vocab_size = len(vocab)
 
         self.feat_extractor = feature_extractor
-        self.positional_encoding = PositionalEncoding(d_model, dropout)
+        self.positional_encoding = PositionalEncoding(self.d_model, dropout)
+        self.embed = nn.Embedding(self.vocab_size + 3, self.d_model)
 
         self.decoder = Decoder(
             num_layers=num_layers,
-            d_model=d_model,
+            d_model=self.d_model,
             num_heads=num_heads,
             dff=dff,
-            vocab_size=self.vocab_size + 3,
-            max_length=self.max_length,
             dropout=dropout,
         )
 
-        self.linear = nn.Linear(d_model, self.vocab_size + 3)
+        self.linear = nn.Linear(self.d_model, self.vocab_size + 3)
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
         for n, m in self.named_modules():
@@ -97,6 +98,20 @@ class MASTER(_MASTER, nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
+    def make_source_and_target_mask(
+        self,
+        source: torch.Tensor,
+        target: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # borrowed from  https://github.com/wenwenyu/MASTER-pytorch
+        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(3)  # (b, 1, len_src, 1)
+        target_length = target.size(1)
+        target_sub_mask = torch.tril(
+            torch.ones((target_length, target_length), dtype=torch.uint8, device=source.device)
+        )
+        source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
+        target_mask = target_pad_mask & target_sub_mask.bool()
+        return source_mask, target_mask
 
     @staticmethod
     def compute_loss(
@@ -164,7 +179,10 @@ class MASTER(_MASTER, nn.Module):
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
             # Compute logits
-            output = self.decoder(gt, encoded)
+            source_mask, target_mask = self.make_source_and_target_mask(encoded, gt)
+            target = self.embed(gt) * math.sqrt(self.d_model)
+            target = self.positional_encoding(target)
+            output = self.decoder(target, encoded, source_mask, target_mask)
             logits = self.linear(output)
         else:
             logits = self.decode(encoded)
@@ -192,13 +210,16 @@ class MASTER(_MASTER, nn.Module):
         b = encoded.size(0)
 
         # Padding symbol + SOS at the beginning
-        ys = torch.ones((b, self.max_length), dtype=torch.long, device=encoded.device) * self.vocab_size + 2 # pad
-        ys[:, 0] = self.vocab_size + 1 # sos
-
+        ys = torch.ones((b, self.max_length), dtype=torch.long, device=encoded.device) * self.vocab_size + 2  # pad
+        ys[:, 0] = self.vocab_size + 1  # sos
 
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
-            output = self.decoder(ys, encoded)
+
+            source_mask, target_mask = self.make_source_and_target_mask(encoded, ys)
+            target = self.embed(ys) * math.sqrt(self.d_model)
+            target = self.positional_encoding(target)
+            output = self.decoder(target, encoded, source_mask, target_mask)
             logits = self.linear(output)
             prob = torch.softmax(logits, dim=-1)
             next_word = torch.max(prob, dim=-1).indices
@@ -260,6 +281,8 @@ def _master(
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]['url'])
+
+        # TODO: filter vocab_size specific weights and biases
 
     return model
 
