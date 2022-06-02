@@ -74,7 +74,7 @@ class MASTER(_MASTER, nn.Module):
         self.vocab_size = len(vocab)
 
         self.feat_extractor = feature_extractor
-        self.positional_encoding = PositionalEncoding(self.d_model, dropout)
+        self.positional_encoding = PositionalEncoding(self.d_model, dropout, max_len=input_shape[1] * input_shape[2])
         self.embed = nn.Embedding(self.vocab_size + 3, self.d_model)
 
         self.decoder = Decoder(
@@ -165,9 +165,10 @@ class MASTER(_MASTER, nn.Module):
 
         # Encode
         features = self.feat_extractor(x)['features']
-        b, c, h, w = features.shape[:4]
-        # --> (N, H * W, C)
-        features = features.reshape((b, c, h * w)).permute(0, 2, 1)
+        b, c, h, w = features.shape
+        # (N, C, H, W) --> (N, H * W, C)
+        features = features.view(b, c, h * w).permute((0, 2, 1))
+        # add positional encoding to features
         encoded = self.positional_encoding(features)
 
         out: Dict[str, Any] = {}
@@ -210,7 +211,7 @@ class MASTER(_MASTER, nn.Module):
         b = encoded.size(0)
 
         # Padding symbol + SOS at the beginning
-        ys = torch.ones((b, self.max_length), dtype=torch.long, device=encoded.device) * self.vocab_size + 2  # pad
+        ys = torch.zeros((b, self.max_length), dtype=torch.long, device=encoded.device) * self.vocab_size + 2  # pad
         ys[:, 0] = self.vocab_size + 1  # sos
 
         # Final dimension include EOS/SOS/PAD

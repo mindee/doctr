@@ -61,6 +61,7 @@ class ScaledDotProductAttention(nn.Module):
 
 class PositionwiseFeedForward(nn.Module):
     """ Position-wise Feed-Forward Network """
+
     def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
         super(PositionwiseFeedForward, self).__init__()
         self.first_linear = nn.Linear(d_model, ffd)
@@ -111,6 +112,8 @@ class MultiHeadAttention(nn.Module):
 
 
 class Decoder(nn.Module):
+    """ Transformer Decoder """
+
     def __init__(
         self,
         num_layers: int,
@@ -145,8 +148,8 @@ class Decoder(nn.Module):
     ) -> torch.Tensor:
         output = tgt
         for i in range(self.num_layers):
-            normed_output = self.layer_norm(tgt)
-            output = tgt + self.dropout(
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(
                 self.attention[i](normed_output, normed_output, normed_output, target_mask)
             )
             normed_output = self.layer_norm(output)
