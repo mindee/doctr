@@ -3,8 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-# This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and has some borrowed code
-# from https://github.com/codertimo/BERT-pytorch
+# This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and Decoder is borrowed
 
 import math
 from typing import Optional, Tuple
@@ -98,14 +97,14 @@ class MultiHeadAttention(nn.Module):
     ) -> torch.Tensor:
         batch_size = query.size(0)
 
-        # 1) Do all the linear projections in batch from d_model => h x d_k
+        # linear projections of Q, K, V
         query, key, value = [linear(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
                              for linear, x in zip(self.linear_layers, (query, key, value))]
 
-        # 2) Apply attention on all the projected vectors in batch.
+        # apply attention on all the projected vectors in batch
         x, attn = self.scaled_dot_product_attention(query, key, value, mask=mask)
 
-        # 3) "Concat" using a view and apply a final linear.
+        # Concat attention heads
         x = x.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.d_k)
 
         return self.output_linear(x)
@@ -119,14 +118,19 @@ class Decoder(nn.Module):
         num_layers: int,
         num_heads: int,
         d_model: int,
+        vocab_size: int,
         dropout: float = 0.2,
         dff: int = 2048,
+        maximum_position_encoding: int = 50,
     ) -> None:
 
         super(Decoder, self).__init__()
         self.num_layers = num_layers
+        self.d_model = d_model
 
         self.dropout = nn.Dropout(dropout)
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.positional_encoding = PositionalEncoding(d_model, dropout, maximum_position_encoding)
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-5)
 
         self.attention = nn.ModuleList(
@@ -146,7 +150,10 @@ class Decoder(nn.Module):
         source_mask: torch.Tensor,
         target_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        output = tgt
+
+        tgt = self.embed(tgt) * math.sqrt(self.d_model)
+        pos_enc_tgt = self.positional_encoding(tgt)
+        output = pos_enc_tgt
         for i in range(self.num_layers):
             normed_output = self.layer_norm(output)
             output = output + self.dropout(

@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import math
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -62,7 +61,7 @@ class MASTER(_MASTER, nn.Module):
         num_layers: int = 3,
         max_length: int = 50,
         dropout: float = 0.2,
-        input_shape: Tuple[int, int, int] = (3, 32, 128),
+        input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from the paper
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
@@ -75,14 +74,15 @@ class MASTER(_MASTER, nn.Module):
 
         self.feat_extractor = feature_extractor
         self.positional_encoding = PositionalEncoding(self.d_model, dropout, max_len=input_shape[1] * input_shape[2])
-        self.embed = nn.Embedding(self.vocab_size + 3, self.d_model)
 
         self.decoder = Decoder(
             num_layers=num_layers,
             d_model=self.d_model,
             num_heads=num_heads,
+            vocab_size=self.vocab_size + 3,  # EOS, SOS, PAD
             dff=dff,
             dropout=dropout,
+            maximum_position_encoding=self.max_length,
         )
 
         self.linear = nn.Linear(self.d_model, self.vocab_size + 3)
@@ -103,15 +103,18 @@ class MASTER(_MASTER, nn.Module):
         source: torch.Tensor,
         target: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        # borrowed from  https://github.com/wenwenyu/MASTER-pytorch
-        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(3)  # (b, 1, len_src, 1)
+        # borrowed and slightly modified from  https://github.com/wenwenyu/MASTER-pytorch
+        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(3)  # (B, 1, max_length, 1)
         target_length = target.size(1)
+        # sub mask filled diagonal with 1 = see 0 = masked (max_length, max_length)
         target_sub_mask = torch.tril(
-            torch.ones((target_length, target_length), dtype=torch.uint8, device=source.device)
+            torch.ones((target_length, target_length), dtype=torch.bool, device=source.device), diagonal=0
         )
+        # source mask filled with ones (max_length, vocab_size + 2)
         source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
-        target_mask = target_pad_mask & target_sub_mask.bool()
-        return source_mask, target_mask
+        # combine the two masks into one (B, 1, max_length, max_length)
+        target_mask = target_pad_mask & target_sub_mask
+        return source_mask, target_mask.int()
 
     @staticmethod
     def compute_loss(
@@ -181,9 +184,7 @@ class MASTER(_MASTER, nn.Module):
 
             # Compute logits
             source_mask, target_mask = self.make_source_and_target_mask(encoded, gt)
-            target = self.embed(gt) * math.sqrt(self.d_model)
-            target = self.positional_encoding(target)
-            output = self.decoder(target, encoded, source_mask, target_mask)
+            output = self.decoder(gt, encoded, source_mask, target_mask)
             logits = self.linear(output)
         else:
             logits = self.decode(encoded)
@@ -218,9 +219,7 @@ class MASTER(_MASTER, nn.Module):
         for i in range(self.max_length - 1):
 
             source_mask, target_mask = self.make_source_and_target_mask(encoded, ys)
-            target = self.embed(ys) * math.sqrt(self.d_model)
-            target = self.positional_encoding(target)
-            output = self.decoder(target, encoded, source_mask, target_mask)
+            output = self.decoder(ys, encoded, source_mask, target_mask)
             logits = self.linear(output)
             prob = torch.softmax(logits, dim=-1)
             next_word = torch.max(prob, dim=-1).indices
