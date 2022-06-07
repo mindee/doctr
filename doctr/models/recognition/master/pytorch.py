@@ -49,8 +49,6 @@ class MASTER(_MASTER, nn.Module):
         cfg: dictionary containing information about the model
     """
 
-    feature_pe: torch.Tensor
-
     def __init__(
         self,
         feature_extractor: nn.Module,
@@ -104,15 +102,17 @@ class MASTER(_MASTER, nn.Module):
         target: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # borrowed and slightly modified from  https://github.com/wenwenyu/MASTER-pytorch
-        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(3)  # (B, 1, max_length, 1)
+        # NOTE: nn.TransformerDecoder takes the inverse from this implementation
+        # [True, True, True, ..., False, False, False] -> False is masked
+        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
         target_length = target.size(1)
         # sub mask filled diagonal with 1 = see 0 = masked (max_length, max_length)
         target_sub_mask = torch.tril(
             torch.ones((target_length, target_length), dtype=torch.bool, device=source.device), diagonal=0
         )
-        # source mask filled with ones (max_length, vocab_size + 2)
+        # source mask filled with ones (max_length, positional_encoded_seq_len)
         source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
-        # combine the two masks into one (B, 1, max_length, max_length)
+        # combine the two masks into one (N, 1, max_length, max_length)
         target_mask = target_pad_mask & target_sub_mask
         return source_mask, target_mask.int()
 
@@ -182,9 +182,10 @@ class MASTER(_MASTER, nn.Module):
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
-            # Compute logits
+            # Compute source mask and target mask
             source_mask, target_mask = self.make_source_and_target_mask(encoded, gt)
             output = self.decoder(gt, encoded, source_mask, target_mask)
+            # Compute logits
             logits = self.linear(output)
         else:
             logits = self.decode(encoded)
@@ -212,7 +213,7 @@ class MASTER(_MASTER, nn.Module):
         b = encoded.size(0)
 
         # Padding symbol + SOS at the beginning
-        ys = torch.zeros((b, self.max_length), dtype=torch.long, device=encoded.device) * self.vocab_size + 2  # pad
+        ys = torch.zeros((b, self.max_length), dtype=torch.long, device=encoded.device) * (self.vocab_size + 2)  # pad
         ys[:, 0] = self.vocab_size + 1  # sos
 
         # Final dimension include EOS/SOS/PAD
@@ -222,8 +223,9 @@ class MASTER(_MASTER, nn.Module):
             output = self.decoder(ys, encoded, source_mask, target_mask)
             logits = self.linear(output)
             prob = torch.softmax(logits, dim=-1)
-            next_word = torch.max(prob, dim=-1).indices
-            ys[:, i + 1] = next_word[:, i]
+            next_token = torch.max(prob, dim=-1).indices
+            # update ys with the next token and ignore the first token (SOS)
+            ys[:, i + 1] = next_token[:, i]
 
         # Shape (N, max_length, vocab_size + 1)
         return logits
@@ -259,6 +261,7 @@ def _master(
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
     pretrained_backbone: bool = True,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any
 ) -> MASTER:
 
@@ -280,9 +283,10 @@ def _master(
     model = MASTER(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
-
-        # TODO: filter vocab_size specific weights and biases
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if _cfg['vocab'] != default_cfgs[arch]['vocab'] else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     return model
 
@@ -293,7 +297,7 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     >>> import torch
     >>> from doctr.models import master
     >>> model = master(pretrained=False)
-    >>> input_tensor = torch.rand((1, 3, 48, 160))
+    >>> input_tensor = torch.rand((1, 3, 32, 128))
     >>> out = model(input_tensor)
 
     Args:
@@ -303,4 +307,13 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
         text recognition architecture
     """
 
-    return _master('master', pretrained, magc_resnet31, '10', **kwargs)
+    return _master(
+        'master',
+        pretrained,
+        magc_resnet31,
+        '10',
+        ignore_keys=[
+            'decoder.embed.weight',
+            'linear.weight', 'linear.bias',
+        ],
+        **kwargs)

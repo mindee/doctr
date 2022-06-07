@@ -41,21 +41,19 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class ScaledDotProductAttention(nn.Module):
+def scaled_dot_product_attention(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    mask: Optional[torch.Tensor] = None
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """ Scaled Dot-Product Attention """
 
-    def forward(
-        self,
-        query: torch.Tensor,
-        key: torch.Tensor,
-        value: torch.Tensor,
-        mask: torch.Tensor = None
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
-        if mask is not None:
-            scores = scores.masked_fill(mask == 0, -1e9)
-        p_attn = torch.softmax(scores, dim=-1)
-        return torch.matmul(p_attn, value), p_attn
+    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, -1e9)
+    p_attn = torch.softmax(scores, dim=-1)
+    return torch.matmul(p_attn, value), p_attn
 
 
 class PositionwiseFeedForward(nn.Module):
@@ -86,7 +84,6 @@ class MultiHeadAttention(nn.Module):
 
         self.linear_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(3)])
         self.output_linear = nn.Linear(d_model, d_model)
-        self.scaled_dot_product_attention = ScaledDotProductAttention()
 
     def forward(
         self,
@@ -102,7 +99,7 @@ class MultiHeadAttention(nn.Module):
                              for linear, x in zip(self.linear_layers, (query, key, value))]
 
         # apply attention on all the projected vectors in batch
-        x, attn = self.scaled_dot_product_attention(query, key, value, mask=mask)
+        x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
 
         # Concat attention heads
         x = x.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.d_k)
@@ -147,13 +144,14 @@ class Decoder(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        source_mask: torch.Tensor,
+        source_mask: Optional[torch.Tensor] = None,
         target_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
 
         tgt = self.embed(tgt) * math.sqrt(self.d_model)
         pos_enc_tgt = self.positional_encoding(tgt)
         output = pos_enc_tgt
+
         for i in range(self.num_layers):
             normed_output = self.layer_norm(output)
             output = output + self.dropout(
@@ -165,4 +163,5 @@ class Decoder(nn.Module):
             )
             normed_output = self.layer_norm(output)
             output = output + self.dropout(self.position_feed_forward[i](normed_output))
+
         return self.layer_norm(output)
