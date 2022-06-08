@@ -159,6 +159,7 @@ def _resnet(
     stage_stride: List[int],
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ResNet:
 
@@ -174,12 +175,10 @@ def _resnet(
     model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
-            # The number of classes is not the same as the number of classes in the pretrained model =>
-            # remove the last layer weights
-            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['13.weight', '13.bias'])
-        else:
-            load_pretrained_params(model, default_cfgs[arch]['url'])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     return model
 
@@ -188,6 +187,7 @@ def _tv_resnet(
     arch: str,
     pretrained: bool,
     arch_fn,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> TVResNet:
 
@@ -203,12 +203,10 @@ def _tv_resnet(
     model = arch_fn(**kwargs)
     # Load pretrained parameters
     if pretrained:
-        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
-            # The number of classes is not the same as the number of classes in the pretrained model =>
-            # remove the last layer weights
-            load_pretrained_params(model, default_cfgs[arch]['url'], pop_entrys=['fc.weight', 'fc.bias'])
-        else:
-            load_pretrained_params(model, default_cfgs[arch]['url'])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -232,7 +230,13 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A resnet18 model
     """
 
-    return _tv_resnet('resnet18', pretrained, tv_resnet18, **kwargs)
+    return _tv_resnet(
+        'resnet18',
+        pretrained,
+        tv_resnet18,
+        ignore_keys=['fc.weight', 'fc.bias'],
+        **kwargs,
+    )
 
 
 def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
@@ -263,6 +267,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [(2, 2), (2, 1), None, None],
         origin_stem=False,
         stem_channels=128,
+        ignore_keys=['13.weight', '13.bias'],
         **kwargs,
     )
 
@@ -284,7 +289,13 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A resnet34 model
     """
 
-    return _tv_resnet('resnet34', pretrained, tv_resnet34, **kwargs)
+    return _tv_resnet(
+        'resnet34',
+        pretrained,
+        tv_resnet34,
+        ignore_keys=['fc.weight', 'fc.bias'],
+        **kwargs,
+    )
 
 
 def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
@@ -314,6 +325,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [None] * 4,
         origin_stem=True,
         stem_channels=128,
+        ignore_keys=['10.weight', '10.bias'],
         **kwargs,
     )
 
@@ -335,4 +347,10 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A resnet50 model
     """
 
-    return _tv_resnet('resnet50', pretrained, tv_resnet50, **kwargs)
+    return _tv_resnet(
+        'resnet50',
+        pretrained,
+        tv_resnet50,
+        ignore_keys=['fc.weight', 'fc.bias'],
+        **kwargs,
+    )

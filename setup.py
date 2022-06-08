@@ -60,6 +60,7 @@ _deps = [
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
     "keras<2.7.0",
+    "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",
@@ -115,12 +116,14 @@ extras["tf"] = deps_list(
     "tensorflow",
     "tensorflow-addons",
     "keras",
+    "tf2onnx",
 )
 
 extras["tf-cpu"] = deps_list(
     "tensorflow-cpu",
     "tensorflow-addons",
     "keras",
+    "tf2onnx",
 )
 
 extras["torch"] = deps_list(

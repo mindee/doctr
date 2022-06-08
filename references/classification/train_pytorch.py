@@ -24,7 +24,7 @@ from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscal
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
-from doctr.models import classification
+from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_classification_model_to_onnx
 from utils import plot_recorder, plot_samples
 
@@ -169,6 +169,9 @@ def evaluate(model, val_loader, batch_transforms, amp=False):
 def main(args):
 
     print(args)
+
+    if args.push_to_hub:
+        login_to_hub()
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
@@ -335,6 +338,9 @@ def main(args):
     if args.wb:
         run.finish()
 
+    if args.push_to_hub:
+        push_to_hf_hub(model, exp_name, task='classification', run_config=args)
+
     if args.export_onnx:
         print("Exporting model to ONNX...")
         dummy_batch = next(iter(val_loader))
@@ -382,8 +388,8 @@ def parse_args():
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
-    parser.add_argument('--wb', dest='wb', action='store_true',
-                        help='Log to Weights & Biases')
+    parser.add_argument('--wb', dest='wb', action='store_true', help='Log to Weights & Biases')
+    parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
     parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',

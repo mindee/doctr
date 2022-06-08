@@ -3,9 +3,9 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any
+from typing import Any, List
 
-from doctr.file_utils import is_tf_available, is_torch_available
+from doctr.file_utils import is_tf_available
 
 from .. import classification
 from ..preprocessor import PreProcessor
@@ -13,11 +13,13 @@ from .predictor import CropOrientationPredictor
 
 __all__ = ["crop_orientation_predictor"]
 
-
-if is_tf_available():
-    ARCHS = ['mobilenet_v3_small_orientation']
-elif is_torch_available():
-    ARCHS = ['mobilenet_v3_small_orientation']
+ARCHS: List[str] = [
+    'magc_resnet31',
+    'mobilenet_v3_small', 'mobilenet_v3_small_r', 'mobilenet_v3_large', 'mobilenet_v3_large_r',
+    'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide',
+    'vgg16_bn_r'
+]
+ORIENTATION_ARCHS: List[str] = ['mobilenet_v3_small_orientation']
 
 
 def _crop_orientation_predictor(
@@ -26,7 +28,7 @@ def _crop_orientation_predictor(
     **kwargs: Any
 ) -> CropOrientationPredictor:
 
-    if arch not in ARCHS:
+    if arch not in ORIENTATION_ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
     # Load directly classifier from backbone

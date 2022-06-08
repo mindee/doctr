@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 from torch import nn
 from torchvision.models import vgg as tv_vgg
@@ -32,6 +32,7 @@ def _vgg(
     pretrained: bool,
     tv_arch: str,
     num_rect_pools: int = 3,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any
 ) -> tv_vgg.VGG:
 
@@ -55,13 +56,10 @@ def _vgg(
     model.classifier = nn.Linear(512, kwargs['num_classes'])
     # Load pretrained parameters
     if pretrained:
-        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
-            # The number of classes is not the same as the number of classes in the pretrained model =>
-            # remove the last layer weights
-            load_pretrained_params(model, default_cfgs[arch]['url'],
-                                   pop_entrys=['classifier.weight', 'classifier.bias'])
-        else:
-            load_pretrained_params(model, default_cfgs[arch]['url'])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -86,4 +84,11 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> tv_vgg.VGG:
         VGG feature extractor
     """
 
-    return _vgg('vgg16_bn_r', pretrained, 'vgg16_bn', 3, **kwargs)
+    return _vgg(
+        'vgg16_bn_r',
+        pretrained,
+        'vgg16_bn',
+        3,
+        ignore_keys=['classifier.weight', 'classifier.bias'],
+        **kwargs,
+    )

@@ -13,8 +13,8 @@ __all__ = ["ocr_predictor"]
 
 
 def _predictor(
-    det_arch: str,
-    reco_arch: str,
+    det_arch: Any,
+    reco_arch: Any,
     pretrained: bool,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
@@ -48,8 +48,8 @@ def _predictor(
 
 
 def ocr_predictor(
-    det_arch: str = 'db_resnet50',
-    reco_arch: str = 'crnn_vgg16_bn',
+    det_arch: Any = 'db_resnet50',
+    reco_arch: Any = 'crnn_vgg16_bn',
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
@@ -66,8 +66,10 @@ def ocr_predictor(
     >>> out = model([input_page])
 
     Args:
-        det_arch: name of the detection architecture to use (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
-        reco_arch: name of the recognition architecture to use (e.g. 'crnn_vgg16_bn', 'sar_resnet31')
+        det_arch: name of the detection architecture or the model itself to use
+            (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
+        reco_arch: name of the recognition architecture or the model itself to use
+            (e.g. 'crnn_vgg16_bn', 'sar_resnet31')
         pretrained: If True, returns a model pre-trained on our OCR dataset
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.

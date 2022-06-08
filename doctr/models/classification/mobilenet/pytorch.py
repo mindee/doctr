@@ -60,6 +60,7 @@ def _mobilenet_v3(
     arch: str,
     pretrained: bool,
     rect_strides: Optional[List[str]] = None,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any
 ) -> mobilenetv3.MobileNetV3:
 
@@ -86,13 +87,10 @@ def _mobilenet_v3(
 
     # Load pretrained parameters
     if pretrained:
-        if kwargs['num_classes'] != len(default_cfgs[arch]['classes']):
-            # The number of classes is not the same as the number of classes in the pretrained model =>
-            # remove the last layer weights
-            load_pretrained_params(model, default_cfgs[arch]['url'],
-                                   pop_entrys=['classifier.3.weight', 'classifier.3.bias'])
-        else:
-            load_pretrained_params(model, default_cfgs[arch]['url'])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -117,7 +115,12 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
         a torch.nn.Module
     """
 
-    return _mobilenet_v3('mobilenet_v3_small', pretrained, **kwargs)
+    return _mobilenet_v3(
+        'mobilenet_v3_small',
+        pretrained,
+        ignore_keys=['classifier.3.weight', 'classifier.3.bias'],
+        **kwargs
+    )
 
 
 def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.MobileNetV3:
@@ -142,6 +145,7 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
         'mobilenet_v3_small_r',
         pretrained,
         ['features.2.block.1.0', 'features.4.block.1.0', 'features.9.block.1.0'],
+        ignore_keys=['classifier.3.weight', 'classifier.3.bias'],
         **kwargs
     )
 
@@ -163,7 +167,12 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     Returns:
         a torch.nn.Module
     """
-    return _mobilenet_v3('mobilenet_v3_large', pretrained, **kwargs)
+    return _mobilenet_v3(
+        'mobilenet_v3_large',
+        pretrained,
+        ignore_keys=['classifier.3.weight', 'classifier.3.bias'],
+        **kwargs,
+    )
 
 
 def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.MobileNetV3:
@@ -187,6 +196,7 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
         'mobilenet_v3_large_r',
         pretrained,
         ['features.4.block.1.0', 'features.7.block.1.0', 'features.13.block.1.0'],
+        ignore_keys=['classifier.3.weight', 'classifier.3.bias'],
         **kwargs
     )
 
@@ -209,4 +219,9 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> m
         a torch.nn.Module
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, **kwargs)
+    return _mobilenet_v3(
+        'mobilenet_v3_small_orientation',
+        pretrained,
+        ignore_keys=['classifier.3.weight', 'classifier.3.bias'],
+        **kwargs,
+    )

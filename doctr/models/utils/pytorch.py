@@ -19,7 +19,7 @@ def load_pretrained_params(
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
     overwrite: bool = False,
-    pop_entrys: Optional[List[str]] = None,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
@@ -28,11 +28,11 @@ def load_pretrained_params(
     >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
-        model: the keras model to be loaded
+        model: the PyTorch model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
         overwrite: should the zip extraction be enforced if the archive has already been extracted
-        pop_entrys: list of weights to be removed from the state_dict
+        ignore_keys: list of weights to be ignored from the state_dict
     """
 
     if url is None:
@@ -44,12 +44,15 @@ def load_pretrained_params(
         state_dict = torch.load(archive_path, map_location='cpu')
 
         # Remove weights from the state_dict
-        if pop_entrys is not None:
-            for key in pop_entrys:
+        if ignore_keys is not None and len(ignore_keys) > 0:
+            for key in ignore_keys:
                 state_dict.pop(key)
-
-        # Load weights
-        model.load_state_dict(state_dict, strict=False)
+            missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+            if set(missing_keys) != set(ignore_keys) or len(unexpected_keys) > 0:
+                raise ValueError("unable to load state_dict, due to non-matching keys.")
+        else:
+            # Load weights
+            model.load_state_dict(state_dict)
 
 
 def conv_sequence_pt(
@@ -89,7 +92,7 @@ def conv_sequence_pt(
     return conv_seq
 
 
-def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_input: torch.Tensor) -> str:
+def export_classification_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.Tensor) -> str:
     """Export classification model to ONNX format.
 
     >>> import torch
@@ -100,7 +103,7 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
 
     Args:
         model: the PyTorch model to be exported
-        exp_name: the name for the exported model
+        model_name: the name for the exported model
         dummy_input: the dummy input to the model
 
     Returns:
@@ -109,11 +112,11 @@ def export_classification_model_to_onnx(model: nn.Module, exp_name: str, dummy_i
     torch.onnx.export(
         model,
         dummy_input,
-        f"{exp_name}.onnx",
+        f"{model_name}.onnx",
         input_names=['input'],
         output_names=['logits'],
         dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
         export_params=True, opset_version=13, verbose=False
     )
-    logging.info(f"Model exported to {exp_name}.onnx")
-    return f"{exp_name}.onnx"
+    logging.info(f"Model exported to {model_name}.onnx")
+    return f"{model_name}.onnx"
