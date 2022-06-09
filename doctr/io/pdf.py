@@ -15,11 +15,11 @@ __all__ = ['read_pdf']
 
 
 def read_pdf(
-        file: AbstractFile,
-        scale: float = 2,
-        password: Optional[str] = None,
-        **kwargs: Any,
-    ) -> List[np.ndarray]:
+    file: AbstractFile,
+    scale: float = 2,
+    password: Optional[str] = None,
+    **kwargs: Any,
+) -> List[np.ndarray]:
     """Read a PDF file and convert it into an image in numpy format
 
     >>> from doctr.documents import read_pdf
