@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.ocr - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -214,7 +214,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -244,11 +245,11 @@
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">fit_rbbox</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'OCRDataset'</span><span class="p">,</span> <span class="s1">'DocDataset'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;OCRDataset&#39;</span><span class="p">,</span> <span class="s1">&#39;DocDataset&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="OCRDataset"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.OCRDataset">[docs]</a><span class="k">class</span> <span class="nc">OCRDataset</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-    <span class="sd">"""Implements an OCR dataset</span>
+    <span class="sd">&quot;&quot;&quot;Implements an OCR dataset</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: local path to image folder (all jpg at the root)</span>
@@ -256,7 +257,7 @@
 <span class="sd">        sample_transforms: composable transformations that will be applied to each image</span>
 <span class="sd">        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -272,24 +273,24 @@
         <span class="c1"># List images</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp16</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">file_dic</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="c1"># Get image path</span>
-            <span class="n">img_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">"raw-archive-filepath"</span><span class="p">]))</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s1">'.jpg'</span>
+            <span class="n">img_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">&quot;raw-archive-filepath&quot;</span><span class="p">]))</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s1">&#39;.jpg&#39;</span>
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="c1"># handle empty images</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span>
-               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">file_dic</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"N/A"</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span>
+               <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">file_dic</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;N/A&quot;</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="p">[])))</span>
                 <span class="k">continue</span>
             <span class="n">is_valid</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">box_targets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">file_dic</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">file_dic</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">rotated_bbox</span><span class="p">:</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="n">fit_rbbox</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">))</span>
                     <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">alpha</span><span class="p">]</span>
@@ -301,19 +302,19 @@
                 <span class="k">if</span> <span class="n">is_valid</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
                     <span class="n">box_targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
 
-            <span class="n">text_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span> <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">_valid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">"string"</span><span class="p">],</span> <span class="n">is_valid</span><span class="p">)</span> <span class="k">if</span> <span class="n">_valid</span><span class="p">]</span>
+            <span class="n">text_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span> <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">_valid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">file_dic</span><span class="p">[</span><span class="s2">&quot;string&quot;</span><span class="p">],</span> <span class="n">is_valid</span><span class="p">)</span> <span class="k">if</span> <span class="n">_valid</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">text_targets</span><span class="p">)))</span></div>
 
 
 <span class="k">class</span> <span class="nc">DocDataset</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-    <span class="sd">"""Implements an OCR dataset</span>
+    <span class="sd">&quot;&quot;&quot;Implements an OCR dataset</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: local path to image folder (all jpg at the root)</span>
 <span class="sd">        label_file: local path to the label file</span>
 <span class="sd">        sample_transforms: composable transformations that will be applied to each image</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -328,7 +329,7 @@
         <span class="c1"># List images</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp16</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">img_name</span><span class="p">,</span> <span class="n">annotations</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -336,15 +337,15 @@
             <span class="n">img_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_name</span><span class="p">)</span>
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="c1"># handle empty images</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotations</span><span class="p">[</span><span class="s2">"typed_words"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">annotations</span><span class="p">[</span><span class="s2">&quot;typed_words&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="p">[])))</span>
                 <span class="k">continue</span>
             <span class="c1"># Unpack</span>
-            <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="s1">'geometry'</span><span class="p">]))</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">'typed_words'</span><span class="p">]]</span>
-            <span class="n">text_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">'typed_words'</span><span class="p">]]</span>
+            <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">obj</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]))</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">&#39;typed_words&#39;</span><span class="p">]]</span>
+            <span class="n">text_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s1">&#39;typed_words&#39;</span><span class="p">]]</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">text_targets</span><span class="p">)))</span>
 </pre></div>

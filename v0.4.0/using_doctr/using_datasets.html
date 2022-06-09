@@ -14,10 +14,10 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Share your model with the community" href="sharing_models.html" /><link rel="prev" title="Choosing the right model" href="using_models.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>Choose a ready to use dataset - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../_static/tabs.css" />
@@ -229,7 +229,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -254,12 +255,13 @@ can be a significant save of time.</p>
 <section id="detection">
 <h3>Detection<a class="headerlink" href="#detection" title="Permalink to this headline">#</a></h3>
 <p>This datasets contains the information to train or validate a text detection model.</p>
-<div class="table-wrapper"><table class="docutils align-default">
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 22%"/>
-<col style="width: 26%"/>
-<col style="width: 26%"/>
-<col style="width: 26%"/>
+<col style="width: 22%" />
+<col style="width: 26%" />
+<col style="width: 26%" />
+<col style="width: 26%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Dataset</strong></p></th>
@@ -320,7 +322,8 @@ can be a significant save of time.</p>
 <td><p>Handwritten / external resources</p></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
 <span class="c1"># Load straight boxes</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -333,12 +336,13 @@ can be a significant save of time.</p>
 <section id="recognition">
 <h3>Recognition<a class="headerlink" href="#recognition" title="Permalink to this headline">#</a></h3>
 <p>This datasets contains the information to train or validate a text recognition model.</p>
-<div class="table-wrapper"><table class="docutils align-default">
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 21%"/>
-<col style="width: 24%"/>
-<col style="width: 24%"/>
-<col style="width: 32%"/>
+<col style="width: 21%" />
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 32%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Dataset</strong></p></th>
@@ -404,7 +408,8 @@ can be a significant save of time.</p>
 <td><p>english</p></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
 <span class="c1"># Crop boxes as is (can contain irregular)</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recognition_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -417,12 +422,13 @@ can be a significant save of time.</p>
 <section id="object-detection">
 <h3>Object Detection<a class="headerlink" href="#object-detection" title="Permalink to this headline">#</a></h3>
 <p>This datasets contains the information to train or validate a object detection model.</p>
-<div class="table-wrapper"><table class="docutils align-default">
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 19%"/>
-<col style="width: 22%"/>
-<col style="width: 22%"/>
-<col style="width: 37%"/>
+<col style="width: 19%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 37%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p><strong>Dataset</strong></p></th>
@@ -438,7 +444,8 @@ can be a significant save of time.</p>
 <td><p>[“background”, “qr_code”, “bar_code”, “logo”, “photo”]</p></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DocArtefacts</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">DocArtefacts</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -450,12 +457,12 @@ can be a significant save of time.</p>
 <p>docTR provides also some generator objects, which can be used to generate synthetic datasets.
 Both are also integrated in the training scripts to train a classification or recognition model.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CharacterGenerator</span>
-<span class="n">ds</span> <span class="o">=</span> <span class="n">CharacterGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">'abdef'</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">CharacterGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">WordGenerator</span>
-<span class="n">ds</span> <span class="o">=</span> <span class="n">WordGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">'abdef'</span><span class="p">,</span> <span class="n">min_chars</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">WordGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">,</span> <span class="n">min_chars</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -468,11 +475,11 @@ However, we provide some guidance on how to format your own dataset into the sam
 You can find further information about the format in references.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DetectionDataset</span>
 <span class="c1"># Load a detection dataset</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">DetectionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">"/path/to/images"</span><span class="p">,</span> <span class="n">label_path</span><span class="o">=</span><span class="s2">"/path/to/labels.json"</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">DetectionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
 <span class="c1"># Load a recognition Dataset</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">RecognitionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">"/path/to/images"</span><span class="p">,</span> <span class="n">labels_path</span><span class="o">=</span><span class="s2">"/path/to/labels.json"</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">RecognitionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">labels_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
 <span class="c1"># Load a OCR dataset which contains anotations for the boxes and labels</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">OCRDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">"/path/to/images"</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="s2">"/path/to/labels.json"</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">OCRDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>

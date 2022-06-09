@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.recognition.master.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css" />
@@ -214,7 +214,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -247,23 +248,23 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_MASTER</span><span class="p">,</span> <span class="n">_MASTERPostProcessor</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'MASTER'</span><span class="p">,</span> <span class="s1">'master'</span><span class="p">,</span> <span class="s1">'MASTERPostProcessor'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MASTER&#39;</span><span class="p">,</span> <span class="s1">&#39;master&#39;</span><span class="p">,</span> <span class="s1">&#39;MASTERPostProcessor&#39;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'master'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'mean'</span><span class="p">:</span> <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">),</span>
-        <span class="s1">'std'</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'vocab'</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">'french'</span><span class="p">],</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;master&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">,</span> <span class="mf">.5</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span> <span class="nc">MAGC</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
 
-    <span class="sd">"""Implements the Multi-Aspect Global Context Attention, as described in</span>
+    <span class="sd">&quot;&quot;&quot;Implements the Multi-Aspect Global Context Attention, as described in</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -271,7 +272,7 @@
 <span class="sd">        headers: number of headers to split channels</span>
 <span class="sd">        att_scale: if True, re-scale attention to counteract the variance distibutions</span>
 <span class="sd">        **kwargs</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -309,7 +310,7 @@
                     <span class="n">kernel_initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">he_normal</span><span class="p">()</span>
                 <span class="p">),</span>
             <span class="p">],</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">'transform'</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;transform&#39;</span>
         <span class="p">)</span>
 
     <span class="nd">@tf</span><span class="o">.</span><span class="n">function</span>
@@ -360,12 +361,12 @@
 
 <span class="k">class</span> <span class="nc">MAGCResnet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 
-    <span class="sd">"""Implements the modified resnet with MAGC layers, as described in paper.</span>
+    <span class="sd">&quot;&quot;&quot;Implements the modified resnet with MAGC layers, as described in paper.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        headers: number of header to split channels in MAGC layers</span>
 <span class="sd">        input_shape: shape of the model input (without batch dim)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -374,34 +375,34 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
             <span class="c1"># conv_1x</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling2D</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
             <span class="c1"># conv_2x</span>
             <span class="n">ResnetStage</span><span class="p">(</span><span class="n">num_blocks</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_channels</span><span class="o">=</span><span class="mi">256</span><span class="p">),</span>
             <span class="n">MAGC</span><span class="p">(</span><span class="n">inplanes</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">att_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling2D</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
             <span class="c1"># conv_3x</span>
             <span class="n">ResnetStage</span><span class="p">(</span><span class="n">num_blocks</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">output_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">),</span>
             <span class="n">MAGC</span><span class="p">(</span><span class="n">inplanes</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">att_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling2D</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
             <span class="c1"># conv_4x</span>
             <span class="n">ResnetStage</span><span class="p">(</span><span class="n">num_blocks</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">output_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">),</span>
             <span class="n">MAGC</span><span class="p">(</span><span class="n">inplanes</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">att_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
             <span class="c1"># conv_5x</span>
             <span class="n">ResnetStage</span><span class="p">(</span><span class="n">num_blocks</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">output_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">),</span>
             <span class="n">MAGC</span><span class="p">(</span><span class="n">inplanes</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">att_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">MASTER</span><span class="p">(</span><span class="n">_MASTER</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
 
-    <span class="sd">"""Implements MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
+    <span class="sd">&quot;&quot;&quot;Implements MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 <span class="sd">    Implementation based on the official TF implementation: &lt;https://github.com/jiangxiluning/MASTER-TF&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -413,7 +414,7 @@
 <span class="sd">        num_layers: number of decoder layers to stack</span>
 <span class="sd">        max_length: maximum length of character sequence handled by the model</span>
 <span class="sd">        input_size: size of the image inputs</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -463,7 +464,7 @@
         <span class="n">gt</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">seq_len</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">"""Compute categorical cross-entropy loss for the model.</span>
+        <span class="sd">&quot;&quot;&quot;Compute categorical cross-entropy loss for the model.</span>
 <span class="sd">        Sequences are masked after the EOS character.</span>
 
 <span class="sd">        Args:</span>
@@ -473,15 +474,15 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The loss of the model on the batch</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Input length : number of timesteps</span>
         <span class="n">input_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">model_output</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># Add one for additional &lt;eos&gt; token (sos disappear in shift!)</span>
         <span class="n">seq_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># One-hot gt labels</span>
         <span class="n">oh_gt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-        <span class="c1"># Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!</span>
-        <span class="c1"># The "masked" first gt char is &lt;sos&gt;. Delete last logit of the model output.</span>
+        <span class="c1"># Compute loss: don&#39;t forget to shift gt! Otherwise the model learns to output the gt[t-1]!</span>
+        <span class="c1"># The &quot;masked&quot; first gt char is &lt;sos&gt;. Delete last logit of the model output.</span>
         <span class="n">cce</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax_cross_entropy_with_logits</span><span class="p">(</span><span class="n">oh_gt</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:],</span> <span class="n">model_output</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
         <span class="c1"># Compute mask</span>
         <span class="n">mask_values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">cce</span><span class="p">)</span>
@@ -499,7 +500,7 @@
         <span class="n">return_preds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="sd">"""Call function for training</span>
+        <span class="sd">&quot;&quot;&quot;Call function for training</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: images</span>
@@ -509,7 +510,7 @@
 
 <span class="sd">        Return:</span>
 <span class="sd">            A dictionnary containing eventually loss, logits and predictions.</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Encode</span>
         <span class="n">feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -523,9 +524,9 @@
             <span class="c1"># Compute target: tensor of gts and sequence lengths</span>
             <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'training'</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"In training mode, you need to pass a value to 'target'"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;In training mode, you need to pass a value to &#39;target&#39;&quot;</span><span class="p">)</span>
             <span class="n">tgt_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_mask</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
             <span class="c1"># Compute logits</span>
             <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="n">tgt_mask</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -537,26 +538,26 @@
             <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s1">'out_map'</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
+            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;out_map&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
 
         <span class="k">if</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
-            <span class="n">out</span><span class="p">[</span><span class="s1">'preds'</span><span class="p">]</span> <span class="o">=</span> <span class="n">predictions</span>
+            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;preds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">predictions</span>
 
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoded</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">"""Decode function for prediction</span>
+        <span class="sd">&quot;&quot;&quot;Decode function for prediction</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            encoded: encoded features</span>
 
 <span class="sd">        Return:</span>
 <span class="sd">            A Tuple of tf.Tensor: predictions, logits</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoded</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">max_len</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">start_symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>  <span class="c1"># SOS</span>
@@ -575,7 +576,7 @@
             <span class="n">prob</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">next_word</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="n">ys</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
             <span class="c1"># ys.shape = B, T</span>
-            <span class="n">i_mesh</span><span class="p">,</span> <span class="n">j_mesh</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">max_len</span><span class="p">),</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">'ij'</span><span class="p">)</span>
+            <span class="n">i_mesh</span><span class="p">,</span> <span class="n">j_mesh</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">max_len</span><span class="p">),</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">i_mesh</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">j_mesh</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="n">ys</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tensor_scatter_nd_update</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">next_word</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
@@ -585,12 +586,12 @@
 
 
 <span class="k">class</span> <span class="nc">MASTERPostProcessor</span><span class="p">(</span><span class="n">_MASTERPostProcessor</span><span class="p">):</span>
-    <span class="sd">"""Post processor for MASTER architectures</span>
+    <span class="sd">&quot;&quot;&quot;Post processor for MASTER architectures</span>
 <span class="sd">    Args:</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">        ignore_case: if True, ignore case of letters</span>
 <span class="sd">        ignore_accents: if True, ignore accents of letters</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -604,11 +605,11 @@
         <span class="n">probs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># decode raw output of the model with tf_label_to_idx</span>
-        <span class="n">out_idxs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">out_idxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'int32'</span><span class="p">)</span>
+        <span class="n">out_idxs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">out_idxs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span>
         <span class="n">embedding</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
         <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">reduce_join</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="n">out_idxs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="p">,</span> <span class="s2">"&lt;eos&gt;"</span><span class="p">)</span>
-        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">'not valid'</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="p">,</span> <span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">)</span>
+        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;not valid&#39;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">word_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
 
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
@@ -618,22 +619,22 @@
 
     <span class="c1"># Patch the config</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'vocab'</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">MASTER</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'url'</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
 
 <div class="viewcode-block" id="master"><a class="viewcode-back" href="../../../../../models.html#doctr.models.recognition.master">[docs]</a><span class="k">def</span> <span class="nf">master</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
-    <span class="sd">"""MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
+    <span class="sd">&quot;&quot;&quot;MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import master</span>
@@ -644,9 +645,9 @@
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        text recognition architecture</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_master</span><span class="p">(</span><span class="s1">'master'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_master</span><span class="p">(</span><span class="s1">&#39;master&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

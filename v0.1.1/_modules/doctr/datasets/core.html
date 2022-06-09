@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.core - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -210,7 +210,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -237,11 +238,11 @@
 
 <span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">download_from_url</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'VisionDataset'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VisionDataset&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="VisionDataset"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.core.VisionDataset">[docs]</a><span class="k">class</span> <span class="nc">VisionDataset</span><span class="p">:</span>
-    <span class="sd">"""Implements an abstract dataset</span>
+    <span class="sd">&quot;&quot;&quot;Implements an abstract dataset</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        url: URL of the dataset</span>
@@ -250,7 +251,7 @@
 <span class="sd">        extract_archive: whether the downloaded file is an archive to be extracted</span>
 <span class="sd">        download: whether the dataset should be downloaded if not present on disk</span>
 <span class="sd">        overwrite: whether the archive should be re-extracted</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -262,22 +263,22 @@
         <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-        <span class="n">dataset_cache</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">'~'</span><span class="p">),</span> <span class="s1">'.cache'</span><span class="p">,</span> <span class="s1">'doctr'</span><span class="p">,</span> <span class="s1">'datasets'</span><span class="p">)</span>
+        <span class="n">dataset_cache</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">),</span> <span class="s1">&#39;.cache&#39;</span><span class="p">,</span> <span class="s1">&#39;doctr&#39;</span><span class="p">,</span> <span class="s1">&#39;datasets&#39;</span><span class="p">)</span>
 
         <span class="c1"># Download the file if not present</span>
         <span class="n">archive_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dataset_cache</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">archive_path</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">download</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the dataset needs to be downloaded first with download=True"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;the dataset needs to be downloaded first with download=True&quot;</span><span class="p">)</span>
 
-        <span class="n">archive_path</span> <span class="o">=</span> <span class="n">download_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_hash</span><span class="p">,</span> <span class="n">cache_subdir</span><span class="o">=</span><span class="s1">'datasets'</span><span class="p">)</span>
+        <span class="n">archive_path</span> <span class="o">=</span> <span class="n">download_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file_hash</span><span class="p">,</span> <span class="n">cache_subdir</span><span class="o">=</span><span class="s1">&#39;datasets&#39;</span><span class="p">)</span>
 
         <span class="c1"># Extract the archive</span>
         <span class="k">if</span> <span class="n">extract_archive</span><span class="p">:</span>
             <span class="n">archive_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">archive_path</span><span class="p">)</span>
             <span class="n">dataset_path</span> <span class="o">=</span> <span class="n">archive_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">archive_path</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">dataset_path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">or</span> <span class="n">overwrite</span><span class="p">:</span>
-                <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">f</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">dataset_path</span><span class="p">)</span>
 
         <span class="c1"># List images</span>
@@ -288,7 +289,7 @@
         <span class="k">return</span> <span class="ne">NotImplementedError</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">()"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">()&quot;</span>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>

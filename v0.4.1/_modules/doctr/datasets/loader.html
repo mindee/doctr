@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.loader - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -249,18 +250,18 @@
 
 <span class="kn">from</span> <span class="nn">doctr.utils.multithreading</span> <span class="kn">import</span> <span class="n">multithread_exec</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"DataLoader"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DataLoader&quot;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">default_collate</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
-    <span class="sd">"""Collate multiple elements into batches</span>
+    <span class="sd">&quot;&quot;&quot;Collate multiple elements into batches</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        samples: list of N tuples containing M elements</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Tuple of M sequences contianing N elements each</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">batch_data</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">)</span>
 
@@ -270,7 +271,7 @@
 
 
 <div class="viewcode-block" id="DataLoader"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.loader.DataLoader">[docs]</a><span class="k">class</span> <span class="nc">DataLoader</span><span class="p">:</span>
-    <span class="sd">"""Implements a dataset wrapper for fast data loading</span>
+    <span class="sd">&quot;&quot;&quot;Implements a dataset wrapper for fast data loading</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.datasets import FUNSD, DataLoader</span>
@@ -283,9 +284,9 @@
 <span class="sd">        dataset: the dataset</span>
 <span class="sd">        shuffle: whether the samples should be shuffled before passing it to the iterator</span>
 <span class="sd">        batch_size: number of elements in each batch</span>
-<span class="sd">        drop_last: if `True`, drops the last batch if it isn't full</span>
+<span class="sd">        drop_last: if `True`, drops the last batch if it isn&#39;t full</span>
 <span class="sd">        workers: number of workers to use for data loading</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -302,7 +303,7 @@
         <span class="n">nb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_batches</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span> <span class="k">if</span> <span class="n">drop_last</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">collate_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">collate_fn</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">'collate_fn'</span><span class="p">)</span> <span class="k">else</span> <span class="n">default_collate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">collate_fn</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;collate_fn&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">default_collate</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="n">collate_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">workers</span> <span class="o">=</span> <span class="n">workers</span>

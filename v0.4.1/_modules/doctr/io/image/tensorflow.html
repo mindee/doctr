@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.io.image.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -245,18 +246,18 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 
-<span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s1">'2.6.0'</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s1">&#39;2.6.0&#39;</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tensorflow.keras.utils</span> <span class="kn">import</span> <span class="n">img_to_array</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">tensorflow.keras.preprocessing.image</span> <span class="kn">import</span> <span class="n">img_to_array</span>
 
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractPath</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'tensor_from_pil'</span><span class="p">,</span> <span class="s1">'read_img_as_tensor'</span><span class="p">,</span> <span class="s1">'decode_img_as_tensor'</span><span class="p">,</span> <span class="s1">'tensor_from_numpy'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tensor_from_pil&#39;</span><span class="p">,</span> <span class="s1">&#39;read_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;decode_img_as_tensor&#39;</span><span class="p">,</span> <span class="s1">&#39;tensor_from_numpy&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">tensor_from_pil</span><span class="p">(</span><span class="n">pil_img</span><span class="p">:</span> <span class="n">Image</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sd">"""Convert a PIL Image to a TensorFlow tensor</span>
+    <span class="sd">&quot;&quot;&quot;Convert a PIL Image to a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pil_img: a PIL image</span>
@@ -264,7 +265,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        decoded image as tensor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">npy_img</span> <span class="o">=</span> <span class="n">img_to_array</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
 
@@ -272,7 +273,7 @@
 
 
 <div class="viewcode-block" id="read_img_as_tensor"><a class="viewcode-back" href="../../../../io.html#doctr.io.read_img_as_tensor">[docs]</a><span class="k">def</span> <span class="nf">read_img_as_tensor</span><span class="p">(</span><span class="n">img_path</span><span class="p">:</span> <span class="n">AbstractPath</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sd">"""Read an image file as a TensorFlow tensor</span>
+    <span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_path: location of the image file</span>
@@ -280,10 +281,10 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        decoded image as a tensor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">decode_jpeg</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
@@ -296,7 +297,7 @@
 
 
 <div class="viewcode-block" id="decode_img_as_tensor"><a class="viewcode-back" href="../../../../io.html#doctr.io.decode_img_as_tensor">[docs]</a><span class="k">def</span> <span class="nf">decode_img_as_tensor</span><span class="p">(</span><span class="n">img_content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sd">"""Read a byte stream as a TensorFlow tensor</span>
+    <span class="sd">&quot;&quot;&quot;Read a byte stream as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_content: bytes of a decoded image</span>
@@ -304,10 +305,10 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        decoded image as a tensor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">decode_image</span><span class="p">(</span><span class="n">img_content</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
@@ -319,7 +320,7 @@
 
 
 <span class="k">def</span> <span class="nf">tensor_from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">DType</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sd">"""Read an image file as a TensorFlow tensor</span>
+    <span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
@@ -327,10 +328,10 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        same image as a tensor of shape (H, W, C)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
         <span class="n">img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">npy_img</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.backbones.vgg.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -248,18 +249,18 @@
 
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'VGG'</span><span class="p">,</span> <span class="s1">'vgg16_bn'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;VGG&#39;</span><span class="p">,</span> <span class="s1">&#39;vgg16_bn&#39;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'vgg16_bn'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'num_blocks'</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">'planes'</span><span class="p">:</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
-                 <span class="s1">'rect_pools'</span><span class="p">:</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-                 <span class="s1">'url'</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+    <span class="s1">&#39;vgg16_bn&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;num_blocks&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;planes&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+                 <span class="s1">&#39;rect_pools&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                 <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span> <span class="nc">VGG</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
-    <span class="sd">"""Implements the VGG architecture from `"Very Deep Convolutional Networks for Large-Scale Image Recognition"</span>
+    <span class="sd">&quot;&quot;&quot;Implements the VGG architecture from `&quot;Very Deep Convolutional Networks for Large-Scale Image Recognition&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -268,7 +269,7 @@
 <span class="sd">        rect_pools: whether pooling square kernels should be replace with rectangular ones</span>
 <span class="sd">        input_shape: shapes of the input tensor</span>
 <span class="sd">        include_top: whether the classifier head should be instantiated</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_blocks</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
@@ -280,10 +281,10 @@
 
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Specify input_shape only for the first layer</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"input_shape"</span><span class="p">:</span> <span class="n">input_shape</span><span class="p">}</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="n">input_shape</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">nb_blocks</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">,</span> <span class="n">rect_pool</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">rect_pools</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nb_blocks</span><span class="p">):</span>
-                <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s1">'relu'</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
                 <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPooling2D</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">rect_pool</span> <span class="k">else</span> <span class="mi">2</span><span class="p">)))</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
@@ -292,17 +293,17 @@
 <span class="k">def</span> <span class="nf">_vgg</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
 
     <span class="c1"># Build the model</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">VGG</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'num_blocks'</span><span class="p">],</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'planes'</span><span class="p">],</span>
-                <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'rect_pools'</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">VGG</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;num_blocks&#39;</span><span class="p">],</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;planes&#39;</span><span class="p">],</span>
+                <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;rect_pools&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'url'</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
 
 <div class="viewcode-block" id="vgg16_bn"><a class="viewcode-back" href="../../../../../models.html#doctr.models.backbones.vgg16_bn">[docs]</a><span class="k">def</span> <span class="nf">vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
-    <span class="sd">"""VGG-16 architecture as described in `"Very Deep Convolutional Networks for Large-Scale Image Recognition"</span>
+    <span class="sd">&quot;&quot;&quot;VGG-16 architecture as described in `&quot;Very Deep Convolutional Networks for Large-Scale Image Recognition&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_, modified by adding batch normalization.</span>
 
 <span class="sd">    Example::</span>
@@ -317,9 +318,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        VGG feature extractor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_vgg</span><span class="p">(</span><span class="s1">'vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_vgg</span><span class="p">(</span><span class="s1">&#39;vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

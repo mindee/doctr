@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.mjsynth - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -228,7 +228,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -255,22 +256,22 @@
 
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">AbstractDataset</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"MJSynth"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MJSynth&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="MJSynth"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.MJSynth">[docs]</a><span class="k">class</span> <span class="nc">MJSynth</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-    <span class="sd">"""MJSynth dataset from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition"</span>
+    <span class="sd">&quot;&quot;&quot;MJSynth dataset from `&quot;Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition&quot;</span>
 <span class="sd">    &lt;https://www.robots.ox.ac.uk/~vgg/data/text/&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; # NOTE: This is a pure recognition dataset without bounding box labels.</span>
 <span class="sd">    &gt;&gt;&gt; # NOTE: You need to download the dataset.</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import MJSynth</span>
-<span class="sd">    &gt;&gt;&gt; train_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",</span>
-<span class="sd">    &gt;&gt;&gt;                     label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt",</span>
+<span class="sd">    &gt;&gt;&gt; train_set = MJSynth(img_folder=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;                     label_path=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                     train=True)</span>
 <span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
-<span class="sd">    &gt;&gt;&gt; test_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",</span>
-<span class="sd">    &gt;&gt;&gt;                    label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt")</span>
+<span class="sd">    &gt;&gt;&gt; test_set = MJSynth(img_folder=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;                    label_path=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt&quot;)</span>
 <span class="sd">    &gt;&gt;&gt;                    train=False)</span>
 <span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
 
@@ -279,7 +280,7 @@
 <span class="sd">        label_path: path to the file with the labels</span>
 <span class="sd">        train: whether the subset should be the training one</span>
 <span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -293,7 +294,7 @@
         <span class="c1"># File existence check</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">img_folder</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">label_path</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="k">else</span> <span class="n">img_folder</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">label_path</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="k">else</span> <span class="n">img_folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
@@ -304,14 +305,14 @@
         <span class="n">train_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">img_paths</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.9</span><span class="p">)</span>
         <span class="n">set_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Unpacking MJSynth'</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">])):</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'_'</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Unpacking MJSynth&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">])):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span>
             <span class="n">img_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="n">path</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="n">label</span><span class="p">)))</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">"</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </pre></div>
         </article>
       </div>

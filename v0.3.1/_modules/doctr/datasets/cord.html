@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.cord - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -214,7 +214,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -243,11 +244,11 @@
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">fit_rbbox</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'CORD'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CORD&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="CORD"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.CORD">[docs]</a><span class="k">class</span> <span class="nc">CORD</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-    <span class="sd">"""CORD dataset from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing"</span>
+    <span class="sd">&quot;&quot;&quot;CORD dataset from `&quot;CORD: A Consolidated Receipt Dataset forPost-OCR Parsing&quot;</span>
 <span class="sd">    &lt;https://openreview.net/pdf?id=SJl3z659UH&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -260,12 +261,12 @@
 <span class="sd">        sample_transforms: composable transformations that will be applied to each image</span>
 <span class="sd">        rotated_bbox: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
-<span class="sd">    """</span>
-    <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip'</span><span class="p">,</span>
-             <span class="s1">'45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8'</span><span class="p">)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/cord_train.zip&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8&#39;</span><span class="p">)</span>
 
-    <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'https://github.com/mindee/doctr/releases/download/v0.1.1/cord_test.zip'</span><span class="p">,</span>
-            <span class="s1">'8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58'</span><span class="p">)</span>
+    <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1.1/cord_test.zip&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -279,7 +280,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sha256</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c1"># # List images</span>
-        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">'image'</span><span class="p">)</span>
+        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;image&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fp16</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
@@ -287,16 +288,16 @@
         <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">):</span>
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">stem</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
             <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">'json'</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.json"</span><span class="p">),</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">label</span><span class="p">[</span><span class="s2">"valid_line"</span><span class="p">]:</span>
-                    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">"words"</span><span class="p">]:</span>
-                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"text"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                            <span class="n">x</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x1"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x2"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x3"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x4"</span><span class="p">]</span>
-                            <span class="n">y</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y1"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y2"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y3"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y4"</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">label</span><span class="p">[</span><span class="s2">&quot;valid_line&quot;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">x</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x1&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x2&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x3&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x4&quot;</span><span class="p">]</span>
+                            <span class="n">y</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y1&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y2&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y3&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y4&quot;</span><span class="p">]</span>
                             <span class="k">if</span> <span class="n">rotated_bbox</span><span class="p">:</span>
                                 <span class="n">box</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fit_rbbox</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
                                     <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
@@ -307,7 +308,7 @@
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="c1"># Reduce 8 coords to 4</span>
                                 <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span>
-                            <span class="n">_targets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">word</span><span class="p">[</span><span class="s1">'text'</span><span class="p">],</span> <span class="n">box</span><span class="p">))</span>
+                            <span class="n">_targets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">word</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">],</span> <span class="n">box</span><span class="p">))</span>
 
             <span class="n">text_targets</span><span class="p">,</span> <span class="n">box_targets</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_targets</span><span class="p">)</span>
 
@@ -318,7 +319,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">"</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </pre></div>
         </article>
       </div>

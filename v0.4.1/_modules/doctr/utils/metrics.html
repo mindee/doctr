@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.utils.metrics - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -250,12 +251,12 @@
 
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">rbbox_to_polygon</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'TextMatch'</span><span class="p">,</span> <span class="s1">'box_iou'</span><span class="p">,</span> <span class="s1">'box_ioa'</span><span class="p">,</span> <span class="s1">'mask_iou'</span><span class="p">,</span> <span class="s1">'rbox_to_mask'</span><span class="p">,</span>
-           <span class="s1">'nms'</span><span class="p">,</span> <span class="s1">'LocalizationConfusion'</span><span class="p">,</span> <span class="s1">'OCRMetric'</span><span class="p">,</span> <span class="s1">'DetectionMetric'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;box_ioa&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;rbox_to_mask&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">,</span> <span class="s1">&#39;DetectionMetric&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-    <span class="sd">"""Perform string comparison with multiple levels of tolerance</span>
+    <span class="sd">&quot;&quot;&quot;Perform string comparison with multiple levels of tolerance</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        word1: a string</span>
@@ -264,19 +265,19 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their</span>
 <span class="sd">            unidecode counterparts and their lower-case unidecode counterparts match</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">raw_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span><span class="p">)</span>
     <span class="n">caseless_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
     <span class="n">unidecode_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">))</span>
 
-    <span class="c1"># Warning: the order is important here otherwise the pair ("EUR", "€") cannot be matched</span>
+    <span class="c1"># Warning: the order is important here otherwise the pair (&quot;EUR&quot;, &quot;€&quot;) cannot be matched</span>
     <span class="n">unicase_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
 
     <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">unidecode_match</span><span class="p">,</span> <span class="n">unicase_match</span>
 
 
 <div class="viewcode-block" id="TextMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch">[docs]</a><span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">"""Implements text match metric (word-level accuracy) for recognition task.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements text match metric (word-level accuracy) for recognition task.</span>
 
 <span class="sd">    The raw aggregated metric is computed as follows:</span>
 
@@ -301,9 +302,9 @@
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.utils import TextMatch</span>
 <span class="sd">        &gt;&gt;&gt; metric = TextMatch()</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(['Hello', 'world'], ['hello', 'world'])</span>
+<span class="sd">        &gt;&gt;&gt; metric.update([&#39;Hello&#39;, &#39;world&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; metric.summary()</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
@@ -313,14 +314,14 @@
         <span class="n">gt</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pred</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">"""Update the state of the metric with new predictions</span>
+        <span class="sd">&quot;&quot;&quot;Update the state of the metric with new predictions</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            gt: list of groung-truth character sequences</span>
-<span class="sd">            pred: list of predicted character sequences"""</span>
+<span class="sd">            pred: list of predicted character sequences&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"prediction size does not match with ground-truth labels size"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;prediction size does not match with ground-truth labels size&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
             <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span><span class="p">)</span>
@@ -332,14 +333,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TextMatch.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">"""Computes the aggregated metrics</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode</span>
 <span class="sd">            counterpart and its lower-case unidecode counterpart</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"you need to update the metric before getting the summary"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;you need to update the metric before getting the summary&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
@@ -357,14 +358,14 @@
 
 
 <span class="k">def</span> <span class="nf">box_iou</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">"""Compute the IoU between two sets of bounding boxes</span>
+    <span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of bounding boxes</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
@@ -385,7 +386,7 @@
 
 
 <span class="k">def</span> <span class="nf">box_ioa</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">"""Compute the IoA (intersection over area) between two sets of bounding boxes:</span>
+    <span class="sd">&quot;&quot;&quot;Compute the IoA (intersection over area) between two sets of bounding boxes:</span>
 <span class="sd">    ioa(i, j) = inter(i, j) / area(i)</span>
 
 <span class="sd">    Args:</span>
@@ -393,7 +394,7 @@
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoA matrix of shape (N, M)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">ioa_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
@@ -414,7 +415,7 @@
 
 
 <span class="k">def</span> <span class="nf">mask_iou</span><span class="p">(</span><span class="n">masks_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">masks_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">"""Compute the IoU between two sets of boolean masks</span>
+    <span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of boolean masks</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        masks_1: boolean masks of shape (N, H, W)</span>
@@ -422,10 +423,10 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"both boolean masks should have the same spatial shape"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;both boolean masks should have the same spatial shape&quot;</span><span class="p">)</span>
 
     <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
@@ -439,7 +440,7 @@
 
 
 <span class="k">def</span> <span class="nf">rbox_to_mask</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">"""Convert boxes to masks</span>
+    <span class="sd">&quot;&quot;&quot;Convert boxes to masks</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)</span>
@@ -447,7 +448,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the boolean masks of shape (N, H, W)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 
@@ -471,7 +472,7 @@
 
 
 <span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">"""Perform non-max suppression, borrowed from &lt;https://github.com/rbgirshick/fast-rcnn&gt;`_.</span>
+    <span class="sd">&quot;&quot;&quot;Perform non-max suppression, borrowed from &lt;https://github.com/rbgirshick/fast-rcnn&gt;`_.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes: np array of straight boxes: (*, 5), (xmin, ymin, xmax, ymax, score)</span>
@@ -479,7 +480,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A list of box indexes to keep</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">y1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">x2</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
@@ -509,7 +510,7 @@
 
 
 <div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">"""Implements common confusion metrics and mean IoU for localization evaluation.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
@@ -543,7 +544,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -577,11 +578,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="LocalizationConfusion.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-        <span class="sd">"""Computes the aggregated metrics</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall, precision and meanIoU scores</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Recall</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
@@ -602,7 +603,7 @@
 
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">"""Implements an end-to-end OCR metric.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements an end-to-end OCR metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
@@ -635,12 +636,12 @@
 <span class="sd">        &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
 <span class="sd">        &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
 <span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
-<span class="sd">        ['hello'], ['hello', 'world'])</span>
+<span class="sd">        [&#39;hello&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -662,8 +663,8 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"there should be the same number of boxes and string both for the ground truth "</span>
-                                 <span class="s2">"and the predictions"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
+                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
 
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -691,11 +692,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="OCRMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-        <span class="sd">"""Computes the aggregated metrics</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall &amp; precision for each string comparison and the mean IoU</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Recall</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -729,7 +730,7 @@
 
 
 <div class="viewcode-block" id="DetectionMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric">[docs]</a><span class="k">class</span> <span class="nc">DetectionMetric</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">"""Implements an object detection metric.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements an object detection metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
@@ -767,7 +768,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -789,8 +790,8 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"there should be the same number of boxes and string both for the ground truth "</span>
-                                 <span class="s2">"and the predictions"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
+                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
 
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -813,11 +814,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="DetectionMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.DetectionMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-        <span class="sd">"""Computes the aggregated metrics</span>
+        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall &amp; precision for each class prediction and the mean IoU</span>
-<span class="sd">        """</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Recall</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>

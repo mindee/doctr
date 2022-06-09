@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.utils - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -228,7 +228,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -265,17 +266,17 @@
 
 <span class="kn">from</span> <span class="nn">.vocabs</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'translate'</span><span class="p">,</span> <span class="s1">'encode_string'</span><span class="p">,</span> <span class="s1">'decode_sequence'</span><span class="p">,</span> <span class="s1">'encode_sequences'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;translate&#39;</span><span class="p">,</span> <span class="s1">&#39;encode_string&#39;</span><span class="p">,</span> <span class="s1">&#39;decode_sequence&#39;</span><span class="p">,</span> <span class="s1">&#39;encode_sequences&#39;</span><span class="p">]</span>
 
-<span class="n">ImageTensor</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">'ImageTensor'</span><span class="p">)</span>
+<span class="n">ImageTensor</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s1">&#39;ImageTensor&#39;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span>
     <span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">vocab_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">unknown_char</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'■'</span><span class="p">,</span>
+    <span class="n">unknown_char</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;■&#39;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">"""Translate a string input in a given vocabulary</span>
+    <span class="sd">&quot;&quot;&quot;Translate a string input in a given vocabulary</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input_string: input string to translate</span>
@@ -283,12 +284,12 @@
 <span class="sd">        unknown_char: unknown character for non-translatable characters</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A string translated in a given vocab"""</span>
+<span class="sd">        A string translated in a given vocab&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">VOCABS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vocab_name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">"output vocabulary must be in vocabs dictionnary"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;output vocabulary must be in vocabs dictionnary&quot;</span><span class="p">)</span>
 
-    <span class="n">translated</span> <span class="o">=</span> <span class="s1">''</span>
+    <span class="n">translated</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">input_string</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VOCABS</span><span class="p">[</span><span class="n">vocab_name</span><span class="p">]:</span>
             <span class="c1"># we need to translate char into a vocab char</span>
@@ -296,8 +297,8 @@
                 <span class="c1"># remove whitespaces</span>
                 <span class="k">continue</span>
             <span class="c1"># normalize character if it is not in vocab</span>
-            <span class="n">char</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s1">'NFD'</span><span class="p">,</span> <span class="n">char</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">'ascii'</span><span class="p">,</span> <span class="s1">'ignore'</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'ascii'</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">''</span> <span class="ow">or</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VOCABS</span><span class="p">[</span><span class="n">vocab_name</span><span class="p">]:</span>
+            <span class="n">char</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="s1">&#39;NFD&#39;</span><span class="p">,</span> <span class="n">char</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VOCABS</span><span class="p">[</span><span class="n">vocab_name</span><span class="p">]:</span>
                 <span class="c1"># if normalization fails or char still not in vocab, return unknown character)</span>
                 <span class="n">char</span> <span class="o">=</span> <span class="n">unknown_char</span>
         <span class="n">translated</span> <span class="o">+=</span> <span class="n">char</span>
@@ -308,26 +309,26 @@
     <span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">"""Given a predefined mapping, encode the string to a sequence of numbers</span>
+    <span class="sd">&quot;&quot;&quot;Given a predefined mapping, encode the string to a sequence of numbers</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input_string: string to encode</span>
 <span class="sd">        vocab: vocabulary (string), the encoding is given by the indexing of the character sequence</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        A list encoding the input_string"""</span>
+<span class="sd">        A list encoding the input_string&quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"some characters cannot be found in 'vocab'"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;some characters cannot be found in &#39;vocab&#39;&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">decode_sequence</span><span class="p">(</span>
     <span class="n">input_seq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
     <span class="n">mapping</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">"""Given a predefined mapping, decode the sequence of numbers to a string</span>
+    <span class="sd">&quot;&quot;&quot;Given a predefined mapping, decode the sequence of numbers to a string</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input_seq: array to decode</span>
@@ -335,14 +336,14 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A string, decoded from input_seq</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_seq</span><span class="p">,</span> <span class="p">(</span><span class="n">Sequence</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"Invalid sequence type"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid sequence type&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_seq</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">input_seq</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span> <span class="ow">or</span> <span class="n">input_seq</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">"Input must be an array of int, with max less than mapping size"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Input must be an array of int, with max less than mapping size&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">input_seq</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">input_seq</span><span class="p">))</span>
 
 
 <div class="viewcode-block" id="encode_sequences"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.encode_sequences">[docs]</a><span class="k">def</span> <span class="nf">encode_sequences</span><span class="p">(</span>
@@ -355,7 +356,7 @@
     <span class="n">dynamic_seq_length</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">"""Encode character sequences using a given vocab as mapping</span>
+    <span class="sd">&quot;&quot;&quot;Encode character sequences using a given vocab as mapping</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        sequences: the list of character sequences of size N</span>
@@ -368,10 +369,10 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the padded encoded data as a tensor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">eos</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"argument 'eos' needs to be outside of vocab possible indices"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;argument &#39;eos&#39; needs to be outside of vocab possible indices&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">dynamic_seq_length</span><span class="p">:</span>
         <span class="c1"># Maximum string length + EOS</span>
@@ -385,7 +386,7 @@
     <span class="c1"># Pad all sequences</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>  <span class="c1"># pad with padding symbol</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">pad</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"argument 'pad' needs to be outside of vocab possible indices"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;argument &#39;pad&#39; needs to be outside of vocab possible indices&quot;</span><span class="p">)</span>
         <span class="c1"># In that case, add EOS at the end of the word before padding</span>
         <span class="n">default_symbol</span> <span class="o">=</span> <span class="n">pad</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># pad with eos symbol</span>
@@ -400,7 +401,7 @@
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sos</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>  <span class="c1"># place sos symbol at the beginning of each sequence</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">sos</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"argument 'sos' needs to be outside of vocab possible indices"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;argument &#39;sos&#39; needs to be outside of vocab possible indices&quot;</span><span class="p">)</span>
         <span class="n">encoded_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">encoded_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">encoded_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">sos</span>
 
@@ -409,25 +410,25 @@
 
 <span class="k">def</span> <span class="nf">convert_target_to_relative</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">ImageTensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">ImageTensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 
-    <span class="n">target</span><span class="p">[</span><span class="s1">'boxes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_to_relative_coords</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="s1">'boxes'</span><span class="p">],</span> <span class="n">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
+    <span class="n">target</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">convert_to_relative_coords</span><span class="p">(</span><span class="n">target</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">],</span> <span class="n">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
 
 
 <span class="k">def</span> <span class="nf">crop_bboxes_from_image</span><span class="p">(</span><span class="n">img_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">geoms</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">"""Crop a set of bounding boxes from an image</span>
+    <span class="sd">&quot;&quot;&quot;Crop a set of bounding boxes from an image</span>
 <span class="sd">    Args:</span>
 <span class="sd">        img_path: path to the image</span>
 <span class="sd">        geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        a list of cropped images</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">))</span>
     <span class="c1"># Polygon</span>
     <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">extract_rcrops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">extract_crops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Invalid geometry format"</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid geometry format&quot;</span><span class="p">)</span>
 </pre></div>
         </article>
       </div>

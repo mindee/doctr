@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.backbones.resnet.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -249,26 +250,26 @@
 
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'ResNet'</span><span class="p">,</span> <span class="s1">'resnet31'</span><span class="p">,</span> <span class="s1">'ResnetStage'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ResNet&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet31&#39;</span><span class="p">,</span> <span class="s1">&#39;ResnetStage&#39;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'resnet31'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'num_blocks'</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">'output_channels'</span><span class="p">:</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
-                 <span class="s1">'conv_seq'</span><span class="p">:</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s1">'pooling'</span><span class="p">:</span> <span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                 <span class="s1">'url'</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+    <span class="s1">&#39;resnet31&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;num_blocks&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;output_channels&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+                 <span class="s1">&#39;conv_seq&#39;</span><span class="p">:</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;pooling&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                 <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span> <span class="nc">ResnetBlock</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
 
-    <span class="sd">"""Implements a resnet31 block with shortcut</span>
+    <span class="sd">&quot;&quot;&quot;Implements a resnet31 block with shortcut</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        conv_shortcut: Use of shortcut</span>
 <span class="sd">        output_channels: number of channels to use in Conv2D</span>
 <span class="sd">        kernel_size: size of square kernels</span>
 <span class="sd">        strides: strides to use in the first convolution of the block</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">output_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -284,10 +285,10 @@
                     <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span>
                         <span class="n">filters</span><span class="o">=</span><span class="n">output_channels</span><span class="p">,</span>
                         <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
-                        <span class="n">padding</span><span class="o">=</span><span class="s1">'same'</span><span class="p">,</span>
+                        <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span>
                         <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                         <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">'he_normal'</span>
+                        <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span>
                     <span class="p">),</span>
                     <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">()</span>
                 <span class="p">]</span>
@@ -297,7 +298,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">conv_resnetblock</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">'relu'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">conv_resnetblock</span><span class="p">(</span>
@@ -306,8 +307,8 @@
         <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">[</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">'same'</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">'he_normal'</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
         <span class="p">]</span>
 
@@ -324,13 +325,13 @@
 
 <span class="k">class</span> <span class="nc">ResnetStage</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 
-    <span class="sd">"""Implements a resnet31 stage</span>
+    <span class="sd">&quot;&quot;&quot;Implements a resnet31 stage</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        num_blocks: number of blocks inside the stage</span>
 <span class="sd">        output_channels: number of channels to use in Conv2D</span>
 <span class="sd">        downsample: if true, performs a /2 downsampling at the first block of the stage</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -352,7 +353,7 @@
 
 <span class="k">class</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 
-    <span class="sd">"""Resnet class with two convolutions and a maxpooling before the first stage</span>
+    <span class="sd">&quot;&quot;&quot;Resnet class with two convolutions and a maxpooling before the first stage</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        num_blocks: number of resnet block in each stage</span>
@@ -361,7 +362,7 @@
 <span class="sd">        pooling: pooling to add after each stage (if None, no pooling)</span>
 <span class="sd">        input_shape: shape of inputs</span>
 <span class="sd">        include_top: whether the classifier head should be instantiated</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -379,16 +380,16 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">'valid'</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="n">conv</span><span class="p">,</span> <span class="n">pool</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">,</span> <span class="n">conv_seq</span><span class="p">,</span> <span class="n">pooling</span><span class="p">):</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ResnetStage</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">conv</span><span class="p">:</span>
-                <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+                <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">pool</span><span class="p">:</span>
-                <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">'valid'</span><span class="p">))</span>
+                <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">))</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
 
@@ -396,22 +397,22 @@
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet</span><span class="p">(</span>
-        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'num_blocks'</span><span class="p">],</span>
-        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'output_channels'</span><span class="p">],</span>
-        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'conv_seq'</span><span class="p">],</span>
-        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'pooling'</span><span class="p">],</span>
+        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;num_blocks&#39;</span><span class="p">],</span>
+        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;output_channels&#39;</span><span class="p">],</span>
+        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;conv_seq&#39;</span><span class="p">],</span>
+        <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;pooling&#39;</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'url'</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
 
 <div class="viewcode-block" id="resnet31"><a class="viewcode-back" href="../../../../../models.html#doctr.models.backbones.resnet31">[docs]</a><span class="k">def</span> <span class="nf">resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
-    <span class="sd">"""Resnet31 architecture with rectangular pooling windows as described in</span>
-<span class="sd">    `"Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition",</span>
+    <span class="sd">&quot;&quot;&quot;Resnet31 architecture with rectangular pooling windows as described in</span>
+<span class="sd">    `&quot;Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_. Downsizing: (H, W) --&gt; (H/8, W/4)</span>
 
 <span class="sd">    Example::</span>
@@ -426,9 +427,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        A resnet31 model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span><span class="s1">'resnet31'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span><span class="s1">&#39;resnet31&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.ic13 - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -251,25 +252,25 @@
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">AbstractDataset</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"IC13"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;IC13&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="IC13"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.IC13">[docs]</a><span class="k">class</span> <span class="nc">IC13</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-    <span class="sd">"""IC13 dataset from `"ICDAR 2013 Robust Reading Competition" &lt;https://rrc.cvc.uab.es/&gt;`_.</span>
+    <span class="sd">&quot;&quot;&quot;IC13 dataset from `&quot;ICDAR 2013 Robust Reading Competition&quot; &lt;https://rrc.cvc.uab.es/&gt;`_.</span>
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.datasets import IC13</span>
-<span class="sd">        &gt;&gt;&gt; train_set = IC13(img_folder="/path/to/Challenge2_Training_Task12_Images",</span>
-<span class="sd">        &gt;&gt;&gt;                  label_folder="/path/to/Challenge2_Training_Task1_GT")</span>
+<span class="sd">        &gt;&gt;&gt; train_set = IC13(img_folder=&quot;/path/to/Challenge2_Training_Task12_Images&quot;,</span>
+<span class="sd">        &gt;&gt;&gt;                  label_folder=&quot;/path/to/Challenge2_Training_Task1_GT&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
-<span class="sd">        &gt;&gt;&gt; test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",</span>
-<span class="sd">        &gt;&gt;&gt;                 label_folder="/path/to/Challenge2_Test_Task1_GT")</span>
+<span class="sd">        &gt;&gt;&gt; test_set = IC13(img_folder=&quot;/path/to/Challenge2_Test_Task12_Images&quot;,</span>
+<span class="sd">        &gt;&gt;&gt;                 label_folder=&quot;/path/to/Challenge2_Test_Task1_GT&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; img, target = test_set[0]</span>
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
 <span class="sd">        label_folder: folder with all annotation files for the images</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -283,7 +284,7 @@
         <span class="c1"># File existence check</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_folder</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">img_folder</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">label_folder</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_folder</span><span class="p">)</span> <span class="k">else</span> <span class="n">img_folder</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">label_folder</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_folder</span><span class="p">)</span> <span class="k">else</span> <span class="n">img_folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
@@ -293,12 +294,12 @@
         <span class="k">for</span> <span class="n">img_name</span> <span class="ow">in</span> <span class="n">img_names</span><span class="p">:</span>
 
             <span class="n">img_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span>
-            <span class="n">label_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">label_folder</span><span class="p">,</span> <span class="s2">"gt_"</span> <span class="o">+</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_name</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">".txt"</span><span class="p">)</span>
+            <span class="n">label_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">label_folder</span><span class="p">,</span> <span class="s2">&quot;gt_&quot;</span> <span class="o">+</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_name</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span><span class="p">)</span>
 
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">_lines</span> <span class="o">=</span> <span class="p">[</span>
-                    <span class="p">[</span><span class="n">val</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span> <span class="k">else</span> <span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
-                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">' '</span><span class="p">,</span> <span class="n">quotechar</span><span class="o">=</span><span class="s2">"'"</span><span class="p">)</span>
+                    <span class="p">[</span><span class="n">val</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">quotechar</span><span class="o">=</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
                 <span class="p">]</span>
             <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">_lines</span><span class="p">]</span>
             <span class="c1"># xmin, ymin, xmax, ymax</span>

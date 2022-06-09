@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.svt - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -228,7 +228,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -258,11 +259,11 @@
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">crop_bboxes_from_image</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'SVT'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SVT&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="SVT"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.SVT">[docs]</a><span class="k">class</span> <span class="nc">SVT</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-    <span class="sd">"""SVT dataset from `"The Street View Text Dataset - UCSD Computer Vision"</span>
+    <span class="sd">&quot;&quot;&quot;SVT dataset from `&quot;The Street View Text Dataset - UCSD Computer Vision&quot;</span>
 <span class="sd">    &lt;http://vision.ucsd.edu/~kai/svt/&gt;`_.</span>
 
 <span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svt-grid.png</span>
@@ -277,10 +278,10 @@
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">        recognition_task: whether the dataset should be used for recognition task</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">URL</span> <span class="o">=</span> <span class="s1">'http://vision.ucsd.edu/~kai/svt/svt.zip'</span>
-    <span class="n">SHA256</span> <span class="o">=</span> <span class="s1">'63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf'</span>
+    <span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;http://vision.ucsd.edu/~kai/svt/svt.zip&#39;</span>
+    <span class="n">SHA256</span> <span class="o">=</span> <span class="s1">&#39;63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -296,38 +297,38 @@
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
         <span class="c1"># Load xml data</span>
-        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">'svt1'</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
-        <span class="n">xml_tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">'train.xml'</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">'test.xml'</span><span class="p">))</span>
+        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;svt1&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+        <span class="n">xml_tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">&#39;train.xml&#39;</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">&#39;test.xml&#39;</span><span class="p">))</span>
         <span class="n">xml_root</span> <span class="o">=</span> <span class="n">xml_tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
 
-        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">xml_root</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Unpacking SVT'</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">xml_root</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">xml_root</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Unpacking SVT&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">xml_root</span><span class="p">)):</span>
             <span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">rectangles</span> <span class="o">=</span> <span class="n">image</span>
 
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
                 <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
                 <span class="n">_boxes</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="p">[</span>
-                        <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">])],</span>
-                        <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'width'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">])],</span>
+                        <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])],</span>
+                        <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])],</span>
                         <span class="p">[</span>
-                            <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'width'</span><span class="p">]),</span>
-                            <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'height'</span><span class="p">])</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">])</span>
                         <span class="p">],</span>
-                        <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'height'</span><span class="p">])],</span>
+                        <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">])],</span>
                     <span class="p">]</span>
                     <span class="k">for</span> <span class="n">rect</span> <span class="ow">in</span> <span class="n">rectangles</span>
                 <span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># x_min, y_min, x_max, y_max</span>
                 <span class="n">_boxes</span> <span class="o">=</span> <span class="p">[</span>
-                    <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">]),</span>  <span class="c1"># type: ignore[list-item]</span>
-                     <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'width'</span><span class="p">]),</span>  <span class="c1"># type: ignore[list-item]</span>
-                     <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'height'</span><span class="p">])]</span>  <span class="c1"># type: ignore[list-item]</span>
+                    <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]),</span>  <span class="c1"># type: ignore[list-item]</span>
+                     <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]),</span>  <span class="c1"># type: ignore[list-item]</span>
+                     <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">rect</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">])]</span>  <span class="c1"># type: ignore[list-item]</span>
                     <span class="k">for</span> <span class="n">rect</span> <span class="ow">in</span> <span class="n">rectangles</span>
                 <span class="p">]</span>
 
@@ -341,7 +342,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">crop</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">label</span><span class="p">])))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Convert coordinates to relative</span>
-                <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'x'</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">'y'</span><span class="p">])</span>
+                <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
                     <span class="n">boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/=</span> <span class="n">w</span>
                     <span class="n">boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/=</span> <span class="n">h</span>
@@ -354,7 +355,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">"</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </pre></div>
         </article>
       </div>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.zoo - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -210,7 +210,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -236,28 +237,28 @@
 <span class="kn">from</span> <span class="nn">.recognition</span> <span class="kn">import</span> <span class="n">zoo</span> <span class="k">as</span> <span class="n">reco_zoo</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ocr_db_sar_vgg"</span><span class="p">,</span> <span class="s2">"ocr_db_crnn_vgg"</span><span class="p">,</span> <span class="s2">"ocr_db_sar_resnet"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_db_sar_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_crnn_vgg&quot;</span><span class="p">,</span> <span class="s2">&quot;ocr_db_sar_resnet&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'ocr_db_sar_vgg'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'detection'</span><span class="p">:</span> <span class="s1">'db_resnet50_predictor'</span><span class="p">,</span> <span class="s1">'recognition'</span><span class="p">:</span> <span class="s1">'sar_vgg16_bn_predictor'</span><span class="p">},</span>
-    <span class="s1">'ocr_db_sar_resnet'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'detection'</span><span class="p">:</span> <span class="s1">'db_resnet50_predictor'</span><span class="p">,</span> <span class="s1">'recognition'</span><span class="p">:</span> <span class="s1">'sar_resnet31_predictor'</span><span class="p">},</span>
-    <span class="s1">'ocr_db_crnn_vgg'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'detection'</span><span class="p">:</span> <span class="s1">'db_resnet50_predictor'</span><span class="p">,</span> <span class="s1">'recognition'</span><span class="p">:</span> <span class="s1">'crnn_vgg16_bn_predictor'</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_sar_vgg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_sar_resnet&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;ocr_db_crnn_vgg&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="s1">&#39;db_resnet50_predictor&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 
     <span class="c1"># Detection</span>
-    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">det_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'detection'</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">)</span>
+    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">det_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;detection&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">)</span>
 
     <span class="c1"># Recognition</span>
-    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">reco_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'recognition'</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
+    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">reco_zoo</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;recognition&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span><span class="n">det_predictor</span><span class="p">,</span> <span class="n">reco_predictor</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ocr_db_sar_vgg"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_sar_vgg">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_sar_vgg</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
-    <span class="sd">"""End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
 
 <span class="sd">    Example::</span>
@@ -272,13 +273,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'ocr_db_sar_vgg'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar_vgg&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ocr_db_sar_resnet"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_sar_resnet">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_sar_resnet</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
-    <span class="sd">"""End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and SAR with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
 
 <span class="sd">    Example::</span>
@@ -293,13 +294,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'ocr_db_sar_resnet'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_sar_resnet&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ocr_db_crnn_vgg"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_db_crnn_vgg">[docs]</a><span class="k">def</span> <span class="nf">ocr_db_crnn_vgg</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
-    <span class="sd">"""End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN</span>
 <span class="sd">    backbone as text recognition architecture.</span>
 
 <span class="sd">    Example::</span>
@@ -314,9 +315,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'ocr_db_crnn_vgg'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;ocr_db_crnn_vgg&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.recognition.zoo - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css" />
@@ -210,7 +210,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,32 +236,32 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">recognition</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"crnn_vgg16_bn_predictor"</span><span class="p">,</span> <span class="s2">"crnn_resnet31_predictor"</span><span class="p">,</span> <span class="s2">"sar_vgg16_bn_predictor"</span><span class="p">,</span> <span class="s2">"sar_resnet31_predictor"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;crnn_vgg16_bn_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;crnn_resnet31_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_vgg16_bn_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_resnet31_predictor&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'crnn_vgg16_bn_predictor'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'model'</span><span class="p">:</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="s1">'post_processor'</span><span class="p">:</span> <span class="s1">'CTCPostProcessor'</span><span class="p">},</span>
-    <span class="s1">'crnn_resnet31_predictor'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'model'</span><span class="p">:</span> <span class="s1">'crnn_resnet31'</span><span class="p">,</span> <span class="s1">'post_processor'</span><span class="p">:</span> <span class="s1">'CTCPostProcessor'</span><span class="p">},</span>
-    <span class="s1">'sar_vgg16_bn_predictor'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'model'</span><span class="p">:</span> <span class="s1">'sar_vgg16_bn'</span><span class="p">,</span> <span class="s1">'post_processor'</span><span class="p">:</span> <span class="s1">'SARPostProcessor'</span><span class="p">},</span>
-    <span class="s1">'sar_resnet31_predictor'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'model'</span><span class="p">:</span> <span class="s1">'sar_resnet31'</span><span class="p">,</span> <span class="s1">'post_processor'</span><span class="p">:</span> <span class="s1">'SARPostProcessor'</span><span class="p">},</span>
+    <span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;crnn_resnet31_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;crnn_resnet31&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;CTCPostProcessor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">},</span>
+    <span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="s1">&#39;sar_resnet31&#39;</span><span class="p">,</span> <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
 
-    <span class="n">_model</span> <span class="o">=</span> <span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'model'</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mean'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'std'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'std'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'std'</span><span class="p">])</span>
+    <span class="n">_model</span> <span class="o">=</span> <span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;model&#39;</span><span class="p">]](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">])</span>
     <span class="n">predictor</span> <span class="o">=</span> <span class="n">RecognitionPredictor</span><span class="p">(</span>
-        <span class="n">RecognitionPreProcessor</span><span class="p">(</span><span class="n">output_size</span><span class="o">=</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">RecognitionPreProcessor</span><span class="p">(</span><span class="n">output_size</span><span class="o">=</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
         <span class="n">_model</span><span class="p">,</span>
-        <span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'post_processor'</span><span class="p">]](</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">])</span>
+        <span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;post_processor&#39;</span><span class="p">]](</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">predictor</span>
 
 
 <div class="viewcode-block" id="crnn_vgg16_bn_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.crnn_vgg16_bn_predictor">[docs]</a><span class="k">def</span> <span class="nf">crnn_vgg16_bn_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">"""Text recognition architecture using a CRNN with a VGG16 backbone.</span>
+    <span class="sd">&quot;&quot;&quot;Text recognition architecture using a CRNN with a VGG16 backbone.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -274,13 +275,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Recognition predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'crnn_vgg16_bn_predictor'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn_predictor&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">crnn_resnet31_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">"""Text detection architecture using a CRNN with a ResNet-31 backbone.</span>
+    <span class="sd">&quot;&quot;&quot;Text detection architecture using a CRNN with a ResNet-31 backbone.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -294,13 +295,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Recognition predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'sar_resnet31_predictor'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="sar_vgg16_bn_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.sar_vgg16_bn_predictor">[docs]</a><span class="k">def</span> <span class="nf">sar_vgg16_bn_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">"""Text detection architecture using a SAR with a VGG16 backbone.</span>
+    <span class="sd">&quot;&quot;&quot;Text detection architecture using a SAR with a VGG16 backbone.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -314,13 +315,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Recognition predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'sar_vgg16_bn_predictor'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;sar_vgg16_bn_predictor&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="sar_resnet31_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.sar_resnet31_predictor">[docs]</a><span class="k">def</span> <span class="nf">sar_resnet31_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
-    <span class="sd">"""Text detection architecture using a SAR with a ResNet-31 backbone.</span>
+    <span class="sd">&quot;&quot;&quot;Text detection architecture using a SAR with a ResNet-31 backbone.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -334,9 +335,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Recognition predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">'sar_resnet31_predictor'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="s1">&#39;sar_resnet31_predictor&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.zoo - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -228,7 +228,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -254,7 +255,7 @@
 <span class="kn">from</span> <span class="nn">.predictor</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
 <span class="kn">from</span> <span class="nn">.recognition.zoo</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ocr_predictor"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_predictor&quot;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span>
@@ -293,8 +294,8 @@
 
 
 <div class="viewcode-block" id="ocr_predictor"><a class="viewcode-back" href="../../../modules/models.html#doctr.models.ocr_predictor">[docs]</a><span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
-    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">'db_resnet50'</span><span class="p">,</span>
-    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -302,19 +303,19 @@
     <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
-    <span class="sd">"""End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
+    <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
-<span class="sd">    &gt;&gt;&gt; model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; model = ocr_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
 <span class="sd">    &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        det_arch: name of the detection architecture or the model itself to use</span>
-<span class="sd">            (e.g. 'db_resnet50', 'db_mobilenet_v3_large')</span>
+<span class="sd">            (e.g. &#39;db_resnet50&#39;, &#39;db_mobilenet_v3_large&#39;)</span>
 <span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
-<span class="sd">            (e.g. 'crnn_vgg16_bn', 'sar_resnet31')</span>
+<span class="sd">            (e.g. &#39;crnn_vgg16_bn&#39;, &#39;sar_resnet31&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
 <span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
 <span class="sd">            without rotated textual elements.</span>
@@ -327,7 +328,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span>
         <span class="n">det_arch</span><span class="p">,</span>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.generator.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css" />
@@ -226,7 +226,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -250,14 +251,14 @@
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_CharacterGenerator</span><span class="p">,</span> <span class="n">_WordGenerator</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'CharacterGenerator'</span><span class="p">,</span> <span class="s1">'WordGenerator'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CharacterGenerator&#39;</span><span class="p">,</span> <span class="s1">&#39;WordGenerator&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="CharacterGenerator"><a class="viewcode-back" href="../../../../modules/datasets.html#doctr.datasets.CharacterGenerator">[docs]</a><span class="k">class</span> <span class="nc">CharacterGenerator</span><span class="p">(</span><span class="n">_CharacterGenerator</span><span class="p">):</span>
-    <span class="sd">"""Implements a character image generation dataset</span>
+    <span class="sd">&quot;&quot;&quot;Implements a character image generation dataset</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import CharacterGenerator</span>
-<span class="sd">    &gt;&gt;&gt; ds = CharacterGenerator(vocab='abdef')</span>
+<span class="sd">    &gt;&gt;&gt; ds = CharacterGenerator(vocab=&#39;abdef&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; img, target = ds[0]</span>
 
 <span class="sd">    Args:</span>
@@ -267,7 +268,7 @@
 <span class="sd">        font_family: font to use to generate the text images</span>
 <span class="sd">        img_transforms: composable transformations that will be applied to each image</span>
 <span class="sd">        sample_transforms: composable transformations that will be applied to both the image and the target</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -282,10 +283,10 @@
 
 
 <div class="viewcode-block" id="WordGenerator"><a class="viewcode-back" href="../../../../modules/datasets.html#doctr.datasets.WordGenerator">[docs]</a><span class="k">class</span> <span class="nc">WordGenerator</span><span class="p">(</span><span class="n">_WordGenerator</span><span class="p">):</span>
-    <span class="sd">"""Implements a character image generation dataset</span>
+    <span class="sd">&quot;&quot;&quot;Implements a character image generation dataset</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import WordGenerator</span>
-<span class="sd">    &gt;&gt;&gt; ds = WordGenerator(vocab='abdef')</span>
+<span class="sd">    &gt;&gt;&gt; ds = WordGenerator(vocab=&#39;abdef&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; img, target = ds[0]</span>
 
 <span class="sd">    Args:</span>
@@ -297,7 +298,7 @@
 <span class="sd">        font_family: font to use to generate the text images</span>
 <span class="sd">        img_transforms: composable transformations that will be applied to each image</span>
 <span class="sd">        sample_transforms: composable transformations that will be applied to both the image and the target</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">pass</span></div>
 </pre></div>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.classification.mobilenet.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css" />
@@ -221,7 +221,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -253,45 +254,45 @@
 <span class="kn">from</span> <span class="nn">....datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"MobileNetV3"</span><span class="p">,</span> <span class="s2">"mobilenet_v3_small"</span><span class="p">,</span> <span class="s2">"mobilenet_v3_small_r"</span><span class="p">,</span> <span class="s2">"mobilenet_v3_large"</span><span class="p">,</span>
-           <span class="s2">"mobilenet_v3_large_r"</span><span class="p">,</span> <span class="s2">"mobilenet_v3_small_orientation"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MobileNetV3&quot;</span><span class="p">,</span> <span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span> <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span> <span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'mobilenet_v3_large'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'mean'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s1">'std'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'classes'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">'french'</span><span class="p">]),</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="s1">'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip'</span><span class="p">,</span>
+    <span class="s1">&#39;mobilenet_v3_large&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">'mobilenet_v3_large_r'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'mean'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s1">'std'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'classes'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">'french'</span><span class="p">]),</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="s1">'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip'</span><span class="p">,</span>
+    <span class="s1">&#39;mobilenet_v3_large_r&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">'mobilenet_v3_small'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'mean'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s1">'std'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'classes'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">'french'</span><span class="p">]),</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="s1">'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip'</span><span class="p">,</span>
+    <span class="s1">&#39;mobilenet_v3_small&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">'mobilenet_v3_small_r'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'mean'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s1">'std'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'classes'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">'french'</span><span class="p">]),</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="s1">'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip'</span><span class="p">,</span>
+    <span class="s1">&#39;mobilenet_v3_small_r&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">'mobilenet_v3_small_orientation'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'mean'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s1">'std'</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'classes'</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">270</span><span class="p">],</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="s1">'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip'</span><span class="p">,</span>
+    <span class="s1">&#39;mobilenet_v3_small_orientation&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">270</span><span class="p">],</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -311,14 +312,14 @@
 
 
 <span class="k">class</span> <span class="nc">SqueezeExcitation</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
-    <span class="sd">"""Squeeze and Excitation.</span>
-<span class="sd">    """</span>
+    <span class="sd">&quot;&quot;&quot;Squeeze and Excitation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">squeeze_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span> <span class="o">//</span> <span class="n">squeeze_factor</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'relu'</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">'hard_sigmoid'</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span> <span class="o">//</span> <span class="n">squeeze_factor</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;hard_sigmoid&#39;</span><span class="p">),</span>
                 <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chan</span><span class="p">))</span>
             <span class="p">]</span>
         <span class="p">)</span>
@@ -346,7 +347,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">expanded_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_channels</span><span class="p">(</span><span class="n">expanded_channels</span><span class="p">,</span> <span class="n">width_mult</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">out_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjust_channels</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">width_mult</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">use_se</span> <span class="o">=</span> <span class="n">use_se</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_hs</span> <span class="o">=</span> <span class="n">activation</span> <span class="o">==</span> <span class="s2">"HS"</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_hs</span> <span class="o">=</span> <span class="n">activation</span> <span class="o">==</span> <span class="s2">&quot;HS&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
 
     <span class="nd">@staticmethod</span>
@@ -355,17 +356,17 @@
 
 
 <span class="k">class</span> <span class="nc">InvertedResidual</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="sd">"""InvertedResidual for mobilenet</span>
+    <span class="sd">&quot;&quot;&quot;InvertedResidual for mobilenet</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        conf: configuration object for inverted residual</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">conf</span><span class="p">:</span> <span class="n">InvertedResidualConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'input_shape'</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'input_shape'</span><span class="p">)}</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'input_shape'</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;input_shape&#39;</span><span class="p">)}</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_shape&#39;</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">act_fn</span> <span class="o">=</span> <span class="n">hard_swish</span> <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">use_hs</span> <span class="k">else</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span>
@@ -408,10 +409,10 @@
 
 
 <span class="k">class</span> <span class="nc">MobileNetV3</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
-    <span class="sd">"""Implements MobileNetV3, inspired from both:</span>
+    <span class="sd">&quot;&quot;&quot;Implements MobileNetV3, inspired from both:</span>
 <span class="sd">    &lt;https://github.com/xiaochus/MobileNetV3/tree/master/model&gt;`_.</span>
 <span class="sd">    and &lt;https://pytorch.org/vision/stable/_modules/torchvision/models/mobilenetv3.html&gt;`_.</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -425,18 +426,18 @@
 
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">layout</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input_channels</span><span class="p">,</span> <span class="n">hard_swish</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                       <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">"stem"</span><span class="p">)</span>
+                       <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;stem&quot;</span><span class="p">)</span>
         <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">conf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">layout</span><span class="p">):</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">InvertedResidual</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">"inverted_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span>
+                <span class="n">InvertedResidual</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;inverted_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
             <span class="p">)</span>
 
         <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">Sequential</span><span class="p">(</span>
                 <span class="n">conv_sequence</span><span class="p">(</span><span class="mi">6</span> <span class="o">*</span> <span class="n">layout</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">hard_swish</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">name</span><span class="o">=</span><span class="s2">"final_block"</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;final_block&quot;</span>
             <span class="p">)</span>
         <span class="p">)</span>
 
@@ -459,47 +460,47 @@
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'input_shape'</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'input_shape'</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'num_classes'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'classes'</span><span class="p">]))</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_shape&#39;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;input_shape&#39;</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_classes&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;classes&#39;</span><span class="p">]))</span>
 
     <span class="c1"># cf. Table 1 &amp; 2 of the paper</span>
-    <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"mobilenet_v3_small"</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">):</span>
         <span class="n">inverted_residual_setting</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C1</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">288</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">576</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">576</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C1</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">288</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">576</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">96</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">576</span><span class="p">,</span> <span class="mi">96</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="n">head_chans</span> <span class="o">=</span> <span class="mi">1024</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">inverted_residual_setting</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C1</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"RE"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"HS"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C1</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C2</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C3</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">112</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">672</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">rect_strides</span> <span class="k">else</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># C4</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">InvertedResidualConfig</span><span class="p">(</span><span class="mi">160</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;HS&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
         <span class="p">]</span>
         <span class="n">head_chans</span> <span class="o">=</span> <span class="mi">1280</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">MobileNetV3</span><span class="p">(</span>
@@ -510,14 +511,14 @@
     <span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'url'</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
 
 <div class="viewcode-block" id="mobilenet_v3_small"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">"""MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `"Searching for MobileNetV3",</span>
+    <span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -532,14 +533,14 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_small'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_small_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">"""MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `"Searching for MobileNetV3",</span>
+    <span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_, with rectangular pooling.</span>
 
 <span class="sd">    Example::</span>
@@ -554,14 +555,14 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_small_r'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small_r&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_large"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">"""MobileNetV3-Large architecture as described in</span>
-<span class="sd">    `"Searching for MobileNetV3",</span>
+    <span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
+<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -576,13 +577,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_large'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_large_r"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">"""MobileNetV3-Large architecture as described in</span>
-<span class="sd">    `"Searching for MobileNetV3",</span>
+    <span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
+<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -597,13 +598,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
-<span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_large_r'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_large_r&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="mobilenet_v3_small_orientation"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.mobilenet_v3_small_orientation">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">"""MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `"Searching for MobileNetV3",</span>
+    <span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -618,9 +619,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a keras.Model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">'mobilenet_v3_small_orientation'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s1">&#39;mobilenet_v3_small_orientation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

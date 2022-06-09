@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.export - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -209,7 +209,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -235,19 +236,19 @@
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
 
-<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"tensorflow"</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;tensorflow&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'convert_to_tflite'</span><span class="p">,</span> <span class="s1">'convert_to_fp16'</span><span class="p">,</span> <span class="s1">'quantize_model'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;convert_to_tflite&#39;</span><span class="p">,</span> <span class="s1">&#39;convert_to_fp16&#39;</span><span class="p">,</span> <span class="s1">&#39;quantize_model&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="convert_to_tflite"><a class="viewcode-back" href="../../../models.html#doctr.models.export.convert_to_tflite">[docs]</a><span class="k">def</span> <span class="nf">convert_to_tflite</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">"""Converts a model to TFLite format</span>
+    <span class="sd">&quot;&quot;&quot;Converts a model to TFLite format</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import convert_to_tflite, conv_sequence</span>
-<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
 <span class="sd">        &gt;&gt;&gt; serialized_model = convert_to_tflite(model)</span>
 
 <span class="sd">    Args:</span>
@@ -255,18 +256,18 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        bytes: the model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">converter</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="convert_to_fp16"><a class="viewcode-back" href="../../../models.html#doctr.models.export.convert_to_fp16">[docs]</a><span class="k">def</span> <span class="nf">convert_to_fp16</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">"""Converts a model to half precision</span>
+    <span class="sd">&quot;&quot;&quot;Converts a model to half precision</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import convert_to_fp16, conv_sequence</span>
-<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
 <span class="sd">        &gt;&gt;&gt; serialized_model = convert_to_fp16(model)</span>
 
 <span class="sd">    Args:</span>
@@ -274,7 +275,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        bytes: the serialized FP16 model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
 
     <span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
@@ -283,12 +284,12 @@
 
 
 <div class="viewcode-block" id="quantize_model"><a class="viewcode-back" href="../../../models.html#doctr.models.export.quantize_model">[docs]</a><span class="k">def</span> <span class="nf">quantize_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-    <span class="sd">"""Quantize a Tensorflow model</span>
+    <span class="sd">&quot;&quot;&quot;Quantize a Tensorflow model</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from tensorflow.keras import Sequential</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import quantize_model, conv_sequence</span>
-<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=(224, 224, 3)))</span>
+<span class="sd">        &gt;&gt;&gt; model = Sequential(conv_sequence(32, &#39;relu&#39;, True, kernel_size=3, input_shape=(224, 224, 3)))</span>
 <span class="sd">        &gt;&gt;&gt; serialized_model = quantize_model(model, (224, 224, 3))</span>
 
 <span class="sd">    Args:</span>
@@ -297,7 +298,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        bytes: the serialized quantized model</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">converter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">TFLiteConverter</span><span class="o">.</span><span class="n">from_keras_model</span><span class="p">(</span><span class="n">tf_model</span><span class="p">)</span>
 
     <span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>

@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.recognition.sar - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css" />
@@ -209,7 +209,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -240,27 +241,27 @@
 <span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">RecognitionPostProcessor</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'SAR'</span><span class="p">,</span> <span class="s1">'SARPostProcessor'</span><span class="p">,</span> <span class="s1">'sar_vgg16_bn'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SAR&#39;</span><span class="p">,</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">,</span> <span class="s1">&#39;sar_vgg16_bn&#39;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'sar_vgg16_bn'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'backbone'</span><span class="p">:</span> <span class="s1">'vgg16_bn'</span><span class="p">,</span> <span class="s1">'rnn_units'</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">'max_length'</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s1">'num_decoders'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s1">'input_shape'</span><span class="p">:</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">'post_processor'</span><span class="p">:</span> <span class="s1">'SARPostProcessor'</span><span class="p">,</span>
-        <span class="s1">'vocab'</span><span class="p">:</span> <span class="p">(</span><span class="s1">'3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-'</span>
-                  <span class="s1">'kçHëÀÂ2É/ûIJ</span><span class="se">\'</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l'</span><span class="p">),</span>
-        <span class="s1">'url'</span><span class="p">:</span> <span class="s1">'https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip'</span><span class="p">,</span>
+    <span class="s1">&#39;sar_vgg16_bn&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;backbone&#39;</span><span class="p">:</span> <span class="s1">&#39;vgg16_bn&#39;</span><span class="p">,</span> <span class="s1">&#39;rnn_units&#39;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s1">&#39;max_length&#39;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s1">&#39;num_decoders&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s1">&#39;post_processor&#39;</span><span class="p">:</span> <span class="s1">&#39;SARPostProcessor&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;vocab&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;3K}7eé;5àÎYho]QwV6qU~W&quot;XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-&#39;</span>
+                  <span class="s1">&#39;kçHëÀÂ2É/ûIJ</span><span class="se">\&#39;</span><span class="s1">j(LNÙFut[)èZs+&amp;°Sd=Ï!&lt;â_Ç&gt;rêi`l&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.1-models/sar_vgg16bn-0d7e2c26.zip&#39;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span> <span class="nc">AttentionModule</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
-    <span class="sd">"""Implements attention module of the SAR model</span>
+    <span class="sd">&quot;&quot;&quot;Implements attention module of the SAR model</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        attention_units: number of hidden attention units</span>
 
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">attention_units</span><span class="p">:</span> <span class="nb">int</span>
@@ -268,13 +269,13 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_state_projector</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span>
-            <span class="n">attention_units</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">'same'</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">'he_normal'</span><span class="p">,</span>
+            <span class="n">attention_units</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">features_projector</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span>
-            <span class="n">attention_units</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">'same'</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">'he_normal'</span><span class="p">,</span>
+            <span class="n">attention_units</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention_projector</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span>
-            <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">"same"</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">'he_normal'</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Flatten</span><span class="p">()</span>
 
@@ -305,7 +306,7 @@
 
 
 <span class="k">class</span> <span class="nc">SARDecoder</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
-    <span class="sd">"""Implements decoder module of the SAR model</span>
+    <span class="sd">&quot;&quot;&quot;Implements decoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        rnn_units: number of hidden units in recurrent cells</span>
@@ -315,7 +316,7 @@
 <span class="sd">        attention_units: number of hidden attention units</span>
 <span class="sd">        num_decoder_layers: number of LSTM layers to stack</span>
 
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -367,7 +368,7 @@
             <span class="c1"># shape (N, rnn_units + 1) -&gt; (N, vocab_size + 1)</span>
             <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dense</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="c1"># update symbol with predicted logits for t+1 step</span>
-            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'training'</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">):</span>
                 <span class="n">dense_labels</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span>
                     <span class="n">labels</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span>
                 <span class="p">)</span>
@@ -376,7 +377,7 @@
                 <span class="n">batch_size</span> <span class="o">=</span> <span class="n">dense_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">dense_labels</span><span class="p">)</span>
                 <span class="n">paddings</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span> <span class="o">-</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])]</span>
-                <span class="n">dense_labels</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">dense_labels</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="s1">'CONSTANT'</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">)</span>
+                <span class="n">dense_labels</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">dense_labels</span><span class="p">,</span> <span class="n">paddings</span><span class="p">,</span> <span class="s1">&#39;CONSTANT&#39;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">)</span>
                 <span class="n">symbol</span> <span class="o">=</span> <span class="n">dense_labels</span><span class="p">[:,</span> <span class="n">t</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -387,8 +388,8 @@
 
 
 <span class="k">class</span> <span class="nc">SAR</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">):</span>
-    <span class="sd">"""Implements a SAR architecture as described in `"Show, Attend and Read:A Simple and Strong Baseline for</span>
-<span class="sd">    Irregular Text Recognition" &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
+    <span class="sd">&quot;&quot;&quot;Implements a SAR architecture as described in `&quot;Show, Attend and Read:A Simple and Strong Baseline for</span>
+<span class="sd">    Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
@@ -399,9 +400,9 @@
 <span class="sd">        max_length: maximum word length handled by the model</span>
 <span class="sd">        num_decoders: number of LSTM to stack in decoder layer</span>
 
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'feat_extractor'</span><span class="p">,</span> <span class="s1">'encoder'</span><span class="p">,</span> <span class="s1">'decoder'</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;feat_extractor&#39;</span><span class="p">,</span> <span class="s1">&#39;encoder&#39;</span><span class="p">,</span> <span class="s1">&#39;decoder&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -441,9 +442,9 @@
         <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">pooled_features</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># vertical max pooling</span>
         <span class="n">encoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">pooled_features</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'training'</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;training&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Need to provide labels during training for teacher forcing'</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Need to provide labels during training for teacher forcing&#39;</span><span class="p">)</span>
             <span class="n">decoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">decoded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -452,13 +453,13 @@
 
 
 <span class="k">class</span> <span class="nc">SARPostProcessor</span><span class="p">(</span><span class="n">RecognitionPostProcessor</span><span class="p">):</span>
-    <span class="sd">"""Post processor for SAR architectures</span>
+    <span class="sd">&quot;&quot;&quot;Post processor for SAR architectures</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">        ignore_case: if True, ignore case of letters</span>
 <span class="sd">        ignore_accents: if True, ignore accents of letters</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -468,10 +469,10 @@
         <span class="n">pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="c1"># decode raw output of the model with tf_label_to_idx</span>
-        <span class="n">pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'int32'</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span>
         <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">reduce_join</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">,</span> <span class="n">pred</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="p">,</span> <span class="s2">"&lt;eos&gt;"</span><span class="p">)</span>
-        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">'not valid'</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">strings</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="p">,</span> <span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">)</span>
+        <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s1">&#39;not valid&#39;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">words_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">())]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_case</span><span class="p">:</span>
@@ -487,39 +488,39 @@
 
     <span class="c1"># Patch the config</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">]</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'vocab_size'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'vocab_size'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">]))</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'rnn_units'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'rnn_units'</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'rnn_units'</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'embedding_units'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'embedding_units'</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'rnn_units'</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'attention_units'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'attention_units'</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'rnn_units'</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'max_length'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'max_length'</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'max_length'</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">'num_decoders'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'num_decoders'</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'num_decoders'</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]))</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;attention_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;attention_units&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_length&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">])</span>
 
     <span class="c1"># Feature extractor</span>
-    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">vgg</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'backbone'</span><span class="p">]](</span>
-        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">],</span>
+    <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">vgg</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;backbone&#39;</span><span class="p">]](</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
         <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'vocab_size'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'vocab_size'</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'rnn_units'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'rnn_units'</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'embedding_units'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'embedding_units'</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'attention_units'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'attention_units'</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'max_length'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'max_length'</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'num_decoders'</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">'num_decoders'</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;vocab_size&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;rnn_units&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;embedding_units&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;attention_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;attention_units&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;num_decoders&#39;</span><span class="p">]</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">SAR</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">'url'</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
 
 <div class="viewcode-block" id="sar_vgg16_bn"><a class="viewcode-back" href="../../../../models.html#doctr.models.recognition.sar_vgg16_bn">[docs]</a><span class="k">def</span> <span class="nf">sar_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SAR</span><span class="p">:</span>
-    <span class="sd">"""SAR with a VGG16 feature extractor as described in `"Show, Attend and Read:A Simple and Strong</span>
-<span class="sd">    Baseline for Irregular Text Recognition" &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
+    <span class="sd">&quot;&quot;&quot;SAR with a VGG16 feature extractor as described in `&quot;Show, Attend and Read:A Simple and Strong</span>
+<span class="sd">    Baseline for Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
@@ -533,9 +534,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text recognition architecture</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_sar_vgg</span><span class="p">(</span><span class="s1">'sar_vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_sar_vgg</span><span class="p">(</span><span class="s1">&#39;sar_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

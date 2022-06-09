@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.datasets.svhn - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/tabs.css" />
@@ -226,7 +226,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -256,11 +257,11 @@
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'SVHN'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SVHN&#39;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="SVHN"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.SVHN">[docs]</a><span class="k">class</span> <span class="nc">SVHN</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-    <span class="sd">"""SVHN dataset from `"The Street View House Numbers (SVHN) Dataset"</span>
+    <span class="sd">&quot;&quot;&quot;SVHN dataset from `&quot;The Street View House Numbers (SVHN) Dataset&quot;</span>
 <span class="sd">    &lt;http://ufldl.stanford.edu/housenumbers/&gt;`_.</span>
 
 <span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svhn-grid.png</span>
@@ -274,14 +275,14 @@
 <span class="sd">        train: whether the subset should be the training one</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
-<span class="sd">    """</span>
-    <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'http://ufldl.stanford.edu/housenumbers/train.tar.gz'</span><span class="p">,</span>
-             <span class="s1">'4b17bb33b6cd8f963493168f80143da956f28ec406cc12f8e5745a9f91a51898'</span><span class="p">,</span>
-             <span class="s1">'svhn_train.tar'</span><span class="p">)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;http://ufldl.stanford.edu/housenumbers/train.tar.gz&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;4b17bb33b6cd8f963493168f80143da956f28ec406cc12f8e5745a9f91a51898&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;svhn_train.tar&#39;</span><span class="p">)</span>
 
-    <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'http://ufldl.stanford.edu/housenumbers/test.tar.gz'</span><span class="p">,</span>
-            <span class="s1">'57ac9ceb530e4aa85b55d991be8fc49c695b3d71c6f6a88afea86549efde7fb5'</span><span class="p">,</span>
-            <span class="s1">'svhn_test.tar'</span><span class="p">)</span>
+    <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;http://ufldl.stanford.edu/housenumbers/test.tar.gz&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;57ac9ceb530e4aa85b55d991be8fc49c695b3d71c6f6a88afea86549efde7fb5&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;svhn_test.tar&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -303,35 +304,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
-        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">'train'</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="s1">'test'</span><span class="p">)</span>
+        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="s1">&#39;test&#39;</span><span class="p">)</span>
 
         <span class="c1"># Load mat data (matlab v7.3 - can not be loaded with scipy)</span>
-        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">'digitStruct.mat'</span><span class="p">),</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">img_refs</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">'digitStruct/name'</span><span class="p">]</span>
-            <span class="n">box_refs</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">'digitStruct/bbox'</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">img_ref</span><span class="p">,</span> <span class="n">box_ref</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">img_refs</span><span class="p">,</span> <span class="n">box_refs</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Unpacking SVHN'</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_refs</span><span class="p">)):</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">&#39;digitStruct.mat&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">img_refs</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;digitStruct/name&#39;</span><span class="p">]</span>
+            <span class="n">box_refs</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s1">&#39;digitStruct/bbox&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">img_ref</span><span class="p">,</span> <span class="n">box_ref</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">img_refs</span><span class="p">,</span> <span class="n">box_refs</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Unpacking SVHN&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_refs</span><span class="p">)):</span>
                 <span class="c1"># convert ascii matrix to string</span>
-                <span class="n">img_name</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">chr</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="n">img_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]][()]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
+                <span class="n">img_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">chr</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="n">img_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]][()]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
 
                 <span class="c1"># File existence check</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)):</span>
-                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
                 <span class="c1"># Unpack the information</span>
                 <span class="n">box</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">box_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-                <span class="k">if</span> <span class="n">box</span><span class="p">[</span><span class="s1">'left'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">box</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">box_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">box</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">box_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]][()]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">box</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
                 <span class="c1"># Convert it to the right format</span>
                 <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">'left'</span><span class="p">],</span>
-                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">'top'</span><span class="p">],</span>
-                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">'width'</span><span class="p">],</span>
-                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">'height'</span><span class="p">]</span>
+                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">],</span>
+                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">],</span>
+                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
+                    <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span>
                 <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
-                <span class="n">label_targets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">box_dict</span><span class="p">[</span><span class="s1">'label'</span><span class="p">]))</span>
+                <span class="n">label_targets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]))</span>
 
                 <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
                     <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
@@ -356,7 +357,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">"</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
 </pre></div>
         </article>
       </div>

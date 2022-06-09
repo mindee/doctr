@@ -14,10 +14,10 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.utils" href="utils.html" /><link rel="prev" title="doctr.documents" href="documents.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="_static/tabs.css" />
@@ -210,7 +210,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -237,15 +238,16 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <section id="text-detection">
 <h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this headline">#</a></h2>
 <p>Localizing text elements in images</p>
-<div class="table-wrapper"><table class="colwidths-given docutils align-default" id="id2">
+<div class="table-wrapper colwidths-given docutils container" id="id2">
+<table class="colwidths-given docutils align-default" id="id2">
 <caption><span class="caption-text">Text detection model zoo</span><a class="headerlink" href="#id2" title="Permalink to this table">#</a></caption>
 <colgroup>
-<col style="width: 24%"/>
-<col style="width: 24%"/>
-<col style="width: 18%"/>
-<col style="width: 12%"/>
-<col style="width: 12%"/>
-<col style="width: 12%"/>
+<col style="width: 24%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Architecture</p></th>
@@ -265,7 +267,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <td></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <section id="pre-processing-for-detection">
 <h3>Pre-processing for detection<a class="headerlink" href="#pre-processing-for-detection" title="Permalink to this headline">#</a></h3>
 <p>In DocTR, the pre-processing scheme for detection is the following:</p>
@@ -280,7 +283,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.detection.db_resnet50">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">db_resnet50</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.detection.differentiable_binarization.DBNet</span></span></span><a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization.html#db_resnet50"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">db_resnet50</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.detection.differentiable_binarization.DBNet</span></span></span><a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization.html#db_resnet50"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50" title="Permalink to this definition">#</a></dt>
 <dd><p>DBNet as described in <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>, using a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -301,6 +304,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 <section id="post-processing-outputs">
 <h3>Post-processing outputs<a class="headerlink" href="#post-processing-outputs" title="Permalink to this headline">#</a></h3>
@@ -311,7 +315,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <p>Combining the right components around a given architecture for easier usage, predictors lets you pass numpy images as inputs and return structured information.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.detection.db_resnet50_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">db_resnet50_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.detection.core.DetectionPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/detection/zoo.html#db_resnet50_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50_predictor" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">db_resnet50_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.detection.core.DetectionPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/detection/zoo.html#db_resnet50_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.db_resnet50_predictor" title="Permalink to this definition">#</a></dt>
 <dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -332,19 +336,21 @@ Either performed at once or separately, to each task corresponds a type of deep 
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 </section>
 <section id="text-recognition">
 <h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this headline">#</a></h2>
 <p>Identifying strings in images</p>
-<div class="table-wrapper"><table class="colwidths-given docutils align-default" id="id3">
+<div class="table-wrapper colwidths-given docutils container" id="id3">
+<table class="colwidths-given docutils align-default" id="id3">
 <caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">#</a></caption>
 <colgroup>
-<col style="width: 27%"/>
-<col style="width: 27%"/>
-<col style="width: 20%"/>
-<col style="width: 13%"/>
-<col style="width: 13%"/>
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 20%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Architecture</p></th>
@@ -368,7 +374,8 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <td></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <section id="pre-processing-for-recognition">
 <h3>Pre-processing for recognition<a class="headerlink" href="#pre-processing-for-recognition" title="Permalink to this headline">#</a></h3>
 <p>In DocTR, the pre-processing scheme for recognition is the following:</p>
@@ -384,7 +391,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <p>Models expect a TensorFlow tensor as input and produces one in return. DocTR includes implementations and pretrained versions of the following models:</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.recognition.crnn_vgg16_bn">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">crnn_vgg16_bn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.crnn.CRNN</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/crnn.html#crnn_vgg16_bn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">crnn_vgg16_bn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.crnn.CRNN</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/crnn.html#crnn_vgg16_bn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn" title="Permalink to this definition">#</a></dt>
 <dd><p>CRNN with a VGG-16 backbone as described in <a class="reference external" href="https://arxiv.org/pdf/1602.05875.pdf">“Convolutional RNN: an Enhanced Model for Extracting Features
 from Sequential Data”</a>.</p>
 <dl>
@@ -406,9 +413,10 @@ from Sequential Data”</a>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.recognition.sar_vgg16_bn">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">sar_vgg16_bn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.sar.SAR</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_vgg16_bn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">sar_vgg16_bn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.sar.SAR</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/sar.html#sar_vgg16_bn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn" title="Permalink to this definition">#</a></dt>
 <dd><p>SAR with a VGG16 feature extractor as described in <a class="reference external" href="https://arxiv.org/pdf/1811.00751.pdf">“Show, Attend and Read:A Simple and Strong
 Baseline for Irregular Text Recognition”</a>.</p>
 <dl>
@@ -430,6 +438,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 <section id="id1">
 <h3>Post-processing outputs<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h3>
@@ -440,7 +449,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <p>Combining the right components around a given architecture for easier usage.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.recognition.crnn_vgg16_bn_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">crnn_vgg16_bn_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.core.RecognitionPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#crnn_vgg16_bn_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn_predictor" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">crnn_vgg16_bn_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.core.RecognitionPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#crnn_vgg16_bn_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.crnn_vgg16_bn_predictor" title="Permalink to this definition">#</a></dt>
 <dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -461,9 +470,10 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.recognition.sar_vgg16_bn_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">sar_vgg16_bn_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.core.RecognitionPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_vgg16_bn_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn_predictor" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">sar_vgg16_bn_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.recognition.core.RecognitionPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/zoo.html#sar_vgg16_bn_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.sar_vgg16_bn_predictor" title="Permalink to this definition">#</a></dt>
 <dd><p>Text detection architecture using a DBNet with a ResNet-50 backbone.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -484,6 +494,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 </section>
 <section id="end-to-end-ocr">
@@ -494,7 +505,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.zoo.ocr_db_crnn">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.zoo.</span></span><span class="sig-name descname"><span class="pre">ocr_db_crnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">doctr.models.core.OCRPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_crnn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_crnn" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.zoo.</span></span><span class="sig-name descname"><span class="pre">ocr_db_crnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.10)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">doctr.models.core.OCRPredictor</span></span></span><a class="reference internal" href="_modules/doctr/models/zoo.html#ocr_db_crnn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.zoo.ocr_db_crnn" title="Permalink to this definition">#</a></dt>
 <dd><p>End-to-end OCR architecture using a DBNet with a ResNet-50 backbone for localization, and CRNN with a VGG-16BN
 backbone as text recognition architecture.</p>
 <dl>
@@ -516,6 +527,7 @@ backbone as text recognition architecture.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 </section>
 <section id="model-export">
@@ -523,12 +535,12 @@ backbone as text recognition architecture.</p>
 <p>Utility functions to make the most of document analysis models.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.export.convert_to_tflite">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.export.</span></span><span class="sig-name descname"><span class="pre">convert_to_tflite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tf_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.engine.training.Model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.export.</span></span><span class="sig-name descname"><span class="pre">convert_to_tflite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tf_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.engine.training.Model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="_modules/doctr/models/export.html#convert_to_tflite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.export.convert_to_tflite" title="Permalink to this definition">#</a></dt>
 <dd><p>Converts a model to TFLite format</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">convert_to_tflite</span><span class="p">,</span> <span class="n">conv_sequence</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">'relu'</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">convert_to_tflite</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -546,14 +558,15 @@ backbone as text recognition architecture.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.export.convert_to_fp16">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.export.</span></span><span class="sig-name descname"><span class="pre">convert_to_fp16</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tf_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.engine.training.Model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="_modules/doctr/models/export.html#convert_to_fp16"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.export.convert_to_fp16" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.export.</span></span><span class="sig-name descname"><span class="pre">convert_to_fp16</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tf_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.engine.training.Model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="_modules/doctr/models/export.html#convert_to_fp16"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.export.convert_to_fp16" title="Permalink to this definition">#</a></dt>
 <dd><p>Converts a model to half precision</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">convert_to_fp16</span><span class="p">,</span> <span class="n">conv_sequence</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">'relu'</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">convert_to_fp16</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -571,14 +584,15 @@ backbone as text recognition architecture.</p>
 </dd>
 </dl>
 </dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.export.quantize_model">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.export.</span></span><span class="sig-name descname"><span class="pre">quantize_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tf_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.engine.training.Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="_modules/doctr/models/export.html#quantize_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.export.quantize_model" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.export.</span></span><span class="sig-name descname"><span class="pre">quantize_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tf_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">keras.engine.training.Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.10)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.10)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="_modules/doctr/models/export.html#quantize_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.export.quantize_model" title="Permalink to this definition">#</a></dt>
 <dd><p>Quantize a Tensorflow model</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">quantize_model</span><span class="p">,</span> <span class="n">conv_sequence</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">'relu'</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">serialized_model</span> <span class="o">=</span> <span class="n">quantize_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -599,6 +613,7 @@ backbone as text recognition architecture.</p>
 </dd>
 </dl>
 </dd></dl>
+
 </section>
 </section>
 

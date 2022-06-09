@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.factory.hub - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css" />
@@ -228,7 +228,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -266,96 +267,96 @@
 <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'login_to_hub'</span><span class="p">,</span> <span class="s1">'push_to_hf_hub'</span><span class="p">,</span> <span class="s1">'from_hub'</span><span class="p">,</span> <span class="s1">'_save_model_and_config_for_hf_hub'</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;login_to_hub&#39;</span><span class="p">,</span> <span class="s1">&#39;push_to_hf_hub&#39;</span><span class="p">,</span> <span class="s1">&#39;from_hub&#39;</span><span class="p">,</span> <span class="s1">&#39;_save_model_and_config_for_hf_hub&#39;</span><span class="p">]</span>
 
 
 <span class="n">AVAILABLE_ARCHS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">'classification'</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
-    <span class="s1">'detection'</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span> <span class="o">+</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ROT_ARCHS</span><span class="p">,</span>
-    <span class="s1">'recognition'</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
-    <span class="s1">'obj_detection'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'fasterrcnn_mobilenet_v3_large_fpn'</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="s1">&#39;classification&#39;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
+    <span class="s1">&#39;detection&#39;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span> <span class="o">+</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ROT_ARCHS</span><span class="p">,</span>
+    <span class="s1">&#39;recognition&#39;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
+    <span class="s1">&#39;obj_detection&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;fasterrcnn_mobilenet_v3_large_fpn&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
 <span class="p">}</span>
 
 
 <div class="viewcode-block" id="login_to_hub"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.factory.login_to_hub">[docs]</a><span class="k">def</span> <span class="nf">login_to_hub</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">"""Login to huggingface hub</span>
-<span class="sd">    """</span>
+    <span class="sd">&quot;&quot;&quot;Login to huggingface hub</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">access_token</span> <span class="o">=</span> <span class="n">HfFolder</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">access_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">_is_valid_token</span><span class="p">(</span><span class="n">access_token</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Huggingface Hub token found and valid"</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Huggingface Hub token found and valid&quot;</span><span class="p">)</span>
         <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">set_access_token</span><span class="p">(</span><span class="n">access_token</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">'huggingface-cli'</span><span class="p">,</span> <span class="s1">'login'</span><span class="p">])</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;huggingface-cli&#39;</span><span class="p">,</span> <span class="s1">&#39;login&#39;</span><span class="p">])</span>
         <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">set_access_token</span><span class="p">(</span><span class="n">HfFolder</span><span class="p">()</span><span class="o">.</span><span class="n">get_token</span><span class="p">())</span>
     <span class="c1"># check if git lfs is installed</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">'git'</span><span class="p">,</span> <span class="s1">'lfs'</span><span class="p">,</span> <span class="s1">'version'</span><span class="p">])</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s1">&#39;git&#39;</span><span class="p">,</span> <span class="s1">&#39;lfs&#39;</span><span class="p">,</span> <span class="s1">&#39;version&#39;</span><span class="p">])</span>
     <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">'Looks like you do not have git-lfs installed, please install. </span><span class="se">\</span>
+        <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Looks like you do not have git-lfs installed, please install. </span><span class="se">\</span>
 <span class="s1">                      You can install from https://git-lfs.github.com/. </span><span class="se">\</span>
-<span class="s1">                      Then run `git lfs install` (you only have to do this once).'</span><span class="p">)</span></div>
+<span class="s1">                      Then run `git lfs install` (you only have to do this once).&#39;</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">_save_model_and_config_for_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">save_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">"""Save model and config to disk for pushing to huggingface hub</span>
+    <span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        save_dir: directory to save model and config</span>
 <span class="sd">        arch: architecture name</span>
 <span class="sd">        task: task name</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">save_directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s1">'pytorch_model.bin'</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s1">&#39;pytorch_model.bin&#39;</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">weights_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">is_tf_available</span><span class="p">():</span>
-        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s1">'tf_model'</span> <span class="o">/</span> <span class="s1">'weights'</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s1">&#39;tf_model&#39;</span> <span class="o">/</span> <span class="s1">&#39;weights&#39;</span>
         <span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">weights_path</span><span class="p">))</span>
 
-    <span class="n">config_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s1">'config.json'</span>
+    <span class="n">config_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s1">&#39;config.json&#39;</span>
 
     <span class="c1"># add model configuration</span>
     <span class="n">model_config</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">cfg</span>
-    <span class="n">model_config</span><span class="p">[</span><span class="s1">'arch'</span><span class="p">]</span> <span class="o">=</span> <span class="n">arch</span>
-    <span class="n">model_config</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]</span> <span class="o">=</span> <span class="n">task</span>
+    <span class="n">model_config</span><span class="p">[</span><span class="s1">&#39;arch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">arch</span>
+    <span class="n">model_config</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">task</span>
 
-    <span class="k">with</span> <span class="n">config_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">config_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_config</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="push_to_hf_hub"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.factory.push_to_hf_hub">[docs]</a><span class="k">def</span> <span class="nf">push_to_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">"""Save model and its configuration on HF hub</span>
+    <span class="sd">&quot;&quot;&quot;Save model and its configuration on HF hub</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.models import login_to_hub, push_to_hf_hub</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.recognition import crnn_mobilenet_v3_small</span>
 <span class="sd">    &gt;&gt;&gt; login_to_hub()</span>
 <span class="sd">    &gt;&gt;&gt; model = crnn_mobilenet_v3_small(pretrained=True)</span>
-<span class="sd">    &gt;&gt;&gt; push_to_hf_hub(model, 'my-model', 'recognition', arch='crnn_mobilenet_v3_small')</span>
+<span class="sd">    &gt;&gt;&gt; push_to_hf_hub(model, &#39;my-model&#39;, &#39;recognition&#39;, arch=&#39;crnn_mobilenet_v3_small&#39;)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        model_name: name of the model which is also the repository name</span>
 <span class="sd">        task: task name</span>
 <span class="sd">        **kwargs: keyword arguments for push_to_hf_hub</span>
-<span class="sd">    """</span>
-    <span class="n">run_config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'run_config'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">arch</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'arch'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">run_config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;run_config&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">arch</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;arch&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">run_config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">arch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'run_config or arch must be specified'</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'classification'</span><span class="p">,</span> <span class="s1">'detection'</span><span class="p">,</span> <span class="s1">'recognition'</span><span class="p">,</span> <span class="s1">'obj_detection'</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'task must be one of classification, detection, recognition, obj_detection'</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;run_config or arch must be specified&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">,</span> <span class="s1">&#39;detection&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">,</span> <span class="s1">&#39;obj_detection&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;task must be one of classification, detection, recognition, obj_detection&#39;</span><span class="p">)</span>
 
     <span class="c1"># default readme</span>
-    <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span>
+    <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">    ---</span>
 <span class="s2">    language: en</span>
 <span class="s2">    ---</span>
 
-<span class="s2">    &lt;p align="center"&gt;</span>
-<span class="s2">    &lt;img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="60%"&gt;</span>
+<span class="s2">    &lt;p align=&quot;center&quot;&gt;</span>
+<span class="s2">    &lt;img src=&quot;https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif&quot; width=&quot;60%&quot;&gt;</span>
 <span class="s2">    &lt;/p&gt;</span>
 
 <span class="s2">    **Optical Character Recognition made seamless &amp; accessible to anyone, powered by TensorFlow 2 &amp; PyTorch**</span>
@@ -370,56 +371,56 @@
 <span class="s2">    &gt;&gt;&gt; from doctr.io import DocumentFile</span>
 <span class="s2">    &gt;&gt;&gt; from doctr.models import ocr_predictor, from_hub</span>
 
-<span class="s2">    &gt;&gt;&gt; img = DocumentFile.from_images(['&lt;image_path&gt;'])</span>
+<span class="s2">    &gt;&gt;&gt; img = DocumentFile.from_images([&#39;&lt;image_path&gt;&#39;])</span>
 <span class="s2">    &gt;&gt;&gt; # Load your model from the hub</span>
-<span class="s2">    &gt;&gt;&gt; model = from_hub('mindee/my-model')</span>
+<span class="s2">    &gt;&gt;&gt; model = from_hub(&#39;mindee/my-model&#39;)</span>
 
 <span class="s2">    &gt;&gt;&gt; # Pass it to the predictor</span>
 <span class="s2">    &gt;&gt;&gt; # If your model is a recognition model:</span>
-<span class="s2">    &gt;&gt;&gt; predictor = ocr_predictor(det_arch='db_mobilenet_v3_large',</span>
+<span class="s2">    &gt;&gt;&gt; predictor = ocr_predictor(det_arch=&#39;db_mobilenet_v3_large&#39;,</span>
 <span class="s2">    &gt;&gt;&gt;                           reco_arch=model,</span>
 <span class="s2">    &gt;&gt;&gt;                           pretrained=True)</span>
 
 <span class="s2">    &gt;&gt;&gt; # If your model is a detection model:</span>
 <span class="s2">    &gt;&gt;&gt; predictor = ocr_predictor(det_arch=model,</span>
-<span class="s2">    &gt;&gt;&gt;                           reco_arch='crnn_mobilenet_v3_small',</span>
+<span class="s2">    &gt;&gt;&gt;                           reco_arch=&#39;crnn_mobilenet_v3_small&#39;,</span>
 <span class="s2">    &gt;&gt;&gt;                           pretrained=True)</span>
 
 <span class="s2">    &gt;&gt;&gt; # Get your predictions</span>
 <span class="s2">    &gt;&gt;&gt; res = predictor(img)</span>
 <span class="s2">    ```</span>
-<span class="s2">    """</span><span class="p">)</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="p">)</span>
 
     <span class="c1"># add run configuration to readme if available</span>
     <span class="k">if</span> <span class="n">run_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">arch</span> <span class="o">=</span> <span class="n">run_config</span><span class="o">.</span><span class="n">arch</span>
-        <span class="n">readme</span> <span class="o">+=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""### Run Configuration</span>
-<span class="s2">                                  </span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+        <span class="n">readme</span> <span class="o">+=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;### Run Configuration</span>
+<span class="s2">                                  </span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AVAILABLE_ARCHS</span><span class="p">[</span><span class="n">task</span><span class="p">]:</span>  <span class="c1"># type: ignore</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Architecture: </span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s1"> for task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s1"> not found.</span><span class="se">\</span>
-<span class="s1">                         </span><span class="se">\n</span><span class="s1">Available architectures: </span><span class="si">{</span><span class="n">AVAILABLE_ARCHS</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Architecture: </span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s1"> for task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s1"> not found.</span><span class="se">\</span>
+<span class="s1">                         </span><span class="se">\n</span><span class="s1">Available architectures: </span><span class="si">{</span><span class="n">AVAILABLE_ARCHS</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-    <span class="n">commit_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'Add </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> model'</span>
+    <span class="n">commit_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Add </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> model&#39;</span>
 
-    <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">'~'</span><span class="p">),</span> <span class="s1">'.cache'</span><span class="p">,</span> <span class="s1">'huggingface'</span><span class="p">,</span> <span class="s1">'hub'</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
+    <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s1">&#39;~&#39;</span><span class="p">),</span> <span class="s1">&#39;.cache&#39;</span><span class="p">,</span> <span class="s1">&#39;huggingface&#39;</span><span class="p">,</span> <span class="s1">&#39;hub&#39;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
     <span class="n">repo_url</span> <span class="o">=</span> <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">create_repo</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">HfFolder</span><span class="o">.</span><span class="n">get_token</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span><span class="n">local_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">clone_from</span><span class="o">=</span><span class="n">repo_url</span><span class="p">,</span> <span class="n">use_auth_token</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">repo</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">commit_message</span><span class="p">):</span>
 
         <span class="n">_save_model_and_config_for_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">repo</span><span class="o">.</span><span class="n">local_dir</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
-        <span class="n">readme_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">repo</span><span class="o">.</span><span class="n">local_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s1">'README.md'</span>
+        <span class="n">readme_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">repo</span><span class="o">.</span><span class="n">local_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;README.md&#39;</span>
         <span class="n">readme_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">readme</span><span class="p">)</span>
 
     <span class="n">repo</span><span class="o">.</span><span class="n">git_push</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="from_hub"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.factory.from_hub">[docs]</a><span class="k">def</span> <span class="nf">from_hub</span><span class="p">(</span><span class="n">repo_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-    <span class="sd">"""Instantiate &amp; load a pretrained model from HF hub.</span>
+    <span class="sd">&quot;&quot;&quot;Instantiate &amp; load a pretrained model from HF hub.</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.models import from_hub</span>
-<span class="sd">    &gt;&gt;&gt; model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn")</span>
+<span class="sd">    &gt;&gt;&gt; model = from_hub(&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        repo_id: HuggingFace model hub repo</span>
@@ -427,40 +428,40 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Model loaded with the checkpoint</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Get the config</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">'config.json'</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;config.json&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-    <span class="n">arch</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">'arch'</span><span class="p">]</span>
-    <span class="n">task</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">'task'</span><span class="p">]</span>
-    <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'arch'</span><span class="p">)</span>
-    <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'task'</span><span class="p">)</span>
+    <span class="n">arch</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;arch&#39;</span><span class="p">]</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;arch&#39;</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;task&#39;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">'classification'</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span>
             <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">classes</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'classes'</span><span class="p">],</span>
-            <span class="n">num_classes</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'num_classes'</span><span class="p">]</span>
+            <span class="n">classes</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;classes&#39;</span><span class="p">],</span>
+            <span class="n">num_classes</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">'detection'</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;detection&#39;</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span>
             <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">'recognition'</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;recognition&#39;</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span>
             <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">input_shape</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">],</span>
-            <span class="n">vocab</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">]</span>
+            <span class="n">input_shape</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+            <span class="n">vocab</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">]</span>
         <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">'obj_detection'</span> <span class="ow">and</span> <span class="n">is_torch_available</span><span class="p">():</span>
+    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;obj_detection&#39;</span> <span class="ow">and</span> <span class="n">is_torch_available</span><span class="p">():</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">obj_detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span>
             <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">image_mean</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">],</span>
-            <span class="n">image_std</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'std'</span><span class="p">],</span>
-            <span class="n">max_size</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-            <span class="n">num_classes</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'classes'</span><span class="p">]),</span>
+            <span class="n">image_mean</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">],</span>
+            <span class="n">image_std</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">],</span>
+            <span class="n">max_size</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">num_classes</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;classes&#39;</span><span class="p">]),</span>
         <span class="p">)</span>
 
     <span class="c1"># update model cfg</span>
@@ -468,11 +469,11 @@
 
     <span class="c1"># Load checkpoint</span>
     <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">'pytorch_model.bin'</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">map_location</span><span class="o">=</span><span class="s1">'cpu'</span><span class="p">)</span>
+        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;pytorch_model.bin&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">map_location</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># tf</span>
         <span class="n">repo_path</span> <span class="o">=</span> <span class="n">snapshot_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="s1">'tf_model'</span><span class="p">,</span> <span class="s1">'weights'</span><span class="p">))</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="s1">&#39;tf_model&#39;</span><span class="p">,</span> <span class="s1">&#39;weights&#39;</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">model</span></div>
 </pre></div>

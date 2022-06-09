@@ -14,10 +14,10 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Choose a ready to use dataset" href="using_datasets.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>Choosing the right model - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../_static/tabs.css" />
@@ -229,7 +229,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -271,16 +272,17 @@ Our latest detection models works with rotated and skewed documents!</p>
 <li><p><a class="reference external" href="models.html#doctr.models.detection.db_resnet50_rotation">db_resnet50_rotation</a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
-<div class="table-wrapper"><table class="docutils align-default">
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 26%"/>
-<col style="width: 13%"/>
-<col style="width: 11%"/>
-<col style="width: 9%"/>
-<col style="width: 12%"/>
-<col style="width: 9%"/>
-<col style="width: 12%"/>
-<col style="width: 7%"/>
+<col style="width: 26%" />
+<col style="width: 13%" />
+<col style="width: 11%" />
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 9%" />
+<col style="width: 12%" />
+<col style="width: 7%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head" colspan="3"></th>
@@ -318,7 +320,8 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities</em></p>
@@ -329,7 +332,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p><a class="reference external" href="models.html#doctr.models.detection.detection_predictor">detection_predictor</a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">'db_resnet50'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
@@ -342,7 +345,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </ul>
 <p>For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">'db_resnet50_rotation'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>NB: for the moment, <cite>db_resnet50_rotation</cite> is pretrained in Pytorch only and <cite>linknet_resnet18_rotation</cite> in Tensorflow only.</p>
@@ -362,15 +365,16 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><a class="reference external" href="models.html#doctr.models.recognition.master">master</a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
-<div class="table-wrapper"><table class="docutils align-default" id="id5">
+<div class="table-wrapper docutils container" id="id5">
+<table class="docutils align-default" id="id5">
 <caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
 <colgroup>
-<col style="width: 17%"/>
-<col style="width: 17%"/>
-<col style="width: 17%"/>
-<col style="width: 17%"/>
-<col style="width: 17%"/>
-<col style="width: 17%"/>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Architecture</p></th>
@@ -418,13 +422,14 @@ Explanations about the metrics being used are available in <a class="reference i
 <td></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metric being used (exact match) are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p>While most of our recognition models were trained on our french vocab (cf. <a class="reference internal" href="../modules/datasets.html#vocabs"><span class="std std-ref">Supported Vocabs</span></a>), you can easily access the vocab of any model as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">'crnn_vgg16_bn'</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'vocab'</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 <p><em>Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
@@ -435,7 +440,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p><a class="reference external" href="models.html#doctr.models.recognition.recognition_predictor">recognition_predictor</a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">'crnn_vgg16_bn'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
@@ -449,15 +454,16 @@ Explanations about the metric being used (exact match) are available in <a class
 <h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h3>
 <p>You can use any combination of detection and recognition models supporte by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
-<div class="table-wrapper"><table class="docutils align-default">
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 36%"/>
-<col style="width: 11%"/>
-<col style="width: 13%"/>
-<col style="width: 8%"/>
-<col style="width: 11%"/>
-<col style="width: 13%"/>
-<col style="width: 8%"/>
+<col style="width: 36%" />
+<col style="width: 11%" />
+<col style="width: 13%" />
+<col style="width: 8%" />
+<col style="width: 11%" />
+<col style="width: 13%" />
+<col style="width: 8%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
@@ -547,27 +553,29 @@ Explanations about the metric being used (exact match) are available in <a class
 <td></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 <p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
 <p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
 <p>Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.</p>
-<div class="table-wrapper"><table class="docutils align-default">
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 22%"/>
-<col style="width: 6%"/>
-<col style="width: 7%"/>
-<col style="width: 6%"/>
-<col style="width: 7%"/>
-<col style="width: 6%"/>
-<col style="width: 7%"/>
-<col style="width: 6%"/>
-<col style="width: 7%"/>
-<col style="width: 6%"/>
-<col style="width: 7%"/>
-<col style="width: 6%"/>
-<col style="width: 7%"/>
+<col style="width: 22%" />
+<col style="width: 6%" />
+<col style="width: 7%" />
+<col style="width: 6%" />
+<col style="width: 7%" />
+<col style="width: 6%" />
+<col style="width: 7%" />
+<col style="width: 6%" />
+<col style="width: 7%" />
+<col style="width: 6%" />
+<col style="width: 7%" />
+<col style="width: 6%" />
+<col style="width: 7%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
@@ -707,14 +715,15 @@ Explanations about the metrics being used are available in <a class="reference i
 <td></td>
 </tr>
 </tbody>
-</table></div>
+</table>
+</div>
 </section>
 <section id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this headline">#</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference external" href="models.html#doctr.models.ocr_predictor">ocr_predictor</a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
@@ -731,7 +740,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </ul>
 <p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">'linknet_resnet18_rotation'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -746,9 +755,9 @@ To get a better understanding of our document model, check our <a class="referen
     <span class="p">(</span><span class="n">blocks</span><span class="p">):</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span>
       <span class="p">(</span><span class="n">lines</span><span class="p">):</span> <span class="p">[</span><span class="n">Line</span><span class="p">(</span>
         <span class="p">(</span><span class="n">words</span><span class="p">):</span> <span class="p">[</span>
-          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'No.'</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.91</span><span class="p">),</span>
-          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'RECEIPT'</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.99</span><span class="p">),</span>
-          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">'DATE'</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.96</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;No.&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.91</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.99</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.96</span><span class="p">),</span>
         <span class="p">]</span>
       <span class="p">)]</span>
       <span class="p">(</span><span class="n">artefacts</span><span class="p">):</span> <span class="p">[]</span>
@@ -763,38 +772,38 @@ To get a better understanding of our document model, check our <a class="referen
 </div>
 <p>For reference, here is the JSON export for the same <cite>Document</cite> as above:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s1">'pages'</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s1">&#39;pages&#39;</span><span class="p">:</span> <span class="p">[</span>
       <span class="p">{</span>
-          <span class="s1">'page_idx'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-          <span class="s1">'dimensions'</span><span class="p">:</span> <span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">),</span>
-          <span class="s1">'orientation'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'value'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">'confidence'</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-          <span class="s1">'language'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'value'</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">'confidence'</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-          <span class="s1">'blocks'</span><span class="p">:</span> <span class="p">[</span>
+          <span class="s1">&#39;page_idx&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+          <span class="s1">&#39;dimensions&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">),</span>
+          <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+          <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+          <span class="s1">&#39;blocks&#39;</span><span class="p">:</span> <span class="p">[</span>
               <span class="p">{</span>
-                  <span class="s1">'geometry'</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
-                  <span class="s1">'lines'</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
+                  <span class="s1">&#39;lines&#39;</span><span class="p">:</span> <span class="p">[</span>
                       <span class="p">{</span>
-                          <span class="s1">'geometry'</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
-                          <span class="s1">'words'</span><span class="p">:</span> <span class="p">[</span>
+                          <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
+                          <span class="s1">&#39;words&#39;</span><span class="p">:</span> <span class="p">[</span>
                               <span class="p">{</span>
-                                  <span class="s1">'value'</span><span class="p">:</span> <span class="s1">'No.'</span><span class="p">,</span>
-                                  <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
-                                  <span class="s1">'geometry'</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;No.&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
                               <span class="p">},</span>
                               <span class="p">{</span>
-                                  <span class="s1">'value'</span><span class="p">:</span> <span class="s1">'RECEIPT'</span><span class="p">,</span>
-                                  <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
-                                  <span class="s1">'geometry'</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
                               <span class="p">},</span>
                               <span class="p">{</span>
-                                  <span class="s1">'value'</span><span class="p">:</span> <span class="s1">'DATE'</span><span class="p">,</span>
-                                  <span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
-                                  <span class="s1">'geometry'</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
                               <span class="p">}</span>
                           <span class="p">]</span>
                       <span class="p">}</span>
                   <span class="p">],</span>
-                  <span class="s1">'artefacts'</span><span class="p">:</span> <span class="p">[]</span>
+                  <span class="s1">&#39;artefacts&#39;</span><span class="p">:</span> <span class="p">[]</span>
               <span class="p">}</span>
           <span class="p">]</span>
       <span class="p">}</span>
@@ -810,22 +819,22 @@ To get a better understanding of our document model, check our <a class="referen
 </pre></div>
 </div>
 <p>For reference, here is a sample XML byte string output:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"&gt;
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xml:lang=&quot;en&quot;&gt;
   &lt;head&gt;
     &lt;title&gt;docTR - hOCR&lt;/title&gt;
-    &lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;
-    &lt;meta name="ocr-system" content="doctr 0.5.0" /&gt;
-    &lt;meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" /&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+    &lt;meta name=&quot;ocr-system&quot; content=&quot;doctr 0.5.0&quot; /&gt;
+    &lt;meta name=&quot;ocr-capabilities&quot; content=&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot; /&gt;
   &lt;/head&gt;
   &lt;body&gt;
-    &lt;div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0" /&gt;
-    &lt;div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710"&gt;
-      &lt;p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710"&gt;
-        &lt;span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"&gt;
-          &lt;span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99"&gt;Hello&lt;/span&gt;
-          &lt;span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99"&gt;XML&lt;/span&gt;
-          &lt;span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81"&gt;World&lt;/span&gt;
+    &lt;div class=&quot;ocr_page&quot; id=&quot;page_1&quot; title=&quot;image; bbox 0 0 3456 3456; ppageno 0&quot; /&gt;
+    &lt;div class=&quot;ocr_carea&quot; id=&quot;block_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
+      &lt;p class=&quot;ocr_par&quot; id=&quot;par_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
+        &lt;span class=&quot;ocr_line&quot; id=&quot;line_1_1&quot; title=&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;&gt;
+          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_1&quot; title=&quot;bbox 1552 540 1778 580; x_wconf 99&quot;&gt;Hello&lt;/span&gt;
+          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_2&quot; title=&quot;bbox 1782 529 1900 583; x_wconf 99&quot;&gt;XML&lt;/span&gt;
+          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_3&quot; title=&quot;bbox 1420 597 1684 641; x_wconf 81&quot;&gt;World&lt;/span&gt;
         &lt;/span&gt;
       &lt;/p&gt;
     &lt;/div&gt;

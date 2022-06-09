@@ -13,10 +13,10 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.04.07"/>
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.04.1"/>
         <title>doctr.models.detection.zoo - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=68f4518137b9aefe99b631505a2064c3c42c9852" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css" />
@@ -214,7 +214,8 @@
           </svg>
           <span>Back to top</span>
         </a>
-        <div class="content-icon-container"><div class="theme-toggle-container theme-toggle-content">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
               <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
@@ -242,34 +243,34 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">detection</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"detection_predictor"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;detection_predictor&quot;</span><span class="p">]</span>
 
 
 <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'db_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'linknet16'</span><span class="p">]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet16&#39;</span><span class="p">]</span>
 <span class="k">elif</span> <span class="n">is_torch_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'db_resnet34'</span><span class="p">,</span> <span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'db_mobilenet_v3_large'</span><span class="p">,</span> <span class="s1">'linknet16'</span><span class="p">]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet16&#39;</span><span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
 
     <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown architecture &#39;</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
     <span class="c1"># Detection</span>
     <span class="n">_model</span> <span class="o">=</span> <span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mean'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'mean'</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'std'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'std'</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'std'</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">'batch_size'</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'batch_size'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
-        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">'input_shape'</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][:</span><span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
         <span class="n">_model</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">predictor</span>
 
 
-<div class="viewcode-block" id="detection_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.detection.detection_predictor">[docs]</a><span class="k">def</span> <span class="nf">detection_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
-    <span class="sd">"""Text detection architecture.</span>
+<div class="viewcode-block" id="detection_predictor"><a class="viewcode-back" href="../../../../models.html#doctr.models.detection.detection_predictor">[docs]</a><span class="k">def</span> <span class="nf">detection_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Text detection architecture.</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
@@ -279,12 +280,12 @@
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        arch: name of the architecture to use ('db_resnet50')</span>
+<span class="sd">        arch: name of the architecture to use (&#39;db_resnet50&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text detection dataset</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Detection predictor</span>
-<span class="sd">    """</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
