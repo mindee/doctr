@@ -56,6 +56,9 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 result = model(doc)
 ```
 
+### If you are looking for support from the Mindee team
+[![Bad OCR test detection image asking the developer if they need help](img/doctr-need-help.png)](https://mindee.com/product/doctr)
+
 ### Dealing with rotated documents
 Should you use docTR on documents that include rotated pages, or pages with multiple box orientations,
 you have multiple options to handle it:
