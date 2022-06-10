@@ -68,8 +68,12 @@ _deps = [
     "keras<2.7.0",  # cf. https://github.com/mindee/doctr/pull/579
 =======
     "keras>=2.9.0",
+<<<<<<< HEAD
 >>>>>>> a9731878 (upgrade to tf and keras 2.9 apply changes for magc tf and onnx)
     "tf2onnx>=1.9.2",
+=======
+    "tf2onnx>=1.11.0",
+>>>>>>> f31e0bcf (upgrade opset version)
     "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",

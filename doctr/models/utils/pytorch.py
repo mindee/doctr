@@ -116,7 +116,7 @@ def export_classification_model_to_onnx(model: nn.Module, model_name: str, dummy
         input_names=['input'],
         output_names=['logits'],
         dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
-        export_params=True, opset_version=13, verbose=False
+        export_params=True, opset_version=14, verbose=False
     )
     logging.info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx"

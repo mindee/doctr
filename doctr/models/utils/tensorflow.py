@@ -145,7 +145,7 @@ def export_classification_model_to_onnx(model: Model,
     """
     model_proto, _ = tf2onnx.convert.from_keras(
         model,
-        opset=13,
+        opset=14,
         input_signature=dummy_input,
         output_path=f"{model_name}.onnx",
     )
