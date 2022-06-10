@@ -95,8 +95,8 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet34_wide", (32, 32, 3), (126,)],
         ["resnet50", (32, 32, 3), (126,)],
         ["magc_resnet31", (32, 32, 3), (126,)],
-        ["mobilenet_v3_small", (512, 512, 3), (126,)],
-        ["mobilenet_v3_large", (512, 512, 3), (126,)],
+        ["mobilenet_v3_small", (32, 32, 3), (126,)],
+        ["mobilenet_v3_large", (32, 32, 3), (126,)],
         ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
     ],
 )
