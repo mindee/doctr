@@ -44,22 +44,31 @@ _deps = [
     "scipy>=1.4.0",
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
+<<<<<<< HEAD
     "tensorflow>=2.4.0",
     "pypdfium2>=2.1.0, <3.0.0",  # cf. https://github.com/mindee/doctr/issues/947
+=======
+    "tensorflow>=2.9.0",
+    "pypdfium2>=2.0.0",
+>>>>>>> a9731878 (upgrade to tf and keras 2.9 apply changes for magc tf and onnx)
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0,<3.4.3",
     "mplcursors>=0.3",
     "weasyprint>=52.2,<53.0",
     "unidecode>=1.0.0",
-    "tensorflow-cpu>=2.4.0",
+    "tensorflow-cpu>=2.9.0",
     "torch>=1.8.0",
     "torchvision>=0.9.0",
     "Pillow>=8.3.2",  # cf. https://github.com/advisories/GHSA-98vv-pw6r-q6q4
     "tqdm>=4.30.0",
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
+<<<<<<< HEAD
     "keras<2.7.0",  # cf. https://github.com/mindee/doctr/pull/579
+=======
+    "keras>=2.9.0",
+>>>>>>> a9731878 (upgrade to tf and keras 2.9 apply changes for magc tf and onnx)
     "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
     # Testing

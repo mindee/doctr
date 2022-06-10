@@ -94,9 +94,7 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet34", (32, 32, 3), (126,)],
         ["resnet34_wide", (32, 32, 3), (126,)],
         ["resnet50", (32, 32, 3), (126,)],
-        # Name:'res_net_4/magc/transform/conv2d_289/Conv2D:0_nchwc'
-        # Status Message: Input channels C is not equal to kernel channels * group. C: 32 kernel channels: 256 group: 1
-        #["magc_resnet31", (32, 32, 3), (126,)],
+        ["magc_resnet31", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (512, 512, 3), (126,)],
         ["mobilenet_v3_large", (512, 512, 3), (126,)],
         ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
