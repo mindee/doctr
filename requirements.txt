@@ -15,5 +15,5 @@ tqdm>=4.30.0
 tensorflow-addons>=0.13.0
 tf2onnx>=1.11.0
 rapidfuzz>=1.6.0
-keras<=2.6.0
+keras>=2.9.0
 huggingface-hub>=0.4.0
