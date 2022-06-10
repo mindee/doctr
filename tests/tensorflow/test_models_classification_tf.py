@@ -103,6 +103,7 @@ def test_crop_orientation_model(mock_text_box):
 def test_models_saved_model_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
+    tf.keras.backend.clear_session()
     if arch_name == "mobilenet_v3_small_orientation":
         model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     else:
