@@ -15,6 +15,7 @@ __all__ = ['Decoder', 'PositionalEncoding']
 
 tf.config.run_functions_eagerly(True)
 
+
 class PositionalEncoding(layers.Layer, NestedObject):
     """ Compute positional encoding """
 
