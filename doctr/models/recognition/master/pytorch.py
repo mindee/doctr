@@ -163,7 +163,7 @@ class MASTER(_MASTER, nn.Module):
             return_preds: if True, decode logits
 
         Returns:
-            A torch tensor, containing logits
+            A dictionnary containing eventually loss, logits and predictions.
         """
 
         # Encode

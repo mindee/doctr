@@ -3,263 +3,174 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-# This module 'transformer.py' is 100% inspired from this Tensorflow tutorial:
-# https://www.tensorflow.org/text/tutorials/transformer
+import math
+from typing import Any, Optional, Tuple
 
-
-from typing import Any, Tuple
-
-import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers
 
-__all__ = ['Decoder', 'positional_encoding', 'create_look_ahead_mask', 'create_padding_mask']
+from doctr.utils.repr import NestedObject
 
-
-def get_angles(pos: np.ndarray, i: np.ndarray, d_model: int = 512) -> np.ndarray:
-    """This function compute the 2D array of angles for sinusoidal positional encoding.
-
-    Args:
-        pos: range of positions to encode
-        i: range of depth to encode positions
-        d_model: depth parameter of the model
-
-    Returns:
-        2D array of angles, len(pos) x len(i)
-    """
-    angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
-    return pos * angle_rates
+__all__ = ['Decoder', 'PositionalEncoding']
 
 
-def positional_encoding(position: int, d_model: int = 512, dtype=tf.float32) -> tf.Tensor:
-    """This function computes the 2D positional encoding of the position, on a depth d_model
+class PositionalEncoding(layers.Layer, NestedObject):
+    """ Compute positional encoding """
 
-    Args:
-        position: Number of positions to encode
-        d_model: depth of the encoding
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000) -> None:
+        super(PositionalEncoding, self).__init__()
+        self.dropout = layers.Dropout(rate=dropout)
 
-    Returns:
-        2D positional encoding as described in Transformer paper.
-    """
-    angle_rads = get_angles(
-        np.arange(position)[:, np.newaxis],
-        np.arange(d_model)[np.newaxis, :],
-        d_model,
-    )
-    # apply sin to even indices in the array; 2i
-    angle_rads[:, 0::2] = np.sin(angle_rads[:, 0::2])
-    # apply cos to odd indices in the array; 2i+1
-    angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
-    pos_encoding = angle_rads[np.newaxis, ...]
-    return tf.cast(pos_encoding, dtype=dtype)
+        # Compute the positional encodings once in log space.
+        pe = tf.Variable(tf.zeros((max_len, d_model)))
+        position = tf.cast(
+            tf.expand_dims(tf.experimental.numpy.arange(start=0, stop=max_len), axis=1), dtype=tf.float32
+        )
+        div_term = tf.math.exp(
+            tf.cast(
+                tf.experimental.numpy.arange(start=0, stop=d_model, step=2), dtype=tf.float32
+            ) * -(math.log(10000.0) / d_model)
+        )
+        pe = pe.numpy()
+        pe[:, 0::2] = tf.math.sin(position * div_term)
+        pe[:, 1::2] = tf.math.cos(position * div_term)
+        self.pe = tf.expand_dims(tf.convert_to_tensor(pe), axis=0)
 
+    def call(self, x: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
+        """
+        Args:
+            x: embeddings (batch, max_len, d_model)
+            **kwargs: additional arguments
 
-@tf.function
-def create_padding_mask(seq: tf.Tensor, padding: int = 0, dtype=tf.float32) -> tf.Tensor:
-    seq = tf.cast(tf.math.equal(seq, padding), dtype)
-    # add extra dimensions to add the padding to the attention logits.
-    return seq[:, tf.newaxis, tf.newaxis, :]  # (batch_size, 1, 1, seq_len)
-
-
-@tf.function
-def create_look_ahead_mask(size: int) -> tf.Tensor:
-    mask = 1 - tf.linalg.band_part(tf.ones((size, size)), -1, 0)
-    return mask  # (seq_len, seq_len)
+        Returns:
+            positional embeddings (batch, max_len, d_model)
+        """
+        x = x + self.pe[:, : x.shape[1]]  # type: ignore
+        return self.dropout(x, **kwargs)
 
 
 @tf.function
 def scaled_dot_product_attention(
-    q: tf.Tensor, k: tf.Tensor, v: tf.Tensor, mask: tf.Tensor
+    query: tf.Tensor,
+    key: tf.Tensor,
+    value: tf.Tensor,
+    mask: Optional[tf.Tensor] = None
 ) -> Tuple[tf.Tensor, tf.Tensor]:
+    """ Scaled Dot-Product Attention """
 
-    """Calculate the attention weights.
-    q, k, v must have matching leading dimensions.
-    k, v must have matching penultimate dimension, i.e.: seq_len_k = seq_len_v.
-    The mask has different shapes depending on its type(padding or look ahead)
-    but it must be broadcastable for addition.
-    Args:
-        q: query shape == (..., seq_len_q, depth)
-        k: key shape == (..., seq_len_k, depth)
-        v: value shape == (..., seq_len_v, depth_v)
-        mask: Float tensor with shape broadcastable to (..., seq_len_q, seq_len_k). Defaults to None.
-    Returns:
-        output, attention_weights
-    """
-
-    matmul_qk = tf.matmul(q, k, transpose_b=True)  # (..., seq_len_q, seq_len_k)
-    # scale matmul_qk
-    dk = tf.cast(tf.shape(k)[-1], q.dtype)
-    scaled_attention_logits = matmul_qk / tf.math.sqrt(dk)
-    # add the mask to the scaled tensor.
+    scores = tf.matmul(query, key, transpose_b=True) / math.sqrt(query.shape[-1])
     if mask is not None:
-        scaled_attention_logits += (tf.cast(mask, dtype=q.dtype) * -1e9)
-    # softmax is normalized on the last axis (seq_len_k) so that the scores
-    # add up to 1.
-    attention_weights = tf.nn.softmax(scaled_attention_logits, axis=-1)  # (..., seq_len_q, seq_len_k)
-    output = tf.matmul(attention_weights, v)  # (..., seq_len_q, depth_v)
-    return output
+        scores += (tf.cast(mask, dtype=query.dtype) * -1e9)
+    p_attn = tf.nn.softmax(scores, axis=-1)
+    return tf.matmul(p_attn, value), p_attn
 
 
-class MultiHeadAttention(tf.keras.layers.Layer):
+class PositionwiseFeedForward(layers.Layer, NestedObject):
+    """ Position-wise Feed-Forward Network """
 
-    def __init__(self, d_model: int = 512, num_heads: int = 8) -> None:
-        super(MultiHeadAttention, self).__init__()
-        self.num_heads = num_heads
-        self.d_model = d_model
+    def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
+        super(PositionwiseFeedForward, self).__init__()
+        self.first_linear = layers.Dense(ffd, kernel_initializer=tf.initializers.he_uniform())
+        self.sec_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
+        self.dropout = layers.Dropout(rate=dropout)
 
-        assert d_model % self.num_heads == 0
-
-        self.depth = d_model // self.num_heads
-
-        self.wq = tf.keras.layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
-        self.wk = tf.keras.layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
-        self.wv = tf.keras.layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
-
-        self.dense = tf.keras.layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
-
-    def split_heads(self, x: tf.Tensor, batch_size: int) -> tf.Tensor:
-        """Split the last dimension into (num_heads, depth).
-        Transpose the result such that the shape is (batch_size, num_heads, seq_len, depth)
-        """
-        x = tf.reshape(x, (batch_size, -1, self.num_heads, self.depth))
-        return tf.transpose(x, perm=[0, 2, 1, 3])
-
-    def call(
-        self,
-        v: tf.Tensor,
-        k: tf.Tensor,
-        q: tf.Tensor,
-        mask: tf.Tensor,
-        **kwargs: Any,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
-
-        batch_size = tf.shape(q)[0]
-
-        q = self.wq(q, **kwargs)  # (batch_size, seq_len, d_model)
-        k = self.wk(k, **kwargs)  # (batch_size, seq_len, d_model)
-        v = self.wv(v, **kwargs)  # (batch_size, seq_len, d_model)
-
-        q = self.split_heads(q, batch_size)  # (batch_size, num_heads, seq_len_q, depth)
-        k = self.split_heads(k, batch_size)  # (batch_size, num_heads, seq_len_k, depth)
-        v = self.split_heads(v, batch_size)  # (batch_size, num_heads, seq_len_v, depth)
-
-        # scaled_attention.shape == (batch_size, num_heads, seq_len_q, depth)
-        # attention_weights.shape == (batch_size, num_heads, seq_len_q, seq_len_k)
-        scaled_attention = scaled_dot_product_attention(q, k, v, mask)
-
-        scaled_attention = tf.transpose(scaled_attention, perm=[0, 2, 1, 3])  # (batch, seq_len_q, num_heads, depth)
-
-        concat_attention = tf.reshape(scaled_attention,
-                                      (batch_size, -1, self.d_model))  # (batch_size, seq_len_q, d_model)
-
-        output = self.dense(concat_attention, **kwargs)  # (batch_size, seq_len_q, d_model)
-
-        return output
-
-
-def point_wise_feed_forward_network(d_model: int = 512, dff: int = 2048) -> tf.keras.Sequential:
-    return tf.keras.Sequential([
-        tf.keras.layers.Dense(
-            dff, activation='relu', kernel_initializer=tf.initializers.he_uniform()
-        ),  # (batch, seq_len, dff)
-        tf.keras.layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())  # (batch, seq_len, d_model)
-    ])
-
-
-class DecoderLayer(tf.keras.layers.Layer):
-
-    def __init__(
-        self,
-        d_model: int = 512,
-        num_heads: int = 8,
-        dff: int = 2048,
-        dropout: float = 0.2,
-    ) -> None:
-        super(DecoderLayer, self).__init__()
-
-        self.mha1 = MultiHeadAttention(d_model, num_heads)
-        self.mha2 = MultiHeadAttention(d_model, num_heads)
-
-        self.ffn = point_wise_feed_forward_network(d_model, dff)
-
-        self.layernorm1 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-        self.layernorm2 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-        self.layernorm3 = tf.keras.layers.LayerNormalization(epsilon=1e-6)
-
-        self.dropout1 = tf.keras.layers.Dropout(dropout)
-        self.dropout2 = tf.keras.layers.Dropout(dropout)
-        self.dropout3 = tf.keras.layers.Dropout(dropout)
-
-    def call(
-        self,
-        x: tf.Tensor,
-        enc_output: tf.Tensor,
-        look_ahead_mask: tf.Tensor,
-        padding_mask: tf.Tensor,
-        **kwargs: Any,
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
-        # enc_output.shape == (batch_size, input_seq_len, d_model)
-
-        attn1 = self.mha1(x, x, x, look_ahead_mask, **kwargs)  # (batch_size, target_seq_len, d_model)
-        attn1 = self.dropout1(attn1, **kwargs)
-        out1 = self.layernorm1(attn1 + x, **kwargs)
-
-        attn2 = self.mha2(enc_output, enc_output, out1, padding_mask, **kwargs)  # (batch_size, target_seq_len, d_model)
-        attn2 = self.dropout2(attn2, **kwargs)
-        out2 = self.layernorm2(attn2 + out1, **kwargs)  # (batch_size, target_seq_len, d_model)
-
-        ffn_output = self.ffn(out2, **kwargs)  # (batch_size, target_seq_len, d_model)
-        ffn_output = self.dropout3(ffn_output, **kwargs)
-        out3 = self.layernorm3(ffn_output + out2, **kwargs)  # (batch_size, target_seq_len, d_model)
-
-        return out3
-
-
-class Decoder(tf.keras.layers.Layer):
-
-    def __init__(
-        self,
-        num_layers: int = 3,
-        d_model: int = 512,
-        num_heads: int = 8,
-        dff: int = 2048,
-        vocab_size: int = 120,
-        maximum_position_encoding: int = 50,
-        dropout: float = 0.2,
-    ) -> None:
-        super(Decoder, self).__init__()
-
-        self.d_model = d_model
-        self.num_layers = num_layers
-
-        self.embedding = tf.keras.layers.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
-        self.pos_encoding = positional_encoding(maximum_position_encoding, d_model)
-
-        self.dec_layers = [DecoderLayer(d_model, num_heads, dff, dropout)
-                           for _ in range(num_layers)]
-
-        self.dropout = tf.keras.layers.Dropout(dropout)
-
-    def call(
-        self,
-        x: tf.Tensor,
-        enc_output: tf.Tensor,
-        look_ahead_mask: tf.Tensor,
-        padding_mask: tf.Tensor,
-        **kwargs: Any,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
-
-        seq_len = tf.shape(x)[1]
-
-        x = self.embedding(x, **kwargs)  # (batch_size, target_seq_len, d_model)
-        x *= tf.math.sqrt(tf.cast(self.d_model, x.dtype))
-        x += tf.cast(self.pos_encoding[:, :seq_len, :], dtype=x.dtype)
-
+    def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
+        x = tf.nn.relu(self.first_linear(x, **kwargs))
         x = self.dropout(x, **kwargs)
+        x = self.sec_linear(x, **kwargs)
+        return x
+
+
+class MultiHeadAttention(layers.Layer, NestedObject):
+    """ Multi-Head Attention """
+
+    def __init__(self, num_heads: int, d_model: int, dropout: float = 0.1) -> None:
+        super().__init__()
+        assert d_model % num_heads == 0
+
+        self.d_k = d_model // num_heads
+        self.num_heads = num_heads
+
+        self.linear_layers = [layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform()) for _ in range(3)]
+        self.output_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
+
+    def call(
+        self,
+        query: tf.Tensor,
+        key: tf.Tensor,
+        value: tf.Tensor,
+        mask: tf.Tensor = None,
+        **kwargs: Any,
+    ) -> tf.Tensor:
+        batch_size = query.shape[0]
+
+        # linear projections of Q, K, V
+        query, key, value = [tf.transpose(
+            tf.reshape(linear(x, **kwargs), shape=[batch_size, -1, self.num_heads, self.d_k]), perm=[0, 2, 1, 3]
+        ) for linear, x in zip(self.linear_layers, (query, key, value))]
+
+        # apply attention on all the projected vectors in batch
+        x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
+
+        # Concat attention heads
+        x = tf.transpose(x, perm=[0, 2, 1, 3])
+        x = tf.reshape(x, shape=[batch_size, -1, self.num_heads * self.d_k])
+
+        return self.output_linear(x, **kwargs)
+
+
+class Decoder(layers.Layer, NestedObject):
+    """ Transformer Decoder """
+
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        d_model: int,
+        vocab_size: int,
+        dropout: float = 0.2,
+        dff: int = 2048,
+        maximum_position_encoding: int = 50,
+    ) -> None:
+
+        super(Decoder, self).__init__()
+        self.num_layers = num_layers
+        self.d_model = d_model
+
+        self.dropout = layers.Dropout(rate=dropout)
+        self.embed = layers.Embedding(vocab_size, d_model)
+        self.positional_encoding = PositionalEncoding(d_model, dropout, maximum_position_encoding)
+        self.layer_norm = layers.LayerNormalization(epsilon=1e-5)
+
+        self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        self.source_attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        self.position_feed_forward = [PositionwiseFeedForward(d_model, dff, dropout) for _ in range(self.num_layers)]
+
+    def call(
+        self,
+        tgt: tf.Tensor,
+        memory: tf.Tensor,
+        source_mask: Optional[tf.Tensor] = None,
+        target_mask: Optional[tf.Tensor] = None,
+        **kwargs: Any,
+    ) -> tf.Tensor:
+
+        tgt = self.embed(tgt, **kwargs) * math.sqrt(self.d_model)
+        pos_enc_tgt = self.positional_encoding(tgt)
+        output = pos_enc_tgt
 
         for i in range(self.num_layers):
-            x = self.dec_layers[i](
-                x, enc_output, look_ahead_mask, padding_mask, **kwargs
+            normed_output = self.layer_norm(output, **kwargs)
+            output = output + self.dropout(
+                self.attention[i](normed_output, normed_output, normed_output, target_mask, **kwargs),
+                **kwargs,
             )
+            normed_output = self.layer_norm(output, **kwargs)
+            output = output + self.dropout(
+                self.source_attention[i](normed_output, memory, memory, source_mask, **kwargs),
+                **kwargs,
+            )
+            normed_output = self.layer_norm(output, **kwargs)
+            output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
-        # x.shape == (batch_size, target_seq_len, d_model)
-        return x
+        return self.layer_norm(output, **kwargs)
