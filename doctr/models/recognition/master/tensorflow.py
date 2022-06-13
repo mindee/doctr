@@ -90,12 +90,13 @@ class MASTER(_MASTER, Model):
         source: tf.Tensor,
         target: tf.Tensor
     ) -> Tuple[tf.Tensor, tf.Tensor]:
-        # [True, True, True, ..., False, False, False] -> False is masked
+        # NOTE: inverse from PyTorch implementation
+        # [False, False, False, ..., True, True, True] -> True is masked
         # (N, 1, 1, max_length)
-        target_pad_mask = tf.expand_dims(tf.expand_dims((target != self.vocab_size + 2), axis=1), axis=1)
+        target_pad_mask = tf.expand_dims(tf.expand_dims((target == self.vocab_size + 2), axis=1), axis=1)
         target_length = target.shape[1]
-        # sub mask filled diagonal with 1 = see 0 = masked (max_length, max_length)
-        target_sub_mask = 0 - tf.linalg.band_part(tf.ones((target_length, target_length)), -1, 0)
+        # sub mask filled diagonal with 0 = see 1 = masked (max_length, max_length)
+        target_sub_mask = 1 - tf.linalg.band_part(tf.ones((target_length, target_length)), -1, 0)
         # source mask filled with ones (max_length, positional_encoded_seq_len)
         source_mask = tf.ones((target_length, source.shape[1]), dtype=tf.uint8)
         # combine the two masks into one (N, 1, max_length, max_length)

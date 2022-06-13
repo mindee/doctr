@@ -13,6 +13,7 @@ from doctr.utils.repr import NestedObject
 
 __all__ = ['Decoder', 'PositionalEncoding']
 
+tf.config.run_functions_eagerly(True)
 
 class PositionalEncoding(layers.Layer, NestedObject):
     """ Compute positional encoding """
@@ -173,4 +174,5 @@ class Decoder(layers.Layer, NestedObject):
             normed_output = self.layer_norm(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
+        # (batch_size, seq_len, d_model)
         return self.layer_norm(output, **kwargs)
