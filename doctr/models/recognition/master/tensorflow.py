@@ -85,6 +85,7 @@ class MASTER(_MASTER, Model):
         self.linear = layers.Dense(self.vocab_size + 3, kernel_initializer=tf.initializers.he_uniform())
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
+    @tf.function
     def make_source_and_target_mask(
         self,
         source: tf.Tensor,
@@ -192,6 +193,7 @@ class MASTER(_MASTER, Model):
 
         return out
 
+    @tf.function
     def decode(self, encoded: tf.Tensor, **kwargs: Any) -> tf.Tensor:
         """Decode function for prediction
 
@@ -203,11 +205,13 @@ class MASTER(_MASTER, Model):
         """
         b = encoded.shape[0]
 
-        # Padding symbol + SOS at the beginning
-        ys = tf.zeros((b, self.max_length), dtype=tf.int32) * (self.vocab_size + 2)  # pad
-        ys = ys.numpy()
-        ys[:, 0] = self.vocab_size + 1  # sos
-        ys = tf.convert_to_tensor(ys)
+        start_symbol = tf.constant(self.vocab_size + 1, dtype=tf.int32)  # SOS
+        padding_symbol = tf.constant(self.vocab_size + 2, dtype=tf.int32)  # PAD
+
+        ys = tf.fill(dims=(b, self.max_length - 1), value=padding_symbol)
+        start_vector = tf.fill(dims=(b, 1), value=start_symbol)
+        ys = tf.concat([start_vector, ys], axis=-1)
+
 
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
@@ -218,9 +222,10 @@ class MASTER(_MASTER, Model):
             prob = tf.nn.softmax(logits, axis=-1)
             next_token = tf.argmax(prob, axis=-1, output_type=ys.dtype)
             # update ys with the next token and ignore the first token (SOS)
-            ys = ys.numpy()
-            ys[:, i + 1] = next_token[:, i]
-            ys = tf.convert_to_tensor(ys)
+            i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing='ij')
+            indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
+
+            ys = tf.tensor_scatter_nd_update(ys, indices, next_token[:, i + 1])
 
         # Shape (N, max_length, vocab_size + 1)
         return logits
