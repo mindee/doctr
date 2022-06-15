@@ -212,7 +212,6 @@ class MASTER(_MASTER, Model):
         start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
 
-
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
 
