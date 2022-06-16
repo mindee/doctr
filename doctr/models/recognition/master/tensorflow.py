@@ -92,17 +92,21 @@ class MASTER(_MASTER, Model):
         target: tf.Tensor
     ) -> Tuple[tf.Tensor, tf.Tensor]:
         # NOTE: inverse from PyTorch implementation
-        # [False, False, False, ..., True, True, True] -> True is masked
+        # [0, 0, 0, ..., 1, 1, 1] -> 1 is masked
         # (N, 1, 1, max_length)
-        target_pad_mask = tf.expand_dims(tf.expand_dims((target == self.vocab_size + 2), axis=1), axis=1)
+        target_pad_mask = tf.cast(tf.math.equal(target, self.vocab_size + 2), dtype=tf.uint8)
+        target_pad_mask = target_pad_mask[:, tf.newaxis, tf.newaxis, :]
         target_length = target.shape[1]
         # sub mask filled diagonal with 0 = see 1 = masked (max_length, max_length)
         target_sub_mask = 1 - tf.linalg.band_part(tf.ones((target_length, target_length)), -1, 0)
-        # source mask filled with ones (max_length, positional_encoded_seq_len)
-        source_mask = tf.ones((target_length, source.shape[1]), dtype=tf.uint8)
+        # source mask filled with zeros (max_length, positional_encoded_seq_len)
+        source_mask = tf.zeros((target_length, source.shape[1]))
         # combine the two masks into one (N, 1, max_length, max_length)
-        target_mask = tf.cast(target_pad_mask, dtype=tf.bool) & tf.cast(target_sub_mask, dtype=tf.bool)
-        return source_mask, tf.cast(target_mask, dtype=tf.uint8)
+        target_mask = tf.math.logical_and(
+            tf.cast(target_sub_mask, dtype=tf.bool),
+            tf.cast(target_pad_mask, dtype=tf.bool)
+        )
+        return source_mask, target_mask
 
     @staticmethod
     def compute_loss(
@@ -224,7 +228,7 @@ class MASTER(_MASTER, Model):
             i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing='ij')
             indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
 
-            ys = tf.tensor_scatter_nd_update(ys, indices, next_token[:, i + 1])
+            ys = tf.tensor_scatter_nd_update(ys, indices, next_token[:, i])
 
         # Shape (N, max_length, vocab_size + 1)
         return logits
