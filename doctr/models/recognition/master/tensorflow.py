@@ -202,10 +202,10 @@ class MASTER(_MASTER, Model):
         """Decode function for prediction
 
         Args:
-            encoded: input tensor
+            encoded: encoded features
 
         Return:
-            A Tuple of torch.Tensor: predictions, logits
+            A Tuple of tf.Tensor: predictions, logits
         """
         b = encoded.shape[0]
 
