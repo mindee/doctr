@@ -45,16 +45,14 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     assert isinstance(img, tf.Tensor)
     assert img.shape == (*input_size, 3)
     assert img.dtype == tf.float32
-    assert isinstance(target, dict)
-    assert len(target['labels']) == 1
-    assert isinstance(target['labels'][0], str)
+    assert isinstance(target, str)
 
     # Check batching
     loader = DataLoader(ds, batch_size=batch_size)
 
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (batch_size, *input_size, 3)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+    assert isinstance(targets, list) and all(isinstance(elt, str) for elt in targets)
 
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):

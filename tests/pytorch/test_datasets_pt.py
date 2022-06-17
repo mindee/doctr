@@ -47,9 +47,7 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
-    assert isinstance(target, dict)
-    assert len(target['labels']) == 1
-    assert isinstance(target['labels'][0], str)
+    assert isinstance(target, str)
 
     # Check batching
     loader = DataLoader(
@@ -58,7 +56,7 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
 
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (batch_size, 3, *input_size)
-    assert isinstance(targets, list) and all(isinstance(elt, dict) for elt in targets)
+    assert isinstance(targets, list) and all(isinstance(elt, str) for elt in targets)
 
 
 def test_visiondataset():

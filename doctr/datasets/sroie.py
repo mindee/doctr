@@ -60,7 +60,7 @@ class SROIE(VisionDataset):
         self.train = train
 
         tmp_root = os.path.join(self.root, 'images')
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[Dict[str, Any], str]]] = []
         np_dtype = np.float32
 
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking SROIE', total=len(os.listdir(tmp_root))):
@@ -86,7 +86,7 @@ class SROIE(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path), geoms=coords)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, dict(labels=[label])))
+                    self.data.append((crop, label))
             else:
                 self.data.append((img_path, dict(boxes=coords, labels=labels)))
 

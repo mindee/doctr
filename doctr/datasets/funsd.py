@@ -63,7 +63,7 @@ class FUNSD(VisionDataset):
 
         # # List images
         tmp_root = os.path.join(self.root, subfolder, 'images')
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[Dict[str, Any], str]]] = []
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking FUNSD', total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
@@ -91,7 +91,7 @@ class FUNSD(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
                                                geoms=np.asarray(box_targets, dtype=np_dtype))
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, dict(labels=[label])))
+                    self.data.append((crop, label))
             else:
                 self.data.append((
                     img_path,

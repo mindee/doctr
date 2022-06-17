@@ -52,7 +52,7 @@ class IC03(VisionDataset):
         url, sha256, file_name = self.TRAIN if train else self.TEST
         super().__init__(url, file_name, sha256, True, **kwargs)
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[Dict[str, Any], str]]] = []
         np_dtype = np.float32
 
         # Load xml data
@@ -100,7 +100,7 @@ class IC03(VisionDataset):
                 if recognition_task:
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                     for crop, label in zip(crops, labels):
-                        self.data.append((crop, dict(labels=[label])))
+                        self.data.append((crop, label))
                 else:
                     # Convert coordinates to relative
                     w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])

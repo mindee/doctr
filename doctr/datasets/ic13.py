@@ -59,7 +59,7 @@ class IC13(AbstractDataset):
             raise FileNotFoundError(
                 f"unable to locate {label_folder if not os.path.exists(label_folder) else img_folder}")
 
-        self.data: List[Tuple[Union[Path, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[Path, np.ndarray], Union[Dict[str, Any], str]]] = []
         np_dtype = np.float32
 
         img_names = os.listdir(img_folder)
@@ -93,6 +93,6 @@ class IC13(AbstractDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=img_path, geoms=box_targets)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, dict(labels=[label])))
+                    self.data.append((crop, label))
             else:
                 self.data.append((img_path, dict(boxes=box_targets, labels=labels)))

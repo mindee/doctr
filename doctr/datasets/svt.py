@@ -47,7 +47,7 @@ class SVT(VisionDataset):
 
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[Dict[str, Any], str]]] = []
         np_dtype = np.float32
 
         # Load xml data
@@ -94,7 +94,7 @@ class SVT(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                 for crop, label in zip(crops, labels):
                     if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
-                        self.data.append((crop, dict(labels=[label])))
+                        self.data.append((crop, label))
             else:
                 # Convert coordinates to relative
                 w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])

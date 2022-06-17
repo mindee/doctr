@@ -56,7 +56,7 @@ class SynthText(VisionDataset):
             **kwargs
         )
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[Dict[str, Any], str]]] = []
         np_dtype = np.float32
 
         # Load mat data
@@ -113,6 +113,6 @@ class SynthText(VisionDataset):
             while True:
                 try:
                     crop, label = pickle.load(f)
-                    self.data.append((crop, dict(labels=[label])))
+                    self.data.append((crop, label))
                 except EOFError:
                     break
