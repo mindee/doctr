@@ -75,7 +75,7 @@ class MJSynth(AbstractDataset):
         set_slice = slice(train_samples) if self.train else slice(train_samples, None)
 
         for path in tqdm(iterable=img_paths[set_slice], desc='Unpacking MJSynth', total=len(img_paths[set_slice])):
-            if path not in self.BLACK_LIST:
+            if path not in self.BLACKLIST:
                 label = [path.split('_')[1]]
                 img_path = os.path.join(img_folder, path[2:]).strip()
 
