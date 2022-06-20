@@ -37,7 +37,7 @@ class MJSynth(AbstractDataset):
     """
 
     # filter corrupted or missing images
-    BLACK_LIST = [
+    BLACKLIST = [
         './1881/4/225_Marbling_46673.jpg\n', './2069/4/192_whittier_86389.jpg\n', './869/4/234_TRIASSIC_80582.jpg\n',
         './173/2/358_BURROWING_10395.jpg\n', './913/4/231_randoms_62372.jpg\n', './596/2/372_Ump_81662.jpg\n',
         './936/2/375_LOCALITIES_44992.jpg\n', './2540/4/246_SQUAMOUS_73902.jpg\n', './1332/4/224_TETHERED_78397.jpg\n',
