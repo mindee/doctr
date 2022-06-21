@@ -94,14 +94,13 @@ plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 
 
 The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
-To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/io.html#document-structure):
+To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/modules/io.html#document-structure):
 
 You can also export them as a nested dict, more appropriate for JSON format:
 
 ```python
 json_output = result.export()
 ```
-For examples & further details about the export format, please refer to [this section](https://mindee.github.io/doctr/models.html#export-model-output) of the documentation
 
 ## Installation
 
