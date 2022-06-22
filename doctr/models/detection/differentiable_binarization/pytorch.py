@@ -115,9 +115,11 @@ class DBNet(_DBNet, nn.Module):
 
         self.feat_extractor = feat_extractor
 
-        for module in self.feat_extractor.modules():
+        for idx, module in enumerate(self.feat_extractor.modules()):
             if isinstance(module, nn.Conv2d):
                 module.padding_mode = 'reflect'
+                if idx == 2:
+                    break
 
         # Identify the number of channels for the head initialization
         _is_training = self.feat_extractor.training
