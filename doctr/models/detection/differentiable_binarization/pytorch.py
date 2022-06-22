@@ -119,7 +119,7 @@ class DBNet(_DBNet, nn.Module):
             if isinstance(module, nn.Conv2d):
                 module.padding_mode = 'reflect'
                 idx += 1
-                if idx == 2:
+                if idx == 3:
                     break
 
         # Identify the number of channels for the head initialization
