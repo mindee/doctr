@@ -19,6 +19,7 @@ from .base import DBPostProcessor, _DBNet
 
 __all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation']
 
+
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
         'input_shape': (3, 1024, 1024),
@@ -49,10 +50,10 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 class FeaturePyramidNetwork(nn.Module):
     def __init__(
-            self,
-            in_channels: List[int],
-            out_channels: int,
-            deform_conv: bool = False,
+        self,
+        in_channels: List[int],
+        out_channels: int,
+        deform_conv: bool = False,
     ) -> None:
 
         super().__init__()
@@ -96,13 +97,13 @@ class FeaturePyramidNetwork(nn.Module):
 class DBNet(_DBNet, nn.Module):
 
     def __init__(
-            self,
-            feat_extractor: IntermediateLayerGetter,
-            head_chans: int = 256,
-            deform_conv: bool = False,
-            num_classes: int = 1,
-            assume_straight_pages: bool = True,
-            cfg: Optional[Dict[str, Any]] = None,
+        self,
+        feat_extractor: IntermediateLayerGetter,
+        head_chans: int = 256,
+        deform_conv: bool = False,
+        num_classes: int = 1,
+        assume_straight_pages: bool = True,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         super().__init__()
@@ -113,7 +114,6 @@ class DBNet(_DBNet, nn.Module):
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
-
         idx = 0
         for module in self.feat_extractor.modules():
             if isinstance(module, nn.Conv2d):
@@ -169,11 +169,11 @@ class DBNet(_DBNet, nn.Module):
                 m.bias.data.zero_()
 
     def forward(
-            self,
-            x: torch.Tensor,
-            target: Optional[List[np.ndarray]] = None,
-            return_model_output: bool = False,
-            return_preds: bool = False,
+        self,
+        x: torch.Tensor,
+        target: Optional[List[np.ndarray]] = None,
+        return_model_output: bool = False,
+        return_preds: bool = False,
     ) -> Dict[str, torch.Tensor]:
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
@@ -203,10 +203,10 @@ class DBNet(_DBNet, nn.Module):
         return out
 
     def compute_loss(
-            self,
-            out_map: torch.Tensor,
-            thresh_map: torch.Tensor,
-            target: List[np.ndarray]
+        self,
+        out_map: torch.Tensor,
+        thresh_map: torch.Tensor,
+        target: List[np.ndarray]
     ) -> torch.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -264,14 +264,15 @@ class DBNet(_DBNet, nn.Module):
 
 
 def _dbnet(
-        arch: str,
-        pretrained: bool,
-        backbone_fn: Callable[[bool], nn.Module],
-        fpn_layers: List[str],
-        backbone_submodule: Optional[str] = None,
-        pretrained_backbone: bool = True,
-        **kwargs: Any,
+    arch: str,
+    pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    fpn_layers: List[str],
+    backbone_submodule: Optional[str] = None,
+    pretrained_backbone: bool = True,
+    **kwargs: Any,
 ) -> DBNet:
+
     # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
     pretrained_backbone = pretrained_backbone and not arch.split('_')[1].startswith('resnet')
     pretrained_backbone = pretrained_backbone and not pretrained
