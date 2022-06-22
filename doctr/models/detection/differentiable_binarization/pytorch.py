@@ -114,6 +114,14 @@ class DBNet(_DBNet, nn.Module):
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
+        idx = 0
+        for module in self.feat_extractor.modules():
+            if isinstance(module, nn.Conv2d):
+                module.padding_mode = 'reflect'
+                idx += 1
+                if idx == 3:
+                    break
+
         # Identify the number of channels for the head initialization
         _is_training = self.feat_extractor.training
         self.feat_extractor = self.feat_extractor.eval()
