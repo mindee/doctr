@@ -56,9 +56,6 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 result = model(doc)
 ```
 
-### If you are looking for support from the Mindee team
-[![Bad OCR test detection image asking the developer if they need help](img/doctr-need-help.png)](https://mindee.com/product/doctr)
-
 ### Dealing with rotated documents
 Should you use docTR on documents that include rotated pages, or pages with multiple box orientations,
 you have multiple options to handle it:
@@ -101,6 +98,9 @@ You can also export them as a nested dict, more appropriate for JSON format:
 ```python
 json_output = result.export()
 ```
+
+### If you are looking for support from the Mindee team
+[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/releases/download/v0.5.1/doctr-need-help.png)](https://mindee.com/product/doctr)
 
 ## Installation
 
