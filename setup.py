@@ -59,7 +59,7 @@ _deps = [
     "tqdm>=4.30.0",
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
-    "keras<2.7.0",
+    "keras<2.7.0",  # cf. https://github.com/mindee/doctr/pull/579
     "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
     # Testing
