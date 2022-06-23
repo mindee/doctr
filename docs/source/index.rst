@@ -62,6 +62,7 @@ Supported datasets
 * IC03 from `ICDAR 2003 <http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions>`_.
 * IC13 from `ICDAR 2013 <http://dagdata.cvc.uab.es/icdar2013competition/>`_.
 * IMGUR5K from `"TextStyleBrush: Transfer of Text Aesthetics from a Single Example" <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
+* MJSynth from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition" <https://www.robots.ox.ac.uk/~vgg/data/text/>`_.
 
 
 .. toctree::
@@ -70,6 +71,8 @@ Supported datasets
    :hidden:
 
    using_doctr/using_models
+   using_doctr/using_datasets
+   using_doctr/sharing_models
    using_doctr/using_model_export
 
 

@@ -18,6 +18,8 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
 
+from doctr.models import login_to_hub, push_to_hf_hub
+
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
@@ -25,6 +27,7 @@ if any(gpu_devices):
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import classification
+from doctr.models.utils import export_classification_model_to_onnx
 from utils import plot_recorder, plot_samples
 
 
@@ -131,6 +134,9 @@ def main(args):
 
     print(args)
 
+    if args.push_to_hub:
+        login_to_hub()
+
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
@@ -171,6 +177,7 @@ def main(args):
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         num_classes=len(vocab),
+        classes=list(vocab),
         include_top=True,
     )
 
@@ -297,6 +304,15 @@ def main(args):
     if args.wb:
         run.finish()
 
+    if args.push_to_hub:
+        push_to_hf_hub(model, exp_name, task='classification', run_config=args)
+
+    if args.export_onnx:
+        print("Exporting model to ONNX...")
+        dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
+        model_path, _ = export_classification_model_to_onnx(model, exp_name, dummy_input)
+        print(f"Exported model saved in {model_path}")
+
 
 def parse_args():
     import argparse
@@ -335,10 +351,12 @@ def parse_args():
     parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
     parser.add_argument('--show-samples', dest='show_samples', action='store_true',
                         help='Display unormalized training samples')
-    parser.add_argument('--wb', dest='wb', action='store_true',
-                        help='Log to Weights & Biases')
+    parser.add_argument('--wb', dest='wb', action='store_true', help='Log to Weights & Biases')
+    parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
     parser.add_argument('--pretrained', dest='pretrained', action='store_true',
                         help='Load pretrained parameters before starting the training')
+    parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',
+                        help='Export the model to ONNX')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
     args = parser.parse_args()

@@ -32,13 +32,14 @@ cp -r source/_static .
 cp source/conf.py _conf.py
 git fetch --all --tags --unshallow
 deploy_doc "" latest
-deploy_doc "571af3dc" v0.1.0
-deploy_doc "6248b0bd" v0.1.1
-deploy_doc "650c4ad4" v0.2.0
-deploy_doc "1bbdb072" v0.2.1
-deploy_doc "3f051346" v0.3.0
-deploy_doc "369a787d" v0.3.1
-deploy_doc "51663ddf" v0.4.0
-deploy_doc "74ff9ffb" v0.4.1
-deploy_doc "b9d8feb1" # v0.5.0 Latest stable release
+deploy_doc "571af3d" v0.1.0
+deploy_doc "6248b0b" v0.1.1
+deploy_doc "650c4ad" v0.2.0
+deploy_doc "1bbdb07" v0.2.1
+deploy_doc "3f05134" v0.3.0
+deploy_doc "369a787" v0.3.1
+deploy_doc "51663dd" v0.4.0
+deploy_doc "74ff9ff" v0.4.1
+deploy_doc "b9d8feb" v0.5.0
+deploy_doc "9d03085" # v0.5.1 Latest stable release
 rm -rf _build _static _conf.py

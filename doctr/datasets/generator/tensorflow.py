@@ -14,7 +14,7 @@ class CharacterGenerator(_CharacterGenerator):
     """Implements a character image generation dataset
 
     >>> from doctr.datasets import CharacterGenerator
-    >>> ds = CharacterGenerator(vocab='abdef')
+    >>> ds = CharacterGenerator(vocab='abdef', num_samples=100)
     >>> img, target = ds[0]
 
     Args:
@@ -42,7 +42,7 @@ class WordGenerator(_WordGenerator):
     """Implements a character image generation dataset
 
     >>> from doctr.datasets import WordGenerator
-    >>> ds = WordGenerator(vocab='abdef')
+    >>> ds = WordGenerator(vocab='abdef', min_chars=1, max_chars=32, num_samples=100)
     >>> img, target = ds[0]
 
     Args:

@@ -14,7 +14,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-version = "0.5.1a0"
+version = "0.6.0a0"
 sha = 'Unknown'
 src_folder = 'doctr'
 package_index = 'python-doctr'
@@ -45,7 +45,7 @@ _deps = [
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
     "tensorflow>=2.4.0",
-    "pypdfium2>=1.0.0",
+    "pypdfium2>=2.0.0",
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0,<3.4.3",
@@ -60,11 +60,13 @@ _deps = [
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
     "keras<2.7.0",
+    "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",
     "coverage>=4.5.4",
     "hdf5storage>=0.1.18",
+    "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     "requirements-parser==0.2.0",
     # Quality
@@ -114,12 +116,14 @@ extras["tf"] = deps_list(
     "tensorflow",
     "tensorflow-addons",
     "keras",
+    "tf2onnx",
 )
 
 extras["tf-cpu"] = deps_list(
     "tensorflow-cpu",
     "tensorflow-addons",
     "keras",
+    "tf2onnx",
 )
 
 extras["torch"] = deps_list(
@@ -137,6 +141,7 @@ extras["testing"] = deps_list(
     "coverage",
     "requests",
     "hdf5storage",
+    "onnxruntime",
     "requirements-parser",
 )
 
