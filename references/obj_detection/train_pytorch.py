@@ -17,7 +17,7 @@ import torch
 import torch.optim as optim
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
-from torch.optim.lr_scheduler import MultiplicativeLR, OneCycleLR, StepLR
+from torch.optim.lr_scheduler import MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, GaussianBlur, InterpolationMode
 
