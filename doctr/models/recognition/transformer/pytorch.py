@@ -59,17 +59,17 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(nn.Module):
     """ Position-wise Feed-Forward Network """
 
-    def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
+    def __init__(self, d_model: int, ffd: int, dropout: float = 0.1) -> None:
         super(PositionwiseFeedForward, self).__init__()
-        self.first_linear = nn.Linear(d_model, ffd)
-        self.sec_linear = nn.Linear(ffd, d_model)
-        self.dropout = nn.Dropout(p=dropout)
+        self.feed_forward = nn.Sequential(
+            nn.Linear(d_model, ffd),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(ffd, d_model),
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = torch.relu(self.first_linear(x))
-        x = self.dropout(x)
-        x = self.sec_linear(x)
-        return x
+        return self.feed_forward(x)
 
 
 class MultiHeadAttention(nn.Module):
@@ -77,7 +77,7 @@ class MultiHeadAttention(nn.Module):
 
     def __init__(self, num_heads: int, d_model: int, dropout: float = 0.1) -> None:
         super().__init__()
-        assert d_model % num_heads == 0
+        assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
 
         self.d_k = d_model // num_heads
         self.num_heads = num_heads
