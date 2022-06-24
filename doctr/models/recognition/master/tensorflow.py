@@ -159,7 +159,7 @@ class MASTER(_MASTER, Model):
 
         if kwargs.get('training', False):
             if target is None:
-                raise AssertionError("In training mode, you need to pass a value to 'target'")
+                raise ValueError("In training mode, you need to pass a value to 'target'")
             tgt_mask = self.make_mask(gt)
             # Compute logits
             output = self.decoder(gt, encoded, tgt_mask, None, **kwargs)

@@ -38,6 +38,9 @@ def test_recognition_models(arch_name, input_shape):
     assert len(out['preds']) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
     assert isinstance(out['loss'], tf.Tensor)
+    # test model in train mode needs targets
+    with pytest.raises(ValueError):
+        reco_model(input_tensor, None, training=True)
 
 
 @pytest.mark.parametrize(
