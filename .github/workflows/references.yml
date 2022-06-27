@@ -114,6 +114,50 @@ jobs:
         name: Train for a short epoch (PT)
         run: python references/recognition/train_pytorch.py crnn_mobilenet_v3_small --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
 
+  evaluate-text-recognition:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.8]
+        framework: [tensorflow, pytorch]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - if: matrix.framework == 'tensorflow'
+        name: Cache python modules (TF)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
+      - if: matrix.framework == 'pytorch'
+        name: Cache python modules (PT)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
+      - if: matrix.framework == 'tensorflow'
+        name: Install dependencies (TF)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[tf] --upgrade
+      - if: matrix.framework == 'pytorch'
+        name: Install dependencies (PT)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[torch] --upgrade
+      - if: matrix.framework == 'tensorflow'
+        name: Evaluate text recognition (TF)
+        run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small --dataset IIIT5K
+      - if: matrix.framework == 'pytorch'
+        name: Evaluate text recognition (PT)
+        run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small --dataset IIIT5K
+
   latency-text-recognition:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -212,6 +256,50 @@ jobs:
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
         run: python references/detection/train_pytorch.py ./det_set ./det_set db_mobilenet_v3_large -b 2 --epochs 1
+
+  evaluate-text-detection:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.8]
+        framework: [tensorflow, pytorch]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - if: matrix.framework == 'tensorflow'
+        name: Cache python modules (TF)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
+      - if: matrix.framework == 'pytorch'
+        name: Cache python modules (PT)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
+      - if: matrix.framework == 'tensorflow'
+        name: Install dependencies (TF)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[tf] --upgrade
+      - if: matrix.framework == 'pytorch'
+        name: Install dependencies (PT)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[torch] --upgrade
+      - if: matrix.framework == 'tensorflow'
+        name: Evaluate text detection (TF)
+        run: python references/detection/evaluate_tensorflow.py db_mobilenet_v3_large
+      - if: matrix.framework == 'pytorch'
+        name: Evaluate text detection (PT)
+        run: python references/detection/evaluate_pytorch.py db_mobilenet_v3_large
 
   latency-text-detection:
     runs-on: ${{ matrix.os }}

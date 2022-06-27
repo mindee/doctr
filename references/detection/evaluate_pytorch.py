@@ -38,9 +38,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         targets = [t['boxes'] for t in targets]
         if amp:
             with torch.cuda.amp.autocast():
-                out = model(images, targets, return_boxes=True)
+                out = model(images, targets, return_preds=True)
         else:
-            out = model(images, targets, return_boxes=True)
+            out = model(images, targets, return_preds=True)
         # Compute metric
         loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
@@ -80,14 +80,19 @@ def main(args):
     ds = datasets.__dict__[args.dataset](
         train=True,
         download=True,
-        rotated_bbox=args.rotation,
+        use_polygons=args.rotation,
         sample_transforms=T.Resize(input_shape),
     )
     # Monkeypatch
     subfolder = ds.root.split("/")[-2:]
     ds.root = str(Path(ds.root).parent.parent)
     ds.data = [(os.path.join(*subfolder, name), target) for name, target in ds.data]
-    _ds = datasets.__dict__[args.dataset](train=False, rotated_bbox=args.rotation)
+    _ds = datasets.__dict__[args.dataset](
+        train=False,
+        download=True,
+        use_polygons=args.rotation,
+        sample_transforms=T.Resize(input_shape),
+    )
     subfolder = _ds.root.split("/")[-2:]
     ds.data.extend([(os.path.join(*subfolder, name), target) for name, target in _ds.data])
 
@@ -127,7 +132,7 @@ def main(args):
         model = model.cuda()
 
     # Metrics
-    metric = LocalizationConfusion(rotated_bbox=args.rotation, mask_shape=input_shape)
+    metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=input_shape)
 
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)

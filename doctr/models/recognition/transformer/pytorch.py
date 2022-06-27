@@ -3,89 +3,165 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+# This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and Decoder is borrowed
+
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import torch
 from torch import nn
 
-__all__ = ['Decoder', 'positional_encoding']
+__all__ = ['Decoder', 'PositionalEncoding']
 
 
-def positional_encoding(position: int, d_model: int = 512, dtype=torch.float32) -> torch.Tensor:
-    """Implementation borrowed from this pytorch tutorial:
-    <https://pytorch.org/tutorials/beginner/transformer_tutorial.html>`_.
+class PositionalEncoding(nn.Module):
+    """ Compute positional encoding """
 
-    Args:
-        position: Number of positions to encode
-        d_model: depth of the encoding
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000) -> None:
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
 
-    Returns:
-        2D positional encoding as described in Transformer paper.
-    """
-    pe = torch.zeros(position, d_model)
-    pos = torch.arange(0, position, dtype=dtype).unsqueeze(1)
-    div_term = torch.exp(torch.arange(0, d_model, 2, dtype=dtype) * (-math.log(10000.0) / d_model))
-    pe[:, 0::2] = torch.sin(pos * div_term)
-    pe[:, 1::2] = torch.cos(pos * div_term)
-    return pe.unsqueeze(0)
+        # Compute the positional encodings once in log space.
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1).float()
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        self.register_buffer("pe", pe.unsqueeze(0))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: embeddings (batch, max_len, d_model)
+
+        Returns:
+            positional embeddings (batch, max_len, d_model)
+        """
+        x = x + self.pe[:, : x.size(1)]  # type: ignore
+        return self.dropout(x)
 
 
-class Decoder(nn.Module):
+def scaled_dot_product_attention(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    mask: Optional[torch.Tensor] = None
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """ Scaled Dot-Product Attention """
 
-    pos_encoding: torch.Tensor
+    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
+    if mask is not None:
+        scores = scores.masked_fill(mask == 0, -1e9)
+    p_attn = torch.softmax(scores, dim=-1)
+    return torch.matmul(p_attn, value), p_attn
 
-    def __init__(
-        self,
-        num_layers: int = 3,
-        d_model: int = 512,
-        num_heads: int = 8,
-        dff: int = 2048,
-        vocab_size: int = 120,
-        maximum_position_encoding: int = 50,
-        dropout: float = 0.2,
-    ) -> None:
+
+class PositionwiseFeedForward(nn.Module):
+    """ Position-wise Feed-Forward Network """
+
+    def __init__(self, d_model: int, ffd: int, dropout: float = 0.1) -> None:
+        super(PositionwiseFeedForward, self).__init__()
+        self.feed_forward = nn.Sequential(
+            nn.Linear(d_model, ffd),
+            nn.ReLU(),
+            nn.Dropout(p=dropout),
+            nn.Linear(ffd, d_model),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.feed_forward(x)
+
+
+class MultiHeadAttention(nn.Module):
+    """ Multi-Head Attention """
+
+    def __init__(self, num_heads: int, d_model: int, dropout: float = 0.1) -> None:
         super().__init__()
+        assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
 
-        self.d_model = d_model
-        self.num_layers = num_layers
+        self.d_k = d_model // num_heads
+        self.num_heads = num_heads
 
-        self.embedding = nn.Embedding(vocab_size + 3, d_model)  # 3 more classes EOS/SOS/PAD
-        self.register_buffer('pos_encoding', positional_encoding(maximum_position_encoding, d_model))
-
-        self.dec_layers = nn.ModuleList([
-            nn.TransformerDecoderLayer(
-                d_model=d_model,
-                nhead=num_heads,
-                dim_feedforward=dff,
-                dropout=dropout,
-                activation='relu',
-                batch_first=True,
-            ) for _ in range(num_layers)
-        ])
-
-        self.dropout = nn.Dropout(dropout)
+        self.linear_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(3)])
+        self.output_linear = nn.Linear(d_model, d_model)
 
     def forward(
         self,
-        x: torch.Tensor,
-        enc_output: torch.Tensor,
-        look_ahead_mask: torch.Tensor,
-        padding_mask: Optional[torch.Tensor] = None,
+        query: torch.Tensor,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        mask=None
+    ) -> torch.Tensor:
+        batch_size = query.size(0)
+
+        # linear projections of Q, K, V
+        query, key, value = [linear(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+                             for linear, x in zip(self.linear_layers, (query, key, value))]
+
+        # apply attention on all the projected vectors in batch
+        x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
+
+        # Concat attention heads
+        x = x.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.d_k)
+
+        return self.output_linear(x)
+
+
+class Decoder(nn.Module):
+    """ Transformer Decoder """
+
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        d_model: int,
+        vocab_size: int,
+        dropout: float = 0.2,
+        dff: int = 2048,
+        maximum_position_encoding: int = 50,
+    ) -> None:
+
+        super(Decoder, self).__init__()
+        self.num_layers = num_layers
+        self.d_model = d_model
+
+        self.dropout = nn.Dropout(dropout)
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.positional_encoding = PositionalEncoding(d_model, dropout, maximum_position_encoding)
+        self.layer_norm = nn.LayerNorm(d_model, eps=1e-5)
+
+        self.attention = nn.ModuleList(
+            [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        )
+        self.source_attention = nn.ModuleList(
+            [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        )
+        self.position_feed_forward = nn.ModuleList(
+            [PositionwiseFeedForward(d_model, dff, dropout) for _ in range(self.num_layers)]
+        )
+
+    def forward(
+        self,
+        tgt: torch.Tensor,
+        memory: torch.Tensor,
+        source_mask: Optional[torch.Tensor] = None,
+        target_mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
 
-        seq_len = x.shape[1]  # Batch first = True
+        tgt = self.embed(tgt) * math.sqrt(self.d_model)
+        pos_enc_tgt = self.positional_encoding(tgt)
+        output = pos_enc_tgt
 
-        x = self.embedding(x)  # (batch_size, target_seq_len, d_model)
-        x *= math.sqrt(self.d_model)
-        x += self.pos_encoding[:, :seq_len, :]
-        x = self.dropout(x)
-
-        # Batch first = True in decoder
         for i in range(self.num_layers):
-            x = self.dec_layers[i](
-                tgt=x, memory=enc_output, tgt_mask=look_ahead_mask, memory_mask=padding_mask
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(
+                self.attention[i](normed_output, normed_output, normed_output, target_mask)
             )
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(
+                self.source_attention[i](normed_output, memory, memory, source_mask)
+            )
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(self.position_feed_forward[i](normed_output))
 
-        # shape (batch_size, target_seq_len, d_model)
-        return x
+        return self.layer_norm(output)
