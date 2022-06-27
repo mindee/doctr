@@ -7,7 +7,7 @@ on:
     branches: main
 
 jobs:
-  flake8-py3:
+  flake8:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,9 +24,9 @@ jobs:
         run: |
           pip install flake8
           flake8 --version
-          flake8 ./
+          flake8
 
-  isort-py3:
+  isort:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -46,7 +46,7 @@ jobs:
           isort .
           if [ -n "$(git status --porcelain --untracked-files=no)" ]; then exit 1; else echo "All clear"; fi
 
-  mypy-py3:
+  mypy:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -72,9 +72,9 @@ jobs:
       - name: Run mypy
         run: |
           mypy --version
-          mypy --config-file mypy.ini doctr/
+          mypy
 
-  pydocstyle-py3:
+  pydocstyle:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -89,6 +89,6 @@ jobs:
           architecture: x64
       - name: Run pydocstyle
         run: |
-          pip install pydocstyle
+          pip install pydocstyle[toml]
           pydocstyle --version
-          pydocstyle doctr/
+          pydocstyle
