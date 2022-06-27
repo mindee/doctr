@@ -86,7 +86,7 @@ class SVT(VisionDataset):
                     for rect in rectangles
                 ]
 
-            boxes = np.asarray(_boxes, dtype=np_dtype)
+            boxes: np.ndarray = np.asarray(_boxes, dtype=np_dtype)
             # Get the labels
             labels = [lab.text for rect in rectangles for lab in rect]
 

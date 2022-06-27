@@ -133,7 +133,7 @@ def create_shadow_mask(
     tip_height = _params[4] * max_tip_height
     tip_mid = tip_height / 2 + (1 - tip_height) * _params[5]
     _order = tip_center < base_center
-    contour = np.array([
+    contour: np.ndarray = np.array([
         [base_center - base_width / 2, 0],
         [base_center + base_width / 2, 0],
         [tip_center + tip_width / 2, tip_mid + tip_height / 2 if _order else tip_mid - tip_height / 2],
@@ -141,7 +141,7 @@ def create_shadow_mask(
     ], dtype=np.float32)
 
     # Convert to absolute coords
-    abs_contour = np.stack(
+    abs_contour: np.ndarray = np.stack(
         (contour[:, 0] * target_shape[1], contour[:, 1] * target_shape[0]),
         axis=-1,
     ).round().astype(np.int32)
@@ -175,11 +175,11 @@ def create_shadow_mask(
     if not np.any(final_contour[0] == final_contour[1]):
         corner_x = 0 if max(final_contour[0, 0], final_contour[1, 0]) < target_shape[1] else target_shape[1]
         corner_y = 0 if max(final_contour[0, 1], final_contour[1, 1]) < target_shape[0] else target_shape[0]
-        corner = np.array([corner_x, corner_y])
+        corner: np.ndarray = np.array([corner_x, corner_y])
         final_contour = np.concatenate((final_contour[:1], corner[None, ...], final_contour[1:]), axis=0)
 
     # Direction & rotate
-    mask = np.zeros((*target_shape, 1), dtype=np.uint8)
+    mask: np.ndarray = np.zeros((*target_shape, 1), dtype=np.uint8)
     mask = cv2.fillPoly(mask, [final_contour], (255,), lineType=cv2.LINE_AA)[..., 0]
 
     return (mask / 255).astype(np.float32).clip(0, 1) * intensity_mask.astype(np.float32)

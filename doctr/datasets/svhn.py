@@ -84,7 +84,7 @@ class SVHN(VisionDataset):
                     box_dict = {k: [int(f[v[0]][()].item()) for v in vals] for k, vals in box.items()}
 
                 # Convert it to the right format
-                coords = np.array([
+                coords: np.ndarray = np.array([
                     box_dict['left'],
                     box_dict['top'],
                     box_dict['width'],
@@ -94,7 +94,7 @@ class SVHN(VisionDataset):
 
                 if use_polygons:
                     # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                    box_targets = np.stack(
+                    box_targets: np.ndarray = np.stack(
                         [
                             np.stack([coords[:, 0], coords[:, 1]], axis=-1),
                             np.stack([coords[:, 0] + coords[:, 2], coords[:, 1]], axis=-1),

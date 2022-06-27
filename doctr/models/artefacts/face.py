@@ -35,7 +35,7 @@ class FaceDetector(NestedObject):
 
     def __call__(
         self,
-        img: np.array,
+        img: np.ndarray,
     ) -> List[Tuple[float, float, float, float]]:
         """Detect n_faces on the img
 

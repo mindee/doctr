@@ -79,7 +79,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(  # type: ignore[override]
+    def __call__(
         self,
         logits: torch.Tensor
     ) -> List[Tuple[str, float]]:

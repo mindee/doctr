@@ -97,5 +97,5 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                      page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations,
                                                           origin_page_shapes)]
 
-        out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[misc]
+        out = self.doc_builder(boxes, text_preds, origin_page_shapes)
         return out

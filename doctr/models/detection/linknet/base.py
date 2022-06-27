@@ -5,7 +5,7 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -78,9 +78,9 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                     max_size = len(p)
             # We ensure that _points can be correctly casted to a ndarray
             _points = [_points[idx]]
-        expanded_points = np.asarray(_points)  # expand polygon
+        expanded_points: np.ndarray = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
-            return None
+            return None  # type: ignore[return-value]
         return cv2.boundingRect(expanded_points) if self.assume_straight_pages else np.roll(
             cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0
         )
@@ -103,7 +103,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, alpha, score for the box
         """
         height, width = bitmap.shape[:2]
-        boxes = []
+        boxes: List[Union[np.ndarray, List[float]]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
@@ -113,7 +113,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             # Compute objectness
             if self.assume_straight_pages:
                 x, y, w, h = cv2.boundingRect(contour)
-                points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+                points: np.ndarray = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
                 score = self.box_score(pred, points, assume_straight_pages=True)
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
@@ -169,8 +169,8 @@ class _LinkNet(BaseModel):
         h, w = output_shape
         target_shape = (len(target), h, w, 1)
 
-        seg_target = np.zeros(target_shape, dtype=np.uint8)
-        seg_mask = np.ones(target_shape, dtype=bool)
+        seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
+        seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
 
         for idx, _target in enumerate(target):
             # Draw each polygon on gt

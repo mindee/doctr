@@ -141,7 +141,7 @@ class Line(Element):
         if geometry is None:
             # Check whether this is a rotated or straight box
             box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 4 else resolve_enclosing_bbox
-            geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator, misc]
+            geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator]
 
         super().__init__(words=words)
         self.geometry = geometry
@@ -188,7 +188,7 @@ class Block(Element):
             box_resolution_fn = resolve_enclosing_rbbox if isinstance(
                 lines[0].geometry, np.ndarray
             ) else resolve_enclosing_bbox
-            geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator, arg-type]
+            geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator]
 
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry
@@ -287,7 +287,7 @@ class Page(Element):
         head = SubElement(page_hocr, 'head')
         SubElement(head, 'title').text = file_title
         SubElement(head, 'meta', attrib={'http-equiv': 'Content-Type', 'content': 'text/html; charset=utf-8'})
-        SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': f"python-doctr {doctr.__version__}"})
+        SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': f"python-doctr {doctr.__version__}"})  # type: ignore[attr-defined]
         SubElement(head, 'meta', attrib={'name': 'ocr-capabilities',
                                          'content': 'ocr_page ocr_carea ocr_par ocr_line ocrx_word'})
         # Create the body
@@ -301,7 +301,7 @@ class Page(Element):
         for block in self.blocks:
             if len(block.geometry) != 2:
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
-            (xmin, ymin), (xmax, ymax) = block.geometry  # type: ignore[misc]
+            (xmin, ymin), (xmax, ymax) = block.geometry
             block_div = SubElement(body, 'div', attrib={
                 'class': 'ocr_carea',
                 'id': f'block_{block_count}',
@@ -316,7 +316,7 @@ class Page(Element):
             })
             block_count += 1
             for line in block.lines:
-                (xmin, ymin), (xmax, ymax) = line.geometry  # type: ignore[misc]
+                (xmin, ymin), (xmax, ymax) = line.geometry
                 # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
                 line_span = SubElement(paragraph, 'span', attrib={
                     'class': 'ocr_line',
@@ -327,7 +327,7 @@ class Page(Element):
                 })
                 line_count += 1
                 for word in line.words:
-                    (xmin, ymin), (xmax, ymax) = word.geometry  # type: ignore[misc]
+                    (xmin, ymin), (xmax, ymax) = word.geometry
                     conf = word.confidence
                     word_div = SubElement(line_span, 'span', attrib={
                         'class': 'ocrx_word',

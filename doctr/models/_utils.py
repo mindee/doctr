@@ -5,7 +5,7 @@
 
 from math import floor
 from statistics import median_low
-from typing import List
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -127,7 +127,7 @@ def rectify_crops(
 def rectify_loc_preds(
     page_loc_preds: np.ndarray,
     orientations: List[int],
-) -> np.ndarray:
+) -> Optional[np.ndarray]:
     """Orient the quadrangle (Polygon4P) according to the predicted orientation,
     so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
     """

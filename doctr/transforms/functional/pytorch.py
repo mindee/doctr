@@ -65,7 +65,7 @@ def rotate_sample(
         raise AssertionError("invalid format for arg `geoms`")
 
     # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
-    rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
+    rotated_geoms: np.ndarray = rotate_abs_geoms(_geoms, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
 
     # Always return relative boxes to avoid label confusions when resizing is performed aferwards
     rotated_geoms[..., 0] = rotated_geoms[..., 0] / rotated_img.shape[2]

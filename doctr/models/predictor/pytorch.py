@@ -67,8 +67,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Detect document rotation and rotate pages
         if self.straighten_pages:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]
-            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
+            origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]  # type: ignore[arg-type]
 
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
@@ -76,11 +76,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Rectify crops if aspect ratio
-        loc_preds = self._remove_padding(pages, loc_preds)
+        loc_preds = self._remove_padding(pages, loc_preds)  # type: ignore[arg-type]
 
         # Crop images
         crops, loc_preds = self._prepare_crops(
-            pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages
+            pages, loc_preds, channels_last=channels_last, assume_straight_pages=self.assume_straight_pages  # type: ignore[arg-type]
         )
         # Rectify crop orientation
         if not self.assume_straight_pages:
