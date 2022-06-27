@@ -6,7 +6,9 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
@@ -45,7 +47,7 @@ class _AbstractDataset:
     def __getitem__(
         self,
         index: int
-    ) -> Tuple[Any, Any]:
+    ) -> Tuple[Any, Union[Dict[str, Union[str, np.ndarray]], np.ndarray, str]]:
 
         # Read image
         img, target = self._read_sample(index)
