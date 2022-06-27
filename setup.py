@@ -64,7 +64,7 @@ _deps = [
     "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",
-    "coverage>=4.5.4",
+    "coverage[toml]>=4.5.4",
     "hdf5storage>=0.1.18",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
@@ -73,7 +73,7 @@ _deps = [
     "flake8>=3.9.0",
     "isort>=5.7.0",
     "mypy>=0.812",
-    "pydocstyle>=6.1.1",
+    "pydocstyle[toml]>=6.1.1",
     # Docs
     "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
