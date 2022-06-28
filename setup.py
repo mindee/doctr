@@ -40,7 +40,7 @@ with open('README.md', 'r') as f:
 # Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
 _deps = [
     "importlib_metadata",
-    "numpy>=1.16.0",
+    "numpy>=1.20.0,<2.0.0",  # cf. https://github.com/numpy/numpy/pull/16515 (formerly >=1.16.0)
     "scipy>=1.4.0",
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
