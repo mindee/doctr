@@ -64,7 +64,7 @@ def mock_tilted_payslip(mock_payslip, tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_text_box_stream():
-    url = 'https://github.com/mindee/doctr/releases/download/v0.5.1/rotated-text-image.png'
+    url = 'https://github.com/mindee/doctr/releases/download/v0.5.1/word-crop.png'
     return requests.get(url).content
 
 
