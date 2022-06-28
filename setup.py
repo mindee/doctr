@@ -138,7 +138,7 @@ extras["all"] = (
 
 extras["testing"] = deps_list(
     "pytest",
-    "coverage",
+    "coverage[toml]",
     "requests",
     "hdf5storage",
     "onnxruntime",
@@ -149,7 +149,7 @@ extras["quality"] = deps_list(
     "flake8",
     "isort",
     "mypy",
-    "pydocstyle",
+    "pydocstyle[toml]",
 )
 
 extras["docs_specific"] = deps_list(
