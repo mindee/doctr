@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from copy import deepcopy
 from typing import Optional, Tuple
 
 import numpy as np
@@ -34,16 +33,16 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
 
 def rotate_sample(
     img: torch.Tensor,
-    geoms: Optional[np.ndarray] = None,
     angle: float,
+    geoms: Optional[np.ndarray] = None,
     expand: bool = False,
 ) -> Tuple[torch.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
     Args:
         img: image to rotate
-        geoms: array of geometries of shape (N, 4) or (N, 4, 2)
         angle: angle in degrees. +: counter-clockwise, -: clockwise
+        geoms: array of geometries of shape (N, 4) or (N, 4, 2)
         expand: whether the image should be padded before the rotation
 
     Returns:

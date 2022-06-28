@@ -5,7 +5,7 @@
 
 from copy import deepcopy
 from math import ceil
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -153,12 +153,12 @@ def rotate_rel_geoms(
     _geoms = deepcopy(geoms)
     if _geoms.shape[1:] == (4,):
         if np.max(_geoms) <= 1:
-            _geoms[:, [0, 2]] *= img_shape[1]
-            _geoms[:, [1, 3]] *= img_shape[0]
+            _geoms[:, [0, 2]] *= orig_shape[1]
+            _geoms[:, [1, 3]] *= orig_shape[0]
     elif _geoms.shape[1:] == (4, 2):
         if np.max(_geoms) <= 1:
-            _geoms[..., 0] *= img_shape[1]
-            _geoms[..., 1] *= img_shape[0]
+            _geoms[..., 0] *= orig_shape[1]
+            _geoms[..., 1] *= orig_shape[0]
     else:
         raise AssertionError("invalid format for arg `geoms`")
 
