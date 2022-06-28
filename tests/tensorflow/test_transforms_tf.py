@@ -241,13 +241,13 @@ def test_rotate_sample():
     )
 
     # No angle
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 0, False)
+    rotated_img, rotated_geoms = rotate_sample(img, 0, boxes, False)
     assert tf.math.reduce_all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 0, True)
+    rotated_img, rotated_geoms = rotate_sample(img, 0, boxes, True)
     assert tf.math.reduce_all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 0, False)
+    rotated_img, rotated_geoms = rotate_sample(img, 0, polys, False)
     assert tf.math.reduce_all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 0, True)
+    rotated_img, rotated_geoms = rotate_sample(img, 0, polys, True)
     assert tf.math.reduce_all(rotated_img == img) and np.all(rotated_geoms == rel_polys)
 
     # No expansion
@@ -255,30 +255,30 @@ def test_rotate_sample():
     expected_img[50: 150] = 1
     expected_img = tf.convert_to_tensor(expected_img)
     expected_polys = np.array([[0, .75], [0, .25], [1, .25], [1, .75]])[None, ...]
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, False)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, boxes, False)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 90, False)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, polys, False)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_boxes, 90, False)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, rel_boxes, False)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_polys, 90, False)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, rel_polys, False)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
 
     # Expansion
     expected_img = tf.ones((100, 200, 3), dtype=tf.float32)
     expected_polys = np.array([[0, 1], [0, 0], [1, 0], [1, 1]], dtype=np.float32)[None, ...]
-    rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, True)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, boxes, True)
     # import ipdb; ipdb.set_trace()
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, polys, 90, True)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, polys, True)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_boxes, 90, True)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, rel_boxes, True)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
-    rotated_img, rotated_geoms = rotate_sample(img, rel_polys, 90, True)
+    rotated_img, rotated_geoms = rotate_sample(img, 90, rel_polys, True)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
 
     with pytest.raises(AssertionError):
-        rotate_sample(img, boxes[None, ...], 90, False)
+        rotate_sample(img, 90, boxes[None, ...], False)
 
 
 def test_random_rotate():
