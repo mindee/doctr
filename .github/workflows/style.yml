@@ -7,7 +7,7 @@ on:
     branches: main
 
 jobs:
-  flake8:
+  flake8-py3:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
