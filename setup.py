@@ -45,7 +45,7 @@ _deps = [
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
     "tensorflow>=2.4.0",
-    "pypdfium2>=2.0.0",
+    "pypdfium2>=2.1.0, <3.0.0",  # cf. https://github.com/mindee/doctr/issues/947
     "pyclipper>=1.2.0",
     "shapely>=1.6.0",
     "matplotlib>=3.1.0,<3.4.3",
@@ -59,7 +59,7 @@ _deps = [
     "tqdm>=4.30.0",
     "tensorflow-addons>=0.13.0",
     "rapidfuzz>=1.6.0",
-    "keras<2.7.0",
+    "keras<2.7.0",  # cf. https://github.com/mindee/doctr/pull/579
     "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
     # Testing

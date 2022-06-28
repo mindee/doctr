@@ -176,6 +176,9 @@ class MASTER(_MASTER, nn.Module):
 
         out: Dict[str, Any] = {}
 
+        if self.training and target is None:
+            raise ValueError('Need to provide labels during training')
+
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
             _gt, _seq_len = self.build_target(target)
@@ -213,7 +216,7 @@ class MASTER(_MASTER, nn.Module):
         b = encoded.size(0)
 
         # Padding symbol + SOS at the beginning
-        ys = torch.zeros((b, self.max_length), dtype=torch.long, device=encoded.device) * (self.vocab_size + 2)  # pad
+        ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)  # pad
         ys[:, 0] = self.vocab_size + 1  # sos
 
         # Final dimension include EOS/SOS/PAD

@@ -299,7 +299,7 @@ class SAR(Model, RecognitionModel):
             gt, seq_len = self.build_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
 
-        if kwargs.get('training', False) and gt is None:
+        if kwargs.get('training', False) and target is None:
             raise ValueError('Need to provide labels during training for teacher forcing')
 
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)

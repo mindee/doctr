@@ -194,6 +194,9 @@ class CRNN(RecognitionModel, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
 
+        if self.training and target is None:
+            raise ValueError('Need to provide labels during training')
+
         features = self.feat_extractor(x)
         # B x C x H x W --> B x C*H x W --> B x W x C*H
         c, h, w = features.shape[1], features.shape[2], features.shape[3]

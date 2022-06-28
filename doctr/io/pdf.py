@@ -41,8 +41,5 @@ def read_pdf(
         raise TypeError("unsupported object type for argument 'file'")
 
     # Rasterise pages to PIL images with pypdfium2 and convert to numpy ndarrays
-    pdf = pdfium.PdfDocument(file, password=password)
-    pages = [np.asarray(img) for img in pdf.render_topil(scale=scale, **kwargs)]
-    pdf.close()
-
-    return pages
+    with pdfium.PdfDocument(file, password=password) as pdf:
+        return [np.asarray(img) for img in pdf.render_topil(scale=scale, **kwargs)]

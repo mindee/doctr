@@ -93,7 +93,8 @@ class SVT(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, dict(labels=[label])))
+                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                        self.data.append((crop, dict(labels=[label])))
             else:
                 # Convert coordinates to relative
                 w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
@@ -104,7 +105,7 @@ class SVT(VisionDataset):
                     boxes[:, [0, 2]] /= w
                     boxes[:, [1, 3]] /= h
 
-                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
+                self.data.append((name.text, dict(boxes=boxes.clip(0, 1), labels=labels)))
 
         self.root = tmp_root
 
