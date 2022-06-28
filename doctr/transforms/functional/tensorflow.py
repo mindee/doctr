@@ -5,13 +5,13 @@
 
 import math
 from copy import deepcopy
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 
-from doctr.utils.geometry import compute_expanded_shape, rotate_abs_geoms
+from doctr.utils.geometry import compute_expanded_shape, rotate_rel_geoms
 
 from .base import create_shadow_mask, crop_boxes
 
@@ -67,7 +67,7 @@ def rotated_img_tensor(img: tf.Tensor, angle: float, expand: bool = False) -> tf
 
 def rotate_sample(
     img: tf.Tensor,
-    geoms: np.ndarray,
+    geoms: Optional[np.ndarray] = None,
     angle: float,
     expand: bool = False,
 ) -> Tuple[tf.Tensor, np.ndarray]:
@@ -85,27 +85,11 @@ def rotate_sample(
     # Rotated the image
     rotated_img = rotated_img_tensor(img, angle, expand)
 
-    # Get absolute coords
-    _geoms = deepcopy(geoms)
-    if _geoms.shape[1:] == (4,):
-        if np.max(_geoms) <= 1:
-            _geoms[:, [0, 2]] *= img.shape[1]
-            _geoms[:, [1, 3]] *= img.shape[0]
-    elif _geoms.shape[1:] == (4, 2):
-        if np.max(_geoms) <= 1:
-            _geoms[..., 0] *= img.shape[1]
-            _geoms[..., 1] *= img.shape[0]
-    else:
-        raise AssertionError
+    rotated_geoms = geoms
+    if isinstance(geoms, np.ndarray) and angle != 0:
+        rotated_geoms = rotate_rel_geoms(geoms, angle, img.shape[:2], rotated_img.shape[:2], expand=expand)
 
-    # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
-    rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[:-1], expand).astype(np.float32)
-
-    # Always return relative boxes to avoid label confusions when resizing is performed aferwards
-    rotated_geoms[..., 0] = rotated_geoms[..., 0] / rotated_img.shape[1]
-    rotated_geoms[..., 1] = rotated_geoms[..., 1] / rotated_img.shape[0]
-
-    return rotated_img, np.clip(rotated_geoms, 0, 1)
+    return rotated_img, rotated_geoms
 
 
 def crop_detection(

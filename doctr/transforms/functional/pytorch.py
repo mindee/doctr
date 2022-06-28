@@ -4,13 +4,13 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
 from torchvision.transforms import functional as F
 
-from doctr.utils.geometry import rotate_abs_geoms
+from doctr.utils.geometry import rotate_rel_geoms
 
 from .base import create_shadow_mask, crop_boxes
 
@@ -34,7 +34,7 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
 
 def rotate_sample(
     img: torch.Tensor,
-    geoms: np.ndarray,
+    geoms: Optional[np.ndarray] = None,
     angle: float,
     expand: bool = False,
 ) -> Tuple[torch.Tensor, np.ndarray]:
@@ -51,27 +51,12 @@ def rotate_sample(
     """
     rotated_img = F.rotate(img, angle=angle, fill=0, expand=expand)  # Interpolation NEAREST by default
     rotated_img = rotated_img[:3]  # when expand=True, it expands to RGBA channels
-    # Get absolute coords
-    _geoms = deepcopy(geoms)
-    if _geoms.shape[1:] == (4,):
-        if np.max(_geoms) <= 1:
-            _geoms[:, [0, 2]] *= img.shape[-1]
-            _geoms[:, [1, 3]] *= img.shape[-2]
-    elif _geoms.shape[1:] == (4, 2):
-        if np.max(_geoms) <= 1:
-            _geoms[..., 0] *= img.shape[-1]
-            _geoms[..., 1] *= img.shape[-2]
-    else:
-        raise AssertionError("invalid format for arg `geoms`")
+    rotated_geoms = geoms
 
-    # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
-    rotated_geoms = rotate_abs_geoms(_geoms, angle, img.shape[1:], expand).astype(np.float32)  # type: ignore[arg-type]
+    if isinstance(geoms, np.ndarray) and angle != 0:
+        rotated_geoms = rotate_rel_geoms(geoms, angle, img.shape[-2:], rotated_img.shape[-2:], expand=expand)
 
-    # Always return relative boxes to avoid label confusions when resizing is performed aferwards
-    rotated_geoms[..., 0] = rotated_geoms[..., 0] / rotated_img.shape[2]
-    rotated_geoms[..., 1] = rotated_geoms[..., 1] / rotated_img.shape[1]
-
-    return rotated_img, np.clip(rotated_geoms, 0, 1)
+    return rotated_img, rotated_geoms
 
 
 def crop_detection(

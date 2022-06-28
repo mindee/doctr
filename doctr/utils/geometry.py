@@ -14,7 +14,7 @@ from .common_types import BoundingBox, Polygon4P
 
 __all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
            'rotate_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle',
-           'convert_to_relative_coords', 'rotate_abs_geoms', 'extract_crops', 'extract_rcrops']
+           'convert_to_relative_coords', 'rotate_abs_geoms', 'rotate_rel_geoms', 'extract_crops', 'extract_rcrops']
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -126,6 +126,54 @@ def rotate_abs_geoms(
     rotated_polys[..., 1] = (target_shape[0] / 2 - rotated_polys[..., 1]).clip(0, target_shape[0])
 
     return rotated_polys
+
+
+def rotate_rel_geoms(
+    geoms: np.ndarray,
+    angle: float,
+    orig_shape: Tuple[int, int],
+    rot_shape: Tuple[int, int],
+    **kwargs: Any,
+) -> np.ndarray:
+    """Rotate a batch of bounding boxes or polygons by an angle around the
+    image center.
+
+    Args:
+        boxes: (N, 4) or (N, 4, 2) array of RELATIVE coordinate boxes
+        angle: anti-clockwise rotation angle in degrees
+        orig_shape: the height and width of the image
+        rot_shape: the height and width of the rotated image
+        **kwargs: kwargs of rotate_abs_geoms
+
+    Returns:
+        A batch of rotated polygons (N, 4, 2)
+    """
+
+    # Get absolute coords
+    _geoms = deepcopy(geoms)
+    if _geoms.shape[1:] == (4,):
+        if np.max(_geoms) <= 1:
+            _geoms[:, [0, 2]] *= img_shape[1]
+            _geoms[:, [1, 3]] *= img_shape[0]
+    elif _geoms.shape[1:] == (4, 2):
+        if np.max(_geoms) <= 1:
+            _geoms[..., 0] *= img_shape[1]
+            _geoms[..., 1] *= img_shape[0]
+    else:
+        raise AssertionError("invalid format for arg `geoms`")
+
+    # Rotate the boxes: xmin, ymin, xmax, ymax or polygons --> (4, 2) polygon
+    rotated_geoms = rotate_abs_geoms(
+        _geoms,
+        angle,
+        orig_shape,
+        **kwargs,
+    ).astype(np.float32)
+
+    # Always return relative boxes to avoid label confusions when resizing is performed aferwards
+    rotated_geoms[..., 0] = rotated_geoms[..., 0] / rot_shape[1]
+    rotated_geoms[..., 1] = rotated_geoms[..., 1] / rot_shape[0]
+    return np.clip(rotated_geoms, 0, 1)
 
 
 def remap_boxes(
