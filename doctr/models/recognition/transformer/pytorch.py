@@ -56,20 +56,16 @@ def scaled_dot_product_attention(
     return torch.matmul(p_attn, value), p_attn
 
 
-class PositionwiseFeedForward(nn.Module):
+class PositionwiseFeedForward(nn.Sequential):
     """ Position-wise Feed-Forward Network """
 
     def __init__(self, d_model: int, ffd: int, dropout: float = 0.1) -> None:
-        super(PositionwiseFeedForward, self).__init__()
-        self.feed_forward = nn.Sequential(
+        super().__init__(
             nn.Linear(d_model, ffd),
             nn.ReLU(),
             nn.Dropout(p=dropout),
             nn.Linear(ffd, d_model),
         )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.feed_forward(x)
 
 
 class MultiHeadAttention(nn.Module):

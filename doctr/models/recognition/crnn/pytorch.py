@@ -195,7 +195,7 @@ class CRNN(RecognitionModel, nn.Module):
     ) -> Dict[str, Any]:
 
         if self.training and target is None:
-            raise ValueError('Need to provide labels during training for teacher forcing')
+            raise ValueError('Need to provide labels during training')
 
         features = self.feat_extractor(x)
         # B x C x H x W --> B x C*H x W --> B x W x C*H
