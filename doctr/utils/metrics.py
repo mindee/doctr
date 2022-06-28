@@ -130,8 +130,8 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     iou_mat: np.ndarray = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
-        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)  # type: ignore[var-annotated]
-        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)  # type: ignore[var-annotated]
+        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
 
         left = np.maximum(l1, l2.T)
         top = np.maximum(t1, t2.T)
@@ -139,7 +139,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         bot = np.minimum(b1, b2.T)
 
         intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
-        union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection  # type: ignore[operator]
+        union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
         iou_mat = intersection / union
 
     return iou_mat
@@ -160,8 +160,8 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     ioa_mat: np.ndarray = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
-        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)  # type: ignore[var-annotated]
-        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)  # type: ignore[var-annotated]
+        l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
+        l2, t2, r2, b2 = np.split(boxes_2, 4, axis=1)
 
         left = np.maximum(l1, l2.T)
         top = np.maximum(t1, t2.T)
@@ -169,7 +169,7 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         bot = np.minimum(b1, b2.T)
 
         intersection = np.clip(right - left, 0, np.Inf) * np.clip(bot - top, 0, np.Inf)
-        area = (r1 - l1) * (b1 - t1)  # type: ignore[operator]
+        area = (r1 - l1) * (b1 - t1)
         ioa_mat = intersection / area
 
     return ioa_mat

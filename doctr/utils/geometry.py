@@ -37,7 +37,7 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
     Return a (1, 5) array (enclosing boxarray), or a BoundingBox
     """
     if isinstance(bboxes, np.ndarray):
-        xmin, ymin, xmax, ymax, score = np.split(bboxes, 5, axis=1)  # type: ignore[var-annotated]
+        xmin, ymin, xmax, ymax, score = np.split(bboxes, 5, axis=1)
         return np.array([xmin.min(), ymin.min(), xmax.max(), ymax.max(), score.mean()])
     else:
         x, y = zip(*[point for box in bboxes for point in box])
@@ -238,7 +238,7 @@ def rotate_image(
     # Compute the expanded padding
     exp_img: np.ndarray
     if expand:
-        exp_shape = compute_expanded_shape(image.shape[:-1], angle)
+        exp_shape = compute_expanded_shape(image.shape[:2], angle)  # type: ignore[arg-type]
         h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(
             max(0, ceil(exp_shape[1] - image.shape[1])))
         exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
