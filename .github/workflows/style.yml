@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.7]
+        python: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -31,7 +31,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.7]
+        python: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -51,7 +51,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.7]
+        python: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -67,7 +67,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[all] --upgrade
           pip install mypy
       - name: Run mypy
         run: |
@@ -79,7 +79,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.7]
+        python: [3.8]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
