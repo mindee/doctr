@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.datasets" href="datasets.html" /><link rel="prev" title="Choosing the right model" href="using_models.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.21"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.0.2, furo 2022.06.21"/>
         <title>Preparing your model for inference - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
@@ -237,13 +237,13 @@
         </div>
         <article role="main">
           <section id="preparing-your-model-for-inference">
-<h1>Preparing your model for inference<a class="headerlink" href="#preparing-your-model-for-inference" title="Permalink to this headline">#</a></h1>
+<h1>Preparing your model for inference<a class="headerlink" href="#preparing-your-model-for-inference" title="Permalink to this heading">#</a></h1>
 <p>A well-trained model is a good achievement but you might want to tune a few things to make it production-ready!</p>
 <section id="model-compression">
-<h2>Model compression<a class="headerlink" href="#model-compression" title="Permalink to this headline">#</a></h2>
+<h2>Model compression<a class="headerlink" href="#model-compression" title="Permalink to this heading">#</a></h2>
 <p>This section is meant to help you perform inference with compressed versions of your model.</p>
 <section id="tensorflow-lite">
-<h3>TensorFlow Lite<a class="headerlink" href="#tensorflow-lite" title="Permalink to this headline">#</a></h3>
+<h3>TensorFlow Lite<a class="headerlink" href="#tensorflow-lite" title="Permalink to this heading">#</a></h3>
 <p>TensorFlow provides utilities packaged as TensorFlow Lite to take resource constraints into account. You can easily convert any Keras model into a serialized TFLite version as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span>
@@ -255,7 +255,7 @@
 </div>
 </section>
 <section id="half-precision">
-<h3>Half-precision<a class="headerlink" href="#half-precision" title="Permalink to this headline">#</a></h3>
+<h3>Half-precision<a class="headerlink" href="#half-precision" title="Permalink to this heading">#</a></h3>
 <p>If you want to convert it to half-precision using your TFLite converter</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">target_spec</span><span class="o">.</span><span class="n">supported_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">]</span>
@@ -264,7 +264,7 @@
 </div>
 </section>
 <section id="post-training-quantization">
-<h3>Post-training quantization<a class="headerlink" href="#post-training-quantization" title="Permalink to this headline">#</a></h3>
+<h3>Post-training quantization<a class="headerlink" href="#post-training-quantization" title="Permalink to this heading">#</a></h3>
 <p>Finally if you wish to quantize the model with your TFLite converter</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">converter</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">lite</span><span class="o">.</span><span class="n">Optimize</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Float fallback for operators that do not have an integer implementation</span>
@@ -280,7 +280,7 @@
 </section>
 </section>
 <section id="using-savedmodel">
-<h2>Using SavedModel<a class="headerlink" href="#using-savedmodel" title="Permalink to this headline">#</a></h2>
+<h2>Using SavedModel<a class="headerlink" href="#using-savedmodel" title="Permalink to this heading">#</a></h2>
 <p>Additionally, models in DocTR inherit TensorFlow 2 model properties and can be exported to
 <a class="reference external" href="https://www.tensorflow.org/guide/saved_model">SavedModel</a> format as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -378,6 +378,7 @@
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>

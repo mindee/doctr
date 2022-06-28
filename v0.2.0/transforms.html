@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.utils" href="utils.html" /><link rel="prev" title="doctr.models" href="models.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-4.5.0, furo 2022.06.21"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.0.2, furo 2022.06.21"/>
         <title>doctr.transforms - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
@@ -226,10 +226,10 @@
         </div>
         <article role="main">
           <section id="doctr-transforms">
-<h1>doctr.transforms<a class="headerlink" href="#doctr-transforms" title="Permalink to this headline">#</a></h1>
+<h1>doctr.transforms<a class="headerlink" href="#doctr-transforms" title="Permalink to this heading">#</a></h1>
 <p>Data transformations are part of both training and inference procedure. Drawing inspiration from the design of <a class="reference external" href="https://github.com/pytorch/vision">torchvision</a>, we express transformations as composable modules.</p>
 <section id="supported-transformations">
-<h2>Supported transformations<a class="headerlink" href="#supported-transformations" title="Permalink to this headline">#</a></h2>
+<h2>Supported transformations<a class="headerlink" href="#supported-transformations" title="Permalink to this heading">#</a></h2>
 <p>Here are all transformations that are available through DocTR:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.Resize">
@@ -280,7 +280,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.LambdaTransformation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">LambdaTransformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.10)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tensorflow.python.framework.ops.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#LambdaTransformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.LambdaTransformation" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">LambdaTransformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.10)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#LambdaTransformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.LambdaTransformation" title="Permalink to this definition">#</a></dt>
 <dd><p>Normalize a tensor to a Gaussian distribution for each channel</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">LambdaTransformation</span>
@@ -462,11 +462,11 @@ increasing saturation by a factor.</p>
 
 </section>
 <section id="composing-transformations">
-<h2>Composing transformations<a class="headerlink" href="#composing-transformations" title="Permalink to this headline">#</a></h2>
+<h2>Composing transformations<a class="headerlink" href="#composing-transformations" title="Permalink to this heading">#</a></h2>
 <p>It is common to require several transformations to be performed consecutively.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.Compose">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">Compose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">doctr.utils.repr.NestedObject</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Compose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.Compose" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">Compose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">NestedObject</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#Compose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.Compose" title="Permalink to this definition">#</a></dt>
 <dd><p>Implements a wrapper that will apply transformations sequentially</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">Resize</span>
@@ -486,7 +486,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.OneOf">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">OneOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">doctr.utils.repr.NestedObject</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#OneOf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.OneOf" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">OneOf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">NestedObject</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#OneOf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.OneOf" title="Permalink to this definition">#</a></dt>
 <dd><p>Randomly apply one of the input transformations</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -506,7 +506,7 @@ increasing saturation by a factor.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.RandomApply">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomApply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">doctr.utils.repr.NestedObject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomApply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.RandomApply" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomApply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">NestedObject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/doctr/transforms/modules.html#RandomApply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.RandomApply" title="Permalink to this definition">#</a></dt>
 <dd><p>Apply with a probability p the input transformation</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">Normalize</span>
@@ -604,6 +604,7 @@ increasing saturation by a factor.</p>
 </div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>
