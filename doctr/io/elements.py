@@ -287,7 +287,11 @@ class Page(Element):
         head = SubElement(page_hocr, 'head')
         SubElement(head, 'title').text = file_title
         SubElement(head, 'meta', attrib={'http-equiv': 'Content-Type', 'content': 'text/html; charset=utf-8'})
-        SubElement(head, 'meta', attrib={'name': 'ocr-system', 'content': f"python-doctr {doctr.__version__}"})  # type: ignore[attr-defined]
+        SubElement(
+            head,
+            'meta',
+            attrib={'name': 'ocr-system', 'content': f"python-doctr {doctr.__version__}"},  # type: ignore[attr-defined]
+        )
         SubElement(head, 'meta', attrib={'name': 'ocr-capabilities',
                                          'content': 'ocr_page ocr_carea ocr_par ocr_line ocrx_word'})
         # Create the body
