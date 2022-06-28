@@ -173,7 +173,7 @@ class MASTER(_MASTER, Model):
         out: Dict[str, tf.Tensor] = {}
 
         if kwargs.get('training', False) and target is None:
-            raise ValueError('Need to provide labels during training for teacher forcing')
+            raise ValueError('Need to provide labels during training')
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
