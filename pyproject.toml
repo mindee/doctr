@@ -11,6 +11,7 @@ implicit_reexport = false
 [[tool.mypy.overrides]]
 module = [
 	"tensorflow.*",
+	"torch.*",
 	"torchvision.*",
 	"PIL.*",
 	"tqdm.*",
