@@ -169,7 +169,7 @@ class MASTER(_MASTER, Model):
         # (N, H, W, C) --> (N, H * W, C)
         feature = tf.reshape(feature, shape=(b, h * w, c))
         # add positional encoding to features
-        encoded = self.positional_encoding(feature)
+        encoded = self.positional_encoding(feature, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
 

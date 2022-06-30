@@ -60,7 +60,7 @@ def scaled_dot_product_attention(
 ) -> Tuple[tf.Tensor, tf.Tensor]:
     """ Scaled Dot-Product Attention """
 
-    scores = tf.matmul(query, key, transpose_b=True) / math.sqrt(query.shape[-1])
+    scores = tf.matmul(query, tf.transpose(key, perm=[0, 1, 3, 2])) / math.sqrt(query.shape[-1])
     if mask is not None:
         scores = tf.where(mask == 0, -1e9, scores)
     p_attn = tf.nn.softmax(scores, axis=-1)
@@ -88,7 +88,7 @@ class MultiHeadAttention(layers.Layer, NestedObject):
 
     def __init__(self, num_heads: int, d_model: int, dropout: float = 0.1) -> None:
         super().__init__()
-        assert d_model % num_heads == 0
+        assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
 
         self.d_k = d_model // num_heads
         self.num_heads = num_heads
@@ -158,7 +158,7 @@ class Decoder(layers.Layer, NestedObject):
     ) -> tf.Tensor:
 
         tgt = self.embed(tgt, **kwargs) * math.sqrt(self.d_model)
-        pos_enc_tgt = self.positional_encoding(tgt)
+        pos_enc_tgt = self.positional_encoding(tgt, **kwargs)
         output = pos_enc_tgt
 
         for i in range(self.num_layers):
