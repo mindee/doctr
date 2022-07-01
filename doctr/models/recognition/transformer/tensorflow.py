@@ -47,7 +47,7 @@ class PositionalEncoding(layers.Layer, NestedObject):
         Returns:
             positional embeddings (batch, max_len, d_model)
         """
-        x = x + self.pe[:, : x.shape[1]]  # type: ignore
+        x = x + self.pe[:, : x.shape[1]]
         return self.dropout(x, **kwargs)
 
 
