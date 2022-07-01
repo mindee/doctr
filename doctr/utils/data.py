@@ -90,7 +90,7 @@ def download_from_url(
     try:
         print(f"Downloading {url} to {file_path}")
         _urlretrieve(url, file_path)
-    except (urllib.error.URLError, IOError) as e:  # type: ignore[attr-defined]
+    except (urllib.error.URLError, IOError) as e:
         if url[:5] == 'https':
             url = url.replace('https:', 'http:')
             print('Failed download. Trying https -> http instead.'

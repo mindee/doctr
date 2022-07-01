@@ -40,7 +40,9 @@ with open('README.md', 'r') as f:
 # Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
 _deps = [
     "importlib_metadata",
-    "numpy>=1.16.0",
+    # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
+    # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
+    "numpy>=1.16.0,<2.0.0",
     "scipy>=1.4.0",
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
@@ -63,7 +65,7 @@ _deps = [
     "huggingface-hub>=0.4.0",
     # Testing
     "pytest>=5.3.2",
-    "coverage>=4.5.4",
+    "coverage[toml]>=4.5.4",
     "hdf5storage>=0.1.18",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
@@ -72,7 +74,7 @@ _deps = [
     "flake8>=3.9.0",
     "isort>=5.7.0",
     "mypy>=0.812",
-    "pydocstyle>=6.1.1",
+    "pydocstyle[toml]>=6.1.1",
     # Docs
     "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
@@ -135,7 +137,7 @@ extras["all"] = (
 
 extras["testing"] = deps_list(
     "pytest",
-    "coverage",
+    "coverage[toml]",
     "requests",
     "hdf5storage",
     "onnxruntime",
@@ -146,7 +148,7 @@ extras["quality"] = deps_list(
     "flake8",
     "isort",
     "mypy",
-    "pydocstyle",
+    "pydocstyle[toml]",
 )
 
 extras["docs_specific"] = deps_list(

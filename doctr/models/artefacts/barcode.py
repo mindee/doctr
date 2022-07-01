@@ -33,7 +33,7 @@ class BarCodeDetector:
 
     def __call__(
         self,
-        img: np.array,
+        img: np.ndarray,
     ) -> List[Tuple[float, float, float, float]]:
         """Detect Barcodes on the image
         Args:
@@ -56,7 +56,7 @@ class BarCodeDetector:
         edges = cv2.dilate(edges, np.ones((1, k), np.uint8))
 
         # Instantiate a barcode-shaped kernel and erode to keep only vertical-bar structures
-        bar_code_kernel = np.zeros((k, 3), np.uint8)
+        bar_code_kernel: np.ndarray = np.zeros((k, 3), np.uint8)
         bar_code_kernel[..., [0, 2]] = 1
         edges = cv2.erode(edges, bar_code_kernel, iterations=1)
 

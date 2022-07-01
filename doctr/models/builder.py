@@ -41,7 +41,7 @@ class DocumentBuilder(NestedObject):
         self.export_as_straight_boxes = export_as_straight_boxes
 
     @staticmethod
-    def _sort_boxes(boxes: np.ndarray) -> np.ndarray:
+    def _sort_boxes(boxes: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
@@ -160,9 +160,9 @@ class DocumentBuilder(NestedObject):
         """
         # Resolve enclosing boxes of lines
         if boxes.ndim == 3:
-            box_lines = np.asarray([
-                resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])
-                for line in lines  # type: ignore[misc]
+            box_lines: np.ndarray = np.asarray([
+                resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])  # type: ignore[misc]
+                for line in lines
             ])
         else:
             _box_lines = [
@@ -176,7 +176,7 @@ class DocumentBuilder(NestedObject):
         # Compute geometrical features of lines to clusterize
         # Clusterizing only with box centers yield to poor results for complex documents
         if boxes.ndim == 3:
-            box_features = np.stack(
+            box_features: np.ndarray = np.stack(
                 (
                     (box_lines[:, 0, 0] + box_lines[:, 0, 1]) / 2,
                     (box_lines[:, 0, 0] + box_lines[:, 2, 0]) / 2,
@@ -241,7 +241,7 @@ class DocumentBuilder(NestedObject):
                 _blocks = [lines]
         else:
             # Sort bounding boxes, one line for all boxes, one block for the line
-            lines = [self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4])[0]]
+            lines = [self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4])[0]]  # type: ignore[list-item]
             _blocks = [lines]
 
         blocks = [
@@ -250,7 +250,7 @@ class DocumentBuilder(NestedObject):
                     [
                         Word(
                             *word_preds[idx],
-                            tuple([tuple(pt) for pt in boxes[idx].tolist()])
+                            tuple([tuple(pt) for pt in boxes[idx].tolist()])  # type: ignore[arg-type]
                         ) if boxes.ndim == 3 else
                         Word(
                             *word_preds[idx],
@@ -291,7 +291,7 @@ class DocumentBuilder(NestedObject):
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
-                straight_boxes = []
+                straight_boxes: List[np.ndarray] = []
                 # Iterate over pages
                 for p_boxes in boxes:
                     # Iterate over boxes of the pages

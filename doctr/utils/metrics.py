@@ -127,7 +127,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         the IoU matrix of shape (N, M)
     """
 
-    iou_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+    iou_mat: np.ndarray = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
         l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
@@ -157,7 +157,7 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
         the IoA matrix of shape (N, M)
     """
 
-    ioa_mat = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
+    ioa_mat: np.ndarray = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
         l1, t1, r1, b1 = np.split(boxes_1, 4, axis=1)
@@ -189,7 +189,7 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     if masks_1.shape[1:] != masks_2.shape[1:]:
         raise AssertionError("both boolean masks should have the same spatial shape")
 
-    iou_mat = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
+    iou_mat: np.ndarray = np.zeros((masks_1.shape[0], masks_2.shape[0]), dtype=np.float32)
 
     if masks_1.shape[0] > 0 and masks_2.shape[0] > 0:
         axes = tuple(range(2, masks_1.ndim + 1))
@@ -221,7 +221,7 @@ def polygon_iou(
     if polys_1.ndim != 3 or polys_2.ndim != 3:
         raise AssertionError("expects boxes to be in format (N, 4, 2)")
 
-    iou_mat = np.zeros((polys_1.shape[0], polys_2.shape[0]), dtype=np.float32)
+    iou_mat: np.ndarray = np.zeros((polys_1.shape[0], polys_2.shape[0]), dtype=np.float32)
 
     if polys_1.shape[0] > 0 and polys_2.shape[0] > 0:
         if use_broadcasting:
@@ -250,7 +250,7 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
         the boolean mask of the specified shape
     """
 
-    mask = np.zeros(shape, dtype=np.uint8)
+    mask: np.ndarray = np.zeros(shape, dtype=np.uint8)
     # Get absolute coords
     if box.dtype != int:
         abs_box = box.copy()
@@ -276,15 +276,15 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
         the boolean masks of shape (N, H, W)
     """
 
-    masks = np.zeros((boxes.shape[0], *shape), dtype=np.uint8)
+    masks: np.ndarray = np.zeros((boxes.shape[0], *shape), dtype=np.uint8)
 
     if boxes.shape[0] > 0:
         # Get absolute coordinates
-        if boxes.dtype != np.int:
+        if boxes.dtype != int:
             abs_boxes = boxes.copy()
             abs_boxes[:, :, 0] = abs_boxes[:, :, 0] * shape[1]
             abs_boxes[:, :, 1] = abs_boxes[:, :, 1] * shape[0]
-            abs_boxes = abs_boxes.round().astype(np.int)
+            abs_boxes = abs_boxes.round().astype(int)
         else:
             abs_boxes = boxes
             abs_boxes[:, 2:] = abs_boxes[:, 2:] + 1

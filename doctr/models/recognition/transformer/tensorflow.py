@@ -15,7 +15,7 @@ import tensorflow as tf
 __all__ = ['Decoder', 'positional_encoding', 'create_look_ahead_mask', 'create_padding_mask']
 
 
-def get_angles(pos: np.array, i: np.array, d_model: int = 512) -> np.array:
+def get_angles(pos: np.ndarray, i: np.ndarray, d_model: int = 512) -> np.ndarray:
     """This function compute the 2D array of angles for sinusoidal positional encoding.
 
     Args:

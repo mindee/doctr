@@ -237,7 +237,7 @@ class SAR(nn.Module, RecognitionModel):
         encoded = self.encoder(pooled_features)
         if target is not None:
             _gt, _seq_len = self.build_target(target)
-            gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)  # type: ignore[assignment]
+            gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
         if self.training and target is None:
@@ -254,7 +254,7 @@ class SAR(nn.Module, RecognitionModel):
             out["preds"] = self.postprocessor(decoded_features)
 
         if target is not None:
-            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)  # type: ignore[arg-type]
+            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)
 
         return out
 

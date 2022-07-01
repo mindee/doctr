@@ -93,7 +93,7 @@ class IC03(VisionDataset):
 
             # filter images without boxes
             if len(_boxes) > 0:
-                boxes = np.asarray(_boxes, dtype=np_dtype)
+                boxes: np.ndarray = np.asarray(_boxes, dtype=np_dtype)
                 # Get the labels
                 labels = [lab.text for rect in rectangles for lab in rect if lab.text]
 

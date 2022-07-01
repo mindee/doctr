@@ -1,3 +1,0 @@
-[pydocstyle]
-select = D300,D301,D417
-match = .*\.py
