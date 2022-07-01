@@ -155,7 +155,7 @@ def test_recognition_zoo_error():
         ["crnn_mobilenet_v3_small", (32, 128, 3)],
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
-        #["master", (32, 128, 3)], exclude to see the needed CI/CD time
+        ["master", (32, 128, 3)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
