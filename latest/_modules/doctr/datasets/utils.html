@@ -319,13 +319,13 @@
 <span class="sd">        A list encoding the input_string&quot;&quot;&quot;</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;some characters cannot be found in &#39;vocab&#39;&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">decode_sequence</span><span class="p">(</span>
-    <span class="n">input_seq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="n">input_seq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
     <span class="n">mapping</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Given a predefined mapping, decode the sequence of numbers to a string</span>
@@ -391,7 +391,7 @@
         <span class="n">default_symbol</span> <span class="o">=</span> <span class="n">pad</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># pad with eos symbol</span>
         <span class="n">default_symbol</span> <span class="o">=</span> <span class="n">eos</span>
-    <span class="n">encoded_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sequences</span><span class="p">),</span> <span class="n">target_size</span><span class="p">],</span> <span class="n">default_symbol</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">encoded_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sequences</span><span class="p">),</span> <span class="n">target_size</span><span class="p">],</span> <span class="n">default_symbol</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
     <span class="c1"># Encode the strings</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">seq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">encode_string</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">),</span> <span class="n">sequences</span><span class="p">)):</span>
@@ -422,7 +422,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        a list of cropped images</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">))</span>
+    <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s1">&#39;RGB&#39;</span><span class="p">))</span>
     <span class="c1"># Polygon</span>
     <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">extract_rcrops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>

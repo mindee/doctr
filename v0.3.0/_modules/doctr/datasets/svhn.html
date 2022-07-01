@@ -330,7 +330,7 @@
                     <span class="n">box_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]][()]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">box</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
                 <span class="c1"># Convert it to the right format</span>
-                <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="n">coords</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
                     <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">],</span>
                     <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">],</span>
                     <span class="n">box_dict</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">],</span>
@@ -340,7 +340,7 @@
 
                 <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
                     <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
-                    <span class="n">box_targets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                    <span class="n">box_targets</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
                         <span class="p">[</span>
                             <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
                             <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>

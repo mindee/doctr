@@ -339,7 +339,7 @@
 
             <span class="c1"># filter images without boxes</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_boxes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">boxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_boxes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)</span>
+                <span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">_boxes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)</span>
                 <span class="c1"># Get the labels</span>
                 <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">lab</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">rect</span> <span class="ow">in</span> <span class="n">rectangles</span> <span class="k">for</span> <span class="n">lab</span> <span class="ow">in</span> <span class="n">rect</span> <span class="k">if</span> <span class="n">lab</span><span class="o">.</span><span class="n">text</span><span class="p">]</span>
 
