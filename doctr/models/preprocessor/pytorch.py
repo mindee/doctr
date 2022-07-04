@@ -77,8 +77,9 @@ class PreProcessor(nn.Module):
         x = self.resize(x)
         # Data type
         if x.dtype == torch.uint8:
-            x = x.to(dtype=torch.float32).div(255).clip(0, 1)
-        x = x.to(dtype=torch.float32)
+            x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+        else:
+            x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
 
         return x
 
@@ -108,9 +109,10 @@ class PreProcessor(nn.Module):
             if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
             # Data type
-            if x.dtype == torch.uint8:
-                x = x.to(dtype=torch.float32).div(255).clip(0, 1)
-            x = x.to(dtype=torch.float32)
+            if x.dtype == torch.uint8:  # type: ignore[union-attr]
+                x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+            else:
+                x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
             batches = [x]
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):

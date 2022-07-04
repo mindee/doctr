@@ -55,7 +55,7 @@ class _AbstractDataset:
 
         if self.img_transforms is not None:
             # typing issue cf. https://github.com/python/mypy/issues/5485
-            img = self.img_transforms(img)  # type: ignore[call-arg]
+            img = self.img_transforms(img)
 
         if self.sample_transforms is not None:
             img, target = self.sample_transforms(img, target)

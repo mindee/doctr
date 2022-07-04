@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -43,7 +43,7 @@ class RecognitionPredictor(nn.Module):
     @torch.no_grad()
     def forward(
         self,
-        crops: List[Union[np.ndarray, torch.Tensor]],
+        crops: Sequence[Union[np.ndarray, torch.Tensor]],
         **kwargs: Any,
     ) -> List[Tuple[str, float]]:
 
@@ -57,7 +57,7 @@ class RecognitionPredictor(nn.Module):
         remapped = False
         if self.split_wide_crops:
             new_crops, crop_map, remapped = split_crops(
-                crops,
+                crops,  # type: ignore[arg-type]
                 self.critical_ar,
                 self.target_ar,
                 self.dil_factor,
@@ -72,7 +72,7 @@ class RecognitionPredictor(nn.Module):
         # Forward it
         _device = next(self.model.parameters()).device
         raw = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']  # type: ignore[operator]
+            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
             for batch in processed_batches
         ]
 

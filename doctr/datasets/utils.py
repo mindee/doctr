@@ -73,13 +73,13 @@ def encode_string(
         A list encoding the input_string"""
 
     try:
-        return list(map(vocab.index, input_string))  # type: ignore[arg-type]
+        return list(map(vocab.index, input_string))
     except ValueError:
         raise ValueError("some characters cannot be found in 'vocab'")
 
 
 def decode_sequence(
-    input_seq: Union[np.array, SequenceType[int]],
+    input_seq: Union[np.ndarray, SequenceType[int]],
     mapping: str,
 ) -> str:
     """Given a predefined mapping, decode the sequence of numbers to a string
@@ -145,7 +145,7 @@ def encode_sequences(
         default_symbol = pad
     else:  # pad with eos symbol
         default_symbol = eos
-    encoded_data = np.full([len(sequences), target_size], default_symbol, dtype=np.int32)
+    encoded_data: np.ndarray = np.full([len(sequences), target_size], default_symbol, dtype=np.int32)
 
     # Encode the strings
     for idx, seq in enumerate(map(partial(encode_string, vocab=vocab), sequences)):
@@ -176,7 +176,7 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     Returns:
         a list of cropped images
     """
-    img = np.array(Image.open(img_path).convert('RGB'))
+    img: np.ndarray = np.array(Image.open(img_path).convert('RGB'))
     # Polygon
     if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
         return extract_rcrops(img, geoms.astype(dtype=int))

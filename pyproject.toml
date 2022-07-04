@@ -1,0 +1,49 @@
+[tool.mypy]
+files = "doctr/"
+show_error_codes = true
+pretty = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true
+implicit_reexport = false
+
+[[tool.mypy.overrides]]
+module = [
+	"tensorflow.*",
+	"torchvision.*",
+	"PIL.*",
+	"tqdm.*",
+	"scipy.*",
+	"cv2.*",
+	"h5py.*",
+	"matplotlib.*",
+	"tensorflow_addons.*",
+	"pyclipper.*",
+	"shapely.*",
+	"tf2onnx.*",
+	"mplcursors.*",
+	"defusedxml.*",
+	"weasyprint.*",
+	"huggingface_hub.*",
+	"pypdfium2.*",
+]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+line_length = 120
+src_paths = ["doctr", "tests", "scripts", "references", "demo", "docs", "api"]
+skip_glob = "**/__init__.py"
+known_third_party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress"]
+
+[tool.pydocstyle]
+select = "D300,D301,D417"
+match = ".*\\.py"
+
+[tool.coverage.run]
+source = ["doctr"]
+
+[tool.black]
+line-length = 120
+target-version = ['py38']

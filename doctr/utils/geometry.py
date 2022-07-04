@@ -45,7 +45,7 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
 
 
 def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024) -> np.ndarray:
-    cloud = np.concatenate(rbboxes, axis=0)
+    cloud: np.ndarray = np.concatenate(rbboxes, axis=0)
     # Convert to absolute for minAreaRect
     cloud *= intermed_size
     rect = cv2.minAreaRect(cloud.astype(np.int32))
@@ -76,7 +76,7 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
         the height and width of the rotated image
     """
 
-    points = np.array([
+    points: np.ndarray = np.array([
         [img_shape[1] / 2, img_shape[0] / 2],
         [-img_shape[1] / 2, img_shape[0] / 2],
     ])
@@ -203,10 +203,10 @@ def rotate_boxes(
         [np.sin(angle_rad), np.cos(angle_rad)]
     ], dtype=_boxes.dtype)
     # Rotate absolute points
-    points = np.stack((_boxes[:, :, 0] * orig_shape[1], _boxes[:, :, 1] * orig_shape[0]), axis=-1)
+    points: np.ndarray = np.stack((_boxes[:, :, 0] * orig_shape[1], _boxes[:, :, 1] * orig_shape[0]), axis=-1)
     image_center = (orig_shape[1] / 2, orig_shape[0] / 2)
     rotated_points = image_center + np.matmul(points - image_center, rotation_mat)
-    rotated_boxes = np.stack(
+    rotated_boxes: np.ndarray = np.stack(
         (rotated_points[:, :, 0] / orig_shape[1], rotated_points[:, :, 1] / orig_shape[0]), axis=-1
     )
 
@@ -236,8 +236,9 @@ def rotate_image(
     """
 
     # Compute the expanded padding
+    exp_img: np.ndarray
     if expand:
-        exp_shape = compute_expanded_shape(image.shape[:-1], angle)
+        exp_shape = compute_expanded_shape(image.shape[:2], angle)  # type: ignore[arg-type]
         h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(
             max(0, ceil(exp_shape[1] - image.shape[1])))
         exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
@@ -273,9 +274,9 @@ def estimate_page_angle(polys: np.ndarray) -> float:
     yleft = polys[:, 0, 1] + polys[:, 3, 1]
     xright = polys[:, 1, 0] + polys[:, 2, 0]
     yright = polys[:, 1, 1] + polys[:, 2, 1]
-    return np.median(np.arctan(
+    return float(np.median(np.arctan(
         (yleft - yright) / (xright - xleft)  # Y axis from top to bottom!
-    )) * 180 / np.pi
+    )) * 180 / np.pi)
 
 
 def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) -> np.ndarray:
@@ -291,12 +292,12 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
 
     # Polygon
     if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
-        polygons = np.empty(geoms.shape, dtype=np.float32)
+        polygons: np.ndarray = np.empty(geoms.shape, dtype=np.float32)
         polygons[..., 0] = geoms[..., 0] / img_shape[1]
         polygons[..., 1] = geoms[..., 1] / img_shape[0]
         return polygons.clip(0, 1)
     if geoms.ndim == 2 and geoms.shape[1] == 4:
-        boxes = np.empty(geoms.shape, dtype=np.float32)
+        boxes: np.ndarray = np.empty(geoms.shape, dtype=np.float32)
         boxes[:, ::2] = geoms[:, ::2] / img_shape[1]
         boxes[:, 1::2] = geoms[:, 1::2] / img_shape[0]
         return boxes.clip(0, 1)

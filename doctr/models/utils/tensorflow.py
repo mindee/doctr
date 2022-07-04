@@ -59,7 +59,7 @@ def load_pretrained_params(
 
 def conv_sequence(
     out_channels: int,
-    activation: Union[str, Callable] = None,
+    activation: Optional[Union[str, Callable]] = None,
     bn: bool = False,
     padding: str = 'same',
     kernel_initializer: str = 'he_normal',

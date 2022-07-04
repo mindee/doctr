@@ -76,7 +76,7 @@ class IC13(AbstractDataset):
                 ]
             labels = [line[-1].replace("\"", "") for line in _lines]
             # xmin, ymin, xmax, ymax
-            box_targets = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
+            box_targets: np.ndarray = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
             if use_polygons:
                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 box_targets = np.array(

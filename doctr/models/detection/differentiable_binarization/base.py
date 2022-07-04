@@ -5,7 +5,7 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -80,9 +80,9 @@ class DBPostProcessor(DetectionPostProcessor):
                     max_size = len(p)
             # We ensure that _points can be correctly casted to a ndarray
             _points = [_points[idx]]
-        expanded_points = np.asarray(_points)  # expand polygon
+        expanded_points: np.ndarray = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
-            return None
+            return None  # type: ignore[return-value]
         return cv2.boundingRect(expanded_points) if self.assume_straight_pages else np.roll(
             cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0
         )
@@ -106,7 +106,7 @@ class DBPostProcessor(DetectionPostProcessor):
         """
         height, width = bitmap.shape[:2]
         min_size_box = 1 + int(height / 512)
-        boxes = []
+        boxes: List[Union[np.ndarray, List[float]]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
@@ -116,7 +116,7 @@ class DBPostProcessor(DetectionPostProcessor):
             # Compute objectness
             if self.assume_straight_pages:
                 x, y, w, h = cv2.boundingRect(contour)
-                points = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+                points: np.ndarray = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
                 score = self.box_score(pred, points, assume_straight_pages=True)
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
@@ -137,7 +137,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 continue
 
             if self.assume_straight_pages:
-                x, y, w, h = _box  # type: ignore[misc]
+                x, y, w, h = _box
                 # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
@@ -172,10 +172,10 @@ class _DBNet:
 
     @staticmethod
     def compute_distance(
-        xs: np.array,
-        ys: np.array,
-        a: np.array,
-        b: np.array,
+        xs: np.ndarray,
+        ys: np.ndarray,
+        a: np.ndarray,
+        b: np.ndarray,
         eps: float = 1e-7,
     ) -> float:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
@@ -202,9 +202,9 @@ class _DBNet:
 
     def draw_thresh_map(
         self,
-        polygon: np.array,
-        canvas: np.array,
-        mask: np.array,
+        polygon: np.ndarray,
+        canvas: np.ndarray,
+        mask: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Draw a polygon treshold map on a canvas, as described in the DB paper
 
@@ -222,7 +222,7 @@ class _DBNet:
         subject = [tuple(coor) for coor in polygon]  # Get coord as list of tuples
         padding = pyclipper.PyclipperOffset()
         padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-        padded_polygon = np.array(padding.Execute(distance)[0])
+        padded_polygon: np.ndarray = np.array(padding.Execute(distance)[0])
 
         # Fill the mask with 1 on the new padded polygon
         cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
@@ -238,8 +238,8 @@ class _DBNet:
         polygon[:, 0] = polygon[:, 0] - xmin
         polygon[:, 1] = polygon[:, 1] - ymin
         # Get absolute padded polygon
-        xs = np.broadcast_to(np.linspace(0, width - 1, num=width).reshape(1, width), (height, width))
-        ys = np.broadcast_to(np.linspace(0, height - 1, num=height).reshape(height, 1), (height, width))
+        xs: np.ndarray = np.broadcast_to(np.linspace(0, width - 1, num=width).reshape(1, width), (height, width))
+        ys: np.ndarray = np.broadcast_to(np.linspace(0, height - 1, num=height).reshape(height, 1), (height, width))
 
         # Compute distance map to fill the padded polygon
         distance_map = np.zeros((polygon.shape[0], height, width), dtype=polygon.dtype)
@@ -279,10 +279,10 @@ class _DBNet:
 
         input_dtype = target[0].dtype if len(target) > 0 else np.float32
 
-        seg_target = np.zeros(output_shape, dtype=np.uint8)
-        seg_mask = np.ones(output_shape, dtype=bool)
-        thresh_target = np.zeros(output_shape, dtype=np.float32)
-        thresh_mask = np.ones(output_shape, dtype=np.uint8)
+        seg_target: np.ndarray = np.zeros(output_shape, dtype=np.uint8)
+        seg_mask: np.ndarray = np.ones(output_shape, dtype=bool)
+        thresh_target: np.ndarray = np.zeros(output_shape, dtype=np.float32)
+        thresh_mask: np.ndarray = np.ones(output_shape, dtype=np.uint8)
 
         for idx, _target in enumerate(target):
             # Draw each polygon on gt
