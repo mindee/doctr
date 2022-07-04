@@ -3,6 +3,7 @@ import shutil
 import tempfile
 
 import numpy as np
+import shutil
 import onnxruntime
 import pytest
 import tensorflow as tf
