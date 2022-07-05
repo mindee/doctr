@@ -100,11 +100,11 @@ def export_model_to_onnx(
 ) -> str:
 
     """Export model to ONNX format.
+
     >>> import torch
     >>> from doctr.models.classification import resnet18
-    >>> from doctr.models.utils import export_classification_model_to_onnx
+    >>> from doctr.models.utils import export_model_to_onnx
     >>> model = resnet18(pretrained=True)
-    >>> export_classification_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
     >>> export_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
 
     Args:
