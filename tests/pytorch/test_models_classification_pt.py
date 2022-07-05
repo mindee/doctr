@@ -9,7 +9,7 @@ import torch
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
-from doctr.models.utils import export_classification_model_to_onnx
+from doctr.models.utils import export_model_to_onnx
 
 
 def _test_classification(model, input_shape, output_size, batch_size=2):
@@ -129,9 +129,8 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
-        model_path = export_classification_model_to_onnx(model,
-                                                         model_name=os.path.join(tmpdir, "model"),
-                                                         dummy_input=dummy_input)
+        model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
+
         assert os.path.exists(model_path)
         # Inference
         ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),

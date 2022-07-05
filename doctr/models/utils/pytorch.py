@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ['load_pretrained_params', 'conv_sequence_pt', 'export_classification_model_to_onnx']
+__all__ = ['load_pretrained_params', 'conv_sequence_pt', 'export_model_to_onnx']
 
 
 def load_pretrained_params(
@@ -92,19 +92,26 @@ def conv_sequence_pt(
     return conv_seq
 
 
-def export_classification_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.Tensor) -> str:
-    """Export classification model to ONNX format.
+def export_model_to_onnx(
+    model: nn.Module,
+    model_name: str,
+    dummy_input: torch.Tensor,
+    **kwargs: Any
+) -> str:
 
+    """Export model to ONNX format.
     >>> import torch
     >>> from doctr.models.classification import resnet18
     >>> from doctr.models.utils import export_classification_model_to_onnx
     >>> model = resnet18(pretrained=True)
     >>> export_classification_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
+    >>> export_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
 
     Args:
         model: the PyTorch model to be exported
         model_name: the name for the exported model
         dummy_input: the dummy input to the model
+        kwargs: additional arguments to be passed to torch.onnx.export
 
     Returns:
         the path to the exported model
@@ -116,7 +123,10 @@ def export_classification_model_to_onnx(model: nn.Module, model_name: str, dummy
         input_names=['input'],
         output_names=['logits'],
         dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
-        export_params=True, opset_version=13, verbose=False
+        export_params=True,
+        opset_version=14,
+        verbose=False,
+        **kwargs,
     )
     logging.info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx"

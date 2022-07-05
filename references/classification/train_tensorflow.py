@@ -27,7 +27,7 @@ if any(gpu_devices):
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import classification
-from doctr.models.utils import export_classification_model_to_onnx
+from doctr.models.utils import export_model_to_onnx
 from utils import plot_recorder, plot_samples
 
 
@@ -310,7 +310,7 @@ def main(args):
     if args.export_onnx:
         print("Exporting model to ONNX...")
         dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
-        model_path, _ = export_classification_model_to_onnx(model, exp_name, dummy_input)
+        model_path, _ = export_model_to_onnx(model, exp_name, dummy_input)
         print(f"Exported model saved in {model_path}")
 
 

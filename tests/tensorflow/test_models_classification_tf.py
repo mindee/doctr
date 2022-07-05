@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
-from doctr.models.utils import export_classification_model_to_onnx
+from doctr.models.utils import export_model_to_onnx
 
 
 @pytest.mark.parametrize(
@@ -94,18 +94,17 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet34", (32, 32, 3), (126,)],
         ["resnet34_wide", (32, 32, 3), (126,)],
         ["resnet50", (32, 32, 3), (126,)],
-        # Name:'res_net_4/magc/transform/conv2d_289/Conv2D:0_nchwc'
-        # Status Message: Input channels C is not equal to kernel channels * group. C: 32 kernel channels: 256 group: 1
-        #["magc_resnet31", (32, 32, 3), (126,)],
+        ["magc_resnet31", (32, 32, 3), (126,)],
         # Disabled for now
         # ["mobilenet_v3_small", (512, 512, 3), (126,)],
         # ["mobilenet_v3_large", (512, 512, 3), (126,)],
         # ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
     ],
 )
-def test_models_saved_model_export(arch_name, input_shape, output_size):
+def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
+    tf.keras.backend.clear_session()
     if arch_name == "mobilenet_v3_small_orientation":
         model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     else:
@@ -115,9 +114,11 @@ def test_models_saved_model_export(arch_name, input_shape, output_size):
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
-        model_path, output = export_classification_model_to_onnx(model,
-                                                                 model_name=os.path.join(tmpdir, "model"),
-                                                                 dummy_input=dummy_input)
+        model_path, output = export_model_to_onnx(
+            model,
+            model_name=os.path.join(tmpdir, "model"),
+            dummy_input=dummy_input
+        )
 
         assert os.path.exists(model_path)
         # Inference
