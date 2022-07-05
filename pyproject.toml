@@ -27,6 +27,7 @@ module = [
 	"weasyprint.*",
 	"huggingface_hub.*",
 	"pypdfium2.*",
+	"rapidfuzz.*",
 ]
 ignore_missing_imports = true
 
