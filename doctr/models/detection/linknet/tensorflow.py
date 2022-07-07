@@ -106,7 +106,12 @@ class LinkNet(_LinkNet, keras.Model):
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Args:
-        num_classes: number of channels for the output
+        feature extractor: the backbone serving as feature extractor
+        fpn_channels: number of channels each extracted feature maps is mapped to
+        num_classes: number of output channels in the segmentation map
+        assume_straight_pages: if True, fit straight bounding boxes only
+        exportable: onnx exportable returns only logits
+        cfg: the configuration dict of the model
     """
 
     _children_names: List[str] = ['feat_extractor', 'fpn', 'classifier', 'postprocessor']

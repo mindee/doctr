@@ -95,6 +95,18 @@ class FeaturePyramidNetwork(nn.Module):
 
 
 class DBNet(_DBNet, nn.Module):
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_.
+
+    Args:
+        feature extractor: the backbone serving as feature extractor
+        head_chans: the number of channels in the head
+        deform_conv: whether to use deformable convolution
+        num_classes: number of output channels in the segmentation map
+        assume_straight_pages: if True, fit straight bounding boxes only
+        exportable: onnx exportable returns only logits
+        cfg: the configuration dict of the model
+    """
 
     def __init__(
         self,

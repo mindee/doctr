@@ -86,6 +86,17 @@ class LinkNetFPN(nn.Module):
 
 
 class LinkNet(nn.Module, _LinkNet):
+    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
+    <https://arxiv.org/pdf/1707.03718.pdf>`_.
+
+    Args:
+        feature extractor: the backbone serving as feature extractor
+        num_classes: number of output channels in the segmentation map
+        head_chans: number of channels in the head layers
+        assume_straight_pages: if True, fit straight bounding boxes only
+        exportable: onnx exportable returns only logits
+        cfg: the configuration dict of the model
+    """
 
     def __init__(
         self,
