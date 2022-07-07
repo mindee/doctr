@@ -46,6 +46,7 @@ class MASTER(_MASTER, nn.Module):
         max_length: maximum length of character sequence handled by the model
         dropout: dropout probability of the decoder
         input_shape: size of the image inputs
+        exportable: onnx exportable returns only logits
         cfg: dictionary containing information about the model
     """
 
@@ -60,10 +61,12 @@ class MASTER(_MASTER, nn.Module):
         max_length: int = 50,
         dropout: float = 0.2,
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from the paper
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
 
+        self.exportable = exportable
         self.max_length = max_length
         self.d_model = d_model
         self.vocab = vocab
@@ -192,6 +195,10 @@ class MASTER(_MASTER, nn.Module):
             logits = self.linear(output)
         else:
             logits = self.decode(encoded)
+
+        if self.exportable:
+            out['logits'] = logits
+            return out
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, gt, seq_len)
