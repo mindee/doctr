@@ -98,7 +98,6 @@ def export_model_to_onnx(
     dummy_input: torch.Tensor,
     **kwargs: Any
 ) -> str:
-
     """Export model to ONNX format.
 
     >>> import torch

@@ -128,7 +128,6 @@ def export_model_to_onnx(
     dummy_input: List[tf.TensorSpec],
     **kwargs: Any
 ) -> Tuple[str, List[str]]:
-
     """Export model to ONNX format.
 
     >>> import tensorflow as tf
