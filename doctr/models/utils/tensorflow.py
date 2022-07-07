@@ -17,8 +17,7 @@ from doctr.utils.data import download_from_url
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
-__all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter',
-           'export_classification_model_to_onnx']
+__all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter', 'export_model_to_onnx']
 
 
 def load_pretrained_params(
@@ -123,33 +122,46 @@ class IntermediateLayerGetter(Model):
         return f"{self.__class__.__name__}()"
 
 
-def export_classification_model_to_onnx(model: Model,
-                                        model_name: str,
-                                        dummy_input: List[tf.TensorSpec]) -> Tuple[str, List[str]]:
-    """Export classification model to ONNX format.
+def export_model_to_onnx(
+    model: Model,
+    model_name: str,
+    dummy_input: List[tf.TensorSpec],
+    **kwargs: Any
+) -> Tuple[str, List[str]]:
+    """Export model to ONNX format.
 
     >>> import tensorflow as tf
     >>> from doctr.models.classification import resnet18
     >>> from doctr.models.utils import export_classification_model_to_onnx
     >>> model = resnet18(pretrained=True, include_top=True)
-    >>> export_classification_model_to_onnx(model, "my_model",
+    >>> export_model_to_onnx(model, "my_model",
     >>> dummy_input=[tf.TensorSpec([None, 32, 32, 3], tf.float32, name="input")])
 
     Args:
         model: the keras model to be exported
         model_name: the name for the exported model
         dummy_input: the dummy input to the model
+        kwargs: additional arguments to be passed to tf2onnx
 
     Returns:
         the path to the exported model and a list with the output layer names
     """
+    large_model = kwargs.get('large_model', False)
     model_proto, _ = tf2onnx.convert.from_keras(
         model,
-        opset=13,
+        opset=14,  # minimum opset which support all operators we use (v0.5.2)
         input_signature=dummy_input,
-        output_path=f"{model_name}.onnx",
+        output_path=f"{model_name}.zip" if large_model else f"{model_name}.onnx",
+        **kwargs,
     )
     # Get the output layer names
     output = [n.name for n in model_proto.graph.output]
-    logging.info(f"Model exported to {model_name}.onnx")
+
+    # models which are too large (weights > 2GB while converting to ONNX) needs to be handled
+    # about an external tensor storage where the graph and weights are seperatly stored in a archive
+    if large_model:
+        logging.info(f"Model exported to {model_name}.zip")
+        return f"{model_name}.zip", output
+
+    logging.info(f"Model exported to {model_name}.zip")
     return f"{model_name}.onnx", output
