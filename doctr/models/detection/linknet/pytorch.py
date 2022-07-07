@@ -93,11 +93,13 @@ class LinkNet(nn.Module, _LinkNet):
         num_classes: int = 1,
         head_chans: int = 32,
         assume_straight_pages: bool = True,
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         super().__init__()
         self.cfg = cfg
+        self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
@@ -153,6 +155,10 @@ class LinkNet(nn.Module, _LinkNet):
         logits = self.classifier(logits)
 
         out: Dict[str, Any] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
         if return_model_output:

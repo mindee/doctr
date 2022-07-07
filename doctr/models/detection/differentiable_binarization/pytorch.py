@@ -103,6 +103,7 @@ class DBNet(_DBNet, nn.Module):
         deform_conv: bool = False,
         num_classes: int = 1,
         assume_straight_pages: bool = True,
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -111,6 +112,7 @@ class DBNet(_DBNet, nn.Module):
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
+        self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
@@ -175,6 +177,10 @@ class DBNet(_DBNet, nn.Module):
         logits = self.prob_head(feat_concat)
 
         out: Dict[str, Any] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
 

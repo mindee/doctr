@@ -122,6 +122,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
         num_classes: int = 1,
         assume_straight_pages: bool = True,
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -129,6 +130,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         self.cfg = cfg
 
         self.feat_extractor = feature_extractor
+        self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
         self.fpn = FeaturePyramidNetwork(channels=fpn_channels)
@@ -228,6 +230,10 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         logits = self.probability_head(feat_concat, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output or target is None or return_preds:
             prob_map = tf.math.sigmoid(logits)
 
