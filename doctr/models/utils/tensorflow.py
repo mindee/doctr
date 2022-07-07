@@ -157,6 +157,8 @@ def export_model_to_onnx(
     # Get the output layer names
     output = [n.name for n in model_proto.graph.output]
 
+    # models which are too large (weights > 2GB while converting to ONNX) needs to be handled
+    # about an external tensor storage where the graph and weights are seperatly stored in a archive
     if large_model:
         logging.info(f"Model exported to {model_name}.zip")
         return f"{model_name}.zip", output
