@@ -100,12 +100,10 @@ class MASTER(_MASTER, Model):
         target_sub_mask = tf.linalg.band_part(tf.ones((target_length, target_length)), -1, 0)
         # source mask filled with ones (max_length, positional_encoded_seq_len)
         source_mask = tf.ones((target_length, source.shape[1]))
-        # combine the two masks into one (N, 1, max_length, max_length)
-        target_mask = tf.cast(
-            tf.math.logical_and(
-                tf.cast(target_sub_mask, dtype=tf.bool),
-                tf.cast(target_pad_mask, dtype=tf.bool)
-            ), dtype=tf.uint8
+        # combine the two masks into one boolean mask where False is masked (N, 1, max_length, max_length)
+        target_mask = tf.math.logical_and(
+            tf.cast(target_sub_mask, dtype=tf.bool),
+            tf.cast(target_pad_mask, dtype=tf.bool)
         )
         return source_mask, target_mask
 

@@ -62,7 +62,8 @@ def scaled_dot_product_attention(
 
     scores = tf.matmul(query, tf.transpose(key, perm=[0, 1, 3, 2])) / math.sqrt(query.shape[-1])
     if mask is not None:
-        scores = tf.where(mask == 0, -1e9, scores)
+        # NOTE: to ensure the ONNX compatibility, tf.where works only with bool type condition
+        scores = tf.where(mask == False, -1e9, scores)  # noqa: E712
     p_attn = tf.nn.softmax(scores, axis=-1)
     return tf.matmul(p_attn, value), p_attn
 
