@@ -11,7 +11,7 @@ import numpy as np
 from tqdm import tqdm
 
 from .datasets import VisionDataset
-from .utils import crop_bboxes_from_image
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ['SVT']
 
@@ -45,7 +45,14 @@ class SVT(VisionDataset):
         **kwargs: Any,
     ) -> None:
 
-        super().__init__(self.URL, None, self.SHA256, True, **kwargs)
+        super().__init__(
+            self.URL,
+            None,
+            self.SHA256,
+            True,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
+            **kwargs
+        )
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
@@ -96,16 +103,7 @@ class SVT(VisionDataset):
                     if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
                         self.data.append((crop, dict(labels=[label])))
             else:
-                # Convert coordinates to relative
-                w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
-                if use_polygons:
-                    boxes[:, :, 0] /= w
-                    boxes[:, :, 1] /= h
-                else:
-                    boxes[:, [0, 2]] /= w
-                    boxes[:, [1, 3]] /= h
-
-                self.data.append((name.text, dict(boxes=boxes.clip(0, 1), labels=labels)))
+                self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
 

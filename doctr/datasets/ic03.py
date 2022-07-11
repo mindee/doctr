@@ -11,7 +11,7 @@ import numpy as np
 from tqdm import tqdm
 
 from .datasets import VisionDataset
-from .utils import crop_bboxes_from_image
+from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ['IC03']
 
@@ -50,7 +50,14 @@ class IC03(VisionDataset):
     ) -> None:
 
         url, sha256, file_name = self.TRAIN if train else self.TEST
-        super().__init__(url, file_name, sha256, True, **kwargs)
+        super().__init__(
+            url,
+            file_name,
+            sha256,
+            True,
+            pre_transforms=convert_target_to_relative if not recognition_task else None,
+            **kwargs
+        )
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
@@ -100,17 +107,9 @@ class IC03(VisionDataset):
                 if recognition_task:
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                     for crop, label in zip(crops, labels):
-                        self.data.append((crop, dict(labels=[label])))
+                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                            self.data.append((crop, dict(labels=[label])))
                 else:
-                    # Convert coordinates to relative
-                    w, h = int(resolution.attrib['x']), int(resolution.attrib['y'])
-                    if use_polygons:
-                        boxes[:, :, 0] /= w
-                        boxes[:, :, 1] /= h
-                    else:
-                        boxes[:, [0, 2]] /= w
-                        boxes[:, [1, 3]] /= h
-
                     self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 
         self.root = tmp_root
