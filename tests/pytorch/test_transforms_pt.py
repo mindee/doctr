@@ -4,8 +4,16 @@ import numpy as np
 import pytest
 import torch
 
-from doctr.transforms import (ChannelShuffle, ColorInversion, GaussianNoise, RandomCrop, RandomHorizontalFlip,
-                              RandomRotate, RandomShadow, Resize)
+from doctr.transforms import (
+    ChannelShuffle,
+    ColorInversion,
+    GaussianNoise,
+    RandomCrop,
+    RandomHorizontalFlip,
+    RandomRotate,
+    RandomShadow,
+    Resize,
+)
 from doctr.transforms.functional import crop_detection, rotate_sample
 
 

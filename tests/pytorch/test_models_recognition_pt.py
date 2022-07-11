@@ -14,7 +14,7 @@ from doctr.models.recognition.predictor import RecognitionPredictor
         ["crnn_mobilenet_v3_small", (3, 32, 128), True],
         ["crnn_mobilenet_v3_large", (3, 32, 128), True],
         ["sar_resnet31", (3, 32, 128), False],
-        ["master", (3, 48, 160), False],
+        ["master", (3, 32, 128), False],
     ],
 )
 def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
@@ -36,6 +36,10 @@ def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
     assert isinstance(out['out_map'], torch.Tensor)
     assert out['out_map'].dtype == torch.float32
     assert isinstance(out['loss'], torch.Tensor)
+    # test model in train mode needs targets
+    with pytest.raises(ValueError):
+        model.train()
+        model(input_tensor, None)
 
 
 @pytest.mark.parametrize(

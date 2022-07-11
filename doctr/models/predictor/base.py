@@ -96,7 +96,7 @@ class _OCRPredictor:
             rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
             for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
-        return rect_crops, rect_loc_preds
+        return rect_crops, rect_loc_preds  # type: ignore[return-value]
 
     def _remove_padding(
         self,

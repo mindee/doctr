@@ -35,10 +35,10 @@ release = doctr.__version__ + '-git'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-	'sphinx.ext.autodoc',
-	'sphinx.ext.napoleon',
-	'sphinx.ext.intersphinx',
-	'sphinx.ext.viewcode',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
@@ -114,9 +114,10 @@ html_static_path = ['_static']
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
 
-# Add googleanalytics id
-# ref: https://github.com/orenhecht/googleanalytics/blob/master/sphinxcontrib/googleanalytics.py
+
 def add_ga_javascript(app, pagename, templatename, context, doctree):
+    # Add googleanalytics id
+    # ref: https://github.com/orenhecht/googleanalytics/blob/master/sphinxcontrib/googleanalytics.py
 
     metatags = context.get('metatags', '')
     metatags += """

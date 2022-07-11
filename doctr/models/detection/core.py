@@ -36,7 +36,7 @@ class DetectionPostProcessor(NestedObject):
         self.rotated_bbox = rotated_bbox
         self.min_size_box = min_size_box
         self.assume_straight_pages = assume_straight_pages
-        self._opening_kernel = np.ones((3, 3), dtype=np.uint8)
+        self._opening_kernel: np.ndarray = np.ones((3, 3), dtype=np.uint8)
 
     def extra_repr(self) -> str:
         return f"bin_thresh={self.bin_thresh}, box_thresh={self.box_thresh}"
@@ -65,7 +65,7 @@ class DetectionPostProcessor(NestedObject):
             return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
 
         else:
-            mask = np.zeros((h, w), np.int32)
+            mask: np.ndarray = np.zeros((h, w), np.int32)
             cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
             product = pred * mask
             return np.sum(product) / np.count_nonzero(product)

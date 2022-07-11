@@ -462,7 +462,7 @@ class RandomShadow(NestedObject):
     Args:
         opacity_range : minimum and maximum opacity of the shade
     """
-    def __init__(self, opacity_range: Tuple[float, float] = None) -> None:
+    def __init__(self, opacity_range: Optional[Tuple[float, float]] = None) -> None:
         super().__init__()
         self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
 
