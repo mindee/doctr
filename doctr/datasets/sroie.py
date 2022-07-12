@@ -86,7 +86,8 @@ class SROIE(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path), geoms=coords)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, dict(labels=[label])))
+                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                        self.data.append((crop, dict(labels=[label])))
             else:
                 self.data.append((img_path, dict(boxes=coords, labels=labels)))
 
