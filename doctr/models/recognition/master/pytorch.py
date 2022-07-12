@@ -70,7 +70,6 @@ class MASTER(_MASTER, nn.Module):
         self.max_length = max_length
         self.d_model = d_model
         self.vocab = vocab
-        self.exportable = exportable
         self.cfg = cfg
         self.vocab_size = len(vocab)
 

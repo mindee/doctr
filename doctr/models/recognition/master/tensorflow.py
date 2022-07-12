@@ -69,7 +69,6 @@ class MASTER(_MASTER, Model):
         self.max_length = max_length
         self.d_model = d_model
         self.vocab = vocab
-        self.exportable = exportable
         self.cfg = cfg
         self.vocab_size = len(vocab)
 
@@ -173,6 +172,8 @@ class MASTER(_MASTER, Model):
         # add positional encoding to features
         encoded = self.positional_encoding(feature, **kwargs)
 
+        out: Dict[str, tf.Tensor] = {}
+
         if kwargs.get('training', False) and target is None:
             raise ValueError('Need to provide labels during training')
 
@@ -187,7 +188,6 @@ class MASTER(_MASTER, Model):
         else:
             logits = self.decode(encoded, **kwargs)
 
-        out: Dict[str, tf.Tensor] = {}
         if self.exportable:
             out['logits'] = logits
             return out
