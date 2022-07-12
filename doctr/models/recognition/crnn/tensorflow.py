@@ -125,6 +125,9 @@ class CRNN(RecognitionModel, Model):
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
+        exportable: onnx exportable returns only logits
+        beam_width: beam width for beam search decoding
+        top_paths: number of top paths for beam search decoding
         cfg: configuration dictionary
     """
 
@@ -135,9 +138,10 @@ class CRNN(RecognitionModel, Model):
         feature_extractor: tf.keras.Model,
         vocab: str,
         rnn_units: int = 128,
-        cfg: Optional[Dict[str, Any]] = None,
+        exportable: bool = False,
         beam_width: int = 1,
         top_paths: int = 1,
+        cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         # Initialize kernels
         h, w, c = feature_extractor.output_shape[1:]
@@ -146,6 +150,7 @@ class CRNN(RecognitionModel, Model):
         self.vocab = vocab
         self.max_length = w
         self.cfg = cfg
+        self.exportable = exportable
         self.feat_extractor = feature_extractor
 
         self.decoder = Sequential(
@@ -207,6 +212,10 @@ class CRNN(RecognitionModel, Model):
         logits = self.decoder(features_seq, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output:
             out["out_map"] = logits
 

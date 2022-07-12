@@ -106,6 +106,7 @@ class CRNN(RecognitionModel, nn.Module):
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
+        exportable: onnx exportable returns only logits
         cfg: configuration dictionary
     """
 
@@ -117,12 +118,14 @@ class CRNN(RecognitionModel, nn.Module):
         vocab: str,
         rnn_units: int = 128,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
         self.cfg = cfg
         self.max_length = 32
+        self.exportable = exportable
         self.feat_extractor = feature_extractor
 
         # Resolve the input_size of the LSTM
@@ -206,6 +209,10 @@ class CRNN(RecognitionModel, nn.Module):
         logits = self.linear(logits)
 
         out: Dict[str, Any] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output:
             out["out_map"] = logits
 
