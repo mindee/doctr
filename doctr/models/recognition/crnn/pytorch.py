@@ -79,7 +79,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(  # type: ignore[override]
+    def __call__(
         self,
         logits: torch.Tensor
     ) -> List[Tuple[str, float]]:
@@ -193,6 +193,9 @@ class CRNN(RecognitionModel, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
+
+        if self.training and target is None:
+            raise ValueError('Need to provide labels during training')
 
         features = self.feat_extractor(x)
         # B x C x H x W --> B x C*H x W --> B x W x C*H

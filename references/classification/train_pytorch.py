@@ -19,13 +19,20 @@ from fastprogress.fastprogress import master_bar, progress_bar
 from torch.nn.functional import cross_entropy
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import (ColorJitter, Compose, GaussianBlur, Grayscale, InterpolationMode, Normalize,
-                                    RandomRotation)
+from torchvision.transforms import (
+    ColorJitter,
+    Compose,
+    GaussianBlur,
+    Grayscale,
+    InterpolationMode,
+    Normalize,
+    RandomRotation,
+)
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
 from doctr.models import classification, login_to_hub, push_to_hf_hub
-from doctr.models.utils import export_classification_model_to_onnx
+from doctr.models.utils import export_model_to_onnx
 from utils import plot_recorder, plot_samples
 
 
@@ -345,7 +352,7 @@ def main(args):
         print("Exporting model to ONNX...")
         dummy_batch = next(iter(val_loader))
         dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
-        model_path = export_classification_model_to_onnx(model, exp_name, dummy_input)
+        model_path = export_model_to_onnx(model, exp_name, dummy_input)
         print(f"Exported model saved in {model_path}")
 
 

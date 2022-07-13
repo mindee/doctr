@@ -133,9 +133,9 @@ def create_obj_patch(
         if len(geometry) == 2:  # straight word BB (2 pts)
             return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
         elif len(geometry) == 4:  # rotated word BB (4 pts)
-            return polygon_patch(np.asarray(geometry), page_dimensions, **kwargs)  # type: ignore[arg-type]
+            return polygon_patch(np.asarray(geometry), page_dimensions, **kwargs)
     elif isinstance(geometry, np.ndarray) and geometry.shape == (4, 2):  # rotated line
-        return polygon_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
+        return polygon_patch(geometry, page_dimensions, **kwargs)
     raise ValueError("invalid geometry format")
 
 
@@ -296,7 +296,7 @@ def synthesize_page(
                 if draw_proba:
                     p = int(255 * word["confidence"])
                     mask = np.where(np.array(img) == 0, 1, 0)
-                    proba = np.array([255 - p, 0, p])
+                    proba: np.ndarray = np.array([255 - p, 0, p])
                     color = mask * proba[np.newaxis, np.newaxis, :]
                     white_mask = 255 * (1 - mask)
                     img = color + white_mask

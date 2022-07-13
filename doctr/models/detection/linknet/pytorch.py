@@ -190,9 +190,9 @@ class LinkNet(nn.Module, _LinkNet):
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
+        _target, _mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
 
-        seg_target, seg_mask = torch.from_numpy(seg_target).to(dtype=out_map.dtype), torch.from_numpy(seg_mask)
+        seg_target, seg_mask = torch.from_numpy(_target).to(dtype=out_map.dtype), torch.from_numpy(_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         seg_mask = seg_mask.to(dtype=torch.float32)
 

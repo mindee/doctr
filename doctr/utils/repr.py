@@ -5,6 +5,8 @@
 
 # Adapted from https://github.com/pytorch/torch/blob/master/torch/nn/modules/module.py
 
+from typing import List
+
 __all__ = ['NestedObject']
 
 
@@ -21,6 +23,8 @@ def _addindent(s_, num_spaces):
 
 
 class NestedObject:
+    _children_names: List[str]
+
     def extra_repr(self) -> str:
         return ''
 

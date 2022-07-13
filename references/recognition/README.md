@@ -43,16 +43,19 @@ Each of these paths must lead to a 2-elements folder:
 The JSON files must contain word-labels for each picture as a string.
 The order of entries in the json does not matter.
 
-```shell
-labels = {
-    'img_1.jpg': 'I',
-    'img_2.jpg': 'am',
-    'img_3.jpg': 'a',
-    'img_4.jpg': 'Jedi',
-    'img_5.jpg': '!',
+```shell 
+# labels.json
+{
+    "img_1.jpg": "I",
+    "img_2.jpg": "am",
+    "img_3.jpg": "a",
+    "img_4.jpg": "Jedi",
+    "img_5.jpg": "!",
     ...
 }
 ```
+
+When typing your labels, be aware that the VOCAB doesn't handle spaces.
 
 ## Advanced options
 

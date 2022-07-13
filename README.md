@@ -91,14 +91,16 @@ plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 
 
 The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
-To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/io.html#document-structure):
+To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/modules/io.html#document-structure):
 
 You can also export them as a nested dict, more appropriate for JSON format:
 
 ```python
 json_output = result.export()
 ```
-For examples & further details about the export format, please refer to [this section](https://mindee.github.io/doctr/models.html#export-model-output) of the documentation
+
+### If you are looking for support from the Mindee team
+[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/releases/download/v0.5.1/doctr-need-help.png)](https://mindee.com/product/doctr)
 
 ## Installation
 
