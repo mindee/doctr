@@ -17,5 +17,6 @@ class DetectionOut(BaseModel):
     box: Tuple[float, float, float, float]
 
 
-class OCROut(RecognitionOut, DetectionOut):
-    pass
+class OCROut(BaseModel):
+    value: str = Field(..., example="Hello")
+    box: Tuple[float, float, float, float]
