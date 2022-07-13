@@ -14,7 +14,7 @@ from doctr.io import decode_img_as_tensor
 router = APIRouter()
 
 
-@router.post("/", response_model=List[DetectionOut], status_code=status.HTTP_200_OK, summary="Perform text detection")
+@router.post("/", status_code=status.HTTP_200_OK, summary="Perform text detection")
 async def text_detection(file: UploadFile = File(...)):
     """Runs docTR text detection model to analyze the input image"""
     img = decode_img_as_tensor(file.file.read())
