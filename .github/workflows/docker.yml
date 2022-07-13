@@ -22,11 +22,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build & run docker
         run: PORT=8002 docker-compose up -d --build
-      - name: Ping server
-        run: curl -I http://localhost:8002/docs
       - name: Install dependencies in docker
         run: |
           PORT=8002 docker-compose exec -T web python -m pip install --upgrade pip
           PORT=8002 docker-compose exec -T web pip install -r requirements-dev.txt
       - name: Run docker test
         run: PORT=8002 docker-compose exec -T web pytest .
+      - name: Ping server
+        run: curl -I http://localhost:8002/docs
