@@ -109,10 +109,10 @@ class MASTER(_MASTER, nn.Module):
         # [True, True, True, ..., False, False, False] -> False is masked
         target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
         target_length = target.size(1)
-        # sub mask filled diagonal with 1 = see 0 = masked (max_length, max_length)
-        target_sub_mask = torch.tril(
-            torch.ones((target_length, target_length), dtype=torch.bool, device=source.device), diagonal=0
-        )
+        # sub mask filled diagonal with True = see and False = masked (max_length, max_length)
+        target_sub_mask = (
+            torch.triu(torch.ones(target_length, target_length, device=source.device)) == 1
+        ).transpose(0, 1)
         # source mask filled with ones (max_length, positional_encoded_seq_len)
         source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
         # combine the two masks into one (N, 1, max_length, max_length)

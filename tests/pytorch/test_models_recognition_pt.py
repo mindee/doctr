@@ -102,7 +102,7 @@ def test_recognition_zoo(arch_name):
         ["crnn_mobilenet_v3_small", (3, 32, 128)],
         ["crnn_mobilenet_v3_large", (3, 32, 128)],
         ["sar_resnet31", (3, 32, 128)],
-        ["master", (3, 32, 128)],  # cf. https://github.com/microsoft/onnxruntime/issues/10994 onnxruntime issue
+        ["master", (3, 32, 128)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
