@@ -23,7 +23,7 @@ jobs:
       - name: Build & run docker
         run: PORT=8002 docker-compose up -d --build
       - name: Ping server
-        run: curl --connect-timeout 5 --max-time 10 --retry 3 --retry-delay 0 --retry-max-time 40 http://localhost:8002/docs
+        run: curl http://localhost:8002/docs
       - name: Install dependencies in docker
         run: |
           PORT=8002 docker-compose exec -T web python -m pip install --upgrade pip
