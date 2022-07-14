@@ -52,8 +52,7 @@ def scaled_dot_product_attention(
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
-        # amp fix: -6.55e4 instead of -1e9
-        scores = scores.masked_fill(mask == 0, -6.55e4)
+        scores = scores.masked_fill(mask == 0, float('-inf'))
     p_attn = torch.softmax(scores, dim=-1)
     return torch.matmul(p_attn, value), p_attn
 
