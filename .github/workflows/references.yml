@@ -153,10 +153,10 @@ jobs:
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Evaluate text recognition (TF)
-        run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small --dataset IIIT5K
+        run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small --dataset IIIT5K -b 32
       - if: matrix.framework == 'pytorch'
         name: Evaluate text recognition (PT)
-        run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small --dataset IIIT5K
+        run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small --dataset IIIT5K -b 32
 
   latency-text-recognition:
     runs-on: ${{ matrix.os }}

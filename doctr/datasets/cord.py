@@ -97,9 +97,7 @@ class CORD(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
                                                geoms=np.asarray(box_targets, dtype=int).clip(min=0))
                 for crop, label in zip(crops, list(text_targets)):
-                    # filter labels with whitespaces
-                    if ' ' not in label:
-                        self.data.append((crop, dict(labels=[label])))
+                    self.data.append((crop, dict(labels=[label])))
             else:
                 self.data.append((
                     img_path,
