@@ -146,7 +146,7 @@ def parse_args():
     parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for evaluation')
     parser.add_argument('--dataset', type=str, default="FUNSD", help='Dataset to evaluate on')
     parser.add_argument('--device', default=None, type=int, help='device')
-    parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for evaluation')
+    parser.add_argument('-b', '--batch_size', type=int, default=1, help='batch size for evaluation')
     parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
     parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
     parser.add_argument('--only_regular', dest='regular', action='store_true',
