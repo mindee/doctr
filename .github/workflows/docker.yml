@@ -21,7 +21,7 @@ jobs:
     env:
         # Port for web container
         # See docker-compose.yml
-        PORT=8002
+        PORT: 8002
     steps:
       - uses: actions/checkout@v2
       - name: Build & run docker
