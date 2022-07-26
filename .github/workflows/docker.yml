@@ -25,7 +25,7 @@ jobs:
       - name: Build & run docker
         run: docker-compose up -d --build
       - name: Ping server
-        run: curl http://localhost:$PORT/docs
+        run: wget --spider --tries=12 http://localhost:$PORT/docs
       - name: Install dependencies in docker
         run: |
           docker-compose exec -T web python -m pip install --upgrade pip
