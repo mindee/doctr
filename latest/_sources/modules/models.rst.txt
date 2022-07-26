@@ -37,11 +37,15 @@ doctr.models.detection
 
 .. autofunction:: doctr.models.detection.linknet_resnet18
 
+.. autofunction:: doctr.models.detection.linknet_resnet18_rotation
+
 .. autofunction:: doctr.models.detection.linknet_resnet34
 
 .. autofunction:: doctr.models.detection.linknet_resnet50
 
 .. autofunction:: doctr.models.detection.db_resnet50
+
+.. autofunction:: doctr.models.detection.differentiable_binarization.pytorch.db_resnet50_rotation
 
 .. autofunction:: doctr.models.detection.db_mobilenet_v3_large
 

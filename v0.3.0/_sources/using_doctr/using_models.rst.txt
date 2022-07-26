@@ -4,8 +4,6 @@ Choosing the right model
 The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.
 
-.. currentmodule:: doctr.models
-
 For a given task, docTR provides a Predictor, which is composed of 2 components:
 
 * PreProcessor: a module in charge of making inputs directly usable by the deep learning model.
@@ -24,14 +22,14 @@ Available architectures
 
 The following architectures are currently supported:
 
-* `linknet_resnet18 <models.html#doctr.models.detection.linknet_resnet18>`_
-* `db_resnet50 <models.html#doctr.models.detection.db_resnet50>`_
-* `db_mobilenet_v3_large <models.html#doctr.models.detection.db_mobilenet_v3_large>`_
+* :py:meth:`linknet_resnet18 <doctr.models.detection.linknet_resnet18>`
+* :py:meth:`db_resnet50 <doctr.models.detection.db_resnet50>`
+* :py:meth:`db_mobilenet_v3_large <doctr.models.detection.db_mobilenet_v3_large>`
 
 We also provide 2 models working with any kind of rotated documents:
 
-* `linknet_resnet18_rotation <models.html#doctr.models.detection.linknet_resnet18_rotation>`_
-* `db_resnet50_rotation <models.html#doctr.models.detection.db_resnet50_rotation>`_
+* :py:meth:`linknet_resnet18_rotation <doctr.models.detection.linknet_resnet18_rotation>`
+* :py:meth:`db_resnet50_rotation <doctr.models.detection.differentiable_binarization.pytorch.db_resnet50_rotation>`
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
@@ -52,13 +50,13 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>` AWS instance (CPU Xeon Platinum 8275L).
 
 
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 
-`detection_predictor <models.html#doctr.models.detection.detection_predictor>`_ wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`detection_predictor <doctr.models.detection.detection_predictor>` wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.
 
     >>> import numpy as np
     >>> from doctr.models import detection_predictor
@@ -91,11 +89,11 @@ Available architectures
 
 The following architectures are currently supported:
 
-* `crnn_vgg16_bn <models.html#doctr.models.recognition.crnn_vgg16_bn>`_
-* `crnn_mobilenet_v3_small <models.html#doctr.models.recognition.crnn_mobilenet_v3_small>`_
-* `crnn_mobilenet_v3_large <models.html#doctr.models.recognition.crnn_mobilenet_v3_large>`_
-* `sar_resnet31 <models.html#doctr.models.recognition.sar_resnet31>`_
-* `master <models.html#doctr.models.recognition.master>`_
+* :py:meth:`crnn_vgg16_bn <doctr.models.recognition.crnn_vgg16_bn>`
+* :py:meth:`crnn_mobilenet_v3_small <doctr.models.recognition.crnn_mobilenet_v3_small>`
+* :py:meth:`crnn_mobilenet_v3_large <doctr.models.recognition.crnn_mobilenet_v3_large>`
+* :py:meth:`sar_resnet31 <doctr.models.recognition.sar_resnet31>`
+* :py:meth:`master <doctr.models.recognition.master>`
 
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
@@ -153,12 +151,12 @@ While most of our recognition models were trained on our french vocab (cf. :ref:
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>` AWS instance (CPU Xeon Platinum 8275L).
 
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
-`recognition_predictor <models.html#doctr.models.recognition.recognition_predictor>`_ wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`recognition_predictor <doctr.models.recognition.recognition_predictor>` wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
 
     >>> import numpy as np
     >>> from doctr.models import recognition_predictor
@@ -208,7 +206,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>` AWS instance (CPU Xeon Platinum 8275L).
 
 Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.
 
@@ -238,7 +236,7 @@ Since you may be looking for specific use cases, we also performed this benchmar
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
-Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with `ocr_predictor <models.html#doctr.models.ocr_predictor>`_.
+Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with :py:meth:`ocr_predictor <doctr.models.ocr_predictor>`.
 
     >>> import numpy as np
     >>> from doctr.models import ocr_predictor
@@ -336,8 +334,8 @@ To export the outpout as XML (hocr-format) you can use the `export_as_xml` metho
 
   xml_output = result.export_as_xml()
   for output in xml_output:
-    xml_bytes_string = output[0]
-    xml_element = output[1]
+      xml_bytes_string = output[0]
+      xml_element = output[1]
 
 For reference, here is a sample XML byte string output::
 
