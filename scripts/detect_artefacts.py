@@ -72,7 +72,7 @@ def main(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Artefact detection model to use",
+    parser = argparse.ArgumentParser(description="DocTR artefact detection",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('arch', type=str, help='Artefact detection model to use')
     parser.add_argument('img_path', type=str, help='path to the image')
