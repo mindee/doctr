@@ -1,4 +1,6 @@
-fastapi>=0.65.2
+# Fastapi: minimum version required to avoid pydantic error
+# cf. https://github.com/tiangolo/fastapi/issues/4168
+fastapi>=0.73.0 
 uvicorn>=0.11.1
 python-multipart==0.0.5
 python-doctr>=0.2.0

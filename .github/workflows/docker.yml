@@ -18,15 +18,19 @@ jobs:
 
   pytest-api:
     runs-on: ubuntu-latest
+    env:
+        # Port for web container
+        # See docker-compose.yml
+        PORT: 8002
     steps:
       - uses: actions/checkout@v2
       - name: Build & run docker
-        run: PORT=8002 docker-compose up -d --build
+        run: docker-compose up -d --build
       - name: Ping server
-        run: curl http://localhost:8002/docs
+        run: wget --spider --tries=12 http://localhost:$PORT/docs
       - name: Install dependencies in docker
         run: |
-          PORT=8002 docker-compose exec -T web python -m pip install --upgrade pip
-          PORT=8002 docker-compose exec -T web pip install -r requirements-dev.txt
+          docker-compose exec -T web python -m pip install --upgrade pip
+          docker-compose exec -T web pip install -r requirements-dev.txt
       - name: Run docker test
-        run: PORT=8002 docker-compose exec -T web pytest .
+        run: docker-compose exec -T web pytest .
