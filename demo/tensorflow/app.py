@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["USE_TF"] = "YES"
+os.environ["USE_TORCH"] = "NO"
 
 import cv2
 import tensorflow as tf
