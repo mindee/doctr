@@ -39,27 +39,27 @@ jobs:
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/pytorch/requirements.txt') }}
 
       - if: matrix.framework == 'tensorflow'
-        name: Install dependencies
+        name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
           pip install -r demo/tensorflow/requirements.txt
       - if: matrix.framework == 'pytorch'
-        name: Install dependencies
+        name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
           pip install -r demo/pytorch/requirements.txt
 
       - if: matrix.framework == 'tensorflow'
-        name: Run demo
+        name: Run demo (TF)
         run: |
           streamlit --version
           screen -dm streamlit run demo/tensorflow/app.py
           sleep 10
           curl http://localhost:8501/docs
       - if: matrix.framework == 'pytorch'
-        name: Run demo
+        name: Run demo (PT)
         run: |
           streamlit --version
           screen -dm streamlit run demo/pytorch/app.py
