@@ -59,7 +59,7 @@ def forward_image(predictor: OCRPredictor, image: np.ndarray, device) -> np.ndar
             processed_batches = predictor.det_predictor.pre_processor([image])
             out = predictor.det_predictor.model(processed_batches[0], return_model_output=True)
             seg_map = out["out_map"]
- 
+
         with tf.device("/cpu:0"):
             seg_map = tf.identity(seg_map).numpy()
     else:
