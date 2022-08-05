@@ -30,39 +30,39 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/tensorflow/requirements.txt') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/tf-requirements.txt') }}
       - if: matrix.framework == 'pytorch'
         name: Cache python modules (PT)
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/pytorch/requirements.txt') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/pt-requirements.txt') }}
 
       - if: matrix.framework == 'tensorflow'
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-          pip install -r demo/tensorflow/requirements.txt
+          pip install -r demo/tf-requirements.txt
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
-          pip install -r demo/pytorch/requirements.txt
+          pip install -r demo/pt-requirements.txt
 
       - if: matrix.framework == 'tensorflow'
         name: Run demo (TF)
         run: |
           streamlit --version
-          screen -dm streamlit run demo/tensorflow/app.py
+          screen -dm streamlit run demo/tf_app.py
           sleep 10
           curl http://localhost:8501/docs
       - if: matrix.framework == 'pytorch'
         name: Run demo (PT)
         run: |
           streamlit --version
-          screen -dm streamlit run demo/pytorch/app.py
+          screen -dm streamlit run demo/pt_app.py
           sleep 10
           curl http://localhost:8501/docs
 
