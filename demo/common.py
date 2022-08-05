@@ -17,7 +17,10 @@ from doctr.utils.visualization import visualize_page
 
 if os.environ.get("USE_TF").upper() == "YES":
     import tensorflow as tf
-    forward_device = tf.device("/gpu:0") if any(tf.config.experimental.list_physical_devices('gpu')) else tf.device("/cpu:0")
+    if any(tf.config.experimental.list_physical_devices('gpu')):
+        forward_device = tf.device("/gpu:0")
+    else:
+        forward_device = tf.device("/cpu:0")
 
 elif os.environ.get("USE_TORCH").upper() == "YES":
     import torch
@@ -56,7 +59,7 @@ def forward_image(predictor: OCRPredictor, image: np.ndarray, device) -> np.ndar
             processed_batches = predictor.det_predictor.pre_processor([image])
             out = predictor.det_predictor.model(processed_batches[0], return_model_output=True)
             seg_map = out["out_map"]
-        
+ 
         with tf.device("/cpu:0"):
             seg_map = tf.identity(seg_map).numpy()
     else:
