@@ -4,11 +4,11 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
-import matplotlib.pyplot as plt
-import streamlit as st
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
+import streamlit as st
 
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
