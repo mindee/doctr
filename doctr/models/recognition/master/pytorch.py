@@ -13,7 +13,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
-from doctr.models.modules.transformer import Decoder, PositionalEncoding
+from doctr.models.modules.transformer.pytorch import Decoder, PositionalEncoding
 
 from ...utils.pytorch import load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
