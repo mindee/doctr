@@ -11,9 +11,9 @@ from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
+from doctr.models.modules.transformer import Decoder, PositionalEncoding
 
 from ...utils.tensorflow import load_pretrained_params
-from ..transformer.tensorflow import Decoder, PositionalEncoding
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
