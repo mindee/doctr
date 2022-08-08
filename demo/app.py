@@ -3,72 +3,31 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-import os
-
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 
+from doctr.file_utils import is_tf_available
 from doctr.io import DocumentFile
-from doctr.models import ocr_predictor
-from doctr.models.base import OCRPredictor
 from doctr.utils.visualization import visualize_page
 
-if os.environ.get("USE_TF").upper() == "YES":
+if is_tf_available():
     import tensorflow as tf
+
+    from backend.tensorflow import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
+
     if any(tf.config.experimental.list_physical_devices('gpu')):
         forward_device = tf.device("/gpu:0")
     else:
         forward_device = tf.device("/cpu:0")
 
-elif os.environ.get("USE_TORCH").upper() == "YES":
-    import torch
-    forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
 else:
-    raise ValueError("Please set environment variables either USE_TF or USE_TORCH to 'YES'")
+    import torch
 
+    from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
-def load_predictor(det_arch: str, reco_arch: str, device) -> OCRPredictor:
-    """
-    Args:
-        device is either tf.device or torch.device
-    """
-    if os.environ.get("USE_TF").upper() == "YES":
-        with device:
-            predictor = ocr_predictor(
-                det_arch, reco_arch, pretrained=True,
-                assume_straight_pages=("rotation" not in det_arch)
-            )
-    else:
-        predictor = ocr_predictor(
-            det_arch, reco_arch, pretrained=True,
-            assume_straight_pages=("rotation" not in det_arch)
-        ).to(device)
-    return predictor
-
-
-def forward_image(predictor: OCRPredictor, image: np.ndarray, device) -> np.ndarray:
-    """
-    Args:
-        device is either tf.device or torch.device
-    """
-    if os.environ.get("USE_TF").upper() == "YES":
-        with device:
-            processed_batches = predictor.det_predictor.pre_processor([image])
-            out = predictor.det_predictor.model(processed_batches[0], return_model_output=True)
-            seg_map = out["out_map"]
-
-        with tf.device("/cpu:0"):
-            seg_map = tf.identity(seg_map).numpy()
-    else:
-        with torch.no_grad():
-            processed_batches = predictor.det_predictor.pre_processor([image])
-            out = predictor.det_predictor.model(processed_batches[0].to(device), return_model_output=True)
-            seg_map = out["out_map"].to("cpu").numpy()
-
-    return seg_map
+    forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def main(det_archs, reco_archs):
@@ -107,7 +66,7 @@ def main(det_archs, reco_archs):
         cols[0].image(page)
 
     # Model selection
-    st.sidebar.title("Model selection")
+    st.sidebar.title("TensorFlow: model selection" if is_tf_available() else "PyTorch: model selection")
     det_arch = st.sidebar.selectbox("Text detection model", det_archs)
     reco_arch = st.sidebar.selectbox("Text recognition model", reco_archs)
 
@@ -151,3 +110,7 @@ def main(det_archs, reco_archs):
                 # Display JSON
                 st.markdown("\nHere are your analysis results in JSON format:")
                 st.json(page_export)
+
+
+if __name__ == "__main__":
+    main(DET_ARCHS, RECO_ARCHS)

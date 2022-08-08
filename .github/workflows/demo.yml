@@ -53,16 +53,20 @@ jobs:
 
       - if: matrix.framework == 'tensorflow'
         name: Run demo (TF)
+        env:
+            USE_TF: 1
         run: |
           streamlit --version
-          screen -dm streamlit run demo/tf_app.py
+          screen -dm streamlit run demo/app.py
           sleep 10
           curl http://localhost:8501/docs
       - if: matrix.framework == 'pytorch'
         name: Run demo (PT)
+        env:
+            USE_TORCH: 1
         run: |
           streamlit --version
-          screen -dm streamlit run demo/pt_app.py
+          screen -dm streamlit run demo/app.py
           sleep 10
           curl http://localhost:8501/docs
 
