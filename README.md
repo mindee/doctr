@@ -195,7 +195,7 @@ pip install -r demo/tf-requirements.txt
 Then run your app in your default browser with:
 
 ```shell
-streamlit run demo/tf_app.py
+USE_TF=1 streamlit run demo/app.py
 ```
 
 ##### PyTorch version
@@ -205,7 +205,7 @@ pip install -r demo/pt-requirements.txt
 Then run your app in your default browser with:
 
 ```shell
-streamlit run demo/pt_app.py
+USE_TORCH=1 streamlit run demo/app.py
 ```
 
 #### TensorFlow.js
