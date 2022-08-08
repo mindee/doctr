@@ -66,7 +66,8 @@ def main(det_archs, reco_archs):
         cols[0].image(page)
 
     # Model selection
-    st.sidebar.title("TensorFlow: model selection" if is_tf_available() else "PyTorch: model selection")
+    st.sidebar.title("Model selection")
+    st.sidebar.markdown("**Backend**: " + ("TensorFlow" if is_tf_available() else "PyTorch"))
     det_arch = st.sidebar.selectbox("Text detection model", det_archs)
     reco_arch = st.sidebar.selectbox("Text recognition model", reco_archs)
 
