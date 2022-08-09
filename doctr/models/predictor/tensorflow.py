@@ -13,6 +13,7 @@ from doctr.models._utils import estimate_orientation
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
+from doctr.utils.lang_detect import detect_language
 from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
@@ -55,6 +56,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
     def __call__(
         self,
         pages: List[Union[np.ndarray, tf.Tensor]],
+        detect_lang: bool = True,
         **kwargs: Any,
     ) -> Document:
 
@@ -65,8 +67,12 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         origin_page_shapes = [page.shape[:2] for page in pages]
 
         # Detect document rotation and rotate pages
+        origin_page_orientations = [estimate_orientation(page) for page in pages]
+        orientations = [
+            {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+        ]
         if self.straighten_pages:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            # origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
@@ -88,6 +94,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
+        if detect_lang:
+            languages = [detect_language(" ".join([item[0] for item in text_pred]))[0] for text_pred in text_preds]
+            languages = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+        else:
+            languages = [None for _ in text_preds]
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -97,5 +108,5 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 target_shape=mask,  # type: ignore[arg-type]
             ) for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
-        out = self.doc_builder(boxes, text_preds, origin_page_shapes)  # type: ignore[arg-type]
+        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations, languages)  # type: ignore[arg-type]
         return out

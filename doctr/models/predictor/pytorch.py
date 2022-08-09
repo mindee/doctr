@@ -14,6 +14,7 @@ from doctr.models._utils import estimate_orientation
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
+from doctr.utils.lang_detect import detect_language
 
 from .base import _OCRPredictor
 
@@ -56,6 +57,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     def forward(
         self,
         pages: List[Union[np.ndarray, torch.Tensor]],
+        detect_lang: bool = True,
         **kwargs: Any,
     ) -> Document:
 
@@ -66,8 +68,12 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
         # Detect document rotation and rotate pages
+        origin_page_orientations = [estimate_orientation(page) for page in pages]
+        orientations = [
+            {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+        ]
         if self.straighten_pages:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+            # origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
             pages = [
                 rotate_image(page, -angle, expand=True)  # type: ignore[arg-type]
                 for page, angle in zip(pages, origin_page_orientations)
@@ -96,6 +102,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
+        if detect_lang:
+            languages = [detect_language(" ".join([item[0] for item in text_pred]))[0] for text_pred in text_preds]
+            languages = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+        else:
+            languages = [None for _ in text_preds]
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -111,6 +122,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             [
                 page.shape[:2] if channels_last else page.shape[-2:]  # type: ignore[misc]
                 for page in pages
-            ]
+            ],
+            orientations,
+            languages,
         )
         return out
