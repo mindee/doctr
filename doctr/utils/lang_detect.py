@@ -20,7 +20,8 @@ def detect_language(text: str) -> Tuple[str, float]:
         The detected language and confidence score
     """
 
-    if text == "":
-        return "empty text", 1.0
+    if len(text) < 12:
+        print('Text is too small.')
+        return "unknown", 1.0
     lang = detect_langs(text)[0]
     return lang.lang, lang.prob

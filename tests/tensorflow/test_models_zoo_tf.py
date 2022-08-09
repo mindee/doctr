@@ -91,6 +91,12 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
                                  [0.51385817, 0.21002172]])
     assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised)
 
+    language = "en"
+    assert out.pages[0].language['value'] == language
+
+    orientation = 30.415687561035156
+    assert out.pages[0].orientation['value'] == orientation
+
     det_predictor = detection_predictor(
         'db_resnet50', pretrained=True, batch_size=2, assume_straight_pages=True,
         preserve_aspect_ratio=True, symmetric_pad=True

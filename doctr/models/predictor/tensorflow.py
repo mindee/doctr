@@ -95,10 +95,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
         if detect_lang:
-            languages = [detect_language(" ".join([item[0] for item in text_pred]))[0] for text_pred in text_preds]
-            languages = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+            languages = [detect_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
+            languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
         else:
-            languages = [None for _ in text_preds]
+            languages_dict = []
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -108,5 +108,6 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 target_shape=mask,  # type: ignore[arg-type]
             ) for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
-        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations, languages)  # type: ignore[arg-type]
+        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations,  # type: ignore[arg-type]
+                               languages_dict)
         return out

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
@@ -273,8 +273,8 @@ class DocumentBuilder(NestedObject):
         boxes: List[np.ndarray],
         text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
-        orientations: Optional[List[Dict[str, Any]]] = None,
-        languages: Optional[Dict[str, Any]] = None,
+        orientations: List[Dict[str, Any]] = [],
+        languages: List[Dict[str, Any]] = [],
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -291,9 +291,9 @@ class DocumentBuilder(NestedObject):
             raise ValueError("All arguments are expected to be lists of the same size")
 
         if not orientations:
-            orientations = [None for _ in range(len(boxes))]
+            orientations = [dict(value=None, confidence=None) for _ in range(len(boxes))]
         if not languages:
-            languages = [None for _ in range(len(boxes))]
+            languages = [dict(value=None, confidence=None) for _ in range(len(boxes))]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:

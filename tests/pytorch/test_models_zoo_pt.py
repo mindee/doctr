@@ -57,6 +57,12 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
         _ = predictor([input_page])
 
+    language = "unknown"
+    assert out.pages[0].language['value'] == language
+
+    orientation = 0
+    assert out.pages[0].orientation['value'] == orientation
+
 
 def _test_predictor(predictor):
     # Output checks

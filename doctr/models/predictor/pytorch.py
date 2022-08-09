@@ -68,7 +68,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
         # Detect document rotation and rotate pages
-        origin_page_orientations = [estimate_orientation(page) for page in pages]
+        origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
         orientations = [
             {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
         ]
@@ -103,10 +103,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
         if detect_lang:
-            languages = [detect_language(" ".join([item[0] for item in text_pred]))[0] for text_pred in text_preds]
-            languages = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+            languages = [detect_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
+            languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
         else:
-            languages = [None for _ in text_preds]
+            languages_dict = []
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -124,6 +124,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 for page in pages
             ],
             orientations,
-            languages,
+            languages_dict,
         )
         return out
