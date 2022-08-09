@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
+import os
 import multiprocessing as mp
 from multiprocessing.pool import ThreadPool
 from typing import Any, Callable, Iterable, Optional
@@ -29,8 +30,8 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
 
     threads = threads if isinstance(threads, int) else min(16, mp.cpu_count())
     # Single-thread
-    if threads < 2:
-        results = map(func, seq)
+    if threads < 2 or os.environ['DOCTR_CONCURRENCY_DISABLE'] == 'true':
+        results = list(map(func, seq))
     # Multi-threading
     else:
         with ThreadPool(threads) as tp:

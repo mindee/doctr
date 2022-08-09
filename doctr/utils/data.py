@@ -70,7 +70,10 @@ def download_from_url(
         file_name = url.rpartition('/')[-1]
 
     if not isinstance(cache_dir, str):
-        cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr')
+        if os.environ['DOCTR_CACHE_DIR']:
+            cache_dir = os.environ['DOCTR_CACHE_DIR']
+        else:
+            cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr')
 
     # Check hash in file name
     if hash_prefix is None:
