@@ -6,12 +6,12 @@
 
 import multiprocessing as mp
 from multiprocessing.pool import ThreadPool
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional, Iterator
 
 __all__ = ['multithread_exec']
 
 
-def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterable[Any]:
+def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterator[Any]:
     """Execute a given function in parallel for each element of a given sequence
 
     >>> from doctr.utils.multithreading import multithread_exec
@@ -24,7 +24,7 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
         threads: number of workers to be used for multiprocessing
 
     Returns:
-        iterable of the function's results using the iterable as inputs
+        iterator of the function's results using the iterable as inputs
     """
 
     threads = threads if isinstance(threads, int) else min(16, mp.cpu_count())
@@ -34,5 +34,7 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
     # Multi-threading
     else:
         with ThreadPool(threads) as tp:
-            results = tp.map(func, seq)  # type: ignore[assignment]
+            # ThreadPool's map function returns a list, but seq could be of a different type
+            # That's why wrapping result in map to return iterator
+            results = map(lambda x: x, tp.map(func, seq))  # type: ignore[assignment]
     return results
