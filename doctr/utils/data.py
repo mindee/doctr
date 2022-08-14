@@ -23,6 +23,7 @@ __all__ = ['download_from_url']
 # matches bfd8deac from resnet18-bfd8deac.ckpt
 HASH_REGEX = re.compile(r'-([a-f0-9]*)\.')
 USER_AGENT = "mindee/doctr"
+DOCTR_CACHE_DIR_ENV_NAME = "DOCTR_CACHE_DIR"
 
 
 def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -> None:
@@ -70,10 +71,8 @@ def download_from_url(
         file_name = url.rpartition('/')[-1]
 
     if not isinstance(cache_dir, str):
-        if os.environ['DOCTR_CACHE_DIR']:
-            cache_dir = os.environ['DOCTR_CACHE_DIR']
-        else:
-            cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr')
+        cache_dir = os.environ.get(DOCTR_CACHE_DIR_ENV_NAME, os.path.join("~", ".cache", "doctr"))
+        cache_dir = os.path.expanduser(cache_dir)
 
     # Check hash in file name
     if hash_prefix is None:
@@ -87,8 +86,14 @@ def download_from_url(
         logging.info(f"Using downloaded & verified file: {file_path}")
         return file_path
 
-    # Create folder hierarchy
-    folder_path.mkdir(parents=True, exist_ok=True)
+    try:
+        # Create folder hierarchy
+        folder_path.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        print(f"""
+        Failed creating cache direcotry: {cache_dir}
+        You can set it using #{DOCTR_CACHE_DIR_ENV_NAME} environment variable.
+        """)
     # Download the file
     try:
         print(f"Downloading {url} to {file_path}")
