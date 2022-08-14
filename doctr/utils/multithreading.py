@@ -15,7 +15,7 @@ __all__ = ['multithread_exec']
 
 
 def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterable[Any]:
-    f"""Execute a given function in parallel for each element of a given sequence
+    """Execute a given function in parallel for each element of a given sequence
 
     >>> from doctr.utils.multithreading import multithread_exec
     >>> entries = [1, 4, 8]
