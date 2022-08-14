@@ -65,6 +65,9 @@ def download_from_url(
 
     Returns:
         the location of the downloaded file
+
+    Note:
+        You can change cache directory location by using `DOCTR_CACHE_DIR` environment variable.
     """
 
     if not isinstance(file_name, str):
@@ -92,7 +95,7 @@ def download_from_url(
     except OSError:
         print(f"""
         Failed creating cache direcotry: {cache_dir}
-        You can set it using #{DOCTR_CACHE_DIR_ENV_NAME} environment variable.
+        You can set it using {DOCTR_CACHE_DIR_ENV_NAME} environment variable.
         """)
     # Download the file
     try:
