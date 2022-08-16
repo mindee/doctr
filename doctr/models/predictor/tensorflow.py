@@ -44,6 +44,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = True,
+        detect_orientation: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -52,6 +53,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         _OCRPredictor.__init__(
             self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
         )
+        self.detect_orientation = detect_orientation
 
     def __call__(
         self,
@@ -67,10 +69,13 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         origin_page_shapes = [page.shape[:2] for page in pages]
 
         # Detect document rotation and rotate pages
-        origin_page_orientations = [estimate_orientation(page) for page in pages]
-        orientations = [
-            {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
-        ]
+        if self.detect_orientation:
+            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            orientations = [
+                {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+            ]
+        else:
+            orientations = None
         if self.straighten_pages:
             # origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]

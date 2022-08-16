@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
@@ -273,7 +273,7 @@ class DocumentBuilder(NestedObject):
         boxes: List[np.ndarray],
         text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
-        orientations: List[Dict[str, Any]] = [],
+        orientations: Optional[List[Dict[str, Any]]] = [],
         languages: List[Dict[str, Any]] = [],
     ) -> Document:
         """Re-arrange detected words into structured blocks

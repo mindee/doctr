@@ -25,7 +25,7 @@ def detect_language(text: str) -> Tuple[str, float]:
     TH_ENTROPY = 0.9
     FASTTEXT_MODEL = fasttext.FastText._FastText(join(dirname(__file__), "../../lid.176.ftz"))
 
-    prediction = FASTTEXT_MODEL.predict(text, k=K)
+    prediction = FASTTEXT_MODEL.predict(text.lower(), k=K)
     langs = prediction[0][0].replace("__label__", "")
     if (
         len(text) <= 1
