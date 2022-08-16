@@ -77,7 +77,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         else:
             orientations = None
         if self.straighten_pages:
-            # origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+            origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
