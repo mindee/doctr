@@ -108,7 +108,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             languages = [detect_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
             languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
         else:
-            languages_dict = []
+            languages_dict = None
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(

@@ -84,7 +84,6 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
 
     out = predictor(doc)
 
-    print(out.pages)
     assert out.pages[0].blocks[0].lines[0].words[0].value == 'Mr.'
     geometry_mr = np.array([[0.08844472, 0.35763523],
                             [0.11625107, 0.34320644],
