@@ -118,7 +118,7 @@ class CRNN(RecognitionModel, nn.Module):
         vocab: str,
         rnn_units: int = 128,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
-        exportable: bool = False,
+        exportable: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
