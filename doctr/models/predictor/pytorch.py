@@ -14,7 +14,6 @@ from doctr.models._utils import estimate_orientation
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
-from doctr.utils.lang_detect import detect_language
 
 from .base import _OCRPredictor
 
@@ -59,7 +58,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     def forward(
         self,
         pages: List[Union[np.ndarray, torch.Tensor]],
-        detect_lang: bool = True,
         **kwargs: Any,
     ) -> Document:
 
@@ -107,11 +105,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
-        if detect_lang:
-            languages = [detect_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
-            languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
-        else:
-            languages_dict = []
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -129,6 +122,5 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 for page in pages
             ],
             orientations,
-            languages_dict,
         )
         return out
