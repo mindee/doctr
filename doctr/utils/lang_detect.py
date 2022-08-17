@@ -23,7 +23,6 @@ def detect_language(text: str) -> Tuple[str, float]:
         The detected language in ISO 639 code and confidence score
     """
     archive_path = download_from_url(URL, cache_subdir='language_detection')
-    print(archive_path)
     K = 8
     MAX_ENTROPY = 3
     TH_ENTROPY = 0.9
