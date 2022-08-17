@@ -16,3 +16,4 @@ tensorflow-addons>=0.17.1
 tf2onnx>=1.9.2
 rapidfuzz>=1.6.0
 huggingface-hub>=0.4.0
+fasttext>=0.9.2,<1.0.0

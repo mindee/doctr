@@ -77,6 +77,7 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
         reco_predictor,
         assume_straight_pages=True,
         straighten_pages=True,
+        detect_language=True,
     )
 
     out = predictor(doc)
@@ -94,6 +95,9 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
                                  [0.56705294, 0.18241881],
                                  [0.51385817, 0.21002172]])
     assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised)
+
+    language = "en"
+    assert out.pages[0].language['value'] == language
 
     det_predictor = detection_predictor(
         'db_resnet50', pretrained=True, batch_size=2, assume_straight_pages=True,

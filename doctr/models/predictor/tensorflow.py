@@ -13,6 +13,7 @@ from doctr.models._utils import estimate_orientation
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
+from doctr.utils.lang_detect import detect_language
 from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
@@ -46,6 +47,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
+        detect_language: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -55,6 +57,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
         )
         self.detect_orientation = detect_orientation
+        self.detect_language = detect_language
 
     def __call__(
         self,
@@ -101,6 +104,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
+        if self.detect_language:
+            languages = [detect_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
+            languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+        else:
+            languages_dict = []
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -110,5 +118,5 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 target_shape=mask,  # type: ignore[arg-type]
             ) for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
-        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations)  # type: ignore[arg-type]
+        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations, languages_dict)  # type: ignore[arg-type]
         return out
