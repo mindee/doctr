@@ -31,6 +31,8 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
     _children_names = ['det_predictor', 'reco_predictor', 'doc_builder']
@@ -75,7 +77,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         else:
             orientations = None
         if self.straighten_pages:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            origin_page_orientations = origin_page_orientations if self.detect_orientation else [
+                estimate_orientation(page) for page in
+                pages]
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
