@@ -46,6 +46,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         reco_predictor,
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
+        detect_orientation=True,
     )
 
     if assume_straight_pages:
@@ -60,6 +61,9 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
     with pytest.raises(ValueError):
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
         _ = predictor([input_page])
+
+    orientation = 0
+    assert out.pages[0].orientation['value'] == orientation
 
 
 def test_trained_ocr_predictor(mock_tilted_payslip):

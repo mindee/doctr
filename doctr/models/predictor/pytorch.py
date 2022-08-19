@@ -31,6 +31,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -42,6 +44,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = True,
+        detect_orientation: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -51,6 +54,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         _OCRPredictor.__init__(
             self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
         )
+        self.detect_orientation = detect_orientation
 
     @torch.no_grad()
     def forward(
@@ -66,8 +70,17 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
         # Detect document rotation and rotate pages
-        if self.straighten_pages:
+        if self.detect_orientation:
             origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+            orientations = [
+                {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+            ]
+        else:
+            orientations = None
+        if self.straighten_pages:
+            origin_page_orientations = origin_page_orientations if self.detect_orientation else [
+                estimate_orientation(page) for page in  # type: ignore[arg-type]
+                pages]
             pages = [
                 rotate_image(page, -angle, expand=True)  # type: ignore[arg-type]
                 for page, angle in zip(pages, origin_page_orientations)
@@ -111,6 +124,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             [
                 page.shape[:2] if channels_last else page.shape[-2:]  # type: ignore[misc]
                 for page in pages
-            ]
+            ],
+            orientations,
         )
         return out
