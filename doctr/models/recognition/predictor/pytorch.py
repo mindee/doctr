@@ -10,7 +10,7 @@ import torch
 from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
-import onnxruntime
+from openvino.runtime import Core
 
 from ._utils import remap_preds, split_crops
 
@@ -40,7 +40,10 @@ class RecognitionPredictor(nn.Module):
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
         self.target_ar = 6  # Target aspect ratio
-        self.rec_session = onnxruntime.InferenceSession("optimized_rec.onnx")
+        self.ie = Core()
+        model_onnx = self.ie.read_model(model="rec.onnx")
+        self.compiled_model_onnx = self.ie.compile_model(model=model_onnx, device_name="CPU")
+        self.output_layer_onnx = self.compiled_model_onnx.output(0)
 
     @torch.no_grad()
     def forward(
@@ -75,7 +78,7 @@ class RecognitionPredictor(nn.Module):
         _device = next(self.model.parameters()).device
         raw = []
         for batch in processed_batches:
-            char_logits = self.rec_session.run(None, {"input": batch.detach().cpu().numpy()})[0]
+            char_logits = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
             char_logits = torch.tensor(char_logits)
             raw += [self.model.postprocessor(char_logits)]
 
