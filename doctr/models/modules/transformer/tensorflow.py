@@ -47,7 +47,10 @@ class PositionalEncoding(layers.Layer, NestedObject):
         Returns:
             positional embeddings (batch, max_len, d_model)
         """
-        x = x + self.pe[:, : x.shape[1]]
+        if x.dtype == tf.float16:  # amp fix: cast to half
+            x = x + tf.cast(self.pe[:, : x.shape[1]], dtype=tf.half)
+        else:
+            x = x + self.pe[:, : x.shape[1]]
         return self.dropout(x, **kwargs)
 
 
@@ -63,7 +66,7 @@ def scaled_dot_product_attention(
     scores = tf.matmul(query, tf.transpose(key, perm=[0, 1, 3, 2])) / math.sqrt(query.shape[-1])
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, tf.where works only with bool type condition
-        scores = tf.where(mask == False, -1e9, scores)  # noqa: E712
+        scores = tf.where(mask == False, float('-inf'), scores)  # noqa: E712
     p_attn = tf.nn.softmax(scores, axis=-1)
     return tf.matmul(p_attn, value), p_attn
 

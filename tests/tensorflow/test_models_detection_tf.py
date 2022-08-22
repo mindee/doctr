@@ -1,4 +1,8 @@
+import os
+import tempfile
+
 import numpy as np
+import onnxruntime
 import pytest
 import tensorflow as tf
 
@@ -7,6 +11,7 @@ from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
+from doctr.models.utils import export_model_to_onnx
 
 
 @pytest.mark.parametrize(
@@ -156,3 +161,37 @@ def test_dilate():
     expected = tf.ones((1, 3, 3, 1))
     out = dilate(x, 3)
     assert tf.math.reduce_all(out == expected)
+
+
+@pytest.mark.parametrize(
+    "arch_name, input_shape, output_size",
+    [
+        ["db_resnet50", (512, 512, 3), (512, 512, 1)],
+        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1)],
+        ["linknet_resnet18", (1024, 1024, 3), (1024, 1024, 1)],
+        ["linknet_resnet34", (1024, 1024, 3), (1024, 1024, 1)],
+        ["linknet_resnet50", (512, 512, 3), (512, 512, 1)],
+    ],
+)
+def test_models_onnx_export(arch_name, input_shape, output_size):
+    # Model
+    batch_size = 2
+    tf.keras.backend.clear_session()
+    model = detection.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
+    # batch_size = None for dynamic batch size
+    dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
+    np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Export
+        model_path, output = export_model_to_onnx(
+            model,
+            model_name=os.path.join(tmpdir, "model"),
+            dummy_input=dummy_input
+        )
+        assert os.path.exists(model_path)
+        # Inference
+        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
+                                                   providers=["CPUExecutionProvider"])
+        ort_outs = ort_session.run(output, {'input': np_dummy_input})
+        assert isinstance(ort_outs, list) and len(ort_outs) == 1
+        assert ort_outs[0].shape == (batch_size, *output_size)

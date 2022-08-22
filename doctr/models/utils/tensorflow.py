@@ -81,7 +81,7 @@ def conv_sequence(
         list of layers
     """
     # No bias before Batch norm
-    kwargs['use_bias'] = kwargs.get('use_bias', not(bn))
+    kwargs['use_bias'] = kwargs.get('use_bias', not bn)
     # Add activation directly to the conv if there is no BN
     kwargs['activation'] = activation if not bn else None
     conv_seq = [

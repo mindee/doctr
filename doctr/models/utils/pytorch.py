@@ -77,7 +77,7 @@ def conv_sequence_pt(
         list of layers
     """
     # No bias before Batch norm
-    kwargs['bias'] = kwargs.get('bias', not(bn))
+    kwargs['bias'] = kwargs.get('bias', not bn)
     # Add activation directly to the conv if there is no BN
     conv_seq: List[nn.Module] = [
         nn.Conv2d(in_channels, out_channels, **kwargs)

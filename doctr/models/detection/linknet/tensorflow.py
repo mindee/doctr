@@ -106,7 +106,12 @@ class LinkNet(_LinkNet, keras.Model):
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Args:
-        num_classes: number of channels for the output
+        feature extractor: the backbone serving as feature extractor
+        fpn_channels: number of channels each extracted feature maps is mapped to
+        num_classes: number of output channels in the segmentation map
+        assume_straight_pages: if True, fit straight bounding boxes only
+        exportable: onnx exportable returns only logits
+        cfg: the configuration dict of the model
     """
 
     _children_names: List[str] = ['feat_extractor', 'fpn', 'classifier', 'postprocessor']
@@ -117,10 +122,12 @@ class LinkNet(_LinkNet, keras.Model):
         fpn_channels: int = 64,
         num_classes: int = 1,
         assume_straight_pages: bool = True,
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
 
+        self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
@@ -214,6 +221,10 @@ class LinkNet(_LinkNet, keras.Model):
         logits = self.classifier(logits, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output or target is None or return_preds:
             prob_map = tf.math.sigmoid(logits)
         if return_model_output:
