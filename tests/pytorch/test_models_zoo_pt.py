@@ -48,6 +48,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
         detect_orientation=True,
+        detect_language=True,
     )
 
     if assume_straight_pages:
@@ -65,6 +66,8 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
 
     orientation = 0
     assert out.pages[0].orientation['value'] == orientation
+    language = "unknown"
+    assert out.pages[0].language['value'] == language
 
 
 def _test_predictor(predictor):

@@ -13,7 +13,7 @@ from doctr.models._utils import estimate_orientation
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
-from doctr.utils.lang_detect import detect_language
+from doctr.utils.lang_detect import get_language
 from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
@@ -33,6 +33,8 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
+        detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
@@ -105,7 +107,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
         if self.detect_language:
-            languages = [detect_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
+            languages = [get_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
             languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
         else:
             languages_dict = None
@@ -118,5 +120,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 target_shape=mask,  # type: ignore[arg-type]
             ) for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
-        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations, languages_dict)  # type: ignore[arg-type]
+        out = self.doc_builder(
+            boxes,
+            text_preds,
+            origin_page_shapes,  # type: ignore[arg-type]
+            orientations,
+            languages_dict,
+        )
         return out

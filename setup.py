@@ -63,7 +63,7 @@ _deps = [
     "rapidfuzz>=1.6.0",
     "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
-    "fasttext>=0.9.2,<1.0.0",
+    "lingua-language-detector>=1.0.1,<2.0.0",
     # Testing
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
@@ -111,7 +111,7 @@ install_requires = [
     deps["tqdm"],
     deps["rapidfuzz"],
     deps["huggingface-hub"],
-    deps["fasttext"],
+    deps["lingua-language-detector"],
 ]
 
 extras = {}

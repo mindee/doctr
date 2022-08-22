@@ -5,16 +5,22 @@
 
 from typing import Tuple
 
-import fasttext
-from scipy.stats import entropy
+from lingua import Language, LanguageDetectorBuilder
 
-from doctr.utils import download_from_url
+from doctr.datasets.vocabs import VOCABS
 
-__all__ = ['detect_language']
-URL = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz"
+__all__ = ['get_language']
+
+potential_languages = [item.upper() for item in VOCABS.keys()]
+language_dict = Language._member_map_
+languages = []
+for item in potential_languages:
+    language = language_dict.get(item, None)
+    if language:
+        languages.append(language)
 
 
-def detect_language(text: str) -> Tuple[str, float]:
+def get_language(text: str) -> Tuple[str, float]:
     """Get languages of a textl using fasttext model.
     Get the language with the highest probability or no language if only a few words or a high entropy
     Args:
@@ -22,18 +28,13 @@ def detect_language(text: str) -> Tuple[str, float]:
     Returns:
         The detected language in ISO 639 code and confidence score
     """
-    archive_path = download_from_url(URL, cache_subdir='language_detection')
-    K = 8
-    MAX_ENTROPY = 3
-    TH_ENTROPY = 0.9
-    FASTTEXT_MODEL = fasttext.load_model(str(archive_path))
 
-    prediction = FASTTEXT_MODEL.predict(text.lower(), k=K)
-    langs = prediction[0][0].replace("__label__", "")
+    model = LanguageDetectorBuilder.from_languages(*languages).build()
+    predictions = model.compute_language_confidence_values(text.lower())
     if (
-        len(text) <= 1
-        or (len(text) <= 5 and prediction[1][0] <= 0.2)
-        or (entropy(prediction[1], base=2) / MAX_ENTROPY > TH_ENTROPY)
+        len(text) <= 5
+        or not predictions
     ):
         return "unknown", 0.0
-    return langs, prediction[1][0]
+    lang, prob = predictions[0]
+    return lang.iso_code_639_1.name.lower(), prob
