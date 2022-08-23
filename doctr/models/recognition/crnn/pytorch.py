@@ -283,19 +283,13 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
         if self.device:
             self.sess = ort.InferenceSession('rec.onnx', providers=['CUDAExecutionProvider'])
         else:
-            self.ie = Core()
-            self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
-            self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
-            self.output_layer_onnx = self.compiled_model_onnx.output(0)
-
+            self.sess = ort.InferenceSession('rec.onnx', providers=['CPUExecutionProvider'])
+    @torch.no_grad()
     def forward(
         self,
         x: torch.Tensor,
     ):
-        if self.device:
-            logits = self.sess.run(None, {"input":x.detach().cpu().numpy()})[0]
-        else:
-            logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
+        logits = self.sess.run(None, {"input":x.detach().cpu().numpy()})[0]
         return logits
 
 

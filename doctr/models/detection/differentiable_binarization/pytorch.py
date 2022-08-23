@@ -369,6 +369,7 @@ class db_resnet50_onnx(_DBNet, nn.Module):
             self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
             self.compiled_model_onnx = self.ie.compile_model(model="det.onnx", device_name="CPU")
             self.output_layer_onnx = self.compiled_model_onnx.output(0)
+    @torch.no_grad()
     def forward(
         self,
         batch: torch.Tensor,
