@@ -12,6 +12,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from openvino.runtime import Core
+import onnxruntime as ort
 
 from doctr.datasets import VOCABS, decode_sequence
 
@@ -277,16 +278,22 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
         self.cfg = default_cfgs["crnn_vgg16_bn_onnx"]
 
         self.postprocessor = CTCPostProcessor(vocab=self.vocab)
-
-        self.ie = Core()
-        self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
-        self.output_layer_onnx = self.compiled_model_onnx.output(0)
+        self.device = torch.cuda.is_available()
+        if self.device:
+            self.sess = ort.InferenceSession('rec.onnx', providers=['CUDAExecutionProvider'])
+        else:
+            self.ie = Core()
+            self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
+            self.output_layer_onnx = self.compiled_model_onnx.output(0)
 
     def forward(
         self,
         x: torch.Tensor,
     ):
-        logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
+        if self.device:
+            logits = self.sess.run(None, {"input":x.detach().cpu().numpy()})[0]
+        else:
+            logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
         return logits
 
 

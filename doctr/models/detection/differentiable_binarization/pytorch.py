@@ -14,6 +14,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 
 from openvino.runtime import Core
+import onnxruntime as ort
 
 from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
@@ -359,14 +360,21 @@ class db_resnet50_onnx(_DBNet, nn.Module):
         self.cfg = default_cfgs["db_resnet50_onnx"]
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
-        self.ie = Core()
-        self.compiled_model_onnx = self.ie.compile_model(model="det.onnx", device_name="CPU")
-        self.output_layer_onnx = self.compiled_model_onnx.output(0)
+        self.device = torch.cuda.is_available()
+        if self.device:
+            self.sess = ort.InferenceSession('det.onnx', providers=['CUDAExecutionProvider'])
+        else:
+            self.ie = Core()
+            self.compiled_model_onnx = self.ie.compile_model(model="det.onnx", device_name="CPU")
+            self.output_layer_onnx = self.compiled_model_onnx.output(0)
     def forward(
         self,
         batch: torch.Tensor,
     ):
-        pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+        if self.device:
+            pred_map = self.sess.run(None, {"input":batch.detach().cpu().numpy()})[0]
+        else:
+            pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
         
         return pred_map
 

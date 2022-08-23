@@ -36,6 +36,7 @@ class DetectionPredictor(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
             self.model = nn.DataParallel(self.model)
+            self.model = self.model.half()
             self.model = self.model.to(self.device)
 
     @torch.no_grad()
@@ -55,6 +56,8 @@ class DetectionPredictor(nn.Module):
         for batch in processed_batches:
             if "onnx" not in str((type(self.model))):
                 batch = batch.to(self.device)
+                if self.device == torch.device("cuda"):
+                    batch = batch.half()
             pred_map = self.model(batch)
             if type(pred_map) == torch.Tensor:
                 pred_map = pred_map.detach().cpu().numpy()
