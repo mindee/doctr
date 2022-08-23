@@ -11,17 +11,26 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from openvino.runtime import Core
+
 from doctr.datasets import VOCABS, decode_sequence
 
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_mobilenet_v3_small',
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small',
            'crnn_mobilenet_v3_large']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'crnn_vgg16_bn': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['legacy_french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_vgg16_bn-9762b0b0.pt',
+    },
+        'crnn_vgg16_bn_onnx': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
@@ -256,6 +265,29 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """
 
     return _crnn('crnn_vgg16_bn', pretrained, vgg16_bn_r, ignore_keys=['linear.weight', 'linear.bias'], **kwargs)
+
+class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
+    """Onnx converted crnn_vgg16_bn_onnx"""
+    def __init__(
+        self,
+        pretrained = True
+    ) -> None:
+        super().__init__()
+        self.vocab = default_cfgs["crnn_vgg16_bn_onnx"]["vocab"]
+        self.cfg = default_cfgs["crnn_vgg16_bn_onnx"]
+
+        self.postprocessor = CTCPostProcessor(vocab=self.vocab)
+
+        self.ie = Core()
+        self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
+        self.output_layer_onnx = self.compiled_model_onnx.output(0)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+    ):
+        logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
+        return logits
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:

@@ -13,15 +13,23 @@ from torchvision.models import resnet34, resnet50
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 
+from openvino.runtime import Core
+
 from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation']
+__all__ = ['DBNet', 'db_resnet50', 'db_resnet50_onnx', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     'db_resnet50': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
+    },
+    'db_resnet50_onnx': {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
@@ -256,7 +264,6 @@ class DBNet(_DBNet, nn.Module):
 
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
-
 def _dbnet(
     arch: str,
     pretrained: bool,
@@ -341,6 +348,27 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         None,
         **kwargs,
     )
+
+class db_resnet50_onnx(_DBNet, nn.Module):
+    def __init__(
+        self,
+        pretrained = True,
+        assume_straight_pages = True) -> None:
+
+        super().__init__()
+        self.cfg = default_cfgs["db_resnet50_onnx"]
+        self.assume_straight_pages = True
+        self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
+        self.ie = Core()
+        self.compiled_model_onnx = self.ie.compile_model(model="det.onnx", device_name="CPU")
+        self.output_layer_onnx = self.compiled_model_onnx.output(0)
+    def forward(
+        self,
+        batch: torch.Tensor,
+    ):
+        pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+        
+        return pred_map
 
 
 def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:

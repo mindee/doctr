@@ -36,14 +36,15 @@ class RecognitionPredictor(nn.Module):
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
+        self.postprocessor = self.model.postprocessor
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
+            self.model = nn.DataParallel(self.model)
+            self.model = self.model.to(self.device)
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
         self.target_ar = 6  # Target aspect ratio
-        self.ie = Core()
-        model_onnx = self.ie.read_model(model="rec.onnx")
-        self.compiled_model_onnx = self.ie.compile_model(model=model_onnx, device_name="CPU")
-        self.output_layer_onnx = self.compiled_model_onnx.output(0)
 
     @torch.no_grad()
     def forward(
@@ -75,12 +76,13 @@ class RecognitionPredictor(nn.Module):
         processed_batches = self.pre_processor(crops)
 
         # Forward it
-        _device = next(self.model.parameters()).device
         raw = []
         for batch in processed_batches:
-            char_logits = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+            if "onnx" not in str((type(self.model))):
+                batch = batch.to(self.device)
+            char_logits = self.model(batch)
             char_logits = torch.tensor(char_logits)
-            raw += [self.model.postprocessor(char_logits)]
+            raw += [self.postprocessor(char_logits)]
 
         # Process outputs
         out = [charseq for batch in raw for charseq in batch]

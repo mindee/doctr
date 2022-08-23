@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
-from concurrent.futures import process
 from typing import Any, List, Union
 
 import numpy as np
@@ -31,14 +30,13 @@ class DetectionPredictor(nn.Module):
     ) -> None:
 
         super().__init__()
-        self.pre_processor = pre_processor
         self.model = model.eval()
-
-        
-        self.ie = Core()
-        model_onnx = self.ie.read_model(model="det.onnx")
-        self.compiled_model_onnx = self.ie.compile_model(model=model_onnx, device_name="CPU")
-        self.output_layer_onnx = self.compiled_model_onnx.output(0)
+        self.pre_processor = pre_processor
+        self.postprocessor = self.model.postprocessor
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
+            self.model = nn.DataParallel(self.model)
+            self.model = self.model.to(self.device)
 
     @torch.no_grad()
     def forward(
@@ -52,11 +50,14 @@ class DetectionPredictor(nn.Module):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(pages)
-        _device = next(self.model.parameters()).device
         predicted_batches = []
+
         for batch in processed_batches:
-            print(batch.shape)
-            pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+            if "onnx" not in str((type(self.model))):
+                batch = batch.to(self.device)
+            pred_map = self.model(batch)
+            if type(pred_map) == torch.Tensor:
+                pred_map = pred_map.detach().cpu().numpy()
             pred_map = np.transpose(pred_map, (0, 2, 3, 1))
-            predicted_batches += [pred[0] for pred in self.model.postprocessor(pred_map)]
+            predicted_batches += [pred[0] for pred in self.postprocessor(pred_map)]
         return predicted_batches
