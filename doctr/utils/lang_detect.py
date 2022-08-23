@@ -13,6 +13,7 @@ __all__ = ['get_language']
 
 languages = [Language._member_map_[item.upper()] for item in LANGUAGES if
              item.upper() in Language._member_map_.keys()]
+MODEL = LanguageDetectorBuilder.from_languages(*languages).build()
 
 
 def get_language(text: str) -> Tuple[str, float]:
@@ -23,9 +24,7 @@ def get_language(text: str) -> Tuple[str, float]:
     Returns:
         The detected language in ISO 639 code and confidence score
     """
-
-    model = LanguageDetectorBuilder.from_languages(*languages).build()
-    predictions = model.compute_language_confidence_values(text.lower())
+    predictions = MODEL.compute_language_confidence_values(text.lower())
     if len(text) <= 5 or not predictions:
         return "unknown", 0.0
     lang, prob = predictions[0]
