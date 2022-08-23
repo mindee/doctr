@@ -9,15 +9,9 @@ from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
-from lingua import Language, LanguageDetectorBuilder
-
-from doctr.datasets.vocabs import LANGUAGES
+from langdetect import LangDetectException, detect_langs
 
 __all__ = ['estimate_orientation', 'get_bitmap_angle', 'get_language']
-
-languages = [Language._member_map_[item.upper()] for item in LANGUAGES if
-             item.upper() in Language._member_map_.keys()]
-MODEL = LanguageDetectorBuilder.from_languages(*languages).build()
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -148,15 +142,20 @@ def rectify_loc_preds(
 
 
 def get_language(text: str) -> Tuple[str, float]:
-    """Get languages of a text using lingua library.
-    Get the language with the highest probability or no language if only a few words or no language was identified
+    """Get languages of a text using langdetect model.
+    Get the language with the highest probability or no language if only a few words or a low probability
     Args:
         text (str): text
     Returns:
         The detected language in ISO 639 code and confidence score
     """
-    predictions = MODEL.compute_language_confidence_values(text.lower())
-    if len(text) <= 5 or not predictions:
+    try:
+        lang = detect_langs(text.lower())[0]
+    except LangDetectException:
         return "unknown", 0.0
-    lang, prob = predictions[0]
-    return lang.iso_code_639_1.name.lower(), prob
+    if (
+        len(text) <= 1
+        or (len(text) <= 5 and lang.prob <= 0.2)
+    ):
+        return "unknown", 0.0
+    return lang.lang, lang.prob
