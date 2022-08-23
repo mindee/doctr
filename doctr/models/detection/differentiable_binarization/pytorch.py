@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Any, Callable, Dict, List, Optional
+import os
 
 import numpy as np
 import torch
@@ -365,6 +366,7 @@ class db_resnet50_onnx(_DBNet, nn.Module):
             self.sess = ort.InferenceSession('det.onnx', providers=['CUDAExecutionProvider'])
         else:
             self.ie = Core()
+            self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
             self.compiled_model_onnx = self.ie.compile_model(model="det.onnx", device_name="CPU")
             self.output_layer_onnx = self.compiled_model_onnx.output(0)
     def forward(

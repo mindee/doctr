@@ -6,6 +6,7 @@
 from copy import deepcopy
 from itertools import groupby
 from typing import Any, Callable, Dict, List, Optional, Tuple
+import os
 
 import torch
 from torch import nn
@@ -283,6 +284,7 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
             self.sess = ort.InferenceSession('rec.onnx', providers=['CUDAExecutionProvider'])
         else:
             self.ie = Core()
+            self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
             self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
             self.output_layer_onnx = self.compiled_model_onnx.output(0)
 
