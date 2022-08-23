@@ -9,7 +9,7 @@ from doctr import io
 
 def _check_doc_content(doc_tensors, num_pages):
     # 1 doc of 8 pages
-    assert(len(doc_tensors) == num_pages)
+    assert (len(doc_tensors) == num_pages)
     assert all(isinstance(page, np.ndarray) for page in doc_tensors)
     assert all(page.dtype == np.uint8 for page in doc_tensors)
 

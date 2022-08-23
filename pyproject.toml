@@ -28,6 +28,7 @@ module = [
 	"huggingface_hub.*",
 	"pypdfium2.*",
 	"rapidfuzz.*",
+	"langdetect.*",
 ]
 ignore_missing_imports = true
 

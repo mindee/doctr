@@ -24,7 +24,7 @@ def main(args):
 
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
-    if args.path.endswith(".pdf"):
+    if args.path.lower().endswith(".pdf"):
         doc = DocumentFile.from_pdf(args.path)
     else:
         doc = DocumentFile.from_images(args.path)
@@ -54,5 +54,5 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    main(args)
+    parsed_args = parse_args()
+    main(parsed_args)

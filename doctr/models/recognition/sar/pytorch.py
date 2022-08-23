@@ -176,7 +176,8 @@ class SAR(nn.Module, RecognitionModel):
         attention_units: number of hidden units in attention module
         max_length: maximum word length handled by the model
         dropout_prob: dropout probability of the encoder LSTM
-        cfg: default setup dict of the model
+        exportable: onnx exportable returns only logits
+        cfg: dictionary containing information about the model
     """
 
     def __init__(
@@ -189,11 +190,13 @@ class SAR(nn.Module, RecognitionModel):
         max_length: int = 30,
         dropout_prob: float = 0.,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         super().__init__()
         self.vocab = vocab
+        self.exportable = exportable
         self.cfg = cfg
 
         self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
@@ -246,6 +249,10 @@ class SAR(nn.Module, RecognitionModel):
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
 
         out: Dict[str, Any] = {}
+        if self.exportable:
+            out['logits'] = decoded_features
+            return out
+
         if return_model_output:
             out["out_map"] = decoded_features
 

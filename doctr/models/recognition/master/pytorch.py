@@ -13,9 +13,9 @@ from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
+from doctr.models.modules.transformer import Decoder, PositionalEncoding
 
 from ...utils.pytorch import load_pretrained_params
-from ..transformer.pytorch import Decoder, PositionalEncoding
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ['MASTER', 'master']
@@ -46,6 +46,7 @@ class MASTER(_MASTER, nn.Module):
         max_length: maximum length of character sequence handled by the model
         dropout: dropout probability of the decoder
         input_shape: size of the image inputs
+        exportable: onnx exportable returns only logits
         cfg: dictionary containing information about the model
     """
 
@@ -60,10 +61,12 @@ class MASTER(_MASTER, nn.Module):
         max_length: int = 50,
         dropout: float = 0.2,
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from the paper
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__()
 
+        self.exportable = exportable
         self.max_length = max_length
         self.d_model = d_model
         self.vocab = vocab
@@ -106,10 +109,11 @@ class MASTER(_MASTER, nn.Module):
         # [True, True, True, ..., False, False, False] -> False is masked
         target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
         target_length = target.size(1)
-        # sub mask filled diagonal with 1 = see 0 = masked (max_length, max_length)
+        # sub mask filled diagonal with True = see and False = masked (max_length, max_length)
+        # NOTE: onnxruntime tril/triu works only with float currently (onnxruntime 1.11.1 - opset 14)
         target_sub_mask = torch.tril(
-            torch.ones((target_length, target_length), dtype=torch.bool, device=source.device), diagonal=0
-        )
+            torch.ones((target_length, target_length), device=source.device), diagonal=0
+        ).to(dtype=torch.bool)
         # source mask filled with ones (max_length, positional_encoded_seq_len)
         source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
         # combine the two masks into one (N, 1, max_length, max_length)
@@ -192,6 +196,10 @@ class MASTER(_MASTER, nn.Module):
             logits = self.linear(output)
         else:
             logits = self.decode(encoded)
+
+        if self.exportable:
+            out['logits'] = logits
+            return out
 
         if target is not None:
             out['loss'] = self.compute_loss(logits, gt, seq_len)

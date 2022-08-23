@@ -59,10 +59,11 @@ _deps = [
     "torchvision>=0.9.0",
     "Pillow>=8.3.2",  # cf. https://github.com/advisories/GHSA-98vv-pw6r-q6q4
     "tqdm>=4.30.0",
-    "tensorflow-addons>=0.13.0",
+    "tensorflow-addons>=0.17.1",
     "rapidfuzz>=1.6.0",
     "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
+    "langdetect>=1.0.9,<2.0.0",
     # Testing
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
@@ -110,6 +111,7 @@ install_requires = [
     deps["tqdm"],
     deps["rapidfuzz"],
     deps["huggingface-hub"],
+    deps["langdetect"],
 ]
 
 extras = {}

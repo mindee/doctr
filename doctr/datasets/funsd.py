@@ -91,7 +91,9 @@ class FUNSD(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
                                                geoms=np.asarray(box_targets, dtype=np_dtype))
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, dict(labels=[label])))
+                    # filter labels with unknown characters
+                    if not any(char in label for char in ['☑', '☐', '\uf703', '\uf702']):
+                        self.data.append((crop, dict(labels=[label])))
             else:
                 self.data.append((
                     img_path,

@@ -95,6 +95,18 @@ class FeaturePyramidNetwork(nn.Module):
 
 
 class DBNet(_DBNet, nn.Module):
+    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
+    <https://arxiv.org/pdf/1911.08947.pdf>`_.
+
+    Args:
+        feature extractor: the backbone serving as feature extractor
+        head_chans: the number of channels in the head
+        deform_conv: whether to use deformable convolution
+        num_classes: number of output channels in the segmentation map
+        assume_straight_pages: if True, fit straight bounding boxes only
+        exportable: onnx exportable returns only logits
+        cfg: the configuration dict of the model
+    """
 
     def __init__(
         self,
@@ -103,6 +115,7 @@ class DBNet(_DBNet, nn.Module):
         deform_conv: bool = False,
         num_classes: int = 1,
         assume_straight_pages: bool = True,
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
@@ -111,6 +124,7 @@ class DBNet(_DBNet, nn.Module):
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
+        self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
@@ -183,6 +197,10 @@ class DBNet(_DBNet, nn.Module):
         logits = self.prob_head(feat_concat)
 
         out: Dict[str, Any] = {}
+        if self.exportable:
+            out['logits'] = logits
+            return out
+
         if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
 

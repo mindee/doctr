@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
@@ -272,7 +272,9 @@ class DocumentBuilder(NestedObject):
         self,
         boxes: List[np.ndarray],
         text_preds: List[List[Tuple[str, float]]],
-        page_shapes: List[Tuple[int, int]]
+        page_shapes: List[Tuple[int, int]],
+        orientations: Optional[List[Dict[str, Any]]] = None,
+        languages: Optional[List[Dict[str, Any]]] = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -288,6 +290,10 @@ class DocumentBuilder(NestedObject):
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
             raise ValueError("All arguments are expected to be lists of the same size")
 
+        _orientations = orientations if isinstance(orientations, list) \
+            else [None] * len(boxes)  # type: ignore[list-item]
+        _languages = languages if isinstance(languages, list) \
+            else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
@@ -306,8 +312,11 @@ class DocumentBuilder(NestedObject):
                 ),
                 _idx,
                 shape,
+                orientation,
+                language,
             )
-            for _idx, shape, page_boxes, word_preds in zip(range(len(boxes)), page_shapes, boxes, text_preds)
+            for _idx, shape, page_boxes, word_preds, orientation, language in
+            zip(range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages)
         ]
 
         return Document(_pages)

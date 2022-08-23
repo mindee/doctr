@@ -6,7 +6,7 @@ import pytest
 import requests
 
 from doctr.io import reader
-from doctr.models._utils import estimate_orientation, get_bitmap_angle
+from doctr.models._utils import estimate_orientation, get_bitmap_angle, get_language
 from doctr.utils import geometry
 
 
@@ -48,3 +48,18 @@ def test_estimate_orientation(mock_image, mock_tilted_payslip):
     rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) < 1.
+
+
+def test_get_lang():
+    sentence = "This is a test sentence."
+    expected_lang = "en"
+    threshold_prob = 0.99
+
+    lang = get_language(sentence)
+
+    assert lang[0] == expected_lang
+    assert lang[1] > threshold_prob
+
+    lang = get_language("a")
+    assert lang[0] == "unknown"
+    assert lang[1] == 0.0

@@ -15,6 +15,7 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 #     "assume_straight_pages, straighten_pages",
 #     [
 #         [True, False],
+#         [False, False],
 #         [True, True],
 #     ]
 # )
@@ -22,7 +23,11 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 #     det_bsize = 4
 #     det_predictor = DetectionPredictor(
 #         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
-#         detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False)
+#         detection.db_mobilenet_v3_large(
+#             pretrained=False,
+#             pretrained_backbone=False,
+#             assume_straight_pages=assume_straight_pages,
+#         )
 #     )
 
 #     assert not det_predictor.model.training
@@ -42,6 +47,8 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 #         reco_predictor,
 #         assume_straight_pages=assume_straight_pages,
 #         straighten_pages=straighten_pages,
+#         detect_orientation=True,
+#         detect_language=True,
 #     )
 
 #     if assume_straight_pages:
@@ -56,6 +63,9 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 #     with pytest.raises(ValueError):
 #         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
 #         _ = predictor([input_page])
+
+#     orientation = 0
+#     assert out.pages[0].orientation['value'] == orientation
 
 
 def _test_predictor(predictor):

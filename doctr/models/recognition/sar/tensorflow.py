@@ -210,7 +210,8 @@ class SAR(Model, RecognitionModel):
         max_length: maximum word length handled by the model
         num_decoder_cells: number of LSTMCell layers to stack
         dropout_prob: dropout probability for the encoder and decoder
-
+        exportable: onnx exportable returns only logits
+        cfg: dictionary containing information about the model
     """
 
     _children_names: List[str] = ['feat_extractor', 'encoder', 'decoder', 'postprocessor']
@@ -225,11 +226,13 @@ class SAR(Model, RecognitionModel):
         max_length: int = 30,
         num_decoder_cells: int = 2,
         dropout_prob: float = 0.,
+        exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
         super().__init__()
         self.vocab = vocab
+        self.exportable = exportable
         self.cfg = cfg
         self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
@@ -305,6 +308,10 @@ class SAR(Model, RecognitionModel):
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
+        if self.exportable:
+            out['logits'] = decoded_features
+            return out
+
         if return_model_output:
             out["out_map"] = decoded_features
 

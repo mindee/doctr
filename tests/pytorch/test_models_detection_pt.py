@@ -1,10 +1,15 @@
+import os
+import tempfile
+
 import numpy as np
+import onnxruntime
 import pytest
 import torch
 
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
+from doctr.models.utils import export_model_to_onnx
 
 
 @pytest.mark.parametrize(
@@ -93,3 +98,31 @@ def test_dilate():
     expected = torch.ones((1, 1, 3, 3))
     out = dilate(x, 3)
     assert torch.equal(out, expected)
+
+
+@pytest.mark.parametrize(
+    "arch_name, input_shape, output_size",
+    [
+        ["db_resnet34", (3, 512, 512), (1, 512, 512)],
+        ["db_resnet50", (3, 512, 512), (1, 512, 512)],
+        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512)],
+        ["linknet_resnet18", (3, 512, 512), (1, 512, 512)],
+        ["linknet_resnet34", (3, 512, 512), (1, 512, 512)],
+        ["linknet_resnet50", (3, 512, 512), (1, 512, 512)],
+    ],
+)
+def test_models_onnx_export(arch_name, input_shape, output_size):
+    # Model
+    batch_size = 2
+    model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Export
+        model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
+        assert os.path.exists(model_path)
+        # Inference
+        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
+                                                   providers=["CPUExecutionProvider"])
+        ort_outs = ort_session.run(['logits'], {'input': dummy_input.numpy()})
+        assert isinstance(ort_outs, list) and len(ort_outs) == 1
+        assert ort_outs[0].shape == (batch_size, *output_size)

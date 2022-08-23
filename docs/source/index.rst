@@ -10,7 +10,7 @@ State-of-the-art Optical Character Recognition made seamless & accessible to any
 
 DocTR provides an easy and powerful way to extract valuable information from your documents:
 
-* |:receipt:| **for automation**: seemlessly process documents for Natural Language Understanding tasks: we provide OCR predictors to parse textual information (localize and identify each word) from your documents.
+* |:receipt:| **for automation**: seamlessly process documents for Natural Language Understanding tasks: we provide OCR predictors to parse textual information (localize and identify each word) from your documents.
 * |:woman_scientist:| **for research**: quickly compare your own architectures speed & performances with state-of-art models on public datasets.
 
 
@@ -19,7 +19,7 @@ Main Features
 
 * |:robot:| Robust 2-stage (detection + recognition) OCR predictors with pretrained parameters
 * |:zap:| User-friendly, 3 lines of code to load a document and extract text with a predictor
-* |:rocket:| State-of-the-art performances on public document datasets, comparable with GoogleVision/AWS Textract
+* |:rocket:| State-of-the-art performance on public document datasets, comparable with GoogleVision/AWS Textract
 * |:zap:| Optimized for inference speed on both CPU & GPU
 * |:bird:| Light package, minimal dependencies
 * |:tools:| Actively maintained by Mindee
