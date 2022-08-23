@@ -48,6 +48,7 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 #         assume_straight_pages=assume_straight_pages,
 #         straighten_pages=straighten_pages,
 #         detect_orientation=True,
+#         detect_language=True,
 #     )
 
 #     if assume_straight_pages:

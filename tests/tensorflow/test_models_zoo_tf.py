@@ -13,7 +13,6 @@ from doctr.models.recognition.zoo import recognition_predictor
 from doctr.utils.repr import NestedObject
 
 
-
 # @pytest.mark.parametrize(
 #     "assume_straight_pages, straighten_pages",
 #     [
@@ -48,6 +47,7 @@ from doctr.utils.repr import NestedObject
 #         assume_straight_pages=assume_straight_pages,
 #         straighten_pages=straighten_pages,
 #         detect_orientation=True,
+#         detect_language=True,
 #     )
 
 #     if assume_straight_pages:
@@ -65,6 +65,8 @@ from doctr.utils.repr import NestedObject
 
 #     orientation = 0
 #     assert out.pages[0].orientation['value'] == orientation
+#     language = "unknown"
+#     assert out.pages[0].language['value'] == language
 
 
 def test_trained_ocr_predictor(mock_tilted_payslip):

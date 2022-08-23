@@ -5,12 +5,13 @@
 
 from math import floor
 from statistics import median_low
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
+from langdetect import LangDetectException, detect_langs
 
-__all__ = ['estimate_orientation', 'get_bitmap_angle']
+__all__ = ['estimate_orientation', 'get_bitmap_angle', 'get_language']
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -138,3 +139,23 @@ def rectify_loc_preds(
             axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
         axis=0
     ) if len(orientations) > 0 else None
+
+
+def get_language(text: str) -> Tuple[str, float]:
+    """Get languages of a text using langdetect model.
+    Get the language with the highest probability or no language if only a few words or a low probability
+    Args:
+        text (str): text
+    Returns:
+        The detected language in ISO 639 code and confidence score
+    """
+    try:
+        lang = detect_langs(text.lower())[0]
+    except LangDetectException:
+        return "unknown", 0.0
+    if (
+        len(text) <= 1
+        or (len(text) <= 5 and lang.prob <= 0.2)
+    ):
+        return "unknown", 0.0
+    return lang.lang, lang.prob
