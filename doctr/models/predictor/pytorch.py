@@ -10,11 +10,10 @@ import torch
 from torch import nn
 
 from doctr.io.elements import Document
-from doctr.models._utils import estimate_orientation
+from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
-from doctr.utils.lang_detect import get_language
 
 from .base import _OCRPredictor
 

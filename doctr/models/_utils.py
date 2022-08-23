@@ -5,12 +5,19 @@
 
 from math import floor
 from statistics import median_low
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
+from lingua import Language, LanguageDetectorBuilder
 
-__all__ = ['estimate_orientation', 'get_bitmap_angle']
+from doctr.datasets.vocabs import LANGUAGES
+
+__all__ = ['estimate_orientation', 'get_bitmap_angle', 'get_language']
+
+languages = [Language._member_map_[item.upper()] for item in LANGUAGES if
+             item.upper() in Language._member_map_.keys()]
+MODEL = LanguageDetectorBuilder.from_languages(*languages).build()
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -138,3 +145,18 @@ def rectify_loc_preds(
             axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
         axis=0
     ) if len(orientations) > 0 else None
+
+
+def get_language(text: str) -> Tuple[str, float]:
+    """Get languages of a text using lingua library.
+    Get the language with the highest probability or no language if only a few words or no language was identified
+    Args:
+        text (str): text
+    Returns:
+        The detected language in ISO 639 code and confidence score
+    """
+    predictions = MODEL.compute_language_confidence_values(text.lower())
+    if len(text) <= 5 or not predictions:
+        return "unknown", 0.0
+    lang, prob = predictions[0]
+    return lang.iso_code_639_1.name.lower(), prob
