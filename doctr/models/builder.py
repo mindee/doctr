@@ -274,6 +274,7 @@ class DocumentBuilder(NestedObject):
         text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
         orientations: Optional[List[Dict[str, Any]]] = None,
+        languages: Optional[List[Dict[str, Any]]] = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -290,6 +291,8 @@ class DocumentBuilder(NestedObject):
             raise ValueError("All arguments are expected to be lists of the same size")
 
         _orientations = orientations if isinstance(orientations, list) \
+            else [None] * len(boxes)  # type: ignore[list-item]
+        _languages = languages if isinstance(languages, list) \
             else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
@@ -310,10 +313,10 @@ class DocumentBuilder(NestedObject):
                 _idx,
                 shape,
                 orientation,
-                None,
+                language,
             )
-            for _idx, shape, page_boxes, word_preds, orientation in
-            zip(range(len(boxes)), page_shapes, boxes, text_preds, _orientations)
+            for _idx, shape, page_boxes, word_preds, orientation, language in
+            zip(range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages)
         ]
 
         return Document(_pages)

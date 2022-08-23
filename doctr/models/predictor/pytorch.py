@@ -10,7 +10,7 @@ import torch
 from torch import nn
 
 from doctr.io.elements import Document
-from doctr.models._utils import estimate_orientation
+from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
@@ -33,6 +33,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_language: if True, the language prediction will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -45,6 +47,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
+        detect_language: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -55,6 +58,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
         )
         self.detect_orientation = detect_orientation
+        self.detect_language = detect_language
 
     @torch.no_grad()
     def forward(
@@ -109,6 +113,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
+        if self.detect_language:
+            languages = [get_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
+            languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+        else:
+            languages_dict = None
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -126,5 +135,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 for page in pages
             ],
             orientations,
+            languages_dict,
         )
         return out

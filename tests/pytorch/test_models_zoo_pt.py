@@ -48,6 +48,7 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
         detect_orientation=True,
+        detect_language=True,
     )
 
     if assume_straight_pages:

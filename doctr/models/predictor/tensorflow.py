@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.io.elements import Document
-from doctr.models._utils import estimate_orientation
+from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
@@ -33,6 +33,8 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_language: if True, the language prediction will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
     _children_names = ['det_predictor', 'reco_predictor', 'doc_builder']
@@ -46,6 +48,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
+        detect_language: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -55,6 +58,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
         )
         self.detect_orientation = detect_orientation
+        self.detect_language = detect_language
 
     def __call__(
         self,
@@ -101,6 +105,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 
+        if self.detect_language:
+            languages = [get_language(" ".join([item[0] for item in text_pred])) for text_pred in text_preds]
+            languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
+        else:
+            languages_dict = None
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
             boxes = [rotate_boxes(
@@ -110,5 +119,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 target_shape=mask,  # type: ignore[arg-type]
             ) for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
-        out = self.doc_builder(boxes, text_preds, origin_page_shapes, orientations)  # type: ignore[arg-type]
+        out = self.doc_builder(
+            boxes,
+            text_preds,
+            origin_page_shapes,  # type: ignore[arg-type]
+            orientations,
+            languages_dict,
+        )
         return out
