@@ -267,6 +267,8 @@
     <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">det_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
     <span class="n">reco_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 
@@ -289,6 +291,8 @@
         <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
         <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
         <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+        <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
+        <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span>
 
@@ -301,6 +305,8 @@
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
@@ -324,6 +330,10 @@
 <span class="sd">        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.</span>
 <span class="sd">        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</span>
 <span class="sd">            (potentially rotated) as straight bounding boxes.</span>
+<span class="sd">        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each</span>
+<span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
+<span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
@@ -338,6 +348,8 @@
         <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
         <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
         <span class="n">export_as_straight_boxes</span><span class="o">=</span><span class="n">export_as_straight_boxes</span><span class="p">,</span>
+        <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
+        <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 </pre></div>
