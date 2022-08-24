@@ -185,10 +185,7 @@ class DBNet(_DBNet, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[np.ndarray]] = None,
-        return_model_output: bool = False,
-        return_preds: bool = False,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> torch.Tensor:
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
         feats = [feats[str(idx)] for idx in range(len(feats))]
@@ -196,29 +193,8 @@ class DBNet(_DBNet, nn.Module):
         feat_concat = self.fpn(feats)
         logits = self.prob_head(feat_concat)
 
-        out: Dict[str, Any] = {}
-        if self.exportable:
-            out['logits'] = logits
-            return out
-
-        if return_model_output or target is None or return_preds:
-            prob_map = torch.sigmoid(logits)
-
-        if return_model_output:
-            out["out_map"] = prob_map
-
-        if target is None or return_preds:
-            # Post-process boxes (keep only text predictions)
-            out["preds"] = [
-                preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
-            ]
-
-        if target is not None:
-            thresh_map = self.thresh_head(feat_concat)
-            loss = self.compute_loss(logits, thresh_map, target)
-            out['loss'] = loss
-
-        return out
+        
+        return torch.sigmoid(logits)
 
     def compute_loss(
         self,

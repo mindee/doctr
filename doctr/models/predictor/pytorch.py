@@ -17,6 +17,8 @@ from doctr.utils.geometry import rotate_boxes, rotate_image
 
 from .base import _OCRPredictor
 
+import time
+
 __all__ = ['OCRPredictor']
 
 
@@ -91,7 +93,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             ]
 
         # Localize text elements
+        det_start = time.time()
         loc_preds = self.det_predictor(pages, **kwargs)
+        print("det_time", time.time() - det_start)
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
@@ -109,7 +113,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if not self.assume_straight_pages:
             crops, loc_preds = self._rectify_crops(crops, loc_preds)
         # Identify character sequences
+        print(len([crop for page_crops in crops for crop in page_crops]))
+        rec_start = time.time()
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
+        print("rec_time", time.time() - rec_start)
 
         boxes, text_preds = self._process_predictions(loc_preds, word_preds)
 

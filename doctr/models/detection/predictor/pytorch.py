@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+from concurrent.futures import process
 from typing import Any, List, Union
 
 import numpy as np
@@ -10,6 +11,8 @@ import torch
 from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
+import onnxruntime
+
 
 __all__ = ['DetectionPredictor']
 
@@ -31,6 +34,7 @@ class DetectionPredictor(nn.Module):
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
+        self.det_session = onnxruntime.InferenceSession("det.onnx")
 
     @torch.no_grad()
     def forward(
@@ -45,8 +49,10 @@ class DetectionPredictor(nn.Module):
 
         processed_batches = self.pre_processor(pages)
         _device = next(self.model.parameters()).device
-        predicted_batches = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
-            for batch in processed_batches
-        ]
-        return [pred for batch in predicted_batches for pred in batch]
+        predicted_batches = []
+        for batch in processed_batches:
+            det_inputs = {"input":batch.detach().cpu().numpy()}
+            pred_map = self.det_session.run(None, det_inputs)[0]
+            pred_map = np.transpose(pred_map, (0, 2, 3, 1))
+            predicted_batches += [pred[0] for pred in self.model.postprocessor(pred_map)]
+        return predicted_batches

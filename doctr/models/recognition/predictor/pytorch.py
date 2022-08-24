@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
+import onnxruntime
 
 from ._utils import remap_preds, split_crops
 
@@ -39,6 +40,7 @@ class RecognitionPredictor(nn.Module):
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
         self.target_ar = 6  # Target aspect ratio
+        self.rec_session = onnxruntime.InferenceSession("optimized_rec.onnx")
 
     @torch.no_grad()
     def forward(
@@ -71,10 +73,11 @@ class RecognitionPredictor(nn.Module):
 
         # Forward it
         _device = next(self.model.parameters()).device
-        raw = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
-            for batch in processed_batches
-        ]
+        raw = []
+        for batch in processed_batches:
+            char_logits = self.rec_session.run(None, {"input": batch.detach().cpu().numpy()})[0]
+            char_logits = torch.tensor(char_logits)
+            raw += [self.model.postprocessor(char_logits)]
 
         # Process outputs
         out = [charseq for batch in raw for charseq in batch]

@@ -192,13 +192,7 @@ class CRNN(RecognitionModel, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[str]] = None,
-        return_model_output: bool = False,
-        return_preds: bool = False,
-    ) -> Dict[str, Any]:
-
-        if self.training and target is None:
-            raise ValueError('Need to provide labels during training')
+    ) -> torch.Tensor:
 
         features = self.feat_extractor(x)
         # B x C x H x W --> B x C*H x W --> B x W x C*H
@@ -207,23 +201,8 @@ class CRNN(RecognitionModel, nn.Module):
         features_seq = torch.transpose(features_seq, 1, 2)
         logits, _ = self.decoder(features_seq)
         logits = self.linear(logits)
-
-        out: Dict[str, Any] = {}
-        if self.exportable:
-            out['logits'] = logits
-            return out
-
-        if return_model_output:
-            out["out_map"] = logits
-
-        if target is None or return_preds:
-            # Post-process boxes
-            out["preds"] = self.postprocessor(logits)
-
-        if target is not None:
-            out['loss'] = self.compute_loss(logits, target)
-
-        return out
+        
+        return logits
 
 
 def _crnn(
