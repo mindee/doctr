@@ -92,10 +92,10 @@ class SVT(VisionDataset):
                 _boxes = [
                     [
                         float(rect.attrib["x"]),
-                        float(rect.attrib["y"]),  # type: ignore[list-item]
-                        float(rect.attrib["x"]) + float(rect.attrib["width"]),  # type: ignore[list-item]
+                        float(rect.attrib["y"]),
+                        float(rect.attrib["x"]) + float(rect.attrib["width"]),
                         float(rect.attrib["y"]) + float(rect.attrib["height"]),
-                    ]  # type: ignore[list-item]
+                    ]
                     for rect in rectangles
                 ]
 
