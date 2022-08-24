@@ -117,13 +117,19 @@ class PreProcessor(nn.Module):
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
             # Sample transform (to tensor, resize)
-            samples = multithread_exec(self.sample_transforms, x)
+            samples = []
+            for sub_x in x:
+                samples.append(self.sample_transforms(sub_x))
+            # print(samples)
+            # samples = multithread_exec(self.sample_transforms, x)
+            # print(samples)
             # Batching
             batches = self.batch_inputs(samples)  # type: ignore[arg-type]
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
-        batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
+        batches = [self.normalize(batch) for batch in batches]
+        # batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
 
         return batches

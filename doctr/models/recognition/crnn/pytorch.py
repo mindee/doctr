@@ -16,6 +16,7 @@ from openvino.runtime import Core
 import onnxruntime as ort
 
 from doctr.datasets import VOCABS, decode_sequence
+from doctr.utils.data import download_from_url
 
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils.pytorch import load_pretrained_params
@@ -37,7 +38,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['legacy_french'],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_vgg16_bn-9762b0b0.pt',
+        'url': 'https://github.com/h2oai/doctr/releases/download/onnx_models/crnn_vgg16_bn.onnx',
     },
     'crnn_mobilenet_v3_small': {
         'mean': (0.694, 0.695, 0.693),
@@ -280,10 +281,11 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
 
         self.postprocessor = CTCPostProcessor(vocab=self.vocab)
         self.device = torch.cuda.is_available()
+        model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
         if self.device:
-            self.sess = ort.InferenceSession('rec.onnx', providers=['CUDAExecutionProvider'])
+            self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
         else:
-            self.sess = ort.InferenceSession('rec.onnx', providers=['CPUExecutionProvider'])
+            self.sess = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
     @torch.no_grad()
     def forward(
         self,
@@ -292,6 +294,35 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
         logits = self.sess.run(None, {"input":x.detach().cpu().numpy()})[0]
         return logits
 
+# class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
+#     """Onnx converted crnn_vgg16_bn_onnx"""
+#     def __init__(
+#         self,
+#         pretrained = True
+#     ) -> None:
+#         super().__init__()
+#         self.vocab = default_cfgs["crnn_vgg16_bn_onnx"]["vocab"]
+#         self.cfg = default_cfgs["crnn_vgg16_bn_onnx"]
+
+#         self.postprocessor = CTCPostProcessor(vocab=self.vocab)
+#         self.device = torch.cuda.is_available()
+#         if self.device:
+#             self.sess = ort.InferenceSession('rec.onnx', providers=['CUDAExecutionProvider'])
+#         else:
+#             self.ie = Core()
+#             self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
+#             self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
+#             self.output_layer_onnx = self.compiled_model_onnx.output(0)
+
+#     def forward(
+#         self,
+#         x: torch.Tensor,
+#     ):
+#         if self.device:
+#             logits = self.sess.run(None, {"input":x.detach().cpu().numpy()})[0]
+#         else:
+#             logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
+#         return logits
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based

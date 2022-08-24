@@ -8,7 +8,6 @@ from typing import Any, List, Union
 import numpy as np
 import torch
 from torch import nn
-
 from doctr.models.preprocessor import PreProcessor
 from openvino.runtime import Core
 

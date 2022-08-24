@@ -8,7 +8,6 @@ from typing import Any, List, Sequence, Tuple, Union
 import numpy as np
 import torch
 from torch import nn
-
 from doctr.models.preprocessor import PreProcessor
 
 from ._utils import remap_preds, split_crops

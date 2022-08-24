@@ -16,6 +16,7 @@ from torchvision.ops.deform_conv import DeformConv2d
 
 from openvino.runtime import Core
 import onnxruntime as ort
+from doctr.utils.data import download_from_url
 
 from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
@@ -35,7 +36,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'input_shape': (3, 1024, 1024),
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_resnet50-ac60cadc.pt',
+        'url': 'https://github.com/h2oai/doctr/releases/download/onnx_models/db_resnet50.onnx',
     },
     'db_resnet34': {
         'input_shape': (3, 1024, 1024),
@@ -362,12 +363,13 @@ class db_resnet50_onnx(_DBNet, nn.Module):
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
         self.device = torch.cuda.is_available()
+        model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
         if self.device:
-            self.sess = ort.InferenceSession('det.onnx', providers=['CUDAExecutionProvider'])
+            self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
         else:
             self.ie = Core()
             self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
-            self.compiled_model_onnx = self.ie.compile_model(model="det.onnx", device_name="CPU")
+            self.compiled_model_onnx = self.ie.compile_model(model=model_path, device_name="CPU")
             self.output_layer_onnx = self.compiled_model_onnx.output(0)
     @torch.no_grad()
     def forward(
