@@ -5,7 +5,7 @@
 
 import os
 
-os.environ['USE_TORCH'] = '1'
+os.environ["USE_TORCH"] = "1"
 
 import datetime
 import logging
@@ -46,14 +46,14 @@ def record_lr(
 
     model = model.train()
     # Update param groups & LR
-    optimizer.defaults['lr'] = start_lr
+    optimizer.defaults["lr"] = start_lr
     for pgroup in optimizer.param_groups:
-        pgroup['lr'] = start_lr
+        pgroup["lr"] = start_lr
 
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
 
-    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
     loss_recorder = []
 
     if amp:
@@ -94,18 +94,20 @@ def record_lr(
         if batch_idx + 1 == num_it:
             break
 
-    return lr_recorder[:len(loss_recorder)], loss_recorder
+    return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
 def convert_to_abs_coords(targets, img_shape):
     height, width = img_shape[-2:]
     for idx, t in enumerate(targets):
-        targets[idx]['boxes'][:, 0::2] = (t['boxes'][:, 0::2] * width).round()
-        targets[idx]['boxes'][:, 1::2] = (t['boxes'][:, 1::2] * height).round()
+        targets[idx]["boxes"][:, 0::2] = (t["boxes"][:, 0::2] * width).round()
+        targets[idx]["boxes"][:, 1::2] = (t["boxes"][:, 1::2] * height).round()
 
-    targets = [{
-        "boxes": torch.from_numpy(t['boxes']).to(dtype=torch.float32),
-        "labels": torch.tensor(t['labels']).to(dtype=torch.long)}
+    targets = [
+        {
+            "boxes": torch.from_numpy(t["boxes"]).to(dtype=torch.float32),
+            "labels": torch.tensor(t["labels"]).to(dtype=torch.long),
+        }
         for t in targets
     ]
 
@@ -140,7 +142,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
             loss.backward()
             optimizer.step()
 
-        mb.child.comment = f'Training loss: {loss.item()}'
+        mb.child.comment = f"Training loss: {loss.item()}"
     scheduler.step()
 
 
@@ -160,10 +162,10 @@ def evaluate(model, val_loader, metric, amp=False):
             output = model(images)
 
         # Compute metric
-        pred_labels = np.concatenate([o['labels'].cpu().numpy() for o in output])
-        pred_boxes = np.concatenate([o['boxes'].cpu().numpy() for o in output])
-        gt_boxes = np.concatenate([o['boxes'].cpu().numpy() for o in targets])
-        gt_labels = np.concatenate([o['labels'].cpu().numpy() for o in targets])
+        pred_labels = np.concatenate([o["labels"].cpu().numpy() for o in output])
+        pred_boxes = np.concatenate([o["boxes"].cpu().numpy() for o in output])
+        gt_boxes = np.concatenate([o["boxes"].cpu().numpy() for o in targets])
+        gt_labels = np.concatenate([o["labels"].cpu().numpy() for o in targets])
         metric.update(gt_boxes, pred_boxes, gt_labels, pred_labels)
 
     return metric.summary()
@@ -196,8 +198,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
-          f"{len(val_loader)} batches)")
+    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)")
 
     # Load doctr model
     model = obj_detection.__dict__[args.arch](pretrained=args.pretrained, num_classes=5)
@@ -205,7 +206,7 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         print(f"Resuming {args.resume}")
-        checkpoint = torch.load(args.resume, map_location='cpu')
+        checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
     # GPU
@@ -237,12 +238,14 @@ def main(args):
     train_set = DocArtefacts(
         train=True,
         download=True,
-        img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size)),
-            T.RandomApply(T.GaussianNoise(0., 0.25), p=0.5),
-            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), .3),
-        ]),
+        img_transforms=Compose(
+            [
+                T.Resize((args.input_size, args.input_size)),
+                T.RandomApply(T.GaussianNoise(0.0, 0.25), p=0.5),
+                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), 0.3),
+            ]
+        ),
         sample_transforms=T.RandomHorizontalFlip(p=0.5),
     )
     train_loader = DataLoader(
@@ -254,8 +257,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
-          f"{len(train_loader)} batches)")
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in " f"{len(train_loader)} batches)")
 
     if args.show_samples:
         images, targets = next(iter(train_loader))
@@ -269,8 +271,9 @@ def main(args):
             p.reguires_grad_(False)
 
     # Optimizer
-    optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad],
-                          lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = optim.SGD(
+        [p for p in model.parameters() if p.requires_grad], lr=args.lr, weight_decay=args.weight_decay
+    )
     # LR Finder
     if args.find_lr:
         lrs, losses = record_lr(model, train_loader, optimizer, amp=args.amp)
@@ -300,17 +303,17 @@ def main(args):
                 "scheduler": "step",
                 "pretrained": args.pretrained,
                 "amp": args.amp,
-            }
+            },
         )
 
     mb = master_bar(range(args.epochs))
-    max_score = 0.
+    max_score = 0.0
 
     for epoch in mb:
         fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=args.amp)
         # Validation loop at the end of each epoch
         recall, precision, mean_iou = evaluate(model, val_loader, metric, amp=args.amp)
-        f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.
+        f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
         if f1_score > max_score:
             print(f"Validation metric increased {max_score:.6} --> {f1_score:.6}: saving state...")
@@ -324,44 +327,55 @@ def main(args):
         mb.write(log_msg)
         # W&B
         if args.wb:
-            wandb.log({
-                'recall': recall,
-                'precision': precision,
-                'mean_iou': mean_iou,
-            })
+            wandb.log(
+                {
+                    "recall": recall,
+                    "precision": precision,
+                    "mean_iou": mean_iou,
+                }
+            )
 
     if args.wb:
         run.finish()
 
     if args.push_to_hub:
-        push_to_hf_hub(model, exp_name, task='obj_detection', run_config=args)
+        push_to_hf_hub(model, exp_name, task="obj_detection", run_config=args)
 
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR training script for object detection (PyTorch)',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('arch', type=str, help='text-detection model to train')
-    parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
-    parser.add_argument('--epochs', type=int, default=20, help='number of epochs to train the model on')
-    parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for training')
-    parser.add_argument('--device', default=None, type=int, help='device')
-    parser.add_argument('--input_size', type=int, default=1024, help='model input size, H = W')
-    parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (SGD)')
-    parser.add_argument('--wd', '--weight-decay', default=0, type=float, help='weight decay', dest='weight_decay')
-    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
-    parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
-    parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
-    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
-                        help='Display unormalized training samples')
-    parser.add_argument('--freeze-backbone', dest='freeze_backbone', action='store_true',
-                        help='freeze model backbone for fine-tuning')
-    parser.add_argument('--wb', dest='wb', action='store_true', help='Log to Weights & Biases')
-    parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
-    parser.add_argument('--pretrained', dest='pretrained', action='store_true',
-                        help='Load pretrained parameters before starting the training')
+
+    parser = argparse.ArgumentParser(
+        description="DocTR training script for object detection (PyTorch)",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("arch", type=str, help="text-detection model to train")
+    parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
+    parser.add_argument("--epochs", type=int, default=20, help="number of epochs to train the model on")
+    parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
+    parser.add_argument("--device", default=None, type=int, help="device")
+    parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
+    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (SGD)")
+    parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
+    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
+    parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
+    parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
+    parser.add_argument(
+        "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
+    )
+    parser.add_argument(
+        "--freeze-backbone", dest="freeze_backbone", action="store_true", help="freeze model backbone for fine-tuning"
+    )
+    parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
+    parser.add_argument(
+        "--pretrained",
+        dest="pretrained",
+        action="store_true",
+        help="Load pretrained parameters before starting the training",
+    )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
-    parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
+    parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     args = parser.parse_args()
     return args
 

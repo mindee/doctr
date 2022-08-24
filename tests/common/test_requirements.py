@@ -12,7 +12,7 @@ def test_deps_consistency():
     folder = Path(__file__).parent.parent.parent.absolute()
     req_deps = {}
     for file in REQ_FILES:
-        with open(folder.joinpath(file), 'r') as f:
+        with open(folder.joinpath(file), "r") as f:
             _deps = [(req.name, req.specs) for req in requirements.parse(f)]
 
         for _dep in _deps:
@@ -22,10 +22,10 @@ def test_deps_consistency():
 
     # Collect the one from setup.py
     setup_deps = {}
-    with open(folder.joinpath("setup.py"), 'r') as f:
+    with open(folder.joinpath("setup.py"), "r") as f:
         setup = f.readlines()
-    lines = setup[setup.index("_deps = [\n") + 1:]
-    lines = [_dep.strip() for _dep in lines[:lines.index("]\n")]]
+    lines = setup[setup.index("_deps = [\n") + 1 :]
+    lines = [_dep.strip() for _dep in lines[: lines.index("]\n")]]
     lines = [_dep.split('"')[1] for _dep in lines if _dep.startswith('"')]
     _reqs = [Requirement.parse(_line) for _line in lines]
     _deps = [(req.name, req.specs) for req in _reqs]

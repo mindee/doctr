@@ -8,7 +8,7 @@ import multiprocessing as mp
 from multiprocessing.pool import ThreadPool
 from typing import Any, Callable, Iterable, Optional
 
-__all__ = ['multithread_exec']
+__all__ = ["multithread_exec"]
 
 
 def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterable[Any]:

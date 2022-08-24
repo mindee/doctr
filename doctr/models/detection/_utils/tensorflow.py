@@ -5,7 +5,7 @@
 
 import tensorflow as tf
 
-__all__ = ['erode', 'dilate']
+__all__ = ["erode", "dilate"]
 
 
 def erode(x: tf.Tensor, kernel_size: int) -> tf.Tensor:

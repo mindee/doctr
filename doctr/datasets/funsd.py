@@ -14,7 +14,7 @@ from tqdm import tqdm
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
 
-__all__ = ['FUNSD']
+__all__ = ["FUNSD"]
 
 
 class FUNSD(VisionDataset):
@@ -35,9 +35,9 @@ class FUNSD(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = 'https://guillaumejaume.github.io/FUNSD/dataset.zip'
-    SHA256 = 'c31735649e4f441bcbb4fd0f379574f7520b42286e80b01d80b445649d54761f'
-    FILE_NAME = 'funsd.zip'
+    URL = "https://guillaumejaume.github.io/FUNSD/dataset.zip"
+    SHA256 = "c31735649e4f441bcbb4fd0f379574f7520b42286e80b01d80b445649d54761f"
+    FILE_NAME = "funsd.zip"
 
     def __init__(
         self,
@@ -53,28 +53,32 @@ class FUNSD(VisionDataset):
             self.SHA256,
             True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            **kwargs,
         )
         self.train = train
         np_dtype = np.float32
 
         # Use the subset
-        subfolder = os.path.join('dataset', 'training_data' if train else 'testing_data')
+        subfolder = os.path.join("dataset", "training_data" if train else "testing_data")
 
         # # List images
-        tmp_root = os.path.join(self.root, subfolder, 'images')
+        tmp_root = os.path.join(self.root, subfolder, "images")
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
-        for img_path in tqdm(iterable=os.listdir(tmp_root), desc='Unpacking FUNSD', total=len(os.listdir(tmp_root))):
+        for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking FUNSD", total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
 
             stem = Path(img_path).stem
-            with open(os.path.join(self.root, subfolder, 'annotations', f"{stem}.json"), 'rb') as f:
+            with open(os.path.join(self.root, subfolder, "annotations", f"{stem}.json"), "rb") as f:
                 data = json.load(f)
 
-            _targets = [(word['text'], word['box']) for block in data['form']
-                        for word in block['words'] if len(word['text']) > 0]
+            _targets = [
+                (word["text"], word["box"])
+                for block in data["form"]
+                for word in block["words"]
+                if len(word["text"]) > 0
+            ]
             text_targets, box_targets = zip(*_targets)
             if use_polygons:
                 # xmin, ymin, xmax, ymax -> (x, y) coordinates of top left, top right, bottom right, bottom left corners
@@ -84,21 +88,25 @@ class FUNSD(VisionDataset):
                         [box[2], box[1]],
                         [box[2], box[3]],
                         [box[0], box[3]],
-                    ] for box in box_targets
+                    ]
+                    for box in box_targets
                 ]
 
             if recognition_task:
-                crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path),
-                                               geoms=np.asarray(box_targets, dtype=np_dtype))
+                crops = crop_bboxes_from_image(
+                    img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=np_dtype)
+                )
                 for crop, label in zip(crops, list(text_targets)):
                     # filter labels with unknown characters
-                    if not any(char in label for char in ['☑', '☐', '\uf703', '\uf702']):
+                    if not any(char in label for char in ["☑", "☐", "\uf703", "\uf702"]):
                         self.data.append((crop, dict(labels=[label])))
             else:
-                self.data.append((
-                    img_path,
-                    dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
-                ))
+                self.data.append(
+                    (
+                        img_path,
+                        dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
+                    )
+                )
 
         self.root = tmp_root
 

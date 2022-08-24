@@ -26,6 +26,25 @@ jobs:
           flake8 --version
           flake8
 
+  black:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Run black
+        run: |
+          pip install black
+          black --version
+          black --check --diff .
+
   isort:
     runs-on: ${{ matrix.os }}
     strategy:

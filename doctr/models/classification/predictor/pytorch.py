@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
 
-__all__ = ['CropOrientationPredictor']
+__all__ = ["CropOrientationPredictor"]
 
 
 class CropOrientationPredictor(nn.Module):
@@ -44,10 +44,7 @@ class CropOrientationPredictor(nn.Module):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(crops)
-        predicted_batches = [
-            self.model(batch)
-            for batch in processed_batches
-        ]
+        predicted_batches = [self.model(batch) for batch in processed_batches]
 
         # Postprocess predictions
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]

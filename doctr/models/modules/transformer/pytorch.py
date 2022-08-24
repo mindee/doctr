@@ -11,11 +11,11 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
-__all__ = ['Decoder', 'PositionalEncoding']
+__all__ = ["Decoder", "PositionalEncoding"]
 
 
 class PositionalEncoding(nn.Module):
-    """ Compute positional encoding """
+    """Compute positional encoding"""
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000) -> None:
         super(PositionalEncoding, self).__init__()
@@ -42,23 +42,20 @@ class PositionalEncoding(nn.Module):
 
 
 def scaled_dot_product_attention(
-    query: torch.Tensor,
-    key: torch.Tensor,
-    value: torch.Tensor,
-    mask: Optional[torch.Tensor] = None
+    query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: Optional[torch.Tensor] = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """ Scaled Dot-Product Attention """
+    """Scaled Dot-Product Attention"""
 
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
-        scores = scores.masked_fill(mask == 0, float('-inf'))
+        scores = scores.masked_fill(mask == 0, float("-inf"))
     p_attn = torch.softmax(scores, dim=-1)
     return torch.matmul(p_attn, value), p_attn
 
 
 class PositionwiseFeedForward(nn.Sequential):
-    """ Position-wise Feed-Forward Network """
+    """Position-wise Feed-Forward Network"""
 
     def __init__(self, d_model: int, ffd: int, dropout: float = 0.1) -> None:
         super().__init__(
@@ -70,7 +67,7 @@ class PositionwiseFeedForward(nn.Sequential):
 
 
 class MultiHeadAttention(nn.Module):
-    """ Multi-Head Attention """
+    """Multi-Head Attention"""
 
     def __init__(self, num_heads: int, d_model: int, dropout: float = 0.1) -> None:
         super().__init__()
@@ -82,18 +79,14 @@ class MultiHeadAttention(nn.Module):
         self.linear_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(3)])
         self.output_linear = nn.Linear(d_model, d_model)
 
-    def forward(
-        self,
-        query: torch.Tensor,
-        key: torch.Tensor,
-        value: torch.Tensor,
-        mask=None
-    ) -> torch.Tensor:
+    def forward(self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask=None) -> torch.Tensor:
         batch_size = query.size(0)
 
         # linear projections of Q, K, V
-        query, key, value = [linear(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
-                             for linear, x in zip(self.linear_layers, (query, key, value))]
+        query, key, value = [
+            linear(x).view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
+            for linear, x in zip(self.linear_layers, (query, key, value))
+        ]
 
         # apply attention on all the projected vectors in batch
         x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
@@ -105,7 +98,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class Decoder(nn.Module):
-    """ Transformer Decoder """
+    """Transformer Decoder"""
 
     def __init__(
         self,
@@ -151,13 +144,9 @@ class Decoder(nn.Module):
 
         for i in range(self.num_layers):
             normed_output = self.layer_norm(output)
-            output = output + self.dropout(
-                self.attention[i](normed_output, normed_output, normed_output, target_mask)
-            )
+            output = output + self.dropout(self.attention[i](normed_output, normed_output, normed_output, target_mask))
             normed_output = self.layer_norm(output)
-            output = output + self.dropout(
-                self.source_attention[i](normed_output, memory, memory, source_mask)
-            )
+            output = output + self.dropout(self.source_attention[i](normed_output, memory, memory, source_mask))
             normed_output = self.layer_norm(output)
             output = output + self.dropout(self.position_feed_forward[i](normed_output))
 

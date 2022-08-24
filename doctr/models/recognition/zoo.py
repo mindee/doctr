@@ -14,7 +14,7 @@ from .predictor import RecognitionPredictor
 __all__ = ["recognition_predictor"]
 
 
-ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master']
+ARCHS: List[str] = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master"]
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
@@ -29,23 +29,16 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 
-    kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
-    kwargs['std'] = kwargs.get('std', _model.cfg['std'])
-    kwargs['batch_size'] = kwargs.get('batch_size', 32)
-    input_shape = _model.cfg['input_shape'][:2] if is_tf_available() else _model.cfg['input_shape'][-2:]
-    predictor = RecognitionPredictor(
-        PreProcessor(input_shape, preserve_aspect_ratio=True, **kwargs),
-        _model
-    )
+    kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
+    kwargs["std"] = kwargs.get("std", _model.cfg["std"])
+    kwargs["batch_size"] = kwargs.get("batch_size", 32)
+    input_shape = _model.cfg["input_shape"][:2] if is_tf_available() else _model.cfg["input_shape"][-2:]
+    predictor = RecognitionPredictor(PreProcessor(input_shape, preserve_aspect_ratio=True, **kwargs), _model)
 
     return predictor
 
 
-def recognition_predictor(
-    arch: Any = 'crnn_vgg16_bn',
-    pretrained: bool = False,
-    **kwargs: Any
-) -> RecognitionPredictor:
+def recognition_predictor(arch: Any = "crnn_vgg16_bn", pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
     """Text recognition architecture.
 
     Example::

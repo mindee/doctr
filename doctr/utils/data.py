@@ -17,11 +17,11 @@ from typing import Optional, Union
 
 from tqdm.auto import tqdm
 
-__all__ = ['download_from_url']
+__all__ = ["download_from_url"]
 
 
 # matches bfd8deac from resnet18-bfd8deac.ckpt
-HASH_REGEX = re.compile(r'-([a-f0-9]*)\.')
+HASH_REGEX = re.compile(r"-([a-f0-9]*)\.")
 USER_AGENT = "mindee/doctr"
 
 
@@ -37,10 +37,10 @@ def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -
 
 
 def _check_integrity(file_path: Union[str, Path], hash_prefix: str) -> bool:
-    with open(file_path, 'rb') as f:
+    with open(file_path, "rb") as f:
         sha_hash = hashlib.sha256(f.read()).hexdigest()
 
-    return sha_hash[:len(hash_prefix)] == hash_prefix
+    return sha_hash[: len(hash_prefix)] == hash_prefix
 
 
 def download_from_url(
@@ -67,10 +67,10 @@ def download_from_url(
     """
 
     if not isinstance(file_name, str):
-        file_name = url.rpartition('/')[-1]
+        file_name = url.rpartition("/")[-1]
 
     if not isinstance(cache_dir, str):
-        cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr')
+        cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "doctr")
 
     # Check hash in file name
     if hash_prefix is None:
@@ -91,10 +91,9 @@ def download_from_url(
         print(f"Downloading {url} to {file_path}")
         _urlretrieve(url, file_path)
     except (urllib.error.URLError, IOError) as e:
-        if url[:5] == 'https':
-            url = url.replace('https:', 'http:')
-            print('Failed download. Trying https -> http instead.'
-                  f" Downloading {url} to {file_path}")
+        if url[:5] == "https":
+            url = url.replace("https:", "http:")
+            print("Failed download. Trying https -> http instead." f" Downloading {url} to {file_path}")
             _urlretrieve(url, file_path)
         else:
             raise e

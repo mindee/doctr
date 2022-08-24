@@ -6,7 +6,7 @@
 from torch import Tensor
 from torch.nn.functional import max_pool2d
 
-__all__ = ['erode', 'dilate']
+__all__ = ["erode", "dilate"]
 
 
 def erode(x: Tensor, kernel_size: int) -> Tensor:

@@ -13,7 +13,7 @@ from tqdm import tqdm
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
 
-__all__ = ['IC03']
+__all__ = ["IC03"]
 
 
 class IC03(VisionDataset):
@@ -34,12 +34,16 @@ class IC03(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    TRAIN = ('http://www.iapr-tc11.org/dataset/ICDAR2003_RobustReading/TrialTrain/scene.zip',
-             '9d86df514eb09dd693fb0b8c671ef54a0cfe02e803b1bbef9fc676061502eb94',
-             'ic03_train.zip')
-    TEST = ('http://www.iapr-tc11.org/dataset/ICDAR2003_RobustReading/TrialTest/scene.zip',
-            'dbc4b5fd5d04616b8464a1b42ea22db351ee22c2546dd15ac35611857ea111f8',
-            'ic03_test.zip')
+    TRAIN = (
+        "http://www.iapr-tc11.org/dataset/ICDAR2003_RobustReading/TrialTrain/scene.zip",
+        "9d86df514eb09dd693fb0b8c671ef54a0cfe02e803b1bbef9fc676061502eb94",
+        "ic03_train.zip",
+    )
+    TEST = (
+        "http://www.iapr-tc11.org/dataset/ICDAR2003_RobustReading/TrialTest/scene.zip",
+        "dbc4b5fd5d04616b8464a1b42ea22db351ee22c2546dd15ac35611857ea111f8",
+        "ic03_test.zip",
+    )
 
     def __init__(
         self,
@@ -56,19 +60,20 @@ class IC03(VisionDataset):
             sha256,
             True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            **kwargs,
         )
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         # Load xml data
-        tmp_root = os.path.join(
-            self.root, 'SceneTrialTrain' if self.train else 'SceneTrialTest') if sha256 else self.root
-        xml_tree = ET.parse(os.path.join(tmp_root, 'words.xml'))
+        tmp_root = (
+            os.path.join(self.root, "SceneTrialTrain" if self.train else "SceneTrialTest") if sha256 else self.root
+        )
+        xml_tree = ET.parse(os.path.join(tmp_root, "words.xml"))
         xml_root = xml_tree.getroot()
 
-        for image in tqdm(iterable=xml_root, desc='Unpacking IC03', total=len(xml_root)):
+        for image in tqdm(iterable=xml_root, desc="Unpacking IC03", total=len(xml_root)):
             name, resolution, rectangles = image
 
             # File existence check
@@ -79,22 +84,25 @@ class IC03(VisionDataset):
                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 _boxes = [
                     [
-                        [float(rect.attrib['x']), float(rect.attrib['y'])],
-                        [float(rect.attrib['x']) + float(rect.attrib['width']), float(rect.attrib['y'])],
+                        [float(rect.attrib["x"]), float(rect.attrib["y"])],
+                        [float(rect.attrib["x"]) + float(rect.attrib["width"]), float(rect.attrib["y"])],
                         [
-                            float(rect.attrib['x']) + float(rect.attrib['width']),
-                            float(rect.attrib['y']) + float(rect.attrib['height'])
+                            float(rect.attrib["x"]) + float(rect.attrib["width"]),
+                            float(rect.attrib["y"]) + float(rect.attrib["height"]),
                         ],
-                        [float(rect.attrib['x']), float(rect.attrib['y']) + float(rect.attrib['height'])],
+                        [float(rect.attrib["x"]), float(rect.attrib["y"]) + float(rect.attrib["height"])],
                     ]
                     for rect in rectangles
                 ]
             else:
                 # x_min, y_min, x_max, y_max
                 _boxes = [
-                    [float(rect.attrib['x']), float(rect.attrib['y']),  # type: ignore[list-item]
-                     float(rect.attrib['x']) + float(rect.attrib['width']),  # type: ignore[list-item]
-                     float(rect.attrib['y']) + float(rect.attrib['height'])]  # type: ignore[list-item]
+                    [
+                        float(rect.attrib["x"]),
+                        float(rect.attrib["y"]),  # type: ignore[list-item]
+                        float(rect.attrib["x"]) + float(rect.attrib["width"]),  # type: ignore[list-item]
+                        float(rect.attrib["y"]) + float(rect.attrib["height"]),
+                    ]  # type: ignore[list-item]
                     for rect in rectangles
                 ]
 

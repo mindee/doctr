@@ -31,27 +31,27 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
-        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .8]], dtype=np.float32),
-        np.array([[.5, .5, 1, 1], [0.5, 0.5, .8, .9]], dtype=np.float32),
+        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32),
+        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32),
     ]
     # test training model
     out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
-    assert isinstance(out['out_map'], tf.Tensor)
-    assert out['out_map'].dtype == tf.float32
-    seg_map = out['out_map'].numpy()
+    assert isinstance(out["out_map"], tf.Tensor)
+    assert out["out_map"].dtype == tf.float32
+    seg_map = out["out_map"].numpy()
     assert seg_map.shape == (batch_size, *output_size)
     if out_prob:
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
-    for boxes in out['preds']:
+    for boxes in out["preds"]:
         assert boxes.shape[1] == 5
         assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
-    assert isinstance(out['loss'], tf.Tensor)
+    assert isinstance(out["loss"], tf.Tensor)
     # Target checks
     target = [
         np.array([[0, 0, 1, 1]], dtype=np.uint8),
@@ -62,18 +62,18 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
 
     target = [
         np.array([[0, 0, 1.5, 1.5]], dtype=np.float32),
-        np.array([[-.2, -.3, 1, 1]], dtype=np.float32),
+        np.array([[-0.2, -0.3, 1, 1]], dtype=np.float32),
     ]
     with pytest.raises(ValueError):
         out = model(input_tensor, target, training=True)
 
     # Check the rotated case
     target = [
-        np.array([[.75, .75, .5, .5, 0], [.65, .65, .3, .3, 0]], dtype=np.float32),
-        np.array([[.75, .75, .5, .5, 0], [.65, .7, .3, .4, 0]], dtype=np.float32),
+        np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.65, 0.3, 0.3, 0]], dtype=np.float32),
+        np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.7, 0.3, 0.4, 0]], dtype=np.float32),
     ]
-    loss = model(input_tensor, target, training=True)['loss']
-    assert isinstance(loss, tf.Tensor) and ((loss - out['loss']) / loss).numpy() < 25e-2
+    loss = model(input_tensor, target, training=True)["loss"]
+    assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 25e-2
 
 
 @pytest.fixture(scope="session")
@@ -81,8 +81,7 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
     batch_size = 4
     predictor = DetectionPredictor(
-        PreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(input_shape=(512, 512, 3))
+        PreProcessor(output_size=(512, 512), batch_size=batch_size), detection.db_resnet50(input_shape=(512, 512, 3))
     )
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
@@ -104,7 +103,7 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
     batch_size = 4
     predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),
-        detection.db_resnet50(assume_straight_pages=False, input_shape=(512, 512, 3))
+        detection.db_resnet50(assume_straight_pages=False, input_shape=(512, 512, 3)),
     )
 
     pages = DocumentFile.from_pdf(mock_pdf).as_images()
@@ -184,14 +183,13 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path, output = export_model_to_onnx(
-            model,
-            model_name=os.path.join(tmpdir, "model"),
-            dummy_input=dummy_input
+            model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input
         )
         assert os.path.exists(model_path)
         # Inference
-        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
-                                                   providers=["CPUExecutionProvider"])
-        ort_outs = ort_session.run(output, {'input': np_dummy_input})
+        ort_session = onnxruntime.InferenceSession(
+            os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
+        )
+        ort_outs = ort_session.run(output, {"input": np_dummy_input})
         assert isinstance(ort_outs, list) and len(ort_outs) == 1
         assert ort_outs[0].shape == (batch_size, *output_size)

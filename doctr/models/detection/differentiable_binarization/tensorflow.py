@@ -20,21 +20,21 @@ from doctr.utils.repr import NestedObject
 from ...classification import mobilenet_v3_large
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50', 'db_mobilenet_v3_large']
+__all__ = ["DBNet", "db_resnet50", "db_mobilenet_v3_large"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'db_resnet50': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'input_shape': (1024, 1024, 3),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip',
+    "db_resnet50": {
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
+        "input_shape": (1024, 1024, 3),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.2.0/db_resnet50-adcafc63.zip",
     },
-    'db_mobilenet_v3_large': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'input_shape': (1024, 1024, 3),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip',
+    "db_mobilenet_v3_large": {
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
+        "input_shape": (1024, 1024, 3),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip",
     },
 }
 
@@ -53,9 +53,9 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
     ) -> None:
         super().__init__()
         self.channels = channels
-        self.upsample = layers.UpSampling2D(size=(2, 2), interpolation='nearest')
-        self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer='he_normal') for _ in range(4)]
-        self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
+        self.upsample = layers.UpSampling2D(size=(2, 2), interpolation="nearest")
+        self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer="he_normal") for _ in range(4)]
+        self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2**idx) for idx in range(4)]
 
     @staticmethod
     def build_upsampling(
@@ -73,10 +73,10 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
 
         """
 
-        _layers = conv_sequence(channels, 'relu', True, kernel_size=3)
+        _layers = conv_sequence(channels, "relu", True, kernel_size=3)
 
         if dilation_factor > 1:
-            _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation='nearest'))
+            _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation="nearest"))
 
         module = keras.Sequential(_layers)
 
@@ -115,7 +115,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         cfg: the configuration dict of the model
     """
 
-    _children_names: List[str] = ['feat_extractor', 'fpn', 'probability_head', 'threshold_head', 'postprocessor']
+    _children_names: List[str] = ["feat_extractor", "fpn", "probability_head", "threshold_head", "postprocessor"]
 
     def __init__(
         self,
@@ -141,31 +141,26 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         self.probability_head = keras.Sequential(
             [
-                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
-                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
+                *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
+                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
                 layers.BatchNormalization(),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer='he_normal'),
+                layers.Activation("relu"),
+                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
             ]
         )
         self.threshold_head = keras.Sequential(
             [
-                *conv_sequence(64, 'relu', True, kernel_size=3, input_shape=output_shape[1:]),
-                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer='he_normal'),
+                *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
+                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
                 layers.BatchNormalization(),
-                layers.Activation('relu'),
-                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer='he_normal'),
+                layers.Activation("relu"),
+                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
             ]
         )
 
         self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages)
 
-    def compute_loss(
-        self,
-        out_map: tf.Tensor,
-        thresh_map: tf.Tensor,
-        target: List[np.ndarray]
-    ) -> tf.Tensor:
+    def compute_loss(self, out_map: tf.Tensor, thresh_map: tf.Tensor, target: List[np.ndarray]) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
 
@@ -188,32 +183,32 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
 
         # Compute balanced BCE loss for proba_map
-        bce_scale = 5.
+        bce_scale = 5.0
         bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map, from_logits=True)[seg_mask]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = tf.math.reduce_sum(seg_target[seg_mask])
-        negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3. * positive_count])
+        negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3.0 * positive_count])
         negative_loss = bce_loss * neg_target
         negative_loss, _ = tf.nn.top_k(negative_loss, tf.cast(negative_count, tf.int32))
         sum_losses = tf.math.reduce_sum(bce_loss * seg_target[seg_mask]) + tf.math.reduce_sum(negative_loss)
         balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
 
         # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + tf.exp(-50. * (prob_map[seg_mask] - thresh_map[seg_mask])))
+        bin_map = 1 / (1 + tf.exp(-50.0 * (prob_map[seg_mask] - thresh_map[seg_mask])))
 
         bce_min = tf.math.reduce_min(bce_loss)
-        weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.
+        weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.0
         inter = tf.math.reduce_sum(bin_map * seg_target[seg_mask] * weights)
         union = tf.math.reduce_sum(bin_map) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
         dice_loss = 1 - 2.0 * inter / union
 
         # Compute l1 loss for thresh_map
-        l1_scale = 10.
+        l1_scale = 10.0
         if tf.reduce_any(thresh_mask):
             l1_loss = tf.math.reduce_mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
         else:
-            l1_loss = tf.constant(0.)
+            l1_loss = tf.constant(0.0)
 
         return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
 
@@ -232,7 +227,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
-            out['logits'] = logits
+            out["logits"] = logits
             return out
 
         if return_model_output or target is None or return_preds:
@@ -248,7 +243,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
             loss = self.compute_loss(logits, thresh_map, target)
-            out['loss'] = loss
+            out["loss"] = loss
 
         return out
 
@@ -267,15 +262,15 @@ def _db_resnet(
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg["input_shape"] = input_shape or _cfg["input_shape"]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(
-            weights='imagenet' if pretrained_backbone else None,
+            weights="imagenet" if pretrained_backbone else None,
             include_top=False,
             pooling=None,
-            input_shape=_cfg['input_shape'],
+            input_shape=_cfg["input_shape"],
         ),
         fpn_layers,
     )
@@ -284,7 +279,7 @@ def _db_resnet(
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        load_pretrained_params(model, _cfg["url"])
 
     return model
 
@@ -303,12 +298,12 @@ def _db_mobilenet(
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or _cfg['input_shape']
+    _cfg["input_shape"] = input_shape or _cfg["input_shape"]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(
-            input_shape=_cfg['input_shape'],
+            input_shape=_cfg["input_shape"],
             include_top=False,
             pretrained=pretrained_backbone,
         ),
@@ -319,7 +314,7 @@ def _db_mobilenet(
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        load_pretrained_params(model, _cfg["url"])
 
     return model
 
@@ -342,7 +337,7 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _db_resnet(
-        'db_resnet50',
+        "db_resnet50",
         pretrained,
         ResNet50,
         ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
@@ -368,7 +363,7 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _db_mobilenet(
-        'db_mobilenet_v3_large',
+        "db_mobilenet_v3_large",
         pretrained,
         mobilenet_v3_large,
         ["inverted_2", "inverted_5", "inverted_11", "final_block"],

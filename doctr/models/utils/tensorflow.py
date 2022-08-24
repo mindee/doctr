@@ -17,7 +17,7 @@ from doctr.utils.data import download_from_url
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
-__all__ = ['load_pretrained_params', 'conv_sequence', 'IntermediateLayerGetter', 'export_model_to_onnx']
+__all__ = ["load_pretrained_params", "conv_sequence", "IntermediateLayerGetter", "export_model_to_onnx"]
 
 
 def load_pretrained_params(
@@ -25,7 +25,7 @@ def load_pretrained_params(
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
     overwrite: bool = False,
-    internal_name: str = 'weights',
+    internal_name: str = "weights",
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
@@ -44,12 +44,12 @@ def load_pretrained_params(
     if url is None:
         logging.warning("Invalid model URL, using default initialization.")
     else:
-        archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir='models', **kwargs)
+        archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
 
         # Unzip the archive
         params_path = archive_path.parent.joinpath(archive_path.stem)
         if not params_path.is_dir() or overwrite:
-            with ZipFile(archive_path, 'r') as f:
+            with ZipFile(archive_path, "r") as f:
                 f.extractall(path=params_path)
 
         # Load weights
@@ -60,8 +60,8 @@ def conv_sequence(
     out_channels: int,
     activation: Optional[Union[str, Callable]] = None,
     bn: bool = False,
-    padding: str = 'same',
-    kernel_initializer: str = 'he_normal',
+    padding: str = "same",
+    kernel_initializer: str = "he_normal",
     **kwargs: Any,
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
@@ -81,12 +81,10 @@ def conv_sequence(
         list of layers
     """
     # No bias before Batch norm
-    kwargs['use_bias'] = kwargs.get('use_bias', not bn)
+    kwargs["use_bias"] = kwargs.get("use_bias", not bn)
     # Add activation directly to the conv if there is no BN
-    kwargs['activation'] = activation if not bn else None
-    conv_seq = [
-        layers.Conv2D(out_channels, padding=padding, kernel_initializer=kernel_initializer, **kwargs)
-    ]
+    kwargs["activation"] = activation if not bn else None
+    conv_seq = [layers.Conv2D(out_channels, padding=padding, kernel_initializer=kernel_initializer, **kwargs)]
 
     if bn:
         conv_seq.append(layers.BatchNormalization())
@@ -110,11 +108,8 @@ class IntermediateLayerGetter(Model):
         model: the model to extract feature maps from
         layer_names: the list of layers to retrieve the feature map from
     """
-    def __init__(
-        self,
-        model: Model,
-        layer_names: List[str]
-    ) -> None:
+
+    def __init__(self, model: Model, layer_names: List[str]) -> None:
         intermediate_fmaps = [model.get_layer(layer_name).get_output_at(0) for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
 
@@ -123,10 +118,7 @@ class IntermediateLayerGetter(Model):
 
 
 def export_model_to_onnx(
-    model: Model,
-    model_name: str,
-    dummy_input: List[tf.TensorSpec],
-    **kwargs: Any
+    model: Model, model_name: str, dummy_input: List[tf.TensorSpec], **kwargs: Any
 ) -> Tuple[str, List[str]]:
     """Export model to ONNX format.
 
@@ -146,7 +138,7 @@ def export_model_to_onnx(
     Returns:
         the path to the exported model and a list with the output layer names
     """
-    large_model = kwargs.get('large_model', False)
+    large_model = kwargs.get("large_model", False)
     model_proto, _ = tf2onnx.convert.from_keras(
         model,
         opset=14,  # minimum opset which support all operators we use (v0.5.2)

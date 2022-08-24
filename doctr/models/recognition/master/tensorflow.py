@@ -16,16 +16,16 @@ from doctr.models.modules.transformer import Decoder, PositionalEncoding
 from ...utils.tensorflow import load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'master']
+__all__ = ["MASTER", "master"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'master': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 128, 3),
-        'vocab': VOCABS['french'],
-        'url': None,
+    "master": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 128, 3),
+        "vocab": VOCABS["french"],
+        "url": None,
     },
 }
 
@@ -89,11 +89,7 @@ class MASTER(_MASTER, Model):
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
     @tf.function
-    def make_source_and_target_mask(
-        self,
-        source: tf.Tensor,
-        target: tf.Tensor
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    def make_source_and_target_mask(self, source: tf.Tensor, target: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # [1, 1, 1, ..., 0, 0, 0] -> 0 is masked
         # (N, 1, 1, max_length)
         target_pad_mask = tf.cast(tf.math.not_equal(target, self.vocab_size + 2), dtype=tf.uint8)
@@ -105,8 +101,7 @@ class MASTER(_MASTER, Model):
         source_mask = tf.ones((target_length, source.shape[1]))
         # combine the two masks into one boolean mask where False is masked (N, 1, max_length, max_length)
         target_mask = tf.math.logical_and(
-            tf.cast(target_sub_mask, dtype=tf.bool),
-            tf.cast(target_pad_mask, dtype=tf.bool)
+            tf.cast(target_sub_mask, dtype=tf.bool), tf.cast(target_pad_mask, dtype=tf.bool)
         )
         return source_mask, target_mask
 
@@ -174,8 +169,8 @@ class MASTER(_MASTER, Model):
 
         out: Dict[str, tf.Tensor] = {}
 
-        if kwargs.get('training', False) and target is None:
-            raise ValueError('Need to provide labels during training')
+        if kwargs.get("training", False) and target is None:
+            raise ValueError("Need to provide labels during training")
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
@@ -189,17 +184,17 @@ class MASTER(_MASTER, Model):
             logits = self.decode(encoded, **kwargs)
 
         if self.exportable:
-            out['logits'] = logits
+            out["logits"] = logits
             return out
 
         if target is not None:
-            out['loss'] = self.compute_loss(logits, gt, seq_len)
+            out["loss"] = self.compute_loss(logits, gt, seq_len)
 
         if return_model_output:
-            out['out_map'] = logits
+            out["out_map"] = logits
 
         if return_preds:
-            out['preds'] = self.postprocessor(logits)
+            out["preds"] = self.postprocessor(logits)
 
         return out
 
@@ -231,7 +226,7 @@ class MASTER(_MASTER, Model):
             prob = tf.nn.softmax(logits, axis=-1)
             next_token = tf.argmax(prob, axis=-1, output_type=ys.dtype)
             # update ys with the next token and ignore the first token (SOS)
-            i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing='ij')
+            i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing="ij")
             indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
 
             ys = tf.tensor_scatter_nd_update(ys, indices, next_token[:, i])
@@ -259,43 +254,37 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         probs = tf.math.reduce_min(probs, axis=1)
 
         # decode raw output of the model with tf_label_to_idx
-        out_idxs = tf.cast(out_idxs, dtype='int32')
+        out_idxs = tf.cast(out_idxs, dtype="int32")
         embedding = tf.constant(self._embedding, dtype=tf.string)
         decoded_strings_pred = tf.strings.reduce_join(inputs=tf.nn.embedding_lookup(embedding, out_idxs), axis=-1)
         decoded_strings_pred = tf.strings.split(decoded_strings_pred, "<eos>")
-        decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value='not valid')[:, 0]
+        decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
         return list(zip(word_values, probs.numpy().tolist()))
 
 
-def _master(
-    arch: str,
-    pretrained: bool,
-    backbone_fn,
-    pretrained_backbone: bool = True,
-    **kwargs: Any
-) -> MASTER:
+def _master(arch: str, pretrained: bool, backbone_fn, pretrained_backbone: bool = True, **kwargs: Any) -> MASTER:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = kwargs.get('input_shape', _cfg['input_shape'])
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
+    _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
+    _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
 
-    kwargs['vocab'] = _cfg['vocab']
-    kwargs['input_shape'] = _cfg['input_shape']
+    kwargs["vocab"] = _cfg["vocab"]
+    kwargs["input_shape"] = _cfg["input_shape"]
 
     # Build the model
     model = MASTER(
-        backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg['input_shape'], include_top=False),
+        backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg["input_shape"], include_top=False),
         cfg=_cfg,
         **kwargs,
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, default_cfgs[arch]["url"])
 
     return model
 
@@ -316,4 +305,4 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
         text recognition architecture
     """
 
-    return _master('master', pretrained, magc_resnet31, **kwargs)
+    return _master("master", pretrained, magc_resnet31, **kwargs)

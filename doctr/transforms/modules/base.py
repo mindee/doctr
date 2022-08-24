@@ -13,7 +13,7 @@ from doctr.utils.repr import NestedObject
 
 from .. import functional as F
 
-__all__ = ['SampleCompose', 'ImageTransform', 'ColorInversion', 'OneOf', 'RandomApply', 'RandomRotate', 'RandomCrop']
+__all__ = ["SampleCompose", "ImageTransform", "ColorInversion", "OneOf", "RandomApply", "RandomRotate", "RandomCrop"]
 
 
 class SampleCompose(NestedObject):
@@ -45,7 +45,7 @@ class SampleCompose(NestedObject):
         transforms: list of transformation modules
     """
 
-    _children_names: List[str] = ['sample_transforms']
+    _children_names: List[str] = ["sample_transforms"]
 
     def __init__(self, transforms: List[Callable[[Any, Any], Tuple[Any, Any]]]) -> None:
         self.sample_transforms = transforms
@@ -84,7 +84,7 @@ class ImageTransform(NestedObject):
         transform: the image transformation module to wrap
     """
 
-    _children_names: List[str] = ['img_transform']
+    _children_names: List[str] = ["img_transform"]
 
     def __init__(self, transform: Callable[[Any], Any]) -> None:
         self.img_transform = transform
@@ -121,6 +121,7 @@ class ColorInversion(NestedObject):
     Args:
         min_val: range [min_val, 1] to colorize RGB pixels
     """
+
     def __init__(self, min_val: float = 0.5) -> None:
         self.min_val = min_val
 
@@ -158,7 +159,7 @@ class OneOf(NestedObject):
         transforms: list of transformations, one only will be picked
     """
 
-    _children_names: List[str] = ['transforms']
+    _children_names: List[str] = ["transforms"]
 
     def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
@@ -197,7 +198,8 @@ class RandomApply(NestedObject):
         transform: transformation to apply
         p: probability to apply
     """
-    def __init__(self, transform: Callable[[Any], Any], p: float = .5) -> None:
+
+    def __init__(self, transform: Callable[[Any], Any], p: float = 0.5) -> None:
         self.transform = transform
         self.p = p
 
@@ -221,7 +223,8 @@ class RandomRotate(NestedObject):
             [-max_angle, max_angle]
         expand: whether the image should be padded before the rotation
     """
-    def __init__(self, max_angle: float = 5., expand: bool = False) -> None:
+
+    def __init__(self, max_angle: float = 5.0, expand: bool = False) -> None:
         self.max_angle = max_angle
         self.expand = expand
 
@@ -243,7 +246,8 @@ class RandomCrop(NestedObject):
         scale: tuple of floats, relative (min_area, max_area) of the crop
         ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w
     """
-    def __init__(self, scale: Tuple[float, float] = (0.08, 1.), ratio: Tuple[float, float] = (0.75, 1.33)) -> None:
+
+    def __init__(self, scale: Tuple[float, float] = (0.08, 1.0), ratio: Tuple[float, float] = (0.75, 1.33)) -> None:
         self.scale = scale
         self.ratio = ratio
 
