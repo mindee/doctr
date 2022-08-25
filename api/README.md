@@ -40,7 +40,7 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8050/detection", files={'file': data}).json())
+print(requests.post("http://localhost:8080/detection", files={'file': data}).json())
 ```
 
 should yield
@@ -61,7 +61,7 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8050/recognition", files={'file': data}).json())
+print(requests.post("http://localhost:8080/recognition", files={'file': data}).json())
 ```
 
 should yield
@@ -81,7 +81,7 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8050/ocr", files={'file': data}).json())
+print(requests.post("http://localhost:8080/ocr", files={'file': data}).json())
 ```
 
 should yield
