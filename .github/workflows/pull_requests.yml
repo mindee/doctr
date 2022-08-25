@@ -19,6 +19,8 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-docs
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

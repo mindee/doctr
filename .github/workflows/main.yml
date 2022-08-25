@@ -44,6 +44,8 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -77,6 +79,8 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -110,6 +114,8 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
