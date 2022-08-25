@@ -11,6 +11,8 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+tensorflow = ">=2.9.0"  # cf. https://github.com/mindee/doctr/issues/454
+tensorflow-addons = ">=0.17.1"
 python-doctr = ">=0.2.0"
 # Fastapi: minimum version required to avoid pydantic error
 # cf. https://github.com/tiangolo/fastapi/issues/4168
