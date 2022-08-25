@@ -16,3 +16,6 @@ tqdm>=4.30.0
 rapidfuzz>=1.6.0
 huggingface-hub>=0.4.0
 langdetect>=1.0.9
+onnxruntime-gpu==1.12.1
+openvino==2022.1.0
+openvino-dev==2022.1.0
