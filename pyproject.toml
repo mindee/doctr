@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "python-doctr"
-description = "Useful information about your Pytorch module"
+description = "Document Text Recognition (docTR): deep Learning for high-performance OCR on documents."
 authors = [
     {name = "Mindee", email = "contact@mindee.com"},
 	{name = "François-Guillaume Fernandez"},
