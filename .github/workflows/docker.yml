@@ -42,11 +42,11 @@ jobs:
         run: cd api && docker-compose up -d --build
       - name: Docker sanity check
         run: sleep 15 && nc -vz localhost 8080
-      - name: Run docker test
-        run: |
-          docker cp api/requirements-dev.txt api_backend_1:/app/requirements-dev.txt
-          docker-compose -f api/docker-compose.yml exec -T backend pip install -r requirements-dev.txt
-          docker cp api/tests api_backend_1:/app/tests
-          docker-compose -f api/docker-compose.yml exec -T backend pytest tests/
       - name: Ping server
         run: wget --spider --tries=12 http://localhost:8080/docs
+      - name: Run docker test
+        run: |
+          docker cp api/requirements-dev.txt /app/requirements-dev.txt
+          docker-compose -f api/docker-compose.yml exec -T backend pip install -r requirements-dev.txt
+          docker cp api/tests /app/tests
+          docker-compose -f api/docker-compose.yml exec -T backend pytest tests/
