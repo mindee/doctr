@@ -6,7 +6,7 @@
 
 import multiprocessing as mp
 from multiprocessing.pool import ThreadPool
-from typing import Any, Callable, Iterable, Optional, Iterator
+from typing import Any, Callable, Iterable, Iterator, Optional
 
 __all__ = ['multithread_exec']
 
@@ -36,5 +36,5 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
         with ThreadPool(threads) as tp:
             # ThreadPool's map function returns a list, but seq could be of a different type
             # That's why wrapping result in map to return iterator
-            results = map(lambda x: x, tp.map(func, seq))  # type: ignore[assignment]
+            results = map(lambda x: x, tp.map(func, seq))
     return results
