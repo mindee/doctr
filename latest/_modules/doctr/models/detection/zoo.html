@@ -264,30 +264,33 @@
 
 
 <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">]</span>
-    <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span> <span class="s2">&quot;db_mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">]</span>
+    <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">]</span>
 <span class="k">elif</span> <span class="n">is_torch_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;db_mobilenet_v3_large&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">]</span>
-    <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">]</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;db_resnet34&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;db_mobilenet_v3_large&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">ROT_ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;db_resnet50_rotation&quot;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span>
-    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span> <span class="o">+</span> <span class="n">ROT_ARCHS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown architecture &#39;</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ROT_ARCHS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">assume_straight_pages</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;You are trying to use a model trained on straight pages while not assuming&quot;</span>
-                                 <span class="s2">&quot; your pages are straight. If you have only straight documents, don&#39;t pass&quot;</span>
-                                 <span class="s2">&quot; assume_straight_pages=False, otherwise you should use one of these archs:&quot;</span>
-                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ROT_ARCHS</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;You are trying to use a model trained on straight pages while not assuming&quot;</span>
+                <span class="s2">&quot; your pages are straight. If you have only straight documents, don&#39;t pass&quot;</span>
+                <span class="s2">&quot; assume_straight_pages=False, otherwise you should use one of these archs:&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ROT_ARCHS</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
         <span class="n">_model</span> <span class="o">=</span> <span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -297,21 +300,18 @@
         <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>
         <span class="n">_model</span><span class="o">.</span><span class="n">assume_straight_pages</span> <span class="o">=</span> <span class="n">assume_straight_pages</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
-        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
-        <span class="n">_model</span>
+        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">_model</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">predictor</span>
 
 
 <div class="viewcode-block" id="detection_predictor"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.detection.detection_predictor">[docs]</a><span class="k">def</span> <span class="nf">detection_predictor</span><span class="p">(</span>
-    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span>
-    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectionPredictor</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Text detection architecture.</span>
 

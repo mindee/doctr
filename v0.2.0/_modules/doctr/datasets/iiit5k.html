@@ -259,7 +259,7 @@
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IIIT5K&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;IIIT5K&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="IIIT5K"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.IIIT5K">[docs]</a><span class="k">class</span> <span class="nc">IIIT5K</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
@@ -282,8 +282,8 @@
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz&#39;</span>
-    <span class="n">SHA256</span> <span class="o">=</span> <span class="s1">&#39;7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e&#39;</span>
+    <span class="n">URL</span> <span class="o">=</span> <span class="s2">&quot;https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz&quot;</span>
+    <span class="n">SHA256</span> <span class="o">=</span> <span class="s2">&quot;7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -299,19 +299,19 @@
             <span class="n">file_hash</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span><span class="p">,</span>
             <span class="n">extract_archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">recognition_task</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
 
         <span class="c1"># Load mat data</span>
-        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;IIIT5K&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
-        <span class="n">mat_file</span> <span class="o">=</span> <span class="s1">&#39;trainCharBound&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="s1">&#39;testCharBound&#39;</span>
-        <span class="n">mat_data</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mat_file</span><span class="si">}</span><span class="s1">.mat&#39;</span><span class="p">))[</span><span class="n">mat_file</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;IIIT5K&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+        <span class="n">mat_file</span> <span class="o">=</span> <span class="s2">&quot;trainCharBound&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="s2">&quot;testCharBound&quot;</span>
+        <span class="n">mat_data</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mat_file</span><span class="si">}</span><span class="s2">.mat&quot;</span><span class="p">))[</span><span class="n">mat_file</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
-        <span class="k">for</span> <span class="n">img_path</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">box_targets</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">mat_data</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Unpacking IIIT5K&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">mat_data</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">img_path</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">box_targets</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">mat_data</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Unpacking IIIT5K&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">mat_data</span><span class="p">)):</span>
             <span class="n">_raw_path</span> <span class="o">=</span> <span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">_raw_label</span> <span class="o">=</span> <span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -330,15 +330,17 @@
                             <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
                             <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
                             <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
-                        <span class="p">]</span> <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">box_targets</span>
+                        <span class="p">]</span>
+                        <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">box_targets</span>
                     <span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># xmin, ymin, xmax, ymax</span>
                     <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">box_targets</span><span class="p">]</span>
 
                 <span class="c1"># label are casted to list where each char corresponds to the character&#39;s bounding box</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">_raw_path</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
-                    <span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">_raw_label</span><span class="p">))))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">_raw_path</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">_raw_label</span><span class="p">)))</span>
+                <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
