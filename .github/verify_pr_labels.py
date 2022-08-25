@@ -1,3 +1,8 @@
+# Copyright (C) 2021-2022, Mindee.
+
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+
 """
 Borrowed & adapted from https://github.com/pytorch/vision/blob/main/.github/process_commit.py
 This script finds the merger responsible for labeling a PR by a commit SHA. It is used by the workflow in
