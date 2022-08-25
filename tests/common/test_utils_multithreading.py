@@ -16,5 +16,5 @@ from doctr.utils.multithreading import multithread_exec
     ],
 )
 def test_multithread_exec(input_seq, func, output_seq):
-    assert multithread_exec(func, input_seq) == output_seq
+    assert list(multithread_exec(func, input_seq)) == output_seq
     assert list(multithread_exec(func, input_seq, 0)) == output_seq

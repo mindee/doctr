@@ -90,7 +90,7 @@ class DataLoader:
             idx = self._num_yielded * self.batch_size
             indices = self.indices[idx : min(len(self.dataset), idx + self.batch_size)]
 
-            samples = multithread_exec(self.dataset.__getitem__, indices, threads=self.num_workers)
+            samples = list(multithread_exec(self.dataset.__getitem__, indices, threads=self.num_workers))
 
             batch_data = self.collate_fn(samples)
 
