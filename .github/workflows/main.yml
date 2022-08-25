@@ -7,6 +7,22 @@ on:
     branches: main
 
 jobs:
+  test-headers:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check the headers
+        uses: frgfm/validate-python-headers@main
+        with:
+          license: 'Apache-2.0'
+          owner: 'Mindee'
+          starting-year: 2021
+          folders: '.github,api,demo,docs,doctr,references,scripts'
+          ignores: 'version.py,__init__.py'
+
   pytest-common:
     runs-on: ${{ matrix.os }}
     strategy:
