@@ -14,7 +14,9 @@ jobs:
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Check the headers
+        with:
+          persist-credentials: false
+      - name: Validate headers
         uses: frgfm/validate-python-headers@main
         with:
           license: 'Apache-2.0'
