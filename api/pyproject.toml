@@ -4,13 +4,14 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "doctr-api"
-version = "0.6.0a0"
+version = "0.5.2a0"
 description = "Backend template for your OCR API with docTR"
 authors = ["Mindee <contact@mindee.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+python-doctr = ">=0.2.0"
 # Fastapi: minimum version required to avoid pydantic error
 # cf. https://github.com/tiangolo/fastapi/issues/4168
 fastapi = ">=0.73.0"
