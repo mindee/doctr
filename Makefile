@@ -1,3 +1,4 @@
+.PHONY: quality style test test-common test-tf test-torch docs-single-version docs
 # this target runs checks on all files
 quality:
 	isort . -c
