@@ -13,7 +13,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import cv2
 import tensorflow as tf
 
-gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+gpu_devices = tf.config.experimental.list_physical_devices("GPU")
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
@@ -33,7 +33,7 @@ def main():
     # Designing the interface
     st.title("docTR: Document Text Recognition")
     # For newline
-    st.write('\n')
+    st.write("\n")
     # Instructions
     st.markdown("*Hint: click on the top-right corner of an image to enlarge it!*")
     # Set the columns
@@ -47,11 +47,11 @@ def main():
     # File selection
     st.sidebar.title("Document selection")
     # Disabling warning
-    st.set_option('deprecation.showfileUploaderEncoding', False)
+    st.set_option("deprecation.showfileUploaderEncoding", False)
     # Choose your own image
-    uploaded_file = st.sidebar.file_uploader("Upload files", type=['pdf', 'png', 'jpeg', 'jpg'])
+    uploaded_file = st.sidebar.file_uploader("Upload files", type=["pdf", "png", "jpeg", "jpg"])
     if uploaded_file is not None:
-        if uploaded_file.name.endswith('.pdf'):
+        if uploaded_file.name.endswith(".pdf"):
             doc = DocumentFile.from_pdf(uploaded_file.read())
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
@@ -64,7 +64,7 @@ def main():
     reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
 
     # For newline
-    st.sidebar.write('\n')
+    st.sidebar.write("\n")
 
     if st.sidebar.button("Analyze page"):
 
@@ -72,25 +72,28 @@ def main():
             st.sidebar.write("Please upload a document")
 
         else:
-            with st.spinner('Loading model...'):
+            with st.spinner("Loading model..."):
                 predictor = ocr_predictor(
-                    det_arch, reco_arch, pretrained=True,
-                    assume_straight_pages=(det_arch != "linknet_resnet18_rotation")
+                    det_arch,
+                    reco_arch,
+                    pretrained=True,
+                    assume_straight_pages=(det_arch != "linknet_resnet18_rotation"),
                 )
 
-            with st.spinner('Analyzing...'):
+            with st.spinner("Analyzing..."):
 
                 # Forward the image to the model
                 processed_batches = predictor.det_predictor.pre_processor([doc[page_idx]])
                 out = predictor.det_predictor.model(processed_batches[0], return_model_output=True)
                 seg_map = out["out_map"]
                 seg_map = tf.squeeze(seg_map[0, ...], axis=[2])
-                seg_map = cv2.resize(seg_map.numpy(), (doc[page_idx].shape[1], doc[page_idx].shape[0]),
-                                     interpolation=cv2.INTER_LINEAR)
+                seg_map = cv2.resize(
+                    seg_map.numpy(), (doc[page_idx].shape[1], doc[page_idx].shape[0]), interpolation=cv2.INTER_LINEAR
+                )
                 # Plot the raw heatmap
                 fig, ax = plt.subplots()
                 ax.imshow(seg_map)
-                ax.axis('off')
+                ax.axis("off")
                 cols[1].pyplot(fig)
 
                 # Plot OCR output
@@ -109,5 +112,5 @@ def main():
                 st.json(page_export)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

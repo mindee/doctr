@@ -14,7 +14,7 @@ from .html import read_html
 from .image import read_img_as_numpy
 from .pdf import read_pdf
 
-__all__ = ['DocumentFile']
+__all__ = ["DocumentFile"]
 
 
 class DocumentFile:

@@ -13,7 +13,7 @@ from tqdm import tqdm
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
 
-__all__ = ['SVT']
+__all__ = ["SVT"]
 
 
 class SVT(VisionDataset):
@@ -34,8 +34,8 @@ class SVT(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = 'http://vision.ucsd.edu/~kai/svt/svt.zip'
-    SHA256 = '63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf'
+    URL = "http://vision.ucsd.edu/~kai/svt/svt.zip"
+    SHA256 = "63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf"
 
     def __init__(
         self,
@@ -51,19 +51,22 @@ class SVT(VisionDataset):
             self.SHA256,
             True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            **kwargs,
         )
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         # Load xml data
-        tmp_root = os.path.join(self.root, 'svt1') if self.SHA256 else self.root
-        xml_tree = ET.parse(os.path.join(tmp_root, 'train.xml')) if self.train else ET.parse(
-            os.path.join(tmp_root, 'test.xml'))
+        tmp_root = os.path.join(self.root, "svt1") if self.SHA256 else self.root
+        xml_tree = (
+            ET.parse(os.path.join(tmp_root, "train.xml"))
+            if self.train
+            else ET.parse(os.path.join(tmp_root, "test.xml"))
+        )
         xml_root = xml_tree.getroot()
 
-        for image in tqdm(iterable=xml_root, desc='Unpacking SVT', total=len(xml_root)):
+        for image in tqdm(iterable=xml_root, desc="Unpacking SVT", total=len(xml_root)):
             name, _, _, resolution, rectangles = image
 
             # File existence check
@@ -74,22 +77,25 @@ class SVT(VisionDataset):
                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 _boxes = [
                     [
-                        [float(rect.attrib['x']), float(rect.attrib['y'])],
-                        [float(rect.attrib['x']) + float(rect.attrib['width']), float(rect.attrib['y'])],
+                        [float(rect.attrib["x"]), float(rect.attrib["y"])],
+                        [float(rect.attrib["x"]) + float(rect.attrib["width"]), float(rect.attrib["y"])],
                         [
-                            float(rect.attrib['x']) + float(rect.attrib['width']),
-                            float(rect.attrib['y']) + float(rect.attrib['height'])
+                            float(rect.attrib["x"]) + float(rect.attrib["width"]),
+                            float(rect.attrib["y"]) + float(rect.attrib["height"]),
                         ],
-                        [float(rect.attrib['x']), float(rect.attrib['y']) + float(rect.attrib['height'])],
+                        [float(rect.attrib["x"]), float(rect.attrib["y"]) + float(rect.attrib["height"])],
                     ]
                     for rect in rectangles
                 ]
             else:
                 # x_min, y_min, x_max, y_max
                 _boxes = [
-                    [float(rect.attrib['x']), float(rect.attrib['y']),  # type: ignore[list-item]
-                     float(rect.attrib['x']) + float(rect.attrib['width']),  # type: ignore[list-item]
-                     float(rect.attrib['y']) + float(rect.attrib['height'])]  # type: ignore[list-item]
+                    [
+                        float(rect.attrib["x"]),  # type: ignore[list-item]
+                        float(rect.attrib["y"]),  # type: ignore[list-item]
+                        float(rect.attrib["x"]) + float(rect.attrib["width"]),  # type: ignore[list-item]
+                        float(rect.attrib["y"]) + float(rect.attrib["height"]),  # type: ignore[list-item]
+                    ]
                     for rect in rectangles
                 ]
 

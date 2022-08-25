@@ -7,7 +7,7 @@ from torch.utils.data._utils.collate import default_collate
 
 from .base import _CharacterGenerator, _WordGenerator
 
-__all__ = ['CharacterGenerator', 'WordGenerator']
+__all__ = ["CharacterGenerator", "WordGenerator"]
 
 
 class CharacterGenerator(_CharacterGenerator):
@@ -28,7 +28,7 @@ class CharacterGenerator(_CharacterGenerator):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        setattr(self, 'collate_fn', default_collate)
+        setattr(self, "collate_fn", default_collate)
 
 
 class WordGenerator(_WordGenerator):

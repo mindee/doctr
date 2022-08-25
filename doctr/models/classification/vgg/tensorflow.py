@@ -13,16 +13,16 @@ from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ['VGG', 'vgg16_bn_r']
+__all__ = ["VGG", "vgg16_bn_r"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'vgg16_bn_r': {
-        'mean': (0.5, 0.5, 0.5),
-        'std': (1., 1., 1.),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/vgg16_bn_r-c5836cea.zip',
+    "vgg16_bn_r": {
+        "mean": (0.5, 0.5, 0.5),
+        "std": (1.0, 1.0, 1.0),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/vgg16_bn_r-c5836cea.zip",
     },
 }
 
@@ -39,6 +39,7 @@ class VGG(Sequential):
         num_classes: number of output classes
         input_shape: shapes of the input tensor
     """
+
     def __init__(
         self,
         num_blocks: List[int],
@@ -55,43 +56,35 @@ class VGG(Sequential):
         kwargs = {"input_shape": input_shape}
         for nb_blocks, out_chan, rect_pool in zip(num_blocks, planes, rect_pools):
             for _ in range(nb_blocks):
-                _layers.extend(conv_sequence(out_chan, 'relu', True, kernel_size=3, **kwargs))  # type: ignore[arg-type]
+                _layers.extend(conv_sequence(out_chan, "relu", True, kernel_size=3, **kwargs))  # type: ignore[arg-type]
                 kwargs = {}
             _layers.append(layers.MaxPooling2D((2, 1 if rect_pool else 2)))
 
         if include_top:
-            _layers.extend([
-                layers.GlobalAveragePooling2D(),
-                layers.Dense(num_classes)
-            ])
+            _layers.extend([layers.GlobalAveragePooling2D(), layers.Dense(num_classes)])
         super().__init__(_layers)
         self.cfg = cfg
 
 
 def _vgg(
-    arch: str,
-    pretrained: bool,
-    num_blocks: List[int],
-    planes: List[int],
-    rect_pools: List[bool],
-    **kwargs: Any
+    arch: str, pretrained: bool, num_blocks: List[int], planes: List[int], rect_pools: List[bool], **kwargs: Any
 ) -> VGG:
 
-    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
-    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
-    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
+    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    _cfg['input_shape'] = kwargs['input_shape']
-    kwargs.pop('classes')
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    _cfg["input_shape"] = kwargs["input_shape"]
+    kwargs.pop("classes")
 
     # Build the model
     model = VGG(num_blocks, planes, rect_pools, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, default_cfgs[arch]["url"])
 
     return model
 
@@ -115,10 +108,5 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> VGG:
     """
 
     return _vgg(
-        'vgg16_bn_r',
-        pretrained,
-        [2, 2, 3, 3, 3],
-        [64, 128, 256, 512, 512],
-        [False, False, True, True, True],
-        **kwargs
+        "vgg16_bn_r", pretrained, [2, 2, 3, 3, 3], [64, 128, 256, 512, 512], [False, False, True, True, True], **kwargs
     )

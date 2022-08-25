@@ -12,9 +12,20 @@ import numpy as np
 
 from .common_types import BoundingBox, Polygon4P
 
-__all__ = ['bbox_to_polygon', 'polygon_to_bbox', 'resolve_enclosing_bbox', 'resolve_enclosing_rbbox',
-           'rotate_boxes', 'compute_expanded_shape', 'rotate_image', 'estimate_page_angle',
-           'convert_to_relative_coords', 'rotate_abs_geoms', 'extract_crops', 'extract_rcrops']
+__all__ = [
+    "bbox_to_polygon",
+    "polygon_to_bbox",
+    "resolve_enclosing_bbox",
+    "resolve_enclosing_rbbox",
+    "rotate_boxes",
+    "compute_expanded_shape",
+    "rotate_image",
+    "estimate_page_angle",
+    "convert_to_relative_coords",
+    "rotate_abs_geoms",
+    "extract_crops",
+    "extract_rcrops",
+]
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
@@ -52,16 +63,15 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024
     return cv2.boxPoints(rect) / intermed_size
 
 
-def rotate_abs_points(points: np.ndarray, angle: float = 0.) -> np.ndarray:
+def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:
     """Rotate points counter-clockwise.
     Points: array of size (N, 2)
     """
 
-    angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
-    rotation_mat = np.array([
-        [np.cos(angle_rad), -np.sin(angle_rad)],
-        [np.sin(angle_rad), np.cos(angle_rad)]
-    ], dtype=points.dtype)
+    angle_rad = angle * np.pi / 180.0  # compute radian angle for np functions
+    rotation_mat = np.array(
+        [[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]], dtype=points.dtype
+    )
     return np.matmul(points, rotation_mat.T)
 
 
@@ -76,10 +86,12 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
         the height and width of the rotated image
     """
 
-    points: np.ndarray = np.array([
-        [img_shape[1] / 2, img_shape[0] / 2],
-        [-img_shape[1] / 2, img_shape[0] / 2],
-    ])
+    points: np.ndarray = np.array(
+        [
+            [img_shape[1] / 2, img_shape[0] / 2],
+            [-img_shape[1] / 2, img_shape[0] / 2],
+        ]
+    )
 
     rotated_points = rotate_abs_points(points, angle)
 
@@ -107,10 +119,11 @@ def rotate_abs_geoms(
     """
 
     # Switch to polygons
-    polys = np.stack(
-        [geoms[:, [0, 1]], geoms[:, [2, 1]], geoms[:, [2, 3]], geoms[:, [0, 3]]],
-        axis=1
-    ) if geoms.ndim == 2 else geoms
+    polys = (
+        np.stack([geoms[:, [0, 1]], geoms[:, [2, 1]], geoms[:, [2, 3]], geoms[:, [0, 3]]], axis=1)
+        if geoms.ndim == 2
+        else geoms
+    )
     polys = polys.astype(np.float32)
 
     # Switch to image center as referential
@@ -128,12 +141,8 @@ def rotate_abs_geoms(
     return rotated_polys
 
 
-def remap_boxes(
-    loc_preds: np.ndarray,
-    orig_shape: Tuple[int, int],
-    dest_shape: Tuple[int, int]
-) -> np.ndarray:
-    """ Remaps a batch of rotated locpred (N, 4, 2) expressed for an origin_shape to a destination_shape.
+def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tuple[int, int]) -> np.ndarray:
+    """Remaps a batch of rotated locpred (N, 4, 2) expressed for an origin_shape to a destination_shape.
     This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
     coordinates after a resizing of the image.
 
@@ -163,7 +172,7 @@ def rotate_boxes(
     loc_preds: np.ndarray,
     angle: float,
     orig_shape: Tuple[int, int],
-    min_angle: float = 1.,
+    min_angle: float = 1.0,
     target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
@@ -191,17 +200,16 @@ def rotate_boxes(
                 _boxes[:, [2, 3]],
                 _boxes[:, [0, 3]],
             ],
-            axis=1
+            axis=1,
         )
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return _boxes
     # Compute rotation matrix
-    angle_rad = angle * np.pi / 180.  # compute radian angle for np functions
-    rotation_mat = np.array([
-        [np.cos(angle_rad), -np.sin(angle_rad)],
-        [np.sin(angle_rad), np.cos(angle_rad)]
-    ], dtype=_boxes.dtype)
+    angle_rad = angle * np.pi / 180.0  # compute radian angle for np functions
+    rotation_mat = np.array(
+        [[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]], dtype=_boxes.dtype
+    )
     # Rotate absolute points
     points: np.ndarray = np.stack((_boxes[:, :, 0] * orig_shape[1], _boxes[:, :, 1] * orig_shape[0]), axis=-1)
     image_center = (orig_shape[1] / 2, orig_shape[0] / 2)
@@ -240,7 +248,8 @@ def rotate_image(
     if expand:
         exp_shape = compute_expanded_shape(image.shape[:2], angle)  # type: ignore[arg-type]
         h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(
-            max(0, ceil(exp_shape[1] - image.shape[1])))
+            max(0, ceil(exp_shape[1] - image.shape[1]))
+        )
         exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
     else:
         exp_img = image
@@ -274,9 +283,7 @@ def estimate_page_angle(polys: np.ndarray) -> float:
     yleft = polys[:, 0, 1] + polys[:, 3, 1]
     xright = polys[:, 1, 0] + polys[:, 2, 0]
     yright = polys[:, 1, 1] + polys[:, 2, 1]
-    return float(np.median(np.arctan(
-        (yleft - yright) / (xright - xleft)  # Y axis from top to bottom!
-    )) * 180 / np.pi)
+    return float(np.median(np.arctan((yleft - yright) / (xright - xleft))) * 180 / np.pi)  # Y axis from top to bottom!
 
 
 def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) -> np.ndarray:
@@ -330,16 +337,13 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
         # Add last index
         _boxes[2:] += 1
     if channels_last:
-        return deepcopy([img[box[1]: box[3], box[0]: box[2]] for box in _boxes])
+        return deepcopy([img[box[1] : box[3], box[0] : box[2]] for box in _boxes])
 
-    return deepcopy([img[:, box[1]: box[3], box[0]: box[2]] for box in _boxes])
+    return deepcopy([img[:, box[1] : box[3], box[0] : box[2]] for box in _boxes])
 
 
 def extract_rcrops(
-    img: np.ndarray,
-    polys: np.ndarray,
-    dtype=np.float32,
-    channels_last: bool = True
+    img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True
 ) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
     Args:

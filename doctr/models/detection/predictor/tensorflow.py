@@ -12,7 +12,7 @@ from tensorflow import keras
 from doctr.models.preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 
-__all__ = ['DetectionPredictor']
+__all__ = ["DetectionPredictor"]
 
 
 class DetectionPredictor(NestedObject):
@@ -23,7 +23,7 @@ class DetectionPredictor(NestedObject):
         model: core detection architecture
     """
 
-    _children_names: List[str] = ['pre_processor', 'model']
+    _children_names: List[str] = ["pre_processor", "model"]
 
     def __init__(
         self,
@@ -46,7 +46,6 @@ class DetectionPredictor(NestedObject):
 
         processed_batches = self.pre_processor(pages)
         predicted_batches = [
-            self.model(batch, return_preds=True, training=False, **kwargs)['preds']
-            for batch in processed_batches
+            self.model(batch, return_preds=True, training=False, **kwargs)["preds"] for batch in processed_batches
         ]
         return [pred for batch in predicted_batches for pred in batch]

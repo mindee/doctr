@@ -20,15 +20,15 @@ from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extr
 
 from .vocabs import VOCABS
 
-__all__ = ['translate', 'encode_string', 'decode_sequence', 'encode_sequences']
+__all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences"]
 
-ImageTensor = TypeVar('ImageTensor')
+ImageTensor = TypeVar("ImageTensor")
 
 
 def translate(
     input_string: str,
     vocab_name: str,
-    unknown_char: str = '■',
+    unknown_char: str = "■",
 ) -> str:
     """Translate a string input in a given vocabulary
 
@@ -43,7 +43,7 @@ def translate(
     if VOCABS.get(vocab_name) is None:
         raise KeyError("output vocabulary must be in vocabs dictionnary")
 
-    translated = ''
+    translated = ""
     for char in input_string:
         if char not in VOCABS[vocab_name]:
             # we need to translate char into a vocab char
@@ -51,8 +51,8 @@ def translate(
                 # remove whitespaces
                 continue
             # normalize character if it is not in vocab
-            char = unicodedata.normalize('NFD', char).encode('ascii', 'ignore').decode('ascii')
-            if char == '' or char not in VOCABS[vocab_name]:
+            char = unicodedata.normalize("NFD", char).encode("ascii", "ignore").decode("ascii")
+            if char == "" or char not in VOCABS[vocab_name]:
                 # if normalization fails or char still not in vocab, return unknown character)
                 char = unknown_char
         translated += char
@@ -97,7 +97,7 @@ def decode_sequence(
     if isinstance(input_seq, np.ndarray) and (input_seq.dtype != np.int_ or input_seq.max() >= len(mapping)):
         raise AssertionError("Input must be an array of int, with max less than mapping size")
 
-    return ''.join(map(mapping.__getitem__, input_seq))
+    return "".join(map(mapping.__getitem__, input_seq))
 
 
 def encode_sequences(
@@ -151,7 +151,7 @@ def encode_sequences(
     for idx, seq in enumerate(map(partial(encode_string, vocab=vocab), sequences)):
         if isinstance(pad, int):  # add eos at the end of the sequence
             seq.append(eos)
-        encoded_data[idx, :min(len(seq), target_size)] = seq[:min(len(seq), target_size)]
+        encoded_data[idx, : min(len(seq), target_size)] = seq[: min(len(seq), target_size)]
 
     if isinstance(sos, int):  # place sos symbol at the beginning of each sequence
         if 0 <= sos < len(vocab):
@@ -164,7 +164,7 @@ def encode_sequences(
 
 def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tuple[ImageTensor, Dict[str, Any]]:
 
-    target['boxes'] = convert_to_relative_coords(target['boxes'], get_img_shape(img))
+    target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))
     return img, target
 
 
@@ -176,7 +176,7 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     Returns:
         a list of cropped images
     """
-    img: np.ndarray = np.array(Image.open(img_path).convert('RGB'))
+    img: np.ndarray = np.array(Image.open(img_path).convert("RGB"))
     # Polygon
     if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
         return extract_rcrops(img, geoms.astype(dtype=int))

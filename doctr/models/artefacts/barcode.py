@@ -8,12 +8,12 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 
-__all__ = ['BarCodeDetector']
+__all__ = ["BarCodeDetector"]
 
 
 class BarCodeDetector:
 
-    """ Implements a Bar-code detector.
+    """Implements a Bar-code detector.
     For now, only horizontal (or with a small angle) bar-codes are supported
 
     Args:
@@ -21,12 +21,8 @@ class BarCodeDetector:
         canny_minval: lower bound for canny hysteresis
         canny_maxval: upper-bound for canny hysteresis
     """
-    def __init__(
-        self,
-        min_size: float = 1 / 6,
-        canny_minval: int = 50,
-        canny_maxval: int = 150
-    ) -> None:
+
+    def __init__(self, min_size: float = 1 / 6, canny_minval: int = 50, canny_maxval: int = 150) -> None:
         self.min_size = min_size
         self.canny_minval = canny_minval
         self.canny_maxval = canny_maxval

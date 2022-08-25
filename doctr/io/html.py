@@ -7,7 +7,7 @@ from typing import Any
 
 from weasyprint import HTML
 
-__all__ = ['read_html']
+__all__ = ["read_html"]
 
 
 def read_html(url: str, **kwargs: Any) -> bytes:

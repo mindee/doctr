@@ -15,26 +15,26 @@ from pathlib import Path
 from setuptools import find_packages, setup
 
 version = "0.6.0a0"
-sha = 'Unknown'
-src_folder = 'doctr'
-package_index = 'python-doctr'
+sha = "Unknown"
+src_folder = "doctr"
+package_index = "python-doctr"
 
 cwd = Path(__file__).parent.absolute()
 
-if os.getenv('BUILD_VERSION'):
-    version = os.getenv('BUILD_VERSION')
-elif sha != 'Unknown':
+if os.getenv("BUILD_VERSION"):
+    version = os.getenv("BUILD_VERSION")
+elif sha != "Unknown":
     try:
-        sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).decode('ascii').strip()
+        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=cwd).decode("ascii").strip()
     except Exception:
         pass
-    version += '+' + sha[:7]
+    version += "+" + sha[:7]
 print(f"Building wheel {package_index}-{version}")
 
-with open(cwd.joinpath(src_folder, 'version.py'), 'w') as f:
+with open(cwd.joinpath(src_folder, "version.py"), "w") as f:
     f.write(f"__version__ = '{version}'\n")
 
-with open('README.md', 'r') as f:
+with open("README.md", "r") as f:
     readme = f.read()
 
 # Borrowed from https://github.com/huggingface/transformers/blob/master/setup.py
@@ -74,6 +74,7 @@ _deps = [
     # Quality
     "flake8>=3.9.0",
     "isort>=5.7.0",
+    "black>=22.1,<23.0",
     "mypy>=0.812",
     "pydocstyle[toml]>=6.1.1",
     # Docs
@@ -132,10 +133,7 @@ extras["torch"] = deps_list(
     "torchvision",
 )
 
-extras["all"] = (
-    extras["tf"]
-    + extras["torch"]
-)
+extras["all"] = extras["tf"] + extras["torch"]
 
 extras["testing"] = deps_list(
     "pytest",
@@ -149,6 +147,7 @@ extras["testing"] = deps_list(
 extras["quality"] = deps_list(
     "flake8",
     "isort",
+    "black",
     "mypy",
     "pydocstyle[toml]",
 )
@@ -166,47 +165,41 @@ extras["docs_specific"] = deps_list(
 
 extras["docs"] = extras["all"] + extras["docs_specific"]
 
-extras["dev"] = (
-    extras["all"]
-    + extras["testing"]
-    + extras["quality"]
-    + extras["docs_specific"]
-)
+extras["dev"] = extras["all"] + extras["testing"] + extras["quality"] + extras["docs_specific"]
 
 setup(
     # Metadata
     name=package_index,
     version=version,
-    author='Mindee',
-    author_email='contact@mindee.com',
-    maintainer='François-Guillaume Fernandez, Charles Gaillard',
-    description='Document Text Recognition (docTR): deep Learning for high-performance OCR on documents.',
+    author="Mindee",
+    author_email="contact@mindee.com",
+    maintainer="François-Guillaume Fernandez, Charles Gaillard",
+    description="Document Text Recognition (docTR): deep Learning for high-performance OCR on documents.",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url='https://github.com/mindee/doctr',
-    download_url='https://github.com/mindee/doctr/tags',
-    license='Apache',
+    url="https://github.com/mindee/doctr",
+    download_url="https://github.com/mindee/doctr/tags",
+    license="Apache",
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
         "Intended Audience :: Education",
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
-        'Natural Language :: English',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords=['OCR', 'deep learning', 'computer vision', 'tensorflow', 'pytorch', 'text detection', 'text recognition'],
-
+    keywords=["OCR", "deep learning", "computer vision", "tensorflow", "pytorch", "text detection", "text recognition"],
     # Package info
-    packages=find_packages(exclude=('tests',)),
+    packages=find_packages(exclude=("tests",)),
     zip_safe=True,
-    python_requires='>=3.6.0',
+    python_requires=">=3.6.0",
     include_package_data=True,
     install_requires=install_requires,
     extras_require=extras,
-    package_data={'': ['LICENSE']}
+    package_data={"": ["LICENSE"]},
 )

@@ -11,7 +11,7 @@ import pypdfium2 as pdfium
 
 from doctr.utils.common_types import AbstractFile
 
-__all__ = ['read_pdf']
+__all__ = ["read_pdf"]
 
 
 def read_pdf(

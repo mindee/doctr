@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
 
-__all__ = ['_AbstractDataset', '_VisionDataset']
+__all__ = ["_AbstractDataset", "_VisionDataset"]
 
 
 class _AbstractDataset:
@@ -28,7 +28,7 @@ class _AbstractDataset:
     ) -> None:
 
         if not Path(root).is_dir():
-            raise ValueError(f'expected a path to a reachable folder: {root}')
+            raise ValueError(f"expected a path to a reachable folder: {root}")
 
         self.root = root
         self.img_transforms = img_transforms
@@ -42,10 +42,7 @@ class _AbstractDataset:
     def _read_sample(self, index: int) -> Tuple[Any, Any]:
         raise NotImplementedError
 
-    def __getitem__(
-        self,
-        index: int
-    ) -> Tuple[Any, Any]:
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
 
         # Read image
         img, target = self._read_sample(index)
@@ -96,8 +93,8 @@ class _VisionDataset(_AbstractDataset):
         **kwargs: Any,
     ) -> None:
 
-        cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'doctr') if cache_dir is None else cache_dir
-        cache_subdir = 'datasets' if cache_subdir is None else cache_subdir
+        cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "doctr") if cache_dir is None else cache_dir
+        cache_subdir = "datasets" if cache_subdir is None else cache_subdir
 
         file_name = file_name if isinstance(file_name, str) else os.path.basename(url)
         # Download the file if not present

@@ -64,7 +64,7 @@ class DataLoader:
         nb = len(self.dataset) / batch_size
         self.num_batches = math.floor(nb) if drop_last else math.ceil(nb)
         if collate_fn is None:
-            self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
+            self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, "collate_fn") else default_collate
         else:
             self.collate_fn = collate_fn
         self.num_workers = num_workers
@@ -88,7 +88,7 @@ class DataLoader:
         if self._num_yielded < self.num_batches:
             # Get next indices
             idx = self._num_yielded * self.batch_size
-            indices = self.indices[idx: min(len(self.dataset), idx + self.batch_size)]
+            indices = self.indices[idx : min(len(self.dataset), idx + self.batch_size)]
 
             samples = multithread_exec(self.dataset.__getitem__, indices, threads=self.num_workers)
 

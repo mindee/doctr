@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ['BaseModel']
+__all__ = ["BaseModel"]
 
 
 class BaseModel(NestedObject):

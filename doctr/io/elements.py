@@ -21,7 +21,7 @@ from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
 from doctr.utils.visualization import synthesize_page, visualize_page
 
-__all__ = ['Element', 'Word', 'Artefact', 'Line', 'Block', 'Page', 'Document']
+__all__ = ["Element", "Word", "Artefact", "Line", "Block", "Page", "Document"]
 
 
 class Element(NestedObject):
@@ -129,7 +129,7 @@ class Line(Element):
     """
 
     _exported_keys: List[str] = ["geometry"]
-    _children_names: List[str] = ['words']
+    _children_names: List[str] = ["words"]
     words: List[Word] = []
 
     def __init__(
@@ -153,9 +153,11 @@ class Line(Element):
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({
-            'words': [Word.from_dict(_dict) for _dict in save_dict['words']],
-        })
+        kwargs.update(
+            {
+                "words": [Word.from_dict(_dict) for _dict in save_dict["words"]],
+            }
+        )
         return cls(**kwargs)
 
 
@@ -171,7 +173,7 @@ class Block(Element):
     """
 
     _exported_keys: List[str] = ["geometry"]
-    _children_names: List[str] = ['lines', 'artefacts']
+    _children_names: List[str] = ["lines", "artefacts"]
     lines: List[Line] = []
     artefacts: List[Artefact] = []
 
@@ -185,25 +187,27 @@ class Block(Element):
         if geometry is None:
             line_boxes = [word.geometry for line in lines for word in line.words]
             artefact_boxes = [artefact.geometry for artefact in artefacts]
-            box_resolution_fn = resolve_enclosing_rbbox if isinstance(
-                lines[0].geometry, np.ndarray
-            ) else resolve_enclosing_bbox
+            box_resolution_fn = (
+                resolve_enclosing_rbbox if isinstance(lines[0].geometry, np.ndarray) else resolve_enclosing_bbox
+            )
             geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator]
 
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry
 
-    def render(self, line_break: str = '\n') -> str:
+    def render(self, line_break: str = "\n") -> str:
         """Renders the full text of the element"""
         return line_break.join(line.render() for line in self.lines)
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({
-            'lines': [Line.from_dict(_dict) for _dict in save_dict['lines']],
-            'artefacts': [Artefact.from_dict(_dict) for _dict in save_dict['artefacts']],
-        })
+        kwargs.update(
+            {
+                "lines": [Line.from_dict(_dict) for _dict in save_dict["lines"]],
+                "artefacts": [Artefact.from_dict(_dict) for _dict in save_dict["artefacts"]],
+            }
+        )
         return cls(**kwargs)
 
 
@@ -219,7 +223,7 @@ class Page(Element):
     """
 
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: List[str] = ['blocks']
+    _children_names: List[str] = ["blocks"]
     blocks: List[Block] = []
 
     def __init__(
@@ -236,16 +240,14 @@ class Page(Element):
         self.orientation = orientation if isinstance(orientation, dict) else dict(value=None, confidence=None)
         self.language = language if isinstance(language, dict) else dict(value=None, confidence=None)
 
-    def render(self, block_break: str = '\n\n') -> str:
+    def render(self, block_break: str = "\n\n") -> str:
         """Renders the full text of the element"""
         return block_break.join(b.render() for b in self.blocks)
 
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
 
-    def show(
-        self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs
-    ) -> None:
+    def show(self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs) -> None:
         """Overlay the result on a given image
 
         Args:
@@ -265,7 +267,7 @@ class Page(Element):
 
         return synthesize_page(self.export(), **kwargs)
 
-    def export_as_xml(self, file_title: str = 'docTR - XML export (hOCR)') -> Tuple[bytes, ET.ElementTree]:
+    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> Tuple[bytes, ET.ElementTree]:
         """Export the page as XML (hOCR-format)
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
@@ -280,76 +282,99 @@ class Page(Element):
         line_count: int = 1
         word_count: int = 1
         height, width = self.dimensions
-        language = self.language if 'language' in self.language.keys() else 'en'
+        language = self.language if "language" in self.language.keys() else "en"
         # Create the XML root element
-        page_hocr = ETElement('html', attrib={'xmlns': 'http://www.w3.org/1999/xhtml', 'xml:lang': str(language)})
+        page_hocr = ETElement("html", attrib={"xmlns": "http://www.w3.org/1999/xhtml", "xml:lang": str(language)})
         # Create the header / SubElements of the root element
-        head = SubElement(page_hocr, 'head')
-        SubElement(head, 'title').text = file_title
-        SubElement(head, 'meta', attrib={'http-equiv': 'Content-Type', 'content': 'text/html; charset=utf-8'})
+        head = SubElement(page_hocr, "head")
+        SubElement(head, "title").text = file_title
+        SubElement(head, "meta", attrib={"http-equiv": "Content-Type", "content": "text/html; charset=utf-8"})
         SubElement(
             head,
-            'meta',
-            attrib={'name': 'ocr-system', 'content': f"python-doctr {doctr.__version__}"},  # type: ignore[attr-defined]
+            "meta",
+            attrib={"name": "ocr-system", "content": f"python-doctr {doctr.__version__}"},  # type: ignore[attr-defined]
         )
-        SubElement(head, 'meta', attrib={'name': 'ocr-capabilities',
-                                         'content': 'ocr_page ocr_carea ocr_par ocr_line ocrx_word'})
+        SubElement(
+            head,
+            "meta",
+            attrib={"name": "ocr-capabilities", "content": "ocr_page ocr_carea ocr_par ocr_line ocrx_word"},
+        )
         # Create the body
-        body = SubElement(page_hocr, 'body')
-        SubElement(body, 'div', attrib={
-            'class': 'ocr_page',
-            'id': f'page_{p_idx + 1}',
-            'title': f'image; bbox 0 0 {width} {height}; ppageno 0'
-        })
+        body = SubElement(page_hocr, "body")
+        SubElement(
+            body,
+            "div",
+            attrib={
+                "class": "ocr_page",
+                "id": f"page_{p_idx + 1}",
+                "title": f"image; bbox 0 0 {width} {height}; ppageno 0",
+            },
+        )
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
         for block in self.blocks:
             if len(block.geometry) != 2:
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
             (xmin, ymin), (xmax, ymax) = block.geometry
-            block_div = SubElement(body, 'div', attrib={
-                'class': 'ocr_carea',
-                'id': f'block_{block_count}',
-                'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                    {int(round(xmax * width))} {int(round(ymax * height))}'
-            })
-            paragraph = SubElement(block_div, 'p', attrib={
-                'class': 'ocr_par',
-                'id': f'par_{block_count}',
-                'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                    {int(round(xmax * width))} {int(round(ymax * height))}'
-            })
+            block_div = SubElement(
+                body,
+                "div",
+                attrib={
+                    "class": "ocr_carea",
+                    "id": f"block_{block_count}",
+                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    {int(round(xmax * width))} {int(round(ymax * height))}",
+                },
+            )
+            paragraph = SubElement(
+                block_div,
+                "p",
+                attrib={
+                    "class": "ocr_par",
+                    "id": f"par_{block_count}",
+                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    {int(round(xmax * width))} {int(round(ymax * height))}",
+                },
+            )
             block_count += 1
             for line in block.lines:
                 (xmin, ymin), (xmax, ymax) = line.geometry
                 # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
-                line_span = SubElement(paragraph, 'span', attrib={
-                    'class': 'ocr_line',
-                    'id': f'line_{line_count}',
-                    'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                line_span = SubElement(
+                    paragraph,
+                    "span",
+                    attrib={
+                        "class": "ocr_line",
+                        "id": f"line_{line_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
                         {int(round(xmax * width))} {int(round(ymax * height))}; \
-                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0'
-                })
+                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                    },
+                )
                 line_count += 1
                 for word in line.words:
                     (xmin, ymin), (xmax, ymax) = word.geometry
                     conf = word.confidence
-                    word_div = SubElement(line_span, 'span', attrib={
-                        'class': 'ocrx_word',
-                        'id': f'word_{word_count}',
-                        'title': f'bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    word_div = SubElement(
+                        line_span,
+                        "span",
+                        attrib={
+                            "class": "ocrx_word",
+                            "id": f"word_{word_count}",
+                            "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
                             {int(round(xmax * width))} {int(round(ymax * height))}; \
-                            x_wconf {int(round(conf * 100))}'
-                    })
+                            x_wconf {int(round(conf * 100))}",
+                        },
+                    )
                     # set the text
                     word_div.text = word.value
                     word_count += 1
 
-        return (ET.tostring(page_hocr, encoding='utf-8', method='xml'), ET.ElementTree(page_hocr))
+        return (ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr))
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({'blocks': [Block.from_dict(block_dict) for block_dict in save_dict['blocks']]})
+        kwargs.update({"blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]]})
         return cls(**kwargs)
 
 
@@ -360,7 +385,7 @@ class Document(Element):
         pages: list of page elements
     """
 
-    _children_names: List[str] = ['pages']
+    _children_names: List[str] = ["pages"]
     pages: List[Page] = []
 
     def __init__(
@@ -369,7 +394,7 @@ class Document(Element):
     ) -> None:
         super().__init__(pages=pages)
 
-    def render(self, page_break: str = '\n\n\n\n') -> str:
+    def render(self, page_break: str = "\n\n\n\n") -> str:
         """Renders the full text of the element"""
         return page_break.join(p.render() for p in self.pages)
 
@@ -405,5 +430,5 @@ class Document(Element):
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({'pages': [Page.from_dict(page_dict) for page_dict in save_dict['pages']]})
+        kwargs.update({"pages": [Page.from_dict(page_dict) for page_dict in save_dict["pages"]]})
         return cls(**kwargs)

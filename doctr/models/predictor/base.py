@@ -14,7 +14,7 @@ from .._utils import rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor
 from ..classification.predictor import CropOrientationPredictor
 
-__all__ = ['_OCRPredictor']
+__all__ = ["_OCRPredictor"]
 
 
 class _OCRPredictor:
@@ -112,9 +112,9 @@ class _OCRPredictor:
                     # y unchanged, dilate x coord
                     if self.symmetric_pad:
                         if self.assume_straight_pages:
-                            loc_pred[:, [0, 2]] = np.clip((loc_pred[:, [0, 2]] - .5) * h / w + .5, 0, 1)
+                            loc_pred[:, [0, 2]] = np.clip((loc_pred[:, [0, 2]] - 0.5) * h / w + 0.5, 0, 1)
                         else:
-                            loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - .5) * h / w + .5, 0, 1)
+                            loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - 0.5) * h / w + 0.5, 0, 1)
                     else:
                         if self.assume_straight_pages:
                             loc_pred[:, [0, 2]] *= h / w
@@ -124,9 +124,9 @@ class _OCRPredictor:
                     # x unchanged, dilate y coord
                     if self.symmetric_pad:
                         if self.assume_straight_pages:
-                            loc_pred[:, [1, 3]] = np.clip((loc_pred[:, [1, 3]] - .5) * w / h + .5, 0, 1)
+                            loc_pred[:, [1, 3]] = np.clip((loc_pred[:, [1, 3]] - 0.5) * w / h + 0.5, 0, 1)
                         else:
-                            loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - .5) * w / h + .5, 0, 1)
+                            loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - 0.5) * w / h + 0.5, 0, 1)
                     else:
                         if self.assume_straight_pages:
                             loc_pred[:, [1, 3]] *= w / h
@@ -147,7 +147,7 @@ class _OCRPredictor:
             # Text
             _idx = 0
             for page_boxes in loc_preds:
-                text_preds.append(word_preds[_idx: _idx + page_boxes.shape[0]])
+                text_preds.append(word_preds[_idx : _idx + page_boxes.shape[0]])
                 _idx += page_boxes.shape[0]
 
         return loc_preds, text_preds

@@ -18,16 +18,16 @@ from doctr.models.modules.transformer import Decoder, PositionalEncoding
 from ...utils.pytorch import load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
 
-__all__ = ['MASTER', 'master']
+__all__ = ["MASTER", "master"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'master': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 128),
-        'vocab': VOCABS['french'],
-        'url': None,
+    "master": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 128),
+        "vocab": VOCABS["french"],
+        "url": None,
     },
 }
 
@@ -91,18 +91,16 @@ class MASTER(_MASTER, nn.Module):
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
-            if n.startswith('feat_extractor.'):
+            if n.startswith("feat_extractor."):
                 continue
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
     def make_source_and_target_mask(
-        self,
-        source: torch.Tensor,
-        target: torch.Tensor
+        self, source: torch.Tensor, target: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         # borrowed and slightly modified from  https://github.com/wenwenyu/MASTER-pytorch
         # NOTE: nn.TransformerDecoder takes the inverse from this implementation
@@ -111,9 +109,9 @@ class MASTER(_MASTER, nn.Module):
         target_length = target.size(1)
         # sub mask filled diagonal with True = see and False = masked (max_length, max_length)
         # NOTE: onnxruntime tril/triu works only with float currently (onnxruntime 1.11.1 - opset 14)
-        target_sub_mask = torch.tril(
-            torch.ones((target_length, target_length), device=source.device), diagonal=0
-        ).to(dtype=torch.bool)
+        target_sub_mask = torch.tril(torch.ones((target_length, target_length), device=source.device), diagonal=0).to(
+            dtype=torch.bool
+        )
         # source mask filled with ones (max_length, positional_encoded_seq_len)
         source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
         # combine the two masks into one (N, 1, max_length, max_length)
@@ -143,7 +141,7 @@ class MASTER(_MASTER, nn.Module):
         seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction='none')
+        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
         # Compute mask, remove 1 timestep here as well
         mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
@@ -171,7 +169,7 @@ class MASTER(_MASTER, nn.Module):
         """
 
         # Encode
-        features = self.feat_extractor(x)['features']
+        features = self.feat_extractor(x)["features"]
         b, c, h, w = features.shape
         # (N, C, H, W) --> (N, H * W, C)
         features = features.view(b, c, h * w).permute((0, 2, 1))
@@ -181,7 +179,7 @@ class MASTER(_MASTER, nn.Module):
         out: Dict[str, Any] = {}
 
         if self.training and target is None:
-            raise ValueError('Need to provide labels during training')
+            raise ValueError("Need to provide labels during training")
 
         if target is not None:
             # Compute target: tensor of gts and sequence lengths
@@ -198,17 +196,17 @@ class MASTER(_MASTER, nn.Module):
             logits = self.decode(encoded)
 
         if self.exportable:
-            out['logits'] = logits
+            out["logits"] = logits
             return out
 
         if target is not None:
-            out['loss'] = self.compute_loss(logits, gt, seq_len)
+            out["loss"] = self.compute_loss(logits, gt, seq_len)
 
         if return_model_output:
-            out['out_map'] = logits
+            out["out_map"] = logits
 
         if return_preds:
-            out['preds'] = self.postprocessor(logits)
+            out["preds"] = self.postprocessor(logits)
 
         return out
 
@@ -243,8 +241,7 @@ class MASTER(_MASTER, nn.Module):
 
 
 class MASTERPostProcessor(_MASTERPostProcessor):
-    """Post processor for MASTER architectures
-    """
+    """Post processor for MASTER architectures"""
 
     def __call__(
         self,
@@ -259,7 +256,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
 
         # Manual decoding
         word_values = [
-            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
+            "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
             for encoded_seq in out_idxs.cpu().numpy()
         ]
 
@@ -273,31 +270,31 @@ def _master(
     layer: str,
     pretrained_backbone: bool = True,
     ignore_keys: Optional[List[str]] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> MASTER:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = kwargs.get('input_shape', _cfg['input_shape'])
-    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
+    _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
+    _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
 
-    kwargs['vocab'] = _cfg['vocab']
-    kwargs['input_shape'] = _cfg['input_shape']
+    kwargs["vocab"] = _cfg["vocab"]
+    kwargs["input_shape"] = _cfg["input_shape"]
 
     # Build the model
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(pretrained_backbone),
-        {layer: 'features'},
+        {layer: "features"},
     )
     model = MASTER(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if _cfg['vocab'] != default_cfgs[arch]['vocab'] else None
-        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
+        _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -319,12 +316,14 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     """
 
     return _master(
-        'master',
+        "master",
         pretrained,
         magc_resnet31,
-        '10',
+        "10",
         ignore_keys=[
-            'decoder.embed.weight',
-            'linear.weight', 'linear.bias',
+            "decoder.embed.weight",
+            "linear.weight",
+            "linear.bias",
         ],
-        **kwargs)
+        **kwargs,
+    )

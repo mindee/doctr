@@ -83,7 +83,7 @@ def test_classification_zoo(arch_name):
     predictor.model.eval()
 
     with pytest.raises(ValueError):
-        predictor = classification.zoo.crop_orientation_predictor(arch='wrong_model', pretrained=False)
+        predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
     # object check
     assert isinstance(predictor, CropOrientationPredictor)
     input_tensor = torch.rand((batch_size, 3, 128, 128))
@@ -133,8 +133,9 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
 
         assert os.path.exists(model_path)
         # Inference
-        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
-                                                   providers=["CPUExecutionProvider"])
-        ort_outs = ort_session.run(['logits'], {'input': dummy_input.numpy()})
+        ort_session = onnxruntime.InferenceSession(
+            os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
+        )
+        ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
         assert isinstance(ort_outs, list) and len(ort_outs) == 1
         assert ort_outs[0].shape == (batch_size, *output_size)

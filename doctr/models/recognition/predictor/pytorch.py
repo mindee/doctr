@@ -13,7 +13,7 @@ from doctr.models.preprocessor import PreProcessor
 
 from ._utils import remap_preds, split_crops
 
-__all__ = ['RecognitionPredictor']
+__all__ = ["RecognitionPredictor"]
 
 
 class RecognitionPredictor(nn.Module):
@@ -61,7 +61,7 @@ class RecognitionPredictor(nn.Module):
                 self.critical_ar,
                 self.target_ar,
                 self.dil_factor,
-                isinstance(crops[0], np.ndarray)
+                isinstance(crops[0], np.ndarray),
             )
             if remapped:
                 crops = new_crops
@@ -72,8 +72,7 @@ class RecognitionPredictor(nn.Module):
         # Forward it
         _device = next(self.model.parameters()).device
         raw = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
-            for batch in processed_batches
+            self.model(batch.to(device=_device), return_preds=True, **kwargs)["preds"] for batch in processed_batches
         ]
 
         # Process outputs

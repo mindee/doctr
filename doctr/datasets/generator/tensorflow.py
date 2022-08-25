@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from .base import _CharacterGenerator, _WordGenerator
 
-__all__ = ['CharacterGenerator', 'WordGenerator']
+__all__ = ["CharacterGenerator", "WordGenerator"]
 
 
 class CharacterGenerator(_CharacterGenerator):

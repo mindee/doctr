@@ -80,9 +80,7 @@ def rotate_sample(
 
 
 def crop_detection(
-    img: torch.Tensor,
-    boxes: np.ndarray,
-    crop_box: Tuple[float, float, float, float]
+    img: torch.Tensor, boxes: np.ndarray, crop_box: Tuple[float, float, float, float]
 ) -> Tuple[torch.Tensor, np.ndarray]:
     """Crop and image and associated bboxes
 
@@ -99,9 +97,7 @@ def crop_detection(
     h, w = img.shape[-2:]
     xmin, ymin = int(round(crop_box[0] * (w - 1))), int(round(crop_box[1] * (h - 1)))
     xmax, ymax = int(round(crop_box[2] * (w - 1))), int(round(crop_box[3] * (h - 1)))
-    cropped_img = F.crop(
-        img, ymin, xmin, ymax - ymin, xmax - xmin
-    )
+    cropped_img = F.crop(img, ymin, xmin, ymax - ymin, xmax - xmin)
     # Crop the box
     boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
@@ -126,7 +122,7 @@ def random_shadow(img: torch.Tensor, opacity_range: Tuple[float, float], **kwarg
 
     # Add some blur to make it believable
     k = 7 + 2 * int(4 * np.random.rand(1))
-    sigma = np.random.uniform(.5, 5.)
+    sigma = np.random.uniform(0.5, 5.0)
     shadow_tensor = F.gaussian_blur(shadow_tensor, k, sigma=[sigma, sigma])
 
     return opacity * shadow_tensor * img + (1 - opacity) * img

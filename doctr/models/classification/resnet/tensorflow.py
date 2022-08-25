@@ -15,44 +15,44 @@ from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide']
+__all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'resnet18': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-d4634669.zip',
+    "resnet18": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-d4634669.zip",
     },
-    'resnet31': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet31-5a47a60b.zip',
+    "resnet31": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/resnet31-5a47a60b.zip",
     },
-    'resnet34': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34-5dcc97ca.zip',
+    "resnet34": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34-5dcc97ca.zip",
     },
-    'resnet50': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-e75e4cdf.zip',
+    "resnet50": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-e75e4cdf.zip",
     },
-    'resnet34_wide': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34_wide-c1271816.zip',
+    "resnet34_wide": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34_wide-c1271816.zip",
     },
 }
 
@@ -67,13 +67,8 @@ class ResnetBlock(layers.Layer):
         kernel_size: size of square kernels
         strides: strides to use in the first convolution of the block
     """
-    def __init__(
-        self,
-        output_channels: int,
-        conv_shortcut: bool,
-        strides: int = 1,
-        **kwargs
-    ) -> None:
+
+    def __init__(self, output_channels: int, conv_shortcut: bool, strides: int = 1, **kwargs) -> None:
 
         super().__init__(**kwargs)
         if conv_shortcut:
@@ -82,20 +77,18 @@ class ResnetBlock(layers.Layer):
                     layers.Conv2D(
                         filters=output_channels,
                         strides=strides,
-                        padding='same',
+                        padding="same",
                         kernel_size=1,
                         use_bias=False,
-                        kernel_initializer='he_normal'
+                        kernel_initializer="he_normal",
                     ),
-                    layers.BatchNormalization()
+                    layers.BatchNormalization(),
                 ]
             )
         else:
             self.shortcut = layers.Lambda(lambda x: x)
-        self.conv_block = Sequential(
-            self.conv_resnetblock(output_channels, 3, strides)
-        )
-        self.act = layers.Activation('relu')
+        self.conv_block = Sequential(self.conv_resnetblock(output_channels, 3, strides))
+        self.act = layers.Activation("relu")
 
     @staticmethod
     def conv_resnetblock(
@@ -104,14 +97,11 @@ class ResnetBlock(layers.Layer):
         strides: int = 1,
     ) -> List[layers.Layer]:
         return [
-            *conv_sequence(output_channels, 'relu', bn=True, strides=strides, kernel_size=kernel_size),
+            *conv_sequence(output_channels, "relu", bn=True, strides=strides, kernel_size=kernel_size),
             *conv_sequence(output_channels, None, bn=True, kernel_size=kernel_size),
         ]
 
-    def call(
-        self,
-        inputs: tf.Tensor
-    ) -> tf.Tensor:
+    def call(self, inputs: tf.Tensor) -> tf.Tensor:
         clone = self.shortcut(inputs)
         conv_out = self.conv_block(inputs)
         out = self.act(clone + conv_out)
@@ -120,14 +110,9 @@ class ResnetBlock(layers.Layer):
 
 
 def resnet_stage(
-    num_blocks: int,
-    out_channels: int,
-    shortcut: bool = False,
-    downsample: bool = False
+    num_blocks: int, out_channels: int, shortcut: bool = False, downsample: bool = False
 ) -> List[layers.Layer]:
-    _layers: List[layers.Layer] = [
-        ResnetBlock(out_channels, conv_shortcut=shortcut, strides=2 if downsample else 1)
-    ]
+    _layers: List[layers.Layer] = [ResnetBlock(out_channels, conv_shortcut=shortcut, strides=2 if downsample else 1)]
 
     for _ in range(1, num_blocks):
         _layers.append(ResnetBlock(out_channels, conv_shortcut=False))
@@ -171,32 +156,35 @@ class ResNet(Sequential):
         inplanes = stem_channels
         if origin_stem:
             _layers = [
-                *conv_sequence(inplanes, 'relu', True, kernel_size=7, strides=2, input_shape=input_shape),
-                layers.MaxPool2D(pool_size=(3, 3), strides=2, padding='same'),
+                *conv_sequence(inplanes, "relu", True, kernel_size=7, strides=2, input_shape=input_shape),
+                layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same"),
             ]
         else:
             _layers = [
-                *conv_sequence(inplanes // 2, 'relu', True, kernel_size=3, input_shape=input_shape),
-                *conv_sequence(inplanes, 'relu', True, kernel_size=3),
-                layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
+                *conv_sequence(inplanes // 2, "relu", True, kernel_size=3, input_shape=input_shape),
+                *conv_sequence(inplanes, "relu", True, kernel_size=3),
+                layers.MaxPool2D(pool_size=2, strides=2, padding="valid"),
             ]
 
-        for n_blocks, out_chan, down, conv, pool in zip(num_blocks, output_channels, stage_downsample, stage_conv,
-                                                        stage_pooling):
+        for n_blocks, out_chan, down, conv, pool in zip(
+            num_blocks, output_channels, stage_downsample, stage_conv, stage_pooling
+        ):
             _layers.extend(resnet_stage(n_blocks, out_chan, out_chan != inplanes, down))
             if attn_module is not None:
                 _layers.append(attn_module(out_chan))
             if conv:
-                _layers.extend(conv_sequence(out_chan, activation='relu', bn=True, kernel_size=3))
+                _layers.extend(conv_sequence(out_chan, activation="relu", bn=True, kernel_size=3))
             if pool:
-                _layers.append(layers.MaxPool2D(pool_size=pool, strides=pool, padding='valid'))
+                _layers.append(layers.MaxPool2D(pool_size=pool, strides=pool, padding="valid"))
             inplanes = out_chan
 
         if include_top:
-            _layers.extend([
-                layers.GlobalAveragePooling2D(),
-                layers.Dense(num_classes),
-            ])
+            _layers.extend(
+                [
+                    layers.GlobalAveragePooling2D(),
+                    layers.Dense(num_classes),
+                ]
+            )
 
         super().__init__(_layers)
         self.cfg = cfg
@@ -211,25 +199,26 @@ def _resnet(
     stage_conv: List[bool],
     stage_pooling: List[Optional[Tuple[int, int]]],
     origin_stem: bool = True,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> ResNet:
 
-    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
-    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
-    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
+    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    _cfg['input_shape'] = kwargs['input_shape']
-    kwargs.pop('classes')
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    _cfg["input_shape"] = kwargs["input_shape"]
+    kwargs.pop("classes")
 
     # Build the model
-    model = ResNet(num_blocks, output_channels, stage_downsample,
-                   stage_conv, stage_pooling, origin_stem, cfg=_cfg, **kwargs)
+    model = ResNet(
+        num_blocks, output_channels, stage_downsample, stage_conv, stage_pooling, origin_stem, cfg=_cfg, **kwargs
+    )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, default_cfgs[arch]["url"])
 
     return model
 
@@ -252,7 +241,7 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _resnet(
-        'resnet18',
+        "resnet18",
         pretrained,
         [2, 2, 2, 2],
         [64, 128, 256, 512],
@@ -283,7 +272,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _resnet(
-        'resnet31',
+        "resnet31",
         pretrained,
         [1, 2, 5, 3],
         [256, 256, 512, 512],
@@ -314,7 +303,7 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _resnet(
-        'resnet34',
+        "resnet34",
         pretrained,
         [3, 4, 6, 3],
         [64, 128, 256, 512],
@@ -343,22 +332,22 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
         A classification model
     """
 
-    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs['resnet50']['classes']))
-    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs['resnet50']['input_shape'])
-    kwargs['classes'] = kwargs.get('classes', default_cfgs['resnet50']['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs["resnet50"]["classes"]))
+    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs["resnet50"]["input_shape"])
+    kwargs["classes"] = kwargs.get("classes", default_cfgs["resnet50"]["classes"])
 
-    _cfg = deepcopy(default_cfgs['resnet50'])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    _cfg['input_shape'] = kwargs['input_shape']
-    kwargs.pop('classes')
+    _cfg = deepcopy(default_cfgs["resnet50"])
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    _cfg["input_shape"] = kwargs["input_shape"]
+    kwargs.pop("classes")
 
     model = ResNet50(
         weights=None,
         include_top=True,
         pooling=True,
-        input_shape=kwargs['input_shape'],
-        classes=kwargs['num_classes'],
+        input_shape=kwargs["input_shape"],
+        classes=kwargs["num_classes"],
         classifier_activation=None,
     )
 
@@ -366,7 +355,7 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
 
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs['resnet50']['url'])
+        load_pretrained_params(model, default_cfgs["resnet50"]["url"])
 
     return model
 
@@ -389,7 +378,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _resnet(
-        'resnet34_wide',
+        "resnet34_wide",
         pretrained,
         [3, 4, 6, 3],
         [128, 256, 512, 1024],

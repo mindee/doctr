@@ -11,7 +11,7 @@ import numpy as np
 
 from doctr.utils.common_types import AbstractFile
 
-__all__ = ['read_img_as_numpy']
+__all__ = ["read_img_as_numpy"]
 
 
 def read_img_as_numpy(
