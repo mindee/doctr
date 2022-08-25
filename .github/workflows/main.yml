@@ -17,13 +17,13 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate headers
-        # credits to: https://github.com/frgfm/validate-python-headers
+        # Credits to: https://github.com/frgfm/validate-python-headers
         uses: frgfm/validate-python-headers@main
         with:
           license: 'Apache-2.0'
           owner: 'Mindee'
           starting-year: 2021
-          folders: '.github,api,demo,docs,doctr,references,scripts'
+          folders: '.github,api/app,demo,docs,doctr,references,scripts'
           ignores: 'version.py,__init__.py'
 
   pytest-common:
