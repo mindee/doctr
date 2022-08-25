@@ -17,6 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate headers
+        # credits to: https://github.com/frgfm/validate-python-headers
         uses: frgfm/validate-python-headers@main
         with:
           license: 'Apache-2.0'
