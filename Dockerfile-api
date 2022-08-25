@@ -9,13 +9,13 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # copy requirements file
 COPY api/requirements.txt /app/api-requirements.txt
-COPY ./requirements.txt /tmp/requirements.txt
+COPY ./pyproject.toml /tmp/pyproject.toml
 
 RUN apt-get update \
     && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
     && pip install --upgrade pip setuptools wheel \
     && pip install -r /app/api-requirements.txt \
-    && pip install -r /tmp/requirements.txt \
+    && pip install /tmp/pyproject.toml \
     && pip cache purge \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
