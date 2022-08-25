@@ -1,5 +1,5 @@
 [build-system]
-requires = ["python-doctr>=0.5.0"]
+requires = ["python-doctr>=0.2.0"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry]
@@ -13,7 +13,7 @@ license = "Apache-2.0"
 python = ">=3.8, <3.11"
 tensorflow = ">=2.9.0, <3.0.0"
 tensorflow-addons = ">=0.17.1"
-python-doctr = ">=0.5.0"
+python-doctr = ">=0.2.0"
 # Fastapi: minimum version required to avoid pydantic error
 # cf. https://github.com/tiangolo/fastapi/issues/4168
 fastapi = ">=0.73.0"
