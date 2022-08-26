@@ -3,29 +3,35 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import os
-
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 import streamlit as st
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
-import cv2
-import tensorflow as tf
-
-gpu_devices = tf.config.experimental.list_physical_devices("GPU")
-if any(gpu_devices):
-    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-
+from doctr.file_utils import is_tf_available
 from doctr.io import DocumentFile
-from doctr.models import ocr_predictor
 from doctr.utils.visualization import visualize_page
 
-DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18_rotation"]
-RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
+if is_tf_available():
+    import tensorflow as tf
+
+    from backend.tensorflow import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
+
+    if any(tf.config.experimental.list_physical_devices("gpu")):
+        forward_device = tf.device("/gpu:0")
+    else:
+        forward_device = tf.device("/cpu:0")
+
+else:
+    import torch
+
+    from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
+
+    forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def main():
+def main(det_archs, reco_archs):
+    """Build a streamlit layout"""
 
     # Wide mode
     st.set_page_config(layout="wide")
@@ -56,12 +62,14 @@ def main():
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
         page_idx = st.sidebar.selectbox("Page selection", [idx + 1 for idx in range(len(doc))]) - 1
-        cols[0].image(doc[page_idx])
+        page = doc[page_idx]
+        cols[0].image(page)
 
     # Model selection
     st.sidebar.title("Model selection")
-    det_arch = st.sidebar.selectbox("Text detection model", DET_ARCHS)
-    reco_arch = st.sidebar.selectbox("Text recognition model", RECO_ARCHS)
+    st.sidebar.markdown("**Backend**: " + ("TensorFlow" if is_tf_available() else "PyTorch"))
+    det_arch = st.sidebar.selectbox("Text detection model", det_archs)
+    reco_arch = st.sidebar.selectbox("Text recognition model", reco_archs)
 
     # For newline
     st.sidebar.write("\n")
@@ -73,23 +81,15 @@ def main():
 
         else:
             with st.spinner("Loading model..."):
-                predictor = ocr_predictor(
-                    det_arch,
-                    reco_arch,
-                    pretrained=True,
-                    assume_straight_pages=(det_arch != "linknet_resnet18_rotation"),
-                )
+                predictor = load_predictor(det_arch, reco_arch, forward_device)
 
             with st.spinner("Analyzing..."):
 
                 # Forward the image to the model
-                processed_batches = predictor.det_predictor.pre_processor([doc[page_idx]])
-                out = predictor.det_predictor.model(processed_batches[0], return_model_output=True)
-                seg_map = out["out_map"]
-                seg_map = tf.squeeze(seg_map[0, ...], axis=[2])
-                seg_map = cv2.resize(
-                    seg_map.numpy(), (doc[page_idx].shape[1], doc[page_idx].shape[0]), interpolation=cv2.INTER_LINEAR
-                )
+                seg_map = forward_image(predictor, page, forward_device)
+                seg_map = np.squeeze(seg_map)
+                seg_map = cv2.resize(seg_map, (page.shape[1], page.shape[0]), interpolation=cv2.INTER_LINEAR)
+
                 # Plot the raw heatmap
                 fig, ax = plt.subplots()
                 ax.imshow(seg_map)
@@ -97,13 +97,13 @@ def main():
                 cols[1].pyplot(fig)
 
                 # Plot OCR output
-                out = predictor([doc[page_idx]])
-                fig = visualize_page(out.pages[0].export(), doc[page_idx], interactive=False)
+                out = predictor([page])
+                fig = visualize_page(out.pages[0].export(), page, interactive=False)
                 cols[2].pyplot(fig)
 
                 # Page reconsitution under input page
                 page_export = out.pages[0].export()
-                if det_arch != "linknet_resnet18_rotation":
+                if "rotation" not in det_arch:
                     img = out.pages[0].synthesize()
                     cols[3].image(img, clamp=True)
 
@@ -113,4 +113,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(DET_ARCHS, RECO_ARCHS)
