@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import cv2
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ if is_tf_available():
 
     from backend.tensorflow import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
-    if any(tf.config.experimental.list_physical_devices('gpu')):
+    if any(tf.config.experimental.list_physical_devices("gpu")):
         forward_device = tf.device("/gpu:0")
     else:
         forward_device = tf.device("/cpu:0")
@@ -39,7 +39,7 @@ def main(det_archs, reco_archs):
     # Designing the interface
     st.title("docTR: Document Text Recognition")
     # For newline
-    st.write('\n')
+    st.write("\n")
     # Instructions
     st.markdown("*Hint: click on the top-right corner of an image to enlarge it!*")
     # Set the columns
@@ -53,11 +53,11 @@ def main(det_archs, reco_archs):
     # File selection
     st.sidebar.title("Document selection")
     # Disabling warning
-    st.set_option('deprecation.showfileUploaderEncoding', False)
+    st.set_option("deprecation.showfileUploaderEncoding", False)
     # Choose your own image
-    uploaded_file = st.sidebar.file_uploader("Upload files", type=['pdf', 'png', 'jpeg', 'jpg'])
+    uploaded_file = st.sidebar.file_uploader("Upload files", type=["pdf", "png", "jpeg", "jpg"])
     if uploaded_file is not None:
-        if uploaded_file.name.endswith('.pdf'):
+        if uploaded_file.name.endswith(".pdf"):
             doc = DocumentFile.from_pdf(uploaded_file.read())
         else:
             doc = DocumentFile.from_images(uploaded_file.read())
@@ -72,7 +72,7 @@ def main(det_archs, reco_archs):
     reco_arch = st.sidebar.selectbox("Text recognition model", reco_archs)
 
     # For newline
-    st.sidebar.write('\n')
+    st.sidebar.write("\n")
 
     if st.sidebar.button("Analyze page"):
 
@@ -80,21 +80,20 @@ def main(det_archs, reco_archs):
             st.sidebar.write("Please upload a document")
 
         else:
-            with st.spinner('Loading model...'):
+            with st.spinner("Loading model..."):
                 predictor = load_predictor(det_arch, reco_arch, forward_device)
 
-            with st.spinner('Analyzing...'):
+            with st.spinner("Analyzing..."):
 
                 # Forward the image to the model
                 seg_map = forward_image(predictor, page, forward_device)
                 seg_map = np.squeeze(seg_map)
-                seg_map = cv2.resize(seg_map, (page.shape[1], page.shape[0]),
-                                     interpolation=cv2.INTER_LINEAR)
+                seg_map = cv2.resize(seg_map, (page.shape[1], page.shape[0]), interpolation=cv2.INTER_LINEAR)
 
                 # Plot the raw heatmap
                 fig, ax = plt.subplots()
                 ax.imshow(seg_map)
-                ax.axis('off')
+                ax.axis("off")
                 cols[1].pyplot(fig)
 
                 # Plot OCR output
