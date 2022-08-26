@@ -20,7 +20,6 @@ __all__ = ['PreProcessor']
 
 class PreProcessor(nn.Module):
     """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
-
     Args:
         output_size: expected size of each page in format (H, W)
         batch_size: the size of page batches
@@ -48,10 +47,8 @@ class PreProcessor(nn.Module):
         samples: List[torch.Tensor]
     ) -> List[torch.Tensor]:
         """Gather samples into batches for inference purposes
-
         Args:
             samples: list of samples of shape (C, H, W)
-
         Returns:
             list of batched samples (*, C, H, W)
         """
@@ -88,7 +85,6 @@ class PreProcessor(nn.Module):
         x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]
     ) -> List[torch.Tensor]:
         """Prepare document data for model forwarding
-
         Args:
             x: list of images (np.array) or tensors (already resized and batched)
         Returns:
@@ -117,13 +113,19 @@ class PreProcessor(nn.Module):
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
             # Sample transform (to tensor, resize)
-            samples = multithread_exec(self.sample_transforms, x)
+            samples = []
+            for sub_x in x:
+                samples.append(self.sample_transforms(sub_x))
+            # print(samples)
+            # samples = multithread_exec(self.sample_transforms, x)
+            # print(samples)
             # Batching
             batches = self.batch_inputs(samples)  # type: ignore[arg-type]
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
-        batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
+        batches = [self.normalize(batch) for batch in batches]
+        # batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
 
         return batches
