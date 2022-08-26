@@ -1,5 +1,5 @@
 [build-system]
-requires = ["python-doctr>=0.2.0"]
+requires = ["poetry>=1.0"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry]
