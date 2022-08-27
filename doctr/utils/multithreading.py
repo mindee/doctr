@@ -14,7 +14,6 @@ from doctr.file_utils import ENV_VARS_TRUE_VALUES
 __all__ = ['multithread_exec']
 
 
-
 def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterator[Any]:
     """Execute a given function in parallel for each element of a given sequence
 
