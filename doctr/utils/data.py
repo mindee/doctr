@@ -100,7 +100,7 @@ def download_from_url(
             error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
         else:
             error_message += (
-                ". You can change default cache directory using 'DOCTR_CACHE_DIR'" "environment variable if needed."
+                ". You can change default cache directory using 'DOCTR_CACHE_DIR' environment variable if needed."
             )
         logging.error(error_message)
         raise
