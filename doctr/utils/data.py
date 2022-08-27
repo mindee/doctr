@@ -73,7 +73,7 @@ def download_from_url(
         file_name = url.rpartition("/")[-1]
 
     if not isinstance(cache_dir, str):
-        cache_dir = os.environ.get('DOCTR_CACHE_DIR')
+        cache_dir = os.environ.get("DOCTR_CACHE_DIR")
         if cache_dir is None:
             cache_dir = os.path.join("~", ".cache", "doctr")
 
@@ -96,11 +96,12 @@ def download_from_url(
         folder_path.mkdir(parents=True, exist_ok=True)
     except OSError:
         error_message = f"Failed creating cache direcotry at {folder_path}"
-        if 'DOCTR_CACHE_DIR' in os.environ:
+        if "DOCTR_CACHE_DIR" in os.environ:
             error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
         else:
-            error_message += ". You can change default cache directory using 'DOCTR_CACHE_DIR'" \
-                "environment variable if needed."
+            error_message += (
+                ". You can change default cache directory using 'DOCTR_CACHE_DIR'" "environment variable if needed."
+            )
         logging.error(error_message)
         raise
     # Download the file

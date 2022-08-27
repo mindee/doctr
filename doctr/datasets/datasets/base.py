@@ -93,13 +93,13 @@ class _VisionDataset(_AbstractDataset):
         **kwargs: Any,
     ) -> None:
         if not isinstance(cache_dir, str):
-            cache_dir = os.environ.get('DOCTR_CACHE_DIR')
+            cache_dir = os.environ.get("DOCTR_CACHE_DIR")
             if cache_dir is None:
                 cache_dir = os.path.join("~", ".cache", "doctr")
 
         cache_dir = os.path.expanduser(cache_dir)
 
-        cache_subdir = 'datasets' if cache_subdir is None else cache_subdir
+        cache_subdir = "datasets" if cache_subdir is None else cache_subdir
 
         file_name = file_name if isinstance(file_name, str) else os.path.basename(url)
         # Download the file if not present

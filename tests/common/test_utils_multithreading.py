@@ -26,6 +26,6 @@ def test_multithread_exec(input_seq, func, output_seq):
 
 @patch.dict(os.environ, {"DOCTR_MULTIPROCESSING_DISABLE": "TRUE"}, clear=True)
 def test_multithread_exec_multiprocessing_disable():
-    with patch.object(ThreadPool, 'map') as mock_tp_map:
+    with patch.object(ThreadPool, "map") as mock_tp_map:
         multithread_exec(lambda x: x, [1, 2])
     assert not mock_tp_map.called

@@ -11,7 +11,7 @@ from typing import Any, Callable, Iterable, Iterator, Optional
 
 from doctr.file_utils import ENV_VARS_TRUE_VALUES
 
-__all__ = ['multithread_exec']
+__all__ = ["multithread_exec"]
 
 
 def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterator[Any]:
@@ -37,7 +37,7 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
 
     threads = threads if isinstance(threads, int) else min(16, mp.cpu_count())
     # Single-thread
-    if threads < 2 or os.environ.get('DOCTR_MULTIPROCESSING_DISABLE', "").upper() in ENV_VARS_TRUE_VALUES:
+    if threads < 2 or os.environ.get("DOCTR_MULTIPROCESSING_DISABLE", "").upper() in ENV_VARS_TRUE_VALUES:
         results = map(func, seq)
     # Multi-threading
     else:
