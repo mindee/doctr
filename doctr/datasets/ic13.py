@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import csv
 import os
@@ -49,32 +49,31 @@ class IC13(AbstractDataset):
         **kwargs: Any,
     ) -> None:
         super().__init__(
-            img_folder,
-            pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
         )
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):
             raise FileNotFoundError(
-                f"unable to locate {label_folder if not os.path.exists(label_folder) else img_folder}")
+                f"unable to locate {label_folder if not os.path.exists(label_folder) else img_folder}"
+            )
 
         self.data: List[Tuple[Union[Path, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         img_names = os.listdir(img_folder)
 
-        for img_name in tqdm(iterable=img_names, desc='Unpacking IC13', total=len(img_names)):
+        for img_name in tqdm(iterable=img_names, desc="Unpacking IC13", total=len(img_names)):
 
             img_path = Path(img_folder, img_name)
             label_path = Path(label_folder, "gt_" + Path(img_name).stem + ".txt")
 
-            with open(label_path, newline='\n') as f:
+            with open(label_path, newline="\n") as f:
                 _lines = [
                     [val[:-1] if val.endswith(",") else val for val in row]
-                    for row in csv.reader(f, delimiter=' ', quotechar="'")
+                    for row in csv.reader(f, delimiter=" ", quotechar="'")
                 ]
-            labels = [line[-1].replace("\"", "") for line in _lines]
+            labels = [line[-1].replace('"', "") for line in _lines]
             # xmin, ymin, xmax, ymax
             box_targets: np.ndarray = np.array([list(map(int, line[:4])) for line in _lines], dtype=np_dtype)
             if use_polygons:
@@ -86,8 +85,10 @@ class IC13(AbstractDataset):
                             [coords[2], coords[1]],
                             [coords[2], coords[3]],
                             [coords[0], coords[3]],
-                        ] for coords in box_targets
-                    ], dtype=np_dtype
+                        ]
+                        for coords in box_targets
+                    ],
+                    dtype=np_dtype,
                 )
 
             if recognition_task:

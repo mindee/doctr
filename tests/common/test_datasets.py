@@ -7,19 +7,19 @@ from doctr import datasets
 
 
 def test_visiondataset():
-    url = 'https://data.deepai.org/mnist.zip'
+    url = "https://data.deepai.org/mnist.zip"
     with pytest.raises(ValueError):
         datasets.datasets.VisionDataset(url, download=False)
 
     dataset = datasets.datasets.VisionDataset(url, download=True, extract_archive=True)
     assert len(dataset) == 0
-    assert repr(dataset) == 'VisionDataset()'
+    assert repr(dataset) == "VisionDataset()"
 
 
 def test_abstractdataset(mock_image_path):
 
     with pytest.raises(ValueError):
-        datasets.datasets.AbstractDataset('my/fantasy/folder')
+        datasets.datasets.AbstractDataset("my/fantasy/folder")
 
     # Check transforms
     path = Path(mock_image_path)
@@ -49,7 +49,8 @@ def test_abstractdataset(mock_image_path):
     def inplace_transfo(x, target):
         target["label"] += "B"
         return x, target
+
     ds.sample_transforms = inplace_transfo
     _, t = ds[0]
     _, t = ds[0]
-    assert t['label'] == "AB"
+    assert t["label"] == "AB"

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
@@ -19,33 +19,33 @@ from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50', 'linknet_resnet18_rotation']
+__all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50", "linknet_resnet18_rotation"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'linknet_resnet18': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'input_shape': (1024, 1024, 3),
-        'url': None,
+    "linknet_resnet18": {
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
+        "input_shape": (1024, 1024, 3),
+        "url": None,
     },
-    'linknet_resnet18_rotation': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'input_shape': (1024, 1024, 3),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/linknet_resnet18-a48e6ed3.zip',
+    "linknet_resnet18_rotation": {
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
+        "input_shape": (1024, 1024, 3),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/linknet_resnet18-a48e6ed3.zip",
     },
-    'linknet_resnet34': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'input_shape': (1024, 1024, 3),
-        'url': None,
+    "linknet_resnet34": {
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
+        "input_shape": (1024, 1024, 3),
+        "url": None,
     },
-    'linknet_resnet50': {
-        'mean': (0.798, 0.785, 0.772),
-        'std': (0.264, 0.2749, 0.287),
-        'input_shape': (1024, 1024, 3),
-        'url': None,
+    "linknet_resnet50": {
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
+        "input_shape": (1024, 1024, 3),
+        "url": None,
     },
 }
 
@@ -53,20 +53,22 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 def decoder_block(in_chan: int, out_chan: int, stride: int, **kwargs: Any) -> Sequential:
     """Creates a LinkNet decoder block"""
 
-    return Sequential([
-        *conv_sequence(in_chan // 4, 'relu', True, kernel_size=1, **kwargs),
-        layers.Conv2DTranspose(
-            filters=in_chan // 4,
-            kernel_size=3,
-            strides=stride,
-            padding="same",
-            use_bias=False,
-            kernel_initializer='he_normal'
-        ),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        *conv_sequence(out_chan, 'relu', True, kernel_size=1),
-    ])
+    return Sequential(
+        [
+            *conv_sequence(in_chan // 4, "relu", True, kernel_size=1, **kwargs),
+            layers.Conv2DTranspose(
+                filters=in_chan // 4,
+                kernel_size=3,
+                strides=stride,
+                padding="same",
+                use_bias=False,
+                kernel_initializer="he_normal",
+            ),
+            layers.BatchNormalization(),
+            layers.Activation("relu"),
+            *conv_sequence(out_chan, "relu", True, kernel_size=1),
+        ]
+    )
 
 
 class LinkNetFPN(Model, NestedObject):
@@ -88,10 +90,7 @@ class LinkNetFPN(Model, NestedObject):
             for in_chan, out_chan, s, in_shape in zip(i_chans, o_chans, strides, in_shapes[::-1])
         ]
 
-    def call(
-        self,
-        x: List[tf.Tensor]
-    ) -> tf.Tensor:
+    def call(self, x: List[tf.Tensor]) -> tf.Tensor:
         out = 0
         for decoder, fmap in zip(self.decoders, x[::-1]):
             out = decoder(out + fmap)
@@ -114,7 +113,7 @@ class LinkNet(_LinkNet, keras.Model):
         cfg: the configuration dict of the model
     """
 
-    _children_names: List[str] = ['feat_extractor', 'fpn', 'classifier', 'postprocessor']
+    _children_names: List[str] = ["feat_extractor", "fpn", "classifier", "postprocessor"]
 
     def __init__(
         self,
@@ -135,28 +134,30 @@ class LinkNet(_LinkNet, keras.Model):
         self.fpn = LinkNetFPN(fpn_channels, [_shape[1:] for _shape in self.feat_extractor.output_shape])
         self.fpn.build(self.feat_extractor.output_shape)
 
-        self.classifier = Sequential([
-            layers.Conv2DTranspose(
-                filters=32,
-                kernel_size=3,
-                strides=2,
-                padding="same",
-                use_bias=False,
-                kernel_initializer='he_normal',
-                input_shape=self.fpn.decoders[-1].output_shape[1:],
-            ),
-            layers.BatchNormalization(),
-            layers.Activation('relu'),
-            *conv_sequence(32, 'relu', True, kernel_size=3, strides=1),
-            layers.Conv2DTranspose(
-                filters=num_classes,
-                kernel_size=2,
-                strides=2,
-                padding="same",
-                use_bias=True,
-                kernel_initializer='he_normal'
-            ),
-        ])
+        self.classifier = Sequential(
+            [
+                layers.Conv2DTranspose(
+                    filters=32,
+                    kernel_size=3,
+                    strides=2,
+                    padding="same",
+                    use_bias=False,
+                    kernel_initializer="he_normal",
+                    input_shape=self.fpn.decoders[-1].output_shape[1:],
+                ),
+                layers.BatchNormalization(),
+                layers.Activation("relu"),
+                *conv_sequence(32, "relu", True, kernel_size=3, strides=1),
+                layers.Conv2DTranspose(
+                    filters=num_classes,
+                    kernel_size=2,
+                    strides=2,
+                    padding="same",
+                    use_bias=True,
+                    kernel_initializer="he_normal",
+                ),
+            ]
+        )
 
         self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
 
@@ -164,8 +165,8 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         out_map: tf.Tensor,
         target: List[np.ndarray],
-        gamma: float = 2.,
-        alpha: float = .5,
+        gamma: float = 2.0,
+        alpha: float = 0.5,
         eps: float = 1e-8,
     ) -> tf.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
@@ -222,7 +223,7 @@ class LinkNet(_LinkNet, keras.Model):
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
-            out['logits'] = logits
+            out["logits"] = logits
             return out
 
         if return_model_output or target is None or return_preds:
@@ -236,7 +237,7 @@ class LinkNet(_LinkNet, keras.Model):
 
         if target is not None:
             loss = self.compute_loss(logits, target)
-            out['loss'] = loss
+            out["loss"] = loss
 
         return out
 
@@ -248,21 +249,21 @@ def _linknet(
     fpn_layers: List[str],
     pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> LinkNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
+    _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(
             pretrained=pretrained_backbone,
             include_top=False,
-            input_shape=_cfg['input_shape'],
+            input_shape=_cfg["input_shape"],
         ),
         fpn_layers,
     )
@@ -271,7 +272,7 @@ def _linknet(
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg['url'])
+        load_pretrained_params(model, _cfg["url"])
 
     return model
 
@@ -294,10 +295,10 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """
 
     return _linknet(
-        'linknet_resnet18',
+        "linknet_resnet18",
         pretrained,
         resnet18,
-        ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        ["resnet_block_1", "resnet_block_3", "resnet_block_5", "resnet_block_7"],
         **kwargs,
     )
 
@@ -320,10 +321,10 @@ def linknet_resnet18_rotation(pretrained: bool = False, **kwargs: Any) -> LinkNe
     """
 
     return _linknet(
-        'linknet_resnet18_rotation',
+        "linknet_resnet18_rotation",
         pretrained,
         resnet18,
-        ['resnet_block_1', 'resnet_block_3', 'resnet_block_5', 'resnet_block_7'],
+        ["resnet_block_1", "resnet_block_3", "resnet_block_5", "resnet_block_7"],
         **kwargs,
     )
 
@@ -346,10 +347,10 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """
 
     return _linknet(
-        'linknet_resnet34',
+        "linknet_resnet34",
         pretrained,
         resnet34,
-        ['resnet_block_2', 'resnet_block_6', 'resnet_block_12', 'resnet_block_15'],
+        ["resnet_block_2", "resnet_block_6", "resnet_block_12", "resnet_block_15"],
         **kwargs,
     )
 
@@ -372,7 +373,7 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     """
 
     return _linknet(
-        'linknet_resnet50',
+        "linknet_resnet50",
         pretrained,
         resnet50,
         ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],

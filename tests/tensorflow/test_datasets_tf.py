@@ -18,17 +18,17 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
     assert img.shape == (*input_size, 3)
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
-    assert isinstance(target['boxes'], np.ndarray) and target['boxes'].dtype == np.float32
+    assert isinstance(target["boxes"], np.ndarray) and target["boxes"].dtype == np.float32
     if is_polygons:
-        assert target['boxes'].ndim == 3 and target['boxes'].shape[1:] == (4, 2)
+        assert target["boxes"].ndim == 3 and target["boxes"].shape[1:] == (4, 2)
     else:
-        assert target['boxes'].ndim == 2 and target['boxes'].shape[1:] == (4,)
-    assert np.all(np.logical_and(target['boxes'] <= 1, target['boxes'] >= 0))
+        assert target["boxes"].ndim == 2 and target["boxes"].shape[1:] == (4,)
+    assert np.all(np.logical_and(target["boxes"] <= 1, target["boxes"] >= 0))
     if class_indices:
-        assert isinstance(target['labels'], np.ndarray) and target['labels'].dtype == np.int64
+        assert isinstance(target["labels"], np.ndarray) and target["labels"].dtype == np.int64
     else:
-        assert isinstance(target['labels'], list) and all(isinstance(s, str) for s in target['labels'])
-    assert len(target['labels']) == len(target['boxes'])
+        assert isinstance(target["labels"], list) and all(isinstance(s, str) for s in target["labels"])
+    assert len(target["labels"]) == len(target["boxes"])
 
     # Check batching
     loader = DataLoader(ds, batch_size=batch_size)
@@ -46,8 +46,8 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     assert img.shape == (*input_size, 3)
     assert img.dtype == tf.float32
     assert isinstance(target, dict)
-    assert len(target['labels']) == 1
-    assert isinstance(target['labels'][0], str)
+    assert len(target["labels"]) == 1
+    assert isinstance(target["labels"][0], str)
 
     # Check batching
     loader = DataLoader(ds, batch_size=batch_size)
@@ -87,7 +87,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
         img_folder=mock_image_folder,
         label_path=mock_detection_label,
         img_transforms=Resize(input_size),
-        use_polygons=True
+        use_polygons=True,
     )
     _, r_target = rotated_ds[0]
     assert r_target.shape[1:] == (4, 2)
@@ -128,7 +128,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
 
 
 @pytest.mark.parametrize(
-    "use_polygons", [False, True],
+    "use_polygons",
+    [False, True],
 )
 def test_ocrdataset(mock_ocrdataset, use_polygons):
 
@@ -153,7 +154,7 @@ def test_ocrdataset(mock_ocrdataset, use_polygons):
 def test_charactergenerator():
 
     input_size = (32, 32)
-    vocab = 'abcdef'
+    vocab = "abcdef"
 
     ds = datasets.CharacterGenerator(
         vocab=vocab,
@@ -180,7 +181,7 @@ def test_wordgenerator():
 
     input_size = (32, 128)
     wordlen_range = (1, 10)
-    vocab = 'abcdef'
+    vocab = "abcdef"
 
     ds = datasets.WordGenerator(
         vocab=vocab,
@@ -218,8 +219,12 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
     datasets.DocArtefacts.SHA256 = None
 
     ds = datasets.DocArtefacts(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate,
-        cache_dir="/".join(mock_doc_artefacts.split("/")[:-2]), cache_subdir=mock_doc_artefacts.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        cache_dir="/".join(mock_doc_artefacts.split("/")[:-2]),
+        cache_subdir=mock_doc_artefacts.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -228,6 +233,7 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
 
 
 # NOTE: following datasets support also recognition task
+
 
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
@@ -243,8 +249,13 @@ def test_sroie(input_size, num_samples, rotate, recognition, mock_sroie_dataset)
     datasets.SROIE.TRAIN = (mock_sroie_dataset, None)
 
     ds = datasets.SROIE(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_sroie_dataset.split("/")[:-2]), cache_subdir=mock_sroie_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_sroie_dataset.split("/")[:-2]),
+        cache_subdir=mock_sroie_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -319,8 +330,13 @@ def test_svhn(input_size, num_samples, rotate, recognition, mock_svhn_dataset):
     datasets.SVHN.TRAIN = (mock_svhn_dataset, None, "svhn_train.tar")
 
     ds = datasets.SVHN(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_svhn_dataset.split("/")[:-2]), cache_subdir=mock_svhn_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_svhn_dataset.split("/")[:-2]),
+        cache_subdir=mock_svhn_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -347,8 +363,13 @@ def test_funsd(input_size, num_samples, rotate, recognition, mock_funsd_dataset)
     datasets.FUNSD.FILE_NAME = "funsd.zip"
 
     ds = datasets.FUNSD(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_funsd_dataset.split("/")[:-2]), cache_subdir=mock_funsd_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_funsd_dataset.split("/")[:-2]),
+        cache_subdir=mock_funsd_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -373,8 +394,13 @@ def test_cord(input_size, num_samples, rotate, recognition, mock_cord_dataset):
     datasets.CORD.TRAIN = (mock_cord_dataset, None)
 
     ds = datasets.CORD(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_cord_dataset.split("/")[:-2]), cache_subdir=mock_cord_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_cord_dataset.split("/")[:-2]),
+        cache_subdir=mock_cord_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -400,8 +426,13 @@ def test_synthtext(input_size, num_samples, rotate, recognition, mock_synthtext_
     datasets.SynthText.SHA256 = None
 
     ds = datasets.SynthText(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_synthtext_dataset.split("/")[:-2]), cache_subdir=mock_synthtext_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_synthtext_dataset.split("/")[:-2]),
+        cache_subdir=mock_synthtext_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -427,8 +458,13 @@ def test_iiit5k(input_size, num_samples, rotate, recognition, mock_iiit5k_datase
     datasets.IIIT5K.SHA256 = None
 
     ds = datasets.IIIT5K(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_iiit5k_dataset.split("/")[:-2]), cache_subdir=mock_iiit5k_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_iiit5k_dataset.split("/")[:-2]),
+        cache_subdir=mock_iiit5k_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -454,8 +490,13 @@ def test_svt(input_size, num_samples, rotate, recognition, mock_svt_dataset):
     datasets.SVT.SHA256 = None
 
     ds = datasets.SVT(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_svt_dataset.split("/")[:-2]), cache_subdir=mock_svt_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_svt_dataset.split("/")[:-2]),
+        cache_subdir=mock_svt_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -480,8 +521,13 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
     datasets.IC03.TRAIN = (mock_ic03_dataset, None, "ic03_train.zip")
 
     ds = datasets.IC03(
-        train=True, download=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
-        cache_dir="/".join(mock_ic03_dataset.split("/")[:-2]), cache_subdir=mock_ic03_dataset.split("/")[-2],
+        train=True,
+        download=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        cache_dir="/".join(mock_ic03_dataset.split("/")[:-2]),
+        cache_subdir=mock_ic03_dataset.split("/")[-2],
     )
 
     assert len(ds) == num_samples
@@ -493,6 +539,7 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
 
 
 # NOTE: following datasets are only for recognition task
+
 
 def test_mjsynth_dataset(mock_mjsynth_dataset):
     input_size = (32, 128)

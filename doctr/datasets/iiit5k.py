@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
 from typing import Any, Dict, List, Tuple
@@ -13,7 +13,7 @@ from tqdm import tqdm
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative
 
-__all__ = ['IIIT5K']
+__all__ = ["IIIT5K"]
 
 
 class IIIT5K(VisionDataset):
@@ -36,8 +36,8 @@ class IIIT5K(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = 'https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz'
-    SHA256 = '7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e'
+    URL = "https://cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/IIIT5K-Word_V3.0.tar.gz"
+    SHA256 = "7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e"
 
     def __init__(
         self,
@@ -53,19 +53,19 @@ class IIIT5K(VisionDataset):
             file_hash=self.SHA256,
             extract_archive=True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            **kwargs,
         )
         self.train = train
 
         # Load mat data
-        tmp_root = os.path.join(self.root, 'IIIT5K') if self.SHA256 else self.root
-        mat_file = 'trainCharBound' if self.train else 'testCharBound'
-        mat_data = sio.loadmat(os.path.join(tmp_root, f'{mat_file}.mat'))[mat_file][0]
+        tmp_root = os.path.join(self.root, "IIIT5K") if self.SHA256 else self.root
+        mat_file = "trainCharBound" if self.train else "testCharBound"
+        mat_data = sio.loadmat(os.path.join(tmp_root, f"{mat_file}.mat"))[mat_file][0]
 
         self.data: List[Tuple[str, Dict[str, Any]]] = []
         np_dtype = np.float32
 
-        for img_path, label, box_targets in tqdm(iterable=mat_data, desc='Unpacking IIIT5K', total=len(mat_data)):
+        for img_path, label, box_targets in tqdm(iterable=mat_data, desc="Unpacking IIIT5K", total=len(mat_data)):
             _raw_path = img_path[0]
             _raw_label = label[0]
 
@@ -84,15 +84,17 @@ class IIIT5K(VisionDataset):
                             [box[0] + box[2], box[1]],
                             [box[0] + box[2], box[1] + box[3]],
                             [box[0], box[1] + box[3]],
-                        ] for box in box_targets
+                        ]
+                        for box in box_targets
                     ]
                 else:
                     # xmin, ymin, xmax, ymax
                     box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
                 # label are casted to list where each char corresponds to the character's bounding box
-                self.data.append((_raw_path, dict(boxes=np.asarray(
-                    box_targets, dtype=np_dtype), labels=list(_raw_label))))
+                self.data.append(
+                    (_raw_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(_raw_label)))
+                )
 
         self.root = tmp_root
 

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any
 
@@ -21,6 +21,8 @@ def _predictor(
     symmetric_pad: bool = True,
     det_bs: int = 2,
     reco_bs: int = 128,
+    detect_orientation: bool = False,
+    detect_language: bool = False,
     **kwargs,
 ) -> OCRPredictor:
 
@@ -43,19 +45,23 @@ def _predictor(
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
-        **kwargs
+        detect_orientation=detect_orientation,
+        detect_language=detect_language,
+        **kwargs,
     )
 
 
 def ocr_predictor(
-    det_arch: Any = 'db_resnet50',
-    reco_arch: Any = 'crnn_vgg16_bn',
+    det_arch: Any = "db_resnet50",
+    reco_arch: Any = "crnn_vgg16_bn",
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
     symmetric_pad: bool = True,
     export_as_straight_boxes: bool = False,
-    **kwargs: Any
+    detect_orientation: bool = False,
+    detect_language: bool = False,
+    **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
 
@@ -78,6 +84,10 @@ def ocr_predictor(
         symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.
         export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions
             (potentially rotated) as straight bounding boxes.
+        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
+        detect_language: if True, the language prediction will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -92,5 +102,7 @@ def ocr_predictor(
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
         export_as_straight_boxes=export_as_straight_boxes,
+        detect_orientation=detect_orientation,
+        detect_language=detect_language,
         **kwargs,
     )

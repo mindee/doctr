@@ -1,16 +1,17 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from math import floor
 from statistics import median_low
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
+from langdetect import LangDetectException, detect_langs
 
-__all__ = ['estimate_orientation', 'get_bitmap_angle']
+__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language"]
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -68,7 +69,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         return -median_low(angles)
 
 
-def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) -> float:
+def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.0) -> float:
     """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
 
     Args:
@@ -95,7 +96,7 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.) ->
 
     if np.std(angles) > std_max:
         # Edge case with angles of both 0 and 90°, or multi_oriented docs
-        angle = 0.
+        angle = 0.0
     else:
         angle = -np.mean(angles)
         # Determine rotation direction (clockwise/counterclockwise)
@@ -118,10 +119,11 @@ def rectify_crops(
     """
     # Inverse predictions (if angle of +90 is detected, rotate by -90)
     orientations = [4 - pred if pred != 0 else 0 for pred in orientations]
-    return [
-        crop if orientation == 0 else np.rot90(crop, orientation)
-        for orientation, crop in zip(orientations, crops)
-    ] if len(orientations) > 0 else []
+    return (
+        [crop if orientation == 0 else np.rot90(crop, orientation) for orientation, crop in zip(orientations, crops)]
+        if len(orientations) > 0
+        else []
+    )
 
 
 def rectify_loc_preds(
@@ -131,10 +133,31 @@ def rectify_loc_preds(
     """Orient the quadrangle (Polygon4P) according to the predicted orientation,
     so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
     """
-    return np.stack(
-        [np.roll(
-            page_loc_pred,
-            orientation,
-            axis=0) for orientation, page_loc_pred in zip(orientations, page_loc_preds)],
-        axis=0
-    ) if len(orientations) > 0 else None
+    return (
+        np.stack(
+            [
+                np.roll(page_loc_pred, orientation, axis=0)
+                for orientation, page_loc_pred in zip(orientations, page_loc_preds)
+            ],
+            axis=0,
+        )
+        if len(orientations) > 0
+        else None
+    )
+
+
+def get_language(text: str) -> Tuple[str, float]:
+    """Get languages of a text using langdetect model.
+    Get the language with the highest probability or no language if only a few words or a low probability
+    Args:
+        text (str): text
+    Returns:
+        The detected language in ISO 639 code and confidence score
+    """
+    try:
+        lang = detect_langs(text.lower())[0]
+    except LangDetectException:
+        return "unknown", 0.0
+    if len(text) <= 1 or (len(text) <= 5 and lang.prob <= 0.2):
+        return "unknown", 0.0
+    return lang.lang, lang.prob

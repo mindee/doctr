@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
 
@@ -30,7 +30,7 @@ def plot_samples(images, targets):
         ax.set_title(targets[idx])
     # Disable axis
     for ax in axes.ravel():
-        ax.axis('off')
+        ax.axis("off")
     plt.show()
 
 
@@ -49,7 +49,7 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
 
     # Exp moving average of loss
     smoothed_losses = []
-    avg_loss = 0.
+    avg_loss = 0.0
     for idx, loss in enumerate(loss_recorder):
         avg_loss = beta * avg_loss + (1 - beta) * loss
         smoothed_losses.append(avg_loss / (1 - beta ** (idx + 1)))
@@ -57,17 +57,17 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
     # Properly rescale Y-axis
     data_slice = slice(
         min(len(loss_recorder) // 10, 10),
-        -min(len(loss_recorder) // 20, 5) if len(loss_recorder) >= 20 else len(loss_recorder)
+        -min(len(loss_recorder) // 20, 5) if len(loss_recorder) >= 20 else len(loss_recorder),
     )
     vals = np.array(smoothed_losses[data_slice])
     min_idx = vals.argmin()
-    max_val = vals.max() if min_idx is None else vals[:min_idx + 1].max()  # type: ignore[misc]
+    max_val = vals.max() if min_idx is None else vals[: min_idx + 1].max()  # type: ignore[misc]
     delta = max_val - vals[min_idx]
 
     plt.plot(lr_recorder[data_slice], smoothed_losses[data_slice])
-    plt.xscale('log')
-    plt.xlabel('Learning Rate')
-    plt.ylabel('Training loss')
+    plt.xscale("log")
+    plt.xlabel("Learning Rate")
+    plt.ylabel("Training loss")
     plt.ylim(vals[min_idx] - 0.1 * delta, max_val + 0.2 * delta)
-    plt.grid(True, linestyle='--', axis='x')
+    plt.grid(True, linestyle="--", axis="x")
     plt.show(**kwargs)

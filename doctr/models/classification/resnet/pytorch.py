@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
 from copy import deepcopy
@@ -18,44 +18,44 @@ from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ['ResNet', 'resnet18', 'resnet31', 'resnet34', 'resnet50', 'resnet34_wide', 'resnet_stage']
+__all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide", "resnet_stage"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'resnet18': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-244bf390.pt',
+    "resnet18": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-244bf390.pt",
     },
-    'resnet31': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/resnet31-1056cc5c.pt',
+    "resnet31": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/resnet31-1056cc5c.pt",
     },
-    'resnet34': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34-bd8725db.pt',
+    "resnet34": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/resnet34-bd8725db.pt",
     },
-    'resnet50': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-1a6c155e.pt',
+    "resnet50": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.0/resnet50-1a6c155e.pt",
     },
-    'resnet34_wide': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': None,
+    "resnet34_wide": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": None,
     },
 }
 
@@ -122,8 +122,9 @@ class ResNet(nn.Sequential):
                 nn.MaxPool2d(2),
             ]
         in_chans = [stem_channels] + output_channels[:-1]
-        for n_blocks, in_chan, out_chan, stride, conv, pool in zip(num_blocks, in_chans, output_channels, stage_stride,
-                                                                   stage_conv, stage_pooling):
+        for n_blocks, in_chan, out_chan, stride, conv, pool in zip(
+            num_blocks, in_chans, output_channels, stage_stride, stage_conv, stage_pooling
+        ):
             _stage = resnet_stage(in_chan, out_chan, n_blocks, stride)
             if attn_module is not None:
                 _stage.append(attn_module(out_chan))
@@ -134,18 +135,20 @@ class ResNet(nn.Sequential):
             _layers.append(nn.Sequential(*_stage))
 
         if include_top:
-            _layers.extend([
-                nn.AdaptiveAvgPool2d(1),
-                nn.Flatten(1),
-                nn.Linear(output_channels[-1], num_classes, bias=True),
-            ])
+            _layers.extend(
+                [
+                    nn.AdaptiveAvgPool2d(1),
+                    nn.Flatten(1),
+                    nn.Linear(output_channels[-1], num_classes, bias=True),
+                ]
+            )
 
         super().__init__(*_layers)
         self.cfg = cfg
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
@@ -163,13 +166,13 @@ def _resnet(
     **kwargs: Any,
 ) -> ResNet:
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
-    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    kwargs.pop('classes')
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    kwargs.pop("classes")
 
     # Build the model
     model = ResNet(num_blocks, output_channels, stage_stride, stage_conv, stage_pooling, cfg=_cfg, **kwargs)
@@ -177,8 +180,8 @@ def _resnet(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
-        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
+        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -191,13 +194,13 @@ def _tv_resnet(
     **kwargs: Any,
 ) -> TVResNet:
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
-    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    kwargs.pop('classes')
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    kwargs.pop("classes")
 
     # Build the model
     model = arch_fn(**kwargs)
@@ -205,8 +208,8 @@ def _tv_resnet(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
-        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
+        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -231,10 +234,10 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """
 
     return _tv_resnet(
-        'resnet18',
+        "resnet18",
         pretrained,
         tv_resnet18,
-        ignore_keys=['fc.weight', 'fc.bias'],
+        ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
     )
 
@@ -258,7 +261,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _resnet(
-        'resnet31',
+        "resnet31",
         pretrained,
         [1, 2, 5, 3],
         [256, 256, 512, 512],
@@ -267,7 +270,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [(2, 2), (2, 1), None, None],
         origin_stem=False,
         stem_channels=128,
-        ignore_keys=['13.weight', '13.bias'],
+        ignore_keys=["13.weight", "13.bias"],
         **kwargs,
     )
 
@@ -290,10 +293,10 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """
 
     return _tv_resnet(
-        'resnet34',
+        "resnet34",
         pretrained,
         tv_resnet34,
-        ignore_keys=['fc.weight', 'fc.bias'],
+        ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
     )
 
@@ -316,7 +319,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _resnet(
-        'resnet34_wide',
+        "resnet34_wide",
         pretrained,
         [3, 4, 6, 3],
         [128, 256, 512, 1024],
@@ -325,7 +328,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
         [None] * 4,
         origin_stem=True,
         stem_channels=128,
-        ignore_keys=['10.weight', '10.bias'],
+        ignore_keys=["10.weight", "10.bias"],
         **kwargs,
     )
 
@@ -348,9 +351,9 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """
 
     return _tv_resnet(
-        'resnet50',
+        "resnet50",
         pretrained,
         tv_resnet50,
-        ignore_keys=['fc.weight', 'fc.bias'],
+        ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
     )

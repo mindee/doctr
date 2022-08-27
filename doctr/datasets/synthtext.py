@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
 import pickle
@@ -14,7 +14,7 @@ from tqdm import tqdm
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
 
-__all__ = ['SynthText']
+__all__ = ["SynthText"]
 
 
 class SynthText(VisionDataset):
@@ -36,8 +36,8 @@ class SynthText(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = 'https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip'
-    SHA256 = '28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1'
+    URL = "https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip"
+    SHA256 = "28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1"
 
     def __init__(
         self,
@@ -53,40 +53,44 @@ class SynthText(VisionDataset):
             file_hash=None,
             extract_archive=True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            **kwargs,
         )
         self.train = train
         self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
         np_dtype = np.float32
 
         # Load mat data
-        tmp_root = os.path.join(self.root, 'SynthText') if self.SHA256 else self.root
-        pickle_file_name = 'SynthText_Reco_train.pkl' if self.train else 'SynthText_Reco_test.pkl'
-        pickle_file_name = 'Poly_' + pickle_file_name if use_polygons else pickle_file_name
+        tmp_root = os.path.join(self.root, "SynthText") if self.SHA256 else self.root
+        pickle_file_name = "SynthText_Reco_train.pkl" if self.train else "SynthText_Reco_test.pkl"
+        pickle_file_name = "Poly_" + pickle_file_name if use_polygons else pickle_file_name
         pickle_path = os.path.join(tmp_root, pickle_file_name)
 
         if recognition_task and os.path.exists(pickle_path):
             self._pickle_read(pickle_path)
             return
 
-        mat_data = sio.loadmat(os.path.join(tmp_root, 'gt.mat'))
-        train_samples = int(len(mat_data['imnames'][0]) * 0.9)
+        mat_data = sio.loadmat(os.path.join(tmp_root, "gt.mat"))
+        train_samples = int(len(mat_data["imnames"][0]) * 0.9)
         set_slice = slice(train_samples) if self.train else slice(train_samples, None)
-        paths = mat_data['imnames'][0][set_slice]
-        boxes = mat_data['wordBB'][0][set_slice]
-        labels = mat_data['txt'][0][set_slice]
+        paths = mat_data["imnames"][0][set_slice]
+        boxes = mat_data["wordBB"][0][set_slice]
+        labels = mat_data["txt"][0][set_slice]
         del mat_data
 
-        for img_path, word_boxes, txt in tqdm(iterable=zip(paths, boxes, labels),
-                                              desc='Unpacking SynthText', total=len(paths)):
+        for img_path, word_boxes, txt in tqdm(
+            iterable=zip(paths, boxes, labels), desc="Unpacking SynthText", total=len(paths)
+        ):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
 
             labels = [elt for word in txt.tolist() for elt in word.split()]
             # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-            word_boxes = word_boxes.transpose(2, 1, 0) if word_boxes.ndim == 3 else np.expand_dims(
-                word_boxes.transpose(1, 0), axis=0)
+            word_boxes = (
+                word_boxes.transpose(2, 1, 0)
+                if word_boxes.ndim == 3
+                else np.expand_dims(word_boxes.transpose(1, 0), axis=0)
+            )
 
             if not use_polygons:
                 # xmin, ymin, xmax, ymax
@@ -94,7 +98,7 @@ class SynthText(VisionDataset):
 
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
-                with open(pickle_path, 'ab+') as f:
+                with open(pickle_path, "ab+") as f:
                     for crop, label in zip(crops, labels):
                         pickle.dump((crop, label), f)
             else:
@@ -109,7 +113,7 @@ class SynthText(VisionDataset):
         return f"train={self.train}"
 
     def _pickle_read(self, path: str) -> None:
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             while True:
                 try:
                     crop, label = pickle.load(f)

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
 from copy import deepcopy
@@ -14,16 +14,18 @@ from doctr.io import read_img_as_tensor, tensor_from_numpy
 
 from .base import _AbstractDataset, _VisionDataset
 
-__all__ = ['AbstractDataset', 'VisionDataset']
+__all__ = ["AbstractDataset", "VisionDataset"]
 
 
 class AbstractDataset(_AbstractDataset):
-
     def _read_sample(self, index: int) -> Tuple[torch.Tensor, Any]:
         img_name, target = self.data[index]
         # Read image
-        img = tensor_from_numpy(img_name, dtype=torch.float32) if isinstance(img_name, np.ndarray) \
+        img = (
+            tensor_from_numpy(img_name, dtype=torch.float32)
+            if isinstance(img_name, np.ndarray)
             else read_img_as_tensor(os.path.join(self.root, img_name), dtype=torch.float32)
+        )
 
         return img, deepcopy(target)
 

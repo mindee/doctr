@@ -1,11 +1,11 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
 
-os.environ['USE_TF'] = '1'
+os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
@@ -20,7 +20,7 @@ from tensorflow.keras import mixed_precision
 
 from doctr.models import login_to_hub, push_to_hf_hub
 
-gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+gpu_devices = tf.config.experimental.list_physical_devices("GPU")
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
@@ -52,7 +52,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     optimizer.learning_rate = start_lr
 
-    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
     loss_recorder = []
 
     for batch_idx, (images, targets) in enumerate(train_loader):
@@ -83,7 +83,7 @@ def record_lr(
         if batch_idx + 1 == num_it:
             break
 
-    return lr_recorder[:len(loss_recorder)], loss_recorder
+    return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=False):
@@ -99,7 +99,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=Fals
             grads = optimizer.get_unscaled_gradients(grads)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
-        mb.child.comment = f'Training loss: {train_loss.numpy().mean():.6}'
+        mb.child.comment = f"Training loss: {train_loss.numpy().mean():.6}"
 
 
 def evaluate(model, val_loader, batch_transforms):
@@ -146,7 +146,7 @@ def main(args):
 
     # AMP
     if args.amp:
-        mixed_precision.set_global_policy('mixed_float16')
+        mixed_precision.set_global_policy("mixed_float16")
 
     # Load val data generator
     st = time.time()
@@ -154,11 +154,13 @@ def main(args):
         vocab=vocab,
         num_samples=args.val_samples * len(vocab),
         cache_samples=True,
-        img_transforms=T.Compose([
-            T.Resize((args.input_size, args.input_size)),
-            # Ensure we have a 90% split of white-background images
-            T.RandomApply(T.ColorInversion(), .9),
-        ]),
+        img_transforms=T.Compose(
+            [
+                T.Resize((args.input_size, args.input_size)),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+            ]
+        ),
         font_family=fonts,
     )
     val_loader = DataLoader(
@@ -169,8 +171,10 @@ def main(args):
         num_workers=args.workers,
         collate_fn=collate_fn,
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
-          f"{val_loader.num_batches} batches)")
+    print(
+        f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
+        f"{val_loader.num_batches} batches)"
+    )
 
     # Load doctr model
     model = classification.__dict__[args.arch](
@@ -185,9 +189,11 @@ def main(args):
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
 
-    batch_transforms = T.Compose([
-        T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
-    ])
+    batch_transforms = T.Compose(
+        [
+            T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
+        ]
+    )
 
     if args.test_only:
         print("Running evaluation")
@@ -202,18 +208,20 @@ def main(args):
         vocab=vocab,
         num_samples=args.train_samples * len(vocab),
         cache_samples=True,
-        img_transforms=T.Compose([
-            T.Resize((args.input_size, args.input_size)),
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), .9),
-            T.RandomApply(T.ToGray(3), .1),
-            T.RandomJpegQuality(60),
-            T.RandomSaturation(.3),
-            T.RandomContrast(.3),
-            T.RandomBrightness(.3),
-            # Blur
-            T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), .3),
-        ]),
+        img_transforms=T.Compose(
+            [
+                T.Resize((args.input_size, args.input_size)),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.9),
+                T.RandomApply(T.ToGray(3), 0.1),
+                T.RandomJpegQuality(60),
+                T.RandomSaturation(0.3),
+                T.RandomContrast(0.3),
+                T.RandomBrightness(0.3),
+                # Blur
+                T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), 0.3),
+            ]
+        ),
         font_family=fonts,
     )
     train_loader = DataLoader(
@@ -224,8 +232,10 @@ def main(args):
         num_workers=args.workers,
         collate_fn=collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
-          f"{train_loader.num_batches} batches)")
+    print(
+        f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
+        f"{train_loader.num_batches} batches)"
+    )
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -237,7 +247,7 @@ def main(args):
         args.lr,
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (1e3),  # final lr as a fraction of initial lr
-        staircase=False
+        staircase=False,
     )
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=scheduler,
@@ -267,7 +277,7 @@ def main(args):
             config={
                 "learning_rate": args.lr,
                 "epochs": args.epochs,
-                "weight_decay": 0.,
+                "weight_decay": 0.0,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
@@ -276,7 +286,7 @@ def main(args):
                 "vocab": args.vocab,
                 "scheduler": "exp_decay",
                 "pretrained": args.pretrained,
-            }
+            },
         )
 
     # Create loss queue
@@ -291,21 +301,23 @@ def main(args):
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights(f'./{exp_name}/weights')
+            model.save_weights(f"./{exp_name}/weights")
             min_loss = val_loss
         mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
         if args.wb:
-            wandb.log({
-                'val_loss': val_loss,
-                'acc': acc,
-            })
+            wandb.log(
+                {
+                    "val_loss": val_loss,
+                    "acc": acc,
+                }
+            )
 
     if args.wb:
         run.finish()
 
     if args.push_to_hub:
-        push_to_hf_hub(model, exp_name, task='classification', run_config=args)
+        push_to_hf_hub(model, exp_name, task="classification", run_config=args)
 
     if args.export_onnx:
         print("Exporting model to ONNX...")
@@ -316,49 +328,53 @@ def main(args):
 
 def parse_args():
     import argparse
-    parser = argparse.ArgumentParser(description='DocTR training script for character classification (TensorFlow)',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('arch', type=str, help='text-recognition model to train')
-    parser.add_argument('--name', type=str, default=None, help='Name of your training experiment')
-    parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train the model on')
-    parser.add_argument('-b', '--batch_size', type=int, default=64, help='batch size for training')
-    parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
-    parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the optimizer (Adam)')
-    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
-    parser.add_argument('--resume', type=str, default=None, help='Path to your checkpoint')
-    parser.add_argument(
-        '--font',
-        type=str,
-        default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf",
-        help='Font family to be used'
+    parser = argparse.ArgumentParser(
+        description="DocTR training script for character classification (TensorFlow)",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for training')
+
+    parser.add_argument("arch", type=str, help="text-recognition model to train")
+    parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
+    parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
+    parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
+    parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
+    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
+    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
+    parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument(
-        '--train-samples',
-        dest='train_samples',
+        "--font", type=str, default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf", help="Font family to be used"
+    )
+    parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for training")
+    parser.add_argument(
+        "--train-samples",
+        dest="train_samples",
         type=int,
         default=1000,
-        help='Multiplied by the vocab length gets you the number of training samples that will be used.'
+        help="Multiplied by the vocab length gets you the number of training samples that will be used.",
     )
     parser.add_argument(
-        '--val-samples',
-        dest='val_samples',
+        "--val-samples",
+        dest="val_samples",
         type=int,
         default=20,
-        help='Multiplied by the vocab length gets you the number of validation samples that will be used.'
+        help="Multiplied by the vocab length gets you the number of validation samples that will be used.",
     )
-    parser.add_argument("--test-only", dest='test_only', action='store_true', help="Run the validation loop")
-    parser.add_argument('--show-samples', dest='show_samples', action='store_true',
-                        help='Display unormalized training samples')
-    parser.add_argument('--wb', dest='wb', action='store_true', help='Log to Weights & Biases')
-    parser.add_argument('--push-to-hub', dest='push_to_hub', action='store_true', help='Push to Huggingface Hub')
-    parser.add_argument('--pretrained', dest='pretrained', action='store_true',
-                        help='Load pretrained parameters before starting the training')
-    parser.add_argument('--export-onnx', dest='export_onnx', action='store_true',
-                        help='Export the model to ONNX')
+    parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
+    parser.add_argument(
+        "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
+    )
+    parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
+    parser.add_argument(
+        "--pretrained",
+        dest="pretrained",
+        action="store_true",
+        help="Load pretrained parameters before starting the training",
+    )
+    parser.add_argument("--export-onnx", dest="export_onnx", action="store_true", help="Export the model to ONNX")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
-    parser.add_argument('--find-lr', action='store_true', help='Gridsearch the optimal LR')
+    parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     args = parser.parse_args()
 
     return args

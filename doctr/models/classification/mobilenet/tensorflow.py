@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
@@ -15,51 +15,57 @@ from tensorflow.keras.models import Sequential
 from ....datasets import VOCABS
 from ...utils import conv_sequence, load_pretrained_params
 
-__all__ = ["MobileNetV3", "mobilenet_v3_small", "mobilenet_v3_small_r", "mobilenet_v3_large",
-           "mobilenet_v3_large_r", "mobilenet_v3_small_orientation"]
+__all__ = [
+    "MobileNetV3",
+    "mobilenet_v3_small",
+    "mobilenet_v3_small_r",
+    "mobilenet_v3_large",
+    "mobilenet_v3_large_r",
+    "mobilenet_v3_small_orientation",
+]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'mobilenet_v3_large': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip',
+    "mobilenet_v3_large": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large-47d25d7e.zip",
     },
-    'mobilenet_v3_large_r': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip',
+    "mobilenet_v3_large_r": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_large_r-a108e192.zip",
     },
-    'mobilenet_v3_small': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip',
+    "mobilenet_v3_small": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small-8a32c32c.zip",
     },
-    'mobilenet_v3_small_r': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (32, 32, 3),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip',
+    "mobilenet_v3_small_r": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 32, 3),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/mobilenet_v3_small_r-3d61452e.zip",
     },
-    'mobilenet_v3_small_orientation': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (128, 128, 3),
-        'classes': [0, 90, 180, 270],
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip',
+    "mobilenet_v3_small_orientation": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (128, 128, 3),
+        "classes": [0, 90, 180, 270],
+        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip",
     },
 }
 
 
 def hard_swish(x: tf.Tensor) -> tf.Tensor:
-    return x * tf.nn.relu6(x + 3.) / 6.0
+    return x * tf.nn.relu6(x + 3.0) / 6.0
 
 
 def _make_divisible(v: float, divisor: int, min_value: Optional[int] = None) -> int:
@@ -73,15 +79,15 @@ def _make_divisible(v: float, divisor: int, min_value: Optional[int] = None) -> 
 
 
 class SqueezeExcitation(Sequential):
-    """Squeeze and Excitation.
-    """
+    """Squeeze and Excitation."""
+
     def __init__(self, chan: int, squeeze_factor: int = 4) -> None:
         super().__init__(
             [
                 layers.GlobalAveragePooling2D(),
-                layers.Dense(chan // squeeze_factor, activation='relu'),
-                layers.Dense(chan, activation='hard_sigmoid'),
-                layers.Reshape((1, 1, chan))
+                layers.Dense(chan // squeeze_factor, activation="relu"),
+                layers.Dense(chan, activation="hard_sigmoid"),
+                layers.Reshape((1, 1, chan)),
             ]
         )
 
@@ -122,12 +128,13 @@ class InvertedResidual(layers.Layer):
     Args:
         conf: configuration object for inverted residual
     """
+
     def __init__(
         self,
         conf: InvertedResidualConfig,
         **kwargs: Any,
     ) -> None:
-        _kwargs = {'input_shape': kwargs.pop('input_shape')} if isinstance(kwargs.get('input_shape'), tuple) else {}
+        _kwargs = {"input_shape": kwargs.pop("input_shape")} if isinstance(kwargs.get("input_shape"), tuple) else {}
         super().__init__(**kwargs)
 
         act_fn = hard_swish if conf.use_hs else tf.nn.relu
@@ -141,18 +148,29 @@ class InvertedResidual(layers.Layer):
             _layers.extend(conv_sequence(conf.expanded_channels, act_fn, kernel_size=1, bn=True, **_kwargs))
 
         # depth-wise
-        _layers.extend(conv_sequence(
-            conf.expanded_channels, act_fn, kernel_size=conf.kernel, strides=conf.stride, bn=True,
-            groups=conf.expanded_channels,
-        ))
+        _layers.extend(
+            conv_sequence(
+                conf.expanded_channels,
+                act_fn,
+                kernel_size=conf.kernel,
+                strides=conf.stride,
+                bn=True,
+                groups=conf.expanded_channels,
+            )
+        )
 
         if conf.use_se:
             _layers.append(SqueezeExcitation(conf.expanded_channels))
 
         # project
-        _layers.extend(conv_sequence(
-            conf.out_channels, None, kernel_size=1, bn=True,
-        ))
+        _layers.extend(
+            conv_sequence(
+                conf.out_channels,
+                None,
+                kernel_size=1,
+                bn=True,
+            )
+        )
 
         self.block = Sequential(_layers)
 
@@ -186,8 +204,12 @@ class MobileNetV3(Sequential):
     ) -> None:
 
         _layers = [
-            Sequential(conv_sequence(layout[0].input_channels, hard_swish, True, kernel_size=3, strides=2,
-                       input_shape=input_shape), name="stem")
+            Sequential(
+                conv_sequence(
+                    layout[0].input_channels, hard_swish, True, kernel_size=3, strides=2, input_shape=input_shape
+                ),
+                name="stem",
+            )
         ]
 
         for idx, conf in enumerate(layout):
@@ -196,40 +218,34 @@ class MobileNetV3(Sequential):
             )
 
         _layers.append(
-            Sequential(
-                conv_sequence(6 * layout[-1].out_channels, hard_swish, True, kernel_size=1),
-                name="final_block"
-            )
+            Sequential(conv_sequence(6 * layout[-1].out_channels, hard_swish, True, kernel_size=1), name="final_block")
         )
 
         if include_top:
-            _layers.extend([
-                layers.GlobalAveragePooling2D(),
-                layers.Dense(head_chans, activation=hard_swish),
-                layers.Dropout(0.2),
-                layers.Dense(num_classes),
-            ])
+            _layers.extend(
+                [
+                    layers.GlobalAveragePooling2D(),
+                    layers.Dense(head_chans, activation=hard_swish),
+                    layers.Dropout(0.2),
+                    layers.Dense(num_classes),
+                ]
+            )
 
         super().__init__(_layers)
         self.cfg = cfg
 
 
-def _mobilenet_v3(
-    arch: str,
-    pretrained: bool,
-    rect_strides: bool = False,
-    **kwargs: Any
-) -> MobileNetV3:
+def _mobilenet_v3(arch: str, pretrained: bool, rect_strides: bool = False, **kwargs: Any) -> MobileNetV3:
 
-    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
-    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
-    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
+    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    _cfg['input_shape'] = kwargs['input_shape']
-    kwargs.pop('classes')
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    _cfg["input_shape"] = kwargs["input_shape"]
+    kwargs.pop("classes")
 
     # cf. Table 1 & 2 of the paper
     if arch.startswith("mobilenet_v3_small"):
@@ -267,8 +283,8 @@ def _mobilenet_v3(
         ]
         head_chans = 1280
 
-    kwargs['num_classes'] = _cfg['num_classes']
-    kwargs['input_shape'] = _cfg['input_shape']
+    kwargs["num_classes"] = _cfg["num_classes"]
+    kwargs["input_shape"] = _cfg["input_shape"]
 
     # Build the model
     model = MobileNetV3(
@@ -279,7 +295,7 @@ def _mobilenet_v3(
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]['url'])
+        load_pretrained_params(model, default_cfgs[arch]["url"])
 
     return model
 
@@ -302,7 +318,7 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small', pretrained, False, **kwargs)
+    return _mobilenet_v3("mobilenet_v3_small", pretrained, False, **kwargs)
 
 
 def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -323,7 +339,7 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_r', pretrained, True, **kwargs)
+    return _mobilenet_v3("mobilenet_v3_small_r", pretrained, True, **kwargs)
 
 
 def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -343,7 +359,7 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     Returns:
         a keras.Model
     """
-    return _mobilenet_v3('mobilenet_v3_large', pretrained, False, **kwargs)
+    return _mobilenet_v3("mobilenet_v3_large", pretrained, False, **kwargs)
 
 
 def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -363,7 +379,7 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
     Returns:
         a keras.Model
     """
-    return _mobilenet_v3('mobilenet_v3_large_r', pretrained, True, **kwargs)
+    return _mobilenet_v3("mobilenet_v3_large_r", pretrained, True, **kwargs)
 
 
 def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
@@ -384,4 +400,4 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> M
         a keras.Model
     """
 
-    return _mobilenet_v3('mobilenet_v3_small_orientation', pretrained, include_top=True, **kwargs)
+    return _mobilenet_v3("mobilenet_v3_small_orientation", pretrained, include_top=True, **kwargs)

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 """
 Image classification latency benchmark
@@ -14,7 +14,7 @@ import time
 import numpy as np
 import tensorflow as tf
 
-os.environ['USE_TF'] = '1'
+os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.models import classification
@@ -23,13 +23,13 @@ from doctr.models import classification
 def main(args):
 
     if args.gpu:
-        gpu_devices = tf.config.experimental.list_physical_devices('GPU')
+        gpu_devices = tf.config.experimental.list_physical_devices("GPU")
         if any(gpu_devices):
             tf.config.experimental.set_memory_growth(gpu_devices[0], True)
         else:
             raise AssertionError("TensorFlow cannot access your GPU. Please investigate!")
     else:
-        os.environ['CUDA_VISIBLE_DEVICES'] = ""
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
     # Pretrained imagenet model
     model = classification.__dict__[args.arch](
@@ -57,16 +57,19 @@ def main(args):
     print(f"mean {1000 * _timings.mean():.2f}ms, std {1000 * _timings.std():.2f}ms")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='docTR latency benchmark for imag classification (TensorFlow)',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="docTR latency benchmark for imag classification (TensorFlow)",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument("arch", type=str, help="Architecture to use")
     parser.add_argument("--size", type=int, default=32, help="The image input size")
     parser.add_argument("--batch-size", "-b", type=int, default=64, help="The batch_size")
-    parser.add_argument("--gpu", dest="gpu", help='Should the benchmark be performed on GPU', action="store_true")
+    parser.add_argument("--gpu", dest="gpu", help="Should the benchmark be performed on GPU", action="store_true")
     parser.add_argument("--it", type=int, default=100, help="Number of iterations to run")
-    parser.add_argument("--pretrained", dest="pretrained", help="Use pre-trained models from the modelzoo",
-                        action="store_true")
+    parser.add_argument(
+        "--pretrained", dest="pretrained", help="Use pre-trained models from the modelzoo", action="store_true"
+    )
     args = parser.parse_args()
 
     main(args)

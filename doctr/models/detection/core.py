@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import List
 
@@ -10,7 +10,7 @@ import numpy as np
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ['DetectionPostProcessor']
+__all__ = ["DetectionPostProcessor"]
 
 
 class DetectionPostProcessor(NestedObject):
@@ -22,12 +22,7 @@ class DetectionPostProcessor(NestedObject):
         assume straight_pages (bool): if True, fit straight boxes only
     """
 
-    def __init__(
-        self,
-        box_thresh: float = 0.5,
-        bin_thresh: float = 0.5,
-        assume_straight_pages: bool = True
-    ) -> None:
+    def __init__(self, box_thresh: float = 0.5, bin_thresh: float = 0.5, assume_straight_pages: bool = True) -> None:
 
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
@@ -38,11 +33,7 @@ class DetectionPostProcessor(NestedObject):
         return f"bin_thresh={self.bin_thresh}, box_thresh={self.box_thresh}"
 
     @staticmethod
-    def box_score(
-        pred: np.ndarray,
-        points: np.ndarray,
-        assume_straight_pages: bool = True
-    ) -> float:
+    def box_score(pred: np.ndarray, points: np.ndarray, assume_straight_pages: bool = True) -> float:
         """Compute the confidence score for a polygon : mean of the p values on the polygon
 
         Args:
@@ -58,7 +49,7 @@ class DetectionPostProcessor(NestedObject):
             xmax = np.clip(np.ceil(points[:, 0].max()).astype(np.int32), 0, w - 1)
             ymin = np.clip(np.floor(points[:, 1].min()).astype(np.int32), 0, h - 1)
             ymax = np.clip(np.ceil(points[:, 1].max()).astype(np.int32), 0, h - 1)
-            return pred[ymin:ymax + 1, xmin:xmax + 1].mean()
+            return pred[ymin : ymax + 1, xmin : xmax + 1].mean()
 
         else:
             mask: np.ndarray = np.zeros((h, w), np.int32)
