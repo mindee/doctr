@@ -23,7 +23,6 @@ __all__ = ['download_from_url']
 # matches bfd8deac from resnet18-bfd8deac.ckpt
 HASH_REGEX = re.compile(r'-([a-f0-9]*)\.')
 USER_AGENT = "mindee/doctr"
-DOCTR_CACHE_DIR_ENV_NAME = "DOCTR_CACHE_DIR"
 
 
 def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -> None:
@@ -74,8 +73,11 @@ def download_from_url(
         file_name = url.rpartition('/')[-1]
 
     if not isinstance(cache_dir, str):
-        cache_dir = os.environ.get(DOCTR_CACHE_DIR_ENV_NAME, os.path.join("~", ".cache", "doctr"))
-        cache_dir = os.path.expanduser(cache_dir)
+        cache_dir = os.environ.get('DOCTR_CACHE_DIR')
+        if cache_dir is None:
+            cache_dir = os.path.join("~", ".cache", "doctr")
+
+    cache_dir = os.path.expanduser(cache_dir)
 
     # Check hash in file name
     if hash_prefix is None:
@@ -93,10 +95,14 @@ def download_from_url(
         # Create folder hierarchy
         folder_path.mkdir(parents=True, exist_ok=True)
     except OSError:
-        print(f"""
-        Failed creating cache direcotry: {cache_dir}
-        You can set it using {DOCTR_CACHE_DIR_ENV_NAME} environment variable.
-        """)
+        error_message = f"Failed creating cache direcotry at {folder_path}"
+        if 'DOCTR_CACHE_DIR' in os.environ:
+            error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
+        else:
+            error_message += ". You can change default cache directory using 'DOCTR_CACHE_DIR'" \
+                "environment variable if needed."
+        logging.error(error_message)
+        raise
     # Download the file
     try:
         print(f"Downloading {url} to {file_path}")
