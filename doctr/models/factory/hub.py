@@ -112,7 +112,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
     ---
 
     <p align="center">
-    <img src="https://github.com/mindee/doctr/releases/download/v0.3.1/Logo_doctr.gif" width="60%">
+    <img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
     </p>
 
     **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**

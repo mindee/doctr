@@ -21,7 +21,7 @@ class IIIT5K(VisionDataset):
     `"BMVC 2012 Scene Text Recognition using Higher Order Language Priors"
     <https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/iiit5k-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/iiit5k-grid.png&src=0
         :align: center
 
     >>> # NOTE: this dataset is for character-level localization

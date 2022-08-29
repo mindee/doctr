@@ -20,7 +20,7 @@ __all__ = ["IC13"]
 class IC13(AbstractDataset):
     """IC13 dataset from `"ICDAR 2013 Robust Reading Competition" <https://rrc.cvc.uab.es/>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/ic13-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/ic13-grid.png&src=0
         :align: center
 
     >>> # NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.

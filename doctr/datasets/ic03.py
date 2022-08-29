@@ -20,7 +20,7 @@ class IC03(VisionDataset):
     """IC03 dataset from `"ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions"
     <http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/ic03-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/ic03-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import IC03

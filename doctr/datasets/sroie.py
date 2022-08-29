@@ -21,7 +21,7 @@ class SROIE(VisionDataset):
     """SROIE dataset from `"ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction"
     <https://arxiv.org/pdf/2103.10213.pdf>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/sroie-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/sroie-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import SROIE
@@ -36,11 +36,11 @@ class SROIE(VisionDataset):
     """
 
     TRAIN = (
-        "https://github.com/mindee/doctr/releases/download/v0.1.1/sroie2019_train_task1.zip",
+        "https://doctr-static.mindee.com/models?id=v0.1.1/sroie2019_train_task1.zip&src=0",
         "d4fa9e60abb03500d83299c845b9c87fd9c9430d1aeac96b83c5d0bb0ab27f6f",
     )
     TEST = (
-        "https://github.com/mindee/doctr/releases/download/v0.1.1/sroie2019_test.zip",
+        "https://doctr-static.mindee.com/models?id=v0.1.1/sroie2019_test.zip&src=0",
         "41b3c746a20226fddc80d86d4b2a903d43b5be4f521dd1bbe759dbf8844745e2",
     )
 

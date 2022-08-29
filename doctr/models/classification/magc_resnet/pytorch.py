@@ -26,7 +26,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/magc_resnet31-857391d8.pt",
+        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/magc_resnet31-857391d8.pt&src=0",
     },
 }
 

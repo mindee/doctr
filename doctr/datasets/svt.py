@@ -20,7 +20,7 @@ class SVT(VisionDataset):
     """SVT dataset from `"The Street View Text Dataset - UCSD Computer Vision"
     <http://vision.ucsd.edu/~kai/svt/>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svt-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import SVT

@@ -21,7 +21,7 @@ class FUNSD(VisionDataset):
     """FUNSD dataset from `"FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents"
     <https://arxiv.org/pdf/1905.13538.pdf>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/funsd-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/funsd-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import FUNSD

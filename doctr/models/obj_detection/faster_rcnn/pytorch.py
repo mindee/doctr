@@ -18,7 +18,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.485, 0.456, 0.406),
         "std": (0.229, 0.224, 0.225),
         "classes": ["background", "qr_code", "bar_code", "logo", "photo"],
-        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/fasterrcnn_mobilenet_v3_large_fpn-d5b2490d.pt",
+        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/fasterrcnn_mobilenet_v3_large_fpn-d5b2490d.pt&src=0",
     },
 }
 

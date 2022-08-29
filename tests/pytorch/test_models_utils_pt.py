@@ -10,7 +10,7 @@ def test_load_pretrained_params(tmpdir_factory):
 
     model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))
     # Retrieve this URL
-    url = "https://github.com/mindee/doctr/releases/download/v0.2.1/tmp_checkpoint-6f0ce0e6.pt"
+    url = "https://doctr-static.mindee.com/models?id=v0.2.1/tmp_checkpoint-6f0ce0e6.pt&src=0"
     # Temp cache dir
     cache_dir = tmpdir_factory.mktemp("cache")
     # Pass an incorrect hash

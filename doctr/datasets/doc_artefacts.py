@@ -18,7 +18,7 @@ class DocArtefacts(VisionDataset):
     """Object detection dataset for non-textual elements in documents.
     The dataset includes a variety of synthetic document pages with non-textual elements.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/artefacts-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/artefacts-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import DocArtefacts
@@ -31,7 +31,7 @@ class DocArtefacts(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = "https://github.com/mindee/doctr/releases/download/v0.4.0/artefact_detection-13fab8ce.zip"
+    URL = "https://doctr-static.mindee.com/models?id=v0.4.0/artefact_detection-13fab8ce.zip&src=0"
     SHA256 = "13fab8ced7f84583d9dccd0c634f046c3417e62a11fe1dea6efbbaba5052471b"
     CLASSES = ["background", "qr_code", "bar_code", "logo", "photo"]
 
