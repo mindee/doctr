@@ -9,6 +9,7 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # copy requirements file
 COPY requirements.txt  /app/requirements.txt
+COPY Makefile /app/Makefile
 
 RUN apt-get update \
     && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
