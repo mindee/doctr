@@ -35,13 +35,9 @@ jobs:
       - name: Lock the requirements
         run: |
           cd api
-          poetry lock
-          poetry export -f requirements.txt --without-hashes --output requirements.txt
-          poetry export -f requirements.txt --without-hashes --dev --output requirements-dev.txt
+          make lock
       - name: Build & run docker
         run: cd api && docker-compose up -d --build
-      - name: Docker sanity check
-        run: sleep 15 && nc -vz localhost 8080
       - name: Ping server
         run: wget --spider --tries=12 http://localhost:8080/docs
       - name: Run docker test
