@@ -42,4 +42,5 @@ jobs:
         run: wget --spider --tries=12 http://localhost:8080/docs
       - name: Run docker test
         run: |
+          cd api
           make ci-test
