@@ -23,3 +23,11 @@ test:
 	docker cp tests api_web_1:/app/tests
 	docker-compose exec -T web pytest tests/
 	docker-compose down
+
+# Run CI tests for the library
+ci-test:
+	docker-compose up -d --build
+	docker cp api/requirements-dev.txt api_web_1:/app/requirements-dev.txt
+	docker-compose -f api/docker-compose.yml exec -T web pip install -r requirements-dev.txt
+	docker cp api/tests api_web_1:/app/tests
+	docker-compose -f api/docker-compose.yml exec -T web pytest tests/
