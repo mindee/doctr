@@ -132,7 +132,7 @@ module = [
 	"tf2onnx.*",
 	"mplcursors.*",
 	"defusedxml.*",
-	"weasyprint.*",
+	"xhtml2pdf.*",
 	"huggingface_hub.*",
 	"pypdfium2.*",
 	"rapidfuzz.*",
