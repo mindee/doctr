@@ -24,4 +24,4 @@ def read_html(url: str, **kwargs: Any) -> bytes:
         decoded PDF file as a bytes stream
     """
 
-    return pisa.CreatePDF(urllib.request.urlopen(url).read(), **kwargs).dest.getvalue()
+    return pisa.CreatePDF(urllib.request.urlopen(url).read(), **kwargs).dest.getvalue()  # type: ignore[attr-defined]
