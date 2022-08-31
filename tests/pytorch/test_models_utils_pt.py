@@ -10,7 +10,7 @@ def test_load_pretrained_params(tmpdir_factory):
 
     model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))
     # Retrieve this URL
-    url = "https://doctr-static.mindee.com/models?id=v0.2.1/tmp_checkpoint-6f0ce0e6.pt&src=0"
+    url = "https://github.com/mindee/doctr/releases/download/v0.2.1/tmp_checkpoint-6f0ce0e6.pt"
     # Temp cache dir
     cache_dir = tmpdir_factory.mktemp("cache")
     # Pass an incorrect hash
@@ -19,7 +19,7 @@ def test_load_pretrained_params(tmpdir_factory):
     # Let it resolve the hash from the file name
     load_pretrained_params(model, url, cache_dir=str(cache_dir))
     # Check that the file was downloaded & the archive extracted
-    assert os.path.exists(cache_dir.join("models").join(url.rpartition("/")[-1]))
+    assert os.path.exists(cache_dir.join("models").join(url.rpartition("/")[-1].split("&")[0]))
     # Check ignore keys
     load_pretrained_params(model, url, cache_dir=str(cache_dir), ignore_keys=["2.weight"])
     # non matching keys
