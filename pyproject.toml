@@ -1,3 +1,111 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-doctr"
+description = "Document Text Recognition (docTR): deep Learning for high-performance OCR on documents."
+authors = [{name = "Mindee", email = "contact@mindee.com"}]
+maintainers = [
+    {name = "François-Guillaume Fernandez"},
+    {name = "Charles Gaillard"},
+]
+readme = "README.md"
+requires-python = ">=3.6.0,<4"
+license = {file = "LICENSE"}
+keywords=["OCR", "deep learning", "computer vision", "tensorflow", "pytorch", "text detection", "text recognition"]
+classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dynamic = ["version"]
+dependencies = [
+    "importlib_metadata",
+    # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
+    # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
+    "numpy>=1.16.0,<2.0.0",
+    "scipy>=1.4.0,<2.0.0",
+    "h5py>=3.1.0,<4.0.0",
+    "opencv-python>=4.5.0,<5.0.0",
+    "pypdfium2>=2.1.0,<3.0.0",  # cf. https://github.com/mindee/doctr/issues/947
+    "pyclipper>=1.2.0,<2.0.0",
+    "shapely>=1.6.0,<2.0.0",
+    "langdetect>=1.0.9,<2.0.0",
+    "matplotlib>=3.1.0",
+    "weasyprint>=52.2",
+    "Pillow>=8.3.2",  # cf. https://github.com/advisories/GHSA-98vv-pw6r-q6q4
+    "defusedxml>=0.7.0",
+    "mplcursors>=0.3",
+    "unidecode>=1.0.0",
+    "tqdm>=4.30.0",
+    "rapidfuzz>=1.6.0",
+    "huggingface-hub>=0.4.0",
+]
+
+[project.optional-dependencies]
+tf = [
+    "tensorflow>=2.9.0,<3.0.0",  # cf. https://github.com/mindee/doctr/issues/454
+    "tensorflow-addons>=0.17.1",
+    "tf2onnx>=1.9.2",
+]
+torch = [
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
+]
+testing = [
+    "pytest>=5.3.2",
+    "coverage[toml]>=4.5.4",
+    "hdf5storage>=0.1.18",
+    "onnxruntime>=1.11.0",
+    "requests>=2.20.0",
+]
+quality = [
+    "flake8>=3.9.0",
+    "isort>=5.7.0",
+    "black>=22.1,<23.0",
+    "mypy>=0.812",
+    "pydocstyle[toml]>=6.1.1",
+]
+docs = [
+    "sphinx>=3.0.0,!=3.5.0",
+    "sphinxemoji>=0.1.8",
+    "sphinx-copybutton>=0.3.1",
+    "docutils<0.18",
+    "recommonmark>=0.7.1",
+    "sphinx-markdown-tables>=0.0.15",
+    "sphinx-tabs>=3.3.0",
+    "furo>=2022.3.4",
+]
+dev = [
+    "python-doctr[tf]",
+    "python-doctr[torch]",
+    "python-doctr[testing]",
+    "python-doctr[quality]",
+    "python-doctr[docs]"
+]
+
+[project.urls]
+documentation = "https://mindee.github.io/doctr"
+repository = "https://github.com/mindee/doctr"
+tracker = "https://github.com/mindee/doctr/issues"
+changelog = "https://github.com/mindee/doctr/latest/changelog.html"
+
+[tool.setuptools]
+zip-safe = true
+
+[tool.setuptools.packages.find]
+exclude = ["api*", "demo*", "docs*", "notebooks*", "references*", "scripts*", "tests*"]
+
 [tool.mypy]
 files = "doctr/"
 show_error_codes = true

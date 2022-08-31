@@ -8,27 +8,17 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # copy requirements file
-COPY api/requirements.txt /app/api-requirements.txt
-COPY ./requirements.txt /tmp/requirements.txt
+COPY requirements.txt  /app/requirements.txt
+COPY Makefile /app/Makefile
 
 RUN apt-get update \
     && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
     && pip install --upgrade pip setuptools wheel \
-    && pip install -r /app/api-requirements.txt \
-    && pip install -r /tmp/requirements.txt \
+    && pip install -r /app/requirements.txt \
     && pip cache purge \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /root/.cache/pip
 
-# install doctr
-COPY ./README.md /tmp/README.md
-COPY ./setup.py /tmp/setup.py
-COPY ./doctr /tmp/doctr
-
-RUN pip install -e /tmp/.[tf] \
-    && pip cache purge \
-    && rm -rf /root/.cache/pip
-
 # copy project
-COPY api /app
+COPY app /app/app
