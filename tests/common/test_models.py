@@ -12,7 +12,7 @@ from doctr.utils import geometry
 
 @pytest.fixture(scope="function")
 def mock_image(tmpdir_factory):
-    url = "https://github.com/mindee/doctr/releases/download/v0.2.1/bitmap30.png"
+    url = "https://doctr-static.mindee.com/models?id=v0.2.1/bitmap30.png&src=0"
     file = BytesIO(requests.get(url).content)
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_bitmap.jpg"))
     with open(tmp_path, "wb") as f:

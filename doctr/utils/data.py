@@ -67,7 +67,7 @@ def download_from_url(
     """
 
     if not isinstance(file_name, str):
-        file_name = url.rpartition("/")[-1]
+        file_name = url.rpartition("/")[-1].split("&")[0]
 
     if not isinstance(cache_dir, str):
         cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "doctr")

@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (1.0, 1.0, 1.0),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.4.1/vgg16_bn_r-c5836cea.zip",
+        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/vgg16_bn_r-c5836cea.zip&src=0",
     },
 }
 

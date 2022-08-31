@@ -46,7 +46,7 @@ def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
         io.read_img_as_numpy(str(mock_pdf))
 
     # From path
-    url = "https://github.com/mindee/doctr/releases/download/v0.2.1/Grace_Hopper.jpg"
+    url = "https://doctr-static.mindee.com/models?id=v0.2.1/Grace_Hopper.jpg&src=0"
     file = BytesIO(requests.get(url).content)
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_img_file.jpg"))
     with open(tmp_path, "wb") as f:

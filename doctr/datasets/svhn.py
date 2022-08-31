@@ -20,7 +20,7 @@ class SVHN(VisionDataset):
     """SVHN dataset from `"The Street View House Numbers (SVHN) Dataset"
     <http://ufldl.stanford.edu/housenumbers/>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svhn-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/svhn-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import SVHN

@@ -22,7 +22,7 @@ class SynthText(VisionDataset):
     <https://arxiv.org/abs/1604.06646>`_ | `"repository" <https://github.com/ankush-me/SynthText>`_ |
     `"website" <https://www.robots.ox.ac.uk/~vgg/data/scenetext/>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svt-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import SynthText

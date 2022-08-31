@@ -23,7 +23,7 @@ class IMGUR5K(AbstractDataset):
     <https://arxiv.org/abs/2106.08385>`_ |
     `repository <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/imgur5k-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/imgur5k-grid.png&src=0
         :align: center
         :width: 630
         :height: 400

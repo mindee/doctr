@@ -215,7 +215,7 @@ class RandomApply(NestedObject):
 class RandomRotate(NestedObject):
     """Randomly rotate a tensor image and its boxes
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.4.0/rotation_illustration.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.4.0/rotation_illustration.png&src=0
         :align: center
 
     Args:
