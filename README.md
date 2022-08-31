@@ -108,15 +108,6 @@ json_output = result.export()
 
 Python 3.6 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
 
-Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
-
-For MacOS users, you can install them as follows:
-```shell
-brew install cairo pango gdk-pixbuf libffi
-```
-
-For Windows users, those dependencies are included in GTK. You can find the latest installer over [here](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).
-
 ### Latest release
 
 You can then install the latest release of the package using [pypi](https://pypi.org/project/python-doctr/) as follows:
