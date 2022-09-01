@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import glob
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
+from PIL import Image
 from tqdm import tqdm
 
 from .datasets import AbstractDataset
@@ -63,13 +65,25 @@ class IMGUR5K(AbstractDataset):
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[Union[Path, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, Path], Dict[str, Any]]] = []
         self.train = train
         np_dtype = np.float32
 
         img_names = os.listdir(img_folder)
         train_samples = int(len(img_names) * 0.9)
         set_slice = slice(train_samples) if self.train else slice(train_samples, None)
+
+        # define folder to write IMGUR5K recognition dataset
+        reco_folder_name = "IMGUR5K_recognition_train" if self.train else "IMGUR5K_recognition_test"
+        reco_folder_name = "Poly_" + reco_folder_name if use_polygons else reco_folder_name
+        reco_folder_path = os.path.join(os.path.dirname(self.root), reco_folder_name)
+        reco_images_counter = 0
+
+        if recognition_task and os.path.isdir(reco_folder_path):
+            self._read_from_folder(reco_folder_path)
+            return
+        elif recognition_task and not os.path.isdir(reco_folder_path):
+            os.makedirs(reco_folder_path, exist_ok=False)
 
         with open(label_path) as f:
             annotation_file = json.load(f)
@@ -110,9 +124,23 @@ class IMGUR5K(AbstractDataset):
                         img_path=os.path.join(self.root, img_name), geoms=np.asarray(box_targets, dtype=np_dtype)
                     )
                     for crop, label in zip(crops, labels):
-                        self.data.append((crop, dict(labels=[label])))
+                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                            # write data to disk
+                            with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
+                                f.write(label)
+                                tmp_img = Image.fromarray(crop)
+                                tmp_img.save(os.path.join(reco_folder_path, f"{reco_images_counter}.png"))
+                                reco_images_counter += 1
                 else:
                     self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
 
+        if recognition_task:
+            self._read_from_folder(reco_folder_path)
+
     def extra_repr(self) -> str:
         return f"train={self.train}"
+
+    def _read_from_folder(self, path: str) -> None:
+        for img_path in glob.glob(os.path.join(path, "*.png")):
+            with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
+                self.data.append((img_path, dict(labels=[f.read()])))
