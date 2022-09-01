@@ -92,7 +92,11 @@ class _VisionDataset(_AbstractDataset):
         cache_subdir: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-        cache_dir = str(os.environ.get("DOCTR_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "doctr")))
+        cache_dir = (
+            str(os.environ.get("DOCTR_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "doctr")))
+            if cache_dir is None
+            else cache_dir
+        )
 
         cache_subdir = "datasets" if cache_subdir is None else cache_subdir
 
