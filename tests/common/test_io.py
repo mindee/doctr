@@ -15,20 +15,20 @@ def _check_doc_content(doc_tensors, num_pages):
 
 
 def test_read_pdf(mock_pdf):
-    doc = io.read_pdf(mock_pdf)
+    doc = list(io.read_pdf(mock_pdf))
     _check_doc_content(doc, 2)
 
     with open(mock_pdf, "rb") as f:
-        doc = io.read_pdf(f.read())
+        doc = list(io.read_pdf(f.read()))
     _check_doc_content(doc, 2)
 
     # Wrong input type
     with pytest.raises(TypeError):
-        _ = io.read_pdf(123)
+        _ = list(io.read_pdf(123))
 
     # Wrong path
     with pytest.raises(FileNotFoundError):
-        _ = io.read_pdf("my_imaginary_file.pdf")
+        _ = list(io.read_pdf("my_imaginary_file.pdf"))
 
 
 def test_read_img_as_numpy(tmpdir_factory, mock_pdf):

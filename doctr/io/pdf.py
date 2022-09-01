@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Iterator, Optional
 
 import numpy as np
 import pypdfium2 as pdfium
@@ -19,7 +19,7 @@ def read_pdf(
     scale: float = 2,
     password: Optional[str] = None,
     **kwargs: Any,
-) -> List[np.ndarray]:
+) -> Iterator[np.ndarray]:
     """Read a PDF file and convert it into an image in numpy format
 
     >>> from doctr.documents import read_pdf
@@ -42,4 +42,5 @@ def read_pdf(
 
     # Rasterise pages to PIL images with pypdfium2 and convert to numpy ndarrays
     with pdfium.PdfDocument(file, password=password) as pdf:
-        return [np.asarray(img) for img in pdf.render_topil(scale=scale, **kwargs)]
+        for img in pdf.render_topil(scale=scale, **kwargs):
+            yield np.asarray(img)

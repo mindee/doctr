@@ -34,7 +34,7 @@ class DocumentFile:
             the list of pages decoded as numpy ndarray of shape H x W x 3
         """
 
-        return read_pdf(file, **kwargs)
+        return list(read_pdf(file, **kwargs))
 
     @classmethod
     def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
