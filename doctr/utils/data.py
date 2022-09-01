@@ -72,12 +72,7 @@ def download_from_url(
     if not isinstance(file_name, str):
         file_name = url.rpartition("/")[-1]
 
-    if not isinstance(cache_dir, str):
-        cache_dir = os.environ.get("DOCTR_CACHE_DIR")
-        if cache_dir is None:
-            cache_dir = os.path.join("~", ".cache", "doctr")
-
-    cache_dir = os.path.expanduser(cache_dir)
+    cache_dir = str(os.environ.get("DOCTR_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "doctr")))
 
     # Check hash in file name
     if hash_prefix is None:
@@ -96,7 +91,7 @@ def download_from_url(
         folder_path.mkdir(parents=True, exist_ok=True)
     except OSError:
         error_message = f"Failed creating cache direcotry at {folder_path}"
-        if "DOCTR_CACHE_DIR" in os.environ:
+        if os.environ.get("DOCTR_CACHE_DIR", ""):
             error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
         else:
             error_message += (
