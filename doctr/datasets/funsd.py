@@ -63,7 +63,7 @@ class FUNSD(VisionDataset):
 
         # # List images
         tmp_root = os.path.join(self.root, subfolder, "images")
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking FUNSD", total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
@@ -99,7 +99,7 @@ class FUNSD(VisionDataset):
                 for crop, label in zip(crops, list(text_targets)):
                     # filter labels with unknown characters
                     if not any(char in label for char in ["☑", "☐", "\uf703", "\uf702"]):
-                        self.data.append((crop, dict(labels=[label])))
+                        self.data.append((crop, label))
             else:
                 self.data.append(
                     (

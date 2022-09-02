@@ -20,6 +20,16 @@ __all__ = ["AbstractDataset", "VisionDataset"]
 class AbstractDataset(_AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[torch.Tensor, Any]:
         img_name, target = self.data[index]
+
+        # Check target
+        if isinstance(target, dict):
+            assert "boxes" in target, "Target should contain 'boxes' key"
+            assert "labels" in target, "Target should contain 'labels' key"
+        else:
+            assert isinstance(target, str) or isinstance(
+                target, np.ndarray
+            ), "Target should be a string or a numpy array"
+
         # Read image
         img = (
             tensor_from_numpy(img_name, dtype=torch.float32)

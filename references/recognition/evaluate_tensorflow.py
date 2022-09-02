@@ -35,7 +35,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     for images, targets in tqdm(val_iter):
         try:
             images = batch_transforms(images)
-            targets = [t["labels"][0] for t in targets]
             out = model(images, targets, return_preds=True, training=False)
             # Compute metric
             if len(out["preds"]):
