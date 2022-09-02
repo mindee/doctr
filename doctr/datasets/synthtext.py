@@ -5,7 +5,7 @@
 
 import glob
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 from PIL import Image
@@ -57,7 +57,7 @@ class SynthText(VisionDataset):
             **kwargs,
         )
         self.train = train
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
         np_dtype = np.float32
 
         # Load mat data
@@ -125,4 +125,4 @@ class SynthText(VisionDataset):
     def _read_from_folder(self, path: str) -> None:
         for img_path in glob.glob(os.path.join(path, "*.png")):
             with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
-                self.data.append((img_path, dict(labels=[f.read()])))
+                self.data.append((img_path, f.read()))

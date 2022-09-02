@@ -65,7 +65,7 @@ class IMGUR5K(AbstractDataset):
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[Union[str, Path], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
         self.train = train
         np_dtype = np.float32
 
@@ -143,4 +143,4 @@ class IMGUR5K(AbstractDataset):
     def _read_from_folder(self, path: str) -> None:
         for img_path in glob.glob(os.path.join(path, "*.png")):
             with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
-                self.data.append((img_path, dict(labels=[f.read()])))
+                self.data.append((img_path, f.read()))
