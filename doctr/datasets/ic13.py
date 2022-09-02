@@ -58,7 +58,7 @@ class IC13(AbstractDataset):
                 f"unable to locate {label_folder if not os.path.exists(label_folder) else img_folder}"
             )
 
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: List[Tuple[Union[Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
         np_dtype = np.float32
 
         img_names = os.listdir(img_folder)
