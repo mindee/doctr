@@ -11,9 +11,40 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ["Encoder", "Decoder", "PositionalEncoding", "PatchEmbedding"]
 
 tf.config.run_functions_eagerly(True)
+
+
+class PatchEmbedding(layers.Layer, NestedObject):
+    """Compute 2D patch embedding"""
+
+    def __init__(
+        self,
+        img_size: Tuple[int],
+        patch_size: Tuple[int] = (4, 8),  # different from paper to match with 32x128 input
+        embed_dim: int = 768,
+    ) -> None:
+
+        super().__init__()
+        self.img_size = img_size
+        self.patch_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
+        self.proj = layers.Conv2D(
+            embed_dim,
+            kernel_size=patch_size,
+            strides=patch_size,
+            padding="same",
+            kernel_initializer="he_normal",
+        )
+
+    def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
+        B, W, H, C = x.shape
+
+        assert H % self.patch_size[0] == 0, "Image height must be divisible by patch height"
+        assert W % self.patch_size[1] == 0, "Image width must be divisible by patch width"
+
+        x = self.proj(x, **kwargs)
+        return tf.reshape(x, shape=(B, H * W, C))  # BCHW -> BNC
 
 
 class PositionalEncoding(layers.Layer, NestedObject):
@@ -74,14 +105,19 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(layers.Layer, NestedObject):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
+    def __init__(self, d_model: int, ffd: int, dropout=0.1, use_gelu: bool = False) -> None:
         super(PositionwiseFeedForward, self).__init__()
+        self.use_gelu = use_gelu
+
         self.first_linear = layers.Dense(ffd, kernel_initializer=tf.initializers.he_uniform())
         self.sec_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
         self.dropout = layers.Dropout(rate=dropout)
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
-        x = tf.nn.relu(self.first_linear(x, **kwargs))
+        if self.use_gelu:  # used for ViT
+            x = tf.nn.gelu(self.first_linear(x, **kwargs))
+        else:
+            x = tf.nn.relu(self.first_linear(x, **kwargs))
         x = self.dropout(x, **kwargs)
         x = self.sec_linear(x, **kwargs)
         return x
