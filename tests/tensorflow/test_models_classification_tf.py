@@ -24,6 +24,7 @@ from doctr.models.utils import export_model_to_onnx
         ["magc_resnet31", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (32, 32, 3), (126,)],
         ["mobilenet_v3_large", (32, 32, 3), (126,)],
+        ["vit", (32, 32, 3), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -95,6 +96,7 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet34_wide", (32, 32, 3), (126,)],
         ["resnet50", (32, 32, 3), (126,)],
         ["magc_resnet31", (32, 32, 3), (126,)],
+        ["vit", (32, 32, 3), (126,)],
         # Disabled for now
         # ["mobilenet_v3_small", (512, 512, 3), (126,)],
         # ["mobilenet_v3_large", (512, 512, 3), (126,)],
