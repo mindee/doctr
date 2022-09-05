@@ -87,11 +87,34 @@ docs = [
     "furo>=2022.3.4",
 ]
 dev = [
-    "python-doctr[tf]",
-    "python-doctr[torch]",
-    "python-doctr[testing]",
-    "python-doctr[quality]",
-    "python-doctr[docs]"
+    # Tensorflow
+    "tensorflow>=2.9.0,<3.0.0",  # cf. https://github.com/mindee/doctr/issues/454
+    "tensorflow-addons>=0.17.1",
+    "tf2onnx>=1.9.2",
+    # PyTorch
+    "torch>=1.8.0",
+    "torchvision>=0.9.0",
+    # Testing
+    "pytest>=5.3.2",
+    "coverage[toml]>=4.5.4",
+    "hdf5storage>=0.1.18",
+    "onnxruntime>=1.11.0",
+    "requests>=2.20.0",
+    # Quality
+    "flake8>=3.9.0",
+    "isort>=5.7.0",
+    "black>=22.1,<23.0",
+    "mypy>=0.812",
+    "pydocstyle[toml]>=6.1.1",
+    # Docs
+    "sphinx>=3.0.0,!=3.5.0",
+    "sphinxemoji>=0.1.8",
+    "sphinx-copybutton>=0.3.1",
+    "docutils<0.18",
+    "recommonmark>=0.7.1",
+    "sphinx-markdown-tables>=0.0.15",
+    "sphinx-tabs>=3.3.0",
+    "furo>=2022.3.4",
 ]
 
 [project.urls]
