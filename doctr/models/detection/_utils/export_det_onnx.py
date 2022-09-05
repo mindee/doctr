@@ -3,7 +3,7 @@ from doctr.models import ocr_predictor
 import numpy as np
 import time
 import cv2
-model = ocr_predictor(pretrained=True)
+model = ocr_predictor(det_arch ='db_resnet50_rotation', pretrained=True)
 model.det_predictor.model = model.det_predictor.model.eval()
 
 input = torch.randn(1, 3, 1024, 1024)
@@ -13,7 +13,7 @@ pred = model.det_predictor.model(input)
 print("pytorch time", time.time() - start)
 torch.onnx.export(model.det_predictor.model,
                   input,
-                  "det.onnx",
+                  'db_resnet50_rotation.onnx',
                   export_params = True,
                   opset_version=11,
                   do_constant_folding=True,
@@ -24,7 +24,7 @@ torch.onnx.export(model.det_predictor.model,
 
 import onnxruntime
 
-ort_session = onnxruntime.InferenceSession("det.onnx")
+ort_session = onnxruntime.InferenceSession('db_resnet50_rotation.onnx', providers = ["CPUExecutionProvider"])
 
 ort_inputs = {"input":input.numpy()}
 start = time.time()
@@ -44,7 +44,7 @@ print(np.testing.assert_allclose(pred.detach().cpu().numpy(), ort_outs[0], rtol=
 
 from openvino.runtime import Core
 ie = Core()
-model_onnx = ie.read_model(model="det.onnx")
+model_onnx = ie.read_model(model='db_resnet50_rotation.onnx')
 start = time.time()
 compiled_model_onnx = ie.compile_model(model=model_onnx, device_name="CPU")
 

@@ -22,7 +22,7 @@ from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ['DBNet', 'db_resnet50', 'db_resnet50_onnx', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation']
+__all__ = ['DBNet', 'db_resnet50', 'db_resnet50_onnx', 'db_resnet34', 'db_mobilenet_v3_large', 'db_resnet50_rotation', 'db_resnet50_rotation_onnx']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -55,6 +55,12 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'mean': (0.798, 0.785, 0.772),
         'std': (0.264, 0.2749, 0.287),
         'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/db_resnet50-1138863a.pt',
+    },
+    'db_resnet50_rotation_onnx': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (0.798, 0.785, 0.772),
+        'std': (0.264, 0.2749, 0.287),
+        'url': 'https://github.com/h2oai/doctr/releases/download/onnx_rotation_model/db_resnet50_rotation.onnx',
     },
 }
 
@@ -203,8 +209,6 @@ class DBNet(_DBNet, nn.Module):
         # Pass through the FPN
         feat_concat = self.fpn(feats)
         logits = self.prob_head(feat_concat)
-
-        
         return torch.sigmoid(logits)
 
     def compute_loss(
@@ -360,6 +364,36 @@ class db_resnet50_onnx(_DBNet, nn.Module):
 
         super().__init__()
         self.cfg = default_cfgs["db_resnet50_onnx"]
+        self.assume_straight_pages = True
+        self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
+        self.device = torch.cuda.is_available()
+        model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
+        if self.device:
+            self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
+        else:
+            self.ie = Core()
+            self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
+            self.compiled_model_onnx = self.ie.compile_model(model=model_path, device_name="CPU")
+            self.output_layer_onnx = self.compiled_model_onnx.output(0)
+    @torch.no_grad()
+    def forward(
+        self,
+        batch: torch.Tensor,
+    ):
+        if self.device:
+            pred_map = self.sess.run(None, {"input":batch.detach().cpu().numpy()})[0]
+        else:
+            pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+        
+        return pred_map
+class db_resnet50_rotation_onnx(_DBNet, nn.Module):
+    def __init__(
+        self,
+        pretrained = True,
+        assume_straight_pages = True) -> None:
+
+        super().__init__()
+        self.cfg = default_cfgs["db_resnet50_rotation_onnx"]
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
         self.device = torch.cuda.is_available()

@@ -10,6 +10,7 @@ Package installation setup
 import os
 import re
 import subprocess
+
 from pathlib import Path
 
 from setuptools import find_packages, setup
@@ -20,7 +21,6 @@ src_folder = 'doctr'
 package_index = 'python-doctr'
 
 cwd = Path(__file__).parent.absolute()
-
 if os.getenv('BUILD_VERSION'):
     version = os.getenv('BUILD_VERSION')
 elif sha != 'Unknown':
@@ -42,7 +42,7 @@ _deps = [
     "importlib_metadata",
     # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
     # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
-    "numpy>=1.16.0,<2.0.0",
+    "numpy>=1.23.0,<2.0.0",
     "scipy>=1.4.0",
     "h5py>=3.1.0",
     "opencv-python>=3.4.5.20",
@@ -64,11 +64,12 @@ _deps = [
     "tf2onnx>=1.9.2",
     "huggingface-hub>=0.4.0",
     "langdetect>=1.0.9",
+    "onnxruntime-gpu>=1.12.1",
+    "openvino==2022.2.0.dev20220829",
     # Testing
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
     "hdf5storage>=0.1.18",
-    "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     "requirements-parser==0.2.0",
     # Quality
@@ -118,7 +119,7 @@ extras = {}
 extras["tf"] = deps_list(
     "tensorflow",
     "tensorflow-addons",
-    "tf2onnx",
+    "tf2onnx"
 )
 
 extras["tf-cpu"] = deps_list(
@@ -130,6 +131,8 @@ extras["tf-cpu"] = deps_list(
 extras["torch"] = deps_list(
     "torch",
     "torchvision",
+    "onnxruntime-gpu",
+    "openvino"
 )
 
 extras["all"] = (
@@ -142,7 +145,7 @@ extras["testing"] = deps_list(
     "coverage[toml]",
     "requests",
     "hdf5storage",
-    "onnxruntime",
+    "onnxruntime-gpu",
     "requirements-parser",
 )
 
