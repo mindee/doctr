@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Encoder", "Decoder", "PositionalEncoding", "PatchEmbedding"]
+__all__ = ["Decoder", "PositionalEncoding", "PatchEmbedding"]
 
 tf.config.run_functions_eagerly(True)
 
@@ -33,7 +33,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
             embed_dim,
             kernel_size=patch_size,
             strides=patch_size,
-            padding="same",
+            padding="valid",
             kernel_initializer="he_normal",
         )
 
@@ -44,7 +44,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         assert W % self.patch_size[1] == 0, "Image width must be divisible by patch width"
 
         x = self.proj(x, **kwargs)
-        return tf.reshape(x, shape=(B, H * W, C))  # BCHW -> BNC
+        return tf.reshape(x, (x.shape[0], (x.shape[1] * x.shape[2]), x.shape[3]))  # BCHW -> BNC
 
 
 class PositionalEncoding(layers.Layer, NestedObject):

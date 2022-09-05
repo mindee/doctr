@@ -42,6 +42,13 @@ class VisionTransformer(nn.Module):
         super().__init__()
 
         # TODO
+        # TODO:
+
+        # 1. Implement Transformer Encoder (PT / TF) -> this will be done in classification model with components!!
+        # 2. Ensure PatchEmbedding works same way in PT and TF - check works :)
+        # 3. setup vit in PT and test it   <---- NEXT !! here we are :)
+        # 4. setup vit in TF and test it
+        # 5. pass all tests / final changes -> PR
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
 

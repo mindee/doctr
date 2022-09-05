@@ -11,7 +11,7 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
-__all__ = ["Encoder", "Decoder", "PositionalEncoding", "PatchEmbedding"]
+__all__ = ["Decoder", "PositionalEncoding", "PatchEmbedding"]
 
 
 class PatchEmbedding(nn.Module):
