@@ -1,7 +1,10 @@
-import torch.onnx
-from doctr.models import ocr_predictor
-import numpy as np
 import time
+
+import numpy as np
+import torch.onnx
+
+from doctr.models import ocr_predictor
+
 model = ocr_predictor(det_arch ='db_resnet50_rotation', pretrained=True)
 model.det_predictor.model = model.det_predictor.model.eval()
 
@@ -42,6 +45,7 @@ print(np.testing.assert_allclose(pred.detach().cpu().numpy(), ort_outs[0], rtol=
 
 
 from openvino.runtime import Core
+
 ie = Core()
 model_onnx = ie.read_model(model='db_resnet50_rotation.onnx')
 start = time.time()

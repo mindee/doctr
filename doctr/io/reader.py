@@ -11,6 +11,7 @@ import numpy as np
 from doctr.utils.common_types import AbstractFile
 
 from .image import read_img_as_numpy
+
 # from .pdf import PDF, read_pdf
 
 __all__ = ['DocumentFile']

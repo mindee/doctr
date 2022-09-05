@@ -1,7 +1,10 @@
-import torch.onnx
-from doctr.models import ocr_predictor
-import numpy as np
 import time
+
+import numpy as np
+import torch.onnx
+
+from doctr.models import ocr_predictor
+
 model = ocr_predictor(pretrained=True)
 model.reco_predictor.model = model.reco_predictor.model.eval()
 
@@ -21,8 +24,9 @@ torch.onnx.export(model.reco_predictor.model,
                   dynamic_axes = {"input":{0:"batch_size"},
                                   "output":{0:"batch_size"}})
 
-import onnxoptimizer
 import onnx
+import onnxoptimizer
+
 onnx_model = onnx.load("rec.onnx")
 
 passes = onnxoptimizer.get_fuse_and_elimination_passes()
@@ -51,6 +55,7 @@ print(np.testing.assert_allclose(pred.detach().cpu().numpy(), ort_outs[0], rtol=
 
 
 from openvino.runtime import Core
+
 ie = Core()
 model_onnx = ie.read_model(model="rec.onnx")
 compiled_model_onnx = ie.compile_model(model=model_onnx, device_name="CPU")

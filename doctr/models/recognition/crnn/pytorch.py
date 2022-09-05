@@ -3,17 +3,16 @@
 # This program is licensed under the Apache License version 2.
 # See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
+import os
 from copy import deepcopy
 from itertools import groupby
 from typing import Any, Callable, Dict, List, Optional, Tuple
-import os
 
+import onnxruntime as ort
 import torch
+from openvino.runtime import Core
 from torch import nn
 from torch.nn import functional as F
-
-from openvino.runtime import Core
-import onnxruntime as ort
 
 from doctr.datasets import VOCABS, decode_sequence
 from doctr.utils.data import download_from_url
