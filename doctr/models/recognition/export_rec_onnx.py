@@ -2,7 +2,6 @@ import torch.onnx
 from doctr.models import ocr_predictor
 import numpy as np
 import time
-import cv2
 model = ocr_predictor(pretrained=True)
 model.reco_predictor.model = model.reco_predictor.model.eval()
 

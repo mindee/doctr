@@ -13,7 +13,6 @@ from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
 from doctr.transforms import Resize
-from doctr.utils.multithreading import multithread_exec
 
 __all__ = ['PreProcessor']
 

@@ -16,8 +16,6 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
 
 from .base import _OCRPredictor
-import pdb
-import time
 
 __all__ = ['OCRPredictor']
 

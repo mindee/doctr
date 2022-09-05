@@ -2,7 +2,6 @@ import torch.onnx
 from doctr.models import ocr_predictor
 import numpy as np
 import time
-import cv2
 model = ocr_predictor(det_arch ='db_resnet50_rotation', pretrained=True)
 model.det_predictor.model = model.det_predictor.model.eval()
 

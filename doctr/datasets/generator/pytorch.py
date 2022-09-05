@@ -49,4 +49,3 @@ class WordGenerator(_WordGenerator):
         sample_transforms: composable transformations that will be applied to both the image and the target
     """
 
-    pass
