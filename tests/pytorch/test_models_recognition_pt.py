@@ -20,6 +20,7 @@ from doctr.models.utils import export_model_to_onnx
         ["crnn_mobilenet_v3_large", (3, 32, 128), True],
         ["sar_resnet31", (3, 32, 128), False],
         ["master", (3, 32, 128), False],
+        # TODO ["vitstr", (3, 32, 128), False], Don't miss to update all other tests incl. onnx
     ],
 )
 def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):

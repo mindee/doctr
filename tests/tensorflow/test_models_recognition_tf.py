@@ -26,6 +26,7 @@ from doctr.utils.geometry import extract_crops
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
+        # TODO ["vitstr", (32, 128, 3)], Don't miss to update all other tests incl. onnx
     ],
 )
 def test_recognition_models(arch_name, input_shape):
