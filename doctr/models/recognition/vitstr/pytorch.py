@@ -94,7 +94,7 @@ class ViTSTR(nn.Module, RecognitionModel):
             raise ValueError("Need to provide labels during training for teacher forcing")
 
         # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
-        features = features[:, :seq_len]
+        features = features[:, :seq_len]  # type: ignore[misc]
         # batch, seqlen, embedding_size
         B, N, E = features.size()
         features = features.reshape(B * N, E)

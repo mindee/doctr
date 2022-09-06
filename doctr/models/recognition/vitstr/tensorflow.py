@@ -71,9 +71,9 @@ class ViTSTR(Model, RecognitionModel):
             num_heads=6,
             dropout=dropout_prob,
         )
-        self.head = layers.Dense(self.vocab.size)
+        self.head = layers.Dense(len(self.vocab))
 
-        self.postprocessor = ViTSTRPostProcessor(vocab=vocab)
+        self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
     @staticmethod
     def compute_loss(
@@ -125,7 +125,7 @@ class ViTSTR(Model, RecognitionModel):
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training for teacher forcing")
 
-        features = features[:, :seq_len]
+        features = features[:, :seq_len]  # type: ignore[misc]
         # batch, seqlen, embedding_size
         B, N, E = features.size()
         features = tf.reshape(features, (B * N, E))
