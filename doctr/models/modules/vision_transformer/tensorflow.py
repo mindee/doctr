@@ -3,8 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import math
-from typing import Any, Optional, Tuple
+from typing import Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -23,8 +22,8 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
     def __init__(
         self,
-        img_size: Tuple[int],
-        patch_size: Tuple[int],
+        img_size: Tuple[int, int],
+        patch_size: Tuple[int, int],
         embed_dim: int = 768,
     ) -> None:
 
@@ -56,8 +55,8 @@ class VisionTransformer(layers.Layer, NestedObject):
 
     def __init__(
         self,
-        img_size: Tuple[int] = (32, 128),  # different from original paper to match our sizes
-        patch_size: Tuple[int] = (4, 8),  # different from original paper to match our sizes
+        img_size: Tuple[int, int],
+        patch_size: Tuple[int, int],
         d_model: int = 768,
         num_layers: int = 12,
         num_heads: int = 12,
@@ -71,17 +70,9 @@ class VisionTransformer(layers.Layer, NestedObject):
 
         self.patch_embedding = PatchEmbedding(self.img_size, self.patch_size, d_model)
         self.num_patches = self.patch_embedding.num_patches
-        self.cls_token = self.add_weight(
-            shape=(1, 1, d_model),
-            initializer="zeros",
-            trainable=True ,
-            name="cls_token"
-        )
+        self.cls_token = self.add_weight(shape=(1, 1, d_model), initializer="zeros", trainable=True, name="cls_token")
         self.positions = self.add_weight(
-            shape=(1, self.num_patches + 1, d_model),
-            initializer="zeros",
-            trainable=True,
-            name="positions"
+            shape=(1, self.num_patches + 1, d_model), initializer="zeros", trainable=True, name="positions"
         )
 
         self.layer_norm = layers.LayerNormalization(epsilon=1e-5)

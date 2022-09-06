@@ -3,8 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 import torch
 from torch import nn
@@ -16,12 +15,13 @@ __all__ = ["VisionTransformer"]
 
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embedding"""
+
     # Inpired by: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/patch_embed.py
 
     def __init__(
         self,
-        img_size: Tuple[int],
-        patch_size: Tuple[int],
+        img_size: Tuple[int, int],
+        patch_size: Tuple[int, int],
         channels: int,
         embed_dim: int = 768,
     ) -> None:
@@ -48,8 +48,8 @@ class VisionTransformer(nn.Module):
 
     def __init__(
         self,
-        img_size: Tuple[int] = (32, 128),  # different from original paper to match our sizes
-        patch_size: Tuple[int] = (4, 8),  # different from original paper to match our sizes
+        img_size: Tuple[int, int],
+        patch_size: Tuple[int, int],
         channels: int = 3,
         d_model: int = 768,
         num_layers: int = 12,
@@ -64,8 +64,10 @@ class VisionTransformer(nn.Module):
 
         self.patch_embedding = PatchEmbedding(self.img_size, self.patch_size, channels, d_model)
         self.num_patches = self.patch_embedding.num_patches
-        self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))
-        self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, d_model) * 0.02)
+        self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))  # type: ignore[attr-defined]
+        self.positions = nn.Parameter(  # type: ignore[attr-defined]
+            torch.randn(1, self.num_patches + 1, d_model) * 0.02
+        )
 
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.dropout = nn.Dropout(dropout)
