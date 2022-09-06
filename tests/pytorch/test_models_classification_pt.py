@@ -40,7 +40,6 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["magc_resnet31", (3, 32, 32), (126,)],
         ["mobilenet_v3_small", (3, 32, 32), (126,)],
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
-        ["vit", (3, 32, 32), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -120,7 +119,6 @@ def test_crop_orientation_model(mock_text_box):
         ["magc_resnet31", (3, 32, 32), (126,)],
         ["mobilenet_v3_small", (3, 32, 32), (126,)],
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
-        ["vit", (3, 32, 32), (126,)],
         ["mobilenet_v3_small_orientation", (3, 128, 128), (4,)],
     ],
 )
