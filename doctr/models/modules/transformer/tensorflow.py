@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Decoder", "PositionalEncoding", "PatchEmbedding"]
+__all__ = ["Decoder", "PositionalEncoding", "MultiHeadAttention", "PositionwiseFeedForward"]
 
 tf.config.run_functions_eagerly(True)
 

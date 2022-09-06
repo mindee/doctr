@@ -11,7 +11,7 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ["Decoder", "PositionalEncoding", "MultiHeadAttention", "PositionwiseFeedForward"]
 
 
 class PositionalEncoding(nn.Module):
