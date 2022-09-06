@@ -65,9 +65,7 @@ class VisionTransformer(nn.Module):
         self.patch_embedding = PatchEmbedding(self.img_size, self.patch_size, channels, d_model)
         self.num_patches = self.patch_embedding.num_patches
         self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))  # type: ignore[attr-defined]
-        self.positions = nn.Parameter(  # type: ignore[attr-defined]
-            torch.randn(1, self.num_patches + 1, d_model) * 0.02
-        )
+        self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, d_model))  # type: ignore[attr-defined]
 
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.dropout = nn.Dropout(dropout)
