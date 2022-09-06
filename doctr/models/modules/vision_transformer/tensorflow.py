@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Tuple
+from typing import Any, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers

@@ -26,7 +26,7 @@ from doctr.utils.geometry import extract_crops
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
-        # TODO ["vitstr", (32, 128, 3)], Don't miss to update all other tests incl. onnx
+        ["vitstr", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -54,6 +54,7 @@ def test_recognition_models(arch_name, input_shape):
     "post_processor, input_shape",
     [
         [SARPostProcessor, [2, 30, 119]],
+        [ViTSTRPostProcessor, [2, 30, 119]],
         [CTCPostProcessor, [2, 30, 119]],
         [MASTERPostProcessor, [2, 30, 119]],
     ],
@@ -99,7 +100,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
 @pytest.mark.parametrize(
     "arch_name",
-    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master"],
+    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr"],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
@@ -153,6 +154,7 @@ def test_recognition_zoo_error():
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
+        ["vitstr", (32, 128, 3)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
