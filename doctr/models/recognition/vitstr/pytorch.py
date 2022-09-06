@@ -91,10 +91,10 @@ class ViTSTR(nn.Module, RecognitionModel):
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
         if self.training and target is None:
-            raise ValueError("Need to provide labels during training for teacher forcing")
+            raise ValueError("Need to provide labels during training")
 
         # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
-        features = features[:, :seq_len]  # type: ignore[misc]
+        features = features[:, :self.max_length]
         # batch, seqlen, embedding_size
         B, N, E = features.size()
         features = features.reshape(B * N, E)
@@ -223,8 +223,6 @@ def vitstr(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     return _vitstr(
         "vitstr",
         pretrained,
-        ignore_keys=[
-            # TODO
-        ],
+        ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )
