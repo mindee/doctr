@@ -125,7 +125,7 @@ class ViTSTR(Model, RecognitionModel):
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training")
 
-        features = features[:, :self.max_length]
+        features = features[:, : self.max_length]
         # batch, seqlen, embedding_size
         B, N, E = features.size()
         features = tf.reshape(features, (B * N, E))
