@@ -61,7 +61,7 @@ class ViTSTR(nn.Module, RecognitionModel):
         self.exportable = exportable
         self.cfg = cfg
 
-        self.max_length = max_length + 2  # Add 1 timestep for EOS after the longest word and 1 for ViT cls token
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
         self.feat_extractor = VisionTransformer(
             img_size=input_shape[1:],
@@ -71,7 +71,7 @@ class ViTSTR(nn.Module, RecognitionModel):
             num_heads=6,
             dropout=dropout_prob,
         )
-        self.head = nn.Linear(embedding_units, len(self.vocab))
+        self.head = nn.Linear(embedding_units, len(self.vocab) + 1)
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
@@ -94,11 +94,11 @@ class ViTSTR(nn.Module, RecognitionModel):
             raise ValueError("Need to provide labels during training")
 
         # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
-        features = features[:, : self.max_length]
+        features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
         # batch, seqlen, embedding_size
         B, N, E = features.size()
         features = features.reshape(B * N, E)
-        logits = self.head(features).view(B, N, len(self.vocab))  # (batch, seqlen, vocab)
+        logits = self.head(features).view(B, N, len(self.vocab) + 1)  # (batch, seqlen, vocab + 1)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, Any] = {}

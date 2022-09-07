@@ -61,7 +61,7 @@ class ViTSTR(Model, RecognitionModel):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        self.max_length = max_length + 2  # Add 1 timestep for EOS after the longest word and 1 for ViT cls token
+        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
         self.feat_extractor = VisionTransformer(
             img_size=input_shape[:-1],
@@ -71,7 +71,7 @@ class ViTSTR(Model, RecognitionModel):
             num_heads=6,
             dropout=dropout_prob,
         )
-        self.head = layers.Dense(len(self.vocab))
+        self.head = layers.Dense(len(self.vocab) + 1)
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
@@ -125,11 +125,11 @@ class ViTSTR(Model, RecognitionModel):
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training")
 
-        features = features[:, : self.max_length]
+        features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
         # batch, seqlen, embedding_size
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab)))  # (batch, seqlen, vocab)
+        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 1))  # (batch, seqlen, vocab + 1)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
