@@ -11,7 +11,7 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ["Decoder", "PositionalEncoding", "MultiHeadAttention", "PositionwiseFeedForward"]
 
 
 class PositionalEncoding(nn.Module):
@@ -57,10 +57,10 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(nn.Sequential):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout: float = 0.1) -> None:
+    def __init__(self, d_model: int, ffd: int, dropout: float = 0.1, use_gelu: bool = False) -> None:
         super().__init__(
             nn.Linear(d_model, ffd),
-            nn.ReLU(),
+            nn.ReLU() if not use_gelu else nn.GELU(),  # Gelu for ViT
             nn.Dropout(p=dropout),
             nn.Linear(ffd, d_model),
         )

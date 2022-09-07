@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ["Decoder", "PositionalEncoding", "MultiHeadAttention", "PositionwiseFeedForward"]
 
 tf.config.run_functions_eagerly(True)
 
@@ -74,14 +74,19 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(layers.Layer, NestedObject):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
+    def __init__(self, d_model: int, ffd: int, dropout=0.1, use_gelu: bool = False) -> None:
         super(PositionwiseFeedForward, self).__init__()
+        self.use_gelu = use_gelu
+
         self.first_linear = layers.Dense(ffd, kernel_initializer=tf.initializers.he_uniform())
         self.sec_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
         self.dropout = layers.Dropout(rate=dropout)
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
-        x = tf.nn.relu(self.first_linear(x, **kwargs))
+        if self.use_gelu:  # used for ViT
+            x = tf.nn.gelu(self.first_linear(x, **kwargs))
+        else:
+            x = tf.nn.relu(self.first_linear(x, **kwargs))
         x = self.dropout(x, **kwargs)
         x = self.sec_linear(x, **kwargs)
         return x
