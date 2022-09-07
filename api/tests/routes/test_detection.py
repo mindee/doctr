@@ -8,7 +8,7 @@ from doctr.utils.metrics import box_iou
 @pytest.mark.asyncio
 async def test_text_detection(test_app_asyncio, mock_detection_image):
 
-    response = await test_app_asyncio.post("/detection", files={'file': mock_detection_image})
+    response = await test_app_asyncio.post("/detection", files={"file": mock_detection_image})
     assert response.status_code == 200
     json_response = response.json()
 
@@ -18,7 +18,7 @@ async def test_text_detection(test_app_asyncio, mock_detection_image):
 
     # Check that IoU with GT if reasonable
     assert isinstance(json_response, list) and len(json_response) == gt_boxes.shape[0]
-    pred_boxes = np.array([elt['box'] for elt in json_response])
+    pred_boxes = np.array([elt["box"] for elt in json_response])
     iou_mat = box_iou(gt_boxes, pred_boxes)
     gt_idxs, pred_idxs = linear_sum_assignment(-iou_mat)
     is_kept = iou_mat[gt_idxs, pred_idxs] >= 0.8

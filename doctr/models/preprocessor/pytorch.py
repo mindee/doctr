@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
 from typing import Any, List, Tuple, Union
@@ -13,9 +13,8 @@ from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
 from doctr.transforms import Resize
-from doctr.utils.multithreading import multithread_exec
 
-__all__ = ['PreProcessor']
+__all__ = ["PreProcessor"]
 
 
 class PreProcessor(nn.Module):
@@ -31,8 +30,8 @@ class PreProcessor(nn.Module):
         self,
         output_size: Tuple[int, int],
         batch_size: int,
-        mean: Tuple[float, float, float] = (.5, .5, .5),
-        std: Tuple[float, float, float] = (1., 1., 1.),
+        mean: Tuple[float, float, float] = (0.5, 0.5, 0.5),
+        std: Tuple[float, float, float] = (1.0, 1.0, 1.0),
         fp16: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -42,10 +41,7 @@ class PreProcessor(nn.Module):
         # Perform the division by 255 at the same time
         self.normalize = T.Normalize(mean, std)
 
-    def batch_inputs(
-        self,
-        samples: List[torch.Tensor]
-    ) -> List[torch.Tensor]:
+    def batch_inputs(self, samples: List[torch.Tensor]) -> List[torch.Tensor]:
         """Gather samples into batches for inference purposes
         Args:
             samples: list of samples of shape (C, H, W)
@@ -55,7 +51,7 @@ class PreProcessor(nn.Module):
 
         num_batches = int(math.ceil(len(samples) / self.batch_size))
         batches = [
-            torch.stack(samples[idx * self.batch_size: min((idx + 1) * self.batch_size, len(samples))], dim=0)
+            torch.stack(samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))], dim=0)
             for idx in range(int(num_batches))
         ]
 
@@ -80,10 +76,7 @@ class PreProcessor(nn.Module):
 
         return x
 
-    def __call__(
-        self,
-        x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]
-    ) -> List[torch.Tensor]:
+    def __call__(self, x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]) -> List[torch.Tensor]:
         """Prepare document data for model forwarding
         Args:
             x: list of images (np.array) or tensors (already resized and batched)
@@ -120,7 +113,7 @@ class PreProcessor(nn.Module):
             # samples = multithread_exec(self.sample_transforms, x)
             # print(samples)
             # Batching
-            batches = self.batch_inputs(samples)  # type: ignore[arg-type]
+            batches = self.batch_inputs(samples)
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 

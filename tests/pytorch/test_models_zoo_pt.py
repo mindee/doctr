@@ -10,63 +10,61 @@ from doctr.models.predictor import OCRPredictor
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 
+@pytest.mark.parametrize(
+    "assume_straight_pages, straighten_pages",
+    [
+        [True, False],
+        [False, False],
+        [True, True],
+    ],
+)
+def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
+    det_bsize = 4
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=det_bsize),
+        detection.db_mobilenet_v3_large(
+            pretrained=False,
+            pretrained_backbone=False,
+            assume_straight_pages=assume_straight_pages,
+        ),
+    )
 
-# @pytest.mark.parametrize(
-#     "assume_straight_pages, straighten_pages",
-#     [
-#         [True, False],
-#         [False, False],
-#         [True, True],
-#     ]
-# )
-# def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
-#     det_bsize = 4
-#     det_predictor = DetectionPredictor(
-#         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
-#         detection.db_mobilenet_v3_large(
-#             pretrained=False,
-#             pretrained_backbone=False,
-#             assume_straight_pages=assume_straight_pages,
-#         )
-#     )
+    assert not det_predictor.model.training
 
-#     assert not det_predictor.model.training
+    reco_bsize = 32
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab),
+    )
 
-#     reco_bsize = 32
-#     reco_predictor = RecognitionPredictor(
-#         PreProcessor(output_size=(32, 128), batch_size=reco_bsize, preserve_aspect_ratio=True),
-#         recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab)
-#     )
+    assert not reco_predictor.model.training
 
-#     assert not reco_predictor.model.training
+    doc = DocumentFile.from_pdf(mock_pdf)
 
-#     doc = DocumentFile.from_pdf(mock_pdf)
+    predictor = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=assume_straight_pages,
+        straighten_pages=straighten_pages,
+        detect_orientation=True,
+        detect_language=True,
+    )
 
-#     predictor = OCRPredictor(
-#         det_predictor,
-#         reco_predictor,
-#         assume_straight_pages=assume_straight_pages,
-#         straighten_pages=straighten_pages,
-#         detect_orientation=True,
-#         detect_language=True,
-#     )
+    if assume_straight_pages:
+        assert predictor.crop_orientation_predictor is None
+    else:
+        assert isinstance(predictor.crop_orientation_predictor, nn.Module)
 
-#     if assume_straight_pages:
-#         assert predictor.crop_orientation_predictor is None
-#     else:
-#         assert isinstance(predictor.crop_orientation_predictor, nn.Module)
+    out = predictor(doc)
+    assert isinstance(out, Document)
+    assert len(out.pages) == 2
+    # Dimension check
+    with pytest.raises(ValueError):
+        input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
+        _ = predictor([input_page])
 
-#     out = predictor(doc)
-#     assert isinstance(out, Document)
-#     assert len(out.pages) == 2
-#     # Dimension check
-#     with pytest.raises(ValueError):
-#         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
-#         _ = predictor([input_page])
-
-#     orientation = 0
-#     assert out.pages[0].orientation['value'] == orientation
-
+    orientation = 0
+    assert out.pages[0].orientation["value"] == orientation
 
 def _test_predictor(predictor):
     # Output checks

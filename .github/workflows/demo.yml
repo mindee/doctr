@@ -14,6 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: [3.8]
+        framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
@@ -24,22 +25,48 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - name: Cache python modules
+      - if: matrix.framework == 'tensorflow'
+        name: Cache python modules (TF)
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-      - name: Install dependencies
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/tf-requirements.txt') }}
+      - if: matrix.framework == 'pytorch'
+        name: Cache python modules (PT)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/pt-requirements.txt') }}
+
+      - if: matrix.framework == 'tensorflow'
+        name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
-          pip install -r demo/requirements.txt
+          pip install -r demo/tf-requirements.txt
+      - if: matrix.framework == 'pytorch'
+        name: Install dependencies (PT)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[torch] --upgrade
+          pip install -r demo/pt-requirements.txt
 
-      - name: Run demo
+      - if: matrix.framework == 'tensorflow'
+        name: Run demo (TF)
+        env:
+            USE_TF: 1
         run: |
           streamlit --version
           screen -dm streamlit run demo/app.py
           sleep 10
           curl http://localhost:8501/docs
+      - if: matrix.framework == 'pytorch'
+        name: Run demo (PT)
+        env:
+            USE_TORCH: 1
+        run: |
+          streamlit --version
+          screen -dm streamlit run demo/app.py
+          sleep 10
+          curl http://localhost:8501/docs
+

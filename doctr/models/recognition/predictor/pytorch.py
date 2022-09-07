@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, List, Sequence, Tuple, Union
 
@@ -13,7 +13,7 @@ from doctr.models.preprocessor import PreProcessor
 
 from ._utils import remap_preds, split_crops
 
-__all__ = ['RecognitionPredictor']
+__all__ = ["RecognitionPredictor"]
 
 
 class RecognitionPredictor(nn.Module):
@@ -35,6 +35,12 @@ class RecognitionPredictor(nn.Module):
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
+        self.postprocessor = self.model.postprocessor
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
+            self.model = nn.DataParallel(self.model)
+            self.model = self.model.to(self.device)
+            self.model = self.model.half()
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
@@ -61,7 +67,7 @@ class RecognitionPredictor(nn.Module):
                 self.critical_ar,
                 self.target_ar,
                 self.dil_factor,
-                isinstance(crops[0], np.ndarray)
+                isinstance(crops[0], np.ndarray),
             )
             if remapped:
                 crops = new_crops
@@ -70,11 +76,15 @@ class RecognitionPredictor(nn.Module):
         processed_batches = self.pre_processor(crops)
 
         # Forward it
-        _device = next(self.model.parameters()).device
-        raw = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
-            for batch in processed_batches
-        ]
+        raw = []
+        for batch in processed_batches:
+            if "onnx" not in str((type(self.model))):
+                batch = batch.to(self.device)
+                if self.device == torch.device("cuda"):
+                    batch = batch.half()
+            char_logits = self.model(batch)
+            char_logits = torch.tensor(char_logits)
+            raw += [self.postprocessor(char_logits)]
 
         # Process outputs
         out = [charseq for batch in raw for charseq in batch]

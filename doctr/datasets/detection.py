@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import json
 import os
@@ -42,13 +42,13 @@ class DetectionDataset(AbstractDataset):
         super().__init__(
             img_folder,
             pre_transforms=lambda img, boxes: (img, convert_to_relative_coords(boxes, get_img_shape(img))),
-            **kwargs
+            **kwargs,
         )
 
         # File existence check
         if not os.path.exists(label_path):
             raise FileNotFoundError(f"unable to locate {label_path}")
-        with open(label_path, 'rb') as f:
+        with open(label_path, "rb") as f:
             labels = json.load(f)
 
         self.data: List[Tuple[str, np.ndarray]] = []
@@ -58,7 +58,7 @@ class DetectionDataset(AbstractDataset):
             if not os.path.exists(os.path.join(self.root, img_name)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
 
-            polygons: np.ndarray = np.asarray(label['polygons'], dtype=np_dtype)
+            polygons: np.ndarray = np.asarray(label["polygons"], dtype=np_dtype)
             geoms = polygons if use_polygons else np.concatenate((polygons.min(axis=1), polygons.max(axis=1)), axis=1)
 
             self.data.append((img_name, np.asarray(geoms, dtype=np_dtype)))

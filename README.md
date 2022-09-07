@@ -186,14 +186,26 @@ Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%2
 
 #### Running it locally
 
-If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required:
+If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required.
+
+##### Tensorflow version
 ```shell
-pip install -r demo/requirements.txt
+pip install -r demo/tf-requirements.txt
 ```
 Then run your app in your default browser with:
 
 ```shell
-streamlit run demo/app.py
+USE_TF=1 streamlit run demo/app.py
+```
+
+##### PyTorch version
+```shell
+pip install -r demo/pt-requirements.txt
+```
+Then run your app in your default browser with:
+
+```shell
+USE_TORCH=1 streamlit run demo/app.py
 ```
 
 #### TensorFlow.js

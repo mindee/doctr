@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, List, Union
 
@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
 
-__all__ = ['DetectionPredictor']
+__all__ = ["DetectionPredictor"]
 
 
 class DetectionPredictor(nn.Module):
@@ -29,13 +29,20 @@ class DetectionPredictor(nn.Module):
     ) -> None:
 
         super().__init__()
-        self.pre_processor = pre_processor
         self.model = model.eval()
+        self.pre_processor = pre_processor
+        self.postprocessor = self.model.postprocessor
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
+            self.model = nn.DataParallel(self.model)
+            self.model = self.model.half()
+            self.model = self.model.to(self.device)
 
     @torch.no_grad()
     def forward(
         self,
         pages: List[Union[np.ndarray, torch.Tensor]],
+        return_model_output = False,
         **kwargs: Any,
     ) -> List[np.ndarray]:
 
@@ -44,9 +51,18 @@ class DetectionPredictor(nn.Module):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(pages)
-        _device = next(self.model.parameters()).device
-        predicted_batches = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
-            for batch in processed_batches
-        ]
-        return [pred for batch in predicted_batches for pred in batch]
+        predicted_batches = []
+
+        for batch in processed_batches:
+            if "onnx" not in str((type(self.model))):
+                batch = batch.to(self.device)
+                if self.device == torch.device("cuda"):
+                    batch = batch.half()
+            pred_map = self.model(batch)
+            if type(pred_map) == torch.Tensor:
+                pred_map = pred_map.detach().cpu().numpy()
+            if return_model_output:
+                return pred_map.astype(np.float32)
+            pred_map = np.transpose(pred_map, (0, 2, 3, 1))
+            predicted_batches += [pred[0] for pred in self.postprocessor(pred_map)]
+        return predicted_batches

@@ -7,6 +7,25 @@ on:
     branches: main
 
 jobs:
+  test-headers:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Validate headers
+        # Credits to: https://github.com/frgfm/validate-python-headers
+        uses: frgfm/validate-python-headers@main
+        with:
+          license: 'Apache-2.0'
+          owner: 'Mindee'
+          starting-year: 2021
+          folders: '.github,api/app,demo,docs,doctr,references,scripts'
+          ignores: 'version.py,__init__.py'
+
   pytest-common:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -24,9 +43,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -59,9 +76,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -94,9 +109,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('tests/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
