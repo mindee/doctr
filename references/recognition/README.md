@@ -64,3 +64,15 @@ Feel free to inspect the multiple script option to customize your training to yo
 ```python
 python references/recognition/train_pytorch.py --help
 ```
+## Using custom fonts
+If you want to use your own custom fonts for training, make sure the font is installed on your OS. 
+You can do so in linux by either:
+* clicking on the .ttf file and pressing the install button.  
+* If the above doesn't work, copy the .ttf file to the desired directory with: ```sudo cp BORING.ttf /usr/local/share/fonts/``` and then run ```fc-cache -f -v``` to build the font cache.
+
+Keep in mind that you shouldn't pass your dataset otherwise it will be used for training instead of the font.
+
+Running the training script should look like this for multiple custom fonts:
+```shell
+python references/recognition/train_pytorch.py crnn_vgg16_bn --epochs 5 --font "cusomt-font-1.ttf,custom-font-2.ttf"
+```
