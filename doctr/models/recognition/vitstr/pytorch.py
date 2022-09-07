@@ -61,7 +61,7 @@ class ViTSTR(nn.Module, RecognitionModel):
         self.exportable = exportable
         self.cfg = cfg
 
-        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+        self.max_length = max_length + 2  # Add 1 timestep for EOS after the longest word and 1 for ViT cls token
 
         self.feat_extractor = VisionTransformer(
             img_size=input_shape[1:],

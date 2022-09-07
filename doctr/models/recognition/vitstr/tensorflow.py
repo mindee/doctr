@@ -61,7 +61,7 @@ class ViTSTR(Model, RecognitionModel):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+        self.max_length = max_length + 2  # Add 1 timestep for EOS after the longest word and 1 for ViT cls token
 
         self.feat_extractor = VisionTransformer(
             img_size=input_shape[:-1],
@@ -127,7 +127,7 @@ class ViTSTR(Model, RecognitionModel):
 
         features = features[:, : self.max_length]
         # batch, seqlen, embedding_size
-        B, N, E = features.size()
+        B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
         logits = tf.reshape(self.head(features), (B, N, len(self.vocab)))  # (batch, seqlen, vocab)
         decoded_features = logits[:, 1:]  # remove cls_token
