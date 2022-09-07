@@ -23,32 +23,37 @@ def test_resolve_enclosing_bbox():
 
 
 def test_resolve_enclosing_rbbox():
-    pred = geometry.resolve_enclosing_rbbox([
-        np.asarray([[.1, .1], [.2, .2], [.15, .25], [.05, .15]]),
-        np.asarray([[.5, .5], [.6, .6], [.55, .65], [.45, .55]])
-    ])
-    target1 = np.asarray([[.55, .65], [.05, .15], [.1, .1], [.6, .6]])
-    target2 = np.asarray([[.05, .15], [.1, .1], [.6, .6], [.55, .65]])
+    pred = geometry.resolve_enclosing_rbbox(
+        [
+            np.asarray([[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]]),
+            np.asarray([[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]]),
+        ]
+    )
+    target1 = np.asarray([[0.55, 0.65], [0.05, 0.15], [0.1, 0.1], [0.6, 0.6]])
+    target2 = np.asarray([[0.05, 0.15], [0.1, 0.1], [0.6, 0.6], [0.55, 0.65]])
     assert np.all(target1 - pred <= 1e-3) or np.all(target2 - pred <= 1e-3)
 
 
 def test_remap_boxes():
-    pred = geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (10, 10), (20, 20))
-    target = np.asarray([[[.375, .375], [.375, .625], [.625, .375], [.625, .625]]])
+    pred = geometry.remap_boxes(
+        np.asarray([[[0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]]), (10, 10), (20, 20)
+    )
+    target = np.asarray([[[0.375, 0.375], [0.375, 0.625], [0.625, 0.375], [0.625, 0.625]]])
     assert np.all(pred == target)
 
-    pred = geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (10, 10), (20, 10))
-    target = np.asarray([[[0.25, 0.375],
-                          [0.25, 0.625],
-                          [0.75, 0.375],
-                          [0.75, 0.625]]])
+    pred = geometry.remap_boxes(
+        np.asarray([[[0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]]), (10, 10), (20, 10)
+    )
+    target = np.asarray([[[0.25, 0.375], [0.25, 0.625], [0.75, 0.375], [0.75, 0.625]]])
     assert np.all(pred == target)
 
     with pytest.raises(ValueError):
-        geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (80, 40, 150), (160, 40))
+        geometry.remap_boxes(
+            np.asarray([[[0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]]), (80, 40, 150), (160, 40)
+        )
 
     with pytest.raises(ValueError):
-        geometry.remap_boxes(np.asarray([[[.25, .25], [.25, .75], [.75, .25], [.75, .75]]]), (80, 40), (160,))
+        geometry.remap_boxes(np.asarray([[[0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]]]), (80, 40), (160,))
 
     orig_dimension = (100, 100)
     dest_dimensions = (200, 100)
@@ -56,10 +61,7 @@ def test_remap_boxes():
     height_o, width_o = orig_dimension
     height_d, width_d = dest_dimensions
 
-    orig_box = np.asarray([[[0.25, 0.25],
-                            [0.25, 0.25],
-                            [0.75, 0.75],
-                            [0.75, 0.75]]])
+    orig_box = np.asarray([[[0.25, 0.25], [0.25, 0.25], [0.75, 0.75], [0.75, 0.75]]])
 
     pred = geometry.remap_boxes(orig_box, orig_dimension, dest_dimensions)
 
@@ -80,7 +82,7 @@ def test_rotate_boxes():
     boxes = np.array([[0.1, 0.1, 0.8, 0.3, 0.5]])
     rboxes = np.array([[0.1, 0.1], [0.8, 0.1], [0.8, 0.3], [0.1, 0.3]])
     # Angle = 0
-    rotated = geometry.rotate_boxes(boxes, angle=0., orig_shape=(1, 1))
+    rotated = geometry.rotate_boxes(boxes, angle=0.0, orig_shape=(1, 1))
     assert np.all(rotated == rboxes)
     # Angle < 1:
     rotated = geometry.rotate_boxes(boxes, angle=0.5, orig_shape=(1, 1))
@@ -89,34 +91,34 @@ def test_rotate_boxes():
     rotated = geometry.rotate_boxes(boxes, angle=30, orig_shape=(1, 1))
     assert rotated.shape == (1, 4, 2)
 
-    boxes = np.array([[0., 0., 0.6, 0.2, 0.5]])
+    boxes = np.array([[0.0, 0.0, 0.6, 0.2, 0.5]])
     # Angle = -90:
     rotated = geometry.rotate_boxes(boxes, angle=-90, orig_shape=(1, 1), min_angle=0)
-    assert np.allclose(rotated, np.array([[[1, 0.], [1, 0.6], [0.8, 0.6], [0.8, 0.]]]))
+    assert np.allclose(rotated, np.array([[[1, 0.0], [1, 0.6], [0.8, 0.6], [0.8, 0.0]]]))
     # Angle = 90
     rotated = geometry.rotate_boxes(boxes, angle=+90, orig_shape=(1, 1), min_angle=0)
-    assert np.allclose(rotated, np.array([[[0, 1.], [0, 0.4], [0.2, 0.4], [0.2, 1.]]]))
+    assert np.allclose(rotated, np.array([[[0, 1.0], [0, 0.4], [0.2, 0.4], [0.2, 1.0]]]))
 
 
 def test_rotate_image():
     img = np.ones((32, 64, 3), dtype=np.float32)
-    rotated = geometry.rotate_image(img, 30.)
+    rotated = geometry.rotate_image(img, 30.0)
     assert rotated.shape[:-1] == (32, 64)
     assert rotated[0, 0, 0] == 0
     assert rotated[0, :, 0].sum() > 1
 
     # Expand
-    rotated = geometry.rotate_image(img, 30., expand=True)
+    rotated = geometry.rotate_image(img, 30.0, expand=True)
     assert rotated.shape[:-1] == (60, 120)
     assert rotated[0, :, 0].sum() <= 1
 
     # Expand
-    rotated = geometry.rotate_image(img, 30., expand=True, preserve_origin_shape=True)
+    rotated = geometry.rotate_image(img, 30.0, expand=True, preserve_origin_shape=True)
     assert rotated.shape[:-1] == (32, 64)
     assert rotated[0, :, 0].sum() <= 1
 
     # Expand with 90° rotation
-    rotated = geometry.rotate_image(img, 90., expand=True)
+    rotated = geometry.rotate_image(img, 90.0, expand=True)
     assert rotated.shape[:-1] == (64, 128)
     assert rotated[0, :, 0].sum() <= 1
 
@@ -125,28 +127,20 @@ def test_rotate_image():
     "abs_geoms, img_size, rel_geoms",
     [
         # Full image (boxes)
-        [
-            np.array([[0, 0, 32, 32]]),
-            (32, 32),
-            np.array([[0, 0, 1, 1]], dtype=np.float32)
-        ],
+        [np.array([[0, 0, 32, 32]]), (32, 32), np.array([[0, 0, 1, 1]], dtype=np.float32)],
         # Full image (polygons)
         [
             np.array([[[0, 0], [32, 0], [32, 32], [0, 32]]]),
             (32, 32),
-            np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32)
+            np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32),
         ],
         # Quarter image (boxes)
-        [
-            np.array([[0, 0, 16, 16]]),
-            (32, 32),
-            np.array([[0, 0, .5, .5]], dtype=np.float32)
-        ],
+        [np.array([[0, 0, 16, 16]]), (32, 32), np.array([[0, 0, 0.5, 0.5]], dtype=np.float32)],
         # Quarter image (polygons)
         [
             np.array([[[0, 0], [16, 0], [16, 16], [0, 16]]]),
             (32, 32),
-            np.array([[[0, 0], [.5, 0], [.5, .5], [0, .5]]], dtype=np.float32)
+            np.array([[[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]]], dtype=np.float32),
         ],
     ],
 )
@@ -175,13 +169,22 @@ def test_estimate_page_angle():
 def test_extract_crops(mock_pdf):  # noqa: F811
     doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
-    rel_boxes = np.array([[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops]
-                          for idx in range(num_crops)], dtype=np.float32)
-    abs_boxes = np.array([[int(idx * doc_img.shape[1] / num_crops),
-                           int(idx * doc_img.shape[0]) / num_crops,
-                           int((idx + 1) * doc_img.shape[1] / num_crops),
-                           int((idx + 1) * doc_img.shape[0] / num_crops)]
-                          for idx in range(num_crops)], dtype=np.float32)
+    rel_boxes = np.array(
+        [[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops] for idx in range(num_crops)],
+        dtype=np.float32,
+    )
+    abs_boxes = np.array(
+        [
+            [
+                int(idx * doc_img.shape[1] / num_crops),
+                int(idx * doc_img.shape[0]) / num_crops,
+                int((idx + 1) * doc_img.shape[1] / num_crops),
+                int((idx + 1) * doc_img.shape[0] / num_crops),
+            ]
+            for idx in range(num_crops)
+        ],
+        dtype=np.float32,
+    )
 
     with pytest.raises(AssertionError):
         geometry.extract_crops(doc_img, np.zeros((1, 5)))
@@ -195,13 +198,17 @@ def test_extract_crops(mock_pdf):  # noqa: F811
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # Identity
-    assert np.all(doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32),
-                                                    channels_last=True)[0])
+    assert np.all(
+        doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=True)[0]
+    )
     torch_img = np.transpose(doc_img, axes=(-1, 0, 1))
-    assert np.all(torch_img == np.transpose(
-        geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=False)[0],
-        axes=(-1, 0, 1)
-    ))
+    assert np.all(
+        torch_img
+        == np.transpose(
+            geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=False)[0],
+            axes=(-1, 0, 1),
+        )
+    )
 
     # No box
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
@@ -210,11 +217,18 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 def test_extract_rcrops(mock_pdf):  # noqa: F811
     doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
-    rel_boxes = np.array([[[idx / num_crops, idx / num_crops],
-                           [idx / num_crops + .1, idx / num_crops],
-                           [idx / num_crops + .1, idx / num_crops + .1],
-                           [idx / num_crops, idx / num_crops]]
-                          for idx in range(num_crops)], dtype=np.float32)
+    rel_boxes = np.array(
+        [
+            [
+                [idx / num_crops, idx / num_crops],
+                [idx / num_crops + 0.1, idx / num_crops],
+                [idx / num_crops + 0.1, idx / num_crops + 0.1],
+                [idx / num_crops, idx / num_crops],
+            ]
+            for idx in range(num_crops)
+        ],
+        dtype=np.float32,
+    )
     abs_boxes = deepcopy(rel_boxes)
     abs_boxes[:, :, 0] *= doc_img.shape[1]
     abs_boxes[:, :, 1] *= doc_img.shape[0]

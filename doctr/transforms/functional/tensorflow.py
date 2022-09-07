@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
 from copy import deepcopy
@@ -109,9 +109,7 @@ def rotate_sample(
 
 
 def crop_detection(
-    img: tf.Tensor,
-    boxes: np.ndarray,
-    crop_box: Tuple[float, float, float, float]
+    img: tf.Tensor, boxes: np.ndarray, crop_box: Tuple[float, float, float, float]
 ) -> Tuple[tf.Tensor, np.ndarray]:
     """Crop and image and associated bboxes
 
@@ -128,9 +126,7 @@ def crop_detection(
     h, w = img.shape[:2]
     xmin, ymin = int(round(crop_box[0] * (w - 1))), int(round(crop_box[1] * (h - 1)))
     xmax, ymax = int(round(crop_box[2] * (w - 1))), int(round(crop_box[3] * (h - 1)))
-    cropped_img = tf.image.crop_to_bounding_box(
-        img, ymin, xmin, ymax - ymin, xmax - xmin
-    )
+    cropped_img = tf.image.crop_to_bounding_box(img, ymin, xmin, ymax - ymin, xmax - xmin)
     # Crop the box
     boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
 
@@ -156,7 +152,9 @@ def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) 
     # Add some blur to make it believable
     k = 7 + int(2 * 4 * np.random.rand(1))
     shadow_tensor = tfa.image.gaussian_filter2d(
-        shadow_tensor, filter_shape=k, sigma=np.random.uniform(.5, 5.),
+        shadow_tensor,
+        filter_shape=k,
+        sigma=np.random.uniform(0.5, 5.0),
     )
 
     return opacity * shadow_tensor * img + (1 - opacity) * img

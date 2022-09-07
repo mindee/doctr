@@ -26,9 +26,9 @@ def test_split_crops(crops, max_ratio, target_ratio, dilation, channels_last, nu
     "preds, crop_map, dilation, pred",
     [
         # Nothing to remap
-        [[('hello', 0.5)], [0], 1.4, [('hello', 0.5)]],
+        [[("hello", 0.5)], [0], 1.4, [("hello", 0.5)]],
         # Merge
-        [[('hellowo', 0.5), ('loworld', 0.6)], [(0, 2)], 1.4, [('helloworld', 0.5)]],
+        [[("hellowo", 0.5), ("loworld", 0.6)], [(0, 2)], 1.4, [("helloworld", 0.5)]],
     ],
 )
 def test_remap_preds(preds, crop_map, dilation, pred):

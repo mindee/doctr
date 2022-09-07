@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import List, Union
 
@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
 
-__all__ = ['CropOrientationPredictor']
+__all__ = ["CropOrientationPredictor"]
 
 
 class CropOrientationPredictor(nn.Module):
@@ -44,10 +44,8 @@ class CropOrientationPredictor(nn.Module):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(crops)
-        predicted_batches = [
-            self.model(batch)
-            for batch in processed_batches
-        ]
+        _device = next(self.model.parameters()).device
+        predicted_batches = [self.model(batch).to(device=_device) for batch in processed_batches]
 
         # Postprocess predictions
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]

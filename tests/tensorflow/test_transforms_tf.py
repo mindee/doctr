@@ -29,8 +29,9 @@ def test_resize():
 
     # Symetric padding
     transfo = T.Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
-    assert repr(transfo) == (f"Resize(output_size={output_size}, method='bilinear', "
-                             f"preserve_aspect_ratio=True, symmetric_pad=True)")
+    assert repr(transfo) == (
+        f"Resize(output_size={output_size}, method='bilinear', " f"preserve_aspect_ratio=True, symmetric_pad=True)"
+    )
     out = transfo(input_t)
     # Asymetric padding
     assert tf.reduce_all(out[-1] == 0) and tf.reduce_all(out[0] == 0)
@@ -101,8 +102,8 @@ def test_togray():
     input_t = tf.cast(tf.concat([r, g, b], axis=-1), dtype=tf.float32)
     out = transfo(input_t)
 
-    assert tf.reduce_all(out <= .51)
-    assert tf.reduce_all(out >= .49)
+    assert tf.reduce_all(out <= 0.51)
+    assert tf.reduce_all(out >= 0.49)
 
     # FP16
     input_t = tf.cast(tf.concat([r, g, b], axis=-1), dtype=tf.float16)
@@ -139,80 +140,80 @@ def test_invert_colorize(rgb_min):
 
 def test_brightness():
 
-    transfo = T.RandomBrightness(max_delta=.1)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    transfo = T.RandomBrightness(max_delta=0.1)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     out = transfo(input_t)
 
-    assert tf.reduce_all(out >= .4)
-    assert tf.reduce_all(out <= .6)
+    assert tf.reduce_all(out >= 0.4)
+    assert tf.reduce_all(out <= 0.6)
 
     # FP16
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float16)
     out = transfo(input_t)
     assert out.dtype == tf.float16
 
 
 def test_contrast():
-    transfo = T.RandomContrast(delta=.2)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    transfo = T.RandomContrast(delta=0.2)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     out = transfo(input_t)
 
-    assert tf.reduce_all(out == .5)
+    assert tf.reduce_all(out == 0.5)
 
     # FP16
-    if any(tf.config.list_physical_devices('GPU')):
-        input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+    if any(tf.config.list_physical_devices("GPU")):
+        input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float16)
         out = transfo(input_t)
         assert out.dtype == tf.float16
 
 
 def test_saturation():
 
-    transfo = T.RandomSaturation(delta=.2)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    transfo = T.RandomSaturation(delta=0.2)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
     hsv = tf.image.rgb_to_hsv(out)
 
-    assert tf.reduce_all(hsv[:, :, :, 1] >= .4)
-    assert tf.reduce_all(hsv[:, :, :, 1] <= .6)
+    assert tf.reduce_all(hsv[:, :, :, 1] >= 0.4)
+    assert tf.reduce_all(hsv[:, :, :, 1] <= 0.6)
 
     # FP16
-    if any(tf.config.list_physical_devices('GPU')):
-        input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+    if any(tf.config.list_physical_devices("GPU")):
+        input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float16)
         out = transfo(input_t)
         assert out.dtype == tf.float16
 
 
 def test_hue():
 
-    transfo = T.RandomHue(max_delta=.2)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float32)
+    transfo = T.RandomHue(max_delta=0.2)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
     out = transfo(input_t)
     hsv = tf.image.rgb_to_hsv(out)
 
-    assert tf.reduce_all(hsv[:, :, :, 0] <= .7)
-    assert tf.reduce_all(hsv[:, :, :, 0] >= .3)
+    assert tf.reduce_all(hsv[:, :, :, 0] <= 0.7)
+    assert tf.reduce_all(hsv[:, :, :, 0] >= 0.3)
 
     # FP16
-    if any(tf.config.list_physical_devices('GPU')):
-        input_t = tf.cast(tf.fill([8, 32, 32, 3], .5), dtype=tf.float16)
+    if any(tf.config.list_physical_devices("GPU")):
+        input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float16)
         out = transfo(input_t)
         assert out.dtype == tf.float16
 
 
 def test_gamma():
 
-    transfo = T.RandomGamma(min_gamma=1., max_gamma=2., min_gain=.8, max_gain=1.)
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float32)
+    transfo = T.RandomGamma(min_gamma=1.0, max_gamma=2.0, min_gain=0.8, max_gain=1.0)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.0), dtype=tf.float32)
     out = transfo(input_t)
 
     assert tf.reduce_all(out >= 1.6)
-    assert tf.reduce_all(out <= 4.)
+    assert tf.reduce_all(out <= 4.0)
 
     # FP16
-    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.), dtype=tf.float16)
+    input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.0), dtype=tf.float16)
     out = transfo(input_t)
     assert out.dtype == tf.float16
 
@@ -236,8 +237,7 @@ def test_rotate_sample():
     polys = np.stack((boxes[..., [0, 1]], boxes[..., [2, 1]], boxes[..., [2, 3]], boxes[..., [0, 3]]), axis=1)
     rel_boxes = np.array([0, 0, 1, 1], dtype=np.float32)[None, ...]
     rel_polys = np.stack(
-        (rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]),
-        axis=1
+        (rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]), axis=1
     )
 
     # No angle
@@ -252,9 +252,9 @@ def test_rotate_sample():
 
     # No expansion
     expected_img = np.zeros((200, 100, 3), dtype=np.float32)
-    expected_img[50: 150] = 1
+    expected_img[50:150] = 1
     expected_img = tf.convert_to_tensor(expected_img)
-    expected_polys = np.array([[0, .75], [0, .25], [1, .25], [1, .75]])[None, ...]
+    expected_polys = np.array([[0, 0.75], [0, 0.25], [1, 0.25], [1, 0.75]])[None, ...]
     rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, False)
     assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
     rotated_img, rotated_geoms = rotate_sample(img, polys, 90, False)
@@ -282,15 +282,13 @@ def test_rotate_sample():
 
 
 def test_random_rotate():
-    rotator = T.RandomRotate(max_angle=10., expand=False)
+    rotator = T.RandomRotate(max_angle=10.0, expand=False)
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
-    boxes = np.array([
-        [15, 20, 35, 30]
-    ])
+    boxes = np.array([[15, 20, 35, 30]])
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
 
-    rotator = T.RandomRotate(max_angle=10., expand=True)
+    rotator = T.RandomRotate(max_angle=10.0, expand=True)
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape != input_t.shape
 
@@ -302,24 +300,28 @@ def test_random_rotate():
 
 def test_crop_detection():
     img = tf.ones((50, 50, 3), dtype=tf.float32)
-    abs_boxes = np.array([
-        [15, 20, 35, 30],
-        [5, 10, 10, 20],
-    ])
-    crop_box = (12 / 50, 23 / 50, 1., 1.)
+    abs_boxes = np.array(
+        [
+            [15, 20, 35, 30],
+            [5, 10, 10, 20],
+        ]
+    )
+    crop_box = (12 / 50, 23 / 50, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
     assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
     assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
 
-    rel_boxes = np.array([
-        [.3, .4, .7, .6],
-        [.1, .2, .2, .4],
-    ])
+    rel_boxes = np.array(
+        [
+            [0.3, 0.4, 0.7, 0.6],
+            [0.1, 0.2, 0.2, 0.4],
+        ]
+    )
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
-    assert np.abs(c_boxes - np.array([.06 / .76, 0., .46 / .76, .14 / .54])[None, ...]).mean() < 1e-7
+    assert np.abs(c_boxes - np.array([0.06 / 0.76, 0.0, 0.46 / 0.76, 0.14 / 0.54])[None, ...]).mean() < 1e-7
 
     # FP16
     img = tf.ones((50, 50, 3), dtype=tf.float16)
@@ -331,23 +333,21 @@ def test_crop_detection():
 
 
 def test_random_crop():
-    transfo = T.RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
+    transfo = T.RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
-    boxes = np.array([
-        [15, 20, 35, 30]
-    ])
+    boxes = np.array([[15, 20, 35, 30]])
     img, target = transfo(input_t, dict(boxes=boxes))
     # Check the scale (take a margin)
     assert img.shape[0] * img.shape[1] >= 0.4 * input_t.shape[0] * input_t.shape[1]
     # Check aspect ratio (take a margin)
     assert 0.65 <= img.shape[0] / img.shape[1] <= 1.5
     # Check the target
-    assert np.all(target['boxes'] >= 0)
-    assert np.all(target['boxes'][:, [0, 2]] <= img.shape[1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[0])
+    assert np.all(target["boxes"] >= 0)
+    assert np.all(target["boxes"][:, [0, 2]] <= img.shape[1]) and np.all(target["boxes"][:, [1, 3]] <= img.shape[0])
 
 
 def test_gaussian_blur():
-    blur = T.GaussianBlur(3, (.1, 3))
+    blur = T.GaussianBlur(3, (0.1, 3))
     input_t = np.ones((31, 31, 3), dtype=np.float32)
     input_t[15, 15] = 0
     blur_img = blur(tf.convert_to_tensor(input_t)).numpy()
@@ -381,10 +381,10 @@ def test_channel_shuffle(input_dtype, input_size):
     [
         [tf.float32, (32, 32, 3)],
         [tf.uint8, (32, 32, 3)],
-    ]
+    ],
 )
 def test_gaussian_noise(input_dtype, input_shape):
-    transform = T.GaussianNoise(0., 1.)
+    transform = T.GaussianNoise(0.0, 1.0)
     input_t = tf.random.uniform(input_shape, dtype=tf.float32)
     if input_dtype == tf.uint8:
         input_t = tf.math.round((255 * input_t))
@@ -398,7 +398,7 @@ def test_gaussian_noise(input_dtype, input_shape):
     if input_dtype == tf.uint8:
         assert tf.reduce_all(transformed <= 255)
     else:
-        assert tf.reduce_all(transformed <= 1.)
+        assert tf.reduce_all(transformed <= 1.0)
 
 
 @pytest.mark.parametrize("p", [1, 0])
@@ -438,10 +438,10 @@ def test_randomhorizontalflip(p):
         [tf.uint8, (32, 32, 3)],
         [tf.float32, (64, 32, 3)],
         [tf.uint8, (64, 32, 3)],
-    ]
+    ],
 )
 def test_random_shadow(input_dtype, input_shape):
-    transform = T.RandomShadow((.2, .8))
+    transform = T.RandomShadow((0.2, 0.8))
     input_t = tf.random.uniform(input_shape, dtype=tf.float32)
     if input_dtype == tf.uint8:
         input_t = tf.math.round((255 * input_t))
@@ -456,4 +456,4 @@ def test_random_shadow(input_dtype, input_shape):
     if input_dtype == tf.uint8:
         assert tf.reduce_all(transformed <= 255)
     else:
-        assert tf.reduce_all(transformed <= 1.)
+        assert tf.reduce_all(transformed <= 1.0)

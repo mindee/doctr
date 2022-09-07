@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels: ["topic: build"]
+    schedule:
+      interval: weekly
+      day: sunday
+    reviewers:
+      - "frgfm"
+      - "charlesmindee"
+      - "felixdittrich92"

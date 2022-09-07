@@ -9,7 +9,7 @@ from doctr import io
 
 def _check_doc_content(doc_tensors, num_pages):
     # 1 doc of 8 pages
-    assert (len(doc_tensors) == num_pages)
+    assert len(doc_tensors) == num_pages
     assert all(isinstance(page, np.ndarray) for page in doc_tensors)
     assert all(page.dtype == np.uint8 for page in doc_tensors)
 
@@ -46,14 +46,14 @@ def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
         io.read_img_as_numpy(str(mock_pdf))
 
     # From path
-    url = 'https://github.com/mindee/doctr/releases/download/v0.2.1/Grace_Hopper.jpg'
+    url = "https://doctr-static.mindee.com/models?id=v0.2.1/Grace_Hopper.jpg&src=0"
     file = BytesIO(requests.get(url).content)
     tmp_path = str(tmpdir_factory.mktemp("data").join("mock_img_file.jpg"))
-    with open(tmp_path, 'wb') as f:
+    with open(tmp_path, "wb") as f:
         f.write(file.getbuffer())
 
     # Path & stream
-    with open(tmp_path, 'rb') as f:
+    with open(tmp_path, "rb") as f:
         page_stream = io.read_img_as_numpy(f.read())
 
     for page in (io.read_img_as_numpy(tmp_path), page_stream):

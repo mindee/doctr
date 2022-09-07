@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
 from typing import Any, Dict, List, Tuple, Union
@@ -13,14 +13,14 @@ from tqdm import tqdm
 from .datasets import VisionDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
 
-__all__ = ['SVT']
+__all__ = ["SVT"]
 
 
 class SVT(VisionDataset):
     """SVT dataset from `"The Street View Text Dataset - UCSD Computer Vision"
     <http://vision.ucsd.edu/~kai/svt/>`_.
 
-    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/svt-grid.png
+    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&src=0
         :align: center
 
     >>> from doctr.datasets import SVT
@@ -34,8 +34,8 @@ class SVT(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = 'http://vision.ucsd.edu/~kai/svt/svt.zip'
-    SHA256 = '63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf'
+    URL = "http://vision.ucsd.edu/~kai/svt/svt.zip"
+    SHA256 = "63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf"
 
     def __init__(
         self,
@@ -51,19 +51,22 @@ class SVT(VisionDataset):
             self.SHA256,
             True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
-            **kwargs
+            **kwargs,
         )
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
         np_dtype = np.float32
 
         # Load xml data
-        tmp_root = os.path.join(self.root, 'svt1') if self.SHA256 else self.root
-        xml_tree = ET.parse(os.path.join(tmp_root, 'train.xml')) if self.train else ET.parse(
-            os.path.join(tmp_root, 'test.xml'))
+        tmp_root = os.path.join(self.root, "svt1") if self.SHA256 else self.root
+        xml_tree = (
+            ET.parse(os.path.join(tmp_root, "train.xml"))
+            if self.train
+            else ET.parse(os.path.join(tmp_root, "test.xml"))
+        )
         xml_root = xml_tree.getroot()
 
-        for image in tqdm(iterable=xml_root, desc='Unpacking SVT', total=len(xml_root)):
+        for image in tqdm(iterable=xml_root, desc="Unpacking SVT", total=len(xml_root)):
             name, _, _, resolution, rectangles = image
 
             # File existence check
@@ -74,22 +77,25 @@ class SVT(VisionDataset):
                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 _boxes = [
                     [
-                        [float(rect.attrib['x']), float(rect.attrib['y'])],
-                        [float(rect.attrib['x']) + float(rect.attrib['width']), float(rect.attrib['y'])],
+                        [float(rect.attrib["x"]), float(rect.attrib["y"])],
+                        [float(rect.attrib["x"]) + float(rect.attrib["width"]), float(rect.attrib["y"])],
                         [
-                            float(rect.attrib['x']) + float(rect.attrib['width']),
-                            float(rect.attrib['y']) + float(rect.attrib['height'])
+                            float(rect.attrib["x"]) + float(rect.attrib["width"]),
+                            float(rect.attrib["y"]) + float(rect.attrib["height"]),
                         ],
-                        [float(rect.attrib['x']), float(rect.attrib['y']) + float(rect.attrib['height'])],
+                        [float(rect.attrib["x"]), float(rect.attrib["y"]) + float(rect.attrib["height"])],
                     ]
                     for rect in rectangles
                 ]
             else:
                 # x_min, y_min, x_max, y_max
                 _boxes = [
-                    [float(rect.attrib['x']), float(rect.attrib['y']),  # type: ignore[list-item]
-                     float(rect.attrib['x']) + float(rect.attrib['width']),  # type: ignore[list-item]
-                     float(rect.attrib['y']) + float(rect.attrib['height'])]  # type: ignore[list-item]
+                    [
+                        float(rect.attrib["x"]),  # type: ignore[list-item]
+                        float(rect.attrib["y"]),  # type: ignore[list-item]
+                        float(rect.attrib["x"]) + float(rect.attrib["width"]),  # type: ignore[list-item]
+                        float(rect.attrib["y"]) + float(rect.attrib["height"]),  # type: ignore[list-item]
+                    ]
                     for rect in rectangles
                 ]
 
@@ -101,7 +107,7 @@ class SVT(VisionDataset):
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                 for crop, label in zip(crops, labels):
                     if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
-                        self.data.append((crop, dict(labels=[label])))
+                        self.data.append((crop, label))
             else:
                 self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 

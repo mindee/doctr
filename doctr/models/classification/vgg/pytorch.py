@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
@@ -13,16 +13,16 @@ from doctr.datasets import VOCABS
 
 from ...utils import load_pretrained_params
 
-__all__ = ['vgg16_bn_r']
+__all__ = ["vgg16_bn_r"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    'vgg16_bn_r': {
-        'mean': (0.694, 0.695, 0.693),
-        'std': (0.299, 0.296, 0.301),
-        'input_shape': (3, 32, 32),
-        'classes': list(VOCABS['french']),
-        'url': 'https://github.com/mindee/doctr/releases/download/v0.4.1/vgg16_bn_r-d108c19c.pt',
+    "vgg16_bn_r": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/vgg16_bn_r-d108c19c.pt&src=0",
     },
 }
 
@@ -33,16 +33,16 @@ def _vgg(
     tv_arch: str,
     num_rect_pools: int = 3,
     ignore_keys: Optional[List[str]] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> tv_vgg.VGG:
 
-    kwargs['num_classes'] = kwargs.get('num_classes', len(default_cfgs[arch]['classes']))
-    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
+    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg['num_classes'] = kwargs['num_classes']
-    _cfg['classes'] = kwargs['classes']
-    kwargs.pop('classes')
+    _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["classes"] = kwargs["classes"]
+    kwargs.pop("classes")
 
     # Build the model
     model = tv_vgg.__dict__[tv_arch](**kwargs)
@@ -53,13 +53,13 @@ def _vgg(
         model.features[idx] = nn.MaxPool2d((2, 1))
     # Patch average pool & classification head
     model.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-    model.classifier = nn.Linear(512, kwargs['num_classes'])
+    model.classifier = nn.Linear(512, kwargs["num_classes"])
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs['num_classes'] != len(default_cfgs[arch]['classes']) else None
-        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
+        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -85,10 +85,10 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> tv_vgg.VGG:
     """
 
     return _vgg(
-        'vgg16_bn_r',
+        "vgg16_bn_r",
         pretrained,
-        'vgg16_bn',
+        "vgg16_bn",
         3,
-        ignore_keys=['classifier.weight', 'classifier.bias'],
+        ignore_keys=["classifier.weight", "classifier.bias"],
         **kwargs,
     )

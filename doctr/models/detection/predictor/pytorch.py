@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, List, Union
 
@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
 
-__all__ = ['DetectionPredictor']
+__all__ = ["DetectionPredictor"]
 
 
 class DetectionPredictor(nn.Module):
@@ -46,7 +46,6 @@ class DetectionPredictor(nn.Module):
         processed_batches = self.pre_processor(pages)
         _device = next(self.model.parameters()).device
         predicted_batches = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)['preds']
-            for batch in processed_batches
+            self.model(batch.to(device=_device), return_preds=True, **kwargs)["preds"] for batch in processed_batches
         ]
         return [pred for batch in predicted_batches for pred in batch]
