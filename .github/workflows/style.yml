@@ -26,25 +26,6 @@ jobs:
           flake8 --version
           flake8
 
-  black:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: [3.8]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Run black
-        run: |
-          pip install black
-          black --version
-          black --check --diff .
-
   isort:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -82,11 +63,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[dev] --upgrade
+          pip install -e .[all] --upgrade
           pip install mypy
       - name: Run mypy
         run: |

@@ -17,32 +17,20 @@ jobs:
         run: docker run doctr-tf-py3.8-slim python -c 'import doctr'
 
   pytest-api:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: [3.8]
+    runs-on: ubuntu-latest
+    env:
+        # Port for web container
+        # See docker-compose.yml
+        PORT: 8002
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: 1.1.13
-      - name: Lock the requirements
-        run: |
-          cd api
-          make lock
       - name: Build & run docker
-        run: cd api && docker-compose up -d --build
+        run: docker-compose up -d --build
       - name: Ping server
-        run: wget --spider --tries=12 http://localhost:8080/docs
-      - name: Run docker test
+        run: wget --spider --tries=12 http://localhost:$PORT/docs
+      - name: Install dependencies in docker
         run: |
-          docker cp api/requirements-dev.txt api_web_1:/app/requirements-dev.txt
-          docker-compose -f api/docker-compose.yml exec -T web pip install -r requirements-dev.txt
-          docker cp api/tests api_web_1:/app/tests
-          docker-compose -f api/docker-compose.yml exec -T web pytest tests/
+          docker-compose exec -T web python -m pip install --upgrade pip
+          docker-compose exec -T web pip install -r requirements-dev.txt
+      - name: Run docker test
+        run: docker-compose exec -T web pytest .

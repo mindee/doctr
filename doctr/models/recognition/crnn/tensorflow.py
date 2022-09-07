@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -16,29 +16,30 @@ from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_
 from ...utils.tensorflow import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
+__all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_mobilenet_v3_small',
+           'crnn_mobilenet_v3_large']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "crnn_vgg16_bn": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (32, 128, 3),
-        "vocab": VOCABS["legacy_french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.0/crnn_vgg16_bn-76b7f2c6.zip&src=0",
+    'crnn_vgg16_bn': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 128, 3),
+        'vocab': VOCABS['legacy_french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.0/crnn_vgg16_bn-76b7f2c6.zip',
     },
-    "crnn_mobilenet_v3_small": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (32, 128, 3),
-        "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_mobilenet_v3_small-7f36edec.zip&src=0",
+    'crnn_mobilenet_v3_small': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 128, 3),
+        'vocab': VOCABS['french'],
+        'url': 'https://github.com/mindee/doctr/releases/download/v0.3.1/crnn_mobilenet_v3_small-7f36edec.zip',
     },
-    "crnn_mobilenet_v3_large": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (32, 128, 3),
-        "vocab": VOCABS["french"],
-        "url": None,
+    'crnn_mobilenet_v3_large': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 128, 3),
+        'vocab': VOCABS['french'],
+        'url': None,
     },
 }
 
@@ -90,21 +91,29 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(tf.constant(self._embedding, dtype=tf.string), out_idxs),
+            inputs=tf.nn.embedding_lookup(
+                tf.constant(self._embedding, dtype=tf.string), out_idxs
+            ),
             axis=-1,
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
-        decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value="not valid")[
+        decoded_strings_pred = tf.sparse.to_dense(
+            _decoded_strings_pred.to_sparse(), default_value="not valid"
+        )[
             :, :, 0
         ]  # dim : batch_size x beam_width
 
         if top_paths == 1:
             probs = tf.math.exp(tf.squeeze(_log_prob, axis=1))  # dim : batchsize
             decoded_strings_pred = tf.squeeze(decoded_strings_pred, axis=1)
-            word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
+            word_values = [
+                word.decode() for word in decoded_strings_pred.numpy().tolist()
+            ]
         else:
             probs = tf.math.exp(_log_prob)  # dim : batchsize x beamwidth
-            word_values = [[word.decode() for word in words] for words in decoded_strings_pred.numpy().tolist()]
+            word_values = [
+                [word.decode() for word in words] for words in decoded_strings_pred.numpy().tolist()
+            ]
         return list(zip(word_values, probs.numpy().tolist()))
 
 
@@ -148,7 +157,7 @@ class CRNN(RecognitionModel, Model):
             [
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
                 layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Dense(units=len(vocab) + 1),
+                layers.Dense(units=len(vocab) + 1)
             ]
         )
         self.decoder.build(input_shape=(None, w, h * c))
@@ -191,8 +200,8 @@ class CRNN(RecognitionModel, Model):
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        if kwargs.get("training", False) and target is None:
-            raise ValueError("Need to provide labels during training")
+        if kwargs.get('training', False) and target is None:
+            raise ValueError('Need to provide labels during training')
 
         features = self.feat_extractor(x, **kwargs)
         # B x H x W x C --> B x W x H x C
@@ -204,7 +213,7 @@ class CRNN(RecognitionModel, Model):
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
-            out["logits"] = logits
+            out['logits'] = logits
             return out
 
         if return_model_output:
@@ -212,10 +221,12 @@ class CRNN(RecognitionModel, Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(logits, beam_width=beam_width, top_paths=top_paths)
+            out["preds"] = self.postprocessor(
+                logits, beam_width=beam_width, top_paths=top_paths
+            )
 
         if target is not None:
-            out["loss"] = self.compute_loss(logits, target)
+            out['loss'] = self.compute_loss(logits, target)
 
         return out
 
@@ -226,19 +237,19 @@ def _crnn(
     backbone_fn,
     pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
-    **kwargs: Any,
+    **kwargs: Any
 ) -> CRNN:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
-    kwargs["vocab"] = kwargs.get("vocab", default_cfgs[arch]["vocab"])
+    kwargs['vocab'] = kwargs.get('vocab', default_cfgs[arch]['vocab'])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg["vocab"] = kwargs["vocab"]
-    _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
+    _cfg['vocab'] = kwargs['vocab']
+    _cfg['input_shape'] = input_shape or default_cfgs[arch]['input_shape']
 
     feat_extractor = backbone_fn(
-        input_shape=_cfg["input_shape"],
+        input_shape=_cfg['input_shape'],
         include_top=False,
         pretrained=pretrained_backbone,
     )
@@ -247,7 +258,7 @@ def _crnn(
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        load_pretrained_params(model, _cfg['url'])
 
     return model
 
@@ -269,7 +280,7 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn("crnn_vgg16_bn", pretrained, vgg16_bn_r, **kwargs)
+    return _crnn('crnn_vgg16_bn', pretrained, vgg16_bn_r, **kwargs)
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -289,7 +300,7 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn("crnn_mobilenet_v3_small", pretrained, mobilenet_v3_small_r, **kwargs)
+    return _crnn('crnn_mobilenet_v3_small', pretrained, mobilenet_v3_small_r, **kwargs)
 
 
 def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -309,4 +320,4 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
         text recognition architecture
     """
 
-    return _crnn("crnn_mobilenet_v3_large", pretrained, mobilenet_v3_large_r, **kwargs)
+    return _crnn('crnn_mobilenet_v3_large', pretrained, mobilenet_v3_large_r, **kwargs)

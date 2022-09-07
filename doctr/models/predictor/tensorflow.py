@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Any, List, Union
 
@@ -17,7 +17,7 @@ from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
 
-__all__ = ["OCRPredictor"]
+__all__ = ['OCRPredictor']
 
 
 class OCRPredictor(NestedObject, _OCRPredictor):
@@ -37,8 +37,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
-
-    _children_names = ["det_predictor", "reco_predictor", "doc_builder"]
+    _children_names = ['det_predictor', 'reco_predictor', 'doc_builder']
 
     def __init__(
         self,
@@ -82,9 +81,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         else:
             orientations = None
         if self.straighten_pages:
-            origin_page_orientations = (
-                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]
-            )
+            origin_page_orientations = origin_page_orientations if self.detect_orientation else [
+                estimate_orientation(page) for page in
+                pages]
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
@@ -113,15 +112,12 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             languages_dict = None
         # Rotate back pages and boxes while keeping original image size
         if self.straighten_pages:
-            boxes = [
-                rotate_boxes(
-                    page_boxes,
-                    angle,
-                    orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
-                    target_shape=mask,  # type: ignore[arg-type]
-                )
-                for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)
-            ]
+            boxes = [rotate_boxes(
+                page_boxes,
+                angle,
+                orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
+                target_shape=mask,  # type: ignore[arg-type]
+            ) for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)]
 
         out = self.doc_builder(
             boxes,

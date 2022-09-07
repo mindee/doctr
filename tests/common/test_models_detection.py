@@ -23,38 +23,34 @@ def test_dbpostprocessor():
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in out)
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in r_out)
     # Repr
-    assert repr(postprocessor) == "DBPostProcessor(bin_thresh=0.3, box_thresh=0.1)"
+    assert repr(postprocessor) == 'DBPostProcessor(bin_thresh=0.3, box_thresh=0.1)'
     # Edge case when the expanded points of the polygon has two lists
-    issue_points = np.array(
-        [
-            [869, 561],
-            [923, 581],
-            [925, 595],
-            [915, 583],
-            [889, 583],
-            [905, 593],
-            [882, 601],
-            [901, 595],
-            [904, 604],
-            [876, 608],
-            [915, 614],
-            [911, 605],
-            [925, 601],
-            [930, 616],
-            [911, 617],
-            [900, 636],
-            [931, 637],
-            [904, 649],
-            [932, 649],
-            [932, 628],
-            [918, 627],
-            [934, 624],
-            [935, 573],
-            [909, 569],
-            [934, 562],
-        ],
-        dtype=np.int32,
-    )
+    issue_points = np.array([
+        [869, 561],
+        [923, 581],
+        [925, 595],
+        [915, 583],
+        [889, 583],
+        [905, 593],
+        [882, 601],
+        [901, 595],
+        [904, 604],
+        [876, 608],
+        [915, 614],
+        [911, 605],
+        [925, 601],
+        [930, 616],
+        [911, 617],
+        [900, 636],
+        [931, 637],
+        [904, 649],
+        [932, 649],
+        [932, 628],
+        [918, 627],
+        [934, 624],
+        [935, 573],
+        [909, 569],
+        [934, 562]], dtype=np.int32)
     out = postprocessor.polygon_to_box(issue_points)
     r_out = r_postprocessor.polygon_to_box(issue_points)
     assert isinstance(out, tuple) and len(out) == 4

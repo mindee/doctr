@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Tuple, Union
 
@@ -38,8 +38,8 @@ def crop_boxes(
     boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(ymin, ymax) - ymin
     # Rescale relative coords
     if is_box_rel:
-        boxes[:, [0, 2]] /= xmax - xmin
-        boxes[:, [1, 3]] /= ymax - ymin
+        boxes[:, [0, 2]] /= (xmax - xmin)
+        boxes[:, [1, 3]] /= (ymax - ymin)
 
     # Remove 0-sized boxes
     is_valid = np.logical_and(boxes[:, 1] < boxes[:, 3], boxes[:, 0] < boxes[:, 2])
@@ -99,10 +99,8 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float,
         # Skip points that are out of the final image
         if any(val < 0 or val > size for val, size in zip(point, target_shape[::-1])):
             continue
-        if all(
-            val == ref if _same else (val < ref if _dir else val > ref)
-            for val, ref, _dir, _same in zip(point, line[1], _direction, _flat)
-        ):
+        if all(val == ref if _same else (val < ref if _dir else val > ref)
+               for val, ref, _dir, _same in zip(point, line[1], _direction, _flat)):
             return point
     raise ValueError
 
@@ -135,40 +133,29 @@ def create_shadow_mask(
     tip_height = _params[4] * max_tip_height
     tip_mid = tip_height / 2 + (1 - tip_height) * _params[5]
     _order = tip_center < base_center
-    contour: np.ndarray = np.array(
-        [
-            [base_center - base_width / 2, 0],
-            [base_center + base_width / 2, 0],
-            [tip_center + tip_width / 2, tip_mid + tip_height / 2 if _order else tip_mid - tip_height / 2],
-            [tip_center - tip_width / 2, tip_mid - tip_height / 2 if _order else tip_mid + tip_height / 2],
-        ],
-        dtype=np.float32,
-    )
+    contour: np.ndarray = np.array([
+        [base_center - base_width / 2, 0],
+        [base_center + base_width / 2, 0],
+        [tip_center + tip_width / 2, tip_mid + tip_height / 2 if _order else tip_mid - tip_height / 2],
+        [tip_center - tip_width / 2, tip_mid - tip_height / 2 if _order else tip_mid + tip_height / 2],
+    ], dtype=np.float32)
 
     # Convert to absolute coords
-    abs_contour: np.ndarray = (
-        np.stack(
-            (contour[:, 0] * target_shape[1], contour[:, 1] * target_shape[0]),
-            axis=-1,
-        )
-        .round()
-        .astype(np.int32)
-    )
+    abs_contour: np.ndarray = np.stack(
+        (contour[:, 0] * target_shape[1], contour[:, 1] * target_shape[0]),
+        axis=-1,
+    ).round().astype(np.int32)
 
     # Direction
     _params = np.random.rand(1)
-    rotated_contour = (
-        rotate_abs_geoms(
-            abs_contour[None, ...],
-            360 * _params[0],
-            target_shape,
-            expand=False,
-        )[0]
-        .round()
-        .astype(np.int32)
-    )
+    rotated_contour = rotate_abs_geoms(
+        abs_contour[None, ...],
+        360 * _params[0],
+        target_shape,
+        expand=False,
+    )[0].round().astype(np.int32)
     # Check approx quadrant
-    quad_idx = int(_params[0] / 0.25)
+    quad_idx = int(_params[0] / .25)
     # Top-bot
     if quad_idx % 2 == 0:
         intensity_mask = np.repeat(np.arange(target_shape[0])[:, None], target_shape[1], axis=1) / (target_shape[0] - 1)

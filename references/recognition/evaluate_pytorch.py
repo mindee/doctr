@@ -1,11 +1,11 @@
 # Copyright (C) 2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
 
-os.environ["USE_TORCH"] = "1"
+os.environ['USE_TORCH'] = '1'
 
 import multiprocessing as mp
 import time
@@ -32,6 +32,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_loss, batch_cnt = 0, 0
     for images, targets in tqdm(val_loader):
         try:
+            targets = [t['labels'][0] for t in targets]
             if torch.cuda.is_available():
                 images = images.cuda()
             images = batch_transforms(images)
@@ -41,13 +42,13 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
             else:
                 out = model(images, targets, return_preds=True)
             # Compute metric
-            if len(out["preds"]):
-                words, _ = zip(*out["preds"])
+            if len(out['preds']):
+                words, _ = zip(*out['preds'])
             else:
                 words = []
             val_metric.update(targets, words)
 
-            val_loss += out["loss"].item()
+            val_loss += out['loss'].item()
             batch_cnt += 1
         except ValueError:
             print(f"unexpected symbol/s in targets:\n{targets} \n--> skip batch")
@@ -55,7 +56,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
     val_loss /= batch_cnt
     result = val_metric.summary()
-    return val_loss, result["raw"], result["unicase"]
+    return val_loss, result['raw'], result['unicase']
 
 
 def main(args):
@@ -77,7 +78,7 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         print(f"Resuming {args.resume}")
-        checkpoint = torch.load(args.resume, map_location="cpu")
+        checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint)
 
     st = time.time()
@@ -107,9 +108,10 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=ds.collate_fn,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
+    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in "
+          f"{len(test_loader)} batches)")
 
-    mean, std = model.cfg["mean"], model.cfg["std"]
+    mean, std = model.cfg['mean'], model.cfg['std']
     batch_transforms = Normalize(mean=mean, std=std)
 
     # Metrics
@@ -137,23 +139,19 @@ def main(args):
 
 def parse_args():
     import argparse
+    parser = argparse.ArgumentParser(description='docTR evaluation script for text recognition (PyTorch)',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser = argparse.ArgumentParser(
-        description="docTR evaluation script for text recognition (PyTorch)",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-
-    parser.add_argument("arch", type=str, help="text-recognition model to evaluate")
-    parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for evaluation")
-    parser.add_argument("--dataset", type=str, default="FUNSD", help="Dataset to evaluate on")
-    parser.add_argument("--device", default=None, type=int, help="device")
-    parser.add_argument("-b", "--batch_size", type=int, default=1, help="batch size for evaluation")
-    parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
-    parser.add_argument(
-        "--only_regular", dest="regular", action="store_true", help="test set contains only regular text"
-    )
-    parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")
+    parser.add_argument('arch', type=str, help='text-recognition model to evaluate')
+    parser.add_argument('--vocab', type=str, default="french", help='Vocab to be used for evaluation')
+    parser.add_argument('--dataset', type=str, default="FUNSD", help='Dataset to evaluate on')
+    parser.add_argument('--device', default=None, type=int, help='device')
+    parser.add_argument('-b', '--batch_size', type=int, default=1, help='batch size for evaluation')
+    parser.add_argument('--input_size', type=int, default=32, help='input size H for the model, W = 4*H')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
+    parser.add_argument('--only_regular', dest='regular', action='store_true',
+                        help='test set contains only regular text')
+    parser.add_argument('--resume', type=str, default=None, help='Checkpoint to resume')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 

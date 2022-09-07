@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import logging
 from typing import Any, List, Optional
@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ["load_pretrained_params", "conv_sequence_pt", "export_model_to_onnx"]
+__all__ = ['load_pretrained_params', 'conv_sequence_pt', 'export_model_to_onnx']
 
 
 def load_pretrained_params(
@@ -38,10 +38,10 @@ def load_pretrained_params(
     if url is None:
         logging.warning("Invalid model URL, using default initialization.")
     else:
-        archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
+        archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir='models', **kwargs)
 
         # Read state_dict
-        state_dict = torch.load(archive_path, map_location="cpu")
+        state_dict = torch.load(archive_path, map_location='cpu')
 
         # Remove weights from the state_dict
         if ignore_keys is not None and len(ignore_keys) > 0:
@@ -77,9 +77,11 @@ def conv_sequence_pt(
         list of layers
     """
     # No bias before Batch norm
-    kwargs["bias"] = kwargs.get("bias", not bn)
+    kwargs['bias'] = kwargs.get('bias', not bn)
     # Add activation directly to the conv if there is no BN
-    conv_seq: List[nn.Module] = [nn.Conv2d(in_channels, out_channels, **kwargs)]
+    conv_seq: List[nn.Module] = [
+        nn.Conv2d(in_channels, out_channels, **kwargs)
+    ]
 
     if bn:
         conv_seq.append(nn.BatchNorm2d(out_channels))
@@ -90,7 +92,12 @@ def conv_sequence_pt(
     return conv_seq
 
 
-def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.Tensor, **kwargs: Any) -> str:
+def export_model_to_onnx(
+    model: nn.Module,
+    model_name: str,
+    dummy_input: torch.Tensor,
+    **kwargs: Any
+) -> str:
     """Export model to ONNX format.
 
     >>> import torch
@@ -112,9 +119,9 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
         model,
         dummy_input,
         f"{model_name}.onnx",
-        input_names=["input"],
-        output_names=["logits"],
-        dynamic_axes={"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
+        input_names=['input'],
+        output_names=['logits'],
+        dynamic_axes={'input': {0: 'batch_size'}, 'logits': {0: 'batch_size'}},
         export_params=True,
         opset_version=14,  # minimum opset which support all operators we use (v0.5.2)
         verbose=False,

@@ -1,13 +1,13 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List
 
 from rapidfuzz.string_metric import levenshtein
 
-__all__ = ["merge_strings", "merge_multi_strings"]
+__all__ = ['merge_strings', 'merge_multi_strings']
 
 
 def merge_strings(a: str, b: str, dil_factor: float) -> str:
@@ -34,7 +34,7 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
         return b if len(a) == 0 else b
 
     # Initialize merging index and corresponding score (mean Levenstein)
-    min_score, index = 1.0, 0  # No overlap, just concatenate
+    min_score, index = 1., 0  # No overlap, just concatenate
 
     scores = [levenshtein(a[-i:], b[:i], processor=None) / i for i in range(1, seq_len + 1)]
 
@@ -56,7 +56,7 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
     # Merge with correct overlap
     if index == 0:
         return a + b
-    return a[:-1] + b[index - 1 :]
+    return a[:-1] + b[index - 1:]
 
 
 def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
@@ -75,7 +75,6 @@ def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
         >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)
         'abcdefghijkl'
     """
-
     def _recursive_merge(a: str, seq_list: List[str], dil_factor: float) -> str:
         # Recursive version of compute_overlap
         if len(seq_list) == 1:

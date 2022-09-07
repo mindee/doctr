@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import logging
 import platform
@@ -9,7 +9,7 @@ from typing import Optional
 
 from PIL import ImageFont
 
-__all__ = ["get_font"]
+__all__ = ['get_font']
 
 
 def get_font(font_family: Optional[str] = None, font_size: int = 13) -> ImageFont.ImageFont:
@@ -29,11 +29,9 @@ def get_font(font_family: Optional[str] = None, font_size: int = 13) -> ImageFon
             font = ImageFont.truetype("FreeMono.ttf" if platform.system() == "Linux" else "Arial.ttf", font_size)
         except OSError:
             font = ImageFont.load_default()
-            logging.warning(
-                "unable to load recommended font family. Loading default PIL font,"
-                "font size issues may be expected."
-                "To prevent this, it is recommended to specify the value of 'font_family'."
-            )
+            logging.warning("unable to load recommended font family. Loading default PIL font,"
+                            "font size issues may be expected."
+                            "To prevent this, it is recommended to specify the value of 'font_family'.")
     else:
         font = ImageFont.truetype(font_family, font_size)
 

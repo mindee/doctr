@@ -2,7 +2,7 @@
 
 ## Installation
 
-You will only need to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [Docker](https://docs.docker.com/get-docker/) and [poetry](https://python-poetry.org/docs/#installation). The container environment will be self-sufficient and install the remaining dependencies on its own.
+You will only need to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and [Docker](https://docs.docker.com/get-docker/). The container environment will be self-sufficient and install the remaining dependencies on its own.
 
 ## Usage
 
@@ -12,17 +12,16 @@ You will need to clone the repository first:
 ```shell
 git clone https://github.com/mindee/doctr.git
 ```
-then change in the api folder, where you can start your container:
+then from the repo root folder, you can start your container:
 
 ```shell
-make lock
-make run
+PORT=8050 docker-compose up -d --build
 ```
-Once completed, your [FastAPI](https://fastapi.tiangolo.com/) server should be running on port 8080.
+Once completed, your [FastAPI](https://fastapi.tiangolo.com/) server should be running on port 8050 (feel free to change this in the previous command).
 
 ### Documentation and swagger
 
-FastAPI comes with many advantages including speed and OpenAPI features. For instance, once your server is running, you can access the automatically built documentation and swagger in your browser at: http://localhost:8080/docs
+FastAPI comes with many advantages including speed and OpenAPI features. For instance, once your server is running, you can access the automatically built documentation and swagger in your browser at: http://localhost:8050/docs
 
 
 ### Using the routes
@@ -40,7 +39,7 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8080/detection", files={'file': data}).json())
+print(requests.post("http://localhost:8050/detection", files={'file': data}).json())
 ```
 
 should yield
@@ -61,7 +60,7 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8080/recognition", files={'file': data}).json())
+print(requests.post("http://localhost:8050/recognition", files={'file': data}).json())
 ```
 
 should yield
@@ -81,7 +80,7 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8080/ocr", files={'file': data}).json())
+print(requests.post("http://localhost:8050/ocr", files={'file': data}).json())
 ```
 
 should yield

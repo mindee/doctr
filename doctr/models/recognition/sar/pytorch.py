@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -17,21 +17,22 @@ from ...classification import resnet31
 from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ["SAR", "sar_resnet31"]
+__all__ = ['SAR', 'sar_resnet31']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "sar_resnet31": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (3, 32, 128),
-        "vocab": VOCABS["french"],
-        "url": None,
+    'sar_resnet31': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'],
+        'url': None,
     },
 }
 
 
 class SAREncoder(nn.Module):
-    def __init__(self, in_feats: int, rnn_units: int, dropout_prob: float = 0.0) -> None:
+
+    def __init__(self, in_feats: int, rnn_units: int, dropout_prob: float = 0.) -> None:
 
         super().__init__()
         self.rnn = nn.LSTM(in_feats, rnn_units, 2, batch_first=True, dropout=dropout_prob)
@@ -46,6 +47,7 @@ class SAREncoder(nn.Module):
 
 
 class AttentionModule(nn.Module):
+
     def __init__(self, feat_chans: int, state_chans: int, attention_units: int) -> None:
         super().__init__()
         self.feat_conv = nn.Conv2d(feat_chans, attention_units, kernel_size=3, padding=1)
@@ -90,7 +92,6 @@ class SARDecoder(nn.Module):
         attention_units: number of hidden attention units
 
     """
-
     def __init__(
         self,
         rnn_units: int,
@@ -99,7 +100,7 @@ class SARDecoder(nn.Module):
         embedding_units: int,
         attention_units: int,
         feat_chans: int = 512,
-        dropout_prob: float = 0.0,
+        dropout_prob: float = 0.,
     ) -> None:
 
         super().__init__()
@@ -128,9 +129,8 @@ class SARDecoder(nn.Module):
         for t in range(self.max_length + 1):  # 32
             if t == 0:
                 # step to init the first states of the LSTMCell
-                hidden_state_init = cell_state_init = torch.zeros(
-                    features.size(0), features.size(1), device=features.device
-                )
+                hidden_state_init = cell_state_init = \
+                    torch.zeros(features.size(0), features.size(1), device=features.device)
                 hidden_state, cell_state = hidden_state_init, cell_state_init
                 prev_symbol = holistic
             elif t == 1:
@@ -140,7 +140,7 @@ class SARDecoder(nn.Module):
                 prev_symbol = self.embed(prev_symbol)
             else:
                 if gt is not None:
-                    # (N, embedding_units) -2 because of <bos> and <eos> (same)
+                    #(N, embedding_units) -2 because of <bos> and <eos> (same)
                     prev_symbol = self.embed(gt_embedding[:, t - 2])
                 else:
                     # -1 to start at timestep where prev_symbol was initialized
@@ -188,7 +188,7 @@ class SAR(nn.Module, RecognitionModel):
         embedding_units: int = 512,
         attention_units: int = 512,
         max_length: int = 30,
-        dropout_prob: float = 0.0,
+        dropout_prob: float = 0.,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -206,7 +206,7 @@ class SAR(nn.Module, RecognitionModel):
         # Size the LSTM
         self.feat_extractor.eval()
         with torch.no_grad():
-            out_shape = self.feat_extractor(torch.zeros((1, *input_shape)))["features"].shape
+            out_shape = self.feat_extractor(torch.zeros((1, *input_shape)))['features'].shape
         # Switch back to original mode
         self.feat_extractor.train()
 
@@ -230,7 +230,7 @@ class SAR(nn.Module, RecognitionModel):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x)["features"]
+        features = self.feat_extractor(x)['features']
         # NOTE: use max instead of functional max_pool2d which leads to ONNX incompatibility (kernel_size)
         # Vertical max pooling (N, C, H, W) --> (N, C, W)
         pooled_features = features.max(dim=-2).values
@@ -244,13 +244,13 @@ class SAR(nn.Module, RecognitionModel):
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
 
         if self.training and target is None:
-            raise ValueError("Need to provide labels during training for teacher forcing")
+            raise ValueError('Need to provide labels during training for teacher forcing')
 
         decoded_features = self.decoder(features, encoded, gt=None if target is None else gt)
 
         out: Dict[str, Any] = {}
         if self.exportable:
-            out["logits"] = decoded_features
+            out['logits'] = decoded_features
             return out
 
         if return_model_output:
@@ -261,7 +261,7 @@ class SAR(nn.Module, RecognitionModel):
             out["preds"] = self.postprocessor(decoded_features)
 
         if target is not None:
-            out["loss"] = self.compute_loss(decoded_features, gt, seq_len)
+            out['loss'] = self.compute_loss(decoded_features, gt, seq_len)
 
         return out
 
@@ -288,7 +288,7 @@ class SAR(nn.Module, RecognitionModel):
         seq_len = seq_len + 1
         # Compute loss
         # (N, L, vocab_size + 1)
-        cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction="none")
+        cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction='none')
         mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
 
@@ -316,7 +316,7 @@ class SARPostProcessor(RecognitionPostProcessor):
 
         # Manual decoding
         word_values = [
-            "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
+            ''.join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
             for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
 
@@ -330,23 +330,23 @@ def _sar(
     layer: str,
     pretrained_backbone: bool = True,
     ignore_keys: Optional[List[str]] = None,
-    **kwargs: Any,
+    **kwargs: Any
 ) -> SAR:
 
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
-    _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
+    _cfg['vocab'] = kwargs.get('vocab', _cfg['vocab'])
+    _cfg['input_shape'] = kwargs.get('input_shape', _cfg['input_shape'])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(pretrained_backbone),
-        {layer: "features"},
+        {layer: 'features'},
     )
-    kwargs["vocab"] = _cfg["vocab"]
-    kwargs["input_shape"] = _cfg["input_shape"]
+    kwargs['vocab'] = _cfg['vocab']
+    kwargs['input_shape'] = _cfg['input_shape']
 
     # Build the model
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
@@ -354,8 +354,8 @@ def _sar(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        _ignore_keys = ignore_keys if _cfg['vocab'] != default_cfgs[arch]['vocab'] else None
+        load_pretrained_params(model, default_cfgs[arch]['url'], ignore_keys=_ignore_keys)
 
     return model
 
@@ -378,15 +378,13 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
     """
 
     return _sar(
-        "sar_resnet31",
+        'sar_resnet31',
         pretrained,
         resnet31,
-        "10",
+        '10',
         ignore_keys=[
-            "decoder.embed.weight",
-            "decoder.embed_tgt.weight",
-            "decoder.output_dense.weight",
-            "decoder.output_dense.bias",
+            'decoder.embed.weight', 'decoder.embed_tgt.weight',
+            'decoder.output_dense.weight', 'decoder.output_dense.bias'
         ],
         **kwargs,
     )

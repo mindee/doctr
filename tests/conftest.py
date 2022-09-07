@@ -18,10 +18,8 @@ from doctr.utils import geometry
 
 @pytest.fixture(scope="session")
 def mock_vocab():
-    return (
-        "3K}7eé;5àÎYho]QwV6qU~W\"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ'j"
-        "(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l"
-    )
+    return ('3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|za1ù8,OG€P-kçHëÀÂ2É/ûIJ\'j'
+            '(LNÙFut[)èZs+&°Sd=Ï!<â_Ç>rêi`l')
 
 
 @pytest.fixture(scope="session")
@@ -46,11 +44,11 @@ def mock_pdf(tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_payslip(tmpdir_factory):
-    url = "https://3.bp.blogspot.com/-Es0oHTCrVEk/UnYA-iW9rYI/AAAAAAAAAFI/hWExrXFbo9U/s1600/003.jpg"
+    url = 'https://3.bp.blogspot.com/-Es0oHTCrVEk/UnYA-iW9rYI/AAAAAAAAAFI/hWExrXFbo9U/s1600/003.jpg'
     file = BytesIO(requests.get(url).content)
     folder = tmpdir_factory.mktemp("data")
     fn = str(folder.join("mock_payslip.jpeg"))
-    with open(fn, "wb") as f:
+    with open(fn, 'wb') as f:
         f.write(file.getbuffer())
     return fn
 
@@ -66,7 +64,7 @@ def mock_tilted_payslip(mock_payslip, tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_text_box_stream():
-    url = "https://doctr-static.mindee.com/models?id=v0.5.1/word-crop.png&src=0"
+    url = 'https://github.com/mindee/doctr/releases/download/v0.5.1/word-crop.png'
     return requests.get(url).content
 
 
@@ -74,7 +72,7 @@ def mock_text_box_stream():
 def mock_text_box(mock_text_box_stream, tmpdir_factory):
     file = BytesIO(mock_text_box_stream)
     fn = tmpdir_factory.mktemp("data").join("mock_text_box_file.png")
-    with open(fn, "wb") as f:
+    with open(fn, 'wb') as f:
         f.write(file.getbuffer())
     return str(fn)
 
@@ -90,7 +88,7 @@ def mock_image_path(mock_image_stream, tmpdir_factory):
     file = BytesIO(mock_image_stream)
     folder = tmpdir_factory.mktemp("images")
     fn = folder.join("mock_image_file.jpeg")
-    with open(fn, "wb") as f:
+    with open(fn, 'wb') as f:
         f.write(file.getbuffer())
     return str(fn)
 
@@ -101,7 +99,7 @@ def mock_image_folder(mock_image_stream, tmpdir_factory):
     folder = tmpdir_factory.mktemp("images")
     for i in range(5):
         fn = folder.join("mock_image_file_" + str(i) + ".jpeg")
-        with open(fn, "wb") as f:
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     return str(folder)
 
@@ -122,8 +120,8 @@ def mock_detection_label(tmpdir_factory):
             ],
         }
 
-    labels_path = folder.join("labels.json")
-    with open(labels_path, "w") as f:
+    labels_path = folder.join('labels.json')
+    with open(labels_path, 'w') as f:
         json.dump(labels, f)
     return str(labels_path)
 
@@ -138,7 +136,7 @@ def mock_recognition_label(tmpdir_factory):
         "mock_image_file_3.jpeg": "jedi",
         "mock_image_file_4.jpeg": "!",
     }
-    with open(label_file, "w") as f:
+    with open(label_file, 'w') as f:
         json.dump(label, f)
     return str(label_file)
 
@@ -150,30 +148,30 @@ def mock_ocrdataset(tmpdir_factory, mock_image_stream):
     label = {
         "mock_image_file_0.jpg": {
             "typed_words": [
-                {"value": "I", "geometry": (0.2, 0.2, 0.1, 0.1, 0)},
-                {"value": "am", "geometry": (0.5, 0.5, 0.1, 0.1, 0)},
+                {'value': 'I', 'geometry': (.2, .2, .1, .1, 0)},
+                {'value': 'am', 'geometry': (.5, .5, .1, .1, 0)},
             ]
         },
         "mock_image_file_1.jpg": {
             "typed_words": [
-                {"value": "a", "geometry": (0.2, 0.2, 0.1, 0.1, 0)},
-                {"value": "jedi", "geometry": (0.5, 0.5, 0.1, 0.1, 0)},
+                {'value': 'a', 'geometry': (.2, .2, .1, .1, 0)},
+                {'value': 'jedi', 'geometry': (.5, .5, .1, .1, 0)},
             ]
         },
         "mock_image_file_2.jpg": {
             "typed_words": [
-                {"value": "!", "geometry": (0.2, 0.2, 0.1, 0.1, 0)},
+                {'value': '!', 'geometry': (.2, .2, .1, .1, 0)},
             ]
-        },
+        }
     }
-    with open(label_file, "w") as f:
+    with open(label_file, 'w') as f:
         json.dump(label, f)
 
     file = BytesIO(mock_image_stream)
     image_folder = tmpdir_factory.mktemp("images")
     for i in range(3):
         fn = image_folder.join(f"mock_image_file_{i}.jpg")
-        with open(fn, "wb") as f:
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
 
     return str(image_folder), str(label_file)
@@ -184,19 +182,17 @@ def mock_ic13(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
     image_folder = tmpdir_factory.mktemp("images")
     label_folder = tmpdir_factory.mktemp("labels")
-    labels = [
-        "100, 100, 200, 200,  'I'\n",
-        "250, 300, 455, 678, 'am'\n",
-        "321, 485, 529, 607, 'a'\n",
-        "235, 121, 325, 621, 'jedi'\n",
-        "468, 589, 1120, 2520, '!'",
-    ]
+    labels = ["100, 100, 200, 200,  'I'\n",
+              "250, 300, 455, 678, 'am'\n",
+              "321, 485, 529, 607, 'a'\n",
+              "235, 121, 325, 621, 'jedi'\n",
+              "468, 589, 1120, 2520, '!'"]
     for i in range(5):
         fn_l = label_folder.join(f"gt_mock_image_file_{i}.txt")
-        with open(fn_l, "w") as f:
+        with open(fn_l, 'w') as f:
             f.writelines(labels)
         fn_i = image_folder.join(f"mock_image_file_{i}.jpg")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
     return str(image_folder), str(label_folder)
 
@@ -211,160 +207,176 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
             "YsaVkzl": {
                 "image_url": "https://i.imgur.com/YsaVkzl.jpg",
                 "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/YsaVkzl.jpg",
-                "image_hash": "993a7cbb04a7c854d1d841b065948369",
+                "image_hash": "993a7cbb04a7c854d1d841b065948369"
             },
             "wz3wHhN": {
                 "image_url": "https://i.imgur.com/wz3wHhN.jpg",
                 "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/wz3wHhN.jpg",
-                "image_hash": "9157426a98ee52f3e1e8d41fa3a99175",
+                "image_hash": "9157426a98ee52f3e1e8d41fa3a99175"
             },
             "BRHSP23": {
                 "image_url": "https://i.imgur.com/BRHSP23.jpg",
                 "image_path": "/path/to/IMGUR5K-Handwriting-Dataset/images/BRHSP23.jpg",
-                "image_hash": "aab01f7ac82ae53845b01674e9e34167",
-            },
+                "image_hash": "aab01f7ac82ae53845b01674e9e34167"
+            }
         },
         "index_to_ann_map": {
-            "YsaVkzl": ["YsaVkzl_0", "YsaVkzl_1"],
-            "wz3wHhN": ["wz3wHhN_0", "wz3wHhN_1"],
-            "BRHSP23": ["BRHSP23_0", "BRHSP23_1"],
+            "YsaVkzl": [
+                "YsaVkzl_0",
+                "YsaVkzl_1"],
+            "wz3wHhN": [
+                "wz3wHhN_0",
+                "wz3wHhN_1"],
+            "BRHSP23": [
+                "BRHSP23_0",
+                "BRHSP23_1"],
         },
         "ann_id": {
-            "YsaVkzl_0": {"word": "I", "bounding_box": "[305.33, 850.67, 432.33, 115.33, 5.0]"},
-            "YsaVkzl_1": {"word": "am", "bounding_box": "[546.67, 455.67, 345.0, 212.33, 18.67]"},
-            "wz3wHhN_0": {"word": "a", "bounding_box": "[544.67, 345.67, 76.0, 222.33, 34.67]"},
-            "wz3wHhN_1": {"word": "jedi", "bounding_box": "[545.0, 437.0, 76.67, 201.0, 23.33]"},
-            "BRHSP23_0": {"word": "!", "bounding_box": "[555.67, 432.67, 220.0, 120.33, 7.67]"},
-            "BRHSP23_1": {"word": "!", "bounding_box": "[566.0, 437.0, 76.67, 201.0, 25.33]"},
-        },
+            "YsaVkzl_0": {
+                "word": "I",
+                "bounding_box": "[305.33, 850.67, 432.33, 115.33, 5.0]"
+            },
+            "YsaVkzl_1": {
+                "word": "am",
+                "bounding_box": "[546.67, 455.67, 345.0, 212.33, 18.67]"
+            },
+            "wz3wHhN_0": {
+                "word": "a",
+                "bounding_box": "[544.67, 345.67, 76.0, 222.33, 34.67]"
+            },
+            "wz3wHhN_1": {
+                "word": "jedi",
+                "bounding_box": "[545.0, 437.0, 76.67, 201.0, 23.33]"
+            },
+            "BRHSP23_0": {
+                "word": "!",
+                "bounding_box": "[555.67, 432.67, 220.0, 120.33, 7.67]"
+            },
+            "BRHSP23_1": {
+                "word": "!",
+                "bounding_box": "[566.0, 437.0, 76.67, 201.0, 25.33]"
+            },
+        }
     }
     label_file = label_folder.join("imgur5k_annotations.json")
-    with open(label_file, "w") as f:
+    with open(label_file, 'w') as f:
         json.dump(labels, f)
-    for index_id in ["YsaVkzl", "wz3wHhN", "BRHSP23"]:
+    for index_id in ['YsaVkzl', 'wz3wHhN', 'BRHSP23']:
         fn_i = image_folder.join(f"{index_id}.jpg")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
     return str(image_folder), str(label_file)
 
 
 @pytest.fixture(scope="session")
 def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    svhn_root = root.mkdir("svhn")
+    root = tmpdir_factory.mktemp('datasets')
+    svhn_root = root.mkdir('svhn')
     file = BytesIO(mock_image_stream)
     # ascii image names
     first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
     second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
     third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 3.png
     # labels: label is also ascii
-    label = {
-        "height": [35, 35, 35, 35],
-        "label": [1, 1, 3, 7],
-        "left": [116, 128, 137, 151],
-        "top": [27, 29, 29, 26],
-        "width": [15, 10, 17, 17],
-    }
+    label = {'height': [35, 35, 35, 35], 'label': [1, 1, 3, 7],
+             'left': [116, 128, 137, 151], 'top': [27, 29, 29, 26],
+             'width': [15, 10, 17, 17]}
 
-    matcontent = {"digitStruct": {"name": [first, second, third], "bbox": [label, label, label]}}
+    matcontent = {'digitStruct': {'name': [first, second, third], 'bbox': [label, label, label]}}
     # Mock train data
-    train_root = svhn_root.mkdir("train")
-    hdf5storage.write(matcontent, filename=train_root.join("digitStruct.mat"))
+    train_root = svhn_root.mkdir('train')
+    hdf5storage.write(matcontent, filename=train_root.join('digitStruct.mat'))
     for i in range(3):
-        fn = train_root.join(f"{i+1}.png")
-        with open(fn, "wb") as f:
+        fn = train_root.join(f'{i+1}.png')
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("svhn_train.tar")
-    shutil.make_archive(root.join("svhn_train"), "tar", str(svhn_root))
+    archive_path = root.join('svhn_train.tar')
+    shutil.make_archive(root.join('svhn_train'), 'tar', str(svhn_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_sroie_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    sroie_root = root.mkdir("sroie2019_train_task1")
-    annotations_folder = sroie_root.mkdir("annotations")
+    root = tmpdir_factory.mktemp('datasets')
+    sroie_root = root.mkdir('sroie2019_train_task1')
+    annotations_folder = sroie_root.mkdir('annotations')
     image_folder = sroie_root.mkdir("images")
-    labels = [
-        "72, 25, 326, 25, 326, 64, 72, 64, 'I'\n",
-        "50, 82, 440, 82, 440, 121, 50, 121, 'am'\n",
-        "205, 121, 285, 121, 285, 139, 205, 139, 'a'\n",
-        "18, 250, 440, 320, 250, 64, 85, 121, 'jedi'\n",
-        "400, 112, 252, 84, 112, 84, 75, 88, '!'",
-    ]
+    labels = ["72, 25, 326, 25, 326, 64, 72, 64, 'I'\n",
+              "50, 82, 440, 82, 440, 121, 50, 121, 'am'\n",
+              "205, 121, 285, 121, 285, 139, 205, 139, 'a'\n",
+              "18, 250, 440, 320, 250, 64, 85, 121, 'jedi'\n",
+              "400, 112, 252, 84, 112, 84, 75, 88, '!'"]
 
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn_i = image_folder.join(f"{i}.jpg")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
         fn_l = annotations_folder.join(f"{i}.txt")
-        with open(fn_l, "w") as f:
+        with open(fn_l, 'w') as f:
             f.writelines(labels)
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("sroie2019_train_task1.zip")
-    shutil.make_archive(root.join("sroie2019_train_task1"), "zip", str(sroie_root))
+    archive_path = root.join('sroie2019_train_task1.zip')
+    shutil.make_archive(root.join('sroie2019_train_task1'), 'zip', str(sroie_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_funsd_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    funsd_root = root.mkdir("funsd")
-    sub_dataset_root = funsd_root.mkdir("dataset")
-    train_root = sub_dataset_root.mkdir("training_data")
+    root = tmpdir_factory.mktemp('datasets')
+    funsd_root = root.mkdir('funsd')
+    sub_dataset_root = funsd_root.mkdir('dataset')
+    train_root = sub_dataset_root.mkdir('training_data')
     image_folder = train_root.mkdir("images")
     annotations_folder = train_root.mkdir("annotations")
     labels = {
-        "form": [
+        "form": [{
+            "box": [84, 109, 136, 119],
+            "text": "I",
+            "label": "question",
+            "words": [{"box": [84, 109, 136, 119], "text": "I"}],
+            "linking": [[0, 37]],
+            "id": 0
+        },
             {
-                "box": [84, 109, 136, 119],
-                "text": "I",
-                "label": "question",
-                "words": [{"box": [84, 109, 136, 119], "text": "I"}],
-                "linking": [[0, 37]],
-                "id": 0,
-            },
+            "box": [85, 110, 145, 120],
+            "text": "am",
+            "label": "answer",
+            "words": [{"box": [85, 110, 145, 120], "text": "am"}],
+            "linking": [[1, 38]],
+            "id": 1
+        },
             {
-                "box": [85, 110, 145, 120],
-                "text": "am",
-                "label": "answer",
-                "words": [{"box": [85, 110, 145, 120], "text": "am"}],
-                "linking": [[1, 38]],
-                "id": 1,
-            },
-            {
-                "box": [86, 115, 150, 125],
-                "text": "Luke",
-                "label": "answer",
-                "words": [{"box": [86, 115, 150, 125], "text": "Luke"}],
-                "linking": [[2, 44]],
-                "id": 2,
-            },
-        ]
+            "box": [86, 115, 150, 125],
+            "text": "Luke",
+            "label": "answer",
+            "words": [{"box": [86, 115, 150, 125], "text": "Luke"}],
+            "linking": [[2, 44]],
+            "id": 2
+        }]
     }
 
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn_i = image_folder.join(f"{i}.png")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
         fn_l = annotations_folder.join(f"{i}.json")
-        with open(fn_l, "w") as f:
+        with open(fn_l, 'w') as f:
             json.dump(labels, f)
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("funsd.zip")
-    shutil.make_archive(root.join("funsd"), "zip", str(funsd_root))
+    archive_path = root.join('funsd.zip')
+    shutil.make_archive(root.join('funsd'), 'zip', str(funsd_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_cord_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    cord_root = root.mkdir("cord_train")
+    root = tmpdir_factory.mktemp('datasets')
+    cord_root = root.mkdir('cord_train')
     image_folder = cord_root.mkdir("image")
     annotations_folder = cord_root.mkdir("json")
     labels = {
@@ -373,182 +385,167 @@ def mock_cord_dataset(tmpdir_factory, mock_image_stream):
             {
                 "words": [
                     {
-                        "quad": {
-                            "x2": 270,
-                            "y3": 390,
-                            "x3": 270,
-                            "y4": 390,
-                            "x1": 256,
-                            "y1": 374,
-                            "x4": 256,
-                            "y2": 374,
-                        },
+                        "quad":
+                            {"x2": 270, "y3": 390, "x3": 270, "y4": 390, "x1": 256, "y1": 374, "x4": 256, "y2": 374},
                         "is_key": 0,
                         "row_id": 2179893,
-                        "text": "I",
+                        "text": "I"
                     }
                 ],
                 "category": "menu.cnt",
-                "group_id": 3,
+                "group_id": 3
             },
             {
                 "words": [
                     {
-                        "quad": {
-                            "x2": 270,
-                            "y3": 418,
-                            "x3": 270,
-                            "y4": 418,
-                            "x1": 258,
-                            "y1": 402,
-                            "x4": 258,
-                            "y2": 402,
-                        },
+                        "quad":
+                            {"x2": 270, "y3": 418, "x3": 270, "y4": 418, "x1": 258, "y1": 402, "x4": 258, "y2": 402},
                         "is_key": 0,
                         "row_id": 2179894,
-                        "text": "am",
+                        "text": "am"
                     }
                 ],
                 "category": "menu.cnt",
-                "group_id": 4,
+                "group_id": 4
             },
             {
                 "words": [
                     {
-                        "quad": {
-                            "x2": 272,
-                            "y3": 444,
-                            "x3": 272,
-                            "y4": 444,
-                            "x1": 258,
-                            "y1": 428,
-                            "x4": 258,
-                            "y2": 428,
-                        },
+                        "quad":
+                            {"x2": 272, "y3": 444, "x3": 272, "y4": 444, "x1": 258, "y1": 428, "x4": 258, "y2": 428},
                         "is_key": 0,
                         "row_id": 2179895,
-                        "text": "Luke",
+                        "text": "Luke"
                     }
                 ],
                 "category": "menu.cnt",
-                "group_id": 5,
-            },
-        ],
+                "group_id": 5
+            }]
     }
 
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn_i = image_folder.join(f"receipt_{i}.png")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
         fn_l = annotations_folder.join(f"receipt_{i}.json")
-        with open(fn_l, "w") as f:
+        with open(fn_l, 'w') as f:
             json.dump(labels, f)
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("cord_train.zip")
-    shutil.make_archive(root.join("cord_train"), "zip", str(cord_root))
+    archive_path = root.join('cord_train.zip')
+    shutil.make_archive(root.join('cord_train'), 'zip', str(cord_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_synthtext_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    synthtext_root = root.mkdir("SynthText")
+    root = tmpdir_factory.mktemp('datasets')
+    synthtext_root = root.mkdir('SynthText')
     image_folder = synthtext_root.mkdir("8")
-    annotation_file = synthtext_root.join("gt.mat")
+    annotation_file = synthtext_root.join('gt.mat')
     labels = {
         "imnames": [[["8/ballet_106_0.jpg"], ["8/ballet_106_1.jpg"], ["8/ballet_106_2.jpg"]]],
         "wordBB": [[np.random.randint(1000, size=(2, 4, 5)) for _ in range(3)]],
-        "txt": [np.array([["I      ", "am\na      ", "Jedi   ", "!"] for _ in range(3)])],
+        "txt": [np.array([['I      ', 'am\na      ', 'Jedi   ', '!'] for _ in range(3)])],
     }
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
-    with tempfile.NamedTemporaryFile(mode="wb", delete=True) as f:
+    with tempfile.NamedTemporaryFile(mode='wb', delete=True) as f:
         sio.savemat(f.name, labels)
         shutil.copy(f.name, str(annotation_file))
 
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn_i = image_folder.join(f"ballet_106_{i}.jpg")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("SynthText.zip")
-    shutil.make_archive(root.join("SynthText"), "zip", str(synthtext_root))
+    archive_path = root.join('SynthText.zip')
+    shutil.make_archive(root.join('SynthText'), 'zip', str(synthtext_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_doc_artefacts(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    doc_root = root.mkdir("artefact_detection")
+    root = tmpdir_factory.mktemp('datasets')
+    doc_root = root.mkdir('artefact_detection')
     labels = {
-        "0.jpg": [
-            {"geometry": [0.94375, 0.4013671875, 0.99375, 0.4365234375], "label": "bar_code"},
-            {"geometry": [0.03125, 0.6923828125, 0.07875, 0.7294921875], "label": "qr_code"},
-            {"geometry": [0.1975, 0.1748046875, 0.39875, 0.2216796875], "label": "bar_code"},
+        '0.jpg':
+        [
+            {'geometry': [0.94375, 0.4013671875, 0.99375, 0.4365234375],
+             'label': 'bar_code'},
+            {'geometry': [0.03125, 0.6923828125, 0.07875, 0.7294921875],
+             'label': 'qr_code'},
+            {'geometry': [0.1975, 0.1748046875, 0.39875, 0.2216796875],
+             'label': 'bar_code'}
         ],
-        "1.jpg": [
-            {"geometry": [0.94375, 0.4013671875, 0.99375, 0.4365234375], "label": "bar_code"},
-            {"geometry": [0.03125, 0.6923828125, 0.07875, 0.7294921875], "label": "qr_code"},
-            {"geometry": [0.1975, 0.1748046875, 0.39875, 0.2216796875], "label": "background"},
+        '1.jpg': [
+            {'geometry': [0.94375, 0.4013671875, 0.99375, 0.4365234375],
+             'label': 'bar_code'},
+            {'geometry': [0.03125, 0.6923828125, 0.07875, 0.7294921875],
+             'label': 'qr_code'},
+            {'geometry': [0.1975, 0.1748046875, 0.39875, 0.2216796875],
+             'label': 'background'}
         ],
-        "2.jpg": [
-            {"geometry": [0.94375, 0.4013671875, 0.99375, 0.4365234375], "label": "logo"},
-            {"geometry": [0.03125, 0.6923828125, 0.07875, 0.7294921875], "label": "qr_code"},
-            {"geometry": [0.1975, 0.1748046875, 0.39875, 0.2216796875], "label": "photo"},
-        ],
+        '2.jpg': [
+            {'geometry': [0.94375, 0.4013671875, 0.99375, 0.4365234375],
+             'label': 'logo'},
+            {'geometry': [0.03125, 0.6923828125, 0.07875, 0.7294921875],
+             'label': 'qr_code'},
+            {'geometry': [0.1975, 0.1748046875, 0.39875, 0.2216796875],
+             'label': 'photo'}
+        ]
     }
-    train_root = doc_root.mkdir("train")
+    train_root = doc_root.mkdir('train')
     label_file = train_root.join("labels.json")
 
-    with open(label_file, "w") as f:
+    with open(label_file, 'w') as f:
         json.dump(labels, f)
 
     image_folder = train_root.mkdir("images")
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn = image_folder.join(f"{i}.jpg")
-        with open(fn, "wb") as f:
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("artefact_detection.zip")
-    shutil.make_archive(root.join("artefact_detection"), "zip", str(doc_root))
+    archive_path = root.join('artefact_detection.zip')
+    shutil.make_archive(root.join('artefact_detection'), 'zip', str(doc_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_iiit5k_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    iiit5k_root = root.mkdir("IIIT5K")
-    image_folder = iiit5k_root.mkdir("train")
-    annotation_file = iiit5k_root.join("trainCharBound.mat")
-    labels = {
-        "trainCharBound": {"ImgName": ["train/0.png"], "chars": ["I"], "charBB": np.random.randint(50, size=(1, 4))},
-    }
+    root = tmpdir_factory.mktemp('datasets')
+    iiit5k_root = root.mkdir('IIIT5K')
+    image_folder = iiit5k_root.mkdir('train')
+    annotation_file = iiit5k_root.join('trainCharBound.mat')
+    labels = {'trainCharBound':
+              {"ImgName": ["train/0.png"], "chars": ["I"], "charBB": np.random.randint(50, size=(1, 4))},
+              }
 
     # hacky trick to write file into a LocalPath object with scipy.io.savemat
-    with tempfile.NamedTemporaryFile(mode="wb", delete=True) as f:
+    with tempfile.NamedTemporaryFile(mode='wb', delete=True) as f:
         sio.savemat(f.name, labels)
         shutil.copy(f.name, str(annotation_file))
 
     file = BytesIO(mock_image_stream)
     for i in range(1):
         fn_i = image_folder.join(f"{i}.png")
-        with open(fn_i, "wb") as f:
+        with open(fn_i, 'wb') as f:
             f.write(file.getbuffer())
 
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("IIIT5K-Word-V3.tar")
-    shutil.make_archive(root.join("IIIT5K-Word-V3"), "tar", str(iiit5k_root))
+    archive_path = root.join('IIIT5K-Word-V3.tar')
+    shutil.make_archive(root.join('IIIT5K-Word-V3'), 'tar', str(iiit5k_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_svt_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    svt_root = root.mkdir("svt1")
+    root = tmpdir_factory.mktemp('datasets')
+    svt_root = root.mkdir('svt1')
     labels = """<tagset><image><imageName>img/00_00.jpg</imageName>
     <address>341 Southwest 10th Avenue Portland OR</address><lex>LIVING,ROOM,THEATERS</lex>
     <Resolution x="1280" y="880"/><taggedRectangles><taggedRectangle height="75" width="236" x="375" y="253">
@@ -567,18 +564,18 @@ def mock_svt_dataset(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn = image_folder.join(f"00_0{i}.jpg")
-        with open(fn, "wb") as f:
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("svt.zip")
-    shutil.make_archive(root.join("svt"), "zip", str(svt_root))
+    archive_path = root.join('svt.zip')
+    shutil.make_archive(root.join('svt'), 'zip', str(svt_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    ic03_root = root.mkdir("SceneTrialTrain")
+    root = tmpdir_factory.mktemp('datasets')
+    ic03_root = root.mkdir('SceneTrialTrain')
     labels = """<tagset><image><imageName>images/0.jpg</imageName><Resolution x="1280" y="880"/><taggedRectangles>
     <taggedRectangle x="174.0" y="392.0" width="274.0" height="195.0" offset="0.0" rotation="0.0"><tag>LIVING</tag>
     </taggedRectangle></taggedRectangles></image><image><imageName>images/1.jpg</imageName>
@@ -596,18 +593,18 @@ def mock_ic03_dataset(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
     for i in range(3):
         fn = image_folder.join(f"{i}.jpg")
-        with open(fn, "wb") as f:
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction
-    archive_path = root.join("ic03_train.zip")
-    shutil.make_archive(root.join("ic03_train"), "zip", str(ic03_root))
+    archive_path = root.join('ic03_train.zip')
+    shutil.make_archive(root.join('ic03_train'), 'zip', str(ic03_root))
     return str(archive_path)
 
 
 @pytest.fixture(scope="session")
 def mock_mjsynth_dataset(tmpdir_factory, mock_image_stream):
-    root = tmpdir_factory.mktemp("datasets")
-    mjsynth_root = root.mkdir("mjsynth")
+    root = tmpdir_factory.mktemp('datasets')
+    mjsynth_root = root.mkdir('mjsynth')
     image_folder = mjsynth_root.mkdir("images")
     label_file = mjsynth_root.join("imlist.txt")
     labels = [
@@ -623,8 +620,8 @@ def mock_mjsynth_dataset(tmpdir_factory, mock_image_stream):
             f.write(label)
 
     file = BytesIO(mock_image_stream)
-    for i in ["I", "am", "a", "Jedi", "!"]:
+    for i in ['I', 'am', 'a', 'Jedi', '!']:
         fn = image_folder.join(f"12_{i}_34.jpg")
-        with open(fn, "wb") as f:
+        with open(fn, 'wb') as f:
             f.write(file.getbuffer())
     return str(root), str(label_file)

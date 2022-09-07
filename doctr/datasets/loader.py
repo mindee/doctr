@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
 from typing import Callable, Optional
@@ -64,7 +64,7 @@ class DataLoader:
         nb = len(self.dataset) / batch_size
         self.num_batches = math.floor(nb) if drop_last else math.ceil(nb)
         if collate_fn is None:
-            self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, "collate_fn") else default_collate
+            self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else default_collate
         else:
             self.collate_fn = collate_fn
         self.num_workers = num_workers
@@ -88,9 +88,9 @@ class DataLoader:
         if self._num_yielded < self.num_batches:
             # Get next indices
             idx = self._num_yielded * self.batch_size
-            indices = self.indices[idx : min(len(self.dataset), idx + self.batch_size)]
+            indices = self.indices[idx: min(len(self.dataset), idx + self.batch_size)]
 
-            samples = list(multithread_exec(self.dataset.__getitem__, indices, threads=self.num_workers))
+            samples = multithread_exec(self.dataset.__getitem__, indices, threads=self.num_workers)
 
             batch_data = self.collate_fn(samples)
 

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
 
@@ -19,8 +19,7 @@ from doctr.utils.metrics import LocalizationConfusion, OCRMetric, TextMatch
 # Enable GPU growth if using TF
 if is_tf_available():
     import tensorflow as tf
-
-    gpu_devices = tf.config.experimental.list_physical_devices("GPU")
+    gpu_devices = tf.config.experimental.list_physical_devices('GPU')
     if any(gpu_devices):
         tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 else:
@@ -41,7 +40,7 @@ def main(args):
         args.recognition,
         pretrained=True,
         reco_bs=args.batch_size,
-        assume_straight_pages=not args.rotation,
+        assume_straight_pages=not args.rotation
     )
 
     if args.img_folder and args.label_file:
@@ -58,10 +57,14 @@ def main(args):
     reco_metric = TextMatch()
     if args.mask_shape:
         det_metric = LocalizationConfusion(
-            iou_thresh=args.iou, use_polygons=not args.eval_straight, mask_shape=(args.mask_shape, args.mask_shape)
+            iou_thresh=args.iou,
+            use_polygons=not args.eval_straight,
+            mask_shape=(args.mask_shape, args.mask_shape)
         )
         e2e_metric = OCRMetric(
-            iou_thresh=args.iou, use_polygons=not args.eval_straight, mask_shape=(args.mask_shape, args.mask_shape)
+            iou_thresh=args.iou,
+            use_polygons=not args.eval_straight,
+            mask_shape=(args.mask_shape, args.mask_shape)
         )
     else:
         det_metric = LocalizationConfusion(iou_thresh=args.iou, use_polygons=not args.eval_straight)
@@ -73,8 +76,8 @@ def main(args):
     for dataset in sets:
         for page, target in tqdm(dataset):
             # GT
-            gt_boxes = target["boxes"]
-            gt_labels = target["labels"]
+            gt_boxes = target['boxes']
+            gt_labels = target['labels']
 
             if args.img_folder and args.label_file:
                 x, y, w, h = gt_boxes[:, 0], gt_boxes[:, 1], gt_boxes[:, 2], gt_boxes[:, 3]
@@ -110,17 +113,11 @@ def main(args):
                             if not args.rotation:
                                 (a, b), (c, d) = word.geometry
                             else:
-                                (
-                                    [x1, y1],
-                                    [x2, y2],
-                                    [x3, y3],
-                                    [x4, y4],
-                                ) = word.geometry
+                                [x1, y1], [x2, y2], [x3, y3], [x4, y4], = word.geometry
                             if gt_boxes.dtype == int:
                                 if not args.rotation:
-                                    pred_boxes.append(
-                                        [int(a * width), int(b * height), int(c * width), int(d * height)]
-                                    )
+                                    pred_boxes.append([int(a * width), int(b * height),
+                                                       int(c * width), int(d * height)])
                                 else:
                                     if args.eval_straight:
                                         pred_boxes.append(
@@ -170,43 +167,34 @@ def main(args):
             break
 
     # Unpack aggregated metrics
-    print(
-        f"Model Evaluation (model= {args.detection} + {args.recognition}, "
-        f"dataset={'OCRDataset' if args.img_folder else args.dataset})"
-    )
+    print(f"Model Evaluation (model= {args.detection} + {args.recognition}, "
+          f"dataset={'OCRDataset' if args.img_folder else args.dataset})")
     recall, precision, mean_iou = det_metric.summary()
     print(f"Text Detection - Recall: {_pct(recall)}, Precision: {_pct(precision)}, Mean IoU: {_pct(mean_iou)}")
     acc = reco_metric.summary()
     print(f"Text Recognition - Accuracy: {_pct(acc['raw'])} (unicase: {_pct(acc['unicase'])})")
     recall, precision, mean_iou = e2e_metric.summary()
-    print(
-        f"OCR - Recall: {_pct(recall['raw'])} (unicase: {_pct(recall['unicase'])}), "
-        f"Precision: {_pct(precision['raw'])} (unicase: {_pct(precision['unicase'])}), Mean IoU: {_pct(mean_iou)}"
-    )
+    print(f"OCR - Recall: {_pct(recall['raw'])} (unicase: {_pct(recall['unicase'])}), "
+          f"Precision: {_pct(precision['raw'])} (unicase: {_pct(precision['unicase'])}), Mean IoU: {_pct(mean_iou)}")
 
 
 def parse_args():
     import argparse
+    parser = argparse.ArgumentParser(description='DocTR end-to-end evaluation',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser = argparse.ArgumentParser(
-        description="DocTR end-to-end evaluation", formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-
-    parser.add_argument("detection", type=str, help="Text detection model to use for analysis")
-    parser.add_argument("recognition", type=str, help="Text recognition model to use for analysis")
-    parser.add_argument("--iou", type=float, default=0.5, help="IoU threshold to match a pair of boxes")
-    parser.add_argument("--dataset", type=str, default="FUNSD", help="choose a dataset: FUNSD, CORD")
-    parser.add_argument("--img_folder", type=str, default=None, help="Only for local sets, path to images")
-    parser.add_argument("--label_file", type=str, default=None, help="Only for local sets, path to labels")
-    parser.add_argument("--rotation", dest="rotation", action="store_true", help="run rotated OCR + postprocessing")
-    parser.add_argument("-b", "--batch_size", type=int, default=32, help="batch size for recognition")
-    parser.add_argument("--mask_shape", type=int, default=None, help="mask shape for mask iou (only for rotation)")
-    parser.add_argument("--samples", type=int, default=None, help="evaluate only on the N first samples")
-    parser.add_argument(
-        "--eval-straight",
-        action="store_true",
-        help="evaluate on straight pages with straight bbox (to use the quick and light metric)",
-    )
+    parser.add_argument('detection', type=str, help='Text detection model to use for analysis')
+    parser.add_argument('recognition', type=str, help='Text recognition model to use for analysis')
+    parser.add_argument('--iou', type=float, default=0.5, help='IoU threshold to match a pair of boxes')
+    parser.add_argument('--dataset', type=str, default='FUNSD', help='choose a dataset: FUNSD, CORD')
+    parser.add_argument('--img_folder', type=str, default=None, help='Only for local sets, path to images')
+    parser.add_argument('--label_file', type=str, default=None, help='Only for local sets, path to labels')
+    parser.add_argument('--rotation', dest='rotation', action='store_true', help='run rotated OCR + postprocessing')
+    parser.add_argument('-b', '--batch_size', type=int, default=32, help='batch size for recognition')
+    parser.add_argument('--mask_shape', type=int, default=None, help='mask shape for mask iou (only for rotation)')
+    parser.add_argument('--samples', type=int, default=None, help='evaluate only on the N first samples')
+    parser.add_argument('--eval-straight', action='store_true',
+                        help='evaluate on straight pages with straight bbox (to use the quick and light metric)')
     args = parser.parse_args()
 
     return args

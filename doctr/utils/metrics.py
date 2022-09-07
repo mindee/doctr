@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Dict, List, Optional, Tuple
 
@@ -10,17 +10,8 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from unidecode import unidecode
 
-__all__ = [
-    "TextMatch",
-    "box_iou",
-    "box_ioa",
-    "mask_iou",
-    "polygon_iou",
-    "nms",
-    "LocalizationConfusion",
-    "OCRMetric",
-    "DetectionMetric",
-]
+__all__ = ['TextMatch', 'box_iou', 'box_ioa', 'mask_iou', 'polygon_iou',
+           'nms', 'LocalizationConfusion', 'OCRMetric', 'DetectionMetric']
 
 
 def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
@@ -34,12 +25,12 @@ def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
         a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their
             unidecode counterparts and their lower-case unidecode counterparts match
     """
-    raw_match = word1 == word2
-    caseless_match = word1.lower() == word2.lower()
-    unidecode_match = unidecode(word1) == unidecode(word2)
+    raw_match = (word1 == word2)
+    caseless_match = (word1.lower() == word2.lower())
+    unidecode_match = (unidecode(word1) == unidecode(word2))
 
     # Warning: the order is important here otherwise the pair ("EUR", "€") cannot be matched
-    unicase_match = unidecode(word1).lower() == unidecode(word2).lower()
+    unicase_match = (unidecode(word1).lower() == unidecode(word2).lower())
 
     return raw_match, caseless_match, unidecode_match, unicase_match
 
@@ -210,7 +201,10 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
 
 
 def polygon_iou(
-    polys_1: np.ndarray, polys_2: np.ndarray, mask_shape: Tuple[int, int], use_broadcasting: bool = False
+    polys_1: np.ndarray,
+    polys_2: np.ndarray,
+    mask_shape: Tuple[int, int],
+    use_broadcasting: bool = False
 ) -> np.ndarray:
     """Computes the IoU between two sets of rotated bounding boxes
 
@@ -301,7 +295,7 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     return masks.astype(bool)
 
 
-def nms(boxes: np.ndarray, thresh: float = 0.5) -> List[int]:
+def nms(boxes: np.ndarray, thresh: float = .5) -> List[int]:
     """Perform non-max suppression, borrowed from <https://github.com/rbgirshick/fast-rcnn>`_.
 
     Args:
@@ -437,7 +431,7 @@ class LocalizationConfusion:
         self.num_gts = 0
         self.num_preds = 0
         self.matches = 0
-        self.tot_iou = 0.0
+        self.tot_iou = 0.
 
 
 class OCRMetric:
@@ -513,9 +507,8 @@ class OCRMetric:
         """
 
         if gt_boxes.shape[0] != len(gt_labels) or pred_boxes.shape[0] != len(pred_labels):
-            raise AssertionError(
-                "there should be the same number of boxes and string both for the ground truth " "and the predictions"
-            )
+            raise AssertionError("there should be the same number of boxes and string both for the ground truth "
+                                 "and the predictions")
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
@@ -571,7 +564,7 @@ class OCRMetric:
     def reset(self) -> None:
         self.num_gts = 0
         self.num_preds = 0
-        self.tot_iou = 0.0
+        self.tot_iou = 0.
         self.raw_matches = 0
         self.caseless_matches = 0
         self.unidecode_matches = 0
@@ -651,9 +644,8 @@ class DetectionMetric:
         """
 
         if gt_boxes.shape[0] != gt_labels.shape[0] or pred_boxes.shape[0] != pred_labels.shape[0]:
-            raise AssertionError(
-                "there should be the same number of boxes and string both for the ground truth " "and the predictions"
-            )
+            raise AssertionError("there should be the same number of boxes and string both for the ground truth "
+                                 "and the predictions")
 
         # Compute IoU
         if pred_boxes.shape[0] > 0:
@@ -694,5 +686,5 @@ class DetectionMetric:
     def reset(self) -> None:
         self.num_gts = 0
         self.num_preds = 0
-        self.tot_iou = 0.0
+        self.tot_iou = 0.
         self.num_matches = 0

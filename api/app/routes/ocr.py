@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List
 
@@ -20,7 +20,5 @@ async def perform_ocr(file: UploadFile = File(...)):
     img = decode_img_as_tensor(file.file.read())
     out = predictor([img])
 
-    return [
-        OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)
-        for word in out.pages[0].blocks[0].lines[0].words
-    ]
+    return [OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)
+            for word in out.pages[0].blocks[0].lines[0].words]

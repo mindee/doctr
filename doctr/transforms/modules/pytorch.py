@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
 from typing import Any, Dict, Optional, Tuple, Union
@@ -15,7 +15,7 @@ from torchvision.transforms import transforms as T
 
 from ..functional.pytorch import random_shadow
 
-__all__ = ["Resize", "GaussianNoise", "ChannelShuffle", "RandomHorizontalFlip", "RandomShadow"]
+__all__ = ['Resize', 'GaussianNoise', 'ChannelShuffle', 'RandomHorizontalFlip', 'RandomShadow']
 
 
 class Resize(T.Resize):
@@ -45,7 +45,9 @@ class Resize(T.Resize):
             target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
 
-        if not self.preserve_aspect_ratio or (target_ratio == actual_ratio and (isinstance(self.size, (tuple, list)))):
+        if not self.preserve_aspect_ratio or (
+            target_ratio == actual_ratio and (isinstance(self.size, (tuple, list)))
+        ):
             # If we don't preserve the aspect ratio or the wanted aspect ratio is the same than the original one
             # We can use with the regular resize
             if target is not None:
@@ -123,8 +125,7 @@ class GaussianNoise(torch.nn.Module):
         mean : mean of the gaussian distribution
         std : std of the gaussian distribution
     """
-
-    def __init__(self, mean: float = 0.0, std: float = 1.0) -> None:
+    def __init__(self, mean: float = 0., std: float = 1.) -> None:
         super().__init__()
         self.std = std
         self.mean = mean
@@ -154,8 +155,11 @@ class ChannelShuffle(torch.nn.Module):
 
 
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
+
     def forward(
-        self, img: Union[torch.Tensor, Image], target: Dict[str, Any]
+            self,
+            img: Union[torch.Tensor, Image],
+            target: Dict[str, Any]
     ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
         """
         Args:
@@ -185,27 +189,18 @@ class RandomShadow(torch.nn.Module):
     Args:
         opacity_range : minimum and maximum opacity of the shade
     """
-
     def __init__(self, opacity_range: Optional[Tuple[float, float]] = None) -> None:
         super().__init__()
-        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (0.2, 0.8)
+        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         # Reshape the distribution
         try:
             if x.dtype == torch.uint8:
-                return (
-                    (
-                        255
-                        * random_shadow(
-                            x.to(dtype=torch.float32) / 255,
-                            self.opacity_range,
-                        )
-                    )
-                    .round()
-                    .clip(0, 255)
-                    .to(dtype=torch.uint8)
-                )
+                return (255 * random_shadow(
+                    x.to(dtype=torch.float32) / 255,
+                    self.opacity_range,
+                )).round().clip(0, 255).to(dtype=torch.uint8)
             else:
                 return random_shadow(x, self.opacity_range).clip(0, 1)
         except ValueError:

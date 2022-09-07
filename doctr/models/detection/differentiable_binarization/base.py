@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
@@ -14,7 +14,7 @@ from shapely.geometry import Polygon
 
 from ..core import DetectionPostProcessor
 
-__all__ = ["DBPostProcessor"]
+__all__ = ['DBPostProcessor']
 
 
 class DBPostProcessor(DetectionPostProcessor):
@@ -29,7 +29,6 @@ class DBPostProcessor(DetectionPostProcessor):
         bin_thresh: threshold used to binzarized p_map at inference time
 
     """
-
     def __init__(
         self,
         box_thresh: float = 0.1,
@@ -39,7 +38,13 @@ class DBPostProcessor(DetectionPostProcessor):
         assume_straight_pages: bool = True,
     ) -> None:
 
-        super().__init__(box_thresh, bin_thresh, assume_straight_pages)
+        super().__init__(
+            box_thresh,
+            bin_thresh,
+            rotated_bbox,
+            min_size_box,
+            assume_straight_pages
+        )
         self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
     def polygon_to_box(
@@ -82,10 +87,8 @@ class DBPostProcessor(DetectionPostProcessor):
         expanded_points: np.ndarray = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None  # type: ignore[return-value]
-        return (
-            cv2.boundingRect(expanded_points)
-            if self.assume_straight_pages
-            else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
+        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else np.roll(
+            cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0
         )
 
     def bitmap_to_boxes(
@@ -125,7 +128,7 @@ class DBPostProcessor(DetectionPostProcessor):
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
 
-            if score < self.box_thresh:  # remove polygons with a weak objectness
+            if score < self.box_thresh:   # remove polygons with a weak objectness
                 continue
 
             if self.assume_straight_pages:
@@ -260,9 +263,12 @@ class _DBNet:
         ymax_valid = min(max(0, ymax), canvas.shape[0] - 1)
 
         # Fill the canvas with the distances computed inside the valid padded polygon
-        canvas[ymin_valid : ymax_valid + 1, xmin_valid : xmax_valid + 1] = np.fmax(
-            1 - distance_map[ymin_valid - ymin : ymax_valid - ymin + 1, xmin_valid - xmin : xmax_valid - xmin + 1],
-            canvas[ymin_valid : ymax_valid + 1, xmin_valid : xmax_valid + 1],
+        canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1] = np.fmax(
+            1 - distance_map[
+                ymin_valid - ymin:ymax_valid - ymin + 1,
+                xmin_valid - xmin:xmax_valid - xmin + 1
+            ],
+            canvas[ymin_valid:ymax_valid + 1, xmin_valid:xmax_valid + 1]
         )
 
         return polygon, canvas, mask
@@ -303,21 +309,18 @@ class _DBNet:
                 abs_boxes[:, [0, 2]] *= output_shape[-1]
                 abs_boxes[:, [1, 3]] *= output_shape[-2]
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                polys = np.stack(
-                    [
-                        abs_boxes[:, [0, 1]],
-                        abs_boxes[:, [0, 3]],
-                        abs_boxes[:, [2, 3]],
-                        abs_boxes[:, [2, 1]],
-                    ],
-                    axis=1,
-                )
+                polys = np.stack([
+                    abs_boxes[:, [0, 1]],
+                    abs_boxes[:, [0, 3]],
+                    abs_boxes[:, [2, 3]],
+                    abs_boxes[:, [2, 1]],
+                ], axis=1)
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
                 # Mask boxes that are too small
                 if box_size < self.min_size_box:
-                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
 
                 # Negative shrink for gt, as described in paper
@@ -330,18 +333,17 @@ class _DBNet:
 
                 # Draw polygon on gt if it is valid
                 if len(shrinked) == 0:
-                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 shrinked = np.array(shrinked[0]).reshape(-1, 2)
                 if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
                     continue
                 cv2.fillPoly(seg_target[idx], [shrinked.astype(np.int32)], 1)
 
                 # Draw on both thresh map and thresh mask
-                poly, thresh_target[idx], thresh_mask[idx] = self.draw_thresh_map(
-                    poly, thresh_target[idx], thresh_mask[idx]
-                )
+                poly, thresh_target[idx], thresh_mask[idx] = self.draw_thresh_map(poly, thresh_target[idx],
+                                                                                  thresh_mask[idx])
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 
