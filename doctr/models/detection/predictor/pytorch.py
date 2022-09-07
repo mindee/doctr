@@ -42,6 +42,7 @@ class DetectionPredictor(nn.Module):
     def forward(
         self,
         pages: List[Union[np.ndarray, torch.Tensor]],
+        return_model_output = False,
         **kwargs: Any,
     ) -> List[np.ndarray]:
 
@@ -60,6 +61,8 @@ class DetectionPredictor(nn.Module):
             pred_map = self.model(batch)
             if type(pred_map) == torch.Tensor:
                 pred_map = pred_map.detach().cpu().numpy()
+            if return_model_output:
+                return pred_map.astype(np.float32)
             pred_map = np.transpose(pred_map, (0, 2, 3, 1))
             predicted_batches += [pred[0] for pred in self.postprocessor(pred_map)]
         return predicted_batches
