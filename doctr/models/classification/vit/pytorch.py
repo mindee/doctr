@@ -10,9 +10,9 @@ import torch
 from torch import nn
 
 from doctr.datasets import VOCABS
-from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 from ...utils.pytorch import load_pretrained_params
+from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 __all__ = ["vit"]
 
@@ -119,6 +119,7 @@ class VisionTransformer(nn.Module):
         # (batch_size, seq_len + cls token, d_model)
         output = self.layer_norm(output)
         if self.include_top:
+            # (batch_size, num_classes) cls token
             output = self.head(output[:, 0])
 
         return output

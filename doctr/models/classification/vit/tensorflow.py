@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.keras import layers, Sequential
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
@@ -61,7 +61,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         return self.proj(x, **kwargs)  # BHWC
 
 
-class VisionTransformer(layers.Layer, NestedObject):
+class VisionTransformer(Sequential):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_."""

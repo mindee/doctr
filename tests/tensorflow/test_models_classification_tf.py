@@ -112,7 +112,13 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     else:
         model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
     # batch_size = None for dynamic batch size
-    dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
+    if arch_name == "vit":
+        # vit model needs a fixed batch size
+        # TODO : patches = tf.reshape(patches, (B, (C * H), W))  # (batch_size, num_patches, d_model)
+        dummy_input = [tf.TensorSpec([2, *input_shape], tf.float32, name="input")]
+    else:
+        # batch_size = None for dynamic batch size
+        dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
