@@ -24,7 +24,6 @@ class MockDataset:
 
 
 class MockDatasetBis(MockDataset):
-
     @staticmethod
     def collate_fn(samples):
         x, y = zip(*samples)

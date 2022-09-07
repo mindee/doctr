@@ -1,4 +1,0 @@
-pytest>=5.3.2
-pytest-asyncio>=0.14.0
-asyncpg>=0.20.0
-httpx>=0.16.1,<0.20.0
