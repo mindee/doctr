@@ -167,6 +167,8 @@ def test_models_onnx_export(arch_name, input_shape):
         dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
     elif arch_name == "master":  # MASTER export currently only available with constant batch size
         dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
+    elif arch_name == "vitstr":  # ViTSTR export currently only available with constant batch size
+        dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
     else:
         # batch_size = None for dynamic batch size
         dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
