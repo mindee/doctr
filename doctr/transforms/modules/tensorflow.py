@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
@@ -14,9 +14,24 @@ from doctr.utils.repr import NestedObject
 
 from ..functional.tensorflow import random_shadow
 
-__all__ = ['Compose', 'Resize', 'Normalize', 'LambdaTransformation', 'ToGray', 'RandomBrightness',
-           'RandomContrast', 'RandomSaturation', 'RandomHue', 'RandomGamma', 'RandomJpegQuality', 'GaussianBlur',
-           'ChannelShuffle', 'GaussianNoise', 'RandomHorizontalFlip', 'RandomShadow']
+__all__ = [
+    "Compose",
+    "Resize",
+    "Normalize",
+    "LambdaTransformation",
+    "ToGray",
+    "RandomBrightness",
+    "RandomContrast",
+    "RandomSaturation",
+    "RandomHue",
+    "RandomGamma",
+    "RandomJpegQuality",
+    "GaussianBlur",
+    "ChannelShuffle",
+    "GaussianNoise",
+    "RandomHorizontalFlip",
+    "RandomShadow",
+]
 
 
 class Compose(NestedObject):
@@ -31,7 +46,7 @@ class Compose(NestedObject):
         transforms: list of transformation modules
     """
 
-    _children_names: List[str] = ['transforms']
+    _children_names: List[str] = ["transforms"]
 
     def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
@@ -57,10 +72,11 @@ class Resize(NestedObject):
         preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros
         symmetric_pad: if `True` while preserving aspect ratio, the padding will be done symmetrically
     """
+
     def __init__(
         self,
         output_size: Union[int, Tuple[int, int]],
-        method: str = 'bilinear',
+        method: str = "bilinear",
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
     ) -> None:
@@ -145,6 +161,7 @@ class Normalize(NestedObject):
         mean: average value per channel
         std: standard deviation per channel
     """
+
     def __init__(self, mean: Tuple[float, float, float], std: Tuple[float, float, float]) -> None:
         self.mean = tf.constant(mean)
         self.std = tf.constant(std)
@@ -169,6 +186,7 @@ class LambdaTransformation(NestedObject):
     Args:
         fn: the function to be applied to the input tensor
     """
+
     def __init__(self, fn: Callable[[tf.Tensor], tf.Tensor]) -> None:
         self.fn = fn
 
@@ -184,6 +202,7 @@ class ToGray(NestedObject):
     >>> transfo = ToGray()
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
     """
+
     def __init__(self, num_output_channels: int = 1):
         self.num_output_channels = num_output_channels
 
@@ -205,6 +224,7 @@ class RandomBrightness(NestedObject):
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
         p: probability to apply transformation
     """
+
     def __init__(self, max_delta: float = 0.3) -> None:
         self.max_delta = max_delta
 
@@ -227,7 +247,8 @@ class RandomContrast(NestedObject):
     Args:
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor<1)
     """
-    def __init__(self, delta: float = .3) -> None:
+
+    def __init__(self, delta: float = 0.3) -> None:
         self.delta = delta
 
     def extra_repr(self) -> str:
@@ -249,7 +270,8 @@ class RandomSaturation(NestedObject):
     Args:
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor<1)
     """
-    def __init__(self, delta: float = .5) -> None:
+
+    def __init__(self, delta: float = 0.5) -> None:
         self.delta = delta
 
     def extra_repr(self) -> str:
@@ -270,6 +292,7 @@ class RandomHue(NestedObject):
     Args:
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
     """
+
     def __init__(self, max_delta: float = 0.3) -> None:
         self.max_delta = max_delta
 
@@ -294,6 +317,7 @@ class RandomGamma(NestedObject):
         min_gain: lower bound for constant multiplier
         max_gain: upper bound for constant multiplier
     """
+
     def __init__(
         self,
         min_gamma: float = 0.5,
@@ -328,6 +352,7 @@ class RandomJpegQuality(NestedObject):
         min_quality: int between [0, 100]
         max_quality: int between [0, 100]
     """
+
     def __init__(self, min_quality: int = 60, max_quality: int = 100) -> None:
         self.min_quality = min_quality
         self.max_quality = max_quality
@@ -336,9 +361,7 @@ class RandomJpegQuality(NestedObject):
         return f"min_quality={self.min_quality}"
 
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        return tf.image.random_jpeg_quality(
-            img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality
-        )
+        return tf.image.random_jpeg_quality(img, min_jpeg_quality=self.min_quality, max_jpeg_quality=self.max_quality)
 
 
 class GaussianBlur(NestedObject):
@@ -353,6 +376,7 @@ class GaussianBlur(NestedObject):
         kernel_shape: size of the blurring kernel
         std: min and max value of the standard deviation
     """
+
     def __init__(self, kernel_shape: Union[int, Iterable[int]], std: Tuple[float, float]) -> None:
         self.kernel_shape = kernel_shape
         self.std = std
@@ -364,7 +388,9 @@ class GaussianBlur(NestedObject):
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         sigma = random.uniform(self.std[0], self.std[1])
         return tfa.image.gaussian_filter2d(
-            img, filter_shape=self.kernel_shape, sigma=sigma,
+            img,
+            filter_shape=self.kernel_shape,
+            sigma=sigma,
         )
 
 
@@ -390,7 +416,8 @@ class GaussianNoise(NestedObject):
         mean : mean of the gaussian distribution
         std : std of the gaussian distribution
     """
-    def __init__(self, mean: float = 0., std: float = 1.) -> None:
+
+    def __init__(self, mean: float = 0.0, std: float = 1.0) -> None:
         super().__init__()
         self.std = std
         self.mean = mean
@@ -400,8 +427,7 @@ class GaussianNoise(NestedObject):
         noise = self.mean + 2 * self.std * tf.random.uniform(x.shape) - self.std
         if x.dtype == tf.uint8:
             return tf.cast(
-                tf.clip_by_value(tf.math.round(tf.cast(x, dtype=tf.float32) + 255 * noise), 0, 255),
-                dtype=tf.uint8
+                tf.clip_by_value(tf.math.round(tf.cast(x, dtype=tf.float32) + 255 * noise), 0, 255), dtype=tf.uint8
             )
         else:
             return tf.cast(tf.clip_by_value(x + noise, 0, 1), dtype=x.dtype)
@@ -426,15 +452,12 @@ class RandomHorizontalFlip(NestedObject):
     Args:
         p : probability of Horizontal Flip
     """
+
     def __init__(self, p: float) -> None:
         super().__init__()
         self.p = p
 
-    def __call__(
-            self,
-            img: Union[tf.Tensor, np.ndarray],
-            target: Dict[str, Any]
-    ) -> Tuple[tf.Tensor, Dict[str, Any]]:
+    def __call__(self, img: Union[tf.Tensor, np.ndarray], target: Dict[str, Any]) -> Tuple[tf.Tensor, Dict[str, Any]]:
         """
         Args:
             img: Image to be flipped.
@@ -462,9 +485,10 @@ class RandomShadow(NestedObject):
     Args:
         opacity_range : minimum and maximum opacity of the shade
     """
+
     def __init__(self, opacity_range: Optional[Tuple[float, float]] = None) -> None:
         super().__init__()
-        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (.2, .8)
+        self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (0.2, 0.8)
 
     def __call__(self, x: tf.Tensor) -> tf.Tensor:
         # Reshape the distribution
@@ -475,7 +499,7 @@ class RandomShadow(NestedObject):
                     0,
                     255,
                 ),
-                dtype=tf.uint8
+                dtype=tf.uint8,
             )
         else:
             return tf.clip_by_value(random_shadow(x, self.opacity_range), 0, 1)

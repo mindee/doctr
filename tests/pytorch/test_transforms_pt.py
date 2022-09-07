@@ -38,8 +38,10 @@ def test_resize():
 
     # Symetric padding
     transfo = Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
-    assert repr(transfo) == (f"Resize(output_size={output_size}, interpolation='bilinear', "
-                             f"preserve_aspect_ratio=True, symmetric_pad=True)")
+    assert repr(transfo) == (
+        f"Resize(output_size={output_size}, interpolation='bilinear', "
+        f"preserve_aspect_ratio=True, symmetric_pad=True)"
+    )
     out = transfo(input_t)
     assert out.shape[-2:] == output_size
     # symetric padding
@@ -97,8 +99,7 @@ def test_rotate_sample():
     polys = np.stack((boxes[..., [0, 1]], boxes[..., [2, 1]], boxes[..., [2, 3]], boxes[..., [0, 3]]), axis=1)
     rel_boxes = np.array([0, 0, 1, 1], dtype=np.float32)[None, ...]
     rel_polys = np.stack(
-        (rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]),
-        axis=1
+        (rel_boxes[..., [0, 1]], rel_boxes[..., [2, 1]], rel_boxes[..., [2, 3]], rel_boxes[..., [0, 3]]), axis=1
     )
 
     # No angle
@@ -113,8 +114,8 @@ def test_rotate_sample():
 
     # No expansion
     expected_img = torch.zeros((3, 200, 100), dtype=torch.float32)
-    expected_img[:, 50: 150] = 1
-    expected_polys = np.array([[0, .75], [0, .25], [1, .25], [1, .75]])[None, ...]
+    expected_img[:, 50:150] = 1
+    expected_polys = np.array([[0, 0.75], [0, 0.25], [1, 0.25], [1, 0.75]])[None, ...]
     rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, False)
     assert torch.all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
     rotated_img, rotated_geoms = rotate_sample(img, polys, 90, False)
@@ -141,15 +142,13 @@ def test_rotate_sample():
 
 
 def test_random_rotate():
-    rotator = RandomRotate(max_angle=10., expand=False)
+    rotator = RandomRotate(max_angle=10.0, expand=False)
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
-    boxes = np.array([
-        [15, 20, 35, 30]
-    ])
+    boxes = np.array([[15, 20, 35, 30]])
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
 
-    rotator = RandomRotate(max_angle=10., expand=True)
+    rotator = RandomRotate(max_angle=10.0, expand=True)
     r_img, r_boxes = rotator(input_t, boxes)
     assert r_img.shape != input_t.shape
 
@@ -162,25 +161,29 @@ def test_random_rotate():
 
 def test_crop_detection():
     img = torch.ones((3, 50, 50), dtype=torch.float32)
-    abs_boxes = np.array([
-        [15, 20, 35, 30],
-        [5, 10, 10, 20],
-    ])
+    abs_boxes = np.array(
+        [
+            [15, 20, 35, 30],
+            [5, 10, 10, 20],
+        ]
+    )
     crop_box = (12 / 50, 23 / 50, 50 / 50, 50 / 50)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
     assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
 
-    rel_boxes = np.array([
-        [.3, .4, .7, .6],
-        [.1, .2, .2, .4],
-    ])
+    rel_boxes = np.array(
+        [
+            [0.3, 0.4, 0.7, 0.6],
+            [0.1, 0.2, 0.2, 0.4],
+        ]
+    )
     crop_box = (0.24, 0.46, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
-    assert np.abs(c_boxes - np.array([.06 / .76, 0., .46 / .76, .14 / .54])[None, ...]).mean() < 1e-7
+    assert np.abs(c_boxes - np.array([0.06 / 0.76, 0.0, 0.46 / 0.76, 0.14 / 0.54])[None, ...]).mean() < 1e-7
 
     # FP16
     img = torch.ones((3, 50, 50), dtype=torch.float16)
@@ -192,19 +195,17 @@ def test_crop_detection():
 
 
 def test_random_crop():
-    cropper = RandomCrop(scale=(0.5, 1.), ratio=(0.75, 1.33))
+    cropper = RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
-    boxes = np.array([
-        [15, 20, 35, 30]
-    ])
+    boxes = np.array([[15, 20, 35, 30]])
     img, target = cropper(input_t, dict(boxes=boxes))
     # Check the scale
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.5
     # Check the target
-    assert np.all(target['boxes'] >= 0)
-    assert np.all(target['boxes'][:, [0, 2]] <= img.shape[-1]) and np.all(target['boxes'][:, [1, 3]] <= img.shape[-2])
+    assert np.all(target["boxes"] >= 0)
+    assert np.all(target["boxes"][:, [0, 2]] <= img.shape[-1]) and np.all(target["boxes"][:, [1, 3]] <= img.shape[-2])
 
 
 @pytest.mark.parametrize(
@@ -237,10 +238,10 @@ def test_channel_shuffle(input_dtype, input_size):
     [
         [torch.float32, (3, 32, 32)],
         [torch.uint8, (3, 32, 32)],
-    ]
+    ],
 )
 def test_gaussian_noise(input_dtype, input_shape):
-    transform = GaussianNoise(0., 1.)
+    transform = GaussianNoise(0.0, 1.0)
     input_t = torch.rand(input_shape, dtype=torch.float32)
     if input_dtype == torch.uint8:
         input_t = (255 * input_t).round()
@@ -254,7 +255,7 @@ def test_gaussian_noise(input_dtype, input_shape):
     if input_dtype == torch.uint8:
         assert torch.all(transformed <= 255)
     else:
-        assert torch.all(transformed <= 1.)
+        assert torch.all(transformed <= 1.0)
 
 
 @pytest.mark.parametrize("p", [1, 0])
@@ -289,10 +290,10 @@ def test_randomhorizontalflip(p):
         [torch.uint8, (3, 32, 32)],
         [torch.float32, (3, 64, 32)],
         [torch.uint8, (3, 64, 32)],
-    ]
+    ],
 )
 def test_random_shadow(input_dtype, input_shape):
-    transform = RandomShadow((.2, .8))
+    transform = RandomShadow((0.2, 0.8))
     input_t = torch.ones(input_shape, dtype=torch.float32)
     if input_dtype == torch.uint8:
         input_t = (255 * input_t).round()
@@ -307,4 +308,4 @@ def test_random_shadow(input_dtype, input_shape):
     if input_dtype == torch.uint8:
         assert torch.all(transformed <= 255)
     else:
-        assert torch.all(transformed <= 1.)
+        assert torch.all(transformed <= 1.0)

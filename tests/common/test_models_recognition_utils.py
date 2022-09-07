@@ -6,11 +6,11 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
 @pytest.mark.parametrize(
     "a, b, merged",
     [
-        ['abc', 'def', 'abcdef'],
-        ['abcd', 'def', 'abcdef'],
-        ['abcde', 'def', 'abcdef'],
-        ['abcdef', 'def', 'abcdef'],
-        ['abcccc', 'cccccc', 'abcccccccc'],
+        ["abc", "def", "abcdef"],
+        ["abcd", "def", "abcdef"],
+        ["abcde", "def", "abcdef"],
+        ["abcdef", "def", "abcdef"],
+        ["abcccc", "cccccc", "abcccccccc"],
     ],
 )
 def test_merge_strings(a, b, merged):
@@ -20,9 +20,9 @@ def test_merge_strings(a, b, merged):
 @pytest.mark.parametrize(
     "seq_list, merged",
     [
-        [['abc', 'def'], 'abcdef'],
-        [['abcd', 'def', 'efgh', 'ijk'], 'abcdefghijk'],
-        [['abcdi', 'defk', 'efghi', 'aijk'], 'abcdefghijk'],
+        [["abc", "def"], "abcdef"],
+        [["abcd", "def", "efgh", "ijk"], "abcdefghijk"],
+        [["abcdi", "defk", "efghi", "aijk"], "abcdefghijk"],
     ],
 )
 def test_merge_multi_strings(seq_list, merged):

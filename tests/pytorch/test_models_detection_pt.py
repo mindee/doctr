@@ -29,8 +29,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [
-        np.array([[.5, .5, 1, 1], [.5, .5, .8, .8]], dtype=np.float32),
-        np.array([[.5, .5, 1, 1], [.5, .5, .8, .9]], dtype=np.float32),
+        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32),
+        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32),
     ]
     if torch.cuda.is_available():
         model.cuda()
@@ -39,24 +39,30 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out, dict)
     assert len(out) == 3
     # Check proba map
-    assert out['out_map'].shape == (batch_size, *output_size)
-    assert out['out_map'].dtype == torch.float32
+    assert out["out_map"].shape == (batch_size, *output_size)
+    assert out["out_map"].dtype == torch.float32
     if out_prob:
-        assert torch.all((out['out_map'] >= 0) & (out['out_map'] <= 1))
+        assert torch.all((out["out_map"] >= 0) & (out["out_map"] <= 1))
     # Check boxes
-    for boxes in out['preds']:
+    for boxes in out["preds"]:
         assert boxes.shape[1] == 5
         assert np.all(boxes[:, :2] < boxes[:, 2:4])
         assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
-    assert isinstance(out['loss'], torch.Tensor)
+    assert isinstance(out["loss"], torch.Tensor)
     # Check the rotated case (same targets)
     target = [
-        np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .8], [.5, .8]]], dtype=np.float32),
-        np.array([[[.5, .5], [1, .5], [1, 1], [.5, 1]], [[.5, .5], [.8, .5], [.8, .9], [.5, .9]]], dtype=np.float32),
+        np.array(
+            [[[0.5, 0.5], [1, 0.5], [1, 1], [0.5, 1]], [[0.5, 0.5], [0.8, 0.5], [0.8, 0.8], [0.5, 0.8]]],
+            dtype=np.float32,
+        ),
+        np.array(
+            [[[0.5, 0.5], [1, 0.5], [1, 1], [0.5, 1]], [[0.5, 0.5], [0.8, 0.5], [0.8, 0.9], [0.5, 0.9]]],
+            dtype=np.float32,
+        ),
     ]
-    loss = model(input_tensor, target)['loss']
-    assert isinstance(loss, torch.Tensor) and ((loss - out['loss']).abs() / loss).item() < 1e-1
+    loss = model(input_tensor, target)["loss"]
+    assert isinstance(loss, torch.Tensor) and ((loss - out["loss"]).abs() / loss).item() < 1e-1
 
 
 @pytest.mark.parametrize(
@@ -121,8 +127,9 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
         assert os.path.exists(model_path)
         # Inference
-        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
-                                                   providers=["CPUExecutionProvider"])
-        ort_outs = ort_session.run(['logits'], {'input': dummy_input.numpy()})
+        ort_session = onnxruntime.InferenceSession(
+            os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
+        )
+        ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
         assert isinstance(ort_outs, list) and len(ort_outs) == 1
         assert ort_outs[0].shape == (batch_size, *output_size)

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -13,7 +13,7 @@ from doctr.io.elements import Block, Document, Line, Page, Word
 from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
-__all__ = ['DocumentBuilder']
+__all__ = ["DocumentBuilder"]
 
 
 class DocumentBuilder(NestedObject):
@@ -58,7 +58,7 @@ class DocumentBuilder(NestedObject):
                 loc_preds=boxes,
                 angle=-estimate_page_angle(boxes),
                 orig_shape=(1024, 1024),
-                min_angle=5.,
+                min_angle=5.0,
             )
             boxes = np.concatenate((boxes.min(1), boxes.max(1)), -1)
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
@@ -160,15 +160,17 @@ class DocumentBuilder(NestedObject):
         """
         # Resolve enclosing boxes of lines
         if boxes.ndim == 3:
-            box_lines: np.ndarray = np.asarray([
-                resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])  # type: ignore[misc]
-                for line in lines
-            ])
+            box_lines: np.ndarray = np.asarray(
+                [
+                    resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])  # type: ignore[misc]
+                    for line in lines
+                ]
+            )
         else:
             _box_lines = [
-                resolve_enclosing_bbox([
-                    (tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line  # type: ignore[misc]
-                ])
+                resolve_enclosing_bbox(
+                    [(tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line]  # type: ignore[misc]
+                )
                 for line in lines
             ]
             box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])
@@ -184,7 +186,8 @@ class DocumentBuilder(NestedObject):
                     (box_lines[:, 0, 1] + box_lines[:, 2, 1]) / 2,
                     (box_lines[:, 0, 1] + box_lines[:, 2, 0]) / 2,
                     (box_lines[:, 2, 0] + box_lines[:, 2, 1]) / 2,
-                ), axis=-1
+                ),
+                axis=-1,
             )
         else:
             box_features = np.stack(
@@ -195,10 +198,11 @@ class DocumentBuilder(NestedObject):
                     (box_lines[:, 1] + box_lines[:, 3]) / 2,
                     box_lines[:, 0],
                     box_lines[:, 1],
-                ), axis=-1
+                ),
+                axis=-1,
             )
         # Compute clusters
-        clusters = fclusterdata(box_features, t=0.1, depth=4, criterion='distance', metric='euclidean')
+        clusters = fclusterdata(box_features, t=0.1, depth=4, criterion="distance", metric="euclidean")
 
         _blocks: Dict[int, List[int]] = {}
         # Form clusters
@@ -246,27 +250,34 @@ class DocumentBuilder(NestedObject):
 
         blocks = [
             Block(
-                [Line(
-                    [
-                        Word(
-                            *word_preds[idx],
-                            tuple([tuple(pt) for pt in boxes[idx].tolist()])  # type: ignore[arg-type]
-                        ) if boxes.ndim == 3 else
-                        Word(
-                            *word_preds[idx],
-                            ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
-                        ) for idx in line
-                    ]
-                ) for line in lines]
-            ) for lines in _blocks
+                [
+                    Line(
+                        [
+                            Word(
+                                *word_preds[idx],
+                                tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+                            )
+                            if boxes.ndim == 3
+                            else Word(
+                                *word_preds[idx], ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
+                            )
+                            for idx in line
+                        ]
+                    )
+                    for line in lines
+                ]
+            )
+            for lines in _blocks
         ]
 
         return blocks
 
     def extra_repr(self) -> str:
-        return (f"resolve_lines={self.resolve_lines}, resolve_blocks={self.resolve_blocks}, "
-                f"paragraph_break={self.paragraph_break}, "
-                f"export_as_straight_boxes={self.export_as_straight_boxes}")
+        return (
+            f"resolve_lines={self.resolve_lines}, resolve_blocks={self.resolve_blocks}, "
+            f"paragraph_break={self.paragraph_break}, "
+            f"export_as_straight_boxes={self.export_as_straight_boxes}"
+        )
 
     def __call__(
         self,
@@ -290,10 +301,10 @@ class DocumentBuilder(NestedObject):
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
             raise ValueError("All arguments are expected to be lists of the same size")
 
-        _orientations = orientations if isinstance(orientations, list) \
-            else [None] * len(boxes)  # type: ignore[list-item]
-        _languages = languages if isinstance(languages, list) \
-            else [None] * len(boxes)  # type: ignore[list-item]
+        _orientations = (
+            orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
+        )
+        _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
@@ -315,8 +326,9 @@ class DocumentBuilder(NestedObject):
                 orientation,
                 language,
             )
-            for _idx, shape, page_boxes, word_preds, orientation, language in
-            zip(range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages)
+            for _idx, shape, page_boxes, word_preds, orientation, language in zip(
+                range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            )
         ]
 
         return Document(_pages)

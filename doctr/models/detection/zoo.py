@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, List
 
@@ -18,30 +18,27 @@ ROT_ARCHS: List[str]
 
 
 if is_tf_available():
-    ARCHS = ['db_resnet50', 'db_mobilenet_v3_large', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
-    ROT_ARCHS = ['linknet_resnet18_rotation']
+    ARCHS = ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
+    ROT_ARCHS = ["linknet_resnet18_rotation"]
 elif is_torch_available():
     ARCHS = ['db_resnet34', 'db_resnet50', 'db_resnet50_onnx', 'db_mobilenet_v3_large', 'linknet_resnet18',
              'linknet_resnet34', 'linknet_resnet50']
     ROT_ARCHS = ['db_resnet50_rotation', 'db_resnet50_rotation_onnx']
 
 
-def _predictor(
-    arch: Any,
-    pretrained: bool,
-    assume_straight_pages: bool = True,
-    **kwargs: Any
-) -> DetectionPredictor:
+def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, **kwargs: Any) -> DetectionPredictor:
 
     if isinstance(arch, str):
         if arch not in ARCHS + ROT_ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
 
         if arch not in ROT_ARCHS and not assume_straight_pages:
-            raise AssertionError("You are trying to use a model trained on straight pages while not assuming"
-                                 " your pages are straight. If you have only straight documents, don't pass"
-                                 " assume_straight_pages=False, otherwise you should use one of these archs:"
-                                 f"{ROT_ARCHS}")
+            raise AssertionError(
+                "You are trying to use a model trained on straight pages while not assuming"
+                " your pages are straight. If you have only straight documents, don't pass"
+                " assume_straight_pages=False, otherwise you should use one of these archs:"
+                f"{ROT_ARCHS}"
+            )
 
         _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
     else:
@@ -51,21 +48,18 @@ def _predictor(
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
 
-    kwargs['mean'] = kwargs.get('mean', _model.cfg['mean'])
-    kwargs['std'] = kwargs.get('std', _model.cfg['std'])
-    kwargs['batch_size'] = kwargs.get('batch_size', 1)
+    kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
+    kwargs["std"] = kwargs.get("std", _model.cfg["std"])
+    kwargs["batch_size"] = kwargs.get("batch_size", 1)
     predictor = DetectionPredictor(
-        PreProcessor(_model.cfg['input_shape'][:-1] if is_tf_available() else _model.cfg['input_shape'][1:], **kwargs),
-        _model
+        PreProcessor(_model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:], **kwargs),
+        _model,
     )
     return predictor
 
 
 def detection_predictor(
-    arch: Any = 'db_resnet50',
-    pretrained: bool = False,
-    assume_straight_pages: bool = True,
-    **kwargs: Any
+    arch: Any = "db_resnet50", pretrained: bool = False, assume_straight_pages: bool = True, **kwargs: Any
 ) -> DetectionPredictor:
     """Text detection architecture.
 

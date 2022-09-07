@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
@@ -17,7 +17,7 @@ from doctr.models.core import BaseModel
 
 from ..core import DetectionPostProcessor
 
-__all__ = ['_LinkNet', 'LinkNetPostProcessor']
+__all__ = ["_LinkNet", "LinkNetPostProcessor"]
 
 
 class LinkNetPostProcessor(DetectionPostProcessor):
@@ -28,6 +28,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         box_thresh: minimal objectness score to consider a box
         assume_straight_pages: whether the inputs were expected to have horizontal text elements
     """
+
     def __init__(
         self,
         bin_thresh: float = 0.1,
@@ -85,8 +86,10 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         expanded_points: np.ndarray = np.asarray(_points)  # expand polygon
         if len(expanded_points) < 1:
             return None  # type: ignore[return-value]
-        return cv2.boundingRect(expanded_points) if self.assume_straight_pages else np.roll(
-            cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0
+        return (
+            cv2.boundingRect(expanded_points)
+            if self.assume_straight_pages
+            else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
         )
 
     def bitmap_to_boxes(
@@ -122,7 +125,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             else:
                 score = self.box_score(pred, contour, assume_straight_pages=False)
 
-            if score < self.box_thresh:   # remove polygons with a weak objectness
+            if score < self.box_thresh:  # remove polygons with a weak objectness
                 continue
 
             if self.assume_straight_pages:
@@ -195,18 +198,21 @@ class _LinkNet(BaseModel):
                 abs_boxes[:, [0, 2]] *= w
                 abs_boxes[:, [1, 3]] *= h
                 abs_boxes = abs_boxes.round().astype(np.int32)
-                polys = np.stack([
-                    abs_boxes[:, [0, 1]],
-                    abs_boxes[:, [0, 3]],
-                    abs_boxes[:, [2, 3]],
-                    abs_boxes[:, [2, 1]],
-                ], axis=1)
+                polys = np.stack(
+                    [
+                        abs_boxes[:, [0, 1]],
+                        abs_boxes[:, [0, 3]],
+                        abs_boxes[:, [2, 3]],
+                        abs_boxes[:, [2, 1]],
+                    ],
+                    axis=1,
+                )
                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
                 # Mask boxes that are too small
                 if box_size < self.min_size_box:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                     continue
 
                 # Negative shrink for gt, as described in paper
@@ -219,11 +225,11 @@ class _LinkNet(BaseModel):
 
                 # Draw polygon on gt if it is valid
                 if len(shrunken) == 0:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                     continue
                 shrunken = np.array(shrunken[0]).reshape(-1, 2)
                 if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
-                    seg_mask[idx, box[1]: box[3] + 1, box[0]: box[2] + 1] = False
+                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                     continue
                 cv2.fillPoly(seg_target[idx], [shrunken.astype(np.int32)], 1)
 
