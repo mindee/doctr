@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Tuple
 
@@ -9,14 +9,14 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
-if tf.__version__ >= "2.6.0":
+if tf.__version__ >= '2.6.0':
     from tensorflow.keras.utils import img_to_array
 else:
     from tensorflow.keras.preprocessing.image import img_to_array
 
 from doctr.utils.common_types import AbstractPath
 
-__all__ = ["tensor_from_pil", "read_img_as_tensor", "decode_img_as_tensor", "tensor_from_numpy", "get_img_shape"]
+__all__ = ['tensor_from_pil', 'read_img_as_tensor', 'decode_img_as_tensor', 'tensor_from_numpy', 'get_img_shape']
 
 
 def tensor_from_pil(pil_img: Image, dtype: tf.dtypes.DType = tf.float32) -> tf.Tensor:

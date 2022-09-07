@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
 from typing import Any, Optional, Tuple
@@ -11,13 +11,13 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ['Decoder', 'PositionalEncoding']
 
 tf.config.run_functions_eagerly(True)
 
 
 class PositionalEncoding(layers.Layer, NestedObject):
-    """Compute positional encoding"""
+    """ Compute positional encoding """
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000) -> None:
         super(PositionalEncoding, self).__init__()
@@ -29,19 +29,16 @@ class PositionalEncoding(layers.Layer, NestedObject):
             tf.expand_dims(tf.experimental.numpy.arange(start=0, stop=max_len), axis=1), dtype=tf.float32
         )
         div_term = tf.math.exp(
-            tf.cast(tf.experimental.numpy.arange(start=0, stop=d_model, step=2), dtype=tf.float32)
-            * -(math.log(10000.0) / d_model)
+            tf.cast(
+                tf.experimental.numpy.arange(start=0, stop=d_model, step=2), dtype=tf.float32
+            ) * -(math.log(10000.0) / d_model)
         )
         pe = pe.numpy()
         pe[:, 0::2] = tf.math.sin(position * div_term)
         pe[:, 1::2] = tf.math.cos(position * div_term)
         self.pe = tf.expand_dims(tf.convert_to_tensor(pe), axis=0)
 
-    def call(
-        self,
-        x: tf.Tensor,
-        **kwargs: Any,
-    ) -> tf.Tensor:
+    def call(self, x: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
         """
         Args:
             x: embeddings (batch, max_len, d_model)
@@ -59,20 +56,23 @@ class PositionalEncoding(layers.Layer, NestedObject):
 
 @tf.function
 def scaled_dot_product_attention(
-    query: tf.Tensor, key: tf.Tensor, value: tf.Tensor, mask: Optional[tf.Tensor] = None
+    query: tf.Tensor,
+    key: tf.Tensor,
+    value: tf.Tensor,
+    mask: Optional[tf.Tensor] = None
 ) -> Tuple[tf.Tensor, tf.Tensor]:
-    """Scaled Dot-Product Attention"""
+    """ Scaled Dot-Product Attention """
 
     scores = tf.matmul(query, tf.transpose(key, perm=[0, 1, 3, 2])) / math.sqrt(query.shape[-1])
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, tf.where works only with bool type condition
-        scores = tf.where(mask == False, float("-inf"), scores)  # noqa: E712
+        scores = tf.where(mask == False, float('-inf'), scores)  # noqa: E712
     p_attn = tf.nn.softmax(scores, axis=-1)
     return tf.matmul(p_attn, value), p_attn
 
 
 class PositionwiseFeedForward(layers.Layer, NestedObject):
-    """Position-wise Feed-Forward Network"""
+    """ Position-wise Feed-Forward Network """
 
     def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
         super(PositionwiseFeedForward, self).__init__()
@@ -88,7 +88,7 @@ class PositionwiseFeedForward(layers.Layer, NestedObject):
 
 
 class MultiHeadAttention(layers.Layer, NestedObject):
-    """Multi-Head Attention"""
+    """ Multi-Head Attention """
 
     def __init__(self, num_heads: int, d_model: int, dropout: float = 0.1) -> None:
         super().__init__()
@@ -111,12 +111,9 @@ class MultiHeadAttention(layers.Layer, NestedObject):
         batch_size = query.shape[0]
 
         # linear projections of Q, K, V
-        query, key, value = [
-            tf.transpose(
-                tf.reshape(linear(x, **kwargs), shape=[batch_size, -1, self.num_heads, self.d_k]), perm=[0, 2, 1, 3]
-            )
-            for linear, x in zip(self.linear_layers, (query, key, value))
-        ]
+        query, key, value = [tf.transpose(
+            tf.reshape(linear(x, **kwargs), shape=[batch_size, -1, self.num_heads, self.d_k]), perm=[0, 2, 1, 3]
+        ) for linear, x in zip(self.linear_layers, (query, key, value))]
 
         # apply attention on all the projected vectors in batch
         x, attn = scaled_dot_product_attention(query, key, value, mask=mask)
@@ -129,7 +126,7 @@ class MultiHeadAttention(layers.Layer, NestedObject):
 
 
 class Decoder(layers.Layer, NestedObject):
-    """Transformer Decoder"""
+    """ Transformer Decoder """
 
     def __init__(
         self,

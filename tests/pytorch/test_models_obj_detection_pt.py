@@ -25,8 +25,8 @@ def test_detection_models(arch_name, input_shape, pretrained):
     # Train mode
     model = model.train()
     target = [
-        dict(boxes=torch.tensor([[0.5, 0.5, 1, 1]], dtype=torch.float32), labels=torch.tensor((0,), dtype=torch.long)),
-        dict(boxes=torch.tensor([[0.5, 0.5, 1, 1]], dtype=torch.float32), labels=torch.tensor((0,), dtype=torch.long)),
+        dict(boxes=torch.tensor([[.5, .5, 1, 1]], dtype=torch.float32), labels=torch.tensor((0,), dtype=torch.long)),
+        dict(boxes=torch.tensor([[.5, .5, 1, 1]], dtype=torch.float32), labels=torch.tensor((0,), dtype=torch.long)),
     ]
     if torch.cuda.is_available():
         target = [{k: v.cuda() for k, v in t.items()} for t in target]

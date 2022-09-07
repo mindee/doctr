@@ -6,30 +6,30 @@ import pytest
 from doctr.io import elements
 
 
-def _mock_words(size=(1.0, 1.0), offset=(0, 0), confidence=0.9):
+def _mock_words(size=(1., 1.), offset=(0, 0), confidence=0.9):
     return [
-        elements.Word(
-            "hello", confidence, ((offset[0], offset[1]), (size[0] / 2 + offset[0], size[1] / 2 + offset[1]))
-        ),
-        elements.Word(
-            "world",
-            confidence,
-            ((size[0] / 2 + offset[0], size[1] / 2 + offset[1]), (size[0] + offset[0], size[1] + offset[1])),
-        ),
+        elements.Word("hello", confidence, (
+            (offset[0], offset[1]),
+            (size[0] / 2 + offset[0], size[1] / 2 + offset[1])
+        )),
+        elements.Word("world", confidence, (
+            (size[0] / 2 + offset[0], size[1] / 2 + offset[1]),
+            (size[0] + offset[0], size[1] + offset[1])
+        ))
     ]
 
 
 def _mock_artefacts(size=(1, 1), offset=(0, 0), confidence=0.8):
     sub_size = (size[0] / 2, size[1] / 2)
     return [
-        elements.Artefact(
-            "qr_code", confidence, ((offset[0], offset[1]), (sub_size[0] + offset[0], sub_size[1] + offset[1]))
-        ),
-        elements.Artefact(
-            "qr_code",
-            confidence,
-            ((sub_size[0] + offset[0], sub_size[1] + offset[1]), (size[0] + offset[0], size[1] + offset[1])),
-        ),
+        elements.Artefact("qr_code", confidence, (
+            (offset[0], offset[1]),
+            (sub_size[0] + offset[0], sub_size[1] + offset[1])
+        )),
+        elements.Artefact("qr_code", confidence, (
+            (sub_size[0] + offset[0], sub_size[1] + offset[1]),
+            (size[0] + offset[0], size[1] + offset[1])
+        )),
     ]
 
 
@@ -46,7 +46,7 @@ def _mock_blocks(size=(1, 1), offset=(0, 0)):
     return [
         elements.Block(
             _mock_lines(size=sub_size, offset=offset),
-            _mock_artefacts(size=sub_size, offset=(offset[0] + sub_size[0], offset[1] + sub_size[1])),
+            _mock_artefacts(size=sub_size, offset=(offset[0] + sub_size[0], offset[1] + sub_size[1]))
         ),
         elements.Block(
             _mock_lines(size=sub_size, offset=(offset[0] + 2 * sub_size[0], offset[1] + 2 * sub_size[1])),
@@ -57,20 +57,10 @@ def _mock_blocks(size=(1, 1), offset=(0, 0)):
 
 def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     return [
-        elements.Page(
-            _mock_blocks(block_size, block_offset),
-            0,
-            (300, 200),
-            {"value": 0.0, "confidence": 1.0},
-            {"value": "EN", "confidence": 0.8},
-        ),
-        elements.Page(
-            _mock_blocks(block_size, block_offset),
-            1,
-            (500, 1000),
-            {"value": 0.15, "confidence": 0.8},
-            {"value": "FR", "confidence": 0.7},
-        ),
+        elements.Page(_mock_blocks(block_size, block_offset), 0, (300, 200),
+                      {"value": 0., "confidence": 1.}, {"value": "EN", "confidence": 0.8}),
+        elements.Page(_mock_blocks(block_size, block_offset), 1, (500, 1000),
+                      {"value": 0.15, "confidence": 0.8}, {"value": "FR", "confidence": 0.7}),
     ]
 
 
@@ -100,7 +90,7 @@ def test_word():
     assert word.__repr__() == f"Word(value='hello', confidence={conf:.2})"
 
     # Class method
-    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (0.5, 0.5))}
+    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (.5, .5))}
     word = elements.Word.from_dict(state_dict)
     assert word.export() == state_dict
 
@@ -122,7 +112,7 @@ def test_line():
     assert line.export() == {"words": [w.export() for w in words], "geometry": geom}
 
     # Repr
-    words_str = " " * 4 + ",\n    ".join(repr(word) for word in words) + ","
+    words_str = ' ' * 4 + ',\n    '.join(repr(word) for word in words) + ','
     assert line.__repr__() == f"Line(\n  (words): [\n{words_str}\n  ]\n)"
 
     # Ensure that words repr does't span on several lines when there are none
@@ -130,8 +120,8 @@ def test_line():
 
     # from dict
     state_dict = {
-        "words": [{"value": "there", "confidence": 0.1, "geometry": ((0, 0), (1.0, 1.0))}],
-        "geometry": ((0, 0), (1.0, 1.0)),
+        "words": [{"value": "there", "confidence": 0.1, "geometry": ((0, 0), (1., 1.))}],
+        "geometry": ((0, 0), (1., 1.))
     }
     line = elements.Line.from_dict(state_dict)
     assert line.export() == state_dict
@@ -176,17 +166,14 @@ def test_block():
     assert block.render() == "hello world\nhello world"
 
     # Export
-    assert block.export() == {
-        "lines": [line.export() for line in lines],
-        "artefacts": [artefact.export() for artefact in artefacts],
-        "geometry": geom,
-    }
+    assert block.export() == {"lines": [line.export() for line in lines],
+                              "artefacts": [artefact.export() for artefact in artefacts], "geometry": geom}
 
 
 def test_page():
     page_idx = 0
     page_size = (300, 200)
-    orientation = {"value": 0.0, "confidence": 0.0}
+    orientation = {"value": 0., "confidence": 0.}
     language = {"value": "EN", "confidence": 0.8}
     blocks = _mock_blocks()
     page = elements.Page(blocks, page_idx, page_size, orientation, language)
@@ -203,23 +190,15 @@ def test_page():
     assert page.render() == "hello world\nhello world\n\nhello world\nhello world"
 
     # Export
-    assert page.export() == {
-        "blocks": [b.export() for b in blocks],
-        "page_idx": page_idx,
-        "dimensions": page_size,
-        "orientation": orientation,
-        "language": language,
-    }
+    assert page.export() == {"blocks": [b.export() for b in blocks], "page_idx": page_idx, "dimensions": page_size,
+                             "orientation": orientation, "language": language}
 
     # Export XML
-    assert (
-        isinstance(page.export_as_xml(), tuple)
-        and isinstance(page.export_as_xml()[0], (bytes, bytearray))
-        and isinstance(page.export_as_xml()[1], ElementTree)
-    )
+    assert isinstance(page.export_as_xml(), tuple) and isinstance(
+        page.export_as_xml()[0], (bytes, bytearray)) and isinstance(page.export_as_xml()[1], ElementTree)
 
     # Repr
-    assert "\n".join(repr(page).split("\n")[:2]) == f"Page(\n  dimensions={repr(page_size)}"
+    assert '\n'.join(repr(page).split('\n')[:2]) == f'Page(\n  dimensions={repr(page_size)}'
 
     # Show
     page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)

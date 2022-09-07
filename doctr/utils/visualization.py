@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -18,7 +18,7 @@ from unidecode import unidecode
 from .common_types import BoundingBox, Polygon4P
 from .fonts import get_font
 
-__all__ = ["visualize_page", "synthesize_page", "draw_boxes"]
+__all__ = ['visualize_page', 'synthesize_page', 'draw_boxes']
 
 
 def rect_patch(
@@ -29,7 +29,7 @@ def rect_patch(
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
-    preserve_aspect_ratio: bool = False,
+    preserve_aspect_ratio: bool = False
 ) -> patches.Rectangle:
     """Create a matplotlib rectangular patch for the element
 
@@ -79,7 +79,7 @@ def polygon_patch(
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
-    preserve_aspect_ratio: bool = False,
+    preserve_aspect_ratio: bool = False
 ) -> patches.Polygon:
     """Create a matplotlib polygon patch for the element
 
@@ -177,73 +177,67 @@ def visualize_page(
     # Display the image
     ax.imshow(image)
     # hide both axis
-    ax.axis("off")
+    ax.axis('off')
 
     if interactive:
         artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
-    for block in page["blocks"]:
+    for block in page['blocks']:
         if not words_only:
-            rect = create_obj_patch(
-                block["geometry"], page["dimensions"], label="block", color=(0, 1, 0), linewidth=1, **kwargs
-            )
+            rect = create_obj_patch(block['geometry'], page['dimensions'],
+                                    label='block', color=(0, 1, 0), linewidth=1, **kwargs)
             # add patch on figure
             ax.add_patch(rect)
             if interactive:
                 # add patch to cursor's artists
                 artists.append(rect)
 
-        for line in block["lines"]:
+        for line in block['lines']:
             if not words_only:
-                rect = create_obj_patch(
-                    line["geometry"], page["dimensions"], label="line", color=(1, 0, 0), linewidth=1, **kwargs
-                )
+                rect = create_obj_patch(line['geometry'], page['dimensions'],
+                                        label='line', color=(1, 0, 0), linewidth=1, **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
 
-            for word in line["words"]:
-                rect = create_obj_patch(
-                    word["geometry"],
-                    page["dimensions"],
-                    label=f"{word['value']} (confidence: {word['confidence']:.2%})",
-                    color=(0, 0, 1),
-                    **kwargs,
-                )
+            for word in line['words']:
+                rect = create_obj_patch(word['geometry'], page['dimensions'],
+                                        label=f"{word['value']} (confidence: {word['confidence']:.2%})",
+                                        color=(0, 0, 1), **kwargs)
                 ax.add_patch(rect)
                 if interactive:
                     artists.append(rect)
                 elif add_labels:
-                    if len(word["geometry"]) == 5:
+                    if len(word['geometry']) == 5:
                         text_loc = (
-                            int(page["dimensions"][1] * (word["geometry"][0] - word["geometry"][2] / 2)),
-                            int(page["dimensions"][0] * (word["geometry"][1] - word["geometry"][3] / 2)),
+                            int(page['dimensions'][1] * (word['geometry'][0] - word['geometry'][2] / 2)),
+                            int(page['dimensions'][0] * (word['geometry'][1] - word['geometry'][3] / 2))
                         )
                     else:
                         text_loc = (
-                            int(page["dimensions"][1] * word["geometry"][0][0]),
-                            int(page["dimensions"][0] * word["geometry"][0][1]),
+                            int(page['dimensions'][1] * word['geometry'][0][0]),
+                            int(page['dimensions'][0] * word['geometry'][0][1])
                         )
 
-                    if len(word["geometry"]) == 2:
+                    if len(word['geometry']) == 2:
                         # We draw only if boxes are in straight format
                         ax.text(
                             *text_loc,
-                            word["value"],
+                            word['value'],
                             size=10,
                             alpha=0.5,
                             color=(0, 0, 1),
                         )
 
         if display_artefacts:
-            for artefact in block["artefacts"]:
+            for artefact in block['artefacts']:
                 rect = create_obj_patch(
-                    artefact["geometry"],
-                    page["dimensions"],
-                    label="artefact",
+                    artefact['geometry'],
+                    page['dimensions'],
+                    label='artefact',
                     color=(0.5, 0.5, 0.5),
                     linewidth=1,
-                    **kwargs,
+                    **kwargs
                 )
                 ax.add_patch(rect)
                 if interactive:
@@ -252,7 +246,7 @@ def visualize_page(
     if interactive:
         # Create mlp Cursor to hover patches in artists
         mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
-    fig.tight_layout(pad=0.0)
+    fig.tight_layout(pad=0.)
 
     return fig
 
@@ -289,7 +283,7 @@ def synthesize_page(
 
                 # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
                 font = get_font(font_family, int(0.75 * (ymax - ymin)))
-                img = Image.new("RGB", (xmax - xmin, ymax - ymin), color=(255, 255, 255))
+                img = Image.new('RGB', (xmax - xmin, ymax - ymin), color=(255, 255, 255))
                 d = ImageDraw.Draw(img)
                 # Draw in black the value of the word
                 try:
@@ -313,7 +307,12 @@ def synthesize_page(
     return response
 
 
-def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: Optional[Tuple[int, int, int]] = None, **kwargs) -> None:
+def draw_boxes(
+    boxes: np.ndarray,
+    image: np.ndarray,
+    color: Optional[Tuple[int, int, int]] = None,
+    **kwargs
+) -> None:
     """Draw an array of relative straight boxes on an image
 
     Args:
@@ -330,7 +329,11 @@ def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: Optional[Tuple[int, 
     for box in _boxes.tolist():
         xmin, ymin, xmax, ymax = box
         image = cv2.rectangle(
-            image, (xmin, ymin), (xmax, ymax), color=color if isinstance(color, tuple) else (0, 0, 255), thickness=2
+            image,
+            (xmin, ymin),
+            (xmax, ymax),
+            color=color if isinstance(color, tuple) else (0, 0, 255),
+            thickness=2
         )
     plt.imshow(image)
     plt.plot(**kwargs)

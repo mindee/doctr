@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
 
 
-COPY ./pyproject.toml /tmp/pyproject.toml
+COPY ./requirements.txt /tmp/requirements.txt
 COPY ./README.md /tmp/README.md
 COPY ./setup.py /tmp/setup.py
 COPY ./doctr /tmp/doctr

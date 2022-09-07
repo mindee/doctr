@@ -1,11 +1,11 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import os
 
-os.environ["USE_TORCH"] = "1"
+os.environ['USE_TORCH'] = '1'
 
 import logging
 import multiprocessing as mp
@@ -35,19 +35,19 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        targets = [t["boxes"] for t in targets]
+        targets = [t['boxes'] for t in targets]
         if amp:
             with torch.cuda.amp.autocast():
                 out = model(images, targets, return_preds=True)
         else:
             out = model(images, targets, return_preds=True)
         # Compute metric
-        loc_preds = out["preds"]
+        loc_preds = out['preds']
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             # Remove scores
             val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
-        val_loss += out["loss"].item()
+        val_loss += out['loss'].item()
         batch_cnt += 1
 
     val_loss /= batch_cnt
@@ -66,14 +66,15 @@ def main(args):
 
     # Load docTR model
     model = detection.__dict__[args.arch](
-        pretrained=not isinstance(args.resume, str), assume_straight_pages=not args.rotation
+        pretrained=not isinstance(args.resume, str),
+        assume_straight_pages=not args.rotation
     ).eval()
 
     if isinstance(args.size, int):
         input_shape = (args.size, args.size)
     else:
-        input_shape = model.cfg["input_shape"][-2:]
-    mean, std = model.cfg["mean"], model.cfg["std"]
+        input_shape = model.cfg['input_shape'][-2:]
+    mean, std = model.cfg['mean'], model.cfg['std']
 
     st = time.time()
     ds = datasets.__dict__[args.dataset](
@@ -104,14 +105,15 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=ds.collate_fn,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
+    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in "
+          f"{len(test_loader)} batches)")
 
     batch_transforms = Normalize(mean=mean, std=std)
 
     # Resume weights
     if isinstance(args.resume, str):
         print(f"Resuming {args.resume}")
-        checkpoint = torch.load(args.resume, map_location="cpu")
+        checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint)
 
     # GPU
@@ -134,28 +136,24 @@ def main(args):
 
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)
-    print(
-        f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
-        f"Mean IoU: {mean_iou:.2%})"
-    )
+    print(f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
+          f"Mean IoU: {mean_iou:.2%})")
 
 
 def parse_args():
     import argparse
+    parser = argparse.ArgumentParser(description='docTR evaluation script for text detection (PyTorch)',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser = argparse.ArgumentParser(
-        description="docTR evaluation script for text detection (PyTorch)",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-
-    parser.add_argument("arch", type=str, help="text-detection model to evaluate")
-    parser.add_argument("--dataset", type=str, default="FUNSD", help="Dataset to evaluate on")
-    parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for evaluation")
-    parser.add_argument("--device", default=None, type=int, help="device")
-    parser.add_argument("--size", type=int, default=None, help="model input size, H = W")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
-    parser.add_argument("--rotation", dest="rotation", action="store_true", help="inference with rotated bbox")
-    parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")
+    parser.add_argument('arch', type=str, help='text-detection model to evaluate')
+    parser.add_argument('--dataset', type=str, default="FUNSD", help='Dataset to evaluate on')
+    parser.add_argument('-b', '--batch_size', type=int, default=2, help='batch size for evaluation')
+    parser.add_argument('--device', default=None, type=int, help='device')
+    parser.add_argument('--size', type=int, default=None, help='model input size, H = W')
+    parser.add_argument('-j', '--workers', type=int, default=None, help='number of workers used for dataloading')
+    parser.add_argument('--rotation', dest='rotation', action='store_true',
+                        help='inference with rotated bbox')
+    parser.add_argument('--resume', type=str, default=None, help='Checkpoint to resume')
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     args = parser.parse_args()
 

@@ -35,12 +35,12 @@ def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
     out = model(input_tensor, target, return_model_output=True, return_preds=True)
     assert isinstance(out, dict)
     assert len(out) == 3
-    assert isinstance(out["preds"], list)
-    assert len(out["preds"]) == batch_size
-    assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out["preds"])
-    assert isinstance(out["out_map"], torch.Tensor)
-    assert out["out_map"].dtype == torch.float32
-    assert isinstance(out["loss"], torch.Tensor)
+    assert isinstance(out['preds'], list)
+    assert len(out['preds']) == batch_size
+    assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out['preds'])
+    assert isinstance(out['out_map'], torch.Tensor)
+    assert out['out_map'].dtype == torch.float32
+    assert isinstance(out['loss'], torch.Tensor)
     # test model in train mode needs targets
     with pytest.raises(ValueError):
         model.train()
@@ -62,12 +62,18 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert len(decoded) == input_shape[0]
     assert all(char in mock_vocab for word, _ in decoded for char in word)
     # Repr
-    assert repr(processor) == f"{post_processor.__name__}(vocab_size={len(mock_vocab)})"
+    assert repr(processor) == f'{post_processor.__name__}(vocab_size={len(mock_vocab)})'
 
 
 @pytest.mark.parametrize(
     "arch_name",
-    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master"],
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
+        "sar_resnet31",
+        "master"
+    ],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
@@ -88,7 +94,7 @@ def test_recognition_zoo(arch_name):
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
 
 
-@pytest.mark.skipif(os.getenv("SLOW", "0") == "0", reason="slow test")
+@pytest.mark.skipif(os.getenv("SLOW", '0') == '0', reason="slow test")
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
@@ -109,9 +115,8 @@ def test_models_onnx_export(arch_name, input_shape):
         model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
         assert os.path.exists(model_path)
         # Inference
-        ort_session = onnxruntime.InferenceSession(
-            os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
-        )
-        ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
+        ort_session = onnxruntime.InferenceSession(os.path.join(tmpdir, "model.onnx"),
+                                                   providers=["CPUExecutionProvider"])
+        ort_outs = ort_session.run(['logits'], {'input': dummy_input.numpy()})
         assert isinstance(ort_outs, list) and len(ort_outs) == 1
         assert ort_outs[0].shape[0] == batch_size

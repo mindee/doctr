@@ -12,13 +12,13 @@ def test_push_to_hf_hub():
     model = models.classification.resnet18(pretrained=False)
     with pytest.raises(ValueError):
         # run_config and/or arch must be specified
-        push_to_hf_hub(model, model_name="test", task="classification")
+        push_to_hf_hub(model, model_name='test', task='classification')
     with pytest.raises(ValueError):
         # task must be one of classification, detection, recognition, obj_detection
-        push_to_hf_hub(model, model_name="test", task="invalid_task", arch="mobilenet_v3_small")
+        push_to_hf_hub(model, model_name='test', task='invalid_task', arch='mobilenet_v3_small')
     with pytest.raises(ValueError):
         # arch not in available architectures for task
-        push_to_hf_hub(model, model_name="test", task="detection", arch="crnn_mobilenet_v3_large")
+        push_to_hf_hub(model, model_name='test', task='detection', arch='crnn_mobilenet_v3_large')
 
 
 @pytest.mark.parametrize(
@@ -45,11 +45,8 @@ def test_push_to_hf_hub():
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large"],
         #  ["sar_resnet31", "recognition", ""],  enable after model is fixed !
         #  ["master", "recognition", ""],  enable after model is fixed !
-        [
-            "fasterrcnn_mobilenet_v3_large_fpn",
-            "obj_detection",
-            "Felix92/doctr-dummy-torch-fasterrcnn-mobilenet-v3-large-fpn",
-        ],
+        ["fasterrcnn_mobilenet_v3_large_fpn", "obj_detection",
+         "Felix92/doctr-dummy-torch-fasterrcnn-mobilenet-v3-large-fpn"],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
@@ -63,8 +60,8 @@ def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
         assert os.path.exists(tmp_dir + "/pytorch_model.bin")
         assert os.path.exists(tmp_dir + "/config.json")
         tmp_config = json.load(open(tmp_dir + "/config.json"))
-        assert arch_name == tmp_config["arch"]
-        assert task_name == tmp_config["task"]
+        assert arch_name == tmp_config['arch']
+        assert task_name == tmp_config['task']
         assert all(key in model.cfg.keys() for key in tmp_config.keys())
 
         # test from hub

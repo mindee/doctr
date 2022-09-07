@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List, Tuple
 
@@ -10,12 +10,12 @@ import numpy as np
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["FaceDetector"]
+__all__ = ['FaceDetector']
 
 
 class FaceDetector(NestedObject):
 
-    """Implements a face detector to detect profile pictures on resumes, IDS, driving licenses, passports...
+    """ Implements a face detector to detect profile pictures on resumes, IDS, driving licenses, passports...
     Based on open CV CascadeClassifier (haarcascades)
 
     Args:
@@ -28,7 +28,7 @@ class FaceDetector(NestedObject):
     ) -> None:
         self.n_faces = n_faces
         # Instantiate classifier
-        self.detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        self.detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
     def extra_repr(self) -> str:
         return f"n_faces={self.n_faces}"

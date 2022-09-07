@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -16,27 +16,27 @@ from doctr.models.classification import resnet18, resnet34, resnet50
 from ...utils import load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
-__all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
+__all__ = ['LinkNet', 'linknet_resnet18', 'linknet_resnet34', 'linknet_resnet50']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "linknet_resnet18": {
-        "input_shape": (3, 1024, 1024),
-        "mean": (0.5, 0.5, 0.5),
-        "std": (1.0, 1.0, 1.0),
-        "url": None,
+    'linknet_resnet18': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
     },
-    "linknet_resnet34": {
-        "input_shape": (3, 1024, 1024),
-        "mean": (0.5, 0.5, 0.5),
-        "std": (1.0, 1.0, 1.0),
-        "url": None,
+    'linknet_resnet34': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
     },
-    "linknet_resnet50": {
-        "input_shape": (3, 1024, 1024),
-        "mean": (0.5, 0.5, 0.5),
-        "std": (1.0, 1.0, 1.0),
-        "url": None,
+    'linknet_resnet50': {
+        'input_shape': (3, 1024, 1024),
+        'mean': (.5, .5, .5),
+        'std': (1., 1., 1.),
+        'url': None,
     },
 }
 
@@ -128,9 +128,8 @@ class LinkNet(nn.Module, _LinkNet):
         self.fpn = LinkNetFPN(_shapes)
 
         self.classifier = nn.Sequential(
-            nn.ConvTranspose2d(
-                _shapes[0][0], head_chans, kernel_size=3, padding=1, output_padding=1, stride=2, bias=False
-            ),
+            nn.ConvTranspose2d(_shapes[0][0], head_chans, kernel_size=3, padding=1, output_padding=1, stride=2,
+                               bias=False),
             nn.BatchNorm2d(head_chans),
             nn.ReLU(inplace=True),
             nn.Conv2d(head_chans, head_chans, kernel_size=3, padding=1, bias=False),
@@ -143,10 +142,10 @@ class LinkNet(nn.Module, _LinkNet):
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
-            if n.startswith("feat_extractor."):
+            if n.startswith('feat_extractor.'):
                 continue
             if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
-                nn.init.kaiming_normal_(m.weight.data, mode="fan_out", nonlinearity="relu")
+                nn.init.kaiming_normal_(m.weight.data, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:
                     m.bias.data.zero_()
             elif isinstance(m, nn.BatchNorm2d):
@@ -168,7 +167,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         out: Dict[str, Any] = {}
         if self.exportable:
-            out["logits"] = logits
+            out['logits'] = logits
             return out
 
         if return_model_output or target is None or return_preds:
@@ -184,7 +183,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         if target is not None:
             loss = self.compute_loss(logits, target)
-            out["loss"] = loss
+            out['loss'] = loss
 
         return out
 
@@ -192,8 +191,8 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         out_map: torch.Tensor,
         target: List[np.ndarray],
-        gamma: float = 2.0,
-        alpha: float = 0.5,
+        gamma: float = 2.,
+        alpha: float = .5,
         eps: float = 1e-8,
     ) -> torch.Tensor:
         """Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on
@@ -214,7 +213,7 @@ class LinkNet(nn.Module, _LinkNet):
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         seg_mask = seg_mask.to(dtype=torch.float32)
 
-        bce_loss = bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
+        bce_loss = bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction='none')
         proba_map = torch.sigmoid(out_map)
 
         # Focal loss
@@ -242,7 +241,7 @@ def _linknet(
     backbone_fn: Callable[[bool], nn.Module],
     fpn_layers: List[str],
     pretrained_backbone: bool = False,
-    **kwargs: Any,
+    **kwargs: Any
 ) -> LinkNet:
 
     pretrained_backbone = pretrained_backbone and not pretrained
@@ -258,7 +257,7 @@ def _linknet(
     model = LinkNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
@@ -280,7 +279,7 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet("linknet_resnet18", pretrained, resnet18, ["layer1", "layer2", "layer3", "layer4"], **kwargs)
+    return _linknet('linknet_resnet18', pretrained, resnet18, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
 
 
 def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
@@ -300,7 +299,7 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet("linknet_resnet34", pretrained, resnet34, ["layer1", "layer2", "layer3", "layer4"], **kwargs)
+    return _linknet('linknet_resnet34', pretrained, resnet34, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)
 
 
 def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
@@ -320,4 +319,4 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
         text detection architecture
     """
 
-    return _linknet("linknet_resnet50", pretrained, resnet50, ["layer1", "layer2", "layer3", "layer4"], **kwargs)
+    return _linknet('linknet_resnet50', pretrained, resnet50, ['layer1', 'layer2', 'layer3', 'layer4'], **kwargs)

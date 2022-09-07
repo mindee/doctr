@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import Any, List, Tuple, Union
 
@@ -14,7 +14,7 @@ from doctr.utils.repr import NestedObject
 from ..core import RecognitionModel
 from ._utils import remap_preds, split_crops
 
-__all__ = ["RecognitionPredictor"]
+__all__ = ['RecognitionPredictor']
 
 
 class RecognitionPredictor(NestedObject):
@@ -26,7 +26,7 @@ class RecognitionPredictor(NestedObject):
         split_wide_crops: wether to use crop splitting for high aspect ratio crops
     """
 
-    _children_names: List[str] = ["pre_processor", "model"]
+    _children_names: List[str] = ['pre_processor', 'model']
 
     def __init__(
         self,
@@ -67,7 +67,7 @@ class RecognitionPredictor(NestedObject):
 
         # Forward it
         raw = [
-            self.model(batch, return_preds=True, training=False, **kwargs)["preds"]  # type: ignore[operator]
+            self.model(batch, return_preds=True, training=False, **kwargs)['preds']  # type: ignore[operator]
             for batch in processed_batches
         ]
 

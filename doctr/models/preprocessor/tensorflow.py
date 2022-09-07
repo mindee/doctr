@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 import math
 from typing import Any, List, Tuple, Union
@@ -13,7 +13,7 @@ from doctr.transforms import Normalize, Resize
 from doctr.utils.multithreading import multithread_exec
 from doctr.utils.repr import NestedObject
 
-__all__ = ["PreProcessor"]
+__all__ = ['PreProcessor']
 
 
 class PreProcessor(NestedObject):
@@ -26,14 +26,14 @@ class PreProcessor(NestedObject):
         std: standard deviation of the training distribution by channel
     """
 
-    _children_names: List[str] = ["resize", "normalize"]
+    _children_names: List[str] = ['resize', 'normalize']
 
     def __init__(
         self,
         output_size: Tuple[int, int],
         batch_size: int,
-        mean: Tuple[float, float, float] = (0.5, 0.5, 0.5),
-        std: Tuple[float, float, float] = (1.0, 1.0, 1.0),
+        mean: Tuple[float, float, float] = (.5, .5, .5),
+        std: Tuple[float, float, float] = (1., 1., 1.),
         fp16: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -43,7 +43,10 @@ class PreProcessor(NestedObject):
         # Perform the division by 255 at the same time
         self.normalize = Normalize(mean, std)
 
-    def batch_inputs(self, samples: List[tf.Tensor]) -> List[tf.Tensor]:
+    def batch_inputs(
+        self,
+        samples: List[tf.Tensor]
+    ) -> List[tf.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
@@ -55,7 +58,7 @@ class PreProcessor(NestedObject):
 
         num_batches = int(math.ceil(len(samples) / self.batch_size))
         batches = [
-            tf.stack(samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))], axis=0)
+            tf.stack(samples[idx * self.batch_size: min((idx + 1) * self.batch_size, len(samples))], axis=0)
             for idx in range(int(num_batches))
         ]
 
@@ -78,7 +81,10 @@ class PreProcessor(NestedObject):
 
         return x
 
-    def __call__(self, x: Union[tf.Tensor, np.ndarray, List[Union[tf.Tensor, np.ndarray]]]) -> List[tf.Tensor]:
+    def __call__(
+        self,
+        x: Union[tf.Tensor, np.ndarray, List[Union[tf.Tensor, np.ndarray]]]
+    ) -> List[tf.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
@@ -109,13 +115,13 @@ class PreProcessor(NestedObject):
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, tf.Tensor)) for sample in x):
             # Sample transform (to tensor, resize)
-            samples = list(multithread_exec(self.sample_transforms, x))
+            samples = multithread_exec(self.sample_transforms, x)
             # Batching
-            batches = self.batch_inputs(samples)
+            batches = self.batch_inputs(samples)  # type: ignore[arg-type]
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
-        batches = list(multithread_exec(self.normalize, batches))
+        batches = multithread_exec(self.normalize, batches)  # type: ignore[assignment]
 
         return batches

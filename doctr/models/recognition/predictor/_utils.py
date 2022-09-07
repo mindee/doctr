@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List, Tuple, Union
 
@@ -9,7 +9,7 @@ import numpy as np
 
 from ..utils import merge_multi_strings
 
-__all__ = ["split_crops", "remap_preds"]
+__all__ = ['split_crops', 'remap_preds']
 
 
 def split_crops(
@@ -47,12 +47,12 @@ def split_crops(
             # Get the crops
             if channels_last:
                 _crops = [
-                    crop[:, max(0, int(round(center - width / 2))) : min(w - 1, int(round(center + width / 2))), :]
+                    crop[:, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2))), :]
                     for center in centers
                 ]
             else:
                 _crops = [
-                    crop[:, :, max(0, int(round(center - width / 2))) : min(w - 1, int(round(center + width / 2)))]
+                    crop[:, :, max(0, int(round(center - width / 2))): min(w - 1, int(round(center + width / 2)))]
                     for center in centers
                 ]
             # Avoid sending zero-sized crops
@@ -70,7 +70,9 @@ def split_crops(
 
 
 def remap_preds(
-    preds: List[Tuple[str, float]], crop_map: List[Union[int, Tuple[int, int]]], dilation: float
+    preds: List[Tuple[str, float]],
+    crop_map: List[Union[int, Tuple[int, int]]],
+    dilation: float
 ) -> List[Tuple[str, float]]:
     remapped_out = []
     for _idx in crop_map:
@@ -79,7 +81,9 @@ def remap_preds(
             remapped_out.append(preds[_idx])
         else:
             # unzip
-            vals, probs = zip(*preds[_idx[0] : _idx[1]])
+            vals, probs = zip(*preds[_idx[0]: _idx[1]])
             # Merge the string values
-            remapped_out.append((merge_multi_strings(vals, dilation), min(probs)))  # type: ignore[arg-type]
+            remapped_out.append(
+                (merge_multi_strings(vals, dilation), min(probs))  # type: ignore[arg-type]
+            )
     return remapped_out

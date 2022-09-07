@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
 
 from typing import List, Tuple
 
@@ -10,7 +10,7 @@ import numpy as np
 from doctr.datasets import encode_sequences
 from doctr.utils.repr import NestedObject
 
-__all__ = ["RecognitionPostProcessor", "RecognitionModel"]
+__all__ = ['RecognitionPostProcessor', 'RecognitionModel']
 
 
 class RecognitionModel(NestedObject):
@@ -32,7 +32,12 @@ class RecognitionModel(NestedObject):
         Returns:
             A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
         """
-        encoded = encode_sequences(sequences=gts, vocab=self.vocab, target_size=self.max_length, eos=len(self.vocab))
+        encoded = encode_sequences(
+            sequences=gts,
+            vocab=self.vocab,
+            target_size=self.max_length,
+            eos=len(self.vocab)
+        )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len
 
@@ -50,7 +55,7 @@ class RecognitionPostProcessor(NestedObject):
     ) -> None:
 
         self.vocab = vocab
-        self._embedding = list(self.vocab) + ["<eos>"]
+        self._embedding = list(self.vocab) + ['<eos>']
 
     def extra_repr(self) -> str:
         return f"vocab_size={len(self.vocab)}"

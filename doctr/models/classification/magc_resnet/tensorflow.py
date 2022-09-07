@@ -1,7 +1,8 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License 2.0.
-# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+# This program is licensed under the Apache License version 2.
+# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+
 
 import math
 from copy import deepcopy
@@ -17,16 +18,16 @@ from doctr.datasets import VOCABS
 from ...utils import load_pretrained_params
 from ..resnet.tensorflow import ResNet
 
-__all__ = ["magc_resnet31"]
+__all__ = ['magc_resnet31']
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "magc_resnet31": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (32, 32, 3),
-        "classes": list(VOCABS["french"]),
-        "url": None,
+    'magc_resnet31': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (32, 32, 3),
+        'classes': list(VOCABS['french']),
+        'url': None,
     },
 }
 
@@ -49,7 +50,7 @@ class MAGC(layers.Layer):
         headers: int = 8,
         attn_scale: bool = False,
         ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
-        **kwargs,
+        **kwargs
     ) -> None:
         super().__init__(**kwargs)
 
@@ -60,16 +61,28 @@ class MAGC(layers.Layer):
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
 
-        self.conv_mask = layers.Conv2D(filters=1, kernel_size=1, kernel_initializer=tf.initializers.he_normal())
+        self.conv_mask = layers.Conv2D(
+            filters=1,
+            kernel_size=1,
+            kernel_initializer=tf.initializers.he_normal()
+        )
 
         self.transform = Sequential(
             [
-                layers.Conv2D(filters=self.planes, kernel_size=1, kernel_initializer=tf.initializers.he_normal()),
+                layers.Conv2D(
+                    filters=self.planes,
+                    kernel_size=1,
+                    kernel_initializer=tf.initializers.he_normal()
+                ),
                 layers.LayerNormalization([1, 2, 3]),
                 layers.ReLU(),
-                layers.Conv2D(filters=self.inplanes, kernel_size=1, kernel_initializer=tf.initializers.he_normal()),
+                layers.Conv2D(
+                    filters=self.inplanes,
+                    kernel_size=1,
+                    kernel_initializer=tf.initializers.he_normal()
+                ),
             ],
-            name="transform",
+            name='transform'
         )
 
     def context_modeling(self, inputs: tf.Tensor) -> tf.Tensor:
@@ -129,15 +142,15 @@ def _magc_resnet(
     **kwargs: Any,
 ) -> ResNet:
 
-    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
-    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
-    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
+    kwargs['num_classes'] = kwargs.get("num_classes", len(default_cfgs[arch]['classes']))
+    kwargs['input_shape'] = kwargs.get("input_shape", default_cfgs[arch]['input_shape'])
+    kwargs['classes'] = kwargs.get('classes', default_cfgs[arch]['classes'])
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg["num_classes"] = kwargs["num_classes"]
-    _cfg["classes"] = kwargs["classes"]
-    _cfg["input_shape"] = kwargs["input_shape"]
-    kwargs.pop("classes")
+    _cfg['num_classes'] = kwargs['num_classes']
+    _cfg['classes'] = kwargs['classes']
+    _cfg['input_shape'] = kwargs['input_shape']
+    kwargs.pop('classes')
 
     # Build the model
     model = ResNet(
@@ -153,7 +166,7 @@ def _magc_resnet(
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        load_pretrained_params(model, default_cfgs[arch]['url'])
 
     return model
 
@@ -177,7 +190,7 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     """
 
     return _magc_resnet(
-        "magc_resnet31",
+        'magc_resnet31',
         pretrained,
         [1, 2, 5, 3],
         [256, 256, 512, 512],
