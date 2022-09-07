@@ -115,6 +115,15 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         out = model(images, targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
+        # for target, loc_pred in zip(targets, loc_preds):
+        #     if isinstance(target, np.ndarray):
+        #         target = [target]
+        #     for boxes_gt, boxes_pred in zip(target, loc_pred):
+        #         if args.rotation and args.eval_straight:
+        #             # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
+        #             boxes_pred = np.concatenate((boxes_pred.min(axis=1), boxes_pred.max(axis=1)), axis=-1)
+        #         val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
+        #
         for boxes_gt, boxes_pred in zip(targets, loc_preds):
             if args.rotation and args.eval_straight:
                 # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
@@ -192,6 +201,7 @@ def main(args):
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         assume_straight_pages=not args.rotation,
+        num_classes=len(val_set.class_names),
     )
 
     # Resume weights

@@ -5,7 +5,7 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 
 import cv2
 import numpy as np
@@ -153,6 +153,89 @@ class _LinkNet(BaseModel):
     min_size_box: int = 3
     assume_straight_pages: bool = True
     shrink_ratio = 0.5
+
+    # def build_target(
+    #     self,
+    #     target: Union[List[Dict[str, np.ndarray]], List[np.ndarray]],
+    #     output_shape: Tuple[int, int, int],
+    # ) -> Tuple[np.ndarray, np.ndarray]:
+    #
+    #     for i, tgt in enumerate(target):
+    #         if isinstance(tgt, np.ndarray):
+    #             target[i] = {"words": tgt}
+    #     if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
+    #         raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
+    #     if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()
+    #            ):
+    #         raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
+    #
+    #     h, w, num_classes = output_shape
+    #     target_shape = (len(target), h, w, num_classes)
+    #
+    #     seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
+    #     seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
+    #
+    #     for idx, tgt in enumerate(target):
+    #         for class_idx, _target in enumerate(tgt.values()):
+    #             # Draw each polygon on gt
+    #             if _target.shape[0] == 0:
+    #                 # Empty image, full masked
+    #                 seg_mask[idx, :, :, class_idx] = False
+    #
+    #             # Absolute bounding boxes
+    #             abs_boxes = _target.copy()
+    #
+    #             if abs_boxes.ndim == 3:
+    #                 abs_boxes[:, :, 0] *= w
+    #                 abs_boxes[:, :, 1] *= h
+    #                 polys = abs_boxes
+    #                 boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
+    #                 abs_boxes = np.concatenate((abs_boxes.min(1), abs_boxes.max(1)), -1).round().astype(np.int32)
+    #             else:
+    #                 abs_boxes[:, [0, 2]] *= w
+    #                 abs_boxes[:, [1, 3]] *= h
+    #                 abs_boxes = abs_boxes.round().astype(np.int32)
+    #                 polys = np.stack(
+    #                     [
+    #                         abs_boxes[:, [0, 1]],
+    #                         abs_boxes[:, [0, 3]],
+    #                         abs_boxes[:, [2, 3]],
+    #                         abs_boxes[:, [2, 1]],
+    #                     ],
+    #                     axis=1,
+    #                 )
+    #                 boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+    #
+    #             for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
+    #                 # Mask boxes that are too small
+    #                 if box_size < self.min_size_box:
+    #                     seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+    #                     continue
+    #
+    #                 # Negative shrink for gt, as described in paper
+    #                 polygon = Polygon(poly)
+    #                 distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
+    #                 subject = [tuple(coor) for coor in poly]
+    #                 padding = pyclipper.PyclipperOffset()
+    #                 padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+    #                 shrunken = padding.Execute(-distance)
+    #
+    #                 # Draw polygon on gt if it is valid
+    #                 if len(shrunken) == 0:
+    #                     seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+    #                     continue
+    #                 shrunken = np.array(shrunken[0]).reshape(-1, 2)
+    #                 if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
+    #                     seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+    #                     continue
+    #                 cv2.fillPoly(seg_target[idx, :, :, class_idx: class_idx+1].copy(), [shrunken.astype(np.int32)], 1)
+    #
+    #     # Don't forget to switch back to channel first if PyTorch is used
+    #     if not is_tf_available():
+    #         seg_target = seg_target.transpose(0, 3, 1, 2)
+    #         seg_mask = seg_mask.transpose(0, 3, 1, 2)
+    #
+    #     return seg_target, seg_mask
 
     def build_target(
         self,

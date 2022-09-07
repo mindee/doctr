@@ -174,10 +174,12 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             A loss tensor
         """
 
-        prob_map = tf.math.sigmoid(tf.squeeze(out_map, axis=[-1]))
-        thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
+        # prob_map = tf.math.sigmoid(tf.squeeze(out_map, axis=[-1]))
+        # thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
+        prob_map = tf.math.sigmoid(out_map)
+        thresh_map = tf.math.sigmoid(thresh_map)
 
-        seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape[:3])
+        seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape)
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
@@ -185,7 +187,11 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.0
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map, from_logits=True)[seg_mask]
+        bce_loss = tf.concat([
+            tf.keras.losses.binary_crossentropy(seg_target[:,:,:,idx: idx+1], out_map[:,:,:,idx: idx+1], from_logits=True)[..., None]
+            for idx in range(out_map.shape[-1])
+        ], axis=-1)[seg_mask]
+        # bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None][seg_mask]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = tf.math.reduce_sum(seg_target[seg_mask])
@@ -239,7 +245,8 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
-            out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
+            out['preds'] = self.postprocessor(prob_map.numpy())
+            # out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
