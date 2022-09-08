@@ -32,7 +32,19 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 class VisionTransformer(nn.Module):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_."""
+    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+
+    Args:
+        img_size: size of the input image
+        patch_size: size of the patches to be extracted from the input
+        channels: number of channels in the input image
+        d_model: dimension of the transformer layers
+        num_layers: number of transformer layers
+        num_heads: number of attention heads
+        dropout: dropout rate
+        num_classes: number of output classes
+        include_top: whether the classifier head should be instantiated
+    """
 
     def __init__(
         self,

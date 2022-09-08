@@ -30,17 +30,21 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
         super().__init__()
         self.img_size = img_size
+        print(self.img_size)
         self.patch_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
         self.num_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
         self.positional_encoding = PositionalEncoding(embed_dim, max_len=self.num_patches + 1)
         self.proj = layers.Conv2D(
-            embed_dim,
-            kernel_size=patch_size,
-            strides=patch_size,
+            filters=embed_dim,
+            kernel_size=self.patch_size,
+            strides=self.patch_size,
             padding="valid",
+            data_format="channels_last",
+            use_bias=True,
             kernel_initializer="he_normal",
+            bias_initializer="zeros",
         )
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
@@ -49,6 +53,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         assert W % self.patch_size[1] == 0, "Image width must be divisible by patch width"
 
         patches = self.proj(x, **kwargs)  # BHWC
+        print(patches.shape)
 
         B, H, W, C = patches.shape
         patches = tf.reshape(patches, (B, (H * W), C))  # (batch_size, num_patches, d_model)
@@ -58,5 +63,6 @@ class PatchEmbedding(layers.Layer, NestedObject):
         embeddings = tf.concat([cls_tokens, patches], axis=1)  # (batch_size, num_patches + 1, d_model)
         # add positions to embeddings
         embeddings = self.positional_encoding(embeddings, **kwargs)  # (batch_size, num_patches + 1, d_model)
+        print(embeddings.shape)
 
         return embeddings

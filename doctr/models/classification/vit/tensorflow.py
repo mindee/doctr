@@ -32,13 +32,23 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 class VisionTransformer(Sequential):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_."""
+    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+
+    Args:
+        input_shape: size of the input image
+        patch_size: size of the patches to be extracted from the input
+        d_model: dimension of the transformer layers
+        num_layers: number of transformer layers
+        num_heads: number of attention heads
+        dropout: dropout rate
+        num_classes: number of output classes
+        include_top: whether the classifier head should be instantiated
+    """
 
     def __init__(
         self,
-        img_size: Tuple[int, int],
-        patch_size: Tuple[int, int],
         input_shape: Tuple[int, int, int],
+        patch_size: Tuple[int, int],
         d_model: int,
         num_layers: int,
         num_heads: int,
@@ -51,7 +61,7 @@ class VisionTransformer(Sequential):
         super().__init__()
         self.include_top = include_top
 
-        self.patch_embedding = PatchEmbedding(img_size, patch_size, d_model)
+        self.patch_embedding = PatchEmbedding(input_shape[:-1], patch_size, d_model)
         self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, use_gelu=True)
 
         if self.include_top:
@@ -72,7 +82,6 @@ class VisionTransformer(Sequential):
 def _vit(
     arch: str,
     pretrained: bool,
-    img_size: Tuple[int, int],
     patch_size: Tuple[int, int],
     embed_dim: int,
     num_layers: int,
@@ -84,16 +93,17 @@ def _vit(
 ) -> VisionTransformer:
 
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["input_shape"] = kwargs["input_shape"]
     _cfg["classes"] = kwargs["classes"]
     kwargs.pop("classes")
 
     # Build the model
     model = VisionTransformer(
-        img_size=img_size,
         patch_size=patch_size,
         d_model=embed_dim,
         num_layers=num_layers,
@@ -131,7 +141,6 @@ def vit(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     return _vit(
         "vit",
         pretrained,
-        img_size=(32, 32),
         patch_size=(4, 4),
         embed_dim=768,
         num_layers=12,
