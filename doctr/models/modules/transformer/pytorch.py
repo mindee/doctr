@@ -60,7 +60,7 @@ class PositionwiseFeedForward(nn.Sequential):
     def __init__(
         self, d_model: int, ffd: int, dropout: float = 0.1, activation_fct: Callable[[Any], Any] = nn.ReLU()
     ) -> None:
-        super().__init__(
+        super().__init__(  # type: ignore[call-overload]
             nn.Linear(d_model, ffd),
             activation_fct,
             nn.Dropout(p=dropout),
