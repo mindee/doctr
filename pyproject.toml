@@ -60,7 +60,6 @@ tf = [
 torch = [
     "torch>=1.8.0",
     "torchvision>=0.9.0",
-    "onnxruntime-gpu>=1.12.1",
     "openvino==2022.2.0.dev20220829",
 ]
 testing = [
@@ -180,3 +179,6 @@ source = ["doctr"]
 [tool.black]
 line-length = 120
 target-version = ['py38']
+
+[tool.poetry.dependencies]
+onnxruntime-gpu = {version = "1.12.1", platform = "linux"}
