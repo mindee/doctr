@@ -10,6 +10,8 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
+from ..transformer.tensorflow import PositionalEncoding
+
 __all__ = ["PatchEmbedding"]
 
 
@@ -32,9 +34,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         self.num_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
-        self.positions = self.add_weight(
-            shape=(1, self.num_patches + 1, embed_dim), initializer="zeros", trainable=True, name="positions"
-        )
+        self.positional_encoding = PositionalEncoding(embed_dim, max_len=self.num_patches + 1)
         self.proj = layers.Conv2D(
             embed_dim,
             kernel_size=patch_size,
@@ -57,6 +57,6 @@ class PatchEmbedding(layers.Layer, NestedObject):
         # concate cls_tokens to patches
         embeddings = tf.concat([cls_tokens, patches], axis=1)  # (batch_size, num_patches + 1, d_model)
         # add positions to embeddings
-        embeddings += self.positions  # (batch_size, num_patches + 1, d_model)
+        embeddings = self.positional_encoding(embeddings, **kwargs)  # (batch_size, num_patches + 1, d_model)
 
         return embeddings
