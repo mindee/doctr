@@ -11,7 +11,8 @@ from tensorflow.keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
-from doctr.models.modules.vision_transformer import PatchEmbedding
+from doctr.models.modules.vision_transformer.tensorflow import PatchEmbedding
+from doctr.utils.repr import NestedObject
 
 from ...utils import load_pretrained_params
 
@@ -44,6 +45,40 @@ class VisionTransformer(Sequential):
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
     """
+
+    def __init__(
+        self,
+        input_shape: Tuple[int, int, int],
+        patch_size: Tuple[int, int] = (4, 4),
+        d_model: int = 768,
+        num_layers: int = 12,
+        num_heads: int = 12,
+        dropout: float = 0.0,
+        num_classes: int = 1000,
+        include_top: bool = True,
+        cfg: Optional[Dict[str, Any]] = None,
+    ) -> None:
+
+        _layers = []
+        _layers.append(
+            _VisionTransformer(
+                input_shape,
+                patch_size,
+                d_model,
+                num_layers,
+                num_heads,
+                dropout,
+                num_classes,
+                include_top,
+            )
+        )
+        super().__init__(_layers)
+        self.cfg = cfg
+
+
+class _VisionTransformer(layers.Layer, NestedObject):
+
+    # Note: fix for onnx export
 
     def __init__(
         self,
