@@ -114,7 +114,6 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
 
     if arch_name == "vit":
         # vit model needs a fixed batch size
-        # TODO : patches = tf.reshape(patches, (B, (C * H), W))  # (batch_size, num_patches, d_model)
         dummy_input = [tf.TensorSpec([2, *input_shape], tf.float32, name="input")]
     else:
         # batch_size = None for dynamic batch size
