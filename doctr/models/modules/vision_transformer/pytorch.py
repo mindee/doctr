@@ -9,8 +9,6 @@ from typing import Tuple
 import torch
 from torch import nn
 
-from ..transformer.pytorch import PositionalEncoding
-
 __all__ = ["PatchEmbedding"]
 
 
@@ -29,11 +27,12 @@ class PatchEmbedding(nn.Module):
 
         super().__init__()
         self.img_size = img_size
-        self.patch_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
+        self.patch_size = patch_size
+        self.grid_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
         self.num_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))  # type: ignore[attr-defined]
-        self.positional_encoding = PositionalEncoding(embed_dim, max_len=self.num_patches + 1)
+        self.positions = nn.Parameter(torch.zeros(1, self.num_patches + 1, embed_dim))
         self.proj = nn.Conv2d(channels, embed_dim, kernel_size=self.patch_size, stride=self.patch_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -49,6 +48,6 @@ class PatchEmbedding(nn.Module):
         # concate cls_tokens to patches
         embeddings = torch.cat([cls_tokens, patches], dim=1)  # (batch_size, num_patches + 1, d_model)
         # add positions to embeddings
-        embeddings = self.positional_encoding(embeddings)  # (batch_size, num_patches + 1, d_model)
+        embeddings += self.positions  # (batch_size, num_patches + 1, d_model)
 
         return embeddings

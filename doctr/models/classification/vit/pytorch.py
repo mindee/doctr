@@ -35,7 +35,7 @@ class VisionTransformer(nn.Module):
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     Args:
-        img_size: size of the input image
+        input_shape: size of the input image
         patch_size: size of the patches to be extracted from the input
         channels: number of channels in the input image
         d_model: dimension of the transformer layers
@@ -48,12 +48,12 @@ class VisionTransformer(nn.Module):
 
     def __init__(
         self,
-        img_size: Tuple[int, int],
-        patch_size: Tuple[int, int],
-        channels: int,
-        d_model: int,
-        num_layers: int,
-        num_heads: int,
+        input_shape: Tuple[int, int, int],
+        patch_size: Tuple[int, int] = (4, 4),
+        channels: int = 3,
+        d_model: int = 768,
+        num_layers: int = 12,
+        num_heads: int = 12,
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
@@ -63,7 +63,7 @@ class VisionTransformer(nn.Module):
         super().__init__()
         self.include_top = include_top
 
-        self.patch_embedding = PatchEmbedding(img_size, patch_size, channels, d_model)
+        self.patch_embedding = PatchEmbedding(input_shape[1:], patch_size, channels, d_model)
         self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, use_gelu=True)
 
         if self.include_top:
@@ -84,38 +84,22 @@ class VisionTransformer(nn.Module):
 def _vit(
     arch: str,
     pretrained: bool,
-    img_size: Tuple[int, int],
-    patch_size: Tuple[int, int],
-    channels: int,
-    embed_dim: int,
-    num_layers: int,
-    num_heads: int,
-    dropout: float = 0.0,
-    include_top: bool = True,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> VisionTransformer:
 
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
+    kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["num_classes"] = kwargs["num_classes"]
+    _cfg["input_shape"] = kwargs["input_shape"]
     _cfg["classes"] = kwargs["classes"]
     kwargs.pop("classes")
 
     # Build the model
-    model = VisionTransformer(
-        img_size=img_size,
-        patch_size=patch_size,
-        channels=channels,
-        d_model=embed_dim,
-        num_layers=num_layers,
-        num_heads=num_heads,
-        dropout=dropout,
-        cfg=_cfg,
-        **kwargs,
-    )
+    model = VisionTransformer(cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
@@ -147,12 +131,6 @@ def vit(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     return _vit(
         "vit",
         pretrained,
-        img_size=(32, 32),
-        patch_size=(4, 4),
-        channels=3,
-        embed_dim=768,
-        num_layers=12,
-        num_heads=12,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )

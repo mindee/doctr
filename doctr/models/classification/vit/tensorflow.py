@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
@@ -48,10 +48,10 @@ class VisionTransformer(Sequential):
     def __init__(
         self,
         input_shape: Tuple[int, int, int],
-        patch_size: Tuple[int, int],
-        d_model: int,
-        num_layers: int,
-        num_heads: int,
+        patch_size: Tuple[int, int] = (4, 4),
+        d_model: int = 768,
+        num_layers: int = 12,
+        num_heads: int = 12,
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
@@ -82,13 +82,6 @@ class VisionTransformer(Sequential):
 def _vit(
     arch: str,
     pretrained: bool,
-    patch_size: Tuple[int, int],
-    embed_dim: int,
-    num_layers: int,
-    num_heads: int,
-    dropout: float = 0.0,
-    include_top: bool = True,
-    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> VisionTransformer:
 
@@ -103,16 +96,7 @@ def _vit(
     kwargs.pop("classes")
 
     # Build the model
-    model = VisionTransformer(
-        patch_size=patch_size,
-        d_model=embed_dim,
-        num_layers=num_layers,
-        num_heads=num_heads,
-        dropout=dropout,
-        include_top=include_top,
-        cfg=_cfg,
-        **kwargs,
-    )
+    model = VisionTransformer(cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]["url"])
@@ -141,9 +125,5 @@ def vit(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     return _vit(
         "vit",
         pretrained,
-        patch_size=(4, 4),
-        embed_dim=768,
-        num_layers=12,
-        num_heads=12,
         **kwargs,
     )
