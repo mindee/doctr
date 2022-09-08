@@ -21,7 +21,6 @@ from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50", "linknet_resnet18_rotation"]
 
-
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "linknet_resnet18": {
         "mean": (0.798, 0.785, 0.772),
@@ -79,7 +78,6 @@ class LinkNetFPN(Model, NestedObject):
         out_chans: int,
         in_shapes: List[Tuple[int, ...]],
     ) -> None:
-
         super().__init__()
         self.out_chans = out_chans
         strides = [2] * (len(in_shapes) - 1) + [1]
@@ -178,68 +176,44 @@ class LinkNet(_LinkNet, keras.Model):
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
             gamma: modulating factor in the focal loss formula
             alpha: balancing factor in the focal loss formula
+            eps: epsilon factor in dice loss
 
         Returns:
             A loss tensor
         """
-        # seg_target_all, seg_mask_all = self.build_target(target, out_map.shape[1:3])
-        # dice_loss_all = tf.convert_to_tensor(0, dtype=float)
-        # focal_loss_all = tf.convert_to_tensor(0, dtype=float)
-        # for idx in range(seg_target_all.shape[-1]):
-        #     seg_target = seg_target_all[:, :, :, idx][..., None]
-        #     seg_mask = seg_mask_all[:, :, :, idx][..., None]
-        #     _out_map = out_map[:, :, :, idx][..., None]
-        #     seg_target = tf.convert_to_tensor(seg_target, dtype=_out_map.dtype)
-        #     seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        #     seg_mask = tf.cast(seg_mask, tf.float32)
-        #
-        #     bce_loss = tf.keras.losses.binary_crossentropy(seg_target, _out_map, from_logits=True)[..., None]
-        #     proba_map = tf.sigmoid(_out_map)
-        #
-        #     # Focal loss
-        #     if gamma < 0:
-        #         raise ValueError("Value of gamma should be greater than or equal to zero.")
-        #     # Convert logits to prob, compute gamma factor
-        #     p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
-        #     alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
-        #     # Unreduced loss
-        #     focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
-        #     # Class reduced
-        #     focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
-        #
-        #     # Dice loss
-        #     inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
-        #     cardinality = tf.math.reduce_sum(seg_mask * (proba_map + seg_target), (0, 1, 2))
-        #     dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
-        #     focal_loss_all += tf.reduce_mean(focal_loss)
-        #     dice_loss_all += tf.reduce_mean(dice_loss)
-        # return focal_loss_all + dice_loss_all
-        seg_target, seg_mask = self.build_target(target, out_map.shape[1:3])
+        seg_target_all, seg_mask_all = self.build_target(target, out_map.shape[1:])
+        dice_loss_all = tf.convert_to_tensor(0, dtype=float)
+        focal_loss_all = tf.convert_to_tensor(0, dtype=float)
+        for idx in range(seg_target_all.shape[-1]):
+            seg_target = seg_target_all[..., idx]  # [..., None]
+            seg_mask = seg_mask_all[..., idx]  # [..., None]
+            _out_map = out_map[..., idx]  # [..., None]
+            seg_target = tf.convert_to_tensor(seg_target, dtype=_out_map.dtype)
+            seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+            seg_mask = tf.cast(seg_mask, tf.float32)
 
-        seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
-        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        seg_mask = tf.cast(seg_mask, tf.float32)
+            bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], _out_map[..., None], from_logits=True)
+            proba_map = tf.sigmoid(_out_map)
 
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
-        proba_map = tf.sigmoid(out_map)
+            # Focal loss
+            if gamma < 0:
+                raise ValueError("Value of gamma should be greater than or equal to zero.")
+            # Convert logits to prob, compute gamma factor
+            p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
+            alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
+            # Unreduced loss
+            focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+            # Class reduced
+            focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
 
-        # Focal loss
-        if gamma < 0:
-            raise ValueError("Value of gamma should be greater than or equal to zero.")
-        # Convert logits to prob, compute gamma factor
-        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
-        alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
-        # Unreduced loss
-        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
-        # Class reduced
-        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
+            # Dice loss
+            inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
+            cardinality = tf.math.reduce_sum((proba_map + seg_target), (0, 1, 2))
+            dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
-        # Dice loss
-        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
-        cardinality = tf.math.reduce_sum(seg_mask * (proba_map + seg_target), (0, 1, 2))
-        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
-
-        return tf.reduce_mean(focal_loss) + tf.reduce_mean(dice_loss)
+            focal_loss_all += tf.reduce_mean(focal_loss)
+            dice_loss_all += tf.reduce_mean(dice_loss)
+        return focal_loss_all + dice_loss_all
 
     def call(
         self,
@@ -266,8 +240,8 @@ class LinkNet(_LinkNet, keras.Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            # out['preds'] = self.postprocessor(prob_map.numpy())
-            out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
+            out["preds"] = self.postprocessor(prob_map.numpy())
+            # out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             loss = self.compute_loss(logits, target)
@@ -285,7 +259,6 @@ def _linknet(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> LinkNet:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config

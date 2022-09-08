@@ -115,20 +115,14 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         out = model(images, targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
-        # for target, loc_pred in zip(targets, loc_preds):
-        #     if isinstance(target, np.ndarray):
-        #         target = [target]
-        #     for boxes_gt, boxes_pred in zip(target, loc_pred):
-        #         if args.rotation and args.eval_straight:
-        #             # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
-        #             boxes_pred = np.concatenate((boxes_pred.min(axis=1), boxes_pred.max(axis=1)), axis=-1)
-        #         val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
-        #
-        for boxes_gt, boxes_pred in zip(targets, loc_preds):
-            if args.rotation and args.eval_straight:
-                # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
-                boxes_pred = np.concatenate((boxes_pred.min(axis=1), boxes_pred.max(axis=1)), axis=-1)
-            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
+        for target, loc_pred in zip(targets, loc_preds):
+            if isinstance(target, np.ndarray):
+                target = {"words": target}
+            for boxes_gt, boxes_pred in zip(target.values(), loc_pred):
+                if args.rotation and args.eval_straight:
+                    # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
+                    boxes_pred = np.concatenate((boxes_pred.min(axis=1), boxes_pred.max(axis=1)), axis=-1)
+                val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         val_loss += out["loss"].numpy()
         batch_cnt += 1

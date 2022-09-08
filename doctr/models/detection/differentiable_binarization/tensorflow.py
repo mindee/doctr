@@ -161,7 +161,13 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
-    def compute_loss(self, out_map: tf.Tensor, thresh_map: tf.Tensor, target: List[np.ndarray]) -> tf.Tensor:
+    def compute_loss(
+        self,
+        out_map: tf.Tensor,
+        thresh_map: tf.Tensor,
+        target: List[np.ndarray],
+        eps: float = 1e-8,
+    ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
 
@@ -169,6 +175,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             out_map: output feature map of the model of shape (N, H, W, C)
             thresh_map: threshold map of shape (N, H, W, C)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            eps: epsilon factor in dice loss
 
         Returns:
             A loss tensor
@@ -179,45 +186,54 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         prob_map = tf.math.sigmoid(out_map)
         thresh_map = tf.math.sigmoid(thresh_map)
 
-        seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape)
-        seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
-        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-        thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
-        thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
+        seg_target_all, seg_mask_all, thresh_target_all, thresh_mask_all = self.build_target(target, out_map.shape)
+        seg_target_all = tf.convert_to_tensor(seg_target_all, dtype=out_map.dtype)
+        seg_mask_all = tf.convert_to_tensor(seg_mask_all, dtype=tf.bool)
+        thresh_target_all = tf.convert_to_tensor(thresh_target_all, dtype=out_map.dtype)
+        thresh_mask_all = tf.convert_to_tensor(thresh_mask_all, dtype=tf.bool)
 
-        # Compute balanced BCE loss for proba_map
-        bce_scale = 5.0
-        bce_loss = tf.concat([
-            tf.keras.losses.binary_crossentropy(seg_target[:,:,:,idx: idx+1], out_map[:,:,:,idx: idx+1], from_logits=True)[..., None]
-            for idx in range(out_map.shape[-1])
-        ], axis=-1)[seg_mask]
-        # bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None][seg_mask]
+        final_loss = tf.convert_to_tensor(0, dtype=float)
+        for idx in range(out_map.shape[-1]):
+            seg_target = seg_target_all[..., idx]
+            seg_mask = seg_mask_all[..., idx]
+            thresh_target = thresh_target_all[..., idx]
+            thresh_mask = thresh_mask_all[..., idx]
+            _out_map = out_map[..., idx]
+            _thresh_map = thresh_map[..., idx]
+            _prob_map = prob_map[..., idx]
+            # Compute balanced BCE loss for proba_map
+            bce_scale = 5.0
 
-        neg_target = 1 - seg_target[seg_mask]
-        positive_count = tf.math.reduce_sum(seg_target[seg_mask])
-        negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3.0 * positive_count])
-        negative_loss = bce_loss * neg_target
-        negative_loss, _ = tf.nn.top_k(negative_loss, tf.cast(negative_count, tf.int32))
-        sum_losses = tf.math.reduce_sum(bce_loss * seg_target[seg_mask]) + tf.math.reduce_sum(negative_loss)
-        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
+            bce_loss = tf.keras.losses.binary_crossentropy(
+                seg_target[..., None], _out_map[..., None], from_logits=True
+            )[seg_mask]
 
-        # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + tf.exp(-50.0 * (prob_map[seg_mask] - thresh_map[seg_mask])))
+            neg_target = 1 - seg_target[seg_mask]
+            positive_count = tf.math.reduce_sum(seg_target[seg_mask])
+            negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3.0 * positive_count])
+            negative_loss = bce_loss * neg_target
+            negative_loss, _ = tf.nn.top_k(negative_loss, tf.cast(negative_count, tf.int32))
+            sum_losses = tf.math.reduce_sum(bce_loss * seg_target[seg_mask]) + tf.math.reduce_sum(negative_loss)
+            balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
 
-        bce_min = tf.math.reduce_min(bce_loss)
-        weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.0
-        inter = tf.math.reduce_sum(bin_map * seg_target[seg_mask] * weights)
-        union = tf.math.reduce_sum(bin_map) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
-        dice_loss = 1 - 2.0 * inter / union
+            # Compute dice loss for approxbin_map
+            bin_map = 1 / (1 + tf.exp(-50.0 * (_prob_map[seg_mask] - _thresh_map[seg_mask])))
 
-        # Compute l1 loss for thresh_map
-        l1_scale = 10.0
-        if tf.reduce_any(thresh_mask):
-            l1_loss = tf.math.reduce_mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
-        else:
-            l1_loss = tf.constant(0.0)
+            bce_min = tf.math.reduce_min(bce_loss)
+            weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.0
+            inter = tf.math.reduce_sum(bin_map * seg_target[seg_mask] * weights)
+            union = tf.math.reduce_sum(bin_map) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
+            dice_loss = 1 - 2.0 * (inter + eps) / (union + eps)
 
-        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
+            # Compute l1 loss for thresh_map
+            l1_scale = 10.0
+            if tf.reduce_any(thresh_mask):
+                l1_loss = tf.math.reduce_mean(tf.math.abs(_thresh_map[thresh_mask] - thresh_target[thresh_mask]))
+            else:
+                l1_loss = tf.constant(0.0)
+
+            final_loss += l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
+        return final_loss
 
     def call(
         self,
@@ -245,7 +261,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
-            out['preds'] = self.postprocessor(prob_map.numpy())
+            out["preds"] = self.postprocessor(prob_map.numpy())
             # out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
