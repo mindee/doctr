@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -74,19 +74,19 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(layers.Layer, NestedObject):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout=0.1, use_gelu: bool = False) -> None:
+    def __init__(
+        self, d_model: int, ffd: int, dropout=0.1, activation_fct: Callable[[Any], Any] = layers.ReLU()
+    ) -> None:
         super(PositionwiseFeedForward, self).__init__()
-        self.use_gelu = use_gelu
+        self.activation_fct = activation_fct
 
         self.first_linear = layers.Dense(ffd, kernel_initializer=tf.initializers.he_uniform())
         self.sec_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
         self.dropout = layers.Dropout(rate=dropout)
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
-        if self.use_gelu:  # used for ViT
-            x = tf.nn.gelu(self.first_linear(x, **kwargs))
-        else:
-            x = tf.nn.relu(self.first_linear(x, **kwargs))
+        x = self.first_linear(x, **kwargs)
+        x = self.activation_fct(x)
         x = self.dropout(x, **kwargs)
         x = self.sec_linear(x, **kwargs)
         x = self.dropout(x, **kwargs)
@@ -137,7 +137,14 @@ class MultiHeadAttention(layers.Layer, NestedObject):
 class EncoderBlock(layers.Layer, NestedObject):
     """Transformer Encoder Block"""
 
-    def __init__(self, num_layers: int, num_heads: int, d_model: int, dropout: float, use_gelu: bool = False) -> None:
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        d_model: int,
+        dropout: float,
+        activation_fct: Callable[[Any], Any] = layers.ReLU(),
+    ) -> None:
         super().__init__()
 
         self.num_layers = num_layers
@@ -147,7 +154,7 @@ class EncoderBlock(layers.Layer, NestedObject):
 
         self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         self.position_feed_forward = [
-            PositionwiseFeedForward(d_model, d_model, dropout, use_gelu=use_gelu) for _ in range(self.num_layers)
+            PositionwiseFeedForward(d_model, d_model, dropout, activation_fct) for _ in range(self.num_layers)
         ]
 
     def call(self, x: tf.Tensor, mask: Optional[tf.Tensor] = None, **kwargs: Any) -> tf.Tensor:

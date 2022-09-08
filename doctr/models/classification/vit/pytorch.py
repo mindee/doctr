@@ -37,7 +37,6 @@ class VisionTransformer(nn.Module):
     Args:
         input_shape: size of the input image
         patch_size: size of the patches to be extracted from the input
-        channels: number of channels in the input image
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
@@ -50,7 +49,6 @@ class VisionTransformer(nn.Module):
         self,
         input_shape: Tuple[int, int, int],
         patch_size: Tuple[int, int] = (4, 4),
-        channels: int = 3,
         d_model: int = 768,
         num_layers: int = 12,
         num_heads: int = 12,
@@ -63,8 +61,8 @@ class VisionTransformer(nn.Module):
         super().__init__()
         self.include_top = include_top
 
-        self.patch_embedding = PatchEmbedding(input_shape[1:], patch_size, channels, d_model)
-        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, use_gelu=True)
+        self.patch_embedding = PatchEmbedding(input_shape[1:], patch_size, input_shape[0], d_model)
+        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, nn.GELU())
 
         if self.include_top:
             self.head = nn.Linear(d_model, num_classes)

@@ -6,7 +6,7 @@
 # This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and Decoder is borrowed
 
 import math
-from typing import Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import torch
 from torch import nn
@@ -57,10 +57,12 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(nn.Sequential):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout: float = 0.1, use_gelu: bool = False) -> None:
+    def __init__(
+        self, d_model: int, ffd: int, dropout: float = 0.1, activation_fct: Callable[[Any], Any] = nn.ReLU()
+    ) -> None:
         super().__init__(
             nn.Linear(d_model, ffd),
-            nn.ReLU() if not use_gelu else nn.GELU(),  # Gelu for ViT
+            activation_fct,
             nn.Dropout(p=dropout),
             nn.Linear(ffd, d_model),
             nn.Dropout(p=dropout),
@@ -101,7 +103,14 @@ class MultiHeadAttention(nn.Module):
 class EncoderBlock(nn.Module):
     """Transformer Encoder Block"""
 
-    def __init__(self, num_layers: int, num_heads: int, d_model: int, dropout: float, use_gelu: bool = False) -> None:
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        d_model: int,
+        dropout: float,
+        activation_fct: Callable[[Any], Any] = nn.ReLU(),
+    ) -> None:
         super().__init__()
 
         self.num_layers = num_layers
@@ -113,7 +122,7 @@ class EncoderBlock(nn.Module):
             [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         )
         self.position_feed_forward = nn.ModuleList(
-            [PositionwiseFeedForward(d_model, d_model, dropout, use_gelu=use_gelu) for _ in range(self.num_layers)]
+            [PositionwiseFeedForward(d_model, d_model, dropout, activation_fct) for _ in range(self.num_layers)]
         )
 
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:

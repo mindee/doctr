@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
+from tensorflow_addons.layers import GELU
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
@@ -59,20 +60,17 @@ class VisionTransformer(Sequential):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        _layers = []
-        _layers.append(
-            _VisionTransformer(
-                input_shape,
-                patch_size,
-                d_model,
-                num_layers,
-                num_heads,
-                dropout,
-                num_classes,
-                include_top,
-            )
+        _vit = _VisionTransformer(
+            input_shape,
+            patch_size,
+            d_model,
+            num_layers,
+            num_heads,
+            dropout,
+            num_classes,
+            include_top,
         )
-        super().__init__(_layers)
+        super().__init__(_vit)
         self.cfg = cfg
 
 
@@ -97,7 +95,7 @@ class _VisionTransformer(layers.Layer, NestedObject):
         self.include_top = include_top
 
         self.patch_embedding = PatchEmbedding(input_shape[:-1], patch_size, d_model)
-        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, use_gelu=True)
+        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, activation_fct=GELU())
 
         if self.include_top:
             self.head = layers.Dense(num_classes, kernel_initializer="he_normal")
