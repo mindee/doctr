@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Decoder", "PositionalEncoding", "MultiHeadAttention", "PositionwiseFeedForward"]
+__all__ = ["Decoder", "PositionalEncoding", "EncoderBlock"]
 
 tf.config.run_functions_eagerly(True)
 
@@ -89,6 +89,7 @@ class PositionwiseFeedForward(layers.Layer, NestedObject):
             x = tf.nn.relu(self.first_linear(x, **kwargs))
         x = self.dropout(x, **kwargs)
         x = self.sec_linear(x, **kwargs)
+        x = self.dropout(x, **kwargs)
         return x
 
 
@@ -131,6 +132,39 @@ class MultiHeadAttention(layers.Layer, NestedObject):
         x = tf.reshape(x, shape=[batch_size, -1, self.num_heads * self.d_k])
 
         return self.output_linear(x, **kwargs)
+
+
+class EncoderBlock(layers.Layer, NestedObject):
+    """Transformer Encoder Block"""
+
+    def __init__(self, num_layers: int, num_heads: int, d_model: int, dropout: float, use_gelu: bool = False) -> None:
+        super().__init__()
+
+        self.num_layers = num_layers
+
+        self.layer_norm = layers.LayerNormalization(epsilon=1e-5)
+        self.dropout = layers.Dropout(rate=dropout)
+
+        self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        self.position_feed_forward = [
+            PositionwiseFeedForward(d_model, d_model, dropout, use_gelu=use_gelu) for _ in range(self.num_layers)
+        ]
+
+    def call(self, x: tf.Tensor, mask: Optional[tf.Tensor] = None, **kwargs: Any) -> tf.Tensor:
+
+        output = x
+
+        for i in range(self.num_layers):
+            normed_output = self.layer_norm(output, **kwargs)
+            output = output + self.dropout(
+                self.attention[i](normed_output, normed_output, normed_output, mask, **kwargs),
+                **kwargs,
+            )
+            normed_output = self.layer_norm(output, **kwargs)
+            output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
+
+        # (batch_size, seq_len, d_model)
+        return self.layer_norm(output, **kwargs)
 
 
 class Decoder(layers.Layer, NestedObject):
