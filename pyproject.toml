@@ -182,5 +182,3 @@ source = ["doctr"]
 [tool.black]
 line-length = 120
 target-version = ['py38']
-
-onnxruntime-gpu="1.12.1",sys_platform
