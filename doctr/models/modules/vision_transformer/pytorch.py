@@ -19,17 +19,16 @@ class PatchEmbedding(nn.Module):
 
     def __init__(
         self,
-        img_size: Tuple[int, int],
+        input_shape: Tuple[int, int, int],
         patch_size: Tuple[int, int],
-        channels: int,
         embed_dim: int,
     ) -> None:
 
         super().__init__()
-        self.img_size = img_size
+        channels, height, width = input_shape
         self.patch_size = patch_size
-        self.grid_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
-        self.num_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
+        self.grid_size = (height // patch_size[0], width // patch_size[1])
+        self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))  # type: ignore[attr-defined]
         self.positions = nn.Parameter(torch.zeros(1, self.num_patches + 1, embed_dim))  # type: ignore[attr-defined]

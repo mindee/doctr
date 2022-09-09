@@ -60,6 +60,7 @@ class VisionTransformer(Sequential):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
+        # Note: fix for onnx export
         _vit = _VisionTransformer(
             input_shape,
             patch_size,
@@ -75,9 +76,6 @@ class VisionTransformer(Sequential):
 
 
 class _VisionTransformer(layers.Layer, NestedObject):
-
-    # Note: fix for onnx export
-
     def __init__(
         self,
         input_shape: Tuple[int, int, int],
@@ -94,7 +92,7 @@ class _VisionTransformer(layers.Layer, NestedObject):
         super().__init__()
         self.include_top = include_top
 
-        self.patch_embedding = PatchEmbedding(input_shape[:-1], patch_size, d_model)
+        self.patch_embedding = PatchEmbedding(input_shape, patch_size, d_model)
         self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, activation_fct=GELU())
 
         if self.include_top:

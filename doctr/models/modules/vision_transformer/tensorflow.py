@@ -18,16 +18,16 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
     def __init__(
         self,
-        img_size: Tuple[int, int],
+        input_shape: Tuple[int, int, int],
         patch_size: Tuple[int, int],
         embed_dim: int,
     ) -> None:
 
         super().__init__()
-        self.img_size = img_size
+        height, width, _ = input_shape
         self.patch_size = patch_size
-        self.grid_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
-        self.num_patches = (img_size[0] // patch_size[0]) * (img_size[1] // patch_size[1])
+        self.grid_size = (height // patch_size[0], width // patch_size[1])
+        self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
         self.positions = self.add_weight(
@@ -57,7 +57,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         B, H, W, C = patches.shape
         patches = tf.reshape(patches, (B, (H * W), C))  # (batch_size, num_patches, d_model)
 
-        cls_tokens = tf.repeat(self.cls_token, B, axis=0)  # (batch_size, num_patches, d_model)
+        cls_tokens = tf.repeat(self.cls_token, B, axis=0)  # (batch_size, 1, d_model)
         # concate cls_tokens to patches
         embeddings = tf.concat([cls_tokens, patches], axis=1)  # (batch_size, num_patches + 1, d_model)
         # add positions to embeddings

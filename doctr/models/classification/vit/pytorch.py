@@ -61,7 +61,7 @@ class VisionTransformer(nn.Module):
         super().__init__()
         self.include_top = include_top
 
-        self.patch_embedding = PatchEmbedding(input_shape[1:], patch_size, input_shape[0], d_model)
+        self.patch_embedding = PatchEmbedding(input_shape, patch_size, d_model)
         self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, nn.GELU())
 
         if self.include_top:
