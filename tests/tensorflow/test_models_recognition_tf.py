@@ -14,6 +14,7 @@ from doctr.models.recognition.crnn.tensorflow import CTCPostProcessor
 from doctr.models.recognition.master.tensorflow import MASTERPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.tensorflow import SARPostProcessor
+from doctr.models.recognition.vitstr.tensorflow import ViTSTRPostProcessor
 from doctr.models.utils import export_model_to_onnx
 from doctr.utils.geometry import extract_crops
 
@@ -26,6 +27,7 @@ from doctr.utils.geometry import extract_crops
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
+        ["vitstr", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -55,6 +57,7 @@ def test_recognition_models(arch_name, input_shape):
         [SARPostProcessor, [2, 30, 119]],
         [CTCPostProcessor, [2, 30, 119]],
         [MASTERPostProcessor, [2, 30, 119]],
+        [ViTSTRPostProcessor, [2, 30, 119]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -98,7 +101,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
 @pytest.mark.parametrize(
     "arch_name",
-    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master"],
+    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr"],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
@@ -152,6 +155,7 @@ def test_recognition_zoo_error():
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
+        ["vitstr", (32, 128, 3)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):

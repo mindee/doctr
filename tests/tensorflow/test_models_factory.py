@@ -44,6 +44,7 @@ def test_push_to_hf_hub():
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-tf-crnn-mobilenet-v3-large"],
         ["sar_resnet31", "recognition", "Felix92/doctr-dummy-tf-sar-resnet31"],
         ["master", "recognition", "Felix92/doctr-dummy-tf-master"],
+        # TODO: ["vitstr", "recognition", "Felix92/doctr-dummy-tf-vitstr"],
     ],
 )
 def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
