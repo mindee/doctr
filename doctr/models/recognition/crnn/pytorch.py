@@ -14,6 +14,7 @@ from openvino.runtime import Core
 from torch import nn
 from torch.nn import functional as F
 
+from doctr.models.classification.effnet.pytorch import efficientnet_b0, efficientnet_b3
 from doctr.datasets import VOCABS, decode_sequence
 from doctr.utils.data import download_from_url
 
@@ -22,7 +23,7 @@ from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small',
-           'crnn_mobilenet_v3_large']
+           'crnn_mobilenet_v3_large', 'crnn_efficientnet_b3']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "crnn_vgg16_bn": {
@@ -52,6 +53,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (3, 32, 128),
         "vocab": VOCABS["french"],
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_mobilenet_v3_large_pt-f5259ec2.pt&src=0",
+    },
+    'crnn_efficientnet_b3': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': "https://github.com/h2oai/doctr/releases/download/efficientnet_crnn/crnn_effnet_b3.pt",
     },
 }
 
@@ -380,5 +388,27 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
         pretrained,
         mobilenet_v3_large_r,
         ignore_keys=["linear.weight", "linear.bias"],
+        **kwargs,
+    )
+def crnn_efficientnet_b3(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnet_b3
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    return _crnn(
+        'crnn_efficientnet_b3',
+        pretrained,
+        efficientnet_b3,
+        ignore_keys=['linear.weight', 'linear.bias'],
         **kwargs,
     )
