@@ -59,6 +59,7 @@ class VisionTransformer(nn.Module):
     ) -> None:
 
         super().__init__()
+        self.cfg = cfg
         self.include_top = include_top
 
         self.patch_embedding = PatchEmbedding(input_shape, patch_size, d_model)
