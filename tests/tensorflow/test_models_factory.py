@@ -13,13 +13,13 @@ def test_push_to_hf_hub():
     model = models.classification.resnet18(pretrained=False)
     with pytest.raises(ValueError):
         # run_config and/or arch must be specified
-        push_to_hf_hub(model, model_name='test', task='classification')
+        push_to_hf_hub(model, model_name="test", task="classification")
     with pytest.raises(ValueError):
         # task must be one of classification, detection, recognition, obj_detection
-        push_to_hf_hub(model, model_name='test', task='invalid_task', arch='mobilenet_v3_small')
+        push_to_hf_hub(model, model_name="test", task="invalid_task", arch="mobilenet_v3_small")
     with pytest.raises(ValueError):
         # arch not in available architectures for task
-        push_to_hf_hub(model, model_name='test', task='detection', arch='crnn_mobilenet_v3_large')
+        push_to_hf_hub(model, model_name="test", task="detection", arch="crnn_mobilenet_v3_large")
 
 
 @pytest.mark.parametrize(
@@ -58,8 +58,8 @@ def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
         assert len(os.listdir(tmp_dir + "/tf_model")) == 3
         assert os.path.exists(tmp_dir + "/config.json")
         tmp_config = json.load(open(tmp_dir + "/config.json"))
-        assert arch_name == tmp_config['arch']
-        assert task_name == tmp_config['task']
+        assert arch_name == tmp_config["arch"]
+        assert task_name == tmp_config["task"]
         assert all(key in model.cfg.keys() for key in tmp_config.keys())
 
         # test from hub

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, List, Union
 
@@ -12,7 +12,7 @@ from tensorflow import keras
 from doctr.models.preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 
-__all__ = ['DetectionPredictor']
+__all__ = ["DetectionPredictor"]
 
 
 class DetectionPredictor(NestedObject):
@@ -23,7 +23,7 @@ class DetectionPredictor(NestedObject):
         model: core detection architecture
     """
 
-    _children_names: List[str] = ['pre_processor', 'model']
+    _children_names: List[str] = ["pre_processor", "model"]
 
     def __init__(
         self,
@@ -46,7 +46,6 @@ class DetectionPredictor(NestedObject):
 
         processed_batches = self.pre_processor(pages)
         predicted_batches = [
-            self.model(batch, return_preds=True, training=False, **kwargs)['preds']
-            for batch in processed_batches
+            self.model(batch, return_preds=True, training=False, **kwargs)["preds"] for batch in processed_batches
         ]
         return [pred for batch in predicted_batches for pred in batch]

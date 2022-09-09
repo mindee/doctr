@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from pathlib import Path
 from typing import List, Sequence, Union
@@ -10,11 +10,11 @@ import numpy as np
 
 from doctr.utils.common_types import AbstractFile
 
-from .html import read_html
 from .image import read_img_as_numpy
+
 # from .pdf import PDF, read_pdf
 
-__all__ = ['DocumentFile']
+__all__ = ["DocumentFile"]
 
 
 class DocumentFile:

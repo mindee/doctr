@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any
 
@@ -19,8 +19,8 @@ def _predictor(
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
     symmetric_pad: bool = True,
-    det_bs: int = 2,
-    reco_bs: int = 128,
+    det_bs: int = 8,
+    reco_bs: int = 256,
     detect_orientation: bool = False,
     detect_language: bool = False,
     **kwargs,
@@ -47,13 +47,13 @@ def _predictor(
         symmetric_pad=symmetric_pad,
         detect_orientation=detect_orientation,
         detect_language=detect_language,
-        **kwargs
+        **kwargs,
     )
 
 
 def ocr_predictor(
-    det_arch: Any = 'db_resnet50',
-    reco_arch: Any = 'crnn_vgg16_bn',
+    det_arch: Any = "db_resnet50",
+    reco_arch: Any = "crnn_vgg16_bn",
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
@@ -61,7 +61,7 @@ def ocr_predictor(
     export_as_straight_boxes: bool = False,
     detect_orientation: bool = False,
     detect_language: bool = False,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
 

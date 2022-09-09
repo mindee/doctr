@@ -50,7 +50,7 @@ def _efficientnet(
     kwargs.pop('classes')
 
     # Build the model
-    model = tv_effnet.__dict__[tv_arch](pretrained = True)
+    model = tv_effnet.__dict__[tv_arch](weights = None)
     # model.features[0][0].stride = (2, 1)
     # model.features[2][0].block[1][0].stride = (2, 1)
     if kwargs.get("vert_stride", None):

@@ -1,7 +1,7 @@
 # Copyright (C) 2021-2022, Mindee.
 
-# This program is licensed under the Apache License version 2.
-# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -43,7 +43,7 @@ def synthesize_text_img(
     # If single letter, make the image square, otherwise expand to meet the text size
     img_size = (h, w) if len(text) > 1 else (max(h, w), max(h, w))
 
-    img = Image.new('RGB', img_size[::-1], color=background_color)
+    img = Image.new("RGB", img_size[::-1], color=background_color)
     d = ImageDraw.Draw(img)
 
     # Offset so that the text is centered
@@ -54,7 +54,6 @@ def synthesize_text_img(
 
 
 class _CharacterGenerator(AbstractDataset):
-
     def __init__(
         self,
         vocab: str,
@@ -81,7 +80,8 @@ class _CharacterGenerator(AbstractDataset):
         if cache_samples:
             self._data = [
                 (synthesize_text_img(char, font_family=font), idx)
-                for idx, char in enumerate(self.vocab) for font in self.font_family
+                for idx, char in enumerate(self.vocab)
+                for font in self.font_family
             ]
 
     def __len__(self) -> int:
@@ -101,7 +101,6 @@ class _CharacterGenerator(AbstractDataset):
 
 
 class _WordGenerator(AbstractDataset):
-
     def __init__(
         self,
         vocab: str,
@@ -131,8 +130,7 @@ class _WordGenerator(AbstractDataset):
         if cache_samples:
             _words = [self._generate_string(*self.wordlen_range) for _ in range(num_samples)]
             self._data = [
-                (synthesize_text_img(text, font_family=random.choice(self.font_family)), text)
-                for text in _words
+                (synthesize_text_img(text, font_family=random.choice(self.font_family)), text) for text in _words
             ]
 
     def _generate_string(self, min_chars: int, max_chars: int) -> str:
