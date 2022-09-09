@@ -10,8 +10,8 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
+from doctr.models.classification import vit
 
-from ...modules import VisionTransformer
 from ...utils.tensorflow import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
@@ -33,6 +33,7 @@ class ViTSTR(Model, RecognitionModel):
     Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
     Args:
+        feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         embedding_units: number of embedding units
         max_length: maximum word length handled by the model
@@ -47,6 +48,7 @@ class ViTSTR(Model, RecognitionModel):
 
     def __init__(
         self,
+        feature_extractor,
         vocab: str,
         embedding_units: int = 384,
         max_length: int = 25,
@@ -63,14 +65,7 @@ class ViTSTR(Model, RecognitionModel):
         self.cfg = cfg
         self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
-        self.feat_extractor = VisionTransformer(
-            img_size=input_shape[:-1],
-            patch_size=patch_size,
-            d_model=embedding_units,
-            num_layers=12,
-            num_heads=6,
-            dropout=dropout_prob,
-        )
+        self.feat_extractor = feature_extractor
         self.head = layers.Dense(len(self.vocab) + 1)
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
@@ -180,9 +175,12 @@ class ViTSTRPostProcessor(RecognitionPostProcessor):
 def _vitstr(
     arch: str,
     pretrained: bool,
+    pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
+
+    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
@@ -191,8 +189,20 @@ def _vitstr(
 
     kwargs["vocab"] = _cfg["vocab"]
 
+    # Feature extractor
+    feat_extractor = vit(
+        pretrained=pretrained_backbone,
+        input_shape=_cfg["input_shape"],
+        patch_size=(4, 8),
+        d_model=384,
+        num_layers=12,
+        num_heads=6,
+        dropout=0.0,
+        include_top=False,
+    )
+
     # Build the model
-    model = ViTSTR(cfg=_cfg, **kwargs)
+    model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]["url"])

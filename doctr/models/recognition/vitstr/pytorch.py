@@ -65,14 +65,7 @@ class ViTSTR(nn.Module, RecognitionModel):
 
         self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
 
-        self.feat_extractor = VisionTransformer(
-            img_size=input_shape[1:],
-            patch_size=patch_size,
-            d_model=embedding_units,
-            num_layers=12,
-            num_heads=6,
-            dropout=dropout_prob,
-        )
+        self.feat_extractor = feature_extractor
         self.head = nn.Linear(embedding_units, len(self.vocab) + 1)
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
