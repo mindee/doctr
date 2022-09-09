@@ -49,7 +49,9 @@ dependencies = [
     "tqdm>=4.30.0",
     "rapidfuzz>=1.6.0",
     "huggingface-hub>=0.4.0",
-    "onnxruntime>=1.12.1",
+    "openvino==2022.2.0.dev20220829",
+    "onnxruntime-gpu>=1.12.1; sys_platform == 'linux'",
+    "onnxruntime>=1.12.1; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]
@@ -61,8 +63,7 @@ tf = [
 torch = [
     "torch>=1.8.0",
     "torchvision>=0.9.0",
-    "openvino==2022.2.0.dev20220829",
-    "onnxruntime-gpu>=1.12.1; sys_platform == 'linux'",
+
     
 ]
 testing = [
