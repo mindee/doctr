@@ -24,6 +24,7 @@ from doctr.models.utils import export_model_to_onnx
         ["magc_resnet31", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (32, 32, 3), (126,)],
         ["mobilenet_v3_large", (32, 32, 3), (126,)],
+        ["vit", (32, 32, 3), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -95,6 +96,7 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet34_wide", (32, 32, 3), (126,)],
         ["resnet50", (32, 32, 3), (126,)],
         ["magc_resnet31", (32, 32, 3), (126,)],
+        ["vit", (32, 32, 3), (126,)],
         # Disabled for now
         # ["mobilenet_v3_small", (512, 512, 3), (126,)],
         # ["mobilenet_v3_large", (512, 512, 3), (126,)],
@@ -109,8 +111,14 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     else:
         model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
-    # batch_size = None for dynamic batch size
-    dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
+
+    if arch_name == "vit":
+        # vit model needs a fixed batch size
+        dummy_input = [tf.TensorSpec([2, *input_shape], tf.float32, name="input")]
+    else:
+        # batch_size = None for dynamic batch size
+        dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
+
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export

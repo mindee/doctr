@@ -6,12 +6,12 @@
 # This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and Decoder is borrowed
 
 import math
-from typing import Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import torch
 from torch import nn
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ["Decoder", "PositionalEncoding", "EncoderBlock"]
 
 
 class PositionalEncoding(nn.Module):
@@ -57,12 +57,15 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(nn.Sequential):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout: float = 0.1) -> None:
-        super().__init__(
+    def __init__(
+        self, d_model: int, ffd: int, dropout: float = 0.1, activation_fct: Callable[[Any], Any] = nn.ReLU()
+    ) -> None:
+        super().__init__(  # type: ignore[call-overload]
             nn.Linear(d_model, ffd),
-            nn.ReLU(),
+            activation_fct,
             nn.Dropout(p=dropout),
             nn.Linear(ffd, d_model),
+            nn.Dropout(p=dropout),
         )
 
 
@@ -95,6 +98,45 @@ class MultiHeadAttention(nn.Module):
         x = x.transpose(1, 2).contiguous().view(batch_size, -1, self.num_heads * self.d_k)
 
         return self.output_linear(x)
+
+
+class EncoderBlock(nn.Module):
+    """Transformer Encoder Block"""
+
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        d_model: int,
+        dropout: float,
+        activation_fct: Callable[[Any], Any] = nn.ReLU(),
+    ) -> None:
+        super().__init__()
+
+        self.num_layers = num_layers
+
+        self.layer_norm = nn.LayerNorm(d_model, eps=1e-5)
+        self.dropout = nn.Dropout(dropout)
+
+        self.attention = nn.ModuleList(
+            [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        )
+        self.position_feed_forward = nn.ModuleList(
+            [PositionwiseFeedForward(d_model, d_model, dropout, activation_fct) for _ in range(self.num_layers)]
+        )
+
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+
+        output = x
+
+        for i in range(self.num_layers):
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(self.attention[i](normed_output, normed_output, normed_output, mask))
+            normed_output = self.layer_norm(output)
+            output = output + self.dropout(self.position_feed_forward[i](normed_output))
+
+        # (batch_size, seq_len, d_model)
+        return self.layer_norm(output)
 
 
 class Decoder(nn.Module):
