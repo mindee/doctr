@@ -112,7 +112,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     else:
         model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
 
-    if arch_name == "vit":
+    if arch_name == "vit_b":
         # vit model needs a fixed batch size
         dummy_input = [tf.TensorSpec([2, *input_shape], tf.float32, name="input")]
     else:
