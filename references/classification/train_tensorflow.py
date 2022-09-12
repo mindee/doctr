@@ -321,7 +321,7 @@ def main(args):
 
     if args.export_onnx:
         print("Exporting model to ONNX...")
-        if args.arch == "vit":
+        if args.arch == "vit_b":
             # fixed batch size for vit
             dummy_input = [tf.TensorSpec([1, args.input_size, args.input_size, 3], tf.float32, name="input")]
         else:
