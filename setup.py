@@ -8,7 +8,7 @@ from pathlib import Path
 
 from setuptools import setup
 PKG_NAME = "python-doctr"
-VERSION = os.getenv("BUILD_VERSION", "0.5.2a0")
+VERSION = os.getenv("BUILD_VERSION", "0.5.3a0")
 
 
 if __name__ == "__main__":
