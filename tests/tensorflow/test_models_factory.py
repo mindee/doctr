@@ -33,7 +33,7 @@ def test_push_to_hf_hub():
         ["resnet50", "classification", "Felix92/doctr-dummy-tf-resnet50"],
         ["magc_resnet31", "classification", "Felix92/doctr-dummy-tf-magc-resnet31"],
         ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-tf-mobilenet-v3-large"],
-        ["vit_b", "classification", "Felix92/doctr-dummy-tf-vit"],
+        ["vit_b", "classification", "Felix92/doctr-dummy-tf-vit-b"],
         ["db_resnet50", "detection", "Felix92/doctr-dummy-tf-db-resnet50"],
         ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-tf-db-mobilenet-v3-large"],
         ["linknet_resnet18", "detection", "Felix92/doctr-dummy-tf-linknet-resnet18"],
