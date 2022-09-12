@@ -29,7 +29,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class VisionTransformer(nn.Sequential):
+class VisionTransformer(nn.Module):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
