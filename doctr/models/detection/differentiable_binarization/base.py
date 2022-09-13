@@ -5,7 +5,7 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Tuple, Union, Dict
+from typing import Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -268,9 +268,11 @@ class _DBNet:
         output_shape: Tuple[int, int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
-        for i, tgt in enumerate(target):
+        new_target = []
+        for tgt in target:
             if isinstance(tgt, np.ndarray):
-                target[i] = {"words": tgt}
+                new_target.append({"words": tgt})
+        target = new_target.copy()
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
@@ -279,17 +281,19 @@ class _DBNet:
         input_dtype = list(target[0].values())[0].dtype if len(target) > 0 else np.float32
 
         h, w = output_shape[1:-1]
-        seg_target: np.ndarray = np.zeros(output_shape, dtype=np.uint8)
-        seg_mask: np.ndarray = np.ones(output_shape, dtype=bool)
-        thresh_target: np.ndarray = np.zeros(output_shape, dtype=np.float32)
-        thresh_mask: np.ndarray = np.ones(output_shape, dtype=np.uint8)
+        target_shape = (output_shape[0], output_shape[-1], h, w)
+        seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
+        seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
+        thresh_target: np.ndarray = np.zeros(target_shape, dtype=np.float32)
+        thresh_mask: np.ndarray = np.ones(target_shape, dtype=np.uint8)
 
         for idx, tgt in enumerate(target):
             for class_idx, _target in enumerate(tgt.values()):
                 # Draw each polygon on gt
                 if _target.shape[0] == 0:
                     # Empty image, full masked
-                    seg_mask[idx, :, :, class_idx] = False
+                    # seg_mask[idx, :, :, class_idx] = False
+                    seg_mask[idx, class_idx] = False
 
                 # Absolute bounding boxes
                 abs_boxes = _target.copy()
@@ -317,7 +321,8 @@ class _DBNet:
                 for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
                     # Mask boxes that are too small
                     if box_size < self.min_size_box:
-                        seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
 
                     # Negative shrink for gt, as described in paper
@@ -330,18 +335,24 @@ class _DBNet:
 
                     # Draw polygon on gt if it is valid
                     if len(shrinked) == 0:
-                        seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
                     shrinked = np.array(shrinked[0]).reshape(-1, 2)
                     if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                        seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, :, :, class_idx][..., None], [shrinked.astype(np.int32)], 1)
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrinked.astype(np.int32)], 1)
 
                     # Draw on both thresh map and thresh mask
-                    poly, thresh_target[idx, :, :, class_idx], thresh_mask[idx, :, :, class_idx] = self.draw_thresh_map(
-                        poly, thresh_target[idx, :, :, class_idx], thresh_mask[idx, :, :, class_idx]
+                    poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
+                        poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
                     )
+        seg_target = seg_target.transpose((0, 2, 3, 1))
+        seg_mask = seg_mask.transpose((0, 2, 3, 1))
+        thresh_target = thresh_target.transpose((0, 2, 3, 1))
+        thresh_mask = thresh_mask.transpose((0, 2, 3, 1))
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 

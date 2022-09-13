@@ -181,39 +181,31 @@ class LinkNet(_LinkNet, keras.Model):
         Returns:
             A loss tensor
         """
-        seg_target_all, seg_mask_all = self.build_target(target, out_map.shape[1:])
-        dice_loss_all = tf.convert_to_tensor(0, dtype=float)
-        focal_loss_all = tf.convert_to_tensor(0, dtype=float)
-        for idx in range(seg_target_all.shape[-1]):
-            seg_target = seg_target_all[..., idx]  # [..., None]
-            seg_mask = seg_mask_all[..., idx]  # [..., None]
-            _out_map = out_map[..., idx]  # [..., None]
-            seg_target = tf.convert_to_tensor(seg_target, dtype=_out_map.dtype)
-            seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
-            seg_mask = tf.cast(seg_mask, tf.float32)
+        seg_target, seg_mask = self.build_target(target, out_map.shape[1:])
+        seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
+        seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+        seg_mask = tf.cast(seg_mask, tf.float32)
 
-            bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], _out_map[..., None], from_logits=True)
-            proba_map = tf.sigmoid(_out_map)
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
+        proba_map = tf.sigmoid(out_map)
 
-            # Focal loss
-            if gamma < 0:
-                raise ValueError("Value of gamma should be greater than or equal to zero.")
-            # Convert logits to prob, compute gamma factor
-            p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
-            alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
-            # Unreduced loss
-            focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
-            # Class reduced
-            focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
+        # Focal loss
+        if gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+        # Convert logits to prob, compute gamma factor
+        p_t = (seg_target * proba_map) + ((1 - seg_target) * (1 - proba_map))
+        alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
+        # Unreduced loss
+        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+        # Class reduced
+        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2, 3)) / tf.reduce_sum(seg_mask, (0, 1, 2, 3))
 
-            # Dice loss
-            inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
-            cardinality = tf.math.reduce_sum((proba_map + seg_target), (0, 1, 2))
-            dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+        # Dice loss
+        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2, 3))
+        cardinality = tf.math.reduce_sum((proba_map + seg_target), (0, 1, 2, 3))
+        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
-            focal_loss_all += tf.reduce_mean(focal_loss)
-            dice_loss_all += tf.reduce_mean(dice_loss)
-        return focal_loss_all + dice_loss_all
+        return focal_loss + dice_loss
 
     def call(
         self,

@@ -25,6 +25,10 @@ class AbstractDataset(_AbstractDataset):
         if isinstance(target, dict):
             assert "boxes" in target, "Target should contain 'boxes' key"
             assert "labels" in target, "Target should contain 'labels' key"
+        elif isinstance(target, tuple):
+            assert isinstance(target[0], str) or isinstance(
+                target[0], np.ndarray
+            ), "Target should be a string or a numpy array"
         else:
             assert isinstance(target, str) or isinstance(
                 target, np.ndarray
