@@ -149,9 +149,9 @@ class EncoderBlock(layers.Layer, NestedObject):
 
         self.num_layers = num_layers
 
-        self.layer_norm_1 = layers.LayerNormalization(epsilon=1e-5)
-        self.layer_norm_2 = layers.LayerNormalization(epsilon=1e-5)
-        self.layer_norm_3 = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_input = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_output = layers.LayerNormalization(epsilon=1e-5)
         self.dropout = layers.Dropout(rate=dropout)
 
         self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
@@ -164,16 +164,16 @@ class EncoderBlock(layers.Layer, NestedObject):
         output = x
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm_1(output, **kwargs)
+            normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
                 self.attention[i](normed_output, normed_output, normed_output, mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm_2(output, **kwargs)
+            normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm_3(output, **kwargs)
+        return self.layer_norm_output(output, **kwargs)
 
 
 class Decoder(layers.Layer, NestedObject):
@@ -194,10 +194,10 @@ class Decoder(layers.Layer, NestedObject):
         self.num_layers = num_layers
         self.d_model = d_model
 
-        self.layer_norm_1 = layers.LayerNormalization(epsilon=1e-5)
-        self.layer_norm_2 = layers.LayerNormalization(epsilon=1e-5)
-        self.layer_norm_3 = layers.LayerNormalization(epsilon=1e-5)
-        self.layer_norm_4 = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_input = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_masked_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_output = layers.LayerNormalization(epsilon=1e-5)
 
         self.dropout = layers.Dropout(rate=dropout)
         self.embed = layers.Embedding(vocab_size, d_model)
@@ -221,18 +221,18 @@ class Decoder(layers.Layer, NestedObject):
         output = pos_enc_tgt
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm_1(output, **kwargs)
+            normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
                 self.attention[i](normed_output, normed_output, normed_output, target_mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm_2(output, **kwargs)
+            normed_output = self.layer_norm_masked_attention(output, **kwargs)
             output = output + self.dropout(
                 self.source_attention[i](normed_output, memory, memory, source_mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm_3(output, **kwargs)
+            normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm_4(output, **kwargs)
+        return self.layer_norm_output(output, **kwargs)

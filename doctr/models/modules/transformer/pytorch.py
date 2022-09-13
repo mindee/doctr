@@ -115,9 +115,9 @@ class EncoderBlock(nn.Module):
 
         self.num_layers = num_layers
 
-        self.layer_norm_1 = nn.LayerNorm(d_model, eps=1e-5)
-        self.layer_norm_2 = nn.LayerNorm(d_model, eps=1e-5)
-        self.layer_norm_3 = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_input = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_attention = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_output = nn.LayerNorm(d_model, eps=1e-5)
         self.dropout = nn.Dropout(dropout)
 
         self.attention = nn.ModuleList(
@@ -132,13 +132,13 @@ class EncoderBlock(nn.Module):
         output = x
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm_1(output)
+            normed_output = self.layer_norm_input(output)
             output = output + self.dropout(self.attention[i](normed_output, normed_output, normed_output, mask))
-            normed_output = self.layer_norm_2(output)
+            normed_output = self.layer_norm_attention(output)
             output = output + self.dropout(self.position_feed_forward[i](normed_output))
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm_3(output)
+        return self.layer_norm_output(output)
 
 
 class Decoder(nn.Module):
@@ -159,10 +159,10 @@ class Decoder(nn.Module):
         self.num_layers = num_layers
         self.d_model = d_model
 
-        self.layer_norm_1 = nn.LayerNorm(d_model, eps=1e-5)
-        self.layer_norm_2 = nn.LayerNorm(d_model, eps=1e-5)
-        self.layer_norm_3 = nn.LayerNorm(d_model, eps=1e-5)
-        self.layer_norm_4 = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_input = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_masked_attention = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_attention = nn.LayerNorm(d_model, eps=1e-5)
+        self.layer_norm_output = nn.LayerNorm(d_model, eps=1e-5)
 
         self.dropout = nn.Dropout(dropout)
         self.embed = nn.Embedding(vocab_size, d_model)
@@ -191,12 +191,12 @@ class Decoder(nn.Module):
         output = pos_enc_tgt
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm_1(output)
+            normed_output = self.layer_norm_input(output)
             output = output + self.dropout(self.attention[i](normed_output, normed_output, normed_output, target_mask))
-            normed_output = self.layer_norm_2(output)
+            normed_output = self.layer_norm_masked_attention(output)
             output = output + self.dropout(self.source_attention[i](normed_output, memory, memory, source_mask))
-            normed_output = self.layer_norm_3(output)
+            normed_output = self.layer_norm_attention(output)
             output = output + self.dropout(self.position_feed_forward[i](normed_output))
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm_4(output)
+        return self.layer_norm_output(output)
