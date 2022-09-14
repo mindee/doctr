@@ -29,7 +29,28 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class VisionTransformer(nn.Module):
+class ClassifierHead(nn.Module):
+    """Vision Transformer classification head
+
+    Args:
+        in_channels: number of input channels
+        num_classes: number of output classes
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        num_classes: int,
+    ) -> None:
+        super().__init__()
+        self.head = nn.Linear(in_channels, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # (batch_size, num_classes) cls token
+        return self.head(x[:, 0])
+
+
+class VisionTransformer(nn.Sequential):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
@@ -58,26 +79,17 @@ class VisionTransformer(nn.Module):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__()
+        _layers: List[nn.Module]
+        _layers = [
+            PatchEmbedding(input_shape, patch_size, d_model),
+            EncoderBlock(num_layers, num_heads, d_model, dropout, nn.GELU()),
+        ]
+
+        if include_top:
+            _layers.append(ClassifierHead(d_model, num_classes))
+
+        super().__init__(*_layers)
         self.cfg = cfg
-        self.include_top = include_top
-
-        self.patch_embedding = PatchEmbedding(input_shape, patch_size, d_model)
-        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, nn.GELU())
-
-        if self.include_top:
-            self.head = nn.Linear(d_model, num_classes)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-
-        embeddings = self.patch_embedding(x)
-        encoded = self.encoder(embeddings)
-
-        if self.include_top:
-            # (batch_size, num_classes) cls token
-            return self.head(encoded[:, 0])
-
-        return encoded
 
 
 def _vit(
