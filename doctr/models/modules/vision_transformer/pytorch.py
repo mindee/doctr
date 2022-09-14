@@ -32,7 +32,7 @@ class PatchEmbedding(nn.Module):
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))  # type: ignore[attr-defined]
         self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))  # type: ignore[attr-defined]
-        self.proj = nn.Conv2d(channels, embed_dim, kernel_size=self.patch_size, stride=self.patch_size)
+        self.proj = nn.Conv2d(channels, embed_dim, kernel_size=self.patch_size, stride=self.patch_size, padding='valid')
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, C, H, W = x.shape

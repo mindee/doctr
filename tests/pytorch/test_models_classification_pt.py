@@ -121,7 +121,7 @@ def test_crop_orientation_model(mock_text_box):
         ["mobilenet_v3_small", (3, 32, 32), (126,)],
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
         ["mobilenet_v3_small_orientation", (3, 128, 128), (4,)],
-        ["vit_b", (3, 32, 32), (126,)],
+        # ["vit_b", (3, 32, 32), (126,)], disabled for now : https://github.com/pytorch/pytorch/issues/68880
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):
