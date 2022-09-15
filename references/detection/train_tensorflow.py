@@ -14,6 +14,7 @@ import multiprocessing as mp
 import time
 
 import numpy as np
+import psutil
 import tensorflow as tf
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
@@ -197,7 +198,9 @@ def main(args):
 
     # Metrics
     val_metric = LocalizationConfusion(
-        use_polygons=args.rotation and not args.eval_straight, mask_shape=(args.input_size, args.input_size)
+        use_polygons=args.rotation and not args.eval_straight,
+        mask_shape=(args.input_size, args.input_size),
+        use_broadcasting=True if int(psutil.virtual_memory().total / 1024**3) > 63 else False,
     )
     if args.test_only:
         print("Running evaluation")

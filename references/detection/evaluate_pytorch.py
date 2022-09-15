@@ -12,6 +12,7 @@ import multiprocessing as mp
 import time
 from pathlib import Path
 
+import psutil
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision.transforms import Normalize
@@ -130,7 +131,11 @@ def main(args):
         model = model.cuda()
 
     # Metrics
-    metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=input_shape)
+    metric = LocalizationConfusion(
+        use_polygons=args.rotation,
+        mask_shape=input_shape,
+        use_broadcasting=True if int(psutil.virtual_memory().total / 1024**3) > 63 else False,
+    )
 
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)

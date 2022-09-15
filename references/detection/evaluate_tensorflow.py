@@ -12,6 +12,7 @@ import multiprocessing as mp
 import time
 from pathlib import Path
 
+import psutil
 import tensorflow as tf
 from tensorflow.keras import mixed_precision
 from tqdm import tqdm
@@ -110,7 +111,11 @@ def main(args):
     batch_transforms = T.Normalize(mean=mean, std=std)
 
     # Metrics
-    metric = LocalizationConfusion(use_polygons=args.rotation, mask_shape=input_shape[:2])
+    metric = LocalizationConfusion(
+        use_polygons=args.rotation,
+        mask_shape=input_shape[:2],
+        use_broadcasting=True if int(psutil.virtual_memory().total / 1024**3) > 63 else False,
+    )
 
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric)
