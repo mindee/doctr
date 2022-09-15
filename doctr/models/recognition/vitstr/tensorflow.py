@@ -194,7 +194,7 @@ def _vitstr(
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
-    feat_extractor = vit_b(
+    feat_extractor = vit_b(  # type: ignore[operator]
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         patch_size=(4, 8),
