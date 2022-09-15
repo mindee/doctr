@@ -45,7 +45,8 @@ class PatchEmbedding(nn.Module):
         x = x.reshape(
             B, C, (H // self.patch_size[0]), self.patch_size[0], (W // self.patch_size[1]), self.patch_size[1]
         )
-        patches = x.permute(0, 2, 4, 1, 3, 5).flatten(1, 2).flatten(2, 4)  # (B, H, W, C, ph, pw) -> (B, H*W, C*ph*pw)
+        # (B, H', W', C, ph, pw) -> (B, H'*W', C*ph*pw)
+        patches = x.permute(0, 2, 4, 1, 3, 5).flatten(1, 2).flatten(2, 4)
         patches = self.proj(patches)  # (batch_size, num_patches, d_model)
 
         cls_tokens = self.cls_token.expand(B, -1, -1)  # (batch_size, 1, d_model)
