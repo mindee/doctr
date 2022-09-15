@@ -11,10 +11,10 @@ from torch import nn
 from torch.nn import functional as F
 
 from doctr.datasets import VOCABS
-from doctr.models.classification import vit
+from doctr.models.classification import vit_b
 
 from ...utils.pytorch import load_pretrained_params
-from ..core import RecognitionModel, RecognitionPostProcessor
+from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr"]
 
@@ -29,7 +29,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class ViTSTR(nn.Module, RecognitionModel):
+class ViTSTR(_ViTSTR, nn.Module):
     """Implements a ViTSTR architecture as described in `"Vision Transformer for Fast and
     Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
@@ -63,10 +63,10 @@ class ViTSTR(nn.Module, RecognitionModel):
         self.exportable = exportable
         self.cfg = cfg
 
-        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+        self.max_length = max_length + 3  # Add 1 timestep for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
-        self.head = nn.Linear(embedding_units, len(self.vocab) + 1)
+        self.head = nn.Linear(embedding_units, len(self.vocab) + 3)
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
@@ -93,7 +93,7 @@ class ViTSTR(nn.Module, RecognitionModel):
         # batch, seqlen, embedding_size
         B, N, E = features.size()
         features = features.reshape(B * N, E)
-        logits = self.head(features).view(B, N, len(self.vocab) + 1)  # (batch, seqlen, vocab + 1)
+        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch, seqlen, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, Any] = {}
@@ -121,29 +121,32 @@ class ViTSTR(nn.Module, RecognitionModel):
     ) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
+
         Args:
-            model_output: predicted logits of the model
             gt: the encoded tensor with gt labels
+            model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
+
         Returns:
             The loss of the model on the batch
         """
         # Input length : number of timesteps
         input_len = model_output.shape[1]
-        # Add one for additional <eos> token
+        # Add one for additional <eos> token (sos disappear in shift!)
         seq_len = seq_len + 1
-        # Compute loss
-        # (N, L, vocab_size + 1)
-        cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction="none")
-        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
+        # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
+        # The "masked" first gt char is <sos>. Delete last logit of the model output.
+        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
+        # Compute mask, remove 1 timestep here as well
+        mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.mean()
 
 
-class ViTSTRPostProcessor(RecognitionPostProcessor):
-    """Post processor for ViTSTR architectures
+class ViTSTRPostProcessor(_ViTSTRPostProcessor):
+    """Post processor for ViTSTR architecture
 
     Args:
         vocab: string containing the ordered sequence of supported characters
@@ -163,7 +166,7 @@ class ViTSTRPostProcessor(RecognitionPostProcessor):
         # Manual decoding
         word_values = [
             "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
-            for encoded_seq in out_idxs.detach().cpu().numpy()
+            for encoded_seq in out_idxs.cpu().numpy()
         ]
 
         return list(zip(word_values, probs.numpy().tolist()))
@@ -188,7 +191,7 @@ def _vitstr(
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Feature extractor
-    feat_extractor = vit(
+    feat_extractor = vit_b(  # type: ignore[operator]
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         patch_size=(4, 8),
@@ -198,7 +201,6 @@ def _vitstr(
         dropout=0.0,
         include_top=False,
     )
-    # TODO: update also Tensorflow all !!!
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)

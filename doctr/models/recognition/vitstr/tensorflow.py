@@ -10,10 +10,10 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
-from doctr.models.classification import vit
+from doctr.models.classification import vit_b
 
 from ...utils.tensorflow import load_pretrained_params
-from ..core import RecognitionModel, RecognitionPostProcessor
+from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr"]
 
@@ -28,7 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class ViTSTR(Model, RecognitionModel):
+class ViTSTR(_ViTSTR, Model):
     """Implements a ViTSTR architecture as described in `"Vision Transformer for Fast and
     Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
@@ -63,10 +63,10 @@ class ViTSTR(Model, RecognitionModel):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        self.max_length = max_length + 1  # Add 1 timestep for EOS after the longest word
+        self.max_length = max_length + 3  # Add 1 timestep for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
-        self.head = layers.Dense(len(self.vocab) + 1)
+        self.head = layers.Dense(len(self.vocab) + 3)
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
@@ -74,30 +74,34 @@ class ViTSTR(Model, RecognitionModel):
     def compute_loss(
         model_output: tf.Tensor,
         gt: tf.Tensor,
-        seq_len: tf.Tensor,
+        seq_len: List[int],
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
+
         Args:
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
+
         Returns:
             The loss of the model on the batch
         """
         # Input length : number of timesteps
         input_len = tf.shape(model_output)[1]
-        # Add one for additional <eos> token
-        seq_len = seq_len + 1
+        # Add one for additional <eos> token (sos disappear in shift!)
+        seq_len = tf.cast(seq_len, tf.int32) + 1
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
-        # Compute loss
-        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt, model_output)
+        # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
+        # The "masked" first gt char is <sos>. Delete last logit of the model output.
+        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:, :], model_output[:, :-1, :])
         # Compute mask
         mask_values = tf.zeros_like(cce)
-        mask_2d = tf.sequence_mask(seq_len, input_len)
+        mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
         masked_loss = tf.where(mask_2d, cce, mask_values)
         ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
+
         return tf.expand_dims(ce_loss, axis=1)
 
     def call(
@@ -122,7 +126,7 @@ class ViTSTR(Model, RecognitionModel):
         # batch, seqlen, embedding_size
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 1))  # (batch, seqlen, vocab + 1)
+        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch, seqlen, vocab + 1)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
@@ -143,7 +147,7 @@ class ViTSTR(Model, RecognitionModel):
         return out
 
 
-class ViTSTRPostProcessor(RecognitionPostProcessor):
+class ViTSTRPostProcessor(_ViTSTRPostProcessor):
     """Post processor for ViTSTR architecture
 
     Args:
@@ -190,7 +194,7 @@ def _vitstr(
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
-    feat_extractor = vit(
+    feat_extractor = vit_b(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         patch_size=(4, 8),
