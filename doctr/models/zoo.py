@@ -104,7 +104,7 @@ def ocr_predictor(
         det_arch,
         reco_arch,
         pretrained,
-        pretrained_backbone,
+        pretrained_backbone=pretrained_backbone,
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
