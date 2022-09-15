@@ -17,7 +17,7 @@ from doctr.utils.repr import NestedObject
 
 from ...utils import load_pretrained_params
 
-__all__ = ["vit"]
+__all__ = ["vit_b"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -49,7 +49,7 @@ class VisionTransformer(Sequential):
 
     def __init__(
         self,
-        input_shape: Tuple[int, int, int],
+        input_shape: Tuple[int, int, int] = (32, 32, 3),
         patch_size: Tuple[int, int] = (4, 4),
         d_model: int = 768,
         num_layers: int = 12,
@@ -78,7 +78,7 @@ class VisionTransformer(Sequential):
 class _VisionTransformer(layers.Layer, NestedObject):
     def __init__(
         self,
-        input_shape: Tuple[int, int, int],
+        input_shape: Tuple[int, int, int] = (32, 32, 3),
         patch_size: Tuple[int, int] = (4, 4),
         d_model: int = 768,
         num_layers: int = 12,
@@ -135,7 +135,7 @@ def _vit(
     return model
 
 
-def vit(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
+def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.

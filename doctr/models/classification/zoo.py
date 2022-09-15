@@ -25,7 +25,7 @@ ARCHS: List[str] = [
     "resnet50",
     "resnet34_wide",
     "vgg16_bn_r",
-    "vit",
+    "vit_b",
 ]
 ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_orientation"]
 
