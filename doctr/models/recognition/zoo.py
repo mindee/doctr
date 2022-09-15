@@ -23,7 +23,10 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
 
-        _model = recognition.__dict__[arch](pretrained=pretrained)
+        _model = recognition.__dict__[arch](
+            pretrained=pretrained, pretrained_backbone=kwargs.get("pretrained_backbone", True)
+        )
+        kwargs.pop("pretrained_backbone", None)
     else:
         if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER)):
             raise ValueError(f"unknown architecture: {type(arch)}")

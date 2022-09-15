@@ -241,7 +241,7 @@ def _linknet(
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
     fpn_layers: List[str],
-    pretrained_backbone: bool = False,
+    pretrained_backbone: bool = True,
     **kwargs: Any,
 ) -> LinkNet:
 
