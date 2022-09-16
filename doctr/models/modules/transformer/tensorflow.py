@@ -142,6 +142,7 @@ class EncoderBlock(layers.Layer, NestedObject):
         num_layers: int,
         num_heads: int,
         d_model: int,
+        dff: int,
         dropout: float,
         activation_fct: Callable[[Any], Any] = layers.ReLU(),
     ) -> None:
@@ -156,7 +157,7 @@ class EncoderBlock(layers.Layer, NestedObject):
 
         self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         self.position_feed_forward = [
-            PositionwiseFeedForward(d_model, d_model, dropout, activation_fct) for _ in range(self.num_layers)
+            PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)
         ]
 
     def call(self, x: tf.Tensor, mask: Optional[tf.Tensor] = None, **kwargs: Any) -> tf.Tensor:

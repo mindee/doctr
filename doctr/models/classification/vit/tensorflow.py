@@ -31,6 +31,23 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
+class ClassifierHead(layers.Layer, NestedObject):
+    """Classifier head for Vision Transformer
+
+    Args:
+        num_classes: number of output classes
+    """
+
+    def __init__(self, num_classes: int) -> None:
+        super().__init__()
+
+        self.head = layers.Dense(num_classes, kernel_initializer="he_normal")
+
+    def call(self, x: tf.Tensor) -> tf.Tensor:
+        # (batch_size, num_classes) cls token
+        return self.head(x[:, 0])
+
+
 class VisionTransformer(Sequential):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
@@ -42,6 +59,7 @@ class VisionTransformer(Sequential):
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
+        ffd_ratio: multiplikator for the hidden dimension of the feedforward layer
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -54,60 +72,22 @@ class VisionTransformer(Sequential):
         d_model: int = 768,
         num_layers: int = 12,
         num_heads: int = 12,
+        ffd_ratio: int = 4,
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        # Note: fix for onnx export
-        _vit = _VisionTransformer(
-            input_shape,
-            patch_size,
-            d_model,
-            num_layers,
-            num_heads,
-            dropout,
-            num_classes,
-            include_top,
-        )
-        super().__init__(_vit)
+        _layers = [
+            PatchEmbedding(input_shape, patch_size, d_model),
+            EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, activation_fct=GELU()),
+        ]
+        if include_top:
+            _layers.append(ClassifierHead(num_classes))
+
+        super().__init__(_layers)
         self.cfg = cfg
-
-
-class _VisionTransformer(layers.Layer, NestedObject):
-    def __init__(
-        self,
-        input_shape: Tuple[int, int, int] = (32, 32, 3),
-        patch_size: Tuple[int, int] = (4, 4),
-        d_model: int = 768,
-        num_layers: int = 12,
-        num_heads: int = 12,
-        dropout: float = 0.0,
-        num_classes: int = 1000,
-        include_top: bool = True,
-        cfg: Optional[Dict[str, Any]] = None,
-    ) -> None:
-
-        super().__init__()
-        self.include_top = include_top
-
-        self.patch_embedding = PatchEmbedding(input_shape, patch_size, d_model)
-        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, activation_fct=GELU())
-
-        if self.include_top:
-            self.head = layers.Dense(num_classes, kernel_initializer="he_normal")
-
-    def __call__(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
-
-        embeddings = self.patch_embedding(x, **kwargs)
-        encoded = self.encoder(embeddings, **kwargs)
-
-        if self.include_top:
-            # (batch_size, num_classes) cls token
-            return self.head(encoded[:, 0], **kwargs)
-
-        return encoded
 
 
 def _vit(
