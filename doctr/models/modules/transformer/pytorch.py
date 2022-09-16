@@ -108,7 +108,7 @@ class EncoderBlock(nn.Module):
         num_layers: int,
         num_heads: int,
         d_model: int,
-        dff: int,
+        dff: int,  # hidden dimension of the feedforward network
         dropout: float,
         activation_fct: Callable[[Any], Any] = nn.ReLU(),
     ) -> None:
@@ -152,7 +152,7 @@ class Decoder(nn.Module):
         d_model: int,
         vocab_size: int,
         dropout: float = 0.2,
-        dff: int = 2048,
+        dff: int = 2048,  # hidden dimension of the feedforward network
         maximum_position_encoding: int = 50,
     ) -> None:
 

@@ -142,7 +142,7 @@ class EncoderBlock(layers.Layer, NestedObject):
         num_layers: int,
         num_heads: int,
         d_model: int,
-        dff: int,
+        dff: int,  # hidden dimension of the feedforward network
         dropout: float,
         activation_fct: Callable[[Any], Any] = layers.ReLU(),
     ) -> None:
@@ -187,7 +187,7 @@ class Decoder(layers.Layer, NestedObject):
         d_model: int,
         vocab_size: int,
         dropout: float = 0.2,
-        dff: int = 2048,
+        dff: int = 2048,  # hidden dimension of the feedforward network
         maximum_position_encoding: int = 50,
     ) -> None:
 
