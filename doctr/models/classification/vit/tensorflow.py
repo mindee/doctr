@@ -59,7 +59,7 @@ class VisionTransformer(Sequential):
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
-        ffd_ratio: multiplikator for the hidden dimension of the feedforward layer
+        ffd_ratio: multiplier for the hidden dimension of the feedforward layer
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -116,7 +116,7 @@ def _vit(
 
 
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
-    """VisionTransformer architecture as described in
+    """VisionTransformer-B architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
