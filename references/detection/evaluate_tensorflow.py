@@ -58,6 +58,8 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
+    system_total_memory = int(psutil.virtual_memory().total / 1024**3)
+
     # AMP
     if args.amp:
         mixed_precision.set_global_policy("mixed_float16")
@@ -114,7 +116,7 @@ def main(args):
     metric = LocalizationConfusion(
         use_polygons=args.rotation,
         mask_shape=input_shape[:2],
-        use_broadcasting=True if int(psutil.virtual_memory().total / 1024**3) > 63 else False,
+        use_broadcasting=True if system_total_memory > 62 else False,
     )
 
     print("Running evaluation")

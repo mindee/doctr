@@ -64,6 +64,7 @@ def main(args):
         args.workers = min(16, mp.cpu_count())
 
     torch.backends.cudnn.benchmark = True
+    system_total_memory = int(psutil.virtual_memory().total / 1024**3)
 
     # Load docTR model
     model = detection.__dict__[args.arch](
@@ -134,7 +135,7 @@ def main(args):
     metric = LocalizationConfusion(
         use_polygons=args.rotation,
         mask_shape=input_shape,
-        use_broadcasting=True if int(psutil.virtual_memory().total / 1024**3) > 63 else False,
+        use_broadcasting=True if system_total_memory > 62 else False,
     )
 
     print("Running evaluation")
