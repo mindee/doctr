@@ -38,7 +38,7 @@ class PatchEmbedding(nn.Module):
         assert W % self.patch_size[1] == 0, "Image width must be divisible by patch width"
 
         # patchify image without convolution
-        # adopted from:
+        # adapted from:
         # https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial15/Vision_Transformer.html
         # NOTE: patchify with Conv2d works only with padding="valid" correctly on smaller images
         # and has currently no ONNX support so we use this workaround

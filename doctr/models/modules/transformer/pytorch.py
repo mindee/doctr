@@ -108,6 +108,7 @@ class EncoderBlock(nn.Module):
         num_layers: int,
         num_heads: int,
         d_model: int,
+        dff: int,  # hidden dimension of the feedforward network
         dropout: float,
         activation_fct: Callable[[Any], Any] = nn.ReLU(),
     ) -> None:
@@ -124,7 +125,7 @@ class EncoderBlock(nn.Module):
             [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         )
         self.position_feed_forward = nn.ModuleList(
-            [PositionwiseFeedForward(d_model, d_model, dropout, activation_fct) for _ in range(self.num_layers)]
+            [PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)]
         )
 
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
@@ -151,7 +152,7 @@ class Decoder(nn.Module):
         d_model: int,
         vocab_size: int,
         dropout: float = 0.2,
-        dff: int = 2048,
+        dff: int = 2048,  # hidden dimension of the feedforward network
         maximum_position_encoding: int = 50,
     ) -> None:
 

@@ -62,6 +62,7 @@ class VisionTransformer(nn.Sequential):
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
+        ffd_ratio: multiplier for the hidden dimension of the feedforward layer
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -74,6 +75,7 @@ class VisionTransformer(nn.Sequential):
         d_model: int = 768,
         num_layers: int = 12,
         num_heads: int = 12,
+        ffd_ratio: int = 4,
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
@@ -82,7 +84,7 @@ class VisionTransformer(nn.Sequential):
 
         _layers: List[nn.Module] = [
             PatchEmbedding(input_shape, patch_size, d_model),
-            EncoderBlock(num_layers, num_heads, d_model, dropout, nn.GELU()),
+            EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, nn.GELU()),
         ]
         if include_top:
             _layers.append(ClassifierHead(d_model, num_classes))
@@ -121,7 +123,7 @@ def _vit(
 
 
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
-    """VisionTransformer architecture as described in
+    """VisionTransformer-B architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
