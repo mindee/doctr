@@ -121,8 +121,8 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     >>> import tensorflow as tf
-    >>> from doctr.models import vit
-    >>> model = vit(pretrained=False)
+    >>> from doctr.models import vit_b
+    >>> model = vit_b(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32)
     >>> out = model(input_tensor)
 

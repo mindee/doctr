@@ -128,8 +128,8 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     >>> import torch
-    >>> from doctr.models import vit
-    >>> model = vit(pretrained=False)
+    >>> from doctr.models import vit_b
+    >>> model = vit_b(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=tf.float32)
     >>> out = model(input_tensor)
 
