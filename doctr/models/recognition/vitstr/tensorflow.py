@@ -50,7 +50,7 @@ class ViTSTR(_ViTSTR, Model):
         self,
         feature_extractor,
         vocab: str,
-        embedding_units: int = 384,
+        embedding_units: int,
         max_length: int = 25,
         dropout_prob: float = 0.0,
         input_shape: Tuple[int, int, int] = (32, 128, 3),  # different from paper
@@ -243,6 +243,6 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         num_layers=12,
         num_heads=6,
         ffd_ratio=4,
-        dropout_prob=0.1,
+        dropout_prob=0.0,
         **kwargs,
     )
