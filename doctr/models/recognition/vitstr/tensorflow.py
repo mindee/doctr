@@ -199,13 +199,16 @@ def _vitstr(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         patch_size=(4, 8),
-        d_model=384,
-        num_layers=12,
-        num_heads=6,
-        dropout=0.0,
-        ffd_ratio=4,
+        d_model=kwargs.get("embedding_units"),
+        num_layers=kwargs.get("num_layers"),
+        num_heads=kwargs.get("num_heads"),
+        ffd_ratio=kwargs.get("ffd_ratio"),
+        dropout=kwargs.get("dropout_prob"),
         include_top=False,
     )
+    kwargs.pop("num_layers")
+    kwargs.pop("num_heads")
+    kwargs.pop("ffd_ratio")
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
@@ -233,4 +236,12 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         text recognition architecture
     """
 
-    return _vitstr("vitstr_small", pretrained, **kwargs)
+    return _vitstr(
+        "vitstr_small",
+        pretrained,
+        embedding_units=384,
+        num_layers=12,
+        num_heads=6,
+        ffd_ratio=4,
+        dropout_prob=0.1,
+        **kwargs)
