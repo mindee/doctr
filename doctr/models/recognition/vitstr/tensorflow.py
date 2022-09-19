@@ -244,4 +244,5 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         num_heads=6,
         ffd_ratio=4,
         dropout_prob=0.1,
-        **kwargs)
+        **kwargs,
+    )
