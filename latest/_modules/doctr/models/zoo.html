@@ -263,6 +263,7 @@
     <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -277,6 +278,7 @@
     <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
         <span class="n">det_arch</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
         <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
@@ -284,7 +286,9 @@
     <span class="p">)</span>
 
     <span class="c1"># Recognition</span>
-    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
+    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span>
+        <span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span>
         <span class="n">det_predictor</span><span class="p">,</span>
@@ -302,6 +306,7 @@
     <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span>
     <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -324,6 +329,7 @@
 <span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
 <span class="sd">            (e.g. &#39;crnn_vgg16_bn&#39;, &#39;sar_resnet31&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
+<span class="sd">        pretrained_backbone: If True, returns a model with a pretrained backbone</span>
 <span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
 <span class="sd">            without rotated textual elements.</span>
 <span class="sd">        preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before</span>
@@ -345,6 +351,7 @@
         <span class="n">det_arch</span><span class="p">,</span>
         <span class="n">reco_arch</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
         <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
         <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
