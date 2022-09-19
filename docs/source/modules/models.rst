@@ -67,7 +67,7 @@ doctr.models.recognition
 
 .. autofunction:: doctr.models.recognition.master
 
-.. autofunction:: doctr.models.recognition.vitstr
+.. autofunction:: doctr.models.recognition.vitstr_small
 
 .. autofunction:: doctr.models.recognition.recognition_predictor
 

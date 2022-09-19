@@ -15,10 +15,10 @@ from doctr.models.classification import vit_b
 from ...utils.tensorflow import load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
-__all__ = ["ViTSTR", "vitstr"]
+__all__ = ["ViTSTR", "vitstr_small"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "vitstr": {
+    "vitstr_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
@@ -63,6 +63,7 @@ class ViTSTR(_ViTSTR, Model):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
+        # NOTE: different from paper, who uses eos also as pad token
         self.max_length = max_length + 3  # Add 1 timestep for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
@@ -126,7 +127,7 @@ class ViTSTR(_ViTSTR, Model):
         # batch, seqlen, embedding_size
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch, seqlen, vocab + 1)
+        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch, seqlen, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
@@ -194,7 +195,7 @@ def _vitstr(
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
-    feat_extractor = vit_b(  # type: ignore[operator]
+    feat_extractor = vit_b(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         patch_size=(4, 8),
@@ -202,6 +203,7 @@ def _vitstr(
         num_layers=12,
         num_heads=6,
         dropout=0.0,
+        ffd_ratio=4,
         include_top=False,
     )
 
@@ -214,13 +216,13 @@ def _vitstr(
     return model
 
 
-def vitstr(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
-    """ViTSTR as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
+def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
+    """ViTSTR-Small as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
     <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
     >>> import tensorflow as tf
-    >>> from doctr.models import vitstr
-    >>> model = vitstr(pretrained=False)
+    >>> from doctr.models import vitstr_small
+    >>> model = vitstr_small(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
     >>> out = model(input_tensor)
 
@@ -231,4 +233,4 @@ def vitstr(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         text recognition architecture
     """
 
-    return _vitstr("vitstr", pretrained, **kwargs)
+    return _vitstr("vitstr_small", pretrained, **kwargs)

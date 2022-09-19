@@ -16,10 +16,10 @@ from doctr.models.classification import vit_b
 from ...utils.pytorch import load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
-__all__ = ["ViTSTR", "vitstr"]
+__all__ = ["ViTSTR", "vitstr_small"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "vitstr": {
+    "vitstr_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 128),
@@ -62,7 +62,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-
+        # NOTE: different from paper, who uses eos also as pad token
         self.max_length = max_length + 3  # Add 1 timestep for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
@@ -191,13 +191,14 @@ def _vitstr(
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Feature extractor
-    feat_extractor = vit_b(  # type: ignore[operator]
+    feat_extractor = vit_b(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         patch_size=(4, 8),
         d_model=384,
         num_layers=12,
         num_heads=6,
+        ffd_ratio=4,
         dropout=0.0,
         include_top=False,
     )
@@ -214,13 +215,13 @@ def _vitstr(
     return model
 
 
-def vitstr(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
-    """ViTSTR as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
+def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
+    """ViTSTR-Small as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
     <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
     >>> import torch
-    >>> from doctr.models import vitstr
-    >>> model = vitstr(pretrained=False)
+    >>> from doctr.models import vitstr_small
+    >>> model = vitstr_small(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 32, 128))
     >>> out = model(input_tensor)
 
@@ -232,7 +233,7 @@ def vitstr(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     """
 
     return _vitstr(
-        "vitstr",
+        "vitstr_small",
         pretrained,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,

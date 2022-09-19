@@ -27,7 +27,7 @@ from doctr.utils.geometry import extract_crops
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
-        ["vitstr", (32, 128, 3)],
+        ["vitstr_small", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -101,7 +101,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
 @pytest.mark.parametrize(
     "arch_name",
-    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr"],
+    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr_small"],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
@@ -155,7 +155,7 @@ def test_recognition_zoo_error():
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
-        ["vitstr", (32, 128, 3)],
+        ["vitstr_small", (32, 128, 3)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
@@ -163,9 +163,8 @@ def test_models_onnx_export(arch_name, input_shape):
     batch_size = 2
     tf.keras.backend.clear_session()
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
-    if arch_name == "sar_resnet31":  # SAR export currently only available with constant batch size
-        dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
-    elif arch_name == "master":  # MASTER export currently only available with constant batch size
+    # SAR, MASTER, ViTSTR export currently only available with constant batch size
+    if arch_name in ["sar_resnet31", "master", "vitstr_small"]:
         dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
     else:
         # batch_size = None for dynamic batch size

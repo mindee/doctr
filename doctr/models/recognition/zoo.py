@@ -20,7 +20,7 @@ ARCHS: List[str] = [
     "crnn_mobilenet_v3_large",
     "sar_resnet31",
     "master",
-    "vitstr",
+    "vitstr_small",
 ]
 
 
@@ -34,7 +34,7 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             pretrained=pretrained, pretrained_backbone=kwargs.get("pretrained_backbone", True)
         )
     else:
-        if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER)):
+        if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 

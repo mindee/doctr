@@ -19,7 +19,7 @@ __all__ = ["vit_b"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "vit": {
+    "vit_b": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
@@ -141,7 +141,7 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """
 
     return _vit(
-        "vit",
+        "vit_b",
         pretrained,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,

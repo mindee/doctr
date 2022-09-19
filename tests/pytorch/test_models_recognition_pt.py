@@ -22,7 +22,7 @@ from doctr.models.utils import export_model_to_onnx
         ["crnn_mobilenet_v3_large", (3, 32, 128), True],
         ["sar_resnet31", (3, 32, 128), False],
         ["master", (3, 32, 128), False],
-        ["vitstr", (3, 32, 128), False],
+        ["vitstr_small", (3, 32, 128), False],
     ],
 )
 def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
@@ -72,7 +72,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 
 @pytest.mark.parametrize(
     "arch_name",
-    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr"],
+    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr_small"],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
@@ -102,7 +102,7 @@ def test_recognition_zoo(arch_name):
         ["crnn_mobilenet_v3_large", (3, 32, 128)],
         ["sar_resnet31", (3, 32, 128)],
         ["master", (3, 32, 128)],
-        ["vitstr", (3, 32, 128)],
+        ["vitstr_small", (3, 32, 128)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
