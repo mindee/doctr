@@ -122,8 +122,13 @@ class LinkNet(_LinkNet, keras.Model):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = ["words"],
     ) -> None:
         super().__init__(cfg=cfg)
+
+        self.class_names = class_names
+        if self.cfg and self.cfg.get("class_names"):
+            self.class_names = self.cfg["class_names"]
 
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -232,8 +237,10 @@ class LinkNet(_LinkNet, keras.Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(prob_map.numpy())
-            # out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
+            out["preds"] = [
+                {class_name: p for class_name, p in zip(self.class_names, preds)}
+                for preds in self.postprocessor(prob_map.numpy())
+            ]
 
         if target is not None:
             loss = self.compute_loss(logits, target)

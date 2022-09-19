@@ -42,7 +42,12 @@ class Element(NestedObject):
 
         export_dict = {k: getattr(self, k) for k in self._exported_keys}
         for children_name in self._children_names:
-            export_dict[children_name] = [c.export() for c in getattr(self, children_name)]
+            if children_name in ["blocks"]:
+                export_dict[children_name] = {
+                    k: [item.export() for item in c] for k, c in getattr(self, children_name).items()
+                }
+            else:
+                export_dict[children_name] = [c.export() for c in getattr(self, children_name)]
 
         return export_dict
 
@@ -228,7 +233,7 @@ class Page(Element):
 
     def __init__(
         self,
-        blocks: List[Block],
+        blocks: Dict[str, List[Block]],
         page_idx: int,
         dimensions: Tuple[int, int],
         orientation: Optional[Dict[str, Any]] = None,

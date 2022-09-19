@@ -8,8 +8,6 @@ import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-import numpy as np
-
 from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
 
@@ -57,11 +55,11 @@ class _AbstractDataset:
             img = self.img_transforms(img)
 
         if self.sample_transforms is not None:
-            if isinstance(target, np.ndarray):
-                img, target = self.sample_transforms(img, target)
-            elif isinstance(target, dict):
+            if isinstance(target, dict):
                 for k, v in target.items():
                     img, target[k] = self.sample_transforms(img, v)
+            else:
+                img, target = self.sample_transforms(img, target)
 
         return img, target
 

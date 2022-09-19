@@ -134,7 +134,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)
             ]
 
-        out = self.doc_builder(
+        out = self.doc_builder.torch_call(
             boxes,
             text_preds,
             [page.shape[:2] if channels_last else page.shape[-2:] for page in pages],  # type: ignore[misc]

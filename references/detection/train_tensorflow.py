@@ -118,7 +118,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         for target, loc_pred in zip(targets, loc_preds):
             if isinstance(target, np.ndarray):
                 target = {"words": target}
-            for boxes_gt, boxes_pred in zip(target.values(), loc_pred):
+            for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
                 if args.rotation and args.eval_straight:
                     # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4
                     boxes_pred = np.concatenate((boxes_pred.min(axis=1), boxes_pred.max(axis=1)), axis=-1)
@@ -196,6 +196,7 @@ def main(args):
         input_shape=(args.input_size, args.input_size, 3),
         assume_straight_pages=not args.rotation,
         num_classes=len(val_set.class_names),
+        class_names=val_set.class_names,
     )
 
     # Resume weights
