@@ -52,7 +52,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         https://github.com/facebookresearch/dino/blob/de9ee3df6cf39fac952ab558447af1fa1365362a/vision_transformer.py
         """
 
-        batch_size, seq_len, dim = embeddings.shape
+        seq_len, dim = embeddings.shape[1:]
         num_patches = seq_len - 1
 
         num_positions = self.positions.shape[1] - 1

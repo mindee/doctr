@@ -201,7 +201,7 @@ def _vitstr(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone),
+        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
         {layer: "features"},
     )
 
