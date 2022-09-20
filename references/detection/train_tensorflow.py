@@ -139,7 +139,7 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    system_total_memory = int(psutil.virtual_memory().total / 1024**3)
+    system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
     # AMP
     if args.amp:
@@ -202,7 +202,7 @@ def main(args):
     val_metric = LocalizationConfusion(
         use_polygons=args.rotation and not args.eval_straight,
         mask_shape=(args.input_size, args.input_size),
-        use_broadcasting=True if system_total_memory > 62 else False,
+        use_broadcasting=True if system_available_memory > 62 else False,
     )
     if args.test_only:
         print("Running evaluation")
