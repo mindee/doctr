@@ -97,7 +97,7 @@ class ViTSTR(_ViTSTR, nn.Module):
 
         # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
         features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # batch, seqlen, embedding_size
+        # (batch_size, seq_len, d_model)
         B, N, E = features.size()
         features = features.reshape(B * N, E)
         logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch, seqlen, vocab + 3)
@@ -130,8 +130,8 @@ class ViTSTR(_ViTSTR, nn.Module):
         Sequences are masked after the EOS character.
 
         Args:
-            gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
+            gt: the encoded tensor with gt labels
             seq_len: lengths of each gt word inside the batch
 
         Returns:
