@@ -88,8 +88,8 @@ class ViTSTR(_ViTSTR, Model):
         Sequences are masked after the EOS character.
 
         Args:
-            gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
+            gt: the encoded tensor with gt labels
             seq_len: lengths of each gt word inside the batch
 
         Returns:
@@ -131,7 +131,7 @@ class ViTSTR(_ViTSTR, Model):
             raise ValueError("Need to provide labels during training")
 
         features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # batch, seqlen, embedding_size
+        # (batch_size, seq_len, d_model)
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
         logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch, seqlen, vocab + 3)
