@@ -72,5 +72,5 @@ Keep in mind that passing fonts to the training script will only work with the W
 
 Running the training script should look like this for multiple custom fonts:
 ```shell
-python references/recognition/train_pytorch.py crnn_vgg16_bn --epochs 5 --font "cusomt-font-1.ttf,custom-font-2.ttf"
+python references/recognition/train_pytorch.py crnn_vgg16_bn --epochs 5 --font "custom-font-1.ttf,custom-font-2.ttf"
 ```
