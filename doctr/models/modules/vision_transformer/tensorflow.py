@@ -26,7 +26,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
         super().__init__()
         height, width, _ = input_shape
-        # fix patch size if recognition task
+        # fix patch size if recognition task with 32x128 input
         self.patch_size = (4, 8) if height != width else patch_size
         self.grid_size = (height // patch_size[0], width // patch_size[1])
         self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
@@ -85,7 +85,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         # patchify image without convolution
         # adapted from:
         # https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial15/Vision_Transformer.html
-        # NOTE: tf.image.extract_patches has no ONNX support and Conv2D with padding=valid consumes too much memory
+        # NOTE: tf.image.extract_patches has no ONNX support and Conv2D with padding=valid consumes to much memory
         patches = tf.reshape(
             x, (B, H // self.patch_size[0], self.patch_size[0], W // self.patch_size[1], self.patch_size[1], C)
         )
