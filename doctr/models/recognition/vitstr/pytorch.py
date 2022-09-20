@@ -4,22 +4,30 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from doctr.models.classification import vit_b
 
+from ...classification import vit_b, vit_s
 from ...utils.pytorch import load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
-__all__ = ["ViTSTR", "vitstr_small"]
+__all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "vitstr_small": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 128),
+        "vocab": VOCABS["french"],
+        "url": None,
+    },
+    "vitstr_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 128),
@@ -51,7 +59,6 @@ class ViTSTR(_ViTSTR, nn.Module):
         vocab: str,
         embedding_units: int,
         max_length: int = 25,
-        dropout_prob: float = 0.0,
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from paper
         patch_size: Tuple[int, int] = (4, 8),  # different from paper to match our size
         exportable: bool = False,
@@ -78,7 +85,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x)  # (batch_size, seq_len, d_model)
+        features = self.feat_extractor(x)["features"]  # (batch_size, seq_len, d_model)
 
         if target is not None:
             _gt, _seq_len = self.build_target(target)
@@ -175,6 +182,8 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
 def _vitstr(
     arch: str,
     pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    layer: str,
     pretrained_backbone: bool = True,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
@@ -191,20 +200,10 @@ def _vitstr(
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Feature extractor
-    feat_extractor = vit_b(
-        pretrained=pretrained_backbone,
-        input_shape=_cfg["input_shape"],
-        patch_size=(4, 8),
-        d_model=kwargs.get("embedding_units"),
-        num_layers=kwargs.get("num_layers"),
-        num_heads=kwargs.get("num_heads"),
-        ffd_ratio=kwargs.get("ffd_ratio"),
-        dropout=kwargs.get("dropout_prob"),
-        include_top=False,
+    feat_extractor = IntermediateLayerGetter(
+        backbone_fn(pretrained_backbone),
+        {layer: "features"},
     )
-    kwargs.pop("num_layers")
-    kwargs.pop("num_heads")
-    kwargs.pop("ffd_ratio")
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
@@ -238,11 +237,37 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     return _vitstr(
         "vitstr_small",
         pretrained,
+        vit_s,
+        "1",
         embedding_units=384,
-        num_layers=12,
-        num_heads=6,
-        ffd_ratio=4,
-        dropout_prob=0.0,
+        ignore_keys=["head.weight", "head.bias"],
+        **kwargs,
+    )
+
+
+def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
+    """ViTSTR-Base as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
+    <https://arxiv.org/pdf/2105.08582.pdf>`_.
+
+    >>> import torch
+    >>> from doctr.models import vitstr_base
+    >>> model = vitstr_base(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 128))
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _vitstr(
+        "vitstr_base",
+        pretrained,
+        vit_b,
+        "1",
+        embedding_units=768,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )

@@ -40,6 +40,7 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["magc_resnet31", (3, 32, 32), (126,)],
         ["mobilenet_v3_small", (3, 32, 32), (126,)],
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
+        ["vit_s", (3, 32, 32), (126,)],
         ["vit_b", (3, 32, 32), (126,)],
     ],
 )

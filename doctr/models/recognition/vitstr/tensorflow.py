@@ -10,15 +10,22 @@ import tensorflow as tf
 from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
-from doctr.models.classification import vit_b
 
+from ...classification import vit_b, vit_s
 from ...utils.tensorflow import load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
-__all__ = ["ViTSTR", "vitstr_small"]
+__all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "vitstr_small": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (32, 128, 3),
+        "vocab": VOCABS["french"],
+        "url": None,
+    },
+    "vitstr_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
@@ -180,6 +187,7 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
 def _vitstr(
     arch: str,
     pretrained: bool,
+    backbone_fn,
     pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
@@ -195,20 +203,11 @@ def _vitstr(
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
-    feat_extractor = vit_b(
+    feat_extractor = backbone_fn(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
-        patch_size=(4, 8),
-        d_model=kwargs.get("embedding_units"),
-        num_layers=kwargs.get("num_layers"),
-        num_heads=kwargs.get("num_heads"),
-        ffd_ratio=kwargs.get("ffd_ratio"),
-        dropout=kwargs.get("dropout_prob"),
         include_top=False,
     )
-    kwargs.pop("num_layers")
-    kwargs.pop("num_heads")
-    kwargs.pop("ffd_ratio")
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
@@ -223,7 +222,7 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     """ViTSTR-Small as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
     <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
-    >>> import tensorflow as tf
+    >>> import tf
     >>> from doctr.models import vitstr_small
     >>> model = vitstr_small(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
@@ -239,10 +238,33 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     return _vitstr(
         "vitstr_small",
         pretrained,
+        vit_s,
         embedding_units=384,
-        num_layers=12,
-        num_heads=6,
-        ffd_ratio=4,
-        dropout_prob=0.0,
+        **kwargs,
+    )
+
+
+def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
+    """ViTSTR-Base as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
+    <https://arxiv.org/pdf/2105.08582.pdf>`_.
+
+    >>> import tf
+    >>> from doctr.models import vitstr_base
+    >>> model = vitstr_base(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _vitstr(
+        "vitstr_base",
+        pretrained,
+        vit_b,
+        embedding_units=768,
         **kwargs,
     )

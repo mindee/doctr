@@ -28,6 +28,7 @@ from doctr.utils.geometry import extract_crops
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
         ["vitstr_small", (32, 128, 3)],
+        ["vitstr_base", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -101,7 +102,15 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
 
 @pytest.mark.parametrize(
     "arch_name",
-    ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master", "vitstr_small"],
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
+        "sar_resnet31",
+        "master",
+        "vitstr_small",
+        "vitstr_base",
+    ],
 )
 def test_recognition_zoo(arch_name):
     batch_size = 2
@@ -155,7 +164,7 @@ def test_recognition_zoo_error():
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
         ["sar_resnet31", (32, 128, 3)],
         ["master", (32, 128, 3)],
-        ["vitstr_small", (32, 128, 3)],
+        ["vitstr_small", (32, 128, 3)],  # testing one vitstr version is enough
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):

@@ -21,6 +21,7 @@ ARCHS: List[str] = [
     "sar_resnet31",
     "master",
     "vitstr_small",
+    "vitstr_base",
 ]
 
 
