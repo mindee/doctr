@@ -71,7 +71,9 @@ class PatchEmbedding(layers.Layer, NestedObject):
         )
 
         shape = patch_pos_embed.shape
-        assert h0 == shape[-3] and w0 == shape[-2]
+        assert h0 == shape[-3], "height of interpolated patch embedding doesn't match"
+        assert w0 == shape[-2], "width of interpolated patch embedding doesn't match"
+
         patch_pos_embed = tf.reshape(tensor=patch_pos_embed, shape=(1, -1, dim))
         return tf.concat(values=(class_pos_embed, patch_pos_embed), axis=1)
 
@@ -94,7 +96,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         cls_tokens = tf.repeat(self.cls_token, B, axis=0)  # (batch_size, 1, d_model)
         # concate cls_tokens to patches
         embeddings = tf.concat([cls_tokens, patches], axis=1)  # (batch_size, num_patches + 1, d_model)
-        # add positions to embeddings -> (batch_size, num_patches + 1, d_model)
-        embeddings = embeddings + self.interpolate_pos_encoding(embeddings, H, W)
+        # add positions to embeddings
+        embeddings += self.interpolate_pos_encoding(embeddings, H, W)  # (batch_size, num_patches + 1, d_model)
 
         return embeddings

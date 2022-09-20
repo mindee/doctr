@@ -65,7 +65,9 @@ class PatchEmbedding(nn.Module):
             align_corners=False,
             scale_factor=(h0 / math.sqrt(num_positions), w0 / math.sqrt(num_positions)),
         )
-        assert int(h0) == patch_pos_embed.shape[-2] and int(w0) == patch_pos_embed.shape[-1]
+        assert int(h0) == patch_pos_embed.shape[-2], "height of interpolated patch embedding doesn't match"
+        assert int(w0) == patch_pos_embed.shape[-1], "width of interpolated patch embedding doesn't match"
+
         patch_pos_embed = patch_pos_embed.permute(0, 2, 3, 1).view(1, -1, dim)
         return torch.cat((class_pos_embed.unsqueeze(0), patch_pos_embed), dim=1)
 
@@ -89,7 +91,7 @@ class PatchEmbedding(nn.Module):
         cls_tokens = self.cls_token.expand(B, -1, -1)  # (batch_size, 1, d_model)
         # concate cls_tokens to patches
         embeddings = torch.cat([cls_tokens, patches], dim=1)  # (batch_size, num_patches + 1, d_model)
-        # add positions to embeddings -> (batch_size, num_patches + 1, d_model)
-        embeddings = embeddings + self.interpolate_pos_encoding(embeddings, H, W)
+        # add positions to embeddings
+        embeddings += self.interpolate_pos_encoding(embeddings, H, W)  # (batch_size, num_patches + 1, d_model)
 
         return embeddings
