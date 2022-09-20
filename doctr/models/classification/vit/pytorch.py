@@ -15,7 +15,7 @@ from doctr.models.modules.vision_transformer.pytorch import PatchEmbedding
 
 from ...utils.pytorch import load_pretrained_params
 
-__all__ = ["vit"]
+__all__ = ["vit_b"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -29,7 +29,29 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class VisionTransformer(nn.Module):
+class ClassifierHead(nn.Module):
+    """Classifier head for Vision Transformer
+
+    Args:
+        in_channels: number of input channels
+        num_classes: number of output classes
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        num_classes: int,
+    ) -> None:
+        super().__init__()
+
+        self.head = nn.Linear(in_channels, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # (batch_size, num_classes) cls token
+        return self.head(x[:, 0])
+
+
+class VisionTransformer(nn.Sequential):
     """VisionTransformer architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
@@ -40,6 +62,7 @@ class VisionTransformer(nn.Module):
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
+        ffd_ratio: multiplier for the hidden dimension of the feedforward layer
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -47,37 +70,27 @@ class VisionTransformer(nn.Module):
 
     def __init__(
         self,
-        input_shape: Tuple[int, int, int],
+        input_shape: Tuple[int, int, int] = (3, 32, 32),
         patch_size: Tuple[int, int] = (4, 4),
         d_model: int = 768,
         num_layers: int = 12,
         num_heads: int = 12,
+        ffd_ratio: int = 4,
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
 
-        super().__init__()
+        _layers: List[nn.Module] = [
+            PatchEmbedding(input_shape, patch_size, d_model),
+            EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, nn.GELU()),
+        ]
+        if include_top:
+            _layers.append(ClassifierHead(d_model, num_classes))
+
+        super().__init__(*_layers)
         self.cfg = cfg
-        self.include_top = include_top
-
-        self.patch_embedding = PatchEmbedding(input_shape, patch_size, d_model)
-        self.encoder = EncoderBlock(num_layers, num_heads, d_model, dropout, nn.GELU())
-
-        if self.include_top:
-            self.head = nn.Linear(d_model, num_classes)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-
-        embeddings = self.patch_embedding(x)
-        encoded = self.encoder(embeddings)
-
-        if self.include_top:
-            # (batch_size, num_classes) cls token
-            return self.head(encoded[:, 0])
-
-        return encoded
 
 
 def _vit(
@@ -109,8 +122,8 @@ def _vit(
     return model
 
 
-def vit(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
-    """VisionTransformer architecture as described in
+def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
+    """VisionTransformer-B architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 

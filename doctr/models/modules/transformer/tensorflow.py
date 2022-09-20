@@ -142,6 +142,7 @@ class EncoderBlock(layers.Layer, NestedObject):
         num_layers: int,
         num_heads: int,
         d_model: int,
+        dff: int,  # hidden dimension of the feedforward network
         dropout: float,
         activation_fct: Callable[[Any], Any] = layers.ReLU(),
     ) -> None:
@@ -149,12 +150,14 @@ class EncoderBlock(layers.Layer, NestedObject):
 
         self.num_layers = num_layers
 
-        self.layer_norm = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_input = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_output = layers.LayerNormalization(epsilon=1e-5)
         self.dropout = layers.Dropout(rate=dropout)
 
         self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         self.position_feed_forward = [
-            PositionwiseFeedForward(d_model, d_model, dropout, activation_fct) for _ in range(self.num_layers)
+            PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)
         ]
 
     def call(self, x: tf.Tensor, mask: Optional[tf.Tensor] = None, **kwargs: Any) -> tf.Tensor:
@@ -162,16 +165,16 @@ class EncoderBlock(layers.Layer, NestedObject):
         output = x
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
                 self.attention[i](normed_output, normed_output, normed_output, mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm(output, **kwargs)
+        return self.layer_norm_output(output, **kwargs)
 
 
 class Decoder(layers.Layer, NestedObject):
@@ -184,7 +187,7 @@ class Decoder(layers.Layer, NestedObject):
         d_model: int,
         vocab_size: int,
         dropout: float = 0.2,
-        dff: int = 2048,
+        dff: int = 2048,  # hidden dimension of the feedforward network
         maximum_position_encoding: int = 50,
     ) -> None:
 
@@ -192,10 +195,14 @@ class Decoder(layers.Layer, NestedObject):
         self.num_layers = num_layers
         self.d_model = d_model
 
+        self.layer_norm_input = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_masked_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_output = layers.LayerNormalization(epsilon=1e-5)
+
         self.dropout = layers.Dropout(rate=dropout)
         self.embed = layers.Embedding(vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, dropout, maximum_position_encoding)
-        self.layer_norm = layers.LayerNormalization(epsilon=1e-5)
 
         self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         self.source_attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
@@ -215,18 +222,18 @@ class Decoder(layers.Layer, NestedObject):
         output = pos_enc_tgt
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
                 self.attention[i](normed_output, normed_output, normed_output, target_mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_masked_attention(output, **kwargs)
             output = output + self.dropout(
                 self.source_attention[i](normed_output, memory, memory, source_mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm(output, **kwargs)
+        return self.layer_norm_output(output, **kwargs)

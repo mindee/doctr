@@ -53,6 +53,52 @@ jobs:
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
           python scripts/analyze.py sample.pdf --noblock
 
+  test-detect-text:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.7, 3.8]
+        framework: [tensorflow, pytorch]
+    steps:
+      - if: matrix.os == 'macos-latest'
+        name: Install MacOS prerequisites
+        run: brew install cairo pango gdk-pixbuf libffi
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - if: matrix.framework == 'tensorflow'
+        name: Cache python modules (TF)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+      - if: matrix.framework == 'pytorch'
+        name: Cache python modules (PT)
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+      - if: matrix.framework == 'tensorflow'
+        name: Install package (TF)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[tf] --upgrade
+      - if: matrix.framework == 'pytorch'
+        name: Install package (PT)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[torch] --upgrade
+
+      - name: Run detection script
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
+          python scripts/detect_text.py sample.pdf
+
   test-evaluate:
     runs-on: ${{ matrix.os }}
     strategy:

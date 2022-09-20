@@ -46,13 +46,19 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
                 f"{ROT_ARCHS}"
             )
 
-        _model = detection.__dict__[arch](pretrained=pretrained, assume_straight_pages=assume_straight_pages)
+        _model = detection.__dict__[arch](
+            pretrained=pretrained,
+            pretrained_backbone=kwargs.get("pretrained_backbone", True),
+            assume_straight_pages=assume_straight_pages,
+        )
     else:
         if not isinstance(arch, (detection.DBNet, detection.LinkNet)):
             raise ValueError(f"unknown architecture: {type(arch)}")
 
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
+
+    kwargs.pop("pretrained_backbone", None)
 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
