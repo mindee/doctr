@@ -26,7 +26,8 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
         super().__init__()
         height, width, _ = input_shape
-        self.patch_size = patch_size
+        # fix patch size if recognition task
+        self.patch_size = (4, 8) if height != width else patch_size
         self.grid_size = (height // patch_size[0], width // patch_size[1])
         self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
 
