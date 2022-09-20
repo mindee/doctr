@@ -100,7 +100,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         # (batch_size, seq_len, d_model)
         B, N, E = features.size()
         features = features.reshape(B * N, E)
-        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch, seqlen, vocab + 3)
+        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch_size, seq_len, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, Any] = {}

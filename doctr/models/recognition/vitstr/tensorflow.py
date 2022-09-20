@@ -121,7 +121,7 @@ class ViTSTR(_ViTSTR, Model):
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x, **kwargs)
+        features = self.feat_extractor(x, **kwargs)  # (batch_size, seq_len, d_model)
 
         if target is not None:
             gt, seq_len = self.build_target(target)
@@ -134,7 +134,7 @@ class ViTSTR(_ViTSTR, Model):
         # (batch_size, seq_len, d_model)
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch, seqlen, vocab + 3)
+        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch_size, seq_len, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
