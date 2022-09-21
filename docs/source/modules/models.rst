@@ -29,6 +29,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.magc_resnet31
 
+.. autofunction:: doctr.models.classification.vit_s
+
 .. autofunction:: doctr.models.classification.vit_b
 
 .. autofunction:: doctr.models.classification.crop_orientation_predictor

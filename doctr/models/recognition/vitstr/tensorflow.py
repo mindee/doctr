@@ -71,7 +71,7 @@ class ViTSTR(_ViTSTR, Model):
         self.exportable = exportable
         self.cfg = cfg
         # NOTE: different from paper, who uses eos also as pad token
-        self.max_length = max_length + 3  # Add 1 timestep for EOS, 1 for SOS, 1 for PAD
+        self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
         self.head = layers.Dense(len(self.vocab) + 3)
@@ -95,7 +95,7 @@ class ViTSTR(_ViTSTR, Model):
         Returns:
             The loss of the model on the batch
         """
-        # Input length : number of timesteps
+        # Input length : number of steps
         input_len = tf.shape(model_output)[1]
         # Add one for additional <eos> token (sos disappear in shift!)
         seq_len = tf.cast(seq_len, tf.int32) + 1
@@ -121,7 +121,7 @@ class ViTSTR(_ViTSTR, Model):
         **kwargs: Any,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x, **kwargs)  # (batch_size, seq_len, d_model)
+        features = self.feat_extractor(x, **kwargs)  # (batch_size, patches_seqlen, d_model)
 
         if target is not None:
             gt, seq_len = self.build_target(target)
@@ -131,10 +131,10 @@ class ViTSTR(_ViTSTR, Model):
             raise ValueError("Need to provide labels during training")
 
         features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # (batch_size, seq_len, d_model)
+        # (batch_size, max_length + 1, d_model)
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch_size, seq_len, vocab + 3)
+        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch_size, max_length + 1, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
@@ -203,6 +203,7 @@ def _vitstr(
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
+    # NOTE: switch to IntermediateLayerGetter if pretrained vit models are available
     feat_extractor = backbone_fn(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],

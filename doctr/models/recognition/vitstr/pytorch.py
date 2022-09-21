@@ -70,7 +70,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         self.exportable = exportable
         self.cfg = cfg
         # NOTE: different from paper, who uses eos also as pad token
-        self.max_length = max_length + 3  # Add 1 timestep for EOS, 1 for SOS, 1 for PAD
+        self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
         self.head = nn.Linear(embedding_units, len(self.vocab) + 3)
@@ -85,7 +85,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
 
-        features = self.feat_extractor(x)["features"]  # (batch_size, seq_len, d_model)
+        features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
 
         if target is not None:
             _gt, _seq_len = self.build_target(target)
@@ -97,10 +97,10 @@ class ViTSTR(_ViTSTR, nn.Module):
 
         # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
         features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # (batch_size, seq_len, d_model)
+        # (batch_size, max_length + 1, d_model)
         B, N, E = features.size()
         features = features.reshape(B * N, E)
-        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch_size, seq_len, vocab + 3)
+        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch_size, max_length + 1, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, Any] = {}
@@ -137,7 +137,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         Returns:
             The loss of the model on the batch
         """
-        # Input length : number of timesteps
+        # Input length : number of steps
         input_len = model_output.shape[1]
         # Add one for additional <eos> token (sos disappear in shift!)
         seq_len = seq_len + 1
