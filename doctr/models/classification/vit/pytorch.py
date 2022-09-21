@@ -24,14 +24,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_b-13bbe405.pt",
     },
     "vit_s": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_s-ff3c4666.pt",
     },
 }
 
@@ -129,36 +129,6 @@ def _vit(
     return model
 
 
-def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
-    """VisionTransformer-B architecture as described in
-    `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_.
-
-    >>> import torch
-    >>> from doctr.models import vit_b
-    >>> model = vit_b(pretrained=False)
-    >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=tf.float32)
-    >>> out = model(input_tensor)
-
-    Args:
-        pretrained: boolean, True if model is pretrained
-
-    Returns:
-        A feature extractor model
-    """
-
-    return _vit(
-        "vit_b",
-        pretrained,
-        d_model=768,
-        num_layers=12,
-        num_heads=12,
-        ffd_ratio=4,
-        ignore_keys=["head.weight", "head.bias"],
-        **kwargs,
-    )
-
-
 def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-S architecture
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
@@ -185,6 +155,36 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
         d_model=384,
         num_layers=12,
         num_heads=6,
+        ffd_ratio=4,
+        ignore_keys=["head.weight", "head.bias"],
+        **kwargs,
+    )
+
+
+def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
+    """VisionTransformer-B architecture as described in
+    `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
+    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+
+    >>> import torch
+    >>> from doctr.models import vit_b
+    >>> model = vit_b(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A feature extractor model
+    """
+
+    return _vit(
+        "vit_b",
+        pretrained,
+        d_model=768,
+        num_layers=12,
+        num_heads=12,
         ffd_ratio=4,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
