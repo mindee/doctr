@@ -223,7 +223,7 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     """ViTSTR-Small as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
     <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
-    >>> import tf
+    >>> import tensorflow as tf
     >>> from doctr.models import vitstr_small
     >>> model = vitstr_small(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
@@ -249,7 +249,7 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     """ViTSTR-Base as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
     <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
-    >>> import tf
+    >>> import tensorflow as tf
     >>> from doctr.models import vitstr_base
     >>> model = vitstr_base(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 32, 128, 3], maxval=1, dtype=tf.float32)
