@@ -264,11 +264,18 @@
 
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;vit_b&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;vit_s&quot;</span><span class="p">,</span> <span class="s2">&quot;vit_b&quot;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;vit&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;vit_s&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;vit_b&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -301,12 +308,12 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        input_shape: size of the input image</span>
-<span class="sd">        patch_size: size of the patches to be extracted from the input</span>
 <span class="sd">        d_model: dimension of the transformer layers</span>
 <span class="sd">        num_layers: number of transformer layers</span>
 <span class="sd">        num_heads: number of attention heads</span>
 <span class="sd">        ffd_ratio: multiplier for the hidden dimension of the feedforward layer</span>
+<span class="sd">        input_shape: size of the input image</span>
+<span class="sd">        patch_size: size of the patches to be extracted from the input</span>
 <span class="sd">        dropout: dropout rate</span>
 <span class="sd">        num_classes: number of output classes</span>
 <span class="sd">        include_top: whether the classifier head should be instantiated</span>
@@ -314,12 +321,12 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">ffd_ratio</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="n">patch_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-        <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">768</span><span class="p">,</span>
-        <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
-        <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span><span class="p">,</span>
-        <span class="n">ffd_ratio</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
         <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -362,14 +369,16 @@
     <span class="k">return</span> <span class="n">model</span>
 
 
-<div class="viewcode-block" id="vit_b"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.vit_b">[docs]</a><span class="k">def</span> <span class="nf">vit_b</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisionTransformer</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;VisionTransformer-B architecture as described in</span>
+<div class="viewcode-block" id="vit_s"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.vit_s">[docs]</a><span class="k">def</span> <span class="nf">vit_s</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisionTransformer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;VisionTransformer-S architecture</span>
 <span class="sd">    `&quot;An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_.</span>
 
-<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">    &gt;&gt;&gt; from doctr.models import vit</span>
-<span class="sd">    &gt;&gt;&gt; model = vit(pretrained=False)</span>
+<span class="sd">    NOTE: unofficial config used in ViTSTR and ParSeq</span>
+
+<span class="sd">    &gt;&gt;&gt; import tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import vit_s</span>
+<span class="sd">    &gt;&gt;&gt; model = vit_s(pretrained=False)</span>
 <span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32)</span>
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
@@ -381,8 +390,41 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_vit</span><span class="p">(</span>
-        <span class="s2">&quot;vit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;vit_s&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
+        <span class="n">num_layers</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">ffd_ratio</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="vit_b"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.vit_b">[docs]</a><span class="k">def</span> <span class="nf">vit_b</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisionTransformer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;VisionTransformer-B architecture as described in</span>
+<span class="sd">    `&quot;An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale&quot;,</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import vit_b</span>
+<span class="sd">    &gt;&gt;&gt; model = vit_b(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained: boolean, True if model is pretrained</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A feature extractor model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_vit</span><span class="p">(</span>
+        <span class="s2">&quot;vit_b&quot;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">d_model</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
+        <span class="n">num_layers</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">num_heads</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">ffd_ratio</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 </pre></div>

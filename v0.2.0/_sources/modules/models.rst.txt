@@ -29,6 +29,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.magc_resnet31
 
+.. autofunction:: doctr.models.classification.vit_s
+
 .. autofunction:: doctr.models.classification.vit_b
 
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
@@ -66,6 +68,10 @@ doctr.models.recognition
 .. autofunction:: doctr.models.recognition.sar_resnet31
 
 .. autofunction:: doctr.models.recognition.master
+
+.. autofunction:: doctr.models.recognition.vitstr_small
+
+.. autofunction:: doctr.models.recognition.vitstr_base
 
 .. autofunction:: doctr.models.recognition.recognition_predictor
 

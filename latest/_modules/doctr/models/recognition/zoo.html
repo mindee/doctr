@@ -261,7 +261,15 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;recognition_predictor&quot;</span><span class="p">]</span>
 
 
-<span class="n">ARCHS</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span> <span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="s2">&quot;crnn_mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_resnet31&quot;</span><span class="p">,</span> <span class="s2">&quot;master&quot;</span><span class="p">]</span>
+<span class="n">ARCHS</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;crnn_mobilenet_v3_large&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;sar_resnet31&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;master&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;vitstr_base&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
@@ -274,7 +282,7 @@
             <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pretrained_backbone&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="p">(</span><span class="n">recognition</span><span class="o">.</span><span class="n">CRNN</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">SAR</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">MASTER</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="p">(</span><span class="n">recognition</span><span class="o">.</span><span class="n">CRNN</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">SAR</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">MASTER</span><span class="p">,</span> <span class="n">recognition</span><span class="o">.</span><span class="n">ViTSTR</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown architecture: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arch</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>
 
