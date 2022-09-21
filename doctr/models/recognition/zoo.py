@@ -14,7 +14,15 @@ from .predictor import RecognitionPredictor
 __all__ = ["recognition_predictor"]
 
 
-ARCHS: List[str] = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "sar_resnet31", "master"]
+ARCHS: List[str] = [
+    "crnn_vgg16_bn",
+    "crnn_mobilenet_v3_small",
+    "crnn_mobilenet_v3_large",
+    "sar_resnet31",
+    "master",
+    "vitstr_small",
+    "vitstr_base",
+]
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
@@ -27,7 +35,7 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             pretrained=pretrained, pretrained_backbone=kwargs.get("pretrained_backbone", True)
         )
     else:
-        if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER)):
+        if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 

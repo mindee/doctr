@@ -15,11 +15,18 @@ from doctr.models.modules.vision_transformer.pytorch import PatchEmbedding
 
 from ...utils.pytorch import load_pretrained_params
 
-__all__ = ["vit_b"]
+__all__ = ["vit_s", "vit_b"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "vit": {
+    "vit_b": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": None,
+    },
+    "vit_s": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
@@ -57,12 +64,12 @@ class VisionTransformer(nn.Sequential):
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     Args:
-        input_shape: size of the input image
-        patch_size: size of the patches to be extracted from the input
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
         ffd_ratio: multiplier for the hidden dimension of the feedforward layer
+        input_shape: size of the input image
+        patch_size: size of the patches to be extracted from the input
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -70,12 +77,12 @@ class VisionTransformer(nn.Sequential):
 
     def __init__(
         self,
+        d_model: int,
+        num_layers: int,
+        num_heads: int,
+        ffd_ratio: int,
         input_shape: Tuple[int, int, int] = (3, 32, 32),
         patch_size: Tuple[int, int] = (4, 4),
-        d_model: int = 768,
-        num_layers: int = 12,
-        num_heads: int = 12,
-        ffd_ratio: int = 4,
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
@@ -128,8 +135,8 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     >>> import torch
-    >>> from doctr.models import vit
-    >>> model = vit(pretrained=False)
+    >>> from doctr.models import vit_b
+    >>> model = vit_b(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=tf.float32)
     >>> out = model(input_tensor)
 
@@ -141,8 +148,44 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """
 
     return _vit(
-        "vit",
+        "vit_b",
         pretrained,
+        d_model=768,
+        num_layers=12,
+        num_heads=12,
+        ffd_ratio=4,
+        ignore_keys=["head.weight", "head.bias"],
+        **kwargs,
+    )
+
+
+def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
+    """VisionTransformer-S architecture
+    `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
+    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+
+    NOTE: unofficial config used in ViTSTR and ParSeq
+
+    >>> import torch
+    >>> from doctr.models import vit_s
+    >>> model = vit_s(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=tf.float32)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained: boolean, True if model is pretrained
+
+    Returns:
+        A feature extractor model
+    """
+
+    return _vit(
+        "vit_s",
+        pretrained,
+        d_model=384,
+        num_layers=12,
+        num_heads=6,
+        ffd_ratio=4,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )

@@ -24,6 +24,7 @@ from doctr.models.utils import export_model_to_onnx
         ["magc_resnet31", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (32, 32, 3), (126,)],
         ["mobilenet_v3_large", (32, 32, 3), (126,)],
+        ["vit_s", (32, 32, 3), (126,)],
         ["vit_b", (32, 32, 3), (126,)],
     ],
 )
