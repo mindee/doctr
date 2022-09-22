@@ -66,7 +66,6 @@ class VisionTransformer(Sequential):
         num_heads: number of attention heads
         ffd_ratio: multiplier for the hidden dimension of the feedforward layer
         input_shape: size of the input image
-        patch_size: size of the patches to be extracted from the input
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -79,7 +78,6 @@ class VisionTransformer(Sequential):
         num_heads: int,
         ffd_ratio: int,
         input_shape: Tuple[int, int, int] = (32, 32, 3),
-        patch_size: Tuple[int, int] = (4, 4),
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
@@ -87,7 +85,7 @@ class VisionTransformer(Sequential):
     ) -> None:
 
         _layers = [
-            PatchEmbedding(input_shape, patch_size, d_model),
+            PatchEmbedding(input_shape, d_model),
             EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, activation_fct=GELU()),
         ]
         if include_top:

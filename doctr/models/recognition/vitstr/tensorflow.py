@@ -46,7 +46,6 @@ class ViTSTR(_ViTSTR, Model):
         max_length: maximum word length handled by the model
         dropout_prob: dropout probability for the encoder and decoder
         input_shape: input shape of the image
-        patch_size: size of the patches
         exportable: onnx exportable returns only logits
         cfg: dictionary containing information about the model
     """
@@ -61,7 +60,6 @@ class ViTSTR(_ViTSTR, Model):
         max_length: int = 25,
         dropout_prob: float = 0.0,
         input_shape: Tuple[int, int, int] = (32, 128, 3),  # different from paper
-        patch_size: Tuple[int, int] = (4, 8),  # different from paper to match our size
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -202,10 +200,9 @@ def _vitstr(
 
     kwargs["vocab"] = _cfg["vocab"]
 
-    # Feature extractor
-    # NOTE: switch to IntermediateLayerGetter if pretrained vit models are available
+    # feature extractor
     feat_extractor = backbone_fn(
-        pretrained=pretrained_backbone,
+        pretrained=False,  # TODO: pretrained_backbone, solve weights shape mismatch
         input_shape=_cfg["input_shape"],
         include_top=False,
     )

@@ -16,19 +16,15 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(
-        self,
-        input_shape: Tuple[int, int, int],
-        patch_size: Tuple[int, int],
-        embed_dim: int,
-    ) -> None:
+    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int) -> None:
 
         super().__init__()
         channels, height, width = input_shape
-        # fix patch size if recognition task with 32x128 input
-        self.patch_size = (4, 8) if height != width else patch_size
-        self.grid_size = (height // patch_size[0], width // patch_size[1])
-        self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
+        # calculate patch size 32x32 -> (4, 4) 32x128 -> (4, 16)
+        # NOTE: this is different from the original implementation
+        self.patch_size = (height // 8, width // 8)
+        self.grid_size = (height // self.patch_size[0], width // self.patch_size[1])
+        self.num_patches = (height // self.patch_size[0]) * (width // self.patch_size[1])
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))  # type: ignore[attr-defined]
         self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))  # type: ignore[attr-defined]
