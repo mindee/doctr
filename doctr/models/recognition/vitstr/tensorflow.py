@@ -72,7 +72,7 @@ class ViTSTR(_ViTSTR, Model):
         self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
-        self.head = layers.Dense(len(self.vocab) + 3)
+        self.head = layers.Dense(len(self.vocab) + 3, name="head")
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 

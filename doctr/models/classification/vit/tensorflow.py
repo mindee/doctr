@@ -48,7 +48,7 @@ class ClassifierHead(layers.Layer, NestedObject):
     def __init__(self, num_classes: int) -> None:
         super().__init__()
 
-        self.head = layers.Dense(num_classes, kernel_initializer="he_normal")
+        self.head = layers.Dense(num_classes, kernel_initializer="he_normal", name="dense")
 
     def call(self, x: tf.Tensor) -> tf.Tensor:
         # (batch_size, num_classes) cls token

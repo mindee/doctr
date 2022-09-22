@@ -34,7 +34,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
             trainable=True,
             name="positions",
         )
-        self.proj = layers.Dense(embed_dim, kernel_initializer="he_normal")
+        self.proj = layers.Dense(embed_dim, kernel_initializer="he_normal", name="projection")
 
     def interpolate_pos_encoding(self, embeddings: tf.Tensor, height: int, width: int) -> tf.Tensor:
         """
