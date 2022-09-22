@@ -9,7 +9,12 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.io.elements import Document
-from doctr.models._utils import estimate_orientation, get_language
+from doctr.models._utils import (
+    estimate_orientation,
+    get_language,
+    invert_dict_list_to_list_dict,
+    invert_list_dict_to_dict_list,
+)
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
@@ -90,24 +95,21 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
 
-        new_loc_preds: Dict[str, List[np.ndarray]] = {k: [] for k in loc_preds[0].keys()}
-        for loc_pred in loc_preds:
-            for k, v in loc_pred.items():
-                new_loc_preds[k].append(v)
+        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_list_dict_to_dict_list(loc_preds)
         # Rectify crops if aspect ratio
-        new_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in new_loc_preds.items()}
+        dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
 
         # Crop images
         crops = {}
-        for class_name in new_loc_preds.keys():
-            crops[class_name], new_loc_preds[class_name] = self._prepare_crops(
-                pages, new_loc_preds[class_name], channels_last=True, assume_straight_pages=self.assume_straight_pages
+        for class_name in dict_loc_preds.keys():
+            crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
+                pages, dict_loc_preds[class_name], channels_last=True, assume_straight_pages=self.assume_straight_pages
             )
         # Rectify crop orientation
         if not self.assume_straight_pages:
-            for class_name in new_loc_preds.keys():
-                crops[class_name], new_loc_preds[class_name] = self._rectify_crops(
-                    crops[class_name], new_loc_preds[class_name]
+            for class_name in dict_loc_preds.keys():
+                crops[class_name], dict_loc_preds[class_name] = self._rectify_crops(
+                    crops[class_name], dict_loc_preds[class_name]
                 )
 
         # Identify character sequences
@@ -116,18 +118,15 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             for k, crop_value in crops.items()
         }
 
-        boxes = {}
-        text_preds = {}
-        for class_name in new_loc_preds.keys():
+        boxes: Dict = {}
+        text_preds: Dict = {}
+        for class_name in dict_loc_preds.keys():
             boxes[class_name], text_preds[class_name] = self._process_predictions(
-                new_loc_preds[class_name], word_preds[class_name]
+                dict_loc_preds[class_name], word_preds[class_name]
             )
 
-        boxes_per_page: List[Dict] = []
-        text_preds_per_page: List[Dict] = []
-        for i in range(len(pages)):
-            boxes_per_page.append({k: v[i] for k, v in boxes.items()})
-            text_preds_per_page.append({k: v[i] for k, v in text_preds.items()})
+        boxes_per_page: List[Dict] = invert_dict_list_to_list_dict(boxes)
+        text_preds_per_page: List[Dict] = invert_dict_list_to_list_dict(text_preds)
 
         if self.detect_language:
             languages = [get_language(self.get_text(text_pred)) for text_pred in text_preds_per_page]
@@ -151,7 +150,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 )
             ]
 
-        out = self.doc_builder.tf_call(
+        out = self.doc_builder(
             boxes_per_page,
             text_preds_per_page,
             origin_page_shapes,  # type: ignore[arg-type]

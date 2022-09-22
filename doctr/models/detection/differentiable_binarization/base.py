@@ -12,6 +12,8 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
+from doctr.file_utils import is_tf_available
+
 from ..core import DetectionPostProcessor
 
 __all__ = ["DBPostProcessor"]
@@ -272,6 +274,8 @@ class _DBNet:
         for tgt in target:
             if isinstance(tgt, np.ndarray):
                 new_target.append({"words": tgt})
+            else:
+                new_target.append(tgt)
         target = new_target.copy()
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -280,8 +284,12 @@ class _DBNet:
 
         input_dtype = list(target[0].values())[0].dtype if len(target) > 0 else np.float32
 
-        h, w = output_shape[1:-1]
-        target_shape = (output_shape[0], output_shape[-1], h, w)
+        if is_tf_available():
+            h, w = output_shape[1:-1]
+            target_shape = (output_shape[0], output_shape[-1], h, w)
+        else:
+            h, w = output_shape[-2:]
+            target_shape = output_shape
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
         seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
         thresh_target: np.ndarray = np.zeros(target_shape, dtype=np.float32)
@@ -349,10 +357,11 @@ class _DBNet:
                     poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
                         poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
                     )
-        seg_target = seg_target.transpose((0, 2, 3, 1))
-        seg_mask = seg_mask.transpose((0, 2, 3, 1))
-        thresh_target = thresh_target.transpose((0, 2, 3, 1))
-        thresh_mask = thresh_mask.transpose((0, 2, 3, 1))
+        if is_tf_available():
+            seg_target = seg_target.transpose((0, 2, 3, 1))
+            seg_mask = seg_mask.transpose((0, 2, 3, 1))
+            thresh_target = thresh_target.transpose((0, 2, 3, 1))
+            thresh_mask = thresh_mask.transpose((0, 2, 3, 1))
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 

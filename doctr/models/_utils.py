@@ -5,7 +5,7 @@
 
 from math import floor
 from statistics import median_low
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -161,3 +161,36 @@ def get_language(text: str) -> Tuple[str, float]:
     if len(text) <= 1 or (len(text) <= 5 and lang.prob <= 0.2):
         return "unknown", 0.0
     return lang.lang, lang.prob
+
+
+def invert_list_dict_to_dict_list(list_dict: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
+    """Convert a List of Dict of elements to a Dict of list of elements
+
+    Args:
+        list_dict (List): the list of dictionaries
+
+    Returns:
+        dict_list (Dict): the dictionary of lists
+    """
+    dict_list: Dict[str, List[Any]] = {k: [] for k in list_dict[0].keys()}
+    for dic in list_dict:
+        for k, v in dic.items():
+            dict_list[k].append(v)
+    return dict_list
+
+
+def invert_dict_list_to_list_dict(dict_list: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
+    """Convert a Dict of list of elements to a List of Dict of elements
+
+    Args:
+        dict_list (Dict): the dictionary of lists
+
+    Returns:
+        list_dict (List): the list of dictionaries
+    """
+    n = len(list(dict_list.values())[0])
+    list_dict: List[Dict[str, Any]] = [{k: None for k in dict_list.keys()} for _ in range(n)]
+    for k, value in dict_list.items():
+        for i, v in enumerate(value):
+            list_dict[i][k] = v
+    return list_dict

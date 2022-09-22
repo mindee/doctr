@@ -170,7 +170,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         out_map: tf.Tensor,
         thresh_map: tf.Tensor,
         target: List[np.ndarray],
-        eps: float = 1e-8,
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -179,7 +178,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             out_map: output feature map of the model of shape (N, H, W, C)
             thresh_map: threshold map of shape (N, H, W, C)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
-            eps: epsilon factor in dice loss
 
         Returns:
             A loss tensor

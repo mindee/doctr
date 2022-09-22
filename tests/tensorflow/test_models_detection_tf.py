@@ -46,10 +46,11 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if out_prob:
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
-    for boxes in out["preds"]:
-        assert boxes.shape[1] == 5
-        assert np.all(boxes[:, :2] < boxes[:, 2:4])
-        assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
+    for boxes_dict in out["preds"]:
+        for boxes in boxes_dict.values():
+            assert boxes.shape[1] == 5
+            assert np.all(boxes[:, :2] < boxes[:, 2:4])
+            assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out["loss"], tf.Tensor)
     # Target checks
@@ -136,7 +137,7 @@ def test_detection_zoo(arch_name):
     assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
-    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
+    assert all(isinstance(boxes, dict) and boxes["words"].shape[1] == 5 for boxes in out)
 
 
 def test_detection_zoo_error():

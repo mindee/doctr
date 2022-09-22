@@ -124,9 +124,13 @@ class DBNet(_DBNet, nn.Module):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = ["words"],
     ) -> None:
 
         super().__init__()
+        self.class_names = class_names
+        if cfg and cfg.get("class_names"):
+            self.class_names = cfg["class_names"]
         self.cfg = cfg
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
@@ -208,8 +212,12 @@ class DBNet(_DBNet, nn.Module):
 
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
+            # out["preds"] = [
+            #     preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+            # ]
             out["preds"] = [
-                preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+                {class_name: p for class_name, p in zip(self.class_names, preds)}
+                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
             ]
 
         if target is not None:
@@ -232,8 +240,8 @@ class DBNet(_DBNet, nn.Module):
             A loss tensor
         """
 
-        prob_map = torch.sigmoid(out_map.squeeze(1))
-        thresh_map = torch.sigmoid(thresh_map.squeeze(1))
+        prob_map = torch.sigmoid(out_map)
+        thresh_map = torch.sigmoid(thresh_map)
 
         targets = self.build_target(target, prob_map.shape)  # type: ignore[arg-type]
 
@@ -248,7 +256,11 @@ class DBNet(_DBNet, nn.Module):
         dice_loss = torch.zeros(1, device=out_map.device)
         l1_loss = torch.zeros(1, device=out_map.device)
         if torch.any(seg_mask):
-            bce_loss = F.binary_cross_entropy_with_logits(out_map.squeeze(1), seg_target, reduction="none")[seg_mask]
+            bce_loss = F.binary_cross_entropy_with_logits(
+                out_map,
+                seg_target,
+                reduction="none",
+            )[seg_mask]
 
             neg_target = 1 - seg_target[seg_mask]
             positive_count = seg_target[seg_mask].sum()

@@ -164,13 +164,20 @@ class _LinkNet(BaseModel):
         for tgt in target:
             if isinstance(tgt, np.ndarray):
                 new_target.append({"words": tgt})
+            else:
+                new_target.append(tgt)
         target = new_target.copy()
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
-        h, w, num_classes = output_shape
+        h: int
+        w: int
+        if is_tf_available():
+            h, w, num_classes = output_shape
+        else:
+            num_classes, h, w = output_shape
         target_shape = (len(target), num_classes, h, w)
 
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)

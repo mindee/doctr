@@ -229,7 +229,7 @@ class Page(Element):
 
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
     _children_names: List[str] = ["blocks"]
-    blocks: List[Block] = []
+    blocks: Dict[str, List[Block]] = {}
 
     def __init__(
         self,
@@ -247,7 +247,7 @@ class Page(Element):
 
     def render(self, block_break: str = "\n\n") -> str:
         """Renders the full text of the element"""
-        return block_break.join(b.render() for b in self.blocks)
+        return block_break.join(b.render() for blocks in self.blocks.values() for b in blocks)
 
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
@@ -316,65 +316,66 @@ class Page(Element):
             },
         )
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
-        for block in self.blocks:
-            if len(block.geometry) != 2:
-                raise TypeError("XML export is only available for straight bounding boxes for now.")
-            (xmin, ymin), (xmax, ymax) = block.geometry
-            block_div = SubElement(
-                body,
-                "div",
-                attrib={
-                    "class": "ocr_carea",
-                    "id": f"block_{block_count}",
-                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                    {int(round(xmax * width))} {int(round(ymax * height))}",
-                },
-            )
-            paragraph = SubElement(
-                block_div,
-                "p",
-                attrib={
-                    "class": "ocr_par",
-                    "id": f"par_{block_count}",
-                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                    {int(round(xmax * width))} {int(round(ymax * height))}",
-                },
-            )
-            block_count += 1
-            for line in block.lines:
-                (xmin, ymin), (xmax, ymax) = line.geometry
-                # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
-                line_span = SubElement(
-                    paragraph,
-                    "span",
+        for class_name, blocks in self.blocks.items():
+            for block in blocks:
+                if len(block.geometry) != 2:
+                    raise TypeError("XML export is only available for straight bounding boxes for now.")
+                (xmin, ymin), (xmax, ymax) = block.geometry
+                block_div = SubElement(
+                    body,
+                    "div",
                     attrib={
-                        "class": "ocr_line",
-                        "id": f"line_{line_count}",
+                        "class": "ocr_carea",
+                        "id": f"{class_name}_block_{block_count}",
                         "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}; \
-                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                        {int(round(xmax * width))} {int(round(ymax * height))}",
                     },
                 )
-                line_count += 1
-                for word in line.words:
-                    (xmin, ymin), (xmax, ymax) = word.geometry
-                    conf = word.confidence
-                    word_div = SubElement(
-                        line_span,
+                paragraph = SubElement(
+                    block_div,
+                    "p",
+                    attrib={
+                        "class": "ocr_par",
+                        "id": f"par_{block_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}",
+                    },
+                )
+                block_count += 1
+                for line in block.lines:
+                    (xmin, ymin), (xmax, ymax) = line.geometry
+                    # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
+                    line_span = SubElement(
+                        paragraph,
                         "span",
                         attrib={
-                            "class": "ocrx_word",
-                            "id": f"word_{word_count}",
+                            "class": "ocr_line",
+                            "id": f"line_{line_count}",
                             "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
                             {int(round(xmax * width))} {int(round(ymax * height))}; \
-                            x_wconf {int(round(conf * 100))}",
+                            baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
                         },
                     )
-                    # set the text
-                    word_div.text = word.value
-                    word_count += 1
+                    line_count += 1
+                    for word in line.words:
+                        (xmin, ymin), (xmax, ymax) = word.geometry
+                        conf = word.confidence
+                        word_div = SubElement(
+                            line_span,
+                            "span",
+                            attrib={
+                                "class": "ocrx_word",
+                                "id": f"word_{word_count}",
+                                "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                                {int(round(xmax * width))} {int(round(ymax * height))}; \
+                                x_wconf {int(round(conf * 100))}",
+                            },
+                        )
+                        # set the text
+                        word_div.text = word.value
+                        word_count += 1
 
-        return (ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr))
+        return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):

@@ -58,14 +58,14 @@ def _mock_blocks(size=(1, 1), offset=(0, 0)):
 def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     return [
         elements.Page(
-            _mock_blocks(block_size, block_offset),
+            {"words": _mock_blocks(block_size, block_offset)},
             0,
             (300, 200),
             {"value": 0.0, "confidence": 1.0},
             {"value": "EN", "confidence": 0.8},
         ),
         elements.Page(
-            _mock_blocks(block_size, block_offset),
+            {"words": _mock_blocks(block_size, block_offset)},
             1,
             (500, 1000),
             {"value": 0.15, "confidence": 0.8},
@@ -188,12 +188,13 @@ def test_page():
     page_size = (300, 200)
     orientation = {"value": 0.0, "confidence": 0.0}
     language = {"value": "EN", "confidence": 0.8}
-    blocks = _mock_blocks()
+    blocks = {"words": _mock_blocks()}
     page = elements.Page(blocks, page_idx, page_size, orientation, language)
 
+    class_names = list(blocks.keys())
     # Attribute checks
     assert len(page.blocks) == len(blocks)
-    assert all(isinstance(b, elements.Block) for b in page.blocks)
+    assert all(isinstance(b, elements.Block) for b in page.blocks[class_names[0]])
     assert page.page_idx == page_idx
     assert page.dimensions == page_size
     assert page.orientation == orientation
@@ -204,7 +205,7 @@ def test_page():
 
     # Export
     assert page.export() == {
-        "blocks": [b.export() for b in blocks],
+        "blocks": {class_name: [b.export() for b in blocks[class_name]] for class_name in class_names},
         "page_idx": page_idx,
         "dimensions": page_size,
         "orientation": orientation,

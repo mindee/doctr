@@ -107,9 +107,13 @@ class LinkNet(nn.Module, _LinkNet):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = ["words"],
     ) -> None:
 
         super().__init__()
+        self.class_names = class_names
+        if cfg and cfg.get("class_names"):
+            self.class_names = cfg["class_names"]
         self.cfg = cfg
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -182,7 +186,8 @@ class LinkNet(nn.Module, _LinkNet):
         if target is None or return_preds:
             # Post-process boxes
             out["preds"] = [
-                preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+                {class_name: p for class_name, p in zip(self.class_names, preds)}
+                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
             ]
 
         if target is not None:
@@ -203,21 +208,22 @@ class LinkNet(nn.Module, _LinkNet):
         <https://github.com/tensorflow/addons/>`_.
 
         Args:
-            out_map: output feature map of the model of shape (N, 1, H, W)
+            out_map: output feature map of the model of shape (N, num_classes, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
             gamma: modulating factor in the focal loss formula
             alpha: balancing factor in the focal loss formula
+            eps: epsilon factor in dice loss
 
         Returns:
             A loss tensor
         """
-        _target, _mask = self.build_target(target, out_map.shape[-2:])  # type: ignore[arg-type]
+        _target, _mask = self.build_target(target, out_map.shape[1:])  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(_target).to(dtype=out_map.dtype), torch.from_numpy(_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         seg_mask = seg_mask.to(dtype=torch.float32)
 
-        bce_loss = bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
+        bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
         proba_map = torch.sigmoid(out_map)
 
         # Focal loss
@@ -228,15 +234,15 @@ class LinkNet(nn.Module, _LinkNet):
         # Unreduced version
         focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
         # Class reduced
-        focal_loss = (seg_mask * focal_loss).sum((0, 2, 3)) / seg_mask.sum((0, 2, 3))
+        focal_loss = (seg_mask * focal_loss).sum((0, 1, 2, 3)) / seg_mask.sum((0, 1, 2, 3))
 
         # Dice loss
-        inter = (seg_mask * proba_map * seg_target).sum((0, 2, 3))
-        cardinality = (seg_mask * (proba_map + seg_target)).sum((0, 2, 3))
+        inter = (seg_mask * proba_map * seg_target).sum((0, 1, 2, 3))
+        cardinality = (seg_mask * (proba_map + seg_target)).sum((0, 1, 2, 3))
         dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Return the full loss (equal sum of focal loss and dice loss)
-        return focal_loss.mean() + dice_loss.mean()
+        return focal_loss + dice_loss
 
 
 def _linknet(
