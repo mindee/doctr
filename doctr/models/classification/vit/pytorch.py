@@ -124,7 +124,7 @@ def _vit(
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else []
         # The model is used as a feature extractor => remove the patch embedding and position weights
         _ignore_keys = (
-            _ignore_keys + ["0.positions", "0.proj.weight"]
+            _ignore_keys + ["0.positions", "0.proj.weight"]  # type: ignore
             if kwargs["input_shape"] != default_cfgs[arch]["input_shape"]
             else _ignore_keys
         )
