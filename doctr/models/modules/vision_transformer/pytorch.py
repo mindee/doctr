@@ -60,7 +60,7 @@ class PatchEmbedding(nn.Module):
         patch_pos_embed = nn.functional.interpolate(
             patch_pos_embed,
             scale_factor=(h0 / math.sqrt(num_positions), w0 / math.sqrt(num_positions)),
-            mode="bicubic",
+            mode="bilinear",
             align_corners=False,
             recompute_scale_factor=True,
         )
