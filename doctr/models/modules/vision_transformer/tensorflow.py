@@ -65,7 +65,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
                 patch_pos_embed, shape=(1, int(math.sqrt(num_positions)), int(math.sqrt(num_positions)), dim)
             ),
             size=(h0, w0),
-            method="bicubic",
+            method="bilinear",
         )
 
         shape = patch_pos_embed.shape
