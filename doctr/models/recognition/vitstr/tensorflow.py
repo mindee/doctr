@@ -200,7 +200,7 @@ def _vitstr(
 
     kwargs["vocab"] = _cfg["vocab"]
 
-    # feature extractor
+    # Feature extractor
     feat_extractor = backbone_fn(
         pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
