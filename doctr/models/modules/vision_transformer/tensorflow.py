@@ -21,11 +21,12 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
         super().__init__()
         height, width, _ = input_shape
-        # calculate patch size 32x32 -> (4, 4) 32x128 -> (4, 16)
+        # calculate patch size
         # NOTE: this is different from the original implementation
-        self.patch_size = (height // 8, width // 8)
-        self.grid_size = (height // self.patch_size[0], width // self.patch_size[1])
-        self.num_patches = (height // self.patch_size[0]) * (width // self.patch_size[1])
+        self.patch_size = (height // (height // 8), width // (width // 8))
+
+        self.grid_size = (self.patch_size[0], self.patch_size[1])
+        self.num_patches = self.patch_size[0] * self.patch_size[1]
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
         self.positions = self.add_weight(

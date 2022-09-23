@@ -24,14 +24,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_b-13bbe405.pt",
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_b-103002d1.pt",
     },
     "vit_s": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_s-ff3c4666.pt",
+        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_s-cd3472bd.pt",
     },
 }
 
@@ -101,7 +101,7 @@ class VisionTransformer(nn.Sequential):
 def _vit(
     arch: str,
     pretrained: bool,
-    ignore_keys: Optional[List[str]] = [],
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> VisionTransformer:
 
@@ -121,13 +121,7 @@ def _vit(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else []
-        # The model is used as a feature extractor => remove the patch embedding and position weights
-        _ignore_keys = (
-            _ignore_keys + ["0.positions", "0.proj.weight"]  # type: ignore
-            if kwargs["input_shape"] != default_cfgs[arch]["input_shape"]
-            else _ignore_keys
-        )
+        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model

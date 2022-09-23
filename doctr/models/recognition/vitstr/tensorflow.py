@@ -202,7 +202,7 @@ def _vitstr(
 
     # feature extractor
     feat_extractor = backbone_fn(
-        pretrained=False,  # TODO: pretrained_backbone, solve weights shape mismatch
+        pretrained=pretrained_backbone,
         input_shape=_cfg["input_shape"],
         include_top=False,
     )
