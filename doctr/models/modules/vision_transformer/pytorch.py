@@ -50,8 +50,8 @@ class PatchEmbedding(nn.Module):
         class_pos_embed = self.positions[:, 0]
         patch_pos_embed = self.positions[:, 1:]
         dim = embeddings.shape[-1]
-        h0 = height // self.patch_size[0]
-        w0 = width // self.patch_size[1]
+        h0 = float(height // self.patch_size[0])
+        w0 = float(width // self.patch_size[1])
         # we add a small number to avoid floating point error in the interpolation
         # see discussion at https://github.com/facebookresearch/dino/issues/8
         h0, w0 = h0 + 0.1, w0 + 0.1
