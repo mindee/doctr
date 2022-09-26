@@ -130,7 +130,7 @@ def _vit(
 def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-S architecture
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+    <https://arxiv.org/pdf/2010.11929.pdf>`_. Patches: (H, W) -> (H/8, W/8)
 
     NOTE: unofficial config used in ViTSTR and ParSeq
 
@@ -162,7 +162,7 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-B architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+    <https://arxiv.org/pdf/2010.11929.pdf>`_. Patches: (H, W) -> (H/8, W/8)
 
     >>> import torch
     >>> from doctr.models import vit_b
