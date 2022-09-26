@@ -26,14 +26,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_s-7a23bea4.zip&src=0",
     },
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_b-983c86b5.zip&src=0",
     },
 }
 
@@ -48,7 +48,7 @@ class ClassifierHead(layers.Layer, NestedObject):
     def __init__(self, num_classes: int) -> None:
         super().__init__()
 
-        self.head = layers.Dense(num_classes, kernel_initializer="he_normal")
+        self.head = layers.Dense(num_classes, kernel_initializer="he_normal", name="dense")
 
     def call(self, x: tf.Tensor) -> tf.Tensor:
         # (batch_size, num_classes) cls token
@@ -66,7 +66,6 @@ class VisionTransformer(Sequential):
         num_heads: number of attention heads
         ffd_ratio: multiplier for the hidden dimension of the feedforward layer
         input_shape: size of the input image
-        patch_size: size of the patches to be extracted from the input
         dropout: dropout rate
         num_classes: number of output classes
         include_top: whether the classifier head should be instantiated
@@ -79,7 +78,6 @@ class VisionTransformer(Sequential):
         num_heads: int,
         ffd_ratio: int,
         input_shape: Tuple[int, int, int] = (32, 32, 3),
-        patch_size: Tuple[int, int] = (4, 4),
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
@@ -87,7 +85,7 @@ class VisionTransformer(Sequential):
     ) -> None:
 
         _layers = [
-            PatchEmbedding(input_shape, patch_size, d_model),
+            PatchEmbedding(input_shape, d_model),
             EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, activation_fct=GELU()),
         ]
         if include_top:
@@ -125,11 +123,11 @@ def _vit(
 def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-S architecture
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+    <https://arxiv.org/pdf/2010.11929.pdf>`_. Patches: (H, W) -> (H/8, W/8)
 
     NOTE: unofficial config used in ViTSTR and ParSeq
 
-    >>> import tf
+    >>> import tensorflow as tf
     >>> from doctr.models import vit_s
     >>> model = vit_s(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32)
@@ -156,7 +154,7 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-B architecture as described in
     `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+    <https://arxiv.org/pdf/2010.11929.pdf>`_. Patches: (H, W) -> (H/8, W/8)
 
     >>> import tensorflow as tf
     >>> from doctr.models import vit_b

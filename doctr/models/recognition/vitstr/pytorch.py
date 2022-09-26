@@ -48,7 +48,6 @@ class ViTSTR(_ViTSTR, nn.Module):
         max_length: maximum word length handled by the model
         dropout_prob: dropout probability of the encoder LSTM
         input_shape: input shape of the image
-        patch_size: size of the patches
         exportable: onnx exportable returns only logits
         cfg: dictionary containing information about the model
     """
@@ -60,7 +59,6 @@ class ViTSTR(_ViTSTR, nn.Module):
         embedding_units: int,
         max_length: int = 25,
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from paper
-        patch_size: Tuple[int, int] = (4, 8),  # different from paper to match our size
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:

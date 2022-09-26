@@ -17,19 +17,16 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(layers.Layer, NestedObject):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(
-        self,
-        input_shape: Tuple[int, int, int],
-        patch_size: Tuple[int, int],
-        embed_dim: int,
-    ) -> None:
+    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int) -> None:
 
         super().__init__()
         height, width, _ = input_shape
-        # fix patch size if recognition task with 32x128 input
-        self.patch_size = (4, 8) if height != width else patch_size
-        self.grid_size = (height // patch_size[0], width // patch_size[1])
-        self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
+        # calculate patch size
+        # NOTE: this is different from the original implementation
+        self.patch_size = (height // (height // 8), width // (width // 8))
+
+        self.grid_size = (self.patch_size[0], self.patch_size[1])
+        self.num_patches = self.patch_size[0] * self.patch_size[1]
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
         self.positions = self.add_weight(
@@ -38,7 +35,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
             trainable=True,
             name="positions",
         )
-        self.proj = layers.Dense(embed_dim, kernel_initializer="he_normal")
+        self.proj = layers.Dense(embed_dim, kernel_initializer="he_normal", name="projection")
 
     def interpolate_pos_encoding(self, embeddings: tf.Tensor, height: int, width: int) -> tf.Tensor:
         """
@@ -68,7 +65,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
                 patch_pos_embed, shape=(1, int(math.sqrt(num_positions)), int(math.sqrt(num_positions)), dim)
             ),
             size=(h0, w0),
-            method="bicubic",
+            method="bilinear",
         )
 
         shape = patch_pos_embed.shape

@@ -16,19 +16,16 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(
-        self,
-        input_shape: Tuple[int, int, int],
-        patch_size: Tuple[int, int],
-        embed_dim: int,
-    ) -> None:
+    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int) -> None:
 
         super().__init__()
         channels, height, width = input_shape
-        # fix patch size if recognition task with 32x128 input
-        self.patch_size = (4, 8) if height != width else patch_size
-        self.grid_size = (height // patch_size[0], width // patch_size[1])
-        self.num_patches = (height // patch_size[0]) * (width // patch_size[1])
+        # calculate patch size
+        # NOTE: this is different from the original implementation
+        self.patch_size = (height // (height // 8), width // (width // 8))
+
+        self.grid_size = (self.patch_size[0], self.patch_size[1])
+        self.num_patches = self.patch_size[0] * self.patch_size[1]
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))  # type: ignore[attr-defined]
         self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))  # type: ignore[attr-defined]
@@ -62,9 +59,10 @@ class PatchEmbedding(nn.Module):
         patch_pos_embed = patch_pos_embed.permute(0, 3, 1, 2)
         patch_pos_embed = nn.functional.interpolate(
             patch_pos_embed,
-            mode="bicubic",
-            align_corners=False,
             scale_factor=(h0 / math.sqrt(num_positions), w0 / math.sqrt(num_positions)),
+            mode="bilinear",
+            align_corners=False,
+            recompute_scale_factor=True,
         )
         assert int(h0) == patch_pos_embed.shape[-2], "height of interpolated patch embedding doesn't match"
         assert int(w0) == patch_pos_embed.shape[-1], "width of interpolated patch embedding doesn't match"
