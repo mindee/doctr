@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.utils" href="utils.html" /><link rel="prev" title="doctr.documents" href="documents.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.2.1, furo 2022.09.15"/>
         <title>doctr.models - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -677,23 +677,45 @@ backbone as text recognition architecture.</p>
 <li><a class="reference internal" href="#">doctr.models</a><ul>
 <li><a class="reference internal" href="#text-detection">Text Detection</a><ul>
 <li><a class="reference internal" href="#pre-processing-for-detection">Pre-processing for detection</a></li>
-<li><a class="reference internal" href="#detection-models">Detection models</a></li>
+<li><a class="reference internal" href="#detection-models">Detection models</a><ul>
+<li><a class="reference internal" href="#doctr.models.detection.db_resnet50"><code class="docutils literal notranslate"><span class="pre">db_resnet50()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#post-processing-outputs">Post-processing outputs</a></li>
-<li><a class="reference internal" href="#detection-predictors">Detection predictors</a></li>
+<li><a class="reference internal" href="#detection-predictors">Detection predictors</a><ul>
+<li><a class="reference internal" href="#doctr.models.detection.db_resnet50_predictor"><code class="docutils literal notranslate"><span class="pre">db_resnet50_predictor()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#text-recognition">Text Recognition</a><ul>
 <li><a class="reference internal" href="#pre-processing-for-recognition">Pre-processing for recognition</a></li>
-<li><a class="reference internal" href="#recognition-models">Recognition models</a></li>
+<li><a class="reference internal" href="#recognition-models">Recognition models</a><ul>
+<li><a class="reference internal" href="#doctr.models.recognition.crnn_vgg16_bn"><code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.recognition.sar_vgg16_bn"><code class="docutils literal notranslate"><span class="pre">sar_vgg16_bn()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#id1">Post-processing outputs</a></li>
-<li><a class="reference internal" href="#recognition-predictors">Recognition predictors</a></li>
+<li><a class="reference internal" href="#recognition-predictors">Recognition predictors</a><ul>
+<li><a class="reference internal" href="#doctr.models.recognition.crnn_vgg16_bn_predictor"><code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn_predictor()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.recognition.sar_vgg16_bn_predictor"><code class="docutils literal notranslate"><span class="pre">sar_vgg16_bn_predictor()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
-<li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
+<li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a><ul>
+<li><a class="reference internal" href="#doctr.models.zoo.ocr_db_crnn"><code class="docutils literal notranslate"><span class="pre">ocr_db_crnn()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#model-export">Model export</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model-export">Model export</a><ul>
+<li><a class="reference internal" href="#doctr.models.export.convert_to_tflite"><code class="docutils literal notranslate"><span class="pre">convert_to_tflite()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.export.convert_to_fp16"><code class="docutils literal notranslate"><span class="pre">convert_to_fp16()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.export.quantize_model"><code class="docutils literal notranslate"><span class="pre">quantize_model()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -710,6 +732,7 @@ backbone as text recognition architecture.</p>
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>

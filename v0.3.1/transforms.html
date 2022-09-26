@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.utils" href="utils.html" /><link rel="prev" title="doctr.models" href="models.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.2.1, furo 2022.09.15"/>
         <title>doctr.transforms - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -609,8 +609,27 @@ increasing saturation by a factor.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">doctr.transforms</a><ul>
-<li><a class="reference internal" href="#supported-transformations">Supported transformations</a></li>
-<li><a class="reference internal" href="#composing-transformations">Composing transformations</a></li>
+<li><a class="reference internal" href="#supported-transformations">Supported transformations</a><ul>
+<li><a class="reference internal" href="#doctr.transforms.Resize"><code class="docutils literal notranslate"><span class="pre">Resize</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.Normalize"><code class="docutils literal notranslate"><span class="pre">Normalize</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.LambdaTransformation"><code class="docutils literal notranslate"><span class="pre">LambdaTransformation</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.ToGray"><code class="docutils literal notranslate"><span class="pre">ToGray</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.ColorInversion"><code class="docutils literal notranslate"><span class="pre">ColorInversion</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomBrightness"><code class="docutils literal notranslate"><span class="pre">RandomBrightness</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomContrast"><code class="docutils literal notranslate"><span class="pre">RandomContrast</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomSaturation"><code class="docutils literal notranslate"><span class="pre">RandomSaturation</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomHue"><code class="docutils literal notranslate"><span class="pre">RandomHue</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomGamma"><code class="docutils literal notranslate"><span class="pre">RandomGamma</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomJpegQuality"><code class="docutils literal notranslate"><span class="pre">RandomJpegQuality</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomRotate"><code class="docutils literal notranslate"><span class="pre">RandomRotate</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#composing-transformations">Composing transformations</a><ul>
+<li><a class="reference internal" href="#doctr.transforms.Compose"><code class="docutils literal notranslate"><span class="pre">Compose</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.OneOf"><code class="docutils literal notranslate"><span class="pre">OneOf</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomApply"><code class="docutils literal notranslate"><span class="pre">RandomApply</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -627,6 +646,7 @@ increasing saturation by a factor.</p>
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>

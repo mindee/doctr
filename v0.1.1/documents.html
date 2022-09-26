@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.models" href="models.html" /><link rel="prev" title="doctr.datasets" href="datasets.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.2.1, furo 2022.09.15"/>
         <title>doctr.documents - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -437,8 +437,20 @@ all lines and artefacts in it.</p></li>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">doctr.documents</a><ul>
-<li><a class="reference internal" href="#document-structure">Document structure</a></li>
-<li><a class="reference internal" href="#file-reading">File reading</a></li>
+<li><a class="reference internal" href="#document-structure">Document structure</a><ul>
+<li><a class="reference internal" href="#doctr.documents.Word"><code class="docutils literal notranslate"><span class="pre">Word</span></code></a></li>
+<li><a class="reference internal" href="#doctr.documents.Artefact"><code class="docutils literal notranslate"><span class="pre">Artefact</span></code></a></li>
+<li><a class="reference internal" href="#doctr.documents.Line"><code class="docutils literal notranslate"><span class="pre">Line</span></code></a></li>
+<li><a class="reference internal" href="#doctr.documents.Block"><code class="docutils literal notranslate"><span class="pre">Block</span></code></a></li>
+<li><a class="reference internal" href="#doctr.documents.Page"><code class="docutils literal notranslate"><span class="pre">Page</span></code></a></li>
+<li><a class="reference internal" href="#doctr.documents.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#file-reading">File reading</a><ul>
+<li><a class="reference internal" href="#doctr.documents.read_pdf"><code class="docutils literal notranslate"><span class="pre">read_pdf()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.documents.read_img"><code class="docutils literal notranslate"><span class="pre">read_img()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -455,6 +467,7 @@ all lines and artefacts in it.</p></li>
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>

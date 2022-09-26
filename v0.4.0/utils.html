@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Changelog" href="changelog.html" /><link rel="prev" title="doctr.transforms" href="transforms.html" />
 
-    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/><meta name="generator" content="sphinx-5.2.1, furo 2022.09.15"/>
         <title>doctr.utils - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -541,8 +541,29 @@ h_{B,L}(b, l) = \left\{
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">doctr.utils</a><ul>
-<li><a class="reference internal" href="#visualization">Visualization</a></li>
-<li><a class="reference internal" href="#task-evaluation">Task evaluation</a></li>
+<li><a class="reference internal" href="#visualization">Visualization</a><ul>
+<li><a class="reference internal" href="#doctr.utils.visualization.visualize_page"><code class="docutils literal notranslate"><span class="pre">visualize_page()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.utils.visualization.synthesize_page"><code class="docutils literal notranslate"><span class="pre">synthesize_page()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#task-evaluation">Task evaluation</a><ul>
+<li><a class="reference internal" href="#doctr.utils.metrics.TextMatch"><code class="docutils literal notranslate"><span class="pre">TextMatch</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.utils.metrics.TextMatch.update"><code class="docutils literal notranslate"><span class="pre">TextMatch.update()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.utils.metrics.TextMatch.summary"><code class="docutils literal notranslate"><span class="pre">TextMatch.summary()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.utils.metrics.LocalizationConfusion"><code class="docutils literal notranslate"><span class="pre">LocalizationConfusion</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.utils.metrics.LocalizationConfusion.update"><code class="docutils literal notranslate"><span class="pre">LocalizationConfusion.update()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.utils.metrics.LocalizationConfusion.summary"><code class="docutils literal notranslate"><span class="pre">LocalizationConfusion.summary()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.utils.metrics.OCRMetric"><code class="docutils literal notranslate"><span class="pre">OCRMetric</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.utils.metrics.OCRMetric.update"><code class="docutils literal notranslate"><span class="pre">OCRMetric.update()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.utils.metrics.OCRMetric.summary"><code class="docutils literal notranslate"><span class="pre">OCRMetric.summary()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -559,6 +580,7 @@ h_{B,L}(b, l) = \left\{
     <script src="_static/underscore.js"></script>
     <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/scripts/furo.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>

@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-5.1.1, furo 2022.09.15"/>
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><meta name="generator" content="sphinx-5.2.1, furo 2022.09.15"/>
         <title>doctr.models.classification.vit.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?digest=9ec31e2665bf879c1d47d93a8ec4893870ee1e45" />
@@ -273,14 +273,14 @@
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
         <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.1/vit_s-7a23bea4.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;vit_b&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
         <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.1/vit_b-983c86b5.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -295,7 +295,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dense&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="c1"># (batch_size, num_classes) cls token</span>
@@ -313,7 +313,6 @@
 <span class="sd">        num_heads: number of attention heads</span>
 <span class="sd">        ffd_ratio: multiplier for the hidden dimension of the feedforward layer</span>
 <span class="sd">        input_shape: size of the input image</span>
-<span class="sd">        patch_size: size of the patches to be extracted from the input</span>
 <span class="sd">        dropout: dropout rate</span>
 <span class="sd">        num_classes: number of output classes</span>
 <span class="sd">        include_top: whether the classifier head should be instantiated</span>
@@ -326,7 +325,6 @@
         <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">ffd_ratio</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="n">patch_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
         <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -334,7 +332,7 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">PatchEmbedding</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">),</span>
+            <span class="n">PatchEmbedding</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">d_model</span><span class="p">),</span>
             <span class="n">EncoderBlock</span><span class="p">(</span><span class="n">num_layers</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span> <span class="o">*</span> <span class="n">ffd_ratio</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">activation_fct</span><span class="o">=</span><span class="n">GELU</span><span class="p">()),</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="n">include_top</span><span class="p">:</span>
@@ -372,11 +370,11 @@
 <div class="viewcode-block" id="vit_s"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.vit_s">[docs]</a><span class="k">def</span> <span class="nf">vit_s</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisionTransformer</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;VisionTransformer-S architecture</span>
 <span class="sd">    `&quot;An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale&quot;,</span>
-<span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_.</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_. Patches: (H, W) -&gt; (H/8, W/8)</span>
 
 <span class="sd">    NOTE: unofficial config used in ViTSTR and ParSeq</span>
 
-<span class="sd">    &gt;&gt;&gt; import tf</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models import vit_s</span>
 <span class="sd">    &gt;&gt;&gt; model = vit_s(pretrained=False)</span>
 <span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 32, 32, 3], maxval=1, dtype=tf.float32)</span>
@@ -403,7 +401,7 @@
 <div class="viewcode-block" id="vit_b"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.vit_b">[docs]</a><span class="k">def</span> <span class="nf">vit_b</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VisionTransformer</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;VisionTransformer-B architecture as described in</span>
 <span class="sd">    `&quot;An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale&quot;,</span>
-<span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_.</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_. Patches: (H, W) -&gt; (H/8, W/8)</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models import vit_b</span>
@@ -466,6 +464,7 @@
     <script src="../../../../../_static/underscore.js"></script>
     <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../../_static/scripts/furo.js"></script>
     <script src="../../../../../_static/clipboard.min.js"></script>
     <script src="../../../../../_static/copybutton.js"></script>
