@@ -42,4 +42,4 @@ def read_pdf(
 
     # Rasterise pages to PIL images with pypdfium2 and convert to numpy ndarrays
     with pdfium.PdfDocument(file, password=password) as pdf:
-        return [np.asarray(img) for img in pdf.render_topil(scale=scale, **kwargs)]
+        return [img[0] for img in iter(pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, **kwargs))]
