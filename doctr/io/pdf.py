@@ -17,6 +17,7 @@ __all__ = ["read_pdf"]
 def read_pdf(
     file: AbstractFile,
     scale: float = 2,
+    rgb_mode: bool = True,
     password: Optional[str] = None,
     **kwargs: Any,
 ) -> List[np.ndarray]:
@@ -28,6 +29,7 @@ def read_pdf(
     Args:
         file: the path to the PDF file
         scale: rendering scale (1 corresponds to 72dpi)
+        rgb_mode: if True, the output will be RGB, otherwise BGR
         password: a password to unlock the document, if encrypted
         kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render_topil`
 
@@ -42,4 +44,7 @@ def read_pdf(
 
     # Rasterise pages to PIL images with pypdfium2 and convert to numpy ndarrays
     with pdfium.PdfDocument(file, password=password) as pdf:
-        return [img for img, _ in pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, **kwargs)]
+        return [
+            img
+            for img, _ in pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, rev_byteorder=rgb_mode, **kwargs)
+        ]
