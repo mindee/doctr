@@ -26,14 +26,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_s-7a23bea4.zip",
+        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_s-7a23bea4.zip&src=0",
     },
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.5.1/vit_b-983c86b5.zip",
+        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_b-983c86b5.zip&src=0",
     },
 }
 
