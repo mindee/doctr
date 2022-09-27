@@ -14,6 +14,11 @@ Whichever OS you are running, you will need to install at least TensorFlow or Py
 * `TensorFlow 2 <https://www.tensorflow.org/install/>`_
 * `PyTorch <https://pytorch.org/get-started/locally/#start-locally>`_
 
+For MacBooks with M1 chip, you will need some additional packages or specific versions:
+
+* `TensorFlow 2 Metal Plugin <https://developer.apple.com/metal/tensorflow-plugin/>`_
+* `PyTorch >= 1.12.0 <https://pytorch.org/get-started/locally/#start-locally>`_
+
 If you are running another OS than Linux, you will need a few extra dependencies.
 
 For MacOS users, you can install them using `Homebrew <https://brew.sh/>`_ as follows:

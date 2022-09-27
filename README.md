@@ -135,6 +135,11 @@ pip install "python-doctr[tf]"
 pip install "python-doctr[torch]"
 ```
 
+For MacBooks with M1 chip, you will need some additional packages or specific versions:
+
+- TensorFlow 2: [metal plugin](https://developer.apple.com/metal/tensorflow-plugin/)
+- PyTorch: [version >= 1.12.0](https://pytorch.org/get-started/locally/#start-locally)
+
 ### Developer mode
 Alternatively, you can install it from source, which will require you to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 First clone the project repository:
