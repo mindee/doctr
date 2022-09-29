@@ -32,7 +32,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_loss, batch_cnt = 0, 0
     for images, targets in tqdm(val_loader):
         try:
-            targets = [t["labels"][0] for t in targets]
             if torch.cuda.is_available():
                 images = images.cuda()
             images = batch_transforms(images)

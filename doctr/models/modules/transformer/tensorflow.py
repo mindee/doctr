@@ -4,14 +4,14 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["Decoder", "PositionalEncoding"]
+__all__ = ["Decoder", "PositionalEncoding", "EncoderBlock"]
 
 tf.config.run_functions_eagerly(True)
 
@@ -74,16 +74,22 @@ def scaled_dot_product_attention(
 class PositionwiseFeedForward(layers.Layer, NestedObject):
     """Position-wise Feed-Forward Network"""
 
-    def __init__(self, d_model: int, ffd: int, dropout=0.1) -> None:
+    def __init__(
+        self, d_model: int, ffd: int, dropout=0.1, activation_fct: Callable[[Any], Any] = layers.ReLU()
+    ) -> None:
         super(PositionwiseFeedForward, self).__init__()
+        self.activation_fct = activation_fct
+
         self.first_linear = layers.Dense(ffd, kernel_initializer=tf.initializers.he_uniform())
         self.sec_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
         self.dropout = layers.Dropout(rate=dropout)
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
-        x = tf.nn.relu(self.first_linear(x, **kwargs))
+        x = self.first_linear(x, **kwargs)
+        x = self.activation_fct(x)
         x = self.dropout(x, **kwargs)
         x = self.sec_linear(x, **kwargs)
+        x = self.dropout(x, **kwargs)
         return x
 
 
@@ -128,6 +134,49 @@ class MultiHeadAttention(layers.Layer, NestedObject):
         return self.output_linear(x, **kwargs)
 
 
+class EncoderBlock(layers.Layer, NestedObject):
+    """Transformer Encoder Block"""
+
+    def __init__(
+        self,
+        num_layers: int,
+        num_heads: int,
+        d_model: int,
+        dff: int,  # hidden dimension of the feedforward network
+        dropout: float,
+        activation_fct: Callable[[Any], Any] = layers.ReLU(),
+    ) -> None:
+        super().__init__()
+
+        self.num_layers = num_layers
+
+        self.layer_norm_input = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_output = layers.LayerNormalization(epsilon=1e-5)
+        self.dropout = layers.Dropout(rate=dropout)
+
+        self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
+        self.position_feed_forward = [
+            PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)
+        ]
+
+    def call(self, x: tf.Tensor, mask: Optional[tf.Tensor] = None, **kwargs: Any) -> tf.Tensor:
+
+        output = x
+
+        for i in range(self.num_layers):
+            normed_output = self.layer_norm_input(output, **kwargs)
+            output = output + self.dropout(
+                self.attention[i](normed_output, normed_output, normed_output, mask, **kwargs),
+                **kwargs,
+            )
+            normed_output = self.layer_norm_attention(output, **kwargs)
+            output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
+
+        # (batch_size, seq_len, d_model)
+        return self.layer_norm_output(output, **kwargs)
+
+
 class Decoder(layers.Layer, NestedObject):
     """Transformer Decoder"""
 
@@ -138,7 +187,7 @@ class Decoder(layers.Layer, NestedObject):
         d_model: int,
         vocab_size: int,
         dropout: float = 0.2,
-        dff: int = 2048,
+        dff: int = 2048,  # hidden dimension of the feedforward network
         maximum_position_encoding: int = 50,
     ) -> None:
 
@@ -146,10 +195,14 @@ class Decoder(layers.Layer, NestedObject):
         self.num_layers = num_layers
         self.d_model = d_model
 
+        self.layer_norm_input = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_masked_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_attention = layers.LayerNormalization(epsilon=1e-5)
+        self.layer_norm_output = layers.LayerNormalization(epsilon=1e-5)
+
         self.dropout = layers.Dropout(rate=dropout)
         self.embed = layers.Embedding(vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, dropout, maximum_position_encoding)
-        self.layer_norm = layers.LayerNormalization(epsilon=1e-5)
 
         self.attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         self.source_attention = [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
@@ -169,18 +222,18 @@ class Decoder(layers.Layer, NestedObject):
         output = pos_enc_tgt
 
         for i in range(self.num_layers):
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
                 self.attention[i](normed_output, normed_output, normed_output, target_mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_masked_attention(output, **kwargs)
             output = output + self.dropout(
                 self.source_attention[i](normed_output, memory, memory, source_mask, **kwargs),
                 **kwargs,
             )
-            normed_output = self.layer_norm(output, **kwargs)
+            normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
 
         # (batch_size, seq_len, d_model)
-        return self.layer_norm(output, **kwargs)
+        return self.layer_norm_output(output, **kwargs)

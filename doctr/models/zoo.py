@@ -16,6 +16,7 @@ def _predictor(
     det_arch: Any,
     reco_arch: Any,
     pretrained: bool,
+    pretrained_backbone: bool = True,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
     symmetric_pad: bool = True,
@@ -30,6 +31,7 @@ def _predictor(
     det_predictor = detection_predictor(
         det_arch,
         pretrained=pretrained,
+        pretrained_backbone=pretrained_backbone,
         batch_size=det_bs,
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
@@ -37,7 +39,9 @@ def _predictor(
     )
 
     # Recognition
-    reco_predictor = recognition_predictor(reco_arch, pretrained=pretrained, batch_size=reco_bs)
+    reco_predictor = recognition_predictor(
+        reco_arch, pretrained=pretrained, pretrained_backbone=pretrained_backbone, batch_size=reco_bs
+    )
 
     return OCRPredictor(
         det_predictor,
@@ -55,6 +59,7 @@ def ocr_predictor(
     det_arch: Any = "db_resnet50",
     reco_arch: Any = "crnn_vgg16_bn",
     pretrained: bool = False,
+    pretrained_backbone: bool = True,
     assume_straight_pages: bool = True,
     preserve_aspect_ratio: bool = False,
     symmetric_pad: bool = True,
@@ -77,6 +82,7 @@ def ocr_predictor(
         reco_arch: name of the recognition architecture or the model itself to use
             (e.g. 'crnn_vgg16_bn', 'sar_resnet31')
         pretrained: If True, returns a model pre-trained on our OCR dataset
+        pretrained_backbone: If True, returns a model with a pretrained backbone
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
         preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before
@@ -98,6 +104,7 @@ def ocr_predictor(
         det_arch,
         reco_arch,
         pretrained,
+        pretrained_backbone=pretrained_backbone,
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,

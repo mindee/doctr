@@ -48,6 +48,7 @@ Text recognition models
 * SAR from `"Show, Attend and Read: A Simple and Strong Baseline for Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_
 * CRNN from `"An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_
 * MASTER from `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition" <https://arxiv.org/pdf/1910.02562.pdf>`_
+* ViTSTR from `"Vision Transformer for Fast and Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_
 
 
 Supported datasets
@@ -74,6 +75,7 @@ Supported datasets
    using_doctr/using_datasets
    using_doctr/sharing_models
    using_doctr/using_model_export
+   using_doctr/running_on_aws
 
 
 .. toctree::

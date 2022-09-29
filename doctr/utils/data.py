@@ -64,13 +64,19 @@ def download_from_url(
 
     Returns:
         the location of the downloaded file
+
+    Note:
+        You can change cache directory location by using `DOCTR_CACHE_DIR` environment variable.
     """
 
     if not isinstance(file_name, str):
-        file_name = url.rpartition("/")[-1]
+        file_name = url.rpartition("/")[-1].split("&")[0]
 
-    if not isinstance(cache_dir, str):
-        cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "doctr")
+    cache_dir = (
+        str(os.environ.get("DOCTR_CACHE_DIR", os.path.join(os.path.expanduser("~"), ".cache", "doctr")))
+        if cache_dir is None
+        else cache_dir
+    )
 
     # Check hash in file name
     if hash_prefix is None:
@@ -84,8 +90,19 @@ def download_from_url(
         logging.info(f"Using downloaded & verified file: {file_path}")
         return file_path
 
-    # Create folder hierarchy
-    folder_path.mkdir(parents=True, exist_ok=True)
+    try:
+        # Create folder hierarchy
+        folder_path.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        error_message = f"Failed creating cache direcotry at {folder_path}"
+        if os.environ.get("DOCTR_CACHE_DIR", ""):
+            error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
+        else:
+            error_message += (
+                ". You can change default cache directory using 'DOCTR_CACHE_DIR' environment variable if needed."
+            )
+        logging.error(error_message)
+        raise
     # Download the file
     try:
         print(f"Downloading {url} to {file_path}")

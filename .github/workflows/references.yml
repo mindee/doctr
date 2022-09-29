@@ -289,11 +289,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[tf] --upgrade
+          pip install -r references/requirements.txt
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
+          pip install -r references/requirements.txt
       - if: matrix.framework == 'tensorflow'
         name: Evaluate text detection (TF)
         run: python references/detection/evaluate_tensorflow.py db_mobilenet_v3_large

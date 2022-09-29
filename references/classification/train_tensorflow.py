@@ -321,7 +321,12 @@ def main(args):
 
     if args.export_onnx:
         print("Exporting model to ONNX...")
-        dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
+        if args.arch == "vit_b":
+            # fixed batch size for vit
+            dummy_input = [tf.TensorSpec([1, args.input_size, args.input_size, 3], tf.float32, name="input")]
+        else:
+            # dynamic batch size
+            dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
         model_path, _ = export_model_to_onnx(model, exp_name, dummy_input)
         print(f"Exported model saved in {model_path}")
 

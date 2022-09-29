@@ -65,7 +65,7 @@ class CORD(VisionDataset):
 
         # List images
         tmp_root = os.path.join(self.root, "image")
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
         self.train = train
         np_dtype = np.float32
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking CORD", total=len(os.listdir(tmp_root))):
@@ -106,7 +106,7 @@ class CORD(VisionDataset):
                     img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
                 )
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, dict(labels=[label])))
+                    self.data.append((crop, label))
             else:
                 self.data.append(
                     (img_path, dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)))

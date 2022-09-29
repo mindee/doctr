@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, List, Tuple
 
 from tqdm import tqdm
 
@@ -85,7 +85,7 @@ class MJSynth(AbstractDataset):
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: List[Tuple[str, str]] = []
         self.train = train
 
         with open(label_path) as f:
@@ -96,10 +96,10 @@ class MJSynth(AbstractDataset):
 
         for path in tqdm(iterable=img_paths[set_slice], desc="Unpacking MJSynth", total=len(img_paths[set_slice])):
             if path not in self.BLACKLIST:
-                label = [path.split("_")[1]]
+                label = path.split("_")[1]
                 img_path = os.path.join(img_folder, path[2:]).strip()
 
-                self.data.append((img_path, dict(labels=label)))
+                self.data.append((img_path, label))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"

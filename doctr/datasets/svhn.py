@@ -64,7 +64,7 @@ class SVHN(VisionDataset):
             **kwargs,
         )
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
         np_dtype = np.float32
 
         tmp_root = os.path.join(self.root, "train" if train else "test")
@@ -121,7 +121,7 @@ class SVHN(VisionDataset):
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_name), geoms=box_targets)
                     for crop, label in zip(crops, label_targets):
                         if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
-                            self.data.append((crop, dict(labels=[label])))
+                            self.data.append((crop, label))
                 else:
                     self.data.append((img_name, dict(boxes=box_targets, labels=label_targets)))
 

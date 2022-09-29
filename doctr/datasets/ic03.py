@@ -63,7 +63,7 @@ class IC03(VisionDataset):
             **kwargs,
         )
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Dict[str, Any]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
         np_dtype = np.float32
 
         # Load xml data
@@ -116,7 +116,7 @@ class IC03(VisionDataset):
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                     for crop, label in zip(crops, labels):
                         if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
-                            self.data.append((crop, dict(labels=[label])))
+                            self.data.append((crop, label))
                 else:
                     self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 

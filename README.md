@@ -135,6 +135,11 @@ pip install "python-doctr[tf]"
 pip install "python-doctr[torch]"
 ```
 
+For MacBooks with M1 chip, you will need some additional packages or specific versions:
+
+- TensorFlow 2: [metal plugin](https://developer.apple.com/metal/tensorflow-plugin/)
+- PyTorch: [version >= 1.12.0](https://pytorch.org/get-started/locally/#start-locally)
+
 ### Developer mode
 Alternatively, you can install it from source, which will require you to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 First clone the project repository:
@@ -164,6 +169,7 @@ Credits where it's due: this repository is implementing, among others, architect
 - CRNN: [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
 - SAR: [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
 - MASTER: [MASTER: Multi-Aspect Non-local Network for Scene Text Recognition](https://arxiv.org/pdf/1910.02562.pdf).
+- ViTSTR: [Vision Transformer for Fast and Efficient Scene Text Recognition](https://arxiv.org/pdf/2105.08582.pdf).
 
 
 ## More goodies
