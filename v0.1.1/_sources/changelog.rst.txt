@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v0.6.0 (2022-09-29)
+-------------------
+Release note: `v0.6.0 <https://github.com/mindee/doctr/releases/tag/v0.6.0>`_
+
 v0.5.1 (2022-03-22)
 -------------------
 Release note: `v0.5.1 <https://github.com/mindee/doctr/releases/tag/v0.5.1>`_

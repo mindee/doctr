@@ -190,7 +190,10 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -244,8 +247,8 @@
           <h1>Source code for doctr.models.detection.linknet.tensorflow</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="c1"># Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization</span>
 
@@ -263,33 +266,33 @@
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">LinkNetPostProcessor</span><span class="p">,</span> <span class="n">_LinkNet</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LinkNet&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LinkNet&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.5.0/linknet_resnet18-a48e6ed3.zip&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.0/linknet_resnet18-a48e6ed3.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -297,20 +300,22 @@
 <span class="k">def</span> <span class="nf">decoder_block</span><span class="p">(</span><span class="n">in_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequential</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">Sequential</span><span class="p">([</span>
-        <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-            <span class="n">filters</span><span class="o">=</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span>
-            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-            <span class="n">strides</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
-            <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span>
-        <span class="p">),</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
-        <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
-        <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-    <span class="p">])</span>
+    <span class="k">return</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                <span class="n">filters</span><span class="o">=</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">strides</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">LinkNetFPN</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
@@ -332,10 +337,7 @@
             <span class="k">for</span> <span class="n">in_chan</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">in_shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">i_chans</span><span class="p">,</span> <span class="n">o_chans</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">in_shapes</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">fmap</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoders</span><span class="p">,</span> <span class="n">x</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">decoder</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="n">fmap</span><span class="p">)</span>
@@ -350,10 +352,15 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        num_classes: number of channels for the output</span>
+<span class="sd">        feature extractor: the backbone serving as feature extractor</span>
+<span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
+<span class="sd">        num_classes: number of output channels in the segmentation map</span>
+<span class="sd">        assume_straight_pages: if True, fit straight bounding boxes only</span>
+<span class="sd">        exportable: onnx exportable returns only logits</span>
+<span class="sd">        cfg: the configuration dict of the model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;feat_extractor&#39;</span><span class="p">,</span> <span class="s1">&#39;fpn&#39;</span><span class="p">,</span> <span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="s1">&#39;postprocessor&#39;</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;feat_extractor&quot;</span><span class="p">,</span> <span class="s2">&quot;fpn&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier&quot;</span><span class="p">,</span> <span class="s2">&quot;postprocessor&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -361,10 +368,12 @@
         <span class="n">fpn_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">exportable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span> <span class="o">=</span> <span class="n">exportable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span> <span class="o">=</span> <span class="n">assume_straight_pages</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feat_extractor</span>
@@ -372,28 +381,30 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span> <span class="o">=</span> <span class="n">LinkNetFPN</span><span class="p">(</span><span class="n">fpn_channels</span><span class="p">,</span> <span class="p">[</span><span class="n">_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">_shape</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span><span class="p">,</span>
-                <span class="n">input_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">decoders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
-            <span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                <span class="n">filters</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span>
-            <span class="p">),</span>
-        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                    <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                    <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                    <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                    <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+                    <span class="n">input_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">decoders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+                <span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                    <span class="n">filters</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
+                    <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                    <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LinkNetPostProcessor</span><span class="p">(</span><span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">)</span>
 
@@ -401,8 +412,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">out_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-        <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.</span><span class="p">,</span>
-        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">,</span>
+        <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on</span>
@@ -458,6 +469,10 @@
         <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">out</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
+            <span class="k">return</span> <span class="n">out</span>
+
         <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
@@ -469,7 +484,7 @@
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
 
         <span class="k">return</span> <span class="n">out</span>
 
@@ -481,21 +496,21 @@
     <span class="n">fpn_layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
 
     <span class="n">pretrained_backbone</span> <span class="o">=</span> <span class="n">pretrained_backbone</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pretrained</span>
 
     <span class="c1"># Patch the config</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span>
 
     <span class="c1"># Feature extractor</span>
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
         <span class="n">backbone_fn</span><span class="p">(</span>
             <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
             <span class="n">include_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">],</span>
+            <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">],</span>
         <span class="p">),</span>
         <span class="n">fpn_layers</span><span class="p">,</span>
     <span class="p">)</span>
@@ -504,7 +519,7 @@
     <span class="n">model</span> <span class="o">=</span> <span class="n">LinkNet</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
@@ -527,15 +542,15 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet18</span><span class="p">,</span>
-        <span class="p">[</span><span class="s1">&#39;resnet_block_1&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_3&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_5&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_7&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;resnet_block_1&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_3&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_5&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_7&quot;</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">linknet_resnet18_rotation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
+<div class="viewcode-block" id="linknet_resnet18_rotation"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet18_rotation">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet18_rotation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
@@ -553,12 +568,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet18</span><span class="p">,</span>
-        <span class="p">[</span><span class="s1">&#39;resnet_block_1&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_3&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_5&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_7&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;resnet_block_1&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_3&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_5&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_7&quot;</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="linknet_resnet34"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet34">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
@@ -579,10 +594,10 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s1">&#39;linknet_resnet34&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet34</span><span class="p">,</span>
-        <span class="p">[</span><span class="s1">&#39;resnet_block_2&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_6&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_12&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet_block_15&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;resnet_block_2&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_6&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_12&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_15&quot;</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -605,7 +620,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s1">&#39;linknet_resnet50&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet50</span><span class="p">,</span>
         <span class="p">[</span><span class="s2">&quot;conv2_block3_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv3_block4_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv4_block6_out&quot;</span><span class="p">,</span> <span class="s2">&quot;conv5_block3_out&quot;</span><span class="p">],</span>

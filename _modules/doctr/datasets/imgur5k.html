@@ -190,7 +190,10 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -244,19 +247,22 @@
           <h1>Source code for doctr.datasets.imgur5k</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
+<span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">AbstractDataset</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="n">crop_bboxes_from_image</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;IMGUR5K&quot;</span><span class="p">]</span>
 
@@ -266,7 +272,7 @@
 <span class="sd">    &lt;https://arxiv.org/abs/2106.08385&gt;`_ |</span>
 <span class="sd">    `repository &lt;https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset&gt;`_.</span>
 
-<span class="sd">    .. image:: https://github.com/mindee/doctr/releases/download/v0.5.0/imgur5k-grid.png</span>
+<span class="sd">    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/imgur5k-grid.png&amp;src=0</span>
 <span class="sd">        :align: center</span>
 <span class="sd">        :width: 630</span>
 <span class="sd">        :height: 400</span>
@@ -285,6 +291,7 @@
 <span class="sd">        label_path: path to the annotations file of the dataset</span>
 <span class="sd">        train: whether the subset should be the training one</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
+<span class="sd">        recognition_task: whether the dataset should be used for recognition task</span>
 <span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -294,16 +301,18 @@
         <span class="n">label_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">train</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">recognition_task</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">img_folder</span><span class="p">,</span> <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">recognition_task</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
 
         <span class="c1"># File existence check</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">img_folder</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">label_path</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="k">else</span> <span class="n">img_folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">label_path</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="k">else</span> <span class="n">img_folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
@@ -311,10 +320,22 @@
         <span class="n">train_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">img_names</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.9</span><span class="p">)</span>
         <span class="n">set_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
+        <span class="c1"># define folder to write IMGUR5K recognition dataset</span>
+        <span class="n">reco_folder_name</span> <span class="o">=</span> <span class="s2">&quot;IMGUR5K_recognition_train&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="s2">&quot;IMGUR5K_recognition_test&quot;</span>
+        <span class="n">reco_folder_name</span> <span class="o">=</span> <span class="s2">&quot;Poly_&quot;</span> <span class="o">+</span> <span class="n">reco_folder_name</span> <span class="k">if</span> <span class="n">use_polygons</span> <span class="k">else</span> <span class="n">reco_folder_name</span>
+        <span class="n">reco_folder_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">),</span> <span class="n">reco_folder_name</span><span class="p">)</span>
+        <span class="n">reco_images_counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">recognition_task</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_from_folder</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">recognition_task</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">annotation_file</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">img_name</span> <span class="ow">in</span> <span class="n">img_names</span><span class="p">[</span><span class="n">set_slice</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">img_name</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">img_names</span><span class="p">[</span><span class="n">set_slice</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Unpacking IMGUR5K&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_names</span><span class="p">[</span><span class="n">set_slice</span><span class="p">])):</span>
             <span class="n">img_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span>
             <span class="n">img_id</span> <span class="o">=</span> <span class="n">img_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -324,15 +345,18 @@
 
             <span class="c1"># some files have no annotations which are marked with only a dot in the &#39;word&#39; key</span>
             <span class="c1"># ref: https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset/blob/main/README.md</span>
-            <span class="k">if</span> <span class="n">img_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annotation_file</span><span class="p">[</span><span class="s1">&#39;index_to_ann_map&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">img_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">annotation_file</span><span class="p">[</span><span class="s2">&quot;index_to_ann_map&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                 <span class="k">continue</span>
-            <span class="n">ann_ids</span> <span class="o">=</span> <span class="n">annotation_file</span><span class="p">[</span><span class="s1">&#39;index_to_ann_map&#39;</span><span class="p">][</span><span class="n">img_id</span><span class="p">]</span>
-            <span class="n">annotations</span> <span class="o">=</span> <span class="p">[</span><span class="n">annotation_file</span><span class="p">[</span><span class="s1">&#39;ann_id&#39;</span><span class="p">][</span><span class="n">a_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">a_id</span> <span class="ow">in</span> <span class="n">ann_ids</span><span class="p">]</span>
+            <span class="n">ann_ids</span> <span class="o">=</span> <span class="n">annotation_file</span><span class="p">[</span><span class="s2">&quot;index_to_ann_map&quot;</span><span class="p">][</span><span class="n">img_id</span><span class="p">]</span>
+            <span class="n">annotations</span> <span class="o">=</span> <span class="p">[</span><span class="n">annotation_file</span><span class="p">[</span><span class="s2">&quot;ann_id&quot;</span><span class="p">][</span><span class="n">a_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">a_id</span> <span class="ow">in</span> <span class="n">ann_ids</span><span class="p">]</span>
 
-            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;word&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ann</span> <span class="ow">in</span> <span class="n">annotations</span> <span class="k">if</span> <span class="n">ann</span><span class="p">[</span><span class="s1">&#39;word&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">]</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">ann</span><span class="p">[</span><span class="s2">&quot;word&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ann</span> <span class="ow">in</span> <span class="n">annotations</span> <span class="k">if</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;word&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span><span class="p">]</span>
             <span class="c1"># x_center, y_center, width, height, angle</span>
-            <span class="n">_boxes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">ann</span><span class="p">[</span><span class="s1">&#39;bounding_box&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;[ ]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)))</span>
-                      <span class="k">for</span> <span class="n">ann</span> <span class="ow">in</span> <span class="n">annotations</span> <span class="k">if</span> <span class="n">ann</span><span class="p">[</span><span class="s1">&#39;word&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">]</span>
+            <span class="n">_boxes</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;bounding_box&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;[ ]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)))</span>
+                <span class="k">for</span> <span class="n">ann</span> <span class="ow">in</span> <span class="n">annotations</span>
+                <span class="k">if</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;word&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;.&quot;</span>
+            <span class="p">]</span>
             <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
             <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">cv2</span><span class="o">.</span><span class="n">boxPoints</span><span class="p">(((</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span> <span class="n">box</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">_boxes</span><span class="p">]</span>
 
@@ -342,10 +366,31 @@
 
             <span class="c1"># filter images without boxes</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">box_targets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)))</span>
+                <span class="k">if</span> <span class="n">recognition_task</span><span class="p">:</span>
+                    <span class="n">crops</span> <span class="o">=</span> <span class="n">crop_bboxes_from_image</span><span class="p">(</span>
+                        <span class="n">img_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">),</span> <span class="n">geoms</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="c1"># write data to disk</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reco_images_counter</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                                <span class="n">tmp_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
+                                <span class="n">tmp_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reco_images_counter</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">))</span>
+                                <span class="n">reco_images_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">recognition_task</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_from_folder</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_read_from_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;*.png&quot;</span><span class="p">)):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">img_path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span></div>
 </pre></div>
         </article>
       </div>

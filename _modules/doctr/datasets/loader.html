@@ -190,7 +190,10 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -244,8 +247,8 @@
           <h1>Source code for doctr.datasets.loader</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
@@ -278,7 +281,7 @@
 <div class="viewcode-block" id="DataLoader"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.loader.DataLoader">[docs]</a><span class="k">class</span> <span class="nc">DataLoader</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Implements a dataset wrapper for fast data loading</span>
 
-<span class="sd">    &gt;&gt;&gt; from doctr.datasets import FUNSD, DataLoader</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import CORD, DataLoader</span>
 <span class="sd">    &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
 <span class="sd">    &gt;&gt;&gt; train_loader = DataLoader(train_set, batch_size=32)</span>
 <span class="sd">    &gt;&gt;&gt; train_iter = iter(train_loader)</span>
@@ -308,7 +311,7 @@
         <span class="n">nb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_batches</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span> <span class="k">if</span> <span class="n">drop_last</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">collate_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">collate_fn</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;collate_fn&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">default_collate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">collate_fn</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">&quot;collate_fn&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">default_collate</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="n">collate_fn</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
@@ -332,9 +335,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_yielded</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_batches</span><span class="p">:</span>
             <span class="c1"># Get next indices</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_yielded</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">),</span> <span class="n">idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)]</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">),</span> <span class="n">idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)]</span>
 
-            <span class="n">samples</span> <span class="o">=</span> <span class="n">multithread_exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span><span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">multithread_exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span><span class="p">))</span>
 
             <span class="n">batch_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
 
