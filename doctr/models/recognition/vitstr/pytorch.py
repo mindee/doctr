@@ -182,7 +182,7 @@ def _vitstr(
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
-    pretrained_backbone: bool = True,
+    pretrained_backbone: bool = False,  # NOTE: training from scratch without a pretrained backbone works better
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ViTSTR:

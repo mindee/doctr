@@ -186,7 +186,7 @@ def _vitstr(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    pretrained_backbone: bool = True,
+    pretrained_backbone: bool = False,  # NOTE: training from scratch without a pretrained backbone works better
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
