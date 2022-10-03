@@ -185,12 +185,12 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     raise ValueError("Invalid geometry format")
 
 
-def pre_transform_multiclass(img, target: Dict):
+def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]):
     """Converts multiclass target to relative coordinates.
 
     Args:
-        img (tensor): Image
-        target (dict): dict of target polygons
+        img: Image
+        target: tuple of target polygons and their classes names
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]

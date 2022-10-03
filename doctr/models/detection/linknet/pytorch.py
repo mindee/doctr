@@ -11,6 +11,7 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
+from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 
 from ...utils import load_pretrained_params
@@ -96,6 +97,7 @@ class LinkNet(nn.Module, _LinkNet):
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     def __init__(
@@ -107,7 +109,7 @@ class LinkNet(nn.Module, _LinkNet):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = ["words"],
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
@@ -186,7 +188,7 @@ class LinkNet(nn.Module, _LinkNet):
         if target is None or return_preds:
             # Post-process boxes
             out["preds"] = [
-                {class_name: p for class_name, p in zip(self.class_names, preds)}
+                dict(zip(self.class_names, preds))
                 for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
             ]
 

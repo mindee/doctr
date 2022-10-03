@@ -163,11 +163,11 @@ def get_language(text: str) -> Tuple[str, float]:
     return lang.lang, lang.prob
 
 
-def invert_list_dict_to_dict_list(list_dict: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
+def convert_list_dict_to_dict_list(list_dict: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
     """Convert a List of Dict of elements to a Dict of list of elements
 
     Args:
-        list_dict (List): the list of dictionaries
+        list_dict (List): the list of dictionaries with the same keys (class names)
 
     Returns:
         dict_list (Dict): the dictionary of lists
@@ -179,11 +179,11 @@ def invert_list_dict_to_dict_list(list_dict: List[Dict[str, Any]]) -> Dict[str, 
     return dict_list
 
 
-def invert_dict_list_to_list_dict(dict_list: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
+def convert_dict_list_to_list_dict(dict_list: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
     """Convert a Dict of list of elements to a List of Dict of elements
 
     Args:
-        dict_list (Dict): the dictionary of lists
+        dict_list (Dict): the dictionary of lists of the same length
 
     Returns:
         list_dict (List): the list of dictionaries

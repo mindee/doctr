@@ -13,6 +13,8 @@ from torchvision.models import resnet34, resnet50
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 
+from doctr.file_utils import CLASS_NAME
+
 from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
@@ -112,6 +114,7 @@ class DBNet(_DBNet, nn.Module):
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     def __init__(
@@ -124,13 +127,11 @@ class DBNet(_DBNet, nn.Module):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = ["words"],
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
         self.class_names = class_names
-        if cfg and cfg.get("class_names"):
-            self.class_names = cfg["class_names"]
         self.cfg = cfg
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
@@ -212,11 +213,8 @@ class DBNet(_DBNet, nn.Module):
 
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
-            # out["preds"] = [
-            #     preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
-            # ]
             out["preds"] = [
-                {class_name: p for class_name, p in zip(self.class_names, preds)}
+                dict(zip(self.class_names, preds))
                 for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
             ]
 

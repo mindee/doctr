@@ -5,6 +5,8 @@
 
 import os
 
+from doctr.file_utils import CLASS_NAME
+
 os.environ["USE_TORCH"] = "1"
 
 import datetime
@@ -157,7 +159,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         loc_preds = out["preds"]
         for target, loc_pred in zip(targets, loc_preds):
             if isinstance(target, np.ndarray):
-                target = {"words": target}
+                target = {CLASS_NAME: target}
             for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
                 if args.rotation and args.eval_straight:
                     # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 4, 2 --> N, 4

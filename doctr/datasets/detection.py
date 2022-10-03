@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
 
+from doctr.file_utils import CLASS_NAME
 from doctr.io.image import get_img_shape
 from doctr.utils.geometry import convert_to_relative_coords
 
@@ -73,8 +74,19 @@ class DetectionDataset(AbstractDataset):
     def format_polygons(
         self, polygons: Union[List, Dict], use_polygons: bool, np_dtype: Type
     ) -> Tuple[Union[np.ndarray, Dict], Optional[List]]:
+        """format polygons into an array
+
+        Args:
+            polygons: the bounding boxes
+            use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
+            np_dtype: dtype of array
+
+        Returns:
+            geoms: bounding boxes as np array
+            polygons_classes: list of classes for each bounding box
+        """
         if isinstance(polygons, list):
-            self._class_names += ["words"]
+            self._class_names += [CLASS_NAME]
             polygons_classes = None
             _polygons: np.ndarray = np.asarray(polygons, dtype=np_dtype)
         elif isinstance(polygons, dict):

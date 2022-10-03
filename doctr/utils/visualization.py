@@ -20,6 +20,8 @@ from .fonts import get_font
 
 __all__ = ["visualize_page", "synthesize_page", "draw_boxes"]
 
+from ..file_utils import CLASS_NAME
+
 
 def rect_patch(
     geometry: BoundingBox,
@@ -183,7 +185,7 @@ def visualize_page(
         artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     if isinstance(page["blocks"], list):
-        page["blocks"] = {"words": page["blocks"]}
+        page["blocks"] = {CLASS_NAME: page["blocks"]}
 
     for key, value in page["blocks"].items():
         for block in value:

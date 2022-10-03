@@ -28,7 +28,8 @@ class AbstractDataset(_AbstractDataset):
         elif isinstance(target, tuple):
             assert isinstance(target[0], str) or isinstance(
                 target[0], np.ndarray
-            ), "Target should be a string or a numpy array"
+            ), "first element of the tuple should be a string or a numpy array"
+            assert isinstance(target[1], list), "second element of the tuple should be a list"
         else:
             assert isinstance(target, str) or isinstance(
                 target, np.ndarray

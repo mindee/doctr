@@ -13,6 +13,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model, Sequential, layers
 
+from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
@@ -109,6 +110,7 @@ class LinkNet(_LinkNet, keras.Model):
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     _children_names: List[str] = ["feat_extractor", "fpn", "classifier", "postprocessor"]
@@ -122,7 +124,7 @@ class LinkNet(_LinkNet, keras.Model):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = ["words"],
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
         super().__init__(cfg=cfg)
 
@@ -237,10 +239,7 @@ class LinkNet(_LinkNet, keras.Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = [
-                {class_name: p for class_name, p in zip(self.class_names, preds)}
-                for preds in self.postprocessor(prob_map.numpy())
-            ]
+            out["preds"] = [dict(zip(self.class_names, preds)) for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             loss = self.compute_loss(logits, target)

@@ -12,7 +12,7 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
-from doctr.file_utils import is_tf_available
+from doctr.file_utils import CLASS_NAME, is_tf_available
 
 from ..core import DetectionPostProcessor
 
@@ -226,7 +226,7 @@ class _DBNet:
         padded_polygon: np.ndarray = np.array(padding.Execute(distance)[0])
 
         # Fill the mask with 1 on the new padded polygon
-        cv2.fillPoly(mask.copy(), [padded_polygon.astype(np.int32)], 1.0)
+        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
 
         # Get min/max to recover polygon after distance computation
         xmin = padded_polygon[:, 0].min()
@@ -273,7 +273,7 @@ class _DBNet:
         new_target = []
         for tgt in target:
             if isinstance(tgt, np.ndarray):
-                new_target.append({"words": tgt})
+                new_target.append({CLASS_NAME: tgt})
             else:
                 new_target.append(tgt)
         target = new_target.copy()
@@ -286,10 +286,10 @@ class _DBNet:
 
         if is_tf_available():
             h, w = output_shape[1:-1]
-            target_shape = (output_shape[0], output_shape[-1], h, w)
+            target_shape = (output_shape[0], output_shape[-1], h, w)  # (Batch_size, num_classes, h, w)
         else:
             h, w = output_shape[-2:]
-            target_shape = output_shape
+            target_shape = output_shape  # (Batch_size, num_classes, h, w)
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
         seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
         thresh_target: np.ndarray = np.zeros(target_shape, dtype=np.float32)

@@ -6,6 +6,7 @@ import onnxruntime
 import pytest
 import torch
 
+from doctr.file_utils import CLASS_NAME
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
@@ -88,7 +89,8 @@ def test_detection_zoo(arch_name):
 
     with torch.no_grad():
         out = predictor(input_tensor)
-    assert all(isinstance(boxes, dict) and boxes["words"].shape[1] == 5 for boxes in out)
+    assert all(isinstance(boxes, dict) for boxes in out)
+    assert all(isinstance(boxes[CLASS_NAME], np.ndarray) and boxes[CLASS_NAME].shape[1] == 5 for boxes in out)
 
 
 def test_erode():

@@ -56,8 +56,8 @@ class _AbstractDataset:
 
         if self.sample_transforms is not None:
             if isinstance(target, dict):
-                for k, v in target.items():
-                    img, target[k] = self.sample_transforms(img, v)
+                for class_name, bboxes in target.items():
+                    img, target[class_name] = self.sample_transforms(img, bboxes)
             else:
                 img, target = self.sample_transforms(img, target)
 

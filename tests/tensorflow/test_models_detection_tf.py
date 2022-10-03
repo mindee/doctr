@@ -6,6 +6,7 @@ import onnxruntime
 import pytest
 import tensorflow as tf
 
+from doctr.file_utils import CLASS_NAME
 from doctr.io import DocumentFile
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
@@ -137,7 +138,8 @@ def test_detection_zoo(arch_name):
     assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
-    assert all(isinstance(boxes, dict) and boxes["words"].shape[1] == 5 for boxes in out)
+    assert all(isinstance(boxes, dict) for boxes in out)
+    assert all(isinstance(boxes[CLASS_NAME], np.ndarray) and boxes[CLASS_NAME].shape[1] == 5 for boxes in out)
 
 
 def test_detection_zoo_error():

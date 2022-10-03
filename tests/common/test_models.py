@@ -6,7 +6,13 @@ import pytest
 import requests
 
 from doctr.io import reader
-from doctr.models._utils import estimate_orientation, get_bitmap_angle, get_language
+from doctr.models._utils import (
+    convert_dict_list_to_list_dict,
+    convert_list_dict_to_dict_list,
+    estimate_orientation,
+    get_bitmap_angle,
+    get_language,
+)
 from doctr.utils import geometry
 
 
@@ -63,3 +69,14 @@ def test_get_lang():
     lang = get_language("a")
     assert lang[0] == "unknown"
     assert lang[1] == 0.0
+
+
+def test_convert_list_dict():
+    dic = {"k1": [[0], [0], [0]], "k2": [[1], [1], [1]]}
+    L = [{"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}]
+
+    converted_dic = convert_dict_list_to_list_dict(dic)
+    converted_list = convert_list_dict_to_dict_list(L)
+
+    assert converted_dic == L
+    assert converted_list == dic

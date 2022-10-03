@@ -11,10 +11,10 @@ from torch import nn
 
 from doctr.io.elements import Document
 from doctr.models._utils import (
+    convert_dict_list_to_list_dict,
+    convert_list_dict_to_dict_list,
     estimate_orientation,
     get_language,
-    invert_dict_list_to_list_dict,
-    invert_list_dict_to_dict_list,
 )
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
@@ -99,7 +99,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
-        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_list_dict_to_dict_list(loc_preds)
+        dict_loc_preds: Dict[str, List[np.ndarray]] = convert_list_dict_to_dict_list(loc_preds)
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
@@ -136,8 +136,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 dict_loc_preds[class_name], word_preds[class_name]
             )
 
-        boxes_per_page: List[Dict] = invert_dict_list_to_list_dict(boxes)
-        text_preds_per_page: List[Dict] = invert_dict_list_to_list_dict(text_preds)
+        boxes_per_page: List[Dict] = convert_dict_list_to_list_dict(boxes)
+        text_preds_per_page: List[Dict] = convert_dict_list_to_list_dict(text_preds)
         if self.detect_language:
             languages = [get_language(self.get_text(text_pred)) for text_pred in text_preds_per_page]
             languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]

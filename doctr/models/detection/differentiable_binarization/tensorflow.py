@@ -14,6 +14,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications import ResNet50
 
+from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
@@ -113,6 +114,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     _children_names: List[str] = ["feat_extractor", "fpn", "probability_head", "threshold_head", "postprocessor"]
@@ -126,13 +128,11 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = ["words"],
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
         self.class_names = class_names
-        if cfg and cfg.get("class_names"):
-            self.class_names = cfg["class_names"]
         self.cfg = cfg
 
         self.feat_extractor = feature_extractor
@@ -252,10 +252,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
-            out["preds"] = [
-                {class_name: p for class_name, p in zip(self.class_names, preds)}
-                for preds in self.postprocessor(prob_map.numpy())
-            ]
+            out["preds"] = [dict(zip(self.class_names, preds)) for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
