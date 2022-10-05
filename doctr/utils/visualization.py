@@ -2,7 +2,7 @@
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
-
+import colorsys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -141,6 +141,24 @@ def create_obj_patch(
     raise ValueError("invalid geometry format")
 
 
+def get_colors(num_colors: int) -> List:
+    """Generate num_colors color for matplotlib
+
+    Args:
+        num_colors: number of colors to generate
+
+    Returns:
+        colors: list of generated colors
+    """
+    colors = []
+    for i in np.arange(0.0, 360.0, 360.0 / num_colors):
+        hue = i / 360.0
+        lightness = (50 + np.random.rand() * 10) / 100.0
+        saturation = (90 + np.random.rand() * 10) / 100.0
+        colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
+    return colors
+
+
 def visualize_page(
     page: Dict[str, Any],
     image: np.ndarray,
@@ -187,11 +205,17 @@ def visualize_page(
     if isinstance(page["blocks"], list):
         page["blocks"] = {CLASS_NAME: page["blocks"]}
 
+    colors = {k: color for color, k in zip(get_colors(len(page["blocks"])), page["blocks"])}
     for key, value in page["blocks"].items():
         for block in value:
             if not words_only:
                 rect = create_obj_patch(
-                    block["geometry"], page["dimensions"], label=f"block_{key}", linewidth=1, **kwargs
+                    block["geometry"],
+                    page["dimensions"],
+                    label=f"block_{key}",
+                    color=colors[key],
+                    linewidth=1,
+                    **kwargs,
                 )
                 # add patch on figure
                 ax.add_patch(rect)

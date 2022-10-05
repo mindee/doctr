@@ -110,7 +110,6 @@ class DBNet(_DBNet, nn.Module):
         feature extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
-        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -122,7 +121,6 @@ class DBNet(_DBNet, nn.Module):
         feat_extractor: IntermediateLayerGetter,
         head_chans: int = 256,
         deform_conv: bool = False,
-        num_classes: int = 1,
         bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
         exportable: bool = False,
@@ -132,6 +130,7 @@ class DBNet(_DBNet, nn.Module):
 
         super().__init__()
         self.class_names = class_names
+        num_classes: int = len(self.class_names)
         self.cfg = cfg
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d

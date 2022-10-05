@@ -106,7 +106,6 @@ class LinkNet(_LinkNet, keras.Model):
     Args:
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
-        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -119,7 +118,6 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         feat_extractor: IntermediateLayerGetter,
         fpn_channels: int = 64,
-        num_classes: int = 1,
         bin_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
@@ -129,8 +127,7 @@ class LinkNet(_LinkNet, keras.Model):
         super().__init__(cfg=cfg)
 
         self.class_names = class_names
-        if self.cfg and self.cfg.get("class_names"):
-            self.class_names = self.cfg["class_names"]
+        num_classes: int = len(self.class_names)
 
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages

@@ -310,7 +310,7 @@ class DocumentBuilder(NestedObject):
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if list(boxes[0].values())[0].ndim == 3:  # type: ignore[union-attr]
+            if next(iter(boxes[0].values())).ndim == 3:  # type: ignore[union-attr]
                 straight_boxes: List[Dict[str, np.ndarray]] = []
                 # Iterate over pages
                 for p_boxes in boxes:

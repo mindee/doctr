@@ -73,7 +73,7 @@ class DetectionDataset(AbstractDataset):
 
     def format_polygons(
         self, polygons: Union[List, Dict], use_polygons: bool, np_dtype: Type
-    ) -> Tuple[Union[np.ndarray, Dict], Optional[List]]:
+    ) -> Tuple[Union[np.ndarray, Dict], Optional[List[str]]]:
         """format polygons into an array
 
         Args:

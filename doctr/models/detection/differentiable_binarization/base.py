@@ -270,19 +270,19 @@ class _DBNet:
         output_shape: Tuple[int, int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
-        new_target = []
+        _target = []  # target is converted from List to List[Dict]
         for tgt in target:
             if isinstance(tgt, np.ndarray):
-                new_target.append({CLASS_NAME: tgt})
+                _target.append({CLASS_NAME: tgt})
             else:
-                new_target.append(tgt)
-        target = new_target.copy()
+                _target.append(tgt)
+        target = _target.copy()
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
-        input_dtype = list(target[0].values())[0].dtype if len(target) > 0 else np.float32
+        input_dtype = next(iter(target[0].values())).dtype if len(target) > 0 else np.float32
 
         if is_tf_available():
             h, w = output_shape[1:-1]
@@ -296,15 +296,15 @@ class _DBNet:
         thresh_mask: np.ndarray = np.ones(target_shape, dtype=np.uint8)
 
         for idx, tgt in enumerate(target):
-            for class_idx, _target in enumerate(tgt.values()):
+            for class_idx, _tgt in enumerate(tgt.values()):
                 # Draw each polygon on gt
-                if _target.shape[0] == 0:
+                if _tgt.shape[0] == 0:
                     # Empty image, full masked
                     # seg_mask[idx, :, :, class_idx] = False
                     seg_mask[idx, class_idx] = False
 
                 # Absolute bounding boxes
-                abs_boxes = _target.copy()
+                abs_boxes = _tgt.copy()
                 if abs_boxes.ndim == 3:
                     abs_boxes[:, :, 0] *= w
                     abs_boxes[:, :, 1] *= h

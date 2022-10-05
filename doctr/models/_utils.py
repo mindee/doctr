@@ -188,6 +188,9 @@ def convert_dict_list_to_list_dict(dict_list: Dict[str, List[Any]]) -> List[Dict
     Returns:
         list_dict (List): the list of dictionaries
     """
+    assert (
+        len(set([len(v) for v in dict_list.values()])) == 1
+    ), "All the lists in the dictionnary should have the same length."
     n = len(list(dict_list.values())[0])
     list_dict: List[Dict[str, Any]] = [{k: None for k in dict_list.keys()} for _ in range(n)]
     for k, value in dict_list.items():

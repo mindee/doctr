@@ -228,7 +228,6 @@ def main(args):
     model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
         assume_straight_pages=not args.rotation,
-        num_classes=len(val_set.class_names),
         class_names=val_set.class_names,
     )
 

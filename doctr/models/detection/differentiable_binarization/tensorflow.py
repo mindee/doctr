@@ -110,7 +110,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     Args:
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
-        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -123,7 +122,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
-        num_classes: int = 1,
         bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
         exportable: bool = False,
@@ -133,6 +131,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         super().__init__()
         self.class_names = class_names
+        num_classes: int = len(self.class_names)
         self.cfg = cfg
 
         self.feat_extractor = feature_extractor

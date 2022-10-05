@@ -197,7 +197,6 @@ def main(args):
         pretrained=args.pretrained,
         input_shape=(args.input_size, args.input_size, 3),
         assume_straight_pages=not args.rotation,
-        num_classes=len(val_set.class_names),
         class_names=val_set.class_names,
     )
 
