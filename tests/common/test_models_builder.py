@@ -21,9 +21,6 @@ def test_documentbuilder(boxes):
 
     # Don't resolve lines
     doc_builder = builder.DocumentBuilder(resolve_lines=False, resolve_blocks=False)
-    boxes = {CLASS_NAME: np.random.rand(words_per_page, 6)}
-    boxes[CLASS_NAME][:2] *= boxes[CLASS_NAME][2:4]
-
     # Arg consistency check
     with pytest.raises(ValueError):
         doc_builder([boxes, boxes], [{CLASS_NAME: ("hello", 1.0)}] * 3, [(100, 200), (100, 200)])

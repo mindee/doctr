@@ -141,7 +141,7 @@ def create_obj_patch(
     raise ValueError("invalid geometry format")
 
 
-def get_colors(num_colors: int) -> List:
+def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
     """Generate num_colors color for matplotlib
 
     Args:

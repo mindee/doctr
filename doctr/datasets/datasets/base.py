@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Callable, List, Optional, Tuple, Union
 
+from doctr.file_utils import copy_tensor
 from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
 
@@ -56,7 +57,7 @@ class _AbstractDataset:
 
         if self.sample_transforms is not None:
             if isinstance(target, dict):
-                img_transformed = img.copy()
+                img_transformed = copy_tensor(img)
                 for class_name, bboxes in target.items():
                     img_transformed, target[class_name] = self.sample_transforms(img, bboxes)
                 img = img_transformed
