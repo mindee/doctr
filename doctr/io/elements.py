@@ -220,7 +220,7 @@ class Page(Element):
     """Implements a page element as a collection of blocks
 
     Args:
-        blocks: list of block elements
+        blocks: Dictionary with list of block elements for each detection class
         page_idx: the index of the page in the input raw document
         dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
