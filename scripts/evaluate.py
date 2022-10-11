@@ -104,58 +104,59 @@ def main(args):
             pred_labels = []
             for page in out.pages:
                 height, width = page.dimensions
-                for block in page.blocks:
-                    for line in block.lines:
-                        for word in line.words:
-                            if not args.rotation:
-                                (a, b), (c, d) = word.geometry
-                            else:
-                                (
-                                    [x1, y1],
-                                    [x2, y2],
-                                    [x3, y3],
-                                    [x4, y4],
-                                ) = word.geometry
-                            if gt_boxes.dtype == int:
+                for blocks in page.blocks.values():
+                    for block in blocks:
+                        for line in block.lines:
+                            for word in line.words:
                                 if not args.rotation:
-                                    pred_boxes.append(
-                                        [int(a * width), int(b * height), int(c * width), int(d * height)]
-                                    )
+                                    (a, b), (c, d) = word.geometry
                                 else:
-                                    if args.eval_straight:
+                                    (
+                                        [x1, y1],
+                                        [x2, y2],
+                                        [x3, y3],
+                                        [x4, y4],
+                                    ) = word.geometry
+                                if gt_boxes.dtype == int:
+                                    if not args.rotation:
                                         pred_boxes.append(
-                                            [
-                                                int(width * min(x1, x2, x3, x4)),
-                                                int(height * min(y1, y2, y3, y4)),
-                                                int(width * max(x1, x2, x3, x4)),
-                                                int(height * max(y1, y2, y3, y4)),
-                                            ]
+                                            [int(a * width), int(b * height), int(c * width), int(d * height)]
                                         )
                                     else:
-                                        pred_boxes.append(
-                                            [
-                                                [int(x1 * width), int(y1 * height)],
-                                                [int(x2 * width), int(y2 * height)],
-                                                [int(x3 * width), int(y3 * height)],
-                                                [int(x4 * width), int(y4 * height)],
-                                            ]
-                                        )
-                            else:
-                                if not args.rotation:
-                                    pred_boxes.append([a, b, c, d])
+                                        if args.eval_straight:
+                                            pred_boxes.append(
+                                                [
+                                                    int(width * min(x1, x2, x3, x4)),
+                                                    int(height * min(y1, y2, y3, y4)),
+                                                    int(width * max(x1, x2, x3, x4)),
+                                                    int(height * max(y1, y2, y3, y4)),
+                                                ]
+                                            )
+                                        else:
+                                            pred_boxes.append(
+                                                [
+                                                    [int(x1 * width), int(y1 * height)],
+                                                    [int(x2 * width), int(y2 * height)],
+                                                    [int(x3 * width), int(y3 * height)],
+                                                    [int(x4 * width), int(y4 * height)],
+                                                ]
+                                            )
                                 else:
-                                    if args.eval_straight:
-                                        pred_boxes.append(
-                                            [
-                                                min(x1, x2, x3, x4),
-                                                min(y1, y2, y3, y4),
-                                                max(x1, x2, x3, x4),
-                                                max(y1, y2, y3, y4),
-                                            ]
-                                        )
+                                    if not args.rotation:
+                                        pred_boxes.append([a, b, c, d])
                                     else:
-                                        pred_boxes.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
-                            pred_labels.append(word.value)
+                                        if args.eval_straight:
+                                            pred_boxes.append(
+                                                [
+                                                    min(x1, x2, x3, x4),
+                                                    min(y1, y2, y3, y4),
+                                                    max(x1, x2, x3, x4),
+                                                    max(y1, y2, y3, y4),
+                                                ]
+                                            )
+                                        else:
+                                            pred_boxes.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
+                                pred_labels.append(word.value)
 
             # Update the metric
             det_metric.update(gt_boxes, np.asarray(pred_boxes))

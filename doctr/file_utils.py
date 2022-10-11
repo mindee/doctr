@@ -93,6 +93,7 @@ def is_tf_available():
 def copy_tensor(x):
     if is_tf_available():
         import tensorflow as tf
+
         return tf.identity(x)
     elif is_torch_available():
         return x.detach().clone()
