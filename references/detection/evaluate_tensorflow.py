@@ -5,6 +5,10 @@
 
 import os
 
+import numpy as np
+
+from doctr.file_utils import CLASS_NAME
+
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -39,9 +43,12 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
         out = model(images, targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
-        for boxes_gt, boxes_pred in zip(targets, loc_preds):
-            # Remove scores
-            val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
+        for target, loc_pred in zip(targets, loc_preds):
+            if isinstance(target, np.ndarray):
+                target = {CLASS_NAME: target}
+            for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
+                # Remove scores
+                val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :-1])
 
         val_loss += out["loss"].numpy()
         batch_cnt += 1
