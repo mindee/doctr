@@ -9,6 +9,7 @@ from fastapi import APIRouter, File, UploadFile, status
 
 from app.schemas import OCROut
 from app.vision import predictor
+from doctr.file_utils import CLASS_NAME
 from doctr.io import decode_img_as_tensor
 
 router = APIRouter()
@@ -22,5 +23,7 @@ async def perform_ocr(file: UploadFile = File(...)):
 
     return [
         OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)
-        for word in out.pages[0].blocks[0].lines[0].words
+        for block in out.pages[0].blocks[CLASS_NAME]
+        for line in block.lines
+        for word in line.words
     ]

@@ -8,6 +8,10 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 # copy requirements file
+COPY pyproject.toml  /app/pyproject.toml
+RUN pip install --upgrade pip \
+    && pip install poetry \
+    && poetry export -f requirements.txt --without-hashes --output requirements.txt
 COPY requirements.txt  /app/requirements.txt
 COPY Makefile /app/Makefile
 
