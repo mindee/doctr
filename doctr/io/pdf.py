@@ -39,12 +39,8 @@ def read_pdf(
 
     if isinstance(file, Path):
         file = str(file)
-    if not isinstance(file, (str, bytes)):
-        raise TypeError("unsupported object type for argument 'file'")
 
     # Rasterise pages to numpy ndarrays with pypdfium2
-    with pdfium.PdfDocument(file, password=password) as pdf:
-        return [
-            img
-            for img, _ in pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, rev_byteorder=rgb_mode, **kwargs)
-        ]
+    pdf = pdfium.PdfDocument(file, password=password)
+    renderer = pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, rev_byteorder=rgb_mode, **kwargs)
+    return [img for img, _ in renderer]
