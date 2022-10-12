@@ -247,7 +247,10 @@ Looking to integrate docTR into your API? Here is a template to get you started 
 #### Deploy your API locally
 Specific dependencies are required to run the API template, which you can install as follows:
 ```shell
-pip install -r api/requirements.txt
+cd api/
+pip install poetry
+make lock
+pip install -r requirements.txt
 ```
 You can now run your API locally:
 
