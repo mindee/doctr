@@ -44,8 +44,8 @@ def read_pdf(
     pdf = pdfium.PdfDocument(file, password=password)
     renderer = pdf.render_to(
         pdfium.BitmapConv.numpy_ndarray,
-        scale = scale,
-        rev_byteorder = rgb_mode,
+        scale=scale,
+        rev_byteorder=rgb_mode,
         **kwargs
     )
     return [img for img, _ in renderer]
