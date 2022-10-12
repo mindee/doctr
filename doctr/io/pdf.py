@@ -42,10 +42,5 @@ def read_pdf(
 
     # Rasterise pages to numpy ndarrays with pypdfium2
     pdf = pdfium.PdfDocument(file, password=password)
-    renderer = pdf.render_to(
-        pdfium.BitmapConv.numpy_ndarray,
-        scale=scale,
-        rev_byteorder=rgb_mode,
-        **kwargs
-    )
+    renderer = pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, rev_byteorder=rgb_mode, **kwargs)
     return [img for img, _ in renderer]
