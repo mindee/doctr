@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 git make -y \
+    && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 make -y \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 

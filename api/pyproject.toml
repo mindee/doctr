@@ -10,10 +10,10 @@ authors = ["Mindee <contact@mindee.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.8.2,<3.11"
 tensorflow = ">=2.9.0,<3.0.0"
 tensorflow-addons = ">=0.17.1"
-python-doctr = ">=0.2.0"
+python-doctr = { version = ">=0.6.0", extras = ['tf'] }
 # Fastapi: minimum version required to avoid pydantic error
 # cf. https://github.com/tiangolo/fastapi/issues/4168
 fastapi = ">=0.73.0"
