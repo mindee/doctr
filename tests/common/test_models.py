@@ -7,10 +7,10 @@ import requests
 
 from doctr.io import reader
 from doctr.models._utils import (
-    invert_between_dict_of_lists_and_list_of_dicts,
     estimate_orientation,
     get_bitmap_angle,
     get_language,
+    invert_between_dict_of_lists_and_list_of_dicts,
 )
 from doctr.utils import geometry
 
