@@ -7,8 +7,7 @@ import requests
 
 from doctr.io import reader
 from doctr.models._utils import (
-    convert_dict_list_to_list_dict,
-    convert_list_dict_to_dict_list,
+    invert_between_dict_of_lists_and_list_of_dicts,
     estimate_orientation,
     get_bitmap_angle,
     get_language,
@@ -75,8 +74,8 @@ def test_convert_list_dict():
     dic = {"k1": [[0], [0], [0]], "k2": [[1], [1], [1]]}
     L = [{"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}]
 
-    converted_dic = convert_dict_list_to_list_dict(dic)
-    converted_list = convert_list_dict_to_dict_list(L)
+    converted_dic = invert_between_dict_of_lists_and_list_of_dicts(dic)
+    converted_list = invert_between_dict_of_lists_and_list_of_dicts(L)
 
     assert converted_dic == L
     assert converted_list == dic

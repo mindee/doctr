@@ -5,13 +5,13 @@
 
 from math import floor
 from statistics import median_low
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
 from langdetect import LangDetectException, detect_langs
 
-__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language"]
+__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language", "invert_between_dict_of_lists_and_list_of_dicts"]
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -163,37 +163,16 @@ def get_language(text: str) -> Tuple[str, float]:
     return lang.lang, lang.prob
 
 
-def convert_list_dict_to_dict_list(list_dict: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
-    """Convert a List of Dict of elements to a Dict of list of elements
+def invert_between_dict_of_lists_and_list_of_dicts(
+    x: Union[List[Dict[str, Any]], Dict[str, List[Any]]]
+) -> Union[List[Dict[str, Any]], Dict[str, List[Any]]]:
 
-    Args:
-        list_dict (List): the list of dictionaries with the same keys (class names)
-
-    Returns:
-        dict_list (Dict): the dictionary of lists
-    """
-    dict_list: Dict[str, List[Any]] = {k: [] for k in list_dict[0].keys()}
-    for dic in list_dict:
-        for k, v in dic.items():
-            dict_list[k].append(v)
-    return dict_list
-
-
-def convert_dict_list_to_list_dict(dict_list: Dict[str, List[Any]]) -> List[Dict[str, Any]]:
-    """Convert a Dict of list of elements to a List of Dict of elements
-
-    Args:
-        dict_list (Dict): the dictionary of lists of the same length
-
-    Returns:
-        list_dict (List): the list of dictionaries
-    """
-    assert (
-        len(set([len(v) for v in dict_list.values()])) == 1
-    ), "All the lists in the dictionnary should have the same length."
-    n = len(list(dict_list.values())[0])
-    list_dict: List[Dict[str, Any]] = [{k: None for k in dict_list.keys()} for _ in range(n)]
-    for k, value in dict_list.items():
-        for i, v in enumerate(value):
-            list_dict[i][k] = v
-    return list_dict
+    if isinstance(x, dict):
+        assert (
+            len(set([len(v) for v in x.values()])) == 1
+        ), "All the lists in the dictionnary should have the same length."
+        return [dict(zip(x, t)) for t in zip(*x.values())]
+    elif isinstance(x, list):
+        return {k: [dic[k] for dic in x] for k in x[0]}
+    else:
+        raise TypeError(f"Expected input to be either a dict or a list, got {type(input)} instead.")
