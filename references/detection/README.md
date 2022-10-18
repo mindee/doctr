@@ -57,7 +57,7 @@ labels.json
      ...
 }
 ```
-If you want to train a model with multiple classes, you can use the following format
+If you want to train a model with multiple classes, you can use the following format where polygons is a dictionnary where each key represents one class and has all the polygons representing that class.
 
 labels.json
 ```shell
