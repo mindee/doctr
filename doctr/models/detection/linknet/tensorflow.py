@@ -122,11 +122,14 @@ class LinkNet(_LinkNet, keras.Model):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = [CLASS_NAME],
+        class_names: Optional[List[str]] = None,
     ) -> None:
         super().__init__(cfg=cfg)
 
-        self.class_names = class_names
+        if class_names:
+            self.class_names = class_names
+        else:
+            self.class_names = [CLASS_NAME]
         num_classes: int = len(self.class_names)
 
         self.exportable = exportable
@@ -259,6 +262,7 @@ def _linknet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
+    class_names = _cfg.get("class_names", None)
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
@@ -271,7 +275,7 @@ def _linknet(
     )
 
     # Build the model
-    model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
+    model = LinkNet(feat_extractor, cfg=_cfg, class_names=class_names, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg["url"])

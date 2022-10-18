@@ -125,11 +125,14 @@ class DBNet(_DBNet, nn.Module):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = [CLASS_NAME],
+        class_names: Optional[List[str]] = None,
     ) -> None:
 
         super().__init__()
-        self.class_names = class_names
+        if class_names:
+            self.class_names = class_names
+        else:
+            self.class_names = [CLASS_NAME]
         num_classes: int = len(self.class_names)
         self.cfg = cfg
 
@@ -308,7 +311,12 @@ def _dbnet(
     )
 
     # Build the model
-    model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
+    model = DBNet(
+        feat_extractor,
+        cfg=default_cfgs[arch],
+        class_names=default_cfgs[arch].get("class_names", None),
+        **kwargs,
+    )
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]["url"])
