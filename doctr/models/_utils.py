@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from langdetect import LangDetectException, detect_langs
 
-__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language", "invert_between_dict_of_lists_and_list_of_dicts"]
+__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language", "invert_data_structure"]
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -163,9 +163,17 @@ def get_language(text: str) -> Tuple[str, float]:
     return lang.lang, lang.prob
 
 
-def invert_between_dict_of_lists_and_list_of_dicts(
+def invert_data_structure(
     x: Union[List[Dict[str, Any]], Dict[str, List[Any]]]
 ) -> Union[List[Dict[str, Any]], Dict[str, List[Any]]]:
+    """Invert a List of Dict of elements to a Dict of list of elements and the other way around
+
+    Args:
+        x: a list of dictionaries with the same keys or a dictionary of lists of the same length
+
+    Returns:
+        dictionary of list when x is a list of dictionaries or a list of dictionaries when x is dictionary of lists
+    """
 
     if isinstance(x, dict):
         assert (

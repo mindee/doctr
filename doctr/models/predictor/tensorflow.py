@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.io.elements import Document
-from doctr.models._utils import estimate_orientation, get_language, invert_between_dict_of_lists_and_list_of_dicts
+from doctr.models._utils import estimate_orientation, get_language, invert_data_structure
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
@@ -90,9 +90,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
 
-        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_between_dict_of_lists_and_list_of_dicts(
-            loc_preds
-        )  # type: ignore[assignment]
+        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
         # Rectify crops if aspect ratio
         dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
 
@@ -122,10 +120,8 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 dict_loc_preds[class_name], word_preds[class_name]
             )
 
-        boxes_per_page: List[Dict] = invert_between_dict_of_lists_and_list_of_dicts(boxes)  # type: ignore[assignment]
-        text_preds_per_page: List[Dict] = invert_between_dict_of_lists_and_list_of_dicts(
-            text_preds
-        )  # type: ignore[assignment]
+        boxes_per_page: List[Dict] = invert_data_structure(boxes)  # type: ignore[assignment]
+        text_preds_per_page: List[Dict] = invert_data_structure(text_preds)  # type: ignore[assignment]
 
         if self.detect_language:
             languages = [get_language(self.get_text(text_pred)) for text_pred in text_preds_per_page]
