@@ -10,7 +10,7 @@ authors = ["Mindee <contact@mindee.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-python = ">=3.8.2,<3.11"
+python = ">=3.8.2,<3.11"  # pypdfium2 needs a python version above 3.8.2
 tensorflow = ">=2.9.0,<3.0.0"
 tensorflow-addons = ">=0.17.1"
 python-doctr = { version = ">=1.0.0", extras = ['tf'] }
