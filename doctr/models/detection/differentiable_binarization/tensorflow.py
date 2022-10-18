@@ -279,7 +279,8 @@ def _db_resnet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
-    class_names = _cfg.get("class_names", None)
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = _cfg.get("class_names", None)
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
@@ -293,7 +294,7 @@ def _db_resnet(
     )
 
     # Build the model
-    model = DBNet(feat_extractor, cfg=_cfg, class_names=class_names, **kwargs)
+    model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg["url"])

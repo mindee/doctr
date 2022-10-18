@@ -262,7 +262,8 @@ def _linknet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
-    class_names = _cfg.get("class_names", None)
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = _cfg.get("class_names", None)
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
@@ -275,7 +276,7 @@ def _linknet(
     )
 
     # Build the model
-    model = LinkNet(feat_extractor, cfg=_cfg, class_names=class_names, **kwargs)
+    model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg["url"])

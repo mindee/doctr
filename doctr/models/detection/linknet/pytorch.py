@@ -264,14 +264,11 @@ def _linknet(
         backbone,
         {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = default_cfgs[arch].get("class_names", None)
 
     # Build the model
-    model = LinkNet(
-        feat_extractor,
-        cfg=default_cfgs[arch],
-        class_names=default_cfgs[arch].get("class_names", None),
-        **kwargs,
-    )
+    model = LinkNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]["url"])
