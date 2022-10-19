@@ -170,7 +170,7 @@ class LinkNet(_LinkNet, keras.Model):
     def compute_loss(
         self,
         out_map: tf.Tensor,
-        target: List[np.ndarray],
+        target: List[Dict[str, np.ndarray]],
         gamma: float = 2.0,
         alpha: float = 0.5,
         eps: float = 1e-8,
@@ -217,7 +217,7 @@ class LinkNet(_LinkNet, keras.Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[np.ndarray]] = None,
+        target: Optional[List[Dict[str, np.ndarray]]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,

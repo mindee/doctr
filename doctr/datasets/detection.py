@@ -5,13 +5,11 @@
 
 import json
 import os
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 
 from doctr.file_utils import CLASS_NAME
-from doctr.io.image import get_img_shape
-from doctr.utils.geometry import convert_to_relative_coords
 
 from .datasets import AbstractDataset
 from .utils import pre_transform_multiclass
@@ -43,7 +41,7 @@ class DetectionDataset(AbstractDataset):
     ) -> None:
         super().__init__(
             img_folder,
-            pre_transforms=lambda img, boxes: (img, convert_to_relative_coords(boxes, get_img_shape(img))),
+            pre_transforms=pre_transform_multiclass,
             **kwargs,
         )
 
@@ -54,7 +52,7 @@ class DetectionDataset(AbstractDataset):
         with open(label_path, "rb") as f:
             labels = json.load(f)
 
-        self.data: List[Tuple[str, np.ndarray]] = []
+        self.data: List[Tuple[str, Tuple[np.ndarray, List[str]]]] = []
         np_dtype = np.float32
         for img_name, label in labels.items():
             # File existence check
@@ -63,17 +61,11 @@ class DetectionDataset(AbstractDataset):
 
             geoms, polygons_classes = self.format_polygons(label["polygons"], use_polygons, np_dtype)
 
-            if polygons_classes:
-                self._pre_transforms = pre_transform_multiclass
-                self.data.append(
-                    (img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes))  # type: ignore[arg-type]
-                )
-            else:
-                self.data.append((img_name, np.asarray(geoms, dtype=np_dtype)))
+            self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
 
     def format_polygons(
         self, polygons: Union[List, Dict], use_polygons: bool, np_dtype: Type
-    ) -> Tuple[Union[np.ndarray, Dict], Optional[List[str]]]:
+    ) -> Tuple[np.ndarray, List[str]]:
         """format polygons into an array
 
         Args:
@@ -87,7 +79,7 @@ class DetectionDataset(AbstractDataset):
         """
         if isinstance(polygons, list):
             self._class_names += [CLASS_NAME]
-            polygons_classes = None
+            polygons_classes = [CLASS_NAME for _ in polygons]
             _polygons: np.ndarray = np.asarray(polygons, dtype=np_dtype)
         elif isinstance(polygons, dict):
             self._class_names += list(polygons.keys())

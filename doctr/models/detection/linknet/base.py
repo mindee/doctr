@@ -12,7 +12,7 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
-from doctr.file_utils import CLASS_NAME, is_tf_available
+from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
 
 from ..core import DetectionPostProcessor
@@ -156,7 +156,7 @@ class _LinkNet(BaseModel):
 
     def build_target(
         self,
-        target: Union[List[Dict[str, np.ndarray]], List[np.ndarray]],
+        target: List[Dict[str, np.ndarray]],
         output_shape: Tuple[int, int, int],
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
@@ -169,13 +169,6 @@ class _LinkNet(BaseModel):
             the new formatted target and the mask
         """
 
-        _target = []  # target is converted from List to List[Dict]
-        for tgt in target:
-            if isinstance(tgt, np.ndarray):
-                _target.append({CLASS_NAME: tgt})
-            else:
-                _target.append(tgt)
-        target = _target.copy()
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):

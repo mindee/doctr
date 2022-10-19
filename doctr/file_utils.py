@@ -19,7 +19,7 @@ else:
     import importlib.metadata as importlib_metadata
 
 
-__all__ = ["is_tf_available", "is_torch_available", "CLASS_NAME"]
+__all__ = ["is_tf_available", "is_torch_available", "CLASS_NAME", "copy_tensor"]
 
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
