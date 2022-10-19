@@ -30,8 +30,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [
-        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32),
-        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32)},
     ]
     if torch.cuda.is_available():
         model.cuda()
@@ -54,14 +54,18 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out["loss"], torch.Tensor)
     # Check the rotated case (same targets)
     target = [
-        np.array(
-            [[[0.5, 0.5], [1, 0.5], [1, 1], [0.5, 1]], [[0.5, 0.5], [0.8, 0.5], [0.8, 0.8], [0.5, 0.8]]],
-            dtype=np.float32,
-        ),
-        np.array(
-            [[[0.5, 0.5], [1, 0.5], [1, 1], [0.5, 1]], [[0.5, 0.5], [0.8, 0.5], [0.8, 0.9], [0.5, 0.9]]],
-            dtype=np.float32,
-        ),
+        {
+            CLASS_NAME: np.array(
+                [[[0.5, 0.5], [1, 0.5], [1, 1], [0.5, 1]], [[0.5, 0.5], [0.8, 0.5], [0.8, 0.8], [0.5, 0.8]]],
+                dtype=np.float32,
+            )
+        },
+        {
+            CLASS_NAME: np.array(
+                [[[0.5, 0.5], [1, 0.5], [1, 1], [0.5, 1]], [[0.5, 0.5], [0.8, 0.5], [0.8, 0.9], [0.5, 0.9]]],
+                dtype=np.float32,
+            )
+        },
     ]
     loss = model(input_tensor, target)["loss"]
     assert isinstance(loss, torch.Tensor) and ((loss - out["loss"]).abs() / loss).item() < 1e-1
