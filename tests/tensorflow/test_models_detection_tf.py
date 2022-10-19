@@ -32,8 +32,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
-        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32),
-        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32)},
     ]
     # test training model
     out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
@@ -56,23 +56,23 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(out["loss"], tf.Tensor)
     # Target checks
     target = [
-        np.array([[0, 0, 1, 1]], dtype=np.uint8),
-        np.array([[0, 0, 1, 1]], dtype=np.uint8),
+        {CLASS_NAME: np.array([[0, 0, 1, 1]], dtype=np.uint8)},
+        {CLASS_NAME: np.array([[0, 0, 1, 1]], dtype=np.uint8)},
     ]
     with pytest.raises(AssertionError):
         out = model(input_tensor, target, training=True)
 
     target = [
-        np.array([[0, 0, 1.5, 1.5]], dtype=np.float32),
-        np.array([[-0.2, -0.3, 1, 1]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0, 0, 1.5, 1.5]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[-0.2, -0.3, 1, 1]], dtype=np.float32)},
     ]
     with pytest.raises(ValueError):
         out = model(input_tensor, target, training=True)
 
     # Check the rotated case
     target = [
-        np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.65, 0.3, 0.3, 0]], dtype=np.float32),
-        np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.7, 0.3, 0.4, 0]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.65, 0.3, 0.3, 0]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.7, 0.3, 0.4, 0]], dtype=np.float32)},
     ]
     loss = model(input_tensor, target, training=True)["loss"]
     assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 25e-2
