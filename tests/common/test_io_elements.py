@@ -59,13 +59,32 @@ def _mock_blocks(size=(1, 1), offset=(0, 0)):
 def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     return [
         elements.Page(
-            {CLASS_NAME: _mock_blocks(block_size, block_offset)},
+            _mock_blocks(block_size, block_offset),
             0,
             (300, 200),
             {"value": 0.0, "confidence": 1.0},
             {"value": "EN", "confidence": 0.8},
         ),
         elements.Page(
+            _mock_blocks(block_size, block_offset),
+            1,
+            (500, 1000),
+            {"value": 0.15, "confidence": 0.8},
+            {"value": "FR", "confidence": 0.7},
+        ),
+    ]
+
+
+def _mock_kie_pages(block_size=(1, 1), block_offset=(0, 0)):
+    return [
+        elements.KIEPage(
+            {CLASS_NAME: _mock_blocks(block_size, block_offset)},
+            0,
+            (300, 200),
+            {"value": 0.0, "confidence": 1.0},
+            {"value": "EN", "confidence": 0.8},
+        ),
+        elements.KIEPage(
             {CLASS_NAME: _mock_blocks(block_size, block_offset)},
             1,
             (500, 1000),
@@ -189,13 +208,12 @@ def test_page():
     page_size = (300, 200)
     orientation = {"value": 0.0, "confidence": 0.0}
     language = {"value": "EN", "confidence": 0.8}
-    blocks = {CLASS_NAME: _mock_blocks()}
+    blocks = _mock_blocks()
     page = elements.Page(blocks, page_idx, page_size, orientation, language)
 
-    class_names = list(blocks.keys())
     # Attribute checks
     assert len(page.blocks) == len(blocks)
-    assert all(isinstance(b, elements.Block) for b in page.blocks[class_names[0]])
+    assert all(isinstance(b, elements.Block) for b in page.blocks)
     assert page.page_idx == page_idx
     assert page.dimensions == page_size
     assert page.orientation == orientation
@@ -206,7 +224,7 @@ def test_page():
 
     # Export
     assert page.export() == {
-        "blocks": {class_name: [b.export() for b in blocks[class_name]] for class_name in class_names},
+        "blocks": [b.export() for b in blocks],
         "page_idx": page_idx,
         "dimensions": page_size,
         "orientation": orientation,
@@ -228,6 +246,53 @@ def test_page():
 
     # Synthesize
     img = page.synthesize()
+    assert isinstance(img, np.ndarray)
+    assert img.shape == (*page_size, 3)
+
+
+def test_kiepage():
+    page_idx = 0
+    page_size = (300, 200)
+    orientation = {"value": 0.0, "confidence": 0.0}
+    language = {"value": "EN", "confidence": 0.8}
+    predictions = {CLASS_NAME: _mock_blocks()}
+    kie_page = elements.KIEPage(predictions, page_idx, page_size, orientation, language)
+
+    # Attribute checks
+    assert len(kie_page.predictions) == len(predictions)
+    assert all(isinstance(b, elements.Block) for b in kie_page.predictions[CLASS_NAME])
+    assert kie_page.page_idx == page_idx
+    assert kie_page.dimensions == page_size
+    assert kie_page.orientation == orientation
+    assert kie_page.language == language
+
+    # Render
+    assert kie_page.render() == "hello world\nhello world\n\nhello world\nhello world"
+
+    # Export
+    assert kie_page.export() == {
+        "predictions": {CLASS_NAME: [b.export() for b in predictions[CLASS_NAME]]},
+        "page_idx": page_idx,
+        "dimensions": page_size,
+        "orientation": orientation,
+        "language": language,
+    }
+
+    # Export XML
+    assert (
+        isinstance(kie_page.export_as_xml(), tuple)
+        and isinstance(kie_page.export_as_xml()[0], (bytes, bytearray))
+        and isinstance(kie_page.export_as_xml()[1], ElementTree)
+    )
+
+    # Repr
+    assert "\n".join(repr(kie_page).split("\n")[:2]) == f"KIEPage(\n  dimensions={repr(page_size)}"
+
+    # Show
+    kie_page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
+
+    # Synthesize
+    img = kie_page.synthesize()
     assert isinstance(img, np.ndarray)
     assert img.shape == (*page_size, 3)
 
