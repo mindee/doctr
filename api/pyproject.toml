@@ -4,7 +4,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "doctr-api"
-version = "1.0.1a0"
+version = "0.7.1a0"
 description = "Backend template for your OCR API with docTR"
 authors = ["Mindee <contact@mindee.com>"]
 license = "Apache-2.0"
