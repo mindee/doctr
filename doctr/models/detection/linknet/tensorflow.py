@@ -264,6 +264,8 @@ def _linknet(
     _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
     if not kwargs.get("class_names", None):
         kwargs["class_names"] = _cfg.get("class_names", None)
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(

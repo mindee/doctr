@@ -266,6 +266,8 @@ def _linknet(
     )
     if not kwargs.get("class_names", None):
         kwargs["class_names"] = default_cfgs[arch].get("class_names", None)
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
 
     # Build the model
     model = LinkNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)

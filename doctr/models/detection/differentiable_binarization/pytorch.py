@@ -312,6 +312,8 @@ def _dbnet(
 
     if not kwargs.get("class_names", None):
         kwargs["class_names"] = default_cfgs[arch].get("class_names", None)
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
     # Build the model
     model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters

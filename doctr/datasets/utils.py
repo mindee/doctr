@@ -194,7 +194,7 @@ def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.n
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]
-    boxes_dict: Dict = {k: [] for k in set(boxes_classes)}
+    boxes_dict: Dict = {k: [] for k in sorted(set(boxes_classes))}
     for k, poly in zip(boxes_classes, boxes):
         boxes_dict[k].append(poly)
     boxes_dict = {k: np.stack(v, axis=0) for k, v in boxes_dict.items()}

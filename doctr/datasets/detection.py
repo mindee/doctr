@@ -92,4 +92,4 @@ class DetectionDataset(AbstractDataset):
 
     @property
     def class_names(self):
-        return list(set(self._class_names))
+        return sorted(list(set(self._class_names)))
