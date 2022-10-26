@@ -4,13 +4,12 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
-from doctr.file_utils import CLASS_NAME
-from doctr.io.elements import Block, Document, Line, Page, Word
+from doctr.io.elements import Block, Document, KIEDocument, KIEPage, Line, Page, Word
 from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
@@ -282,8 +281,8 @@ class DocumentBuilder(NestedObject):
 
     def __call__(
         self,
-        boxes: Union[List[Dict[str, np.ndarray]], List[np.ndarray]],
-        text_preds: List[Dict[str, List[Tuple[str, float]]]],
+        boxes: List[np.ndarray],
+        text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
         orientations: Optional[List[Dict[str, Any]]] = None,
         languages: Optional[List[Dict[str, Any]]] = None,
@@ -301,28 +300,91 @@ class DocumentBuilder(NestedObject):
         """
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
             raise ValueError("All arguments are expected to be lists of the same size")
-        if len(boxes) > 0:
-            if isinstance(boxes[0], np.ndarray):
-                boxes = [{CLASS_NAME: box} for box in boxes]  # type: ignore[assignment]
+
         _orientations = (
             orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
         )
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
-            if next(iter(boxes[0].values())).ndim == 3:  # type: ignore[union-attr]
+            if boxes[0].ndim == 3:
+                straight_boxes: List[np.ndarray] = []
+                # Iterate over pages
+                for p_boxes in boxes:
+                    # Iterate over boxes of the pages
+                    straight_boxes.append(np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1))
+                boxes = straight_boxes
+
+        _pages = [
+            Page(
+                self._build_blocks(
+                    page_boxes,
+                    word_preds,
+                ),
+                _idx,
+                shape,
+                orientation,
+                language,
+            )
+            for _idx, shape, page_boxes, word_preds, orientation, language in zip(
+                range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            )
+        ]
+
+        return Document(_pages)
+
+
+class KIEDocumentBuilder(DocumentBuilder):
+    """Implements a document builder
+
+    Args:
+        resolve_lines: whether words should be automatically grouped into lines
+        resolve_blocks: whether lines should be automatically grouped into blocks
+        paragraph_break: relative length of the minimum space separating paragraphs
+        export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
+            box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
+    """
+
+    def __call__(  # type: ignore[override]
+        self,
+        boxes: List[Dict[str, np.ndarray]],
+        text_preds: List[Dict[str, List[Tuple[str, float]]]],
+        page_shapes: List[Tuple[int, int]],
+        orientations: Optional[List[Dict[str, Any]]] = None,
+        languages: Optional[List[Dict[str, Any]]] = None,
+    ) -> KIEDocument:
+        """Re-arrange detected words into structured blocks
+
+        Args:
+            boxes: list of N dictionaries, where each element represents the localization predictions for a class,
+            of shape (*, 5) or (*, 6) for all predictions
+            text_preds: list of N dictionaries, where each element is the list of all word prediction
+            page_shape: shape of each page, of size N
+
+        Returns:
+            document object
+        """
+        if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
+            raise ValueError("All arguments are expected to be lists of the same size")
+        _orientations = (
+            orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
+        )
+        _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
+        if self.export_as_straight_boxes and len(boxes) > 0:
+            # If boxes are already straight OK, else fit a bounding rect
+            if next(iter(boxes[0].values())).ndim == 3:
                 straight_boxes: List[Dict[str, np.ndarray]] = []
                 # Iterate over pages
                 for p_boxes in boxes:
                     # Iterate over boxes of the pages
                     straight_boxes_dict = {}
-                    for k, box in p_boxes.items():  # type: ignore[union-attr]
+                    for k, box in p_boxes.items():
                         straight_boxes_dict[k] = np.concatenate((box.min(1), box.max(1)), 1)
                     straight_boxes.append(straight_boxes_dict)
                 boxes = straight_boxes
 
         _pages = [
-            Page(
+            KIEPage(
                 {
                     k: self._build_blocks(
                         page_boxes[k],
@@ -340,4 +402,4 @@ class DocumentBuilder(NestedObject):
             )
         ]
 
-        return Document(_pages)
+        return KIEDocument(_pages)

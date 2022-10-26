@@ -18,9 +18,7 @@ from unidecode import unidecode
 from .common_types import BoundingBox, Polygon4P
 from .fonts import get_font
 
-__all__ = ["visualize_page", "synthesize_page", "draw_boxes"]
-
-from ..file_utils import CLASS_NAME
+__all__ = ["visualize_page", "synthesize_page", "visualize_kie_page", "synthesize_kie_page", "draw_boxes"]
 
 
 def rect_patch(
@@ -202,11 +200,182 @@ def visualize_page(
     if interactive:
         artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
-    if isinstance(page["blocks"], list):
-        page["blocks"] = {CLASS_NAME: page["blocks"]}
+    for block in page["blocks"]:
+        if not words_only:
+            rect = create_obj_patch(
+                block["geometry"], page["dimensions"], label="block", color=(0, 1, 0), linewidth=1, **kwargs
+            )
+            # add patch on figure
+            ax.add_patch(rect)
+            if interactive:
+                # add patch to cursor's artists
+                artists.append(rect)
 
-    colors = {k: color for color, k in zip(get_colors(len(page["blocks"])), page["blocks"])}
-    for key, value in page["blocks"].items():
+        for line in block["lines"]:
+            if not words_only:
+                rect = create_obj_patch(
+                    line["geometry"], page["dimensions"], label="line", color=(1, 0, 0), linewidth=1, **kwargs
+                )
+                ax.add_patch(rect)
+                if interactive:
+                    artists.append(rect)
+
+            for word in line["words"]:
+                rect = create_obj_patch(
+                    word["geometry"],
+                    page["dimensions"],
+                    label=f"{word['value']} (confidence: {word['confidence']:.2%})",
+                    color=(0, 0, 1),
+                    **kwargs,
+                )
+                ax.add_patch(rect)
+                if interactive:
+                    artists.append(rect)
+                elif add_labels:
+                    if len(word["geometry"]) == 5:
+                        text_loc = (
+                            int(page["dimensions"][1] * (word["geometry"][0] - word["geometry"][2] / 2)),
+                            int(page["dimensions"][0] * (word["geometry"][1] - word["geometry"][3] / 2)),
+                        )
+                    else:
+                        text_loc = (
+                            int(page["dimensions"][1] * word["geometry"][0][0]),
+                            int(page["dimensions"][0] * word["geometry"][0][1]),
+                        )
+
+                    if len(word["geometry"]) == 2:
+                        # We draw only if boxes are in straight format
+                        ax.text(
+                            *text_loc,
+                            word["value"],
+                            size=10,
+                            alpha=0.5,
+                            color=(0, 0, 1),
+                        )
+
+        if display_artefacts:
+            for artefact in block["artefacts"]:
+                rect = create_obj_patch(
+                    artefact["geometry"],
+                    page["dimensions"],
+                    label="artefact",
+                    color=(0.5, 0.5, 0.5),
+                    linewidth=1,
+                    **kwargs,
+                )
+                ax.add_patch(rect)
+                if interactive:
+                    artists.append(rect)
+
+    if interactive:
+        # Create mlp Cursor to hover patches in artists
+        mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
+    fig.tight_layout(pad=0.0)
+
+    return fig
+
+
+def synthesize_page(
+    page: Dict[str, Any],
+    draw_proba: bool = False,
+    font_family: Optional[str] = None,
+) -> np.ndarray:
+    """Draw a the content of the element page (OCR response) on a blank page.
+
+    Args:
+        page: exported Page object to represent
+        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
+        font_size: size of the font, default font = 13
+        font_family: family of the font
+
+    Return:
+        the synthesized page
+    """
+
+    # Draw template
+    h, w = page["dimensions"]
+    response = 255 * np.ones((h, w, 3), dtype=np.int32)
+
+    # Draw each word
+    for block in page["blocks"]:
+        for line in block["lines"]:
+            for word in line["words"]:
+                # Get aboslute word geometry
+                (xmin, ymin), (xmax, ymax) = word["geometry"]
+                xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
+                ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
+
+                # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
+                font = get_font(font_family, int(0.75 * (ymax - ymin)))
+                img = Image.new("RGB", (xmax - xmin, ymax - ymin), color=(255, 255, 255))
+                d = ImageDraw.Draw(img)
+                # Draw in black the value of the word
+                try:
+                    d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
+                except UnicodeEncodeError:
+                    # When character cannot be encoded, use its unidecode version
+                    d.text((0, 0), unidecode(word["value"]), font=font, fill=(0, 0, 0))
+
+                # Colorize if draw_proba
+                if draw_proba:
+                    p = int(255 * word["confidence"])
+                    mask = np.where(np.array(img) == 0, 1, 0)
+                    proba: np.ndarray = np.array([255 - p, 0, p])
+                    color = mask * proba[np.newaxis, np.newaxis, :]
+                    white_mask = 255 * (1 - mask)
+                    img = color + white_mask
+
+                # Write to response page
+                response[ymin:ymax, xmin:xmax, :] = np.array(img)
+
+    return response
+
+
+def visualize_kie_page(
+    page: Dict[str, Any],
+    image: np.ndarray,
+    words_only: bool = True,
+    display_artefacts: bool = True,
+    scale: float = 10,
+    interactive: bool = True,
+    add_labels: bool = True,
+    **kwargs: Any,
+) -> Figure:
+    """Visualize a full page with predicted blocks, lines and words
+
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> from doctr.utils.visualization import visualize_page
+    >>> from doctr.models import ocr_db_crnn
+    >>> model = ocr_db_crnn(pretrained=True)
+    >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+    >>> out = model([[input_page]])
+    >>> visualize_kie_page(out[0].pages[0].export(), input_page)
+    >>> plt.show()
+
+    Args:
+        page: the exported Page of a Document
+        image: np array of the page, needs to have the same shape than page['dimensions']
+        words_only: whether only words should be displayed
+        display_artefacts: whether artefacts should be displayed
+        scale: figsize of the largest windows side
+        interactive: whether the plot should be interactive
+        add_labels: for static plot, adds text labels on top of bounding box
+    """
+    # Get proper scale and aspect ratio
+    h, w = image.shape[:2]
+    size = (scale * w / h, scale) if h > w else (scale, h / w * scale)
+    fig, ax = plt.subplots(figsize=size)
+    # Display the image
+    ax.imshow(image)
+    # hide both axis
+    ax.axis("off")
+
+    if interactive:
+        artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+
+    colors = {k: color for color, k in zip(get_colors(len(page["predictions"])), page["predictions"])}
+    for key, value in page["predictions"].items():
         for block in value:
             if not words_only:
                 rect = create_obj_patch(
@@ -287,7 +456,7 @@ def visualize_page(
     return fig
 
 
-def synthesize_page(
+def synthesize_kie_page(
     page: Dict[str, Any],
     draw_proba: bool = False,
     font_family: Optional[str] = None,
@@ -309,7 +478,7 @@ def synthesize_page(
     response = 255 * np.ones((h, w, 3), dtype=np.int32)
 
     # Draw each word
-    for blocks in page["blocks"].values():
+    for blocks in page["predictions"].values():
         for block in blocks:
             for line in block["lines"]:
                 for word in line["words"]:

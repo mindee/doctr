@@ -19,9 +19,9 @@ import doctr
 from doctr.utils.common_types import BoundingBox
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
-from doctr.utils.visualization import synthesize_page, visualize_page
+from doctr.utils.visualization import synthesize_kie_page, synthesize_page, visualize_kie_page, visualize_page
 
-__all__ = ["Element", "Word", "Artefact", "Line", "Block", "Page", "Document"]
+__all__ = ["Element", "Word", "Artefact", "Line", "Block", "Page", "KIEPage", "Document"]
 
 
 class Element(NestedObject):
@@ -42,7 +42,7 @@ class Element(NestedObject):
 
         export_dict = {k: getattr(self, k) for k in self._exported_keys}
         for children_name in self._children_names:
-            if children_name in ["blocks"]:
+            if children_name in ["predictions"]:
                 export_dict[children_name] = {
                     k: [item.export() for item in c] for k, c in getattr(self, children_name).items()
                 }
@@ -220,7 +220,7 @@ class Page(Element):
     """Implements a page element as a collection of blocks
 
     Args:
-        blocks: Dictionary with list of block elements for each detection class
+        blocks: list of block elements
         page_idx: the index of the page in the input raw document
         dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
@@ -229,11 +229,11 @@ class Page(Element):
 
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
     _children_names: List[str] = ["blocks"]
-    blocks: Dict[str, List[Block]] = {}
+    blocks: List[Block] = []
 
     def __init__(
         self,
-        blocks: Dict[str, List[Block]],
+        blocks: List[Block],
         page_idx: int,
         dimensions: Tuple[int, int],
         orientation: Optional[Dict[str, Any]] = None,
@@ -247,7 +247,7 @@ class Page(Element):
 
     def render(self, block_break: str = "\n\n") -> str:
         """Renders the full text of the element"""
-        return block_break.join(b.render() for blocks in self.blocks.values() for b in blocks)
+        return block_break.join(b.render() for b in self.blocks)
 
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
@@ -316,7 +316,174 @@ class Page(Element):
             },
         )
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
-        for class_name, blocks in self.blocks.items():
+        for block in self.blocks:
+            if len(block.geometry) != 2:
+                raise TypeError("XML export is only available for straight bounding boxes for now.")
+            (xmin, ymin), (xmax, ymax) = block.geometry
+            block_div = SubElement(
+                body,
+                "div",
+                attrib={
+                    "class": "ocr_carea",
+                    "id": f"block_{block_count}",
+                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    {int(round(xmax * width))} {int(round(ymax * height))}",
+                },
+            )
+            paragraph = SubElement(
+                block_div,
+                "p",
+                attrib={
+                    "class": "ocr_par",
+                    "id": f"par_{block_count}",
+                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                    {int(round(xmax * width))} {int(round(ymax * height))}",
+                },
+            )
+            block_count += 1
+            for line in block.lines:
+                (xmin, ymin), (xmax, ymax) = line.geometry
+                # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
+                line_span = SubElement(
+                    paragraph,
+                    "span",
+                    attrib={
+                        "class": "ocr_line",
+                        "id": f"line_{line_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}; \
+                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                    },
+                )
+                line_count += 1
+                for word in line.words:
+                    (xmin, ymin), (xmax, ymax) = word.geometry
+                    conf = word.confidence
+                    word_div = SubElement(
+                        line_span,
+                        "span",
+                        attrib={
+                            "class": "ocrx_word",
+                            "id": f"word_{word_count}",
+                            "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                            {int(round(xmax * width))} {int(round(ymax * height))}; \
+                            x_wconf {int(round(conf * 100))}",
+                        },
+                    )
+                    # set the text
+                    word_div.text = word.value
+                    word_count += 1
+
+        return (ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr))
+
+    @classmethod
+    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        kwargs.update({"blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]]})
+        return cls(**kwargs)
+
+
+class KIEPage(Element):
+    """Implements a KIE page element as a collection of predictions
+
+    Args:
+        predictions: Dictionary with list of block elements for each detection class
+        page_idx: the index of the page in the input raw document
+        dimensions: the page size in pixels in format (height, width)
+        orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
+        language: a dictionary with the language value and confidence of the prediction
+    """
+
+    _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
+    _children_names: List[str] = ["predictions"]
+    predictions: Dict[str, List[Block]] = {}
+
+    def __init__(
+        self,
+        predictions: Dict[str, List[Block]],
+        page_idx: int,
+        dimensions: Tuple[int, int],
+        orientation: Optional[Dict[str, Any]] = None,
+        language: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        super().__init__(predictions=predictions)
+        self.page_idx = page_idx
+        self.dimensions = dimensions
+        self.orientation = orientation if isinstance(orientation, dict) else dict(value=None, confidence=None)
+        self.language = language if isinstance(language, dict) else dict(value=None, confidence=None)
+
+    def render(self, block_break: str = "\n\n") -> str:
+        """Renders the full text of the element"""
+        return block_break.join(b.render() for blocks in self.predictions.values() for b in blocks)
+
+    def extra_repr(self) -> str:
+        return f"dimensions={self.dimensions}"
+
+    def show(self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs) -> None:
+        """Overlay the result on a given image
+
+        Args:
+            page: image encoded as a numpy array in uint8
+            interactive: whether the display should be interactive
+            preserve_aspect_ratio: pass True if you passed True to the predictor
+        """
+        visualize_kie_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
+        plt.show(**kwargs)
+
+    def synthesize(self, **kwargs) -> np.ndarray:
+        """Synthesize the page from the predictions
+
+        Returns:
+            synthesized page
+        """
+
+        return synthesize_kie_page(self.export(), **kwargs)
+
+    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> Tuple[bytes, ET.ElementTree]:
+        """Export the page as XML (hOCR-format)
+        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
+
+        Args:
+            file_title: the title of the XML file
+
+        Returns:
+            a tuple of the XML byte string, and its ElementTree
+        """
+        p_idx = self.page_idx
+        block_count: int = 1
+        line_count: int = 1
+        word_count: int = 1
+        height, width = self.dimensions
+        language = self.language if "language" in self.language.keys() else "en"
+        # Create the XML root element
+        page_hocr = ETElement("html", attrib={"xmlns": "http://www.w3.org/1999/xhtml", "xml:lang": str(language)})
+        # Create the header / SubElements of the root element
+        head = SubElement(page_hocr, "head")
+        SubElement(head, "title").text = file_title
+        SubElement(head, "meta", attrib={"http-equiv": "Content-Type", "content": "text/html; charset=utf-8"})
+        SubElement(
+            head,
+            "meta",
+            attrib={"name": "ocr-system", "content": f"python-doctr {doctr.__version__}"},  # type: ignore[attr-defined]
+        )
+        SubElement(
+            head,
+            "meta",
+            attrib={"name": "ocr-capabilities", "content": "ocr_page ocr_carea ocr_par ocr_line ocrx_word"},
+        )
+        # Create the body
+        body = SubElement(page_hocr, "body")
+        SubElement(
+            body,
+            "div",
+            attrib={
+                "class": "ocr_page",
+                "id": f"page_{p_idx + 1}",
+                "title": f"image; bbox 0 0 {width} {height}; ppageno 0",
+            },
+        )
+        # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
+        for class_name, blocks in self.predictions.items():
             for block in blocks:
                 if len(block.geometry) != 2:
                     raise TypeError("XML export is only available for straight bounding boxes for now.")
@@ -380,7 +547,9 @@ class Page(Element):
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({"blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]]})
+        kwargs.update(
+            {"predictions": [Block.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]}
+        )
         return cls(**kwargs)
 
 
@@ -438,3 +607,20 @@ class Document(Element):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({"pages": [Page.from_dict(page_dict) for page_dict in save_dict["pages"]]})
         return cls(**kwargs)
+
+
+class KIEDocument(Document):
+    """Implements a document element as a collection of pages
+
+    Args:
+        pages: list of page elements
+    """
+
+    _children_names: List[str] = ["pages"]
+    pages: List[KIEPage] = []  # type: ignore[assignment]
+
+    def __init__(
+        self,
+        pages: List[KIEPage],
+    ) -> None:
+        super().__init__(pages=pages)  # type: ignore[arg-type]
