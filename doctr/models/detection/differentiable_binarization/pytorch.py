@@ -125,14 +125,11 @@ class DBNet(_DBNet, nn.Module):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: Optional[List[str]] = None,
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
-        if class_names:
-            self.class_names = class_names
-        else:
-            self.class_names = [CLASS_NAME]
+        self.class_names = class_names
         num_classes: int = len(self.class_names)
         self.cfg = cfg
 
@@ -243,7 +240,7 @@ class DBNet(_DBNet, nn.Module):
         prob_map = torch.sigmoid(out_map)
         thresh_map = torch.sigmoid(thresh_map)
 
-        targets = self.build_target(target, prob_map.shape)  # type: ignore[arg-type]
+        targets = self.build_target(target, prob_map.shape, False)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
@@ -311,7 +308,7 @@ def _dbnet(
     )
 
     if not kwargs.get("class_names", None):
-        kwargs["class_names"] = default_cfgs[arch].get("class_names", None)
+        kwargs["class_names"] = default_cfgs[arch].get("class_names", [CLASS_NAME])
     else:
         kwargs["class_names"] = sorted(kwargs["class_names"])
     # Build the model

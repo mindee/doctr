@@ -12,8 +12,6 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
-from doctr.file_utils import is_tf_available
-
 from ..core import DetectionPostProcessor
 
 __all__ = ["DBPostProcessor"]
@@ -268,6 +266,7 @@ class _DBNet:
         self,
         target: List[Dict[str, np.ndarray]],
         output_shape: Tuple[int, int, int, int],
+        channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
@@ -277,7 +276,7 @@ class _DBNet:
 
         input_dtype = next(iter(target[0].values())).dtype if len(target) > 0 else np.float32
 
-        if is_tf_available():
+        if channels_last:
             h, w = output_shape[1:-1]
             target_shape = (output_shape[0], output_shape[-1], h, w)  # (Batch_size, num_classes, h, w)
         else:
@@ -350,7 +349,7 @@ class _DBNet:
                     poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
                         poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
                     )
-        if is_tf_available():
+        if channels_last:
             seg_target = seg_target.transpose((0, 2, 3, 1))
             seg_mask = seg_mask.transpose((0, 2, 3, 1))
             thresh_target = thresh_target.transpose((0, 2, 3, 1))

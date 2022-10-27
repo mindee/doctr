@@ -107,14 +107,11 @@ class LinkNet(nn.Module, _LinkNet):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: Optional[List[str]] = None,
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
-        if class_names:
-            self.class_names = class_names
-        else:
-            self.class_names = [CLASS_NAME]
+        self.class_names = class_names
         num_classes: int = len(self.class_names)
         self.cfg = cfg
         self.exportable = exportable
@@ -219,7 +216,7 @@ class LinkNet(nn.Module, _LinkNet):
         Returns:
             A loss tensor
         """
-        _target, _mask = self.build_target(target, out_map.shape[1:])  # type: ignore[arg-type]
+        _target, _mask = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(_target).to(dtype=out_map.dtype), torch.from_numpy(_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
@@ -265,7 +262,7 @@ def _linknet(
         {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
     if not kwargs.get("class_names", None):
-        kwargs["class_names"] = default_cfgs[arch].get("class_names", None)
+        kwargs["class_names"] = default_cfgs[arch].get("class_names", [CLASS_NAME])
     else:
         kwargs["class_names"] = sorted(kwargs["class_names"])
 

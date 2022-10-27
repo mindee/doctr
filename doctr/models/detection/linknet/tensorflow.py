@@ -122,14 +122,11 @@ class LinkNet(_LinkNet, keras.Model):
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
-        class_names: Optional[List[str]] = None,
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
         super().__init__(cfg=cfg)
 
-        if class_names:
-            self.class_names = class_names
-        else:
-            self.class_names = [CLASS_NAME]
+        self.class_names = class_names
         num_classes: int = len(self.class_names)
 
         self.exportable = exportable
@@ -188,7 +185,7 @@ class LinkNet(_LinkNet, keras.Model):
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask = self.build_target(target, out_map.shape[1:])
+        seg_target, seg_mask = self.build_target(target, out_map.shape[1:], True)
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.cast(seg_mask, tf.float32)
@@ -263,7 +260,7 @@ def _linknet(
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
     if not kwargs.get("class_names", None):
-        kwargs["class_names"] = _cfg.get("class_names", None)
+        kwargs["class_names"] = _cfg.get("class_names", [CLASS_NAME])
     else:
         kwargs["class_names"] = sorted(kwargs["class_names"])
 

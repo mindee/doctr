@@ -12,7 +12,6 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
-from doctr.file_utils import is_tf_available
 from doctr.models.core import BaseModel
 
 from ..core import DetectionPostProcessor
@@ -158,12 +157,14 @@ class _LinkNet(BaseModel):
         self,
         target: List[Dict[str, np.ndarray]],
         output_shape: Tuple[int, int, int],
+        channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
 
         Args:
             target: target coming from dataset
             output_shape: shape of the output of the model without batch_size
+            channels_last: whether channels are last or not
 
         Returns:
             the new formatted target and the mask
@@ -176,7 +177,7 @@ class _LinkNet(BaseModel):
 
         h: int
         w: int
-        if is_tf_available():
+        if channels_last:
             h, w, num_classes = output_shape
         else:
             num_classes, h, w = output_shape
@@ -241,7 +242,7 @@ class _LinkNet(BaseModel):
                     cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1)
 
         # Don't forget to switch back to channel last if Tensorflow is used
-        if is_tf_available():
+        if channels_last:
             seg_target = seg_target.transpose((0, 2, 3, 1))
             seg_mask = seg_mask.transpose((0, 2, 3, 1))
 
