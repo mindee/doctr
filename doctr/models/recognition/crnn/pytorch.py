@@ -14,7 +14,7 @@ from openvino.runtime import Core
 from torch import nn
 from torch.nn import functional as F
 
-from doctr.models.classification.effnet.pytorch import efficientnet_b0, efficientnet_b3
+from doctr.models.classification.effnet.pytorch import efficientnet_b0, efficientnet_b3, efficientnetv2_m
 from doctr.datasets import VOCABS, decode_sequence
 from doctr.utils.data import download_from_url
 
@@ -23,7 +23,7 @@ from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small',
-           'crnn_mobilenet_v3_large', 'crnn_efficientnet_b3']
+           'crnn_mobilenet_v3_large', 'crnn_efficientnet_b0', 'crnn_efficientnet_b3', 'crnn_efficientnetv2_m']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "crnn_vgg16_bn": {
@@ -54,12 +54,26 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "vocab": VOCABS["french"],
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_mobilenet_v3_large_pt-f5259ec2.pt&src=0",
     },
+    'crnn_efficientnet_b0': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnet_b0.pt'
+    },
     'crnn_efficientnet_b3': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'] + " ",
-        'url': "https://github.com/h2oai/doctr/releases/download/efficientnet_crnn/crnn_effnet_b3.pt",
+        'url': "https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnet_b3.pt",
+    },
+    'crnn_efficientnetv2_m': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnetv2_m.pt'
     },
 }
 
@@ -310,35 +324,6 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
             logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
         return logits
 
-# class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
-#     """Onnx converted crnn_vgg16_bn_onnx"""
-#     def __init__(
-#         self,
-#         pretrained = True
-#     ) -> None:
-#         super().__init__()
-#         self.vocab = default_cfgs["crnn_vgg16_bn_onnx"]["vocab"]
-#         self.cfg = default_cfgs["crnn_vgg16_bn_onnx"]
-
-#         self.postprocessor = CTCPostProcessor(vocab=self.vocab)
-#         self.device = torch.cuda.is_available()
-#         if self.device:
-#             self.sess = ort.InferenceSession('rec.onnx', providers=['CUDAExecutionProvider'])
-#         else:
-#             self.ie = Core()
-#             self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
-#             self.compiled_model_onnx = self.ie.compile_model(model="rec.onnx", device_name="CPU")
-#             self.output_layer_onnx = self.compiled_model_onnx.output(0)
-
-#     def forward(
-#         self,
-#         x: torch.Tensor,
-#     ):
-#         if self.device:
-#             logits = self.sess.run(None, {"input":x.detach().cpu().numpy()})[0]
-#         else:
-#             logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
-#         return logits
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based
@@ -390,6 +375,31 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
         ignore_keys=["linear.weight", "linear.bias"],
         **kwargs,
     )
+
+def crnn_efficientnet_b0(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnet_b0
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn(
+        'crnn_efficientnet_b0',
+        pretrained,
+        efficientnet_b0,
+        ignore_keys=['linear.weight', 'linear.bias'],
+        **kwargs,
+    )
+
 def crnn_efficientnet_b3(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with efficientnet_b3
 
@@ -409,6 +419,30 @@ def crnn_efficientnet_b3(pretrained: bool = False, **kwargs: Any) -> CRNN:
         'crnn_efficientnet_b3',
         pretrained,
         efficientnet_b3,
+        ignore_keys=['linear.weight', 'linear.bias'],
+        **kwargs,
+    )
+
+def crnn_efficientnetv2_m(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnet_b7
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn(
+        'crnn_efficientnetv2_m',
+        pretrained,
+        efficientnetv2_m,
         ignore_keys=['linear.weight', 'linear.bias'],
         **kwargs,
     )
