@@ -14,7 +14,8 @@ from .predictor import RecognitionPredictor
 __all__ = ["recognition_predictor"]
 
 
-ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master', 'crnn_efficientnet_b3']
+ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master', 
+                    'crnn_efficientnet_b0', 'crnn_efficientnet_b3', 'crnn_efficientnetv2_m']
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
