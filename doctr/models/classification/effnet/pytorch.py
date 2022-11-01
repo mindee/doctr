@@ -96,6 +96,13 @@ def efficientnet_b3(pretrained: bool = False, **kwargs: Any) -> tv_effnet.Effici
         3,
         **kwargs,
     )
+def efficientnetv2_m(pretrained: bool = False, **kwargs: Any):
+    return _efficientnetv2(
+        tv_effnetv2,
+        pretrained,
+        3,
+        **kwargs,
+    )
 def _efficientnetv2(
     arch: str,
     pretrained: bool,
