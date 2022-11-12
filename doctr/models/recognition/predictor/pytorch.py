@@ -40,6 +40,7 @@ class RecognitionPredictor(nn.Module):
         if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
             self.model = nn.DataParallel(self.model)
             self.model = self.model.to(self.device)
+            self.model = self.model.half()
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
@@ -79,6 +80,7 @@ class RecognitionPredictor(nn.Module):
         for batch in processed_batches:
             if "onnx" not in str((type(self.model))):
                 batch = batch.to(self.device)
+                batch = batch.half()
             char_logits = self.model(batch)
             char_logits = torch.tensor(char_logits)
             raw += [self.postprocessor(char_logits)]
