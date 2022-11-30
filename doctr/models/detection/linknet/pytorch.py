@@ -102,6 +102,7 @@ class LinkNet(nn.Module, _LinkNet):
         self,
         feat_extractor: IntermediateLayerGetter,
         num_classes: int = 1,
+        bin_thresh: float = 0.1,
         head_chans: int = 32,
         assume_straight_pages: bool = True,
         exportable: bool = False,
@@ -139,7 +140,7 @@ class LinkNet(nn.Module, _LinkNet):
             nn.ConvTranspose2d(head_chans, num_classes, kernel_size=2, stride=2),
         )
 
-        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=self.assume_straight_pages)
+        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=self.assume_straight_pages, bin_thresh=bin_thresh)
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
