@@ -122,6 +122,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
         num_classes: int = 1,
+        bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -158,7 +159,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             ]
         )
 
-        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages)
+        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
     def compute_loss(self, out_map: tf.Tensor, thresh_map: tf.Tensor, target: List[np.ndarray]) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
