@@ -67,7 +67,7 @@ def main(args):
         pretrained=True,
         bin_thresh=args.bin_thresh,
     )
-    model = ocr_predictor(detection_predictor(detection_model), args.recognition, pretrained=True)
+    model = ocr_predictor(detection_model, args.recognition, pretrained=True)
     path = Path(args.path)
 
     os.makedirs(name="output", exist_ok=True)
