@@ -5,6 +5,7 @@
 
 import math
 from typing import Any, List, Tuple, Union
+from collections import abc
 
 import numpy as np
 import torch
@@ -109,7 +110,8 @@ class PreProcessor(nn.Module):
                 x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
             batches = [x]
 
-        elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
+        # FIXME avoid casting to list
+        elif isinstance(x, abc.Iterable):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching

@@ -12,7 +12,7 @@ from doctr.utils.common_types import AbstractFile
 
 from .html import read_html
 from .image import read_img_as_numpy
-from .pdf import read_pdf
+from .pdf import PdfRenderer
 
 __all__ = ["DocumentFile"]
 
@@ -31,10 +31,10 @@ class DocumentFile:
             file: the path to the PDF file or a binary stream
 
         Returns:
-            the list of pages decoded as numpy ndarray of shape H x W x 3
+            TODO
         """
 
-        return read_pdf(file, **kwargs)
+        return PdfRenderer(file, **kwargs)
 
     @classmethod
     def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
@@ -47,7 +47,7 @@ class DocumentFile:
             url: the URL of the target web page
 
         Returns:
-            the list of pages decoded as numpy ndarray of shape H x W x 3
+            TODO
         """
         pdf_stream = read_html(url)
         return cls.from_pdf(pdf_stream, **kwargs)

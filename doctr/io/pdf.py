@@ -3,44 +3,51 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from typing import Any, Optional, List
 from pathlib import Path
-from typing import Any, List, Optional
 
-import numpy as np
 import pypdfium2 as pdfium
 
 from doctr.utils.common_types import AbstractFile
 
-__all__ = ["read_pdf"]
+__all__ = ["PdfRenderer"]
 
 
-def read_pdf(
-    file: AbstractFile,
-    scale: float = 2,
-    rgb_mode: bool = True,
-    password: Optional[str] = None,
-    **kwargs: Any,
-) -> List[np.ndarray]:
-    """Read a PDF file and convert it into an image in numpy format
+class PdfRenderer:
 
-    >>> from doctr.documents import read_pdf
-    >>> doc = read_pdf("path/to/your/doc.pdf")
+    # iterable with known length
 
-    Args:
-        file: the path to the PDF file
-        scale: rendering scale (1 corresponds to 72dpi)
-        rgb_mode: if True, the output will be RGB, otherwise BGR
-        password: a password to unlock the document, if encrypted
-        kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render_to`
+    def __init__(
+        self,
+        file: AbstractFile,
+        scale: float = 2,
+        page_indices: Optional[List[int]] = None,
+        password: Optional[str] = None,
+        rgb_mode: bool = True,
+        **kwargs: Any,
+    ):
 
-    Returns:
-        the list of pages decoded as numpy ndarray of shape H x W x C
-    """
+        if isinstance(file, Path):  # v3 compat
+            file = str(file)
 
-    if isinstance(file, Path):
-        file = str(file)
+        pdf = pdfium.PdfDocument(file, password=password)
 
-    # Rasterise pages to numpy ndarrays with pypdfium2
-    pdf = pdfium.PdfDocument(file, password=password)
-    renderer = pdf.render_to(pdfium.BitmapConv.numpy_ndarray, scale=scale, rev_byteorder=rgb_mode, **kwargs)
-    return [img for img, _ in renderer]
+        if page_indices:
+            self._len = len(page_indices)
+        else:
+            self._len = len(pdf)
+
+        render_kwargs = dict(scale=scale, page_indices=page_indices, rev_byteorder=rgb_mode, **kwargs)
+        if hasattr(pdf, "render_to"):  # v3 compat
+            self._generator = (p for p, _ in pdf.render_to(pdfium.BitmapConv.numpy_ndarray, **render_kwargs))
+        else:  # upcoming v4
+            self._generator = pdf.render(pdfium.PdfBitmap.to_numpy, **render_kwargs)
+
+    def __len__(self) -> int:
+        return self._len
+
+    def __next__(self):
+        return next(self._generator)
+
+    def __iter__(self):
+        yield from self._generator

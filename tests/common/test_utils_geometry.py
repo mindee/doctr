@@ -167,7 +167,7 @@ def test_estimate_page_angle():
 
 
 def test_extract_crops(mock_pdf):  # noqa: F811
-    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
+    doc_img = next(DocumentFile.from_pdf(mock_pdf))
     num_crops = 2
     rel_boxes = np.array(
         [[idx / num_crops, idx / num_crops, (idx + 1) / num_crops, (idx + 1) / num_crops] for idx in range(num_crops)],
@@ -215,7 +215,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
 
 
 def test_extract_rcrops(mock_pdf):  # noqa: F811
-    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
+    doc_img = next(DocumentFile.from_pdf(mock_pdf))
     num_crops = 2
     rel_boxes = np.array(
         [

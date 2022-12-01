@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
+from collections import abc
 from typing import Any, List, Tuple, Union
 
 import numpy as np
@@ -107,7 +108,8 @@ class PreProcessor(NestedObject):
 
             batches = [x]
 
-        elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, tf.Tensor)) for sample in x):
+        # FIXME avoid casting to list
+        if isinstance(x, abc.Iterable):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching

@@ -8,27 +8,34 @@ from doctr import io
 
 
 def _check_doc_content(doc_tensors, num_pages):
-    # 1 doc of 8 pages
-    assert len(doc_tensors) == num_pages
-    assert all(isinstance(page, np.ndarray) for page in doc_tensors)
-    assert all(page.dtype == np.uint8 for page in doc_tensors)
+    # doc_tensors: iterable (list or iterator)
+    i = 0
+    for page in doc_tensors:
+        assert isinstance(page, np.ndarray)
+        assert page.dtype == np.uint8
+        i += 1
+    assert i == num_pages
 
 
 def test_read_pdf(mock_pdf):
-    doc = io.read_pdf(mock_pdf)
+    doc = io.PdfRenderer(mock_pdf)
+
+    # length can be accessed without actually rendering the pdf
+    assert len(doc) == 2
+
     _check_doc_content(doc, 2)
 
     with open(mock_pdf, "rb") as f:
-        doc = io.read_pdf(f.read())
+        doc = io.PdfRenderer(f.read())
     _check_doc_content(doc, 2)
 
     # Wrong input type
     with pytest.raises(TypeError):
-        _ = io.read_pdf(123)
+        _ = next(io.PdfRenderer(123))
 
     # Wrong path
     with pytest.raises(FileNotFoundError):
-        _ = io.read_pdf("my_imaginary_file.pdf")
+        _ = next(io.PdfRenderer("my_imaginary_file.pdf"))
 
 
 def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
@@ -83,14 +90,10 @@ def test_document_file(mock_pdf, mock_image_stream):
     pages = io.DocumentFile.from_images(mock_image_stream)
     _check_doc_content(pages, 1)
 
-    assert isinstance(io.DocumentFile.from_pdf(mock_pdf), list)
-    assert isinstance(io.DocumentFile.from_url("https://www.google.com"), list)
+    assert isinstance(io.DocumentFile.from_pdf(mock_pdf), io.PdfRenderer)
+    assert isinstance(io.DocumentFile.from_url("https://www.google.com"), io.PdfRenderer)
 
 
 def test_pdf(mock_pdf):
-
     pages = io.DocumentFile.from_pdf(mock_pdf)
-
-    # As images
-    num_pages = 2
-    _check_doc_content(pages, num_pages)
+    _check_doc_content(pages, 2)
