@@ -8,6 +8,8 @@ from doctr import io
 
 
 def _check_doc_content(doc_tensors, num_pages):
+    # note: in case the input is a generator, this function triggers the actual processing
+    # if further work needs to be done with the pages, the loop should be externalized
     i = 0
     for page in doc_tensors:
         assert isinstance(page, np.ndarray)

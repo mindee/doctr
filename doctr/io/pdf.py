@@ -16,8 +16,6 @@ __all__ = ["PdfRenderer"]
 
 class PdfRenderer:
 
-    # iterable with known length
-
     def __init__(
         self,
         file: AbstractFile,
