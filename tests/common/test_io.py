@@ -8,13 +8,12 @@ from doctr import io
 
 
 def _check_doc_content(doc_tensors, num_pages):
-    # doc_tensors: iterable (list or iterator)
     i = 0
     for page in doc_tensors:
         assert isinstance(page, np.ndarray)
         assert page.dtype == np.uint8
         i += 1
-    assert i == num_pages
+    assert i == num_pages == len(doc_tensors)
 
 
 def test_read_pdf(mock_pdf):

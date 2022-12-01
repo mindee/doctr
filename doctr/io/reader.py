@@ -21,7 +21,7 @@ class DocumentFile:
     """Read a document from multiple extensions"""
 
     @classmethod
-    def from_pdf(cls, file: AbstractFile, **kwargs) -> List[np.ndarray]:
+    def from_pdf(cls, file: AbstractFile, **kwargs) -> PdfRenderer:
         """Read a PDF file
 
         >>> from doctr.documents import DocumentFile
@@ -31,13 +31,12 @@ class DocumentFile:
             file: the path to the PDF file or a binary stream
 
         Returns:
-            TODO
+            PdfRenderer: Generator object producing numpy ndarrays of shape H x W x C.
         """
-
         return PdfRenderer(file, **kwargs)
 
     @classmethod
-    def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
+    def from_url(cls, url: str, **kwargs) -> PdfRenderer:
         """Interpret a web page as a PDF document
 
         >>> from doctr.documents import DocumentFile
@@ -47,7 +46,7 @@ class DocumentFile:
             url: the URL of the target web page
 
         Returns:
-            TODO
+            PdfRenderer: Generator object producing numpy ndarrays of shape H x W x C.
         """
         pdf_stream = read_html(url)
         return cls.from_pdf(pdf_stream, **kwargs)
