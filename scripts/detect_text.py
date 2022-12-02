@@ -10,8 +10,6 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from doctr.models.detection.zoo import detection_predictor
-
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 from doctr.file_utils import is_tf_available
@@ -62,7 +60,7 @@ def _process_file(model, file_path: Path, out_format: str) -> None:
 
 
 def main(args):
-    
+
     detection_model = detection.__dict__[args.detection](
         pretrained=True,
         bin_thresh=args.bin_thresh,
