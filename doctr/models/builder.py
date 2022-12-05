@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
-from doctr.io.elements import Block, Document, KIEDocument, KIEPage, Line, Page, Word
+from doctr.io.elements import Block, Document, KIEDocument, KIEPage, Line, Page, Prediction, Word
 from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
@@ -335,7 +335,7 @@ class DocumentBuilder(NestedObject):
 
 
 class KIEDocumentBuilder(DocumentBuilder):
-    """Implements a document builder
+    """Implements a KIE document builder
 
     Args:
         resolve_lines: whether words should be automatically grouped into lines
@@ -353,7 +353,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         orientations: Optional[List[Dict[str, Any]]] = None,
         languages: Optional[List[Dict[str, Any]]] = None,
     ) -> KIEDocument:
-        """Re-arrange detected words into structured blocks
+        """Re-arrange detected words into structured predictions
 
         Args:
             boxes: list of N dictionaries, where each element represents the localization predictions for a class,
@@ -403,3 +403,43 @@ class KIEDocumentBuilder(DocumentBuilder):
         ]
 
         return KIEDocument(_pages)
+
+    def _build_blocks(  # type: ignore[override]
+        self,
+        boxes: np.ndarray,
+        word_preds: List[Tuple[str, float]],
+    ) -> List[Prediction]:
+        """Gather independent words in structured blocks
+
+        Args:
+            boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
+            word_preds: list of all detected words of the page, of shape N
+
+        Returns:
+            list of block elements
+        """
+
+        if boxes.shape[0] != len(word_preds):
+            raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
+
+        if boxes.shape[0] == 0:
+            return []
+
+        # Decide whether we try to form lines
+        _boxes = boxes
+        idxs, _ = self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4])
+        predictions = [
+            Prediction(
+                value=word_preds[idx][0],
+                confidence=word_preds[idx][1],
+                geometry=tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+            )
+            if boxes.ndim == 3
+            else Prediction(
+                value=word_preds[idx][0],
+                confidence=word_preds[idx][1],
+                geometry=((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])),
+            )
+            for idx in idxs
+        ]
+        return predictions

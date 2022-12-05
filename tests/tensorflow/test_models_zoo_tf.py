@@ -194,17 +194,17 @@ def test_trained_kie_predictor(mock_tilted_payslip):
     out = predictor(doc)
 
     assert isinstance(out, KIEDocument)
-    assert out.pages[0].predictions[CLASS_NAME][0].lines[0].words[0].value == "Mr."
+    assert out.pages[0].predictions[CLASS_NAME][0].value == "Mr."
     geometry_mr = np.array(
         [[0.08844472, 0.35763523], [0.11625107, 0.34320644], [0.12588427, 0.35771032], [0.09807791, 0.37213911]]
     )
-    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][0].lines[0].words[0].geometry), geometry_mr)
+    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][0].geometry), geometry_mr)
 
-    assert out.pages[0].predictions[CLASS_NAME][1].lines[0].words[-1].value == "revised"
+    assert out.pages[0].predictions[CLASS_NAME][-1].value == "Kabir)"
     geometry_revised = np.array(
-        [[0.50422498, 0.19551784], [0.55741975, 0.16791493], [0.56705294, 0.18241881], [0.51385817, 0.21002172]]
+        [[0.43725992, 0.67232439], [0.49045468, 0.64472149], [0.50570724, 0.66768597], [0.452512473, 0.69528887]]
     )
-    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][1].lines[0].words[-1].geometry), geometry_revised)
+    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][-1].geometry), geometry_revised)
 
     det_predictor = detection_predictor(
         "db_resnet50",
@@ -227,7 +227,7 @@ def test_trained_kie_predictor(mock_tilted_payslip):
     out = predictor(doc)
 
     assert isinstance(out, KIEDocument)
-    assert out.pages[0].predictions[CLASS_NAME][0].lines[0].words[0].value == "Mr."
+    assert out.pages[0].predictions[CLASS_NAME][0].value == "Mr."
 
 
 def _test_predictor(predictor):

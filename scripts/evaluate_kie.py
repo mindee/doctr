@@ -107,59 +107,55 @@ def main(args):
             pred_labels = []
             for page in out.pages:
                 height, width = page.dimensions
-                for blocks in page.predictions.values():
-                    for block in blocks:
-                        for line in block.lines:
-                            for word in line.words:
-                                if not args.rotation:
-                                    (a, b), (c, d) = word.geometry
+                for predictions in page.predictions.values():
+                    for prediction in predictions:
+                        if not args.rotation:
+                            (a, b), (c, d) = prediction.geometry
+                        else:
+                            (
+                                [x1, y1],
+                                [x2, y2],
+                                [x3, y3],
+                                [x4, y4],
+                            ) = prediction.geometry
+                        if gt_boxes.dtype == int:
+                            if not args.rotation:
+                                pred_boxes.append([int(a * width), int(b * height), int(c * width), int(d * height)])
+                            else:
+                                if args.eval_straight:
+                                    pred_boxes.append(
+                                        [
+                                            int(width * min(x1, x2, x3, x4)),
+                                            int(height * min(y1, y2, y3, y4)),
+                                            int(width * max(x1, x2, x3, x4)),
+                                            int(height * max(y1, y2, y3, y4)),
+                                        ]
+                                    )
                                 else:
-                                    (
-                                        [x1, y1],
-                                        [x2, y2],
-                                        [x3, y3],
-                                        [x4, y4],
-                                    ) = word.geometry
-                                if gt_boxes.dtype == int:
-                                    if not args.rotation:
-                                        pred_boxes.append(
-                                            [int(a * width), int(b * height), int(c * width), int(d * height)]
-                                        )
-                                    else:
-                                        if args.eval_straight:
-                                            pred_boxes.append(
-                                                [
-                                                    int(width * min(x1, x2, x3, x4)),
-                                                    int(height * min(y1, y2, y3, y4)),
-                                                    int(width * max(x1, x2, x3, x4)),
-                                                    int(height * max(y1, y2, y3, y4)),
-                                                ]
-                                            )
-                                        else:
-                                            pred_boxes.append(
-                                                [
-                                                    [int(x1 * width), int(y1 * height)],
-                                                    [int(x2 * width), int(y2 * height)],
-                                                    [int(x3 * width), int(y3 * height)],
-                                                    [int(x4 * width), int(y4 * height)],
-                                                ]
-                                            )
+                                    pred_boxes.append(
+                                        [
+                                            [int(x1 * width), int(y1 * height)],
+                                            [int(x2 * width), int(y2 * height)],
+                                            [int(x3 * width), int(y3 * height)],
+                                            [int(x4 * width), int(y4 * height)],
+                                        ]
+                                    )
+                        else:
+                            if not args.rotation:
+                                pred_boxes.append([a, b, c, d])
+                            else:
+                                if args.eval_straight:
+                                    pred_boxes.append(
+                                        [
+                                            min(x1, x2, x3, x4),
+                                            min(y1, y2, y3, y4),
+                                            max(x1, x2, x3, x4),
+                                            max(y1, y2, y3, y4),
+                                        ]
+                                    )
                                 else:
-                                    if not args.rotation:
-                                        pred_boxes.append([a, b, c, d])
-                                    else:
-                                        if args.eval_straight:
-                                            pred_boxes.append(
-                                                [
-                                                    min(x1, x2, x3, x4),
-                                                    min(y1, y2, y3, y4),
-                                                    max(x1, x2, x3, x4),
-                                                    max(y1, y2, y3, y4),
-                                                ]
-                                            )
-                                        else:
-                                            pred_boxes.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
-                                pred_labels.append(word.value)
+                                    pred_boxes.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
+                        pred_labels.append(prediction.value)
 
             # Update the metric
             det_metric.update(gt_boxes, np.asarray(pred_boxes))
@@ -184,7 +180,7 @@ def main(args):
     print(f"Text Recognition - Accuracy: {_pct(acc['raw'])} (unicase: {_pct(acc['unicase'])})")
     recall, precision, mean_iou = e2e_metric.summary()
     print(
-        f"OCR - Recall: {_pct(recall['raw'])} (unicase: {_pct(recall['unicase'])}), "
+        f"KIE OCR - Recall: {_pct(recall['raw'])} (unicase: {_pct(recall['unicase'])}), "
         f"Precision: {_pct(precision['raw'])} (unicase: {_pct(precision['unicase'])}), Mean IoU: {_pct(mean_iou)}"
     )
 

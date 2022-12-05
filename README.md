@@ -117,8 +117,9 @@ result = model(doc)
 
 predictions = result.pages[0].predictions
 for class_name in predictions.keys():
-    list_blocks = predictions[class_name]
-    print(f"Prediction for {class_name}: {list_blocks}")
+    list_predictions = predictions[class_name]
+    for prediction in list_predictions:
+        print(f"Prediction for {class_name}: {prediction}")
 ```
 The KIE predictor results per page are in a dictionary format with each key representing a class name and it's value are the predictions for that class.
 

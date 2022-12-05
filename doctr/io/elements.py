@@ -21,7 +21,7 @@ from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.repr import NestedObject
 from doctr.utils.visualization import synthesize_kie_page, synthesize_page, visualize_kie_page, visualize_page
 
-__all__ = ["Element", "Word", "Artefact", "Line", "Block", "Page", "KIEPage", "Document"]
+__all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page", "KIEPage", "Document"]
 
 
 class Element(NestedObject):
@@ -164,6 +164,17 @@ class Line(Element):
             }
         )
         return cls(**kwargs)
+
+
+class Prediction(Word):
+    """Implements a prediction element"""
+
+    def render(self) -> str:
+        """Renders the full text of the element"""
+        return self.value
+
+    def extra_repr(self) -> str:
+        return f"value='{self.value}', confidence={self.confidence:.2}, bounding_box={self.geometry}"
 
 
 class Block(Element):
@@ -396,11 +407,11 @@ class KIEPage(Element):
 
     _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
     _children_names: List[str] = ["predictions"]
-    predictions: Dict[str, List[Block]] = {}
+    predictions: Dict[str, List[Prediction]] = {}
 
     def __init__(
         self,
-        predictions: Dict[str, List[Block]],
+        predictions: Dict[str, List[Prediction]],
         page_idx: int,
         dimensions: Tuple[int, int],
         orientation: Optional[Dict[str, Any]] = None,
@@ -412,9 +423,11 @@ class KIEPage(Element):
         self.orientation = orientation if isinstance(orientation, dict) else dict(value=None, confidence=None)
         self.language = language if isinstance(language, dict) else dict(value=None, confidence=None)
 
-    def render(self, block_break: str = "\n\n") -> str:
+    def render(self, prediction_break: str = "\n\n") -> str:
         """Renders the full text of the element"""
-        return block_break.join(b.render() for blocks in self.predictions.values() for b in blocks)
+        return prediction_break.join(
+            f"{class_name}: {p.render()}" for class_name, predictions in self.predictions.items() for p in predictions
+        )
 
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
@@ -450,9 +463,7 @@ class KIEPage(Element):
             a tuple of the XML byte string, and its ElementTree
         """
         p_idx = self.page_idx
-        block_count: int = 1
-        line_count: int = 1
-        word_count: int = 1
+        prediction_count: int = 1
         height, width = self.dimensions
         language = self.language if "language" in self.language.keys() else "en"
         # Create the XML root element
@@ -483,64 +494,23 @@ class KIEPage(Element):
             },
         )
         # iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes
-        for class_name, blocks in self.predictions.items():
-            for block in blocks:
-                if len(block.geometry) != 2:
+        for class_name, predictions in self.predictions.items():
+            for prediction in predictions:
+                if len(prediction.geometry) != 2:
                     raise TypeError("XML export is only available for straight bounding boxes for now.")
-                (xmin, ymin), (xmax, ymax) = block.geometry
-                block_div = SubElement(
+                (xmin, ymin), (xmax, ymax) = prediction.geometry
+                prediction_div = SubElement(
                     body,
                     "div",
                     attrib={
                         "class": "ocr_carea",
-                        "id": f"{class_name}_block_{block_count}",
+                        "id": f"{class_name}_prediction_{prediction_count}",
                         "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
                         {int(round(xmax * width))} {int(round(ymax * height))}",
                     },
                 )
-                paragraph = SubElement(
-                    block_div,
-                    "p",
-                    attrib={
-                        "class": "ocr_par",
-                        "id": f"par_{block_count}",
-                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}",
-                    },
-                )
-                block_count += 1
-                for line in block.lines:
-                    (xmin, ymin), (xmax, ymax) = line.geometry
-                    # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
-                    line_span = SubElement(
-                        paragraph,
-                        "span",
-                        attrib={
-                            "class": "ocr_line",
-                            "id": f"line_{line_count}",
-                            "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                            {int(round(xmax * width))} {int(round(ymax * height))}; \
-                            baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
-                        },
-                    )
-                    line_count += 1
-                    for word in line.words:
-                        (xmin, ymin), (xmax, ymax) = word.geometry
-                        conf = word.confidence
-                        word_div = SubElement(
-                            line_span,
-                            "span",
-                            attrib={
-                                "class": "ocrx_word",
-                                "id": f"word_{word_count}",
-                                "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                                {int(round(xmax * width))} {int(round(ymax * height))}; \
-                                x_wconf {int(round(conf * 100))}",
-                            },
-                        )
-                        # set the text
-                        word_div.text = word.value
-                        word_count += 1
+                prediction_div.text = prediction.value
+                prediction_count += 1
 
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
@@ -548,7 +518,7 @@ class KIEPage(Element):
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update(
-            {"predictions": [Block.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]}
+            {"predictions": [Prediction.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]}
         )
         return cls(**kwargs)
 

@@ -334,7 +334,7 @@ def synthesize_page(
 def visualize_kie_page(
     page: Dict[str, Any],
     image: np.ndarray,
-    words_only: bool = True,
+    words_only: bool = False,
     display_artefacts: bool = True,
     scale: float = 10,
     interactive: bool = True,
@@ -376,12 +376,12 @@ def visualize_kie_page(
 
     colors = {k: color for color, k in zip(get_colors(len(page["predictions"])), page["predictions"])}
     for key, value in page["predictions"].items():
-        for block in value:
+        for prediction in value:
             if not words_only:
                 rect = create_obj_patch(
-                    block["geometry"],
+                    prediction["geometry"],
                     page["dimensions"],
-                    label=f"block_{key}",
+                    label=f"{key} \n {prediction['value']} (confidence: {prediction['confidence']:.2%}",
                     color=colors[key],
                     linewidth=1,
                     **kwargs,
@@ -391,62 +391,6 @@ def visualize_kie_page(
                 if interactive:
                     # add patch to cursor's artists
                     artists.append(rect)
-
-            for line in block["lines"]:
-                if not words_only:
-                    rect = create_obj_patch(
-                        line["geometry"], page["dimensions"], label="line", color=(1, 0, 0), linewidth=1, **kwargs
-                    )
-                    ax.add_patch(rect)
-                    if interactive:
-                        artists.append(rect)
-
-                for word in line["words"]:
-                    rect = create_obj_patch(
-                        word["geometry"],
-                        page["dimensions"],
-                        label=f"{word['value']} (confidence: {word['confidence']:.2%})",
-                        color=(0, 0, 1),
-                        **kwargs,
-                    )
-                    ax.add_patch(rect)
-                    if interactive:
-                        artists.append(rect)
-                    elif add_labels:
-                        if len(word["geometry"]) == 5:
-                            text_loc = (
-                                int(page["dimensions"][1] * (word["geometry"][0] - word["geometry"][2] / 2)),
-                                int(page["dimensions"][0] * (word["geometry"][1] - word["geometry"][3] / 2)),
-                            )
-                        else:
-                            text_loc = (
-                                int(page["dimensions"][1] * word["geometry"][0][0]),
-                                int(page["dimensions"][0] * word["geometry"][0][1]),
-                            )
-
-                        if len(word["geometry"]) == 2:
-                            # We draw only if boxes are in straight format
-                            ax.text(
-                                *text_loc,
-                                word["value"],
-                                size=10,
-                                alpha=0.5,
-                                color=(0, 0, 1),
-                            )
-
-            if display_artefacts:
-                for artefact in block["artefacts"]:
-                    rect = create_obj_patch(
-                        artefact["geometry"],
-                        page["dimensions"],
-                        label="artefact",
-                        color=(0.5, 0.5, 0.5),
-                        linewidth=1,
-                        **kwargs,
-                    )
-                    ax.add_patch(rect)
-                    if interactive:
-                        artists.append(rect)
 
     if interactive:
         # Create mlp Cursor to hover patches in artists
@@ -478,37 +422,35 @@ def synthesize_kie_page(
     response = 255 * np.ones((h, w, 3), dtype=np.int32)
 
     # Draw each word
-    for blocks in page["predictions"].values():
-        for block in blocks:
-            for line in block["lines"]:
-                for word in line["words"]:
-                    # Get aboslute word geometry
-                    (xmin, ymin), (xmax, ymax) = word["geometry"]
-                    xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
-                    ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
+    for predictions in page["predictions"].values():
+        for prediction in predictions:
+            # Get aboslute word geometry
+            (xmin, ymin), (xmax, ymax) = prediction["geometry"]
+            xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
+            ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
 
-                    # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
-                    font = get_font(font_family, int(0.75 * (ymax - ymin)))
-                    img = Image.new("RGB", (xmax - xmin, ymax - ymin), color=(255, 255, 255))
-                    d = ImageDraw.Draw(img)
-                    # Draw in black the value of the word
-                    try:
-                        d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
-                    except UnicodeEncodeError:
-                        # When character cannot be encoded, use its unidecode version
-                        d.text((0, 0), unidecode(word["value"]), font=font, fill=(0, 0, 0))
+            # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
+            font = get_font(font_family, int(0.75 * (ymax - ymin)))
+            img = Image.new("RGB", (xmax - xmin, ymax - ymin), color=(255, 255, 255))
+            d = ImageDraw.Draw(img)
+            # Draw in black the value of the word
+            try:
+                d.text((0, 0), prediction["value"], font=font, fill=(0, 0, 0))
+            except UnicodeEncodeError:
+                # When character cannot be encoded, use its unidecode version
+                d.text((0, 0), unidecode(prediction["value"]), font=font, fill=(0, 0, 0))
 
-                    # Colorize if draw_proba
-                    if draw_proba:
-                        p = int(255 * word["confidence"])
-                        mask = np.where(np.array(img) == 0, 1, 0)
-                        proba: np.ndarray = np.array([255 - p, 0, p])
-                        color = mask * proba[np.newaxis, np.newaxis, :]
-                        white_mask = 255 * (1 - mask)
-                        img = color + white_mask
+            # Colorize if draw_proba
+            if draw_proba:
+                p = int(255 * prediction["confidence"])
+                mask = np.where(np.array(img) == 0, 1, 0)
+                proba: np.ndarray = np.array([255 - p, 0, p])
+                color = mask * proba[np.newaxis, np.newaxis, :]
+                white_mask = 255 * (1 - mask)
+                img = color + white_mask
 
-                    # Write to response page
-                    response[ymin:ymax, xmin:xmax, :] = np.array(img)
+            # Write to response page
+            response[ymin:ymax, xmin:xmax, :] = np.array(img)
 
     return response
 

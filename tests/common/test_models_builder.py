@@ -50,7 +50,7 @@ def test_documentbuilder():
         ]
     )
     doc_builder_2 = builder.DocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
-    out = doc_builder_2([boxes], [[("hello", 0.99), (CLASS_NAME, 0.99)]], [(100, 100)])
+    out = doc_builder_2([boxes], [[("hello", 0.99), ("word", 0.99)]], [(100, 100)])
     assert out.pages[0].blocks[0].lines[0].words[-1].geometry == ((0.45, 0.5), (0.6, 0.65))
 
     # Repr
@@ -79,8 +79,8 @@ def test_kiedocumentbuilder():
     assert isinstance(out, KIEDocument)
     assert len(out.pages) == num_pages
     # 1 Block & 1 line per page
-    assert len(out.pages[0].predictions) == 1 and len(out.pages[0].predictions[CLASS_NAME][0].lines) == 1
-    assert len(out.pages[0].predictions[CLASS_NAME][0].lines[0].words) == words_per_page
+    assert len(out.pages[0].predictions) == 1
+    assert len(out.pages[0].predictions[CLASS_NAME]) == words_per_page
 
     # Resolve lines
     doc_builder = builder.KIEDocumentBuilder(resolve_lines=True, resolve_blocks=True)
@@ -105,8 +105,9 @@ def test_kiedocumentbuilder():
         )
     }
     doc_builder_2 = builder.KIEDocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
-    out = doc_builder_2([predictions], [{CLASS_NAME: [("hello", 0.99), (CLASS_NAME, 0.99)]}], [(100, 100)])
-    assert out.pages[0].predictions[CLASS_NAME][0].lines[0].words[-1].geometry == ((0.45, 0.5), (0.6, 0.65))
+    out = doc_builder_2([predictions], [{CLASS_NAME: [("hello", 0.99), ("word", 0.99)]}], [(100, 100)])
+    assert out.pages[0].predictions[CLASS_NAME][0].geometry == ((0.05, 0.1), (0.2, 0.25))
+    assert out.pages[0].predictions[CLASS_NAME][1].geometry == ((0.45, 0.5), (0.6, 0.65))
 
     # Repr
     assert (

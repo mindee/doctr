@@ -84,7 +84,7 @@ class DetectionDataset(AbstractDataset):
         elif isinstance(polygons, dict):
             self._class_names += list(polygons.keys())
             polygons_classes = [k for k, v in polygons.items() for _ in v]
-            _polygons = np.concatenate([np.asarray(poly, dtype=np_dtype) for poly in polygons.values()], axis=0)
+            _polygons = np.concatenate([np.asarray(poly, dtype=np_dtype) for poly in polygons.values() if poly], axis=0)
         else:
             raise TypeError(f"polygons should be a dictionary or list, it was {type(polygons)}")
         geoms = _polygons if use_polygons else np.concatenate((_polygons.min(axis=1), _polygons.max(axis=1)), axis=1)

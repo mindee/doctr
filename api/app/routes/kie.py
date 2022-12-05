@@ -22,10 +22,8 @@ async def perform_kie(file: UploadFile = File(...)):
 
     return {
         class_name: [
-            OCROut(box=(*word.geometry[0], *word.geometry[1]), value=word.value)
-            for block in out.pages[0].predictions[class_name]
-            for line in block.lines
-            for word in line.words
+            OCROut(box=(*prediction.geometry[0], *prediction.geometry[1]), value=prediction.value)
+            for prediction in out.pages[0].predictions[class_name]
         ]
         for class_name in out.pages[0].predictions.keys()
     }
