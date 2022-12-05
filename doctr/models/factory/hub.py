@@ -13,13 +13,13 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
-from huggingface_hub import (
+from huggingface_hub import (  # type: ignore[attr-defined]
     HfApi,
     HfFolder,
     Repository,
     hf_hub_download,
     snapshot_download,
-)  # type: ignore[attr-defined]
+)
 
 from doctr import models
 from doctr.file_utils import is_tf_available, is_torch_available
