@@ -141,8 +141,7 @@ class LinkNet(nn.Module, _LinkNet):
         )
 
         self.postprocessor = LinkNetPostProcessor(
-            assume_straight_pages=self.assume_straight_pages,
-            bin_thresh=bin_thresh
+            assume_straight_pages=self.assume_straight_pages, bin_thresh=bin_thresh
         )
 
         for n, m in self.named_modules():
