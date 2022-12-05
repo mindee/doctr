@@ -120,6 +120,7 @@ class LinkNet(_LinkNet, keras.Model):
         feat_extractor: IntermediateLayerGetter,
         fpn_channels: int = 64,
         num_classes: int = 1,
+        bin_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -159,7 +160,7 @@ class LinkNet(_LinkNet, keras.Model):
             ]
         )
 
-        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages)
+        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
     def compute_loss(
         self,

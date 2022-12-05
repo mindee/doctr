@@ -120,6 +120,7 @@ class DBNet(_DBNet, nn.Module):
         head_chans: int = 256,
         deform_conv: bool = False,
         num_classes: int = 1,
+        bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -166,7 +167,7 @@ class DBNet(_DBNet, nn.Module):
             nn.ConvTranspose2d(head_chans // 4, num_classes, 2, stride=2),
         )
 
-        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages)
+        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
