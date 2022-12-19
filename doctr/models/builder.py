@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
-from doctr.io.elements import Block, Document, Line, Page, Word
+from doctr.io.elements import Block, Document, KIEDocument, KIEPage, Line, Page, Prediction, Word
 from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
@@ -332,3 +332,114 @@ class DocumentBuilder(NestedObject):
         ]
 
         return Document(_pages)
+
+
+class KIEDocumentBuilder(DocumentBuilder):
+    """Implements a KIE document builder
+
+    Args:
+        resolve_lines: whether words should be automatically grouped into lines
+        resolve_blocks: whether lines should be automatically grouped into blocks
+        paragraph_break: relative length of the minimum space separating paragraphs
+        export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
+            box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
+    """
+
+    def __call__(  # type: ignore[override]
+        self,
+        boxes: List[Dict[str, np.ndarray]],
+        text_preds: List[Dict[str, List[Tuple[str, float]]]],
+        page_shapes: List[Tuple[int, int]],
+        orientations: Optional[List[Dict[str, Any]]] = None,
+        languages: Optional[List[Dict[str, Any]]] = None,
+    ) -> KIEDocument:
+        """Re-arrange detected words into structured predictions
+
+        Args:
+            boxes: list of N dictionaries, where each element represents the localization predictions for a class,
+            of shape (*, 5) or (*, 6) for all predictions
+            text_preds: list of N dictionaries, where each element is the list of all word prediction
+            page_shape: shape of each page, of size N
+
+        Returns:
+            document object
+        """
+        if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
+            raise ValueError("All arguments are expected to be lists of the same size")
+        _orientations = (
+            orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
+        )
+        _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
+        if self.export_as_straight_boxes and len(boxes) > 0:
+            # If boxes are already straight OK, else fit a bounding rect
+            if next(iter(boxes[0].values())).ndim == 3:
+                straight_boxes: List[Dict[str, np.ndarray]] = []
+                # Iterate over pages
+                for p_boxes in boxes:
+                    # Iterate over boxes of the pages
+                    straight_boxes_dict = {}
+                    for k, box in p_boxes.items():
+                        straight_boxes_dict[k] = np.concatenate((box.min(1), box.max(1)), 1)
+                    straight_boxes.append(straight_boxes_dict)
+                boxes = straight_boxes
+
+        _pages = [
+            KIEPage(
+                {
+                    k: self._build_blocks(
+                        page_boxes[k],
+                        word_preds[k],
+                    )
+                    for k in page_boxes.keys()
+                },
+                _idx,
+                shape,
+                orientation,
+                language,
+            )
+            for _idx, shape, page_boxes, word_preds, orientation, language in zip(
+                range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            )
+        ]
+
+        return KIEDocument(_pages)
+
+    def _build_blocks(  # type: ignore[override]
+        self,
+        boxes: np.ndarray,
+        word_preds: List[Tuple[str, float]],
+    ) -> List[Prediction]:
+        """Gather independent words in structured blocks
+
+        Args:
+            boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
+            word_preds: list of all detected words of the page, of shape N
+
+        Returns:
+            list of block elements
+        """
+
+        if boxes.shape[0] != len(word_preds):
+            raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
+
+        if boxes.shape[0] == 0:
+            return []
+
+        # Decide whether we try to form lines
+        _boxes = boxes
+        idxs, _ = self._sort_boxes(_boxes if _boxes.ndim == 3 else _boxes[:, :4])
+        predictions = [
+            Prediction(
+                value=word_preds[idx][0],
+                confidence=word_preds[idx][1],
+                geometry=tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+            )
+            if boxes.ndim == 3
+            else Prediction(
+                value=word_preds[idx][0],
+                confidence=word_preds[idx][1],
+                geometry=((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])),
+            )
+            for idx in idxs
+        ]
+        return predictions

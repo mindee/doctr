@@ -13,6 +13,8 @@ from torchvision.models import resnet34, resnet50
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 
+from doctr.file_utils import CLASS_NAME
+
 from ...classification import mobilenet_v3_large
 from ...utils import load_pretrained_params
 from .base import DBPostProcessor, _DBNet
@@ -108,10 +110,10 @@ class DBNet(_DBNet, nn.Module):
         feature extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
-        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     def __init__(
@@ -119,14 +121,16 @@ class DBNet(_DBNet, nn.Module):
         feat_extractor: IntermediateLayerGetter,
         head_chans: int = 256,
         deform_conv: bool = False,
-        num_classes: int = 1,
         bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
+        self.class_names = class_names
+        num_classes: int = len(self.class_names)
         self.cfg = cfg
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
@@ -209,7 +213,8 @@ class DBNet(_DBNet, nn.Module):
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
             out["preds"] = [
-                preds[0] for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+                dict(zip(self.class_names, preds))
+                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
             ]
 
         if target is not None:
@@ -232,10 +237,10 @@ class DBNet(_DBNet, nn.Module):
             A loss tensor
         """
 
-        prob_map = torch.sigmoid(out_map.squeeze(1))
-        thresh_map = torch.sigmoid(thresh_map.squeeze(1))
+        prob_map = torch.sigmoid(out_map)
+        thresh_map = torch.sigmoid(thresh_map)
 
-        targets = self.build_target(target, prob_map.shape)  # type: ignore[arg-type]
+        targets = self.build_target(target, prob_map.shape, False)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
@@ -248,7 +253,11 @@ class DBNet(_DBNet, nn.Module):
         dice_loss = torch.zeros(1, device=out_map.device)
         l1_loss = torch.zeros(1, device=out_map.device)
         if torch.any(seg_mask):
-            bce_loss = F.binary_cross_entropy_with_logits(out_map.squeeze(1), seg_target, reduction="none")[seg_mask]
+            bce_loss = F.binary_cross_entropy_with_logits(
+                out_map,
+                seg_target,
+                reduction="none",
+            )[seg_mask]
 
             neg_target = 1 - seg_target[seg_mask]
             positive_count = seg_target[seg_mask].sum()
@@ -298,6 +307,10 @@ def _dbnet(
         {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
 
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = default_cfgs[arch].get("class_names", [CLASS_NAME])
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
     # Build the model
     model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters

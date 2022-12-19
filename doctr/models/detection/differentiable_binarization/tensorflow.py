@@ -14,6 +14,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications import ResNet50
 
+from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
@@ -109,10 +110,10 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     Args:
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
-        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     _children_names: List[str] = ["feat_extractor", "fpn", "probability_head", "threshold_head", "postprocessor"]
@@ -121,14 +122,16 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         self,
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
-        num_classes: int = 1,
         bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
 
         super().__init__()
+        self.class_names = class_names
+        num_classes: int = len(self.class_names)
         self.cfg = cfg
 
         self.feat_extractor = feature_extractor
@@ -161,7 +164,12 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
-    def compute_loss(self, out_map: tf.Tensor, thresh_map: tf.Tensor, target: List[np.ndarray]) -> tf.Tensor:
+    def compute_loss(
+        self,
+        out_map: tf.Tensor,
+        thresh_map: tf.Tensor,
+        target: List[Dict[str, np.ndarray]],
+    ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
 
@@ -174,10 +182,10 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             A loss tensor
         """
 
-        prob_map = tf.math.sigmoid(tf.squeeze(out_map, axis=[-1]))
-        thresh_map = tf.math.sigmoid(tf.squeeze(thresh_map, axis=[-1]))
+        prob_map = tf.math.sigmoid(out_map)
+        thresh_map = tf.math.sigmoid(thresh_map)
 
-        seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape[:3])
+        seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape, True)
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
@@ -185,7 +193,11 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.0
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map, from_logits=True)[seg_mask]
+        bce_loss = tf.keras.losses.binary_crossentropy(
+            seg_target[..., None],
+            out_map[..., None],
+            from_logits=True,
+        )[seg_mask]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = tf.math.reduce_sum(seg_target[seg_mask])
@@ -216,7 +228,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[np.ndarray]] = None,
+        target: Optional[List[Dict[str, np.ndarray]]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
@@ -239,7 +251,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
-            out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
+            out["preds"] = [dict(zip(self.class_names, preds)) for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             thresh_map = self.threshold_head(feat_concat, **kwargs)
@@ -264,6 +276,10 @@ def _db_resnet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = _cfg.get("class_names", [CLASS_NAME])
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(

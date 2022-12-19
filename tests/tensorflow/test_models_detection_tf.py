@@ -6,6 +6,7 @@ import onnxruntime
 import pytest
 import tensorflow as tf
 
+from doctr.file_utils import CLASS_NAME
 from doctr.io import DocumentFile
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
@@ -31,8 +32,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
-        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32),
-        np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32)},
     ]
     # test training model
     out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
@@ -46,31 +47,32 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if out_prob:
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
-    for boxes in out["preds"]:
-        assert boxes.shape[1] == 5
-        assert np.all(boxes[:, :2] < boxes[:, 2:4])
-        assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
+    for boxes_dict in out["preds"]:
+        for boxes in boxes_dict.values():
+            assert boxes.shape[1] == 5
+            assert np.all(boxes[:, :2] < boxes[:, 2:4])
+            assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out["loss"], tf.Tensor)
     # Target checks
     target = [
-        np.array([[0, 0, 1, 1]], dtype=np.uint8),
-        np.array([[0, 0, 1, 1]], dtype=np.uint8),
+        {CLASS_NAME: np.array([[0, 0, 1, 1]], dtype=np.uint8)},
+        {CLASS_NAME: np.array([[0, 0, 1, 1]], dtype=np.uint8)},
     ]
     with pytest.raises(AssertionError):
         out = model(input_tensor, target, training=True)
 
     target = [
-        np.array([[0, 0, 1.5, 1.5]], dtype=np.float32),
-        np.array([[-0.2, -0.3, 1, 1]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0, 0, 1.5, 1.5]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[-0.2, -0.3, 1, 1]], dtype=np.float32)},
     ]
     with pytest.raises(ValueError):
         out = model(input_tensor, target, training=True)
 
     # Check the rotated case
     target = [
-        np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.65, 0.3, 0.3, 0]], dtype=np.float32),
-        np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.7, 0.3, 0.4, 0]], dtype=np.float32),
+        {CLASS_NAME: np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.65, 0.3, 0.3, 0]], dtype=np.float32)},
+        {CLASS_NAME: np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.7, 0.3, 0.4, 0]], dtype=np.float32)},
     ]
     loss = model(input_tensor, target, training=True)["loss"]
     assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 25e-2
@@ -136,7 +138,8 @@ def test_detection_zoo(arch_name):
     assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
-    assert all(isinstance(boxes, np.ndarray) and boxes.shape[1] == 5 for boxes in out)
+    assert all(isinstance(boxes, dict) for boxes in out)
+    assert all(isinstance(boxes[CLASS_NAME], np.ndarray) and boxes[CLASS_NAME].shape[1] == 5 for boxes in out)
 
 
 def test_detection_zoo_error():

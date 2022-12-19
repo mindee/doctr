@@ -5,7 +5,7 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -264,79 +264,96 @@ class _DBNet:
 
     def build_target(
         self,
-        target: List[np.ndarray],
-        output_shape: Tuple[int, int, int],
+        target: List[Dict[str, np.ndarray]],
+        output_shape: Tuple[int, int, int, int],
+        channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
 
-        if any(t.dtype != np.float32 for t in target):
+        if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
-        if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for t in target):
+        if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
 
-        input_dtype = target[0].dtype if len(target) > 0 else np.float32
+        input_dtype = next(iter(target[0].values())).dtype if len(target) > 0 else np.float32
 
-        seg_target: np.ndarray = np.zeros(output_shape, dtype=np.uint8)
-        seg_mask: np.ndarray = np.ones(output_shape, dtype=bool)
-        thresh_target: np.ndarray = np.zeros(output_shape, dtype=np.float32)
-        thresh_mask: np.ndarray = np.ones(output_shape, dtype=np.uint8)
+        if channels_last:
+            h, w = output_shape[1:-1]
+            target_shape = (output_shape[0], output_shape[-1], h, w)  # (Batch_size, num_classes, h, w)
+        else:
+            h, w = output_shape[-2:]
+            target_shape = output_shape  # (Batch_size, num_classes, h, w)
+        seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
+        seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
+        thresh_target: np.ndarray = np.zeros(target_shape, dtype=np.float32)
+        thresh_mask: np.ndarray = np.ones(target_shape, dtype=np.uint8)
 
-        for idx, _target in enumerate(target):
-            # Draw each polygon on gt
-            if _target.shape[0] == 0:
-                # Empty image, full masked
-                seg_mask[idx] = False
+        for idx, tgt in enumerate(target):
+            for class_idx, _tgt in enumerate(tgt.values()):
+                # Draw each polygon on gt
+                if _tgt.shape[0] == 0:
+                    # Empty image, full masked
+                    # seg_mask[idx, :, :, class_idx] = False
+                    seg_mask[idx, class_idx] = False
 
-            # Absolute bounding boxes
-            abs_boxes = _target.copy()
-            if abs_boxes.ndim == 3:
-                abs_boxes[:, :, 0] *= output_shape[-1]
-                abs_boxes[:, :, 1] *= output_shape[-2]
-                polys = abs_boxes
-                boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
-                abs_boxes = np.concatenate((abs_boxes.min(1), abs_boxes.max(1)), -1).round().astype(np.int32)
-            else:
-                abs_boxes[:, [0, 2]] *= output_shape[-1]
-                abs_boxes[:, [1, 3]] *= output_shape[-2]
-                abs_boxes = abs_boxes.round().astype(np.int32)
-                polys = np.stack(
-                    [
-                        abs_boxes[:, [0, 1]],
-                        abs_boxes[:, [0, 3]],
-                        abs_boxes[:, [2, 3]],
-                        abs_boxes[:, [2, 1]],
-                    ],
-                    axis=1,
-                )
-                boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
+                # Absolute bounding boxes
+                abs_boxes = _tgt.copy()
+                if abs_boxes.ndim == 3:
+                    abs_boxes[:, :, 0] *= w
+                    abs_boxes[:, :, 1] *= h
+                    polys = abs_boxes
+                    boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
+                    abs_boxes = np.concatenate((abs_boxes.min(1), abs_boxes.max(1)), -1).round().astype(np.int32)
+                else:
+                    abs_boxes[:, [0, 2]] *= w
+                    abs_boxes[:, [1, 3]] *= h
+                    abs_boxes = abs_boxes.round().astype(np.int32)
+                    polys = np.stack(
+                        [
+                            abs_boxes[:, [0, 1]],
+                            abs_boxes[:, [0, 3]],
+                            abs_boxes[:, [2, 3]],
+                            abs_boxes[:, [2, 1]],
+                        ],
+                        axis=1,
+                    )
+                    boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
-            for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
-                # Mask boxes that are too small
-                if box_size < self.min_size_box:
-                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                    continue
+                for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
+                    # Mask boxes that are too small
+                    if box_size < self.min_size_box:
+                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+                        continue
 
-                # Negative shrink for gt, as described in paper
-                polygon = Polygon(poly)
-                distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
-                subject = [tuple(coor) for coor in poly]
-                padding = pyclipper.PyclipperOffset()
-                padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                shrinked = padding.Execute(-distance)
+                    # Negative shrink for gt, as described in paper
+                    polygon = Polygon(poly)
+                    distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
+                    subject = [tuple(coor) for coor in poly]
+                    padding = pyclipper.PyclipperOffset()
+                    padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+                    shrinked = padding.Execute(-distance)
 
-                # Draw polygon on gt if it is valid
-                if len(shrinked) == 0:
-                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                    continue
-                shrinked = np.array(shrinked[0]).reshape(-1, 2)
-                if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                    seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                    continue
-                cv2.fillPoly(seg_target[idx], [shrinked.astype(np.int32)], 1)
+                    # Draw polygon on gt if it is valid
+                    if len(shrinked) == 0:
+                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+                        continue
+                    shrinked = np.array(shrinked[0]).reshape(-1, 2)
+                    if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
+                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+                        continue
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrinked.astype(np.int32)], 1)
 
-                # Draw on both thresh map and thresh mask
-                poly, thresh_target[idx], thresh_mask[idx] = self.draw_thresh_map(
-                    poly, thresh_target[idx], thresh_mask[idx]
-                )
+                    # Draw on both thresh map and thresh mask
+                    poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
+                        poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
+                    )
+        if channels_last:
+            seg_target = seg_target.transpose((0, 2, 3, 1))
+            seg_mask = seg_mask.transpose((0, 2, 3, 1))
+            thresh_target = thresh_target.transpose((0, 2, 3, 1))
+            thresh_mask = thresh_mask.transpose((0, 2, 3, 1))
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 

@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from doctr import datasets
 from doctr.datasets import DataLoader
+from doctr.file_utils import CLASS_NAME
 from doctr.transforms import Resize
 
 
@@ -66,11 +67,13 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     )
 
     assert len(ds) == 5
-    img, target = ds[0]
+    img, target_dict = ds[0]
+    target = target_dict[CLASS_NAME]
     assert isinstance(img, tf.Tensor)
     assert img.shape[:2] == input_size
     assert img.dtype == tf.float32
     # Bounding boxes
+    assert isinstance(target_dict, dict)
     assert isinstance(target, np.ndarray) and target.dtype == np.float32
     assert np.all(np.logical_and(target[:, :4] >= 0, target[:, :4] <= 1))
     assert target.shape[1] == 4
@@ -78,7 +81,9 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     loader = DataLoader(ds, batch_size=2)
     images, targets = next(iter(loader))
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
-    assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
+    assert isinstance(targets, list) and all(
+        isinstance(elt, np.ndarray) for target in targets for elt in target.values()
+    )
 
     # Rotated DS
     rotated_ds = datasets.DetectionDataset(
@@ -88,7 +93,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
         use_polygons=True,
     )
     _, r_target = rotated_ds[0]
-    assert r_target.shape[1:] == (4, 2)
+    assert r_target[CLASS_NAME].shape[1:] == (4, 2)
 
     # File existence check
     img_name, _ = ds.data[0]

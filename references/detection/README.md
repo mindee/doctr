@@ -57,7 +57,30 @@ labels.json
      ...
 }
 ```
+If you want to train a model with multiple classes, you can use the following format where polygons is a dictionnary where each key represents one class and has all the polygons representing that class.
 
+labels.json
+```shell
+{
+    "sample_img_01.png": {
+        'img_dimensions': (900, 600),
+        'img_hash': "theimagedumpmyhash",
+        'polygons': {
+            "class_name_1": [[[x10, y10], [x20, y20], [x30, y30], [x40, y40]], ...],
+            "class_name_2": [[[x11, y11], [x21, y21], [x31, y31], [x41, y41]], ...]
+        }
+    },
+    "sample_img_02.png": {
+        'img_dimensions': (900, 600),
+        'img_hash': "thisisahash",
+        'polygons': {
+            "class_name_1": [[[x12, y12], [x22, y22], [x32, y32], [x42, y42]], ...],
+            "class_name_2": [[[x13, y13], [x23, y23], [x33, y33], [x43, y43]], ...]
+        }
+    },
+    ...
+}
+```
 ## Advanced options
 
 Feel free to inspect the multiple script option to customize your training to your own needs!

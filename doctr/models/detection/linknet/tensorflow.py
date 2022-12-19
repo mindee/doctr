@@ -13,6 +13,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model, Sequential, layers
 
+from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
@@ -20,7 +21,6 @@ from doctr.utils.repr import NestedObject
 from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50", "linknet_resnet18_rotation"]
-
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "linknet_resnet18": {
@@ -79,7 +79,6 @@ class LinkNetFPN(Model, NestedObject):
         out_chans: int,
         in_shapes: List[Tuple[int, ...]],
     ) -> None:
-
         super().__init__()
         self.out_chans = out_chans
         strides = [2] * (len(in_shapes) - 1) + [1]
@@ -107,10 +106,10 @@ class LinkNet(_LinkNet, keras.Model):
     Args:
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
-        num_classes: number of output channels in the segmentation map
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
+        class_names: list of class names
     """
 
     _children_names: List[str] = ["feat_extractor", "fpn", "classifier", "postprocessor"]
@@ -119,13 +118,16 @@ class LinkNet(_LinkNet, keras.Model):
         self,
         feat_extractor: IntermediateLayerGetter,
         fpn_channels: int = 64,
-        num_classes: int = 1,
         bin_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = [CLASS_NAME],
     ) -> None:
         super().__init__(cfg=cfg)
+
+        self.class_names = class_names
+        num_classes: int = len(self.class_names)
 
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -165,7 +167,7 @@ class LinkNet(_LinkNet, keras.Model):
     def compute_loss(
         self,
         out_map: tf.Tensor,
-        target: List[np.ndarray],
+        target: List[Dict[str, np.ndarray]],
         gamma: float = 2.0,
         alpha: float = 0.5,
         eps: float = 1e-8,
@@ -178,17 +180,17 @@ class LinkNet(_LinkNet, keras.Model):
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
             gamma: modulating factor in the focal loss formula
             alpha: balancing factor in the focal loss formula
+            eps: epsilon factor in dice loss
 
         Returns:
             A loss tensor
         """
-        seg_target, seg_mask = self.build_target(target, out_map.shape[1:3])
-
+        seg_target, seg_mask = self.build_target(target, out_map.shape[1:], True)
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.cast(seg_mask, tf.float32)
 
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target, out_map, from_logits=True)[..., None]
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
         proba_map = tf.sigmoid(out_map)
 
         # Focal loss
@@ -200,19 +202,19 @@ class LinkNet(_LinkNet, keras.Model):
         # Unreduced loss
         focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
         # Class reduced
-        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2)) / tf.reduce_sum(seg_mask, (0, 1, 2))
+        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2, 3)) / tf.reduce_sum(seg_mask, (0, 1, 2, 3))
 
         # Dice loss
-        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2))
-        cardinality = tf.math.reduce_sum(seg_mask * (proba_map + seg_target), (0, 1, 2))
+        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2, 3))
+        cardinality = tf.math.reduce_sum((proba_map + seg_target), (0, 1, 2, 3))
         dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
-        return tf.reduce_mean(focal_loss) + tf.reduce_mean(dice_loss)
+        return focal_loss + dice_loss
 
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[np.ndarray]] = None,
+        target: Optional[List[Dict[str, np.ndarray]]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
@@ -234,7 +236,7 @@ class LinkNet(_LinkNet, keras.Model):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = [preds[0] for preds in self.postprocessor(prob_map.numpy())]
+            out["preds"] = [dict(zip(self.class_names, preds)) for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
             loss = self.compute_loss(logits, target)
@@ -252,12 +254,15 @@ def _linknet(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> LinkNet:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = _cfg.get("class_names", [CLASS_NAME])
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(

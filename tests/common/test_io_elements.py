@@ -3,6 +3,7 @@ from xml.etree.ElementTree import ElementTree
 import numpy as np
 import pytest
 
+from doctr.file_utils import CLASS_NAME
 from doctr.io import elements
 
 
@@ -41,6 +42,19 @@ def _mock_lines(size=(1, 1), offset=(0, 0)):
     ]
 
 
+def _mock_prediction(size=(1.0, 1.0), offset=(0, 0), confidence=0.9):
+    return [
+        elements.Prediction(
+            "hello", confidence, ((offset[0], offset[1]), (size[0] / 2 + offset[0], size[1] / 2 + offset[1]))
+        ),
+        elements.Prediction(
+            "world",
+            confidence,
+            ((size[0] / 2 + offset[0], size[1] / 2 + offset[1]), (size[0] + offset[0], size[1] + offset[1])),
+        ),
+    ]
+
+
 def _mock_blocks(size=(1, 1), offset=(0, 0)):
     sub_size = (size[0] / 4, size[1] / 4)
     return [
@@ -66,6 +80,25 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
         ),
         elements.Page(
             _mock_blocks(block_size, block_offset),
+            1,
+            (500, 1000),
+            {"value": 0.15, "confidence": 0.8},
+            {"value": "FR", "confidence": 0.7},
+        ),
+    ]
+
+
+def _mock_kie_pages(prediction_size=(1, 1), prediction_offset=(0, 0)):
+    return [
+        elements.KIEPage(
+            {CLASS_NAME: _mock_prediction(prediction_size, prediction_offset)},
+            0,
+            (300, 200),
+            {"value": 0.0, "confidence": 1.0},
+            {"value": "EN", "confidence": 0.8},
+        ),
+        elements.KIEPage(
+            {CLASS_NAME: _mock_prediction(prediction_size, prediction_offset)},
             1,
             (500, 1000),
             {"value": 0.15, "confidence": 0.8},
@@ -158,6 +191,32 @@ def test_artefact():
     assert artefact.__repr__() == f"Artefact(type='{artefact_type}', confidence={conf:.2})"
 
 
+def test_prediction():
+    prediction_str = "hello"
+    conf = 0.8
+    geom = ((0, 0), (1, 1))
+    prediction = elements.Prediction(prediction_str, conf, geom)
+
+    # Attribute checks
+    assert prediction.value == prediction_str
+    assert prediction.confidence == conf
+    assert prediction.geometry == geom
+
+    # Render
+    assert prediction.render() == prediction_str
+
+    # Export
+    assert prediction.export() == {"value": prediction_str, "confidence": conf, "geometry": geom}
+
+    # Repr
+    assert prediction.__repr__() == f"Prediction(value='hello', confidence={conf:.2}, bounding_box={geom})"
+
+    # Class method
+    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (0.5, 0.5))}
+    prediction = elements.Prediction.from_dict(state_dict)
+    assert prediction.export() == state_dict
+
+
 def test_block():
     geom = ((0, 0), (1, 1))
     sub_size = (geom[1][0] / 2, geom[1][0] / 2)
@@ -230,6 +289,53 @@ def test_page():
     assert img.shape == (*page_size, 3)
 
 
+def test_kiepage():
+    page_idx = 0
+    page_size = (300, 200)
+    orientation = {"value": 0.0, "confidence": 0.0}
+    language = {"value": "EN", "confidence": 0.8}
+    predictions = {CLASS_NAME: _mock_prediction()}
+    kie_page = elements.KIEPage(predictions, page_idx, page_size, orientation, language)
+
+    # Attribute checks
+    assert len(kie_page.predictions) == len(predictions)
+    assert all(isinstance(b, elements.Prediction) for b in kie_page.predictions[CLASS_NAME])
+    assert kie_page.page_idx == page_idx
+    assert kie_page.dimensions == page_size
+    assert kie_page.orientation == orientation
+    assert kie_page.language == language
+
+    # Render
+    assert kie_page.render() == "words: hello\n\nwords: world"
+
+    # Export
+    assert kie_page.export() == {
+        "predictions": {CLASS_NAME: [b.export() for b in predictions[CLASS_NAME]]},
+        "page_idx": page_idx,
+        "dimensions": page_size,
+        "orientation": orientation,
+        "language": language,
+    }
+
+    # Export XML
+    assert (
+        isinstance(kie_page.export_as_xml(), tuple)
+        and isinstance(kie_page.export_as_xml()[0], (bytes, bytearray))
+        and isinstance(kie_page.export_as_xml()[1], ElementTree)
+    )
+
+    # Repr
+    assert "\n".join(repr(kie_page).split("\n")[:2]) == f"KIEPage(\n  dimensions={repr(page_size)}"
+
+    # Show
+    kie_page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
+
+    # Synthesize
+    img = kie_page.synthesize()
+    assert isinstance(img, np.ndarray)
+    assert img.shape == (*page_size, 3)
+
+
 def test_document():
     pages = _mock_pages()
     doc = elements.Document(pages)
@@ -240,6 +346,32 @@ def test_document():
 
     # Render
     page_export = "hello world\nhello world\n\nhello world\nhello world"
+    assert doc.render() == f"{page_export}\n\n\n\n{page_export}"
+
+    # Export
+    assert doc.export() == {"pages": [p.export() for p in pages]}
+
+    # Export XML
+    assert isinstance(doc.export_as_xml(), list) and len(doc.export_as_xml()) == len(pages)
+
+    # Show
+    doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)
+
+    # Synthesize
+    img_list = doc.synthesize()
+    assert isinstance(img_list, list) and len(img_list) == len(pages)
+
+
+def test_kie_document():
+    pages = _mock_kie_pages()
+    doc = elements.KIEDocument(pages)
+
+    # Attribute checks
+    assert len(doc.pages) == len(pages)
+    assert all(isinstance(p, elements.KIEPage) for p in doc.pages)
+
+    # Render
+    page_export = "words: hello\n\nwords: world"
     assert doc.render() == f"{page_export}\n\n\n\n{page_export}"
 
     # Export

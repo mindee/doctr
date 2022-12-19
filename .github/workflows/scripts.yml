@@ -140,7 +140,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[torch] --upgrade
       - name: Run evaluation script
-        run: python scripts/evaluate.py db_resnet50 crnn_vgg16_bn --samples 10
+        run: |
+          python scripts/evaluate.py db_resnet50 crnn_vgg16_bn --samples 10
+          python scripts/evaluate_kie.py db_resnet50 crnn_vgg16_bn --samples 10
 
   test-collectenv:
     runs-on: ${{ matrix.os }}

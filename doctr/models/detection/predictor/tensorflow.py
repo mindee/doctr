@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import tensorflow as tf
@@ -38,7 +38,7 @@ class DetectionPredictor(NestedObject):
         self,
         pages: List[Union[np.ndarray, tf.Tensor]],
         **kwargs: Any,
-    ) -> List[np.ndarray]:
+    ) -> List[Dict[str, np.ndarray]]:
 
         # Dimension check
         if any(page.ndim != 3 for page in pages):
